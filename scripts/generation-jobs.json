@@ -1256,6 +1256,36 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-npc-scenes",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/npcScenes.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/npcScenes.ts",
+        "npcRestScenes",
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/npcScenes.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/npcScenes.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "shard": "driftwood-isle",
       "inputRoots": [
         "src/engine",
@@ -7906,6 +7936,42 @@
       }
     },
     {
+      "id": "nine-declarations",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
+        "src/shards/nine-dragon-stack/generators/audio.ts",
+        "src/shards/nine-dragon-stack/generators/clientMotion.ts",
+        "src/shards/nine-dragon-stack/data/audioSamples.json",
+        "src/shards/nine-dragon-stack/data/floorPlan.ts",
+        "src/shards/nine-dragon-stack/data/worldDressing.ts",
+        "src/sdk/clientChannels.ts",
+        "src/format",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/sdk/audio.ts"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/declarations.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/declarations.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "nine-layout",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs",
@@ -14120,6 +14186,153 @@
       "platform": "portable"
     },
     {
+      "id": "sky-ground-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/groundScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/groundScene.ts",
+        "skyGroundSource",
+        "src/shards/far-reach/data/groundScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/groundScene.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/generators/layout.ts",
+        "src/shards/far-reach/data/layout.generated.json",
+        "src/shards/far-reach/data/isleLook.ts",
+        "src/shards/far-reach/data/skyIsles.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/knolls.json",
+        "src/format/clientChannels.ts",
+        "src/format/json.ts",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/skyLook.ts",
+        "src/shards/far-reach/data/skyMapSources.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/groundScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/groundScene.generated.ts"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "sky-route-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/routeScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/routeScene.ts",
+        "skyRouteSource",
+        "src/shards/far-reach/data/routeScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/routeScene.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/layout.ts",
+        "src/shards/far-reach/data/layout.generated.json",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/restScenes.generated.json",
+        "src/shards/far-reach/data/bridgeRest.generated.json",
+        "src/shards/far-reach/data/moverBindings.ts",
+        "src/shards/far-reach/data/flags.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/routeScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/routeScene.generated.ts"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "sky-mill-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/millScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/millScene.ts",
+        "millSceneSource",
+        "src/shards/far-reach/data/millScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/millScene.ts",
+        "src/shards/far-reach/data/millModel.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/millScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/millScene.generated.ts"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "sky-crown-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/crownScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/crownScene.ts",
+        "crownSceneSource",
+        "src/shards/far-reach/data/crownScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/crownScene.ts",
+        "src/shards/far-reach/data/crownInstances.generated.json",
+        "src/shards/far-reach/generators/layout.ts",
+        "src/shards/far-reach/data/layout.generated.json",
+        "src/shards/far-reach/data/strings.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/crownScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/crownScene.generated.ts"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "sky-world-rows",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/worldRows.ts",
@@ -14408,90 +14621,6 @@
       }
     },
     {
-      "id": "sky-ground-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/groundScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/groundScene.ts",
-        "skyGroundSource",
-        "src/shards/far-reach/data/groundScene.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/groundScene.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/isleLook.ts",
-        "src/shards/far-reach/data/skyIsles.ts",
-        "src/shards/far-reach/data/strings.ts",
-        "src/shards/far-reach/data/isletDesign.ts",
-        "src/shards/far-reach/data/knolls.json",
-        "src/format/clientChannels.ts",
-        "src/format/json.ts",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/entries.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/data/skyLook.ts",
-        "src/shards/far-reach/data/skyMapSources.json"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/groundScene.generated.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/groundScene.generated.ts"
-      ],
-      "platform": "portable"
-    },
-    {
-      "id": "sky-route-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/routeScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/routeScene.ts",
-        "skyRouteSource",
-        "src/shards/far-reach/data/routeScene.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/routeScene.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.ts",
-        "src/shards/far-reach/data/isletDesign.ts",
-        "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/data/bridgeRest.generated.json",
-        "src/shards/far-reach/data/moverBindings.ts",
-        "src/shards/far-reach/data/flags.json"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/routeScene.generated.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/routeScene.generated.ts"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-declaration",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/product.ts",
@@ -14712,69 +14841,6 @@
       "buildTimeOutputs": [
         "src/shards/sunscar-dunes/data/worldBakes.generated.json"
       ]
-    },
-    {
-      "id": "sky-mill-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/millScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/millScene.ts",
-        "millSceneSource",
-        "src/shards/far-reach/data/millScene.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/millScene.ts",
-        "src/shards/far-reach/data/millModel.json"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/millScene.generated.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/millScene.generated.ts"
-      ],
-      "platform": "portable"
-    },
-    {
-      "id": "sky-crown-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/crownScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/crownScene.ts",
-        "crownSceneSource",
-        "src/shards/far-reach/data/crownScene.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/crownScene.ts",
-        "src/shards/far-reach/data/crownInstances.generated.json",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/crownScene.generated.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/crownScene.generated.ts"
-      ],
-      "platform": "portable"
     },
     {
       "id": "sky-rest-books",
@@ -15057,6 +15123,42 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-creature-bodies",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
+        "src/shards/driftwood-isle/generators/creatureBodies.ts",
+        "public/assets/models/driftwood-hero/faces/sailor-head.glb",
+        "public/assets/models/driftwood-hero/captain/captain.glb",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/format",
+        "scripts/bake-loader.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
+        "src/shards/driftwood-isle/data/creatureBodies.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
+        "src/shards/driftwood-isle/data/creatureBodies.generated.json"
+      ],
+      "platform": "native"
+    },
+    {
       "id": "driftwood-island-dressing",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-island-dressing.mjs",
@@ -15255,42 +15357,6 @@
         "public/assets/models/driftwood-blender/geometry.bin"
       ],
       "seedOutputs": [],
-      "platform": "native"
-    },
-    {
-      "id": "driftwood-creature-bodies",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
-        "src/shards/driftwood-isle/generators/creatureBodies.ts",
-        "public/assets/models/driftwood-hero/faces/sailor-head.glb",
-        "public/assets/models/driftwood-hero/captain/captain.glb",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/format",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
-        "src/shards/driftwood-isle/data/creatureBodies.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
-        "src/shards/driftwood-isle/data/creatureBodies.generated.json"
-      ],
       "platform": "native"
     },
     {
@@ -15949,36 +16015,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-npc-scenes",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/npcScenes.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/npcScenes.ts",
-        "npcRestScenes",
-        "src/shards/driftwood-isle/data/npcScenes.generated.json"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/npcScenes.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/npcScenes.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/npcScenes.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "pine-hollow-elite-rows",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-elite-rows.mjs",
@@ -16066,6 +16102,91 @@
         "src/shards/pine-hollow/data/boot-poses.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "nalati-people",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-people.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-people.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-people.mjs",
+        "src/shards/nalati-grasslands/generators/peopleRig.ts",
+        "src/shards/nalati-grasslands/data/peopleFrames.json",
+        "public/assets/nalati/models/people",
+        "src/sdk/bake/skinned.ts",
+        "src/sdk/package.json",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/bake/source-loader.mjs"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/people/camp.glb",
+        "public/assets/nalati/baked/people/camp.phone.glb",
+        "public/assets/nalati/baked/people/child.glb",
+        "public/assets/nalati/baked/people/child.phone.glb",
+        "public/assets/nalati/baked/people/cook.glb",
+        "public/assets/nalati/baked/people/cook.phone.glb",
+        "public/assets/nalati/baked/people/elder.glb",
+        "public/assets/nalati/baked/people/elder.phone.glb",
+        "public/assets/nalati/baked/people/herderGate.glb",
+        "public/assets/nalati/baked/people/herderGate.phone.glb",
+        "public/assets/nalati/baked/people/herderRail.glb",
+        "public/assets/nalati/baked/people/herderRail.phone.glb",
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "public/assets/nalati/baked/people/camp.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+        "public/assets/nalati/baked/people/camp.phone.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+        "public/assets/nalati/baked/people/child.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
+        "public/assets/nalati/baked/people/child.phone.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
+        "public/assets/nalati/baked/people/cook.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
+        "public/assets/nalati/baked/people/cook.phone.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
+        "public/assets/nalati/baked/people/elder.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
+        "public/assets/nalati/baked/people/elder.phone.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
+        "public/assets/nalati/baked/people/herderGate.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
+        "public/assets/nalati/baked/people/herderGate.phone.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
+        "public/assets/nalati/baked/people/herderRail.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
+        "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "9fe64f78b5e8b8a2ee01b7d00c50b8c3b3e45c1f82fc22eff599aca98ad015ea"
+      }
+    },
+    {
+      "id": "nalati-people-fallback",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json": "6b01d0600f1cb151ac247083ec8b40f62772de7608aaca62bc058be250549c00"
+      }
     },
     {
       "id": "nalati-dressing-plan",
@@ -16368,42 +16489,6 @@
       ]
     },
     {
-      "id": "nine-declarations",
-      "shard": "nine-dragon-stack",
-      "entry": "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
-        "src/shards/nine-dragon-stack/generators/audio.ts",
-        "src/shards/nine-dragon-stack/generators/clientMotion.ts",
-        "src/shards/nine-dragon-stack/data/audioSamples.json",
-        "src/shards/nine-dragon-stack/data/floorPlan.ts",
-        "src/shards/nine-dragon-stack/data/worldDressing.ts",
-        "src/sdk/clientChannels.ts",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/audio.ts"
-      ],
-      "outputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nine-boot-metadata",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-boot-metadata.mjs",
@@ -16672,91 +16757,6 @@
         "src/shards/sunscar-dunes/data/questPage.generated.json"
       ],
       "platform": "portable"
-    },
-    {
-      "id": "nalati-people",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-people.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-people.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-people.mjs",
-        "src/shards/nalati-grasslands/generators/peopleRig.ts",
-        "src/shards/nalati-grasslands/data/peopleFrames.json",
-        "public/assets/nalati/models/people",
-        "src/sdk/bake/skinned.ts",
-        "src/sdk/package.json",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/bake/source-loader.mjs"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/people/camp.glb",
-        "public/assets/nalati/baked/people/camp.phone.glb",
-        "public/assets/nalati/baked/people/child.glb",
-        "public/assets/nalati/baked/people/child.phone.glb",
-        "public/assets/nalati/baked/people/cook.glb",
-        "public/assets/nalati/baked/people/cook.phone.glb",
-        "public/assets/nalati/baked/people/elder.glb",
-        "public/assets/nalati/baked/people/elder.phone.glb",
-        "public/assets/nalati/baked/people/herderGate.glb",
-        "public/assets/nalati/baked/people/herderGate.phone.glb",
-        "public/assets/nalati/baked/people/herderRail.glb",
-        "public/assets/nalati/baked/people/herderRail.phone.glb",
-        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "public/assets/nalati/baked/people/camp.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
-        "public/assets/nalati/baked/people/camp.phone.glb": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
-        "public/assets/nalati/baked/people/child.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
-        "public/assets/nalati/baked/people/child.phone.glb": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
-        "public/assets/nalati/baked/people/cook.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
-        "public/assets/nalati/baked/people/cook.phone.glb": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
-        "public/assets/nalati/baked/people/elder.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
-        "public/assets/nalati/baked/people/elder.phone.glb": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
-        "public/assets/nalati/baked/people/herderGate.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
-        "public/assets/nalati/baked/people/herderGate.phone.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
-        "public/assets/nalati/baked/people/herderRail.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
-        "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
-        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "9fe64f78b5e8b8a2ee01b7d00c50b8c3b3e45c1f82fc22eff599aca98ad015ea"
-      }
-    },
-    {
-      "id": "nalati-people-fallback",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json": "6b01d0600f1cb151ac247083ec8b40f62772de7608aaca62bc058be250549c00"
-      }
     },
     {
       "id": "nine-world-install",
