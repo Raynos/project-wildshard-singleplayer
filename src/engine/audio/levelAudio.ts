@@ -39,6 +39,7 @@ export interface AudioCatalogueExtras {
  * without changing recordings, gains, the decoder, sound clocks or randomness.
  */
 export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalogueExtras): Promise<LevelAudioProfile> {
+  if(data.music?.setCatalogue!==undefined)return createScoreSetAudio(data);
   let catalogueExtras=extras;
   if(catalogueExtras===undefined&&data.bank?.catalogue!==undefined){
     const {declaredCatalogue}=await import('./declaredBank');
@@ -84,6 +85,43 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
         ...(getSfxSet() === 'synth' || catalogueExtras === undefined ? [] : [catalogueExtras.decode(read, onFile)]),
       ]);
       return { title, samples: bank, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };
+    },
+  };
+}
+
+/** A declared score set retains the native title, counted decode and optional cue overlay order. */
+async function createScoreSetAudio(data:AudioData):Promise<LevelAudioProfile> {
+  const music=data.music,samples=data.samples,policy=music?.setCatalogue,set=music?.source;
+  if(music===undefined||samples===undefined||policy===undefined||set===undefined||set===null)throw new Error('Missing score set catalogue');
+  const [{audioFiles},{musicManifest,shipped,styleFiles,decodeStyle},{scoreFiles,decodeScore},{cueFiles,decodeCueSet},{sfxFiles,decodeSfxSet},{MUSIC_STYLES,getSfxSet}]=await Promise.all([
+    import('../boot/audioFiles'),import('./Stems'),import('./SetScore'),import('./Cues'),import('./preload'),import('../ui/Settings'),
+  ]);
+  const slots=music.bootSlots.filter(slot=>slot!=='title');
+  const titleFiles=(genre:MusicStyle):string[]=>{
+    if(policy.inventory==='base')return styleFiles(genre,['title']);
+    const title=musicManifest(genre)?.slots['title'];return title?[`/assets/music/${genre}/${title.calm}`].filter(shipped):[];
+  };
+  const scoreSlots=(genre:MusicStyle):readonly string[]=>genre==='synth'&&!policy.bootSynth?[]:slots;
+  const bootScore=(genre:MusicStyle):string[]=>genre==='synth'&&!policy.bootSynth?[]:scoreFiles(set,slots);
+  const useCues=():boolean=>!policy.cueOverlay||getSfxSet()!=='synth';
+  return {
+    files:()=>{const base=policy.inventory==='base'?audioFiles():{music:MUSIC_STYLES.flatMap(titleFiles),sfx:[]};return {music:[...base.music,...scoreFiles(set)],sfx:[...base.sfx,...cueFiles(samples.set)]};},
+    ...(policy.priority?{priorityFiles:()=>[...scoreFiles(set),...cueFiles(samples.set)]}:{}),
+    bootFiles:style=>[...titleFiles(style),...(policy.baseSamples?sfxFiles(getSfxSet(),samples.bed):[]),
+      ...(policy.cueOverlay?(useCues()?cueFiles(samples.set):[]):bootScore(style)),
+      ...(policy.cueOverlay?bootScore(style):cueFiles(samples.set))],
+    decode:async(genre,read,decode,onFile)=>{
+      const [title,score,cues,bank]=await Promise.all([
+        decodeStyle(genre,['title'],read,decode,onFile,'base',policy.titleStings?undefined:[]).catch(()=>undefined),
+        decodeScore(set,scoreSlots(genre),read,decode,policy.bootSynth||genre!=='synth',onFile),
+        useCues()?decodeCueSet(samples.set,read,decode,onFile):Promise.resolve<CueBank>({loops:new Map(),shots:new Map()}),
+        policy.baseSamples?decodeSfxSet(getSfxSet(),samples.bed,read,onFile,decode):Promise.resolve(undefined),
+      ]);
+      if(policy.cueOverlay&&bank!==undefined){
+        for(const [id,loop] of cues.loops)bank.loops.set(id.slice(id.indexOf('.')+1),loop);
+        for(const [id,clips] of cues.shots)bank.shots.set(id,{bufs:clips.map(clip=>clip.buffer),gain:clips[0]?.gain??1});
+      }
+      return {title,score,cues,...(bank===undefined?{}:{samples:bank})};
     },
   };
 }

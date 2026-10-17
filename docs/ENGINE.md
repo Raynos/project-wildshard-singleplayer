@@ -8004,6 +8004,22 @@ temporary product scope, releases it before returning, and keeps only plain
 catalogue rows. Recording order, style selection and the shared sprite cache
 continue through `createCatalogueAudio`.
 
+Score-set catalogues use `music.setCatalogue` on the same reader. `inventory`
+selects the full base inventory or title-only inventory; `priority` controls
+own-score download priority. `bootSynth`, `titleStings`, `baseSamples` and
+`cueOverlay` retain the native Synth gates, title stings, base SFX decode and
+cue-bank overlay order. Nalati and Nine Dragon both use this data path; no
+shard audio-files adapter or extra PCM copy is needed.
+
+`SetScore.declared(profile, music, optionalIO)` reads
+`music.setPlayback`: the initial scalar `scene`, optional music `stateMode`
+input, and `waitForBank` latch. It keeps SetScore's resident-slot limit,
+failed-slot fallback, decode clock and cancellation behavior. Mutable scene
+observations remain with the native listener owner; ordered selection and
+initial state live in the admitted audio section. Optional IO lends isolated
+read/decode ports for proofs; normal playback borrows the cached native reader
+and decoder and refreshes the supplied music owner directly.
+
 ### Declared cable traversal (G466 C7)
 
 `@wildshard/engine/sim/cableTraversal.CableTraversal` binds admitted `state/modes`

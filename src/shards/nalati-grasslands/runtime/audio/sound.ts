@@ -9,7 +9,8 @@ import { CombatCues } from '@wildshard/engine/combat/cues';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { createSteppeScore, type SteppeScene } from './SteppeScore';
+import { SetScore } from '@wildshard/engine/audio/SetScore';
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
  * grassland bed (wind in the grass by gust strength, the Kunes, the waterfall, the camp stove, larks / crickets), the
@@ -41,10 +42,6 @@ import source from '../../shard.config';
 
 import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
-
-import { nalatiCombatCues } from './combatCues';
-
-
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;
@@ -115,10 +112,11 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
 
   // ── the kit: the bow's twang carries the draw's power; the spear's thrust vs throw is known only after onFire ──
   let thrustPending = false;
-  const cues = new CombatCues(nalatiCombatCues({ ready: () => audio !== null, voices: () => voices, thrust: () => {
+  const cues = new CombatCues();
+  const thrust = { start: (): void => {
     thrustPending = true;
     queueMicrotask(() => { if (thrustPending) { thrustPending = false; voices?.spearThrust(); } });
-  } }, audioRows.routing));
+  } };
   let manager: AnimalManager | null = null;
   ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
   ctx.on('weapon.charge', ({ id, phase, value }) => {
@@ -135,11 +133,11 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
   // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
   let chorusT = 20, bedT = 0;
   let amb: SteppeAmbience | null = null;
-  let score: ReturnType<typeof createSteppeScore> | undefined;
+  let score: ReturnType<typeof SetScore.declared> | undefined;
   let refresh = (): void => { /* Bound alongside the score. */ };
-  const setScene = (scene: Partial<SteppeScene>): void => {
+  const setScene = (patch: Readonly<Record<string,number|boolean|string|null>>): void => {
     if (!score) return;
-    const before = JSON.stringify(score.scene); Object.assign(score.scene, scene);
+    const before = JSON.stringify(score.scene); Object.assign(score.scene, patch);
     if (JSON.stringify(score.scene) !== before) refresh();
   };
   const chorus = (): void => {
@@ -161,6 +159,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
         audio = a;
         a.hoofSurfaceAt = hoofSurfaceAt;
         voices = installSteppeVoices(a, scope, hoofSurfaceAt);
+        cues.use(createCueRouter(audioRows.routing, { voices: new Map(), bindings: audioRows.voiceBindings, owners: new Map<string, object>([['voices', voices], ['thrust', thrust]]) }), scope);
         // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
         // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
         let animalSound: AnimalManager['onSound'];
@@ -177,7 +176,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
         a.setAmbient(STEPPE_BED);
         // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
         if (music) {
-          score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); }, musicProfile);
+          score = SetScore.declared(musicProfile, music);
           refresh = () => { music.refreshScore(); };
           const release = music.setScore(musicProfile.id, score);
           scope.onDispose(release);

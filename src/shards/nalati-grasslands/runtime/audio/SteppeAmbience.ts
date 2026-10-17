@@ -28,9 +28,10 @@ import { Rng, fnv1a32 } from '@wildshard/engine/core/rng';
  */
 import { Vector3 } from 'three';
 import { steppeVoices } from './synth';
-import type { SteppeZone } from './SteppeScore';
 import { requireAudioProfile, requireAudioLevel, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
+
+type SteppeZone = 'grass' | 'sky' | 'snow';
 
 const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
 

@@ -1,10 +1,12 @@
-import type { AudioAmbienceLifecycle, AudioScorePin, AudioObservationSystem, AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { AudioMusic, AudioAmbienceLifecycle, AudioScorePin, AudioObservationSystem, AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
 export interface AudioSampleProfile { set: string; bed: string; loopGains: Readonly<Record<string, number>>; omitLoops?: readonly string[] | undefined; omitShots?: readonly string[] | undefined; omitSlots?: readonly string[] | undefined }
 /** Existing music catalogue and bounded scene selection; stem decoding and bar-grid playback remain engine-owned. */
 export interface AudioMusicProfile {
+  setPlayback?:AudioMusic['setPlayback'];
+  setCatalogue?:AudioMusic['setCatalogue'];
   id: string; base: string; slots: readonly string[]; bootSlots: readonly string[]; synthLead: 'pluck' | 'marimba'; minFade: number;
   lifecycle?:{persistent:boolean;dispose:boolean;logChanges:boolean;debugPin?:AudioScorePin;bossScene?:string;deckSting?:{exceptSlot:string;delay:number};pins:Readonly<Record<string,{scene?:string;phase?:1|2|3;sting?:'chunk'|'death'|'pickup'|'dawn'}>>};
   source: { dir: string; manifestKey: string } | null; sets: Readonly<Record<string, string>>;

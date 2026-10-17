@@ -50,6 +50,8 @@ export type AudioScorePin = v.InferOutput<typeof AudioScorePinSchema>;
 
 /** Bounded music catalogue selection; the engine keeps today's bar-grid calm/tension/boss stem decoding. */
 export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
+  setPlayback:v.exactOptional(v.strictObject({scene:v.pipe(v.record(id,scalar),v.check(rows=>Object.keys(rows).length<=16)),stateMode:v.boolean(),waitForBank:v.boolean()})),
+  setCatalogue:v.exactOptional(v.strictObject({inventory:v.picklist(['base','title']),priority:v.boolean(),bootSynth:v.boolean(),titleStings:v.boolean(),baseSamples:v.boolean(),cueOverlay:v.boolean()})),
   lifecycle:v.exactOptional(v.strictObject({persistent:v.boolean(),dispose:v.boolean(),logChanges:v.boolean(),debugPin:v.exactOptional(AudioScorePinSchema),bossScene:v.exactOptional(id),
     deckSting:v.exactOptional(v.strictObject({exceptSlot:id,delay:v.pipe(finite,v.minValue(0),v.maxValue(60))})),
     pins:v.pipe(v.record(id,v.strictObject({scene:v.exactOptional(id),phase:v.exactOptional(v.picklist([1,2,3])),sting:v.exactOptional(v.picklist(['chunk','death','pickup','dawn']))})),v.check(rows=>Object.keys(rows).length<=32))})),

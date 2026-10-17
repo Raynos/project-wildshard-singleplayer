@@ -8,7 +8,7 @@ import { lanternAudioPositions } from '../../look/lanterns';
 import { requireAudioProfile, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 import { ndCueMap, bindTraversalCue } from './cues';
-import { ndScore } from './files';
+
 
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nd');
 
@@ -36,11 +36,11 @@ export async function installAudio(ctx: ShardContext): Promise<void> {
   const profile = requireAudioProfile(rows.zones, 'ambience.nd'), musicProfile = requireAudioProfile(rows.music, 'score.nd');
   const bedsRows = requireAudioProfile(profile.beds, 'nd.beds'), positional = requireAudioProfile(profile.positional, 'nd.positional');
   const zones = prepareNdZones(profile);
-  const [{ AmbienceBeds, PositionalLoops }, { CuePlayer }] = await Promise.all([import('@wildshard/engine/audio/AmbienceBeds'), import('@wildshard/engine/audio/Cues')]);
+  const [{ AmbienceBeds, PositionalLoops }, { CuePlayer }, { SetScore }] = await Promise.all([import('@wildshard/engine/audio/AmbienceBeds'), import('@wildshard/engine/audio/Cues'), import('@wildshard/engine/audio/SetScore')]);
   const audio = ctx.app.audio;
   if (audio?.music === null || audio === null) throw new Error('Nine Dragon kit needs the audio/music service');
   const music = audio.music, random = (): number => ctx.app.rng.stream('cosmetic').next();
-  const score = await ndScore(() => { music.refreshScore(); }, musicProfile);
+  const score = SetScore.declared(musicProfile, music);
   const player = new CuePlayer(audio, ctx.scope, random), map = ndCueMap(player, random, rows.routing);
   ctx.scope.onDispose(music.setScore(musicProfile.id, score));
   ctx.scope.onDispose(() => { score.dispose(); });
@@ -71,7 +71,7 @@ export async function installAudio(ctx: ShardContext): Promise<void> {
     const pos = listener;
     if (pos === null) return;
     const weights = zones(pos), well = weights['well'] ?? 0;
-    if (score.scene.well !== well) { score.scene.well = well; music.refreshScore(); }
+    if (score.scene['well'] !== well) { score.scene['well'] = well; music.refreshScore(); }
     beds.update(pos);
     eye.copy(pos); eye.y += 1.68; hums.update(eye, audio.listenerYaw);
     if (!audio.ready || audio.worldMuted || well <= 0.5) return;

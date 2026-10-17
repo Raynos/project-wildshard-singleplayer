@@ -87,6 +87,14 @@ export interface SetScoreOptions<Scene> extends ScoreSet {
 }
 /** One score set; only the playing and wanted slots retain PCM across scene changes. */
 export class SetScore<Scene> implements ScoreSource {
+  /** Bind admitted scene defaults and music-state selection to the existing set decoder. */
+  static declared(profile:AudioMusicProfile,music:Pick<Music,'refreshScore'>,io?:{read:AudioRead;decode:AudioDecode}):SetScore<Record<string,number|boolean|string|null>> {
+    const source=profile.source,policy=profile.setPlayback;
+    if(source===null||policy===undefined)throw new Error('Missing declared score set');
+    const ports=io??{read:(url:string)=>import('./preload').then(({cachedBytes})=>cachedBytes(url)),decode:(bytes:ArrayBuffer)=>import('./preload').then(({decodeBytes})=>decodeBytes(bytes))};
+    return new SetScore({...source,...ports,onReady:()=>{music.refreshScore();},minFade:profile.minFade,synthLead:profile.synthLead,scene:{...policy.scene},waitForBank:policy.waitForBank,
+      pick:(scene,state)=>selectScoreSlots(profile.selection,profile.selectMode,{...scene,...(policy.stateMode?{mode:state?.mode??null}:{})})});
+  }
   readonly scene: Scene;
   readonly minFade?: number;
   readonly synthLead?: 'pluck' | 'marimba';
