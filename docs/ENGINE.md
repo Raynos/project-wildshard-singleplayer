@@ -5416,6 +5416,29 @@ fog colour as vec3 (black when there is no fog). It is a uniform input
 available to vertex, surface and post work; it adds no fog owner, clock
 or colour conversion, and remains separate from the fog epilogue.
 
+**Shard-declared fog graphs (O11).** A look catalogue entry may be a
+`kind: 'fog'` graph: the shard's own fog as data, one stage
+`stages.fog.colour` (vec3) in the `fog` place. Its inputs are `fogInput`
+(the colour reaching the fog, after the output transform), `engineFogged`
+(the engine fog's result for it), `fogScale` (the material's
+`vertex.scale.fog`, else 1), `positionWorld` and `cameraPosition` (the
+fog's frame), plus its params, lists, lent textures and the safe maths;
+alpha passes through. A material graph selects it with
+`effectState.fog: '<catalogue id>'` (`false` still bypasses fog). The
+compiler builds the fog graph once (an inert carrier material keeps its
+`setParam` / `setTexture` / `setLentParam` by catalogue id and its bound
+params on the day feeds) and hands its patch to each selecting material
+through `fogPatches.ownMaterialNodeFog`, so the engine epilogue runs it
+instead of the engine fog, for the material and its outline hull. One
+program per fog per compile (the program key carries it); a region's
+`bindMaterialNodeFog` still overrides it while bound. The fog graph is
+costed under its own budget and adds to each selecting program.
+`materialGraphRules` refuses a selection that names no inline fog graph.
+Users: Nalati's painted fog `nalati-fog` (the grass, water and puddles;
+`look/fog.ts syncPaintedFog` writes the air and tint each frame) and Nine
+Dragon's silk fog `nine-silk-fog` (the Well's mist sheets; `look/render.ts`
+writes the shared rows at every eye write).
+
 `engine/audio/interactSfx.InteractSfx.bindEvents(rows, ports)` preflights
 bounded first-match kit-event presentation. Selectors match event types,
 definition kind/look and flag prefix. Ordered effects call a named lent
