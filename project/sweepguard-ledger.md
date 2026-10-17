@@ -146,3 +146,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 21:09 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/land.py > tmp/c9-repair/land.log 2>&1`
 - 2026-10-16 21:10 · wT:pE · `git diff --name-only 2cf02e87a HEAD; SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/candidate.py && SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/land.py > tmp/c9-repair/land.log 2>&1`
 - 2026-10-16 21:16 · wT:p5 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE="$PWD/tmp/sp-x5-directors/index" git commit-tree "$(cat tmp/sp-x5-directors/tree)" -p "$(cat tmp/sp-x5-directors/base)" -F tmp/sp-x5-directors/message > tmp/sp-x5-dire`
+- 2026-10-16 21:20 · wT:p5 · `SKIP_SWEEPGUARD=1 GIT_INDEX_FILE="$PWD/tmp/sp-x5-directors/index" git commit-tree "$(cat tmp/sp-x5-directors/tree)" -p "$(cat tmp/sp-x5-directors/base)" -F tmp/sp-x5-directors/message > tmp/sp-x5-dire`
