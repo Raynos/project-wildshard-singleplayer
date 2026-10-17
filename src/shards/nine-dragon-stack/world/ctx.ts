@@ -4,7 +4,6 @@ import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
 import type { Emitter } from '../runtime/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
-import { KitX } from './hero/kitx';
 import { KitSet } from '../runtime/kit/kitSet';
 import type { DrawnCopy } from '../runtime/kit/drawnInto';
 import type { SignSink } from '../look/signs';
@@ -26,7 +25,7 @@ export type InKit = DrawnCopy<Kit>;
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 
 /** the build context: the named kits (the SDK's kit set: `kit`, `alpha`, `kitx`, `far`, `cell`) and the layout's records */
-export class Ctx extends KitSet<Kit, KitX> {
+export class Ctx extends KitSet<Kit, Kit> {
   /** the TRELLIS crowd: walkers (umbrellas) and mahjong sitters, instanced by main.ts */
   readonly walkers: Matrix4[] = [];
   readonly sitters: Matrix4[] = [];
@@ -51,7 +50,7 @@ export class Ctx extends KitSet<Kit, KitX> {
   readonly signs: SignSink;
 
   constructor(signs: SignSink) {
-    super(() => new Kit(), () => new KitX());
+    super(() => new Kit(), () => new Kit());
     this.signs = signs;
   }
 

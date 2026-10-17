@@ -11,7 +11,6 @@ import { Box3, type BufferGeometry, Color, Matrix4, Vector3, Vector4 } from 'thr
 import * as v from 'valibot';
 import type { Ctx, InKit } from './ctx';
 import { Kit } from './kit';
-import { KitX } from './hero/kitx';
 import { isPiece } from './facade/pieceIds';
 import type { SignPlace, SignSink } from '../look/signs';
 import { restoreQueued } from './props3d';
@@ -147,12 +146,11 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   const byName = new Map<string, Kit>();
   for (const k of r.kits) {
     const kit = k.geo === null ? new Kit() : Kit.fromBake(bake.geometry(k.geo));
-    kit.compact = k.compact;
     ctx.kits.set(k.name, kit);
     byName.set(k.name, kit);
   }
   for (const k of r.alphaKits) ctx.alphaKits.set(k.name, Kit.fromBake(bake.geometry(k.geo)));
-  for (const k of r.kitxs) ctx.kitxs.set(k.name, KitX.fromBake(bake.geometry(k.geo)));
+  for (const k of r.kitxs) ctx.kitxs.set(k.name, Kit.fromBake(bake.geometry(k.geo)));
   for (const name of r.reflective) ctx.reflective.add(name);
   for (const [name, m] of r.farOf) ctx.far(name, m);
   const c = r.counts;

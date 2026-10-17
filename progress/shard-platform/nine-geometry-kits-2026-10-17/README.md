@@ -79,3 +79,63 @@ and its 13,438-byte WebP has RGBA hash
 The neon landing changed the mapped world inputs, so its official map
 supersedes the earlier glyph/tangent bake. The final map browser, portrait
 browser and all three task-owned previews were closed afterward.
+
+## Part two: fixed ruled and swept geometry
+
+The ruled and swept runtime writers, generated-prop converter, deck author,
+hip-roof author and guard-frame wrapper are removed as whole files. The
+existing rest-pool host reads their exact prepared geometry. The runtime
+`Kit` only owns a baked draw; its primitive-writing API is gone. The small
+existing `hero/kitx.ts` module retains only the original geometry merge.
+No engine, game or SDK host is added or extended.
+
+| Former caller | Complete data replacement |
+| --- | --- |
+| `world/entries.ts` | `entries-open` and `entries-capped` packs: all four fixed frames, in original append order; eight cap lantern matrices replay only in standalone |
+| `world/build.ts` sign slots | One reachable `Rng(4242)` sequence over the published layout's early then late slots and the unchanged word inventory; 90 face calls and the original non-tube boards |
+| Crowd | Four packs: walker/sitter × dark/light; existing umbrella dyes and distance LODs still operate on the identical buffers |
+| Lion | One fixed granite-ramp pack; existing LOD processing is unchanged |
+| Jian guard | One fixed bounds-derived fit, AO/wash and back-clipped pack; the original runtime lift and fallback remain |
+| Layout ruled/swept draws | Direct ownership of the existing layout buffers, without primitive authoring or repacking |
+| Hook course | Unchanged: its room uses DevKit, and its timing/checkpoints stay live |
+
+The retained author is `generators/bake-casts.mjs`, registered as
+`nine-casts`. Its nine GLBs and sign/lantern JSON are cheap build outputs,
+rebuilt through generation rather than committed binaries. The sign bake
+reads the published layout rows: recomputing the layout's doubles changed
+a normal by about 3.5e-27 even though the float32 board buffers matched.
+
+`test/scripts/nine-casts.test.ts` compares every vertex/index byte, storage type,
+width, normalization, count and original bound against fixtures captured
+from parent `d398e258e`'s actual runtime writers. It also checks all sign
+rows and lantern matrices, including signed zero, and exercises the real
+existing rest-pool reader. The separate Jian fallback tests retain its
+failed-load behavior and guard lift.
+
+Geometry residency is unchanged: the six prop buffers total 5,620,524
+bytes. With sign boards and the active deck variant the total is
+6,311,356 bytes standalone or 5,707,644 bytes in a grid cell, before and
+after. The host lends the decoded buffers themselves; no second template
+copy is retained. Runtime JS construction arrays are removed. This is
+buffer accounting, not a native process-RSS measurement.
+
+The official map refresh uses the verified production preview; its final
+source stamp is
+`93f1c9c4c27920546d5e8bce5071fdc17d3be7174fabe56b46f57af9456da7a0`.
+Its decoded RGBA hash remains
+`f7085ba94438fec4fb9e1090d48a19862cca1c21bb7a187bffc281bc7d3b5bfb`:
+the map is pixel-identical to the parent and remains 13,438 bytes.
+
+The shared `check3` mirror measured candidate `4be9a16a4` with the real
+source-basis inventory from `scripts/shard-platform.mjs` and all
+ten complete products: **Nine 12,636 custom lines; this landing -726**.
+Other shards have zero source-line change from this landing. The six
+deleted runtime modules account for 749 code lines; the complete net
+includes the prepared-data reader, baked-draw holder and caller changes.
+Generators are excluded by the source ruler, as required by G467.
+
+Root types, layer types, typed lint and all ten products passed in that
+immutable mirror. All 17 shard-headless cases, nine complete geometry
+byte proofs, the sign/lantern row proof, the two Jian fallback cases and
+the facade shell proof passed: **30 cases total**. The CLI report was
+also collected against those completed products.

@@ -13,21 +13,17 @@ import { defineModel, type ModelContext, type ModelLod, type ModelPart, type Mod
 import { BLUE_UMBRELLA, type SitterPick, type WalkerPick } from '../world/crowd';
 import { LOD_FAR, LOD_NEAR, LOD_TRIS, MID_FROM, MID_PX } from '../data/lod';
 import { tintAbove } from '../runtime/cull/figureCrowd';
-import { loadGlb } from '../world/hero/glb';
+import { loadCast } from '../world/casts';
 import { PX_PER_M, clusterLod, simplifiedCopy } from '../runtime/cull/meshLod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/crowd.ts';
 
-/** the casts' colour ramps: the hue classes, and the ink ramps of the dark coats and the beige jackets */
-const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
-const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];
-const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
-
 /** load both casts in both ramps into the look (the fragment awaits it before placing) */
 export async function loadCrowd(look: NdLook): Promise<void> {
-  const cast = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
-  const [walkD, walkL, sitD, sitL] = await Promise.all([cast('walker', DARK), cast('walker', LIGHT), cast('sitter', DARK), cast('sitter', LIGHT)]);
+  const [walkD, walkL, sitD, sitL] = await Promise.all([
+    loadCast('walker-dark'), loadCast('walker-light'), loadCast('sitter-dark'), loadCast('sitter-light'),
+  ]);
   look.geo.set('walker-dark', walkD).set('walker-light', walkL).set('sitter-dark', sitD).set('sitter-light', sitL);
 }
 

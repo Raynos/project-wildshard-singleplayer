@@ -1977,3 +1977,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Nalati spruce geometry is compiled offline.
 /public/assets/nalati/baked/spruce.bin
 /public/assets/nalati/baked/spruce.json
+
+# Nine fixed geometry is rebuilt by its retained author.
+/public/assets/nine-dragon/baked/casts/

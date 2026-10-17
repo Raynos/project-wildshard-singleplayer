@@ -26,7 +26,6 @@ import { bindNineFacts } from './runtime/facts';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
-import { entryCapsFor } from './world/entries';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
@@ -128,7 +127,7 @@ export class NdPlugin extends ShardPlugin {
     const shell = this.shell;
     if (shell !== undefined) shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250,
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
-    const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube), () => worldBuildYield(ctx));
+    const { world, camera } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     this.ndWorld = world;
     const rt = new NdRuntime(world, camera);

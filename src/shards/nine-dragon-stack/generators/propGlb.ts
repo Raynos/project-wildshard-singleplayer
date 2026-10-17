@@ -6,10 +6,9 @@
 // - colours either SNAPPED to a palette (a style's washes: a generated atlas never brings its own colours), RAMPED by
 //   luminance with saturated hue classes picked out, or, for metal, reduced to a luminance that modulates one wash;
 // - the AO darkens the colour (crevices read darker), then drops.
-import { type BufferGeometry, Color, Matrix4, Mesh, Vector3 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { SweptKit, type SweptLook } from './sweptKit';
+import { BufferGeometry, Color, Matrix4, Mesh, Vector3 } from 'three';
+import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { SweptKit, type SweptLook } from './kit/sweptKit';
 
 /** How a generated prop becomes kit geometry (the swept kit's attribute set). */
 export interface PropGlbOptions {
@@ -36,19 +35,21 @@ export interface PropGlbOptions {
   line?: number;
 }
 
-// generated props ship meshopt-compressed + quantised (gltf-transform meshopt): ~3.6x smaller than the raw output
-const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+
+function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
 
 /** the raw triangles of every mesh in a glb, world-transformed, non-indexed-safe */
-async function readGlb(url: string): Promise<{ pos: Float32Array; col: Float32Array; ao: Float32Array; idx: Uint32Array }> {
-  const gltf = await loader.loadAsync(url);
+async function readGlb(bytes: Uint8Array): Promise<{ pos: Float32Array; col: Float32Array; ao: Float32Array; idx: Uint32Array }> {
+  const { gltf } = await readSourceModel(bytes);
   gltf.scene.updateMatrixWorld(true);
   const P: number[] = [], C: number[] = [], A: number[] = [], I: number[] = [];
   gltf.scene.traverse((o) => {
     if (!(o instanceof Mesh)) return;
-    const g = o.geometry as BufferGeometry;
+    const source: unknown = o.geometry;
+    if (!isGeometry(source)) return;
+    const g = source;
     const pos = g.getAttribute('position');
-    const col = g.getAttribute('color') as ReturnType<BufferGeometry['getAttribute']> | undefined;
+    const col = g.attributes['color'];
     const base = P.length / 3;
     const v = new Vector3();
     for (let i = 0; i < pos.count; i++) {
@@ -69,8 +70,8 @@ async function readGlb(url: string): Promise<{ pos: Float32Array; col: Float32Ar
 const lum = (r: number, g: number, b: number): number => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
 /** load a post-processed generated prop (glb) as swept-kit geometry (smooth normals + aHullN-ready) */
-export async function loadPropGlb(url: string, opt: PropGlbOptions): Promise<BufferGeometry> {
-  const raw = await readGlb(url);
+export async function loadPropGlb(bytes: Uint8Array, opt: PropGlbOptions): Promise<BufferGeometry> {
+  const raw = await readGlb(bytes);
   if (opt.clipBack !== undefined && opt.clipBack > 0) {
     let zmin = Infinity, zmax = -Infinity;
     for (let i = 2; i < raw.pos.length; i += 3) { zmin = Math.min(zmin, raw.pos[i] ?? 0); zmax = Math.max(zmax, raw.pos[i] ?? 0); }
@@ -169,8 +170,8 @@ export async function loadPropGlb(url: string, opt: PropGlbOptions): Promise<Buf
 }
 
 /** the bounding box of a glb's positions (glTF space) */
-export async function propGlbBox(url: string): Promise<{ min: Vector3; max: Vector3 }> {
-  const raw = await readGlb(url);
+export async function propGlbBox(bytes: Uint8Array): Promise<{ min: Vector3; max: Vector3 }> {
+  const raw = await readGlb(bytes);
   const min = new Vector3(Infinity, Infinity, Infinity), max = new Vector3(-Infinity, -Infinity, -Infinity);
   for (let i = 0; i < raw.pos.length; i += 3) {
     const q = new Vector3(raw.pos[i] ?? 0, raw.pos[i + 1] ?? 0, raw.pos[i + 2] ?? 0);

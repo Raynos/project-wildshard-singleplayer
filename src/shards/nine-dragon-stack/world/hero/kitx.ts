@@ -1,12 +1,9 @@
-// The swept kit is the SDK's (@wildshard/sdk/kit/sweptKit, SHARD-PLATFORM M3, the kit system), under the names the
-// hero's and the layout's builders use.
-import { SweptKit, type SweptLook, curve as sweptCurve, mergeKits } from '../../runtime/kit/sweptKit';
+import type { BufferGeometry } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-/** the layout's and the hero's swept kit */
-export class KitX extends SweptKit {}
-/** how a swept piece looks */
-export type XLook = SweptLook;
-/** merge Kit and KitX geometries (same attribute set) into one */
-export const merge: typeof mergeKits = mergeKits;
-/** a smooth path through control points */
-export const curve: typeof sweptCurve = sweptCurve;
+/** Merge the existing ruled and swept baked draws in their original order. No primitive authoring remains here. */
+export function merge(parts: readonly BufferGeometry[]): BufferGeometry {
+  const geometry = mergeGeometries([...parts], false);
+  geometry.computeBoundingSphere();
+  return geometry;
+}

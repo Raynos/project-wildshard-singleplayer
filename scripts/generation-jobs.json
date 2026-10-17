@@ -8904,6 +8904,60 @@
       "catalogueDependencies": []
     },
     {
+      "id": "nine-casts",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-casts.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-casts.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nine-dragon-stack",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/nine-dragon/lab/walker.glb",
+        "public/assets/nine-dragon/lab/sitter.glb",
+        "public/assets/nine-dragon/lab/organic/lion.glb",
+        "public/assets/nine-dragon/lab/guard.glb"
+      ],
+      "outputs": [
+        "public/assets/nine-dragon/baked/casts/walker-dark.glb",
+        "public/assets/nine-dragon/baked/casts/walker-light.glb",
+        "public/assets/nine-dragon/baked/casts/sitter-dark.glb",
+        "public/assets/nine-dragon/baked/casts/sitter-light.glb",
+        "public/assets/nine-dragon/baked/casts/lion.glb",
+        "public/assets/nine-dragon/baked/casts/guard.glb",
+        "public/assets/nine-dragon/baked/casts/entries-open.glb",
+        "public/assets/nine-dragon/baked/casts/entries-capped.glb",
+        "public/assets/nine-dragon/baked/casts/facade-signs.glb",
+        "src/shards/nine-dragon-stack/data/fixedKits.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/nine-dragon/baked/casts/walker-dark.glb",
+        "public/assets/nine-dragon/baked/casts/walker-light.glb",
+        "public/assets/nine-dragon/baked/casts/sitter-dark.glb",
+        "public/assets/nine-dragon/baked/casts/sitter-light.glb",
+        "public/assets/nine-dragon/baked/casts/lion.glb",
+        "public/assets/nine-dragon/baked/casts/guard.glb",
+        "public/assets/nine-dragon/baked/casts/entries-open.glb",
+        "public/assets/nine-dragon/baked/casts/entries-capped.glb",
+        "public/assets/nine-dragon/baked/casts/facade-signs.glb",
+        "src/shards/nine-dragon-stack/data/fixedKits.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nine-layout"
+      ]
+    },
+    {
       "id": "sky-rising-islets",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/risingIslets.ts",

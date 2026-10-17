@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 import { CHARGE, COMBO, HEAVY, SPRINT } from '@wildshard/game/weapons/starterMoves';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { glbBox, guardMatrix, loadGlb } from './hero/glb';
+import { loadCast } from './casts';
 import { decalAtlas, vmMaterial, vmUniforms, weaveTexture } from './hero/vm-material';
 
 const vec3 = v.tuple([v.number(), v.number(), v.number()]);
@@ -20,11 +20,7 @@ interface FallbackSources {
 const OWN_LOADERS: FallbackSources = {
   file: async () => (await loadFirstPartyProduct('nine-dragon-stack')).file('weapons/jian-fallback.json'),
   material: () => vmMaterial(vmUniforms(weaveTexture(), decalAtlas())),
-  guard: async () => {
-    const url = '/assets/nine-dragon/lab/guard.glb';
-    return loadGlb(url, { kind: 20, wash: 0xba9444, lumLo: 0.2, lumHi: 1.35, ao: 0.9, clipBack: 0.2,
-      matrix: guardMatrix(await glbBox(url), 0.115, -0.004, 0.006, 0) });
-  },
+  guard: () => loadCast('guard'),
 };
 
 /** The fallback's external resources can be supplied by a renderer-free proof. */

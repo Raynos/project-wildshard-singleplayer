@@ -8,7 +8,7 @@
 // the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Color, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
+  Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import { Ctx, type InKit, type Piece } from './ctx';
 import { Kit } from './kit';
@@ -49,7 +49,6 @@ import { Shared, jiehuaMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { signLayout, type NdTier } from '../tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
-import { Rng } from '@wildshard/engine/core/rng';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -62,9 +61,9 @@ import { buildPortals } from './portals';
 import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
-import { loadLayoutBake, restoreLayout } from './layoutBake';
+import { loadLayoutBake, restoreLayout, replaySign } from './layoutBake';
 import { loadSpecimens } from './specimens';
-import { buildEntryDecks } from './entries';
+import { loadCast, loadFixedRows } from './casts';
 import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
@@ -178,20 +177,16 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;
-  buildEntryDecks(ctx, entryCaps);
+  const [entries, boards, fixed] = await Promise.all([loadCast(entryCaps ? 'entries-capped' : 'entries-open'), loadCast('facade-signs'), loadFixedRows()]);
+  ctx.kits.set('entries', Kit.fromBake(entries));
+  for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
   const portals = buildPortals(ctx, shared);
   root.add(portals.root);
   progress(0.3, 'signs');
   await opts.pause();
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
-  const slotRng = new Rng(4242);
-  const bladesKit = ctx.kit('facade-signs');
-  for (const s of ctx.fd.signs) {
-    const word = slotRng.pick(glyphs.words);
-    const color = `#${s.color.toString(16).padStart(6, '0')}`;
-    const size = Math.min(s.size, s.blade ? 1.2 : 0.8);
-    ctx.signs.place({ at: s.at, normal: s.normal, size, spec: { text: word, color, vertical: s.blade, style: s.blade || slotRng.chance(0.5) ? 'tube' : 'box' }, blade: s.blade }, s.blade ? null : bladesKit);
-  }
+  ctx.kits.set('facade-signs', Kit.fromBake(boards));
+  for (const call of fixed.signs) replaySign(ctx.signs, call);
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──

@@ -6,27 +6,23 @@
 // walls the footprint admits), and a stone end wall with a cinnabar band closes each deck. G224 (Jake): the way on is a
 // floating portal on each deck to Lantern Square (world/portalPlan.ts, portals.ts, portalRide.ts), so the decks are
 // always built (the `nineDragonEntries` row went with the lantern lift it waited for).
-import type { ShardCube } from '@wildshard/game/shard/context';
-import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
-import { K, type Kit, type Look } from './kit';
+import { K, type Look } from './kit';
 import { hipRoof } from './hipRoof';
 import { CAP, DECK_DEPTH, FRAMES, OPENING_HALF, capParts, deckParts, inFrame, type Frame, type FrameBox } from './floorRows';
 
 /** Only public author writer methods and the recorded placement sinks are needed. */
-type EntryContext = Pick<Ctx, 'signs' | 'lantern'> & { kit: (name: string) => Pick<Kit, keyof Kit> };
+type EntryContext = Ctx;
 
-const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
+const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: 3 };
 const FLAGS: Look = { wash: 0x3e4148, kind: K.flag, wet: 1, line: 0 };
 const BAND: Look = { wash: 0x8a2a1e, line: 1, wet: 0.35, accent: true };
-const CARVED: Look = { wash: 0x74767c, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
+const CARVED: Look = { wash: 0x74767c, kind: K.stone, line: 1, wet: 0.45, surf: 3 };
 const BRONZE: Look = { wash: 0x9a6a32, line: 1, accent: true, gloss: true };
 const BRONZE_DK: Look = { wash: 0x5a3c1c, line: 1, accent: true, gloss: true };
 const FLAME: Look = { wash: 0xffb050, emit: 2.2, line: 0, accent: true };
 const EMBER: Look = { wash: 0xff6a20, emit: 1.8, line: 0, accent: true };
 
-/** whether the decks get their caps this session: standalone (`cube` null) yes; in a grid cell the road socket continues */
-export function entryCapsFor(cube: ShardCube | null): boolean { return cube === null; }
 
 /**
  * G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone there is no road at a deck's open end, so

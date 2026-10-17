@@ -7,20 +7,16 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
-import { loadGlb } from '../world/hero/glb';
-import { K } from '../world/kit';
+import { loadCast } from '../world/casts';
 import { PX_PER_M, simplifiedCopy } from '../runtime/cull/meshLod';
 import { SCULPT_PX } from '../data/lod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/lion.ts';
 
-/** the wet granite of the balustrade, dark to light (the lab's ramp) */
-const STONE_RAMP = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
-
 /** load the cast into the look (the fragment awaits it before placing: `place` is synchronous) */
 export async function loadLion(look: NdLook): Promise<void> {
-  look.geo.set('lion', await loadGlb('/assets/nine-dragon/lab/organic/lion.glb', { kind: K.stone, line: 0, ao: 0.85, ramp: STONE_RAMP, hues: {} }));
+  look.geo.set('lion', await loadCast('lion'));
 }
 
 const cast = (ctx: ModelContext): BufferGeometry => need(ndLook(ctx).geo.get('lion'), 'the lion cast');
