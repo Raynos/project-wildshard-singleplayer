@@ -15,11 +15,11 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
 import { EntityIds } from '@wildshard/engine/entities/ids';
-import { Bodies } from '@wildshard/engine/physics/bodies';
+import { Bodies, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { COCONUTS, Coconuts } from '../combat/coconuts';
+import { COCONUTS, CoconutVolley } from '../combat/strikes';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '../runtime/ecology';
@@ -48,6 +48,7 @@ const POSE_CALLBACKS = new Map([['crab', animateCrab], ['monkey', animateMonkey]
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
   readonly population: SpeciesPrograms;
+  readonly launch: BodyLaunchRow;
   readonly placement: NativeEnemyPlacements;
   readonly fauna: ReadonlyMap<string, HuntSpecies>;
   readonly keeper: NativeKeeperRows;
@@ -168,7 +169,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement
   // stream past placement, floating on the sea's swell at the host's clock; a hit is the thrower's blow on the player
   let service = new Bodies(host.physics, player);
-  const volley = new Coconuts<HuntBody>({
+  const volley = new CoconutVolley<HuntBody>({
     bodies: () => service, rng: placed.stream, owner: COCONUT_OWNER,
     surface: (x, z) => heightAt(x, z) >= ports.waterLevel ? undefined : ports.waterLevel + waveHeight(x, z, host.clock.now),
     hit: (th, amount, moveId) => {
@@ -177,7 +178,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     },
     // the hit / landing voices and the splash are presentation
     sound: () => undefined, splash: () => undefined,
-  });
+  }, ports.launch);
   let reattach: (() => void) | null = null;
   const world = {
     perches: habitat.perches.map(p => new Vector3(p.x, p.y, p.z)), perchBases: habitat.perchBases.map(p => new Vector3(p.x, p.y, p.z)),

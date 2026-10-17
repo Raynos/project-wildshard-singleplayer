@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import {readProjectAssets} from '../src/sdk/project';
 import {validateDefinedSection} from '../src/sdk/sections';
 import {SECTIONS} from '../src/shards/pine-hollow/runtime/sections';
+import {ClaimedPickupSchema} from '../src/format/lootEconomy';
 
 test('Pine emits every client section with checked schemas and named immutable assets',async()=>{
  const loaded=await readProjectAssets('src/shards/pine-hollow'),custom=loaded.output.custom;
@@ -27,6 +28,6 @@ test('Pine emits every client section with checked schemas and named immutable a
   const file=loaded.output.namedFiles?.find(row=>row.name===`behaviour/${stem}.wasm`);
   expect(file?.hash).toBe(original.module);
  }
- expect(()=>v.parse(SECTIONS['custom/skinPickups'],{bad:{}})).toThrow();
+ expect(()=>v.parse(ClaimedPickupSchema,{bad:{}})).toThrow();
  expect(()=>v.parse(SECTIONS['custom/crossbowPool'],{pool:{url:'missing',parts:[]},hierarchy:{}})).toThrow();
 },30000);

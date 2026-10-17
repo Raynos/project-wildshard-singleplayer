@@ -8249,3 +8249,12 @@ in page and native paths;
 H4's existing channel programs remain the weather's read-only visual consumer.
 `@wildshard/engine/combat/ammo.wetFlight` shares exact wet-flight arithmetic
 between the page request and authoritative item policies.
+
+`DynamicBodySlots.velocity` and `launch` in `engine/physics/bodies` consume
+bounded `BodyLaunchRow` coefficients for aimed flight or a radial toss. They
+advance no random stream: the existing owner supplies the phase and keeps
+post-spawn angular draws. Driftwood's volley reads `combat/items.items.launches`;
+Pine's legendary pickups use the radial profile through `ClaimedPickupRoster`.
+That roster's optional death policy matches kind/variant and resolves source or
+player-side placement as data; its caller keeps the existing terrain query,
+claim effects and death-listener order. No contact callback port is added.

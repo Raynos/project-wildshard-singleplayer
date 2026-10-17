@@ -17,7 +17,8 @@ import * as v from 'valibot';
 import { EnemyPlacementsSchema, type EnemyPlacements } from '../runtime/sections';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { TIER } from '@wildshard/engine/core/tier';
-import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
+import { COCONUT_R, COCONUTS, CoconutVolley } from '../combat/strikes';
+import { driftwoodLaunch } from '../runtime/boot/rows';
 import { preloadSailorHead } from '../species/sailor';
 
 /**
@@ -77,7 +78,7 @@ export class Enemies {
   private coconutMesh: THREE.InstancedMesh | null = null;
   private get coconuts(): THREE.InstancedMesh { if (this.coconutMesh === null) throw new Error('Enemies not built'); return this.coconutMesh; }
   /** the coconuts' bodies and rules (combat/coconuts.ts, shared with the renderer-free runtime); this draws them */
-  private readonly volley = new Coconuts<Animal>({
+  private readonly volley = new CoconutVolley<Animal>({
     bodies: () => app.bodies, rng: this.rng, surface: seaSurface, owner: this,
     hit: (th, amount, moveId) => {
       if (app.player !== null) app.combat.hit({
@@ -87,7 +88,7 @@ export class Enemies {
     },
     sound: (name, at) => { this.animals.onSound?.(name, at); },
     splash: (at, strength) => { this.splash(at, strength); },
-  });
+  }, driftwoodLaunch('coconut'));
   /** the splash droplets (E357 X5: on the one ParticlePool) */
   private dropPool: ParticlePool | null = null;
   private get drops(): ParticlePool { if (this.dropPool === null) throw new Error('Enemies not built'); return this.dropPool; }

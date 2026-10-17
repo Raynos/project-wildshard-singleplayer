@@ -41,6 +41,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   if (program === undefined) throw new Error('Driftwood requires its admitted species program');
   const fauna = new Map(species.native.map(row => [row.kind, row]));
   const placement = readEnemyPlacements(JSON.parse(new TextDecoder().decode(await product.file('sim/enemy-placement.json'))));
+  const launch = shard.items.launches?.['coconut'];
+  if (launch === undefined) throw new Error('Driftwood requires its admitted coconut launch');
   const keeper = readKeeperRows(JSON.parse(new TextDecoder().decode(await product.file('sim/keeper.json'))));
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
@@ -57,7 +59,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // Install before restore too: a saved swim cannot attach to a dry host. Never borrow the renderer's global wave clock.
     host.useWater({ surfaceAt: DRIFTWOOD_SEA.restAt, bob: (x, z) => waveHeight(x, z, host.clock.now) });
     if (!context.restoring) installNativeCollision(host, bake, { resolution: 256 });
-    const island = installIsland(host, { placement, keeper, fauna, population: species, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
+    const island = installIsland(host, { placement, keeper, fauna, launch, population: species, bake, specs, seed: shard.identity.seed, waterLevel: LOWERED_SEA, spawnY: shard.spawn.y, nav }, context.snapshot);
     const captain = installCaptain(host, bake, island);
     const reward = { started: false, completed: false };
     const finale = createDriftwoodFinale(host.scope, createDirector(), { flags: host.flags, player: host.player.position, rewardAt: spots.reward, reward,

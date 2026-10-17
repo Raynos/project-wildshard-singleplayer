@@ -12,6 +12,16 @@ const effectId = v.pipe(effectText, v.regex(/^effect\./u)) as v.GenericSchema<`e
 const tag = v.pipe(effectText, v.regex(/\./u)) as v.GenericSchema<`${string}.${string}`>;
 const flags = v.pipe(v.array(key), v.maxLength(256));
 const colour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
+/** Claimed drops keep their original model/grant owners; only matching, launch and retirement are authored. */
+export const ClaimedPickupSchema = v.strictObject({
+  options: v.strictObject({ tier: v.exactOptional(v.picklist(['common', 'rare', 'legendary'])), prompt: v.exactOptional(text),
+    scale: v.exactOptional(finite), tilt: v.exactOptional(finite), glow: v.exactOptional(v.boolean()) }),
+  toss: v.strictObject({ horizontal: finite, up: finite }), walkIn: v.nullable(v.strictObject({ radius: finite, height: finite })),
+  takenGrace: v.pipe(finite, v.minValue(0), v.maxValue(60)), unique: v.boolean(), disposeItemOnTake: v.boolean(), retireBeforeCallback: v.boolean(),
+  death: v.exactOptional(v.strictObject({ kind: key, variant: v.exactOptional(key), floor: v.picklist(['source', 'ground', 'max']),
+    towardPlayer: v.exactOptional(v.strictObject({ distance: v.pipe(finite, v.minValue(0)), epsilon: v.pipe(finite, v.minValue(0)) })) })),
+  toast: v.exactOptional(text),
+});
 const modifier = v.strictObject({ attr: key, op: v.picklist(['add', 'mul', 'override']), value: finite });
 const effectSchema = v.strictObject({ id: effectId, kind: v.literal('permanent'), tags: v.pipe(v.array(tag), v.maxLength(32)),
   modifiers: v.pipe(v.array(modifier), v.maxLength(32)), grants: v.exactOptional(v.pipe(v.array(tag), v.maxLength(32))),
@@ -43,6 +53,7 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
 }
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
+  pickups: v.exactOptional(v.pipe(v.record(key, ClaimedPickupSchema), v.maxEntries(128))),
   tables: v.exactOptional(LootTablesSchema),
   progression: v.exactOptional(v.strictObject({ flags,
     states: v.pipe(v.array(v.strictObject({ earned: v.pipe(v.array(v.strictObject({ id: key, text })), v.maxLength(128)), displayCount: count, next: v.nullable(count) })), v.minLength(1), v.maxLength(257)),

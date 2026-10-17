@@ -221,7 +221,9 @@ export class PineHollow extends ShardPlugin {
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
-    const skinDrops = new ClaimedPickupRoster<SkinId>(ctx.product.section('custom/skinPickups', SECTIONS), {
+    const pickupRows = ctx.product.section('combat/items').items.pickups;
+    if (pickupRows === undefined) throw new Error('Pine requires its admitted skin pickups');
+    const skinDrops = new ClaimedPickupRoster<SkinId>(pickupRows, {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
       model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow.displayModel(); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
@@ -230,10 +232,10 @@ export class PineHollow extends ShardPlugin {
     ctx.on('actor.died', ({ actor }) => {
       const animal = animals.animals.find((a) => a.combatActor() === actor);
       if (animal === undefined) return;
-      const skin = Object.values(pineSkins()).find((row) => row.dropsFrom?.kind === animal.kind && row.dropsFrom.variant === animal.variant);
-      if (!skin || skins.has(skin.id) || rt.hooks.isElite?.(animal) === true) return;
-      const at = animal.position;
-      skinDrops.spawn(skin.id, new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), true);
+      const drop = skinDrops.death(animal, player.position);
+      if (drop === null || rt.hooks.isElite?.(animal) === true) return;
+      drop.at.y = Math.max(drop.at.y, heightAt(drop.at.x, drop.at.z));
+      skinDrops.spawn(drop.id, drop.at, true);
     });
     const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
     const rifleDrop = (() => {

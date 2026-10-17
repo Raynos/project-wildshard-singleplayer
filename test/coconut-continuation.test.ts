@@ -1,13 +1,20 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise continuation on the shipped native physics bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Vector3 } from 'three';
+import { Euler, Quaternion, Vector3 } from 'three';
 import { Rng } from '../src/engine/core/rng';
 import { Bodies } from '../src/engine/physics/bodies';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { Coconuts, type CoconutPorts, type CoconutThrower } from '../src/shards/driftwood-isle/combat/coconuts';
-import { DRIFTWOOD_STRIKES } from '../src/shards/driftwood-isle/combat/strikes';
+import { CoconutVolley, DRIFTWOOD_STRIKES, type CoconutPorts, type CoconutThrower } from '../src/shards/driftwood-isle/combat/strikes';
+import { parseItems } from '../src/format/items';
+import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
+
+function launchRow(): NonNullable<ReturnType<typeof parseItems>['launches']>[string] {
+  const row = parseItems(DRIFTWOOD_SWORDS).launches?.['coconut'];
+  if (row === undefined) throw new Error('Missing authored launch');
+  return row;
+}
 
 function ports(bodies: Bodies | null): CoconutPorts<CoconutThrower> {
   return { bodies: () => bodies, rng: new Rng(37), owner: {}, surface: () => undefined,
@@ -16,7 +23,7 @@ function ports(bodies: Bodies | null): CoconutPorts<CoconutThrower> {
 }
 
 test('a missing body service neither advances the volley cursor nor draws launch randomness', () => {
-  const p = ports(null), volley = new Coconuts(p), before = p.rng.snapshot();
+  const p = ports(null), volley = new CoconutVolley(p, launchRow()), before = p.rng.snapshot();
   volley.throw(new Vector3(), new Vector3(10, 0, 0), null);
   expect(p.rng.snapshot()).toEqual(before);
   expect(volley.snapshot(() => 0)).toEqual({ next: 0, slots: [] });
@@ -25,17 +32,26 @@ test('a missing body service neither advances the volley cursor nor draws launch
 
 test('coconut continuation reattaches saved bodies without respawning and consumes the current player contact once', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
-  const physics = new Physics(rapier), bodies = new Bodies(physics), p = ports(bodies), volley = new Coconuts(p);
+  const physics = new Physics(rapier), bodies = new Bodies(physics), p = ports(bodies), volley = new CoconutVolley(p, launchRow());
   const source = { position: new Vector3(10, 0, 10), kind: 'monkey', label: 'Monkey' }, player = new Vector3(100, 0, 100);
   let resumedPhysics: Physics | undefined;
   try {
     volley.throw(new Vector3(10, 2, 10), new Vector3(20, 2, 10), source);
+    const expected = new Rng(37), phase = expected.range(0, 6.28), rotation = new Quaternion().setFromEuler(new Euler(phase, phase * .7, 0));
+    const first = volley.bodyAt(0);
+    if (first === null) throw new Error('Missing launched body');
+    const time = Math.max(.8, Math.min(1.5, 10 / 9));
+    expect(first.rb.linvel()).toEqual({ x: Math.fround(10 / time), y: Math.fround(.5 * 9.81 * time), z: 0 });
+    const actual = first.rb.rotation();
+    for (const component of ['x', 'y', 'z', 'w'] as const) expect(actual[component]).toBeCloseTo(rotation[component], 6);
+    expect(first.rb.angvel()).toEqual({ x: Math.fround(expected.range(-7, 7)), y: Math.fround(expected.range(-3, 3)), z: Math.fround(expected.range(-7, 7)) });
+    expect(p.rng.snapshot()).toEqual(expected.snapshot());
     volley.throw(new Vector3(15, 3, 15), new Vector3(25, 3, 15), null);
     volley.update(0.1, 1, player);
     const saved = volley.snapshot(actor => actor === source ? 4 : -1);
     expect(saved.slots.map(slot => slot.thrower)).toEqual([4, -1]);
     resumedPhysics = new Physics(rapier, physics.snapshot());
-    const resumedBodies = new Bodies(resumedPhysics), resumedPorts = ports(resumedBodies), resumed = new Coconuts(resumedPorts);
+    const resumedBodies = new Bodies(resumedPhysics), resumedPorts = ports(resumedBodies), resumed = new CoconutVolley(resumedPorts, launchRow());
     resumedPorts.rng.restore(p.rng.snapshot());
     const reattach = resumed.restore(saved, index => index === 4 ? source : null);
     expect(resumedBodies.list).toHaveLength(0);

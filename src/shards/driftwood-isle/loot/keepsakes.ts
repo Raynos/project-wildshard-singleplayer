@@ -34,7 +34,6 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
-import KEEPSAKE_PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
 import KEEPSAKE_CONTENT from '../data/keepsakes.json' with { type: 'json' };
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -49,14 +48,15 @@ import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import type { Adventure } from '../quest/adventure';
 import { ownEnteredTree } from '../quest/Spine';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
-import type { Owned } from '@wildshard/game/loot/Owned';
+import { isOwnedId, type Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
 
-type TrophyDropId = keyof typeof KEEPSAKE_PICKUPS;
+type TrophyDropId = string;
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
   progression: DeclaredLootEconomy['progression'];
+  pickups: NonNullable<DeclaredLootEconomy['pickups']>;
   owner?: ShardContext;
   onDeath?: (run: (animal: A) => void, order: number) => void;
   owned: Owned;
@@ -81,7 +81,7 @@ export interface Keepsakes {
 }
 
 export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): Keepsakes {
-  const { owned, adventure: adv, progression } = h;
+  const { owned, adventure: adv, progression, pickups: KEEPSAKE_PICKUPS } = h;
   const flags = adv.flags;
   const ctx = modelContext(h.sky);
   const registry = h.registry ? { registry: h.registry } : {};
@@ -142,24 +142,22 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
 
   // ── the trophy drops ──
   const roster = new ClaimedPickupRoster<TrophyDropId>(KEEPSAKE_PICKUPS, {
-    scene: h.game.scene, has: id => owned.has(id),
+    scene: h.game.scene, has: id => isOwnedId(id) && owned.has(id),
     model: id => id === 'captain-hat' ? buildCaptainHat(ctx) : buildTrophy(ctx, id === 'bear-claw' ? 'bear' : 'boar'),
     random: () => app.rng.stream('loot').next(), enter: (_id, drop) => { h.owner?.scope.own(drop); },
     take: id => {
+      const text = KEEPSAKE_PICKUPS[id]?.toast;
+      if (!isOwnedId(id) || text === undefined) throw new Error('Unknown admitted keepsake');
       owned.grant(id); if (id === 'captain-hat') owned.wear('captain-hat');
-      h.hud.toast(KEEPSAKE_PICKUPS[id].toast); sfx.interact('chime', undefined, { gain: 0.8 }); h.music.sting('pickup');
+      h.hud.toast(text); sfx.interact('chime', undefined, { gain: 0.8 }); h.music.sting('pickup');
     },
   });
   const killed = (a: A): void => {
     if (practiceRoom.open) return;
-    const id = rollLoot('trophies', a).map(drop => drop.item).find((item): item is TrophyDropId => Object.hasOwn(KEEPSAKE_PICKUPS, item));
-    if (id === undefined || owned.has(id)) return;
-    if (id === 'captain-hat') {
-      // he sinks into the spring pool: the hat lands on your side of it, a step and a half toward where he fell
-      const pp = h.player.position, d = Math.hypot(a.position.x - pp.x, a.position.z - pp.z), k = d > 1e-3 ? Math.min(1, 1.5 / d) : 0;
-      const x = pp.x + (a.position.x - pp.x) * k, z = pp.z + (a.position.z - pp.z) * k;
-      roster.spawn(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
-    } else roster.spawn(id, a.position, true);
+    const drop = roster.death(a, h.player.position, rollLoot('trophies', a).map(row => row.item));
+    if (drop === null) return;
+    if (drop.floor === 'ground') drop.at.y = adv.floorAt(drop.at.x, drop.at.z);
+    roster.spawn(drop.id, drop.at, true);
   };
   h.onDeath?.(killed, 30);
   // the captain dies once: a hat left lying through a reload waits at the ring's reward spot

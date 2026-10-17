@@ -241,7 +241,7 @@ reader adoption; this table grants no extra section or byte headroom.
 
 | Exit row | Current section | Retirement | Owner |
 |---|---|---|---|
-| W2 Pine skinPickups section exit | `custom/skinPickups` | Move pickup options into the platform item/pickup section. | sp-x5 / W2 client rewire |
+| W2 Pine skinPickups section exit | `custom/skinPickups` | Done: pickup and death policies use platform `combat/items`; private section removed. | sp-x6 / C6 |
 | W2 Pine questInventory section exit | `custom/questInventory` | Use platform items and quest achievement declarations directly. | sp-x5 / W2 client rewire |
 | W2 Pine ambientLife section exit | `custom/ambientLife` | Replace the private community bundle with platform ambient-life declarations. | sp-x5 / W2 client rewire |
 | W2 Pine heldPlayback section exit | `custom/heldPlayback` | Move held programs into the platform client-channel declaration inventory. | sp-x5 / W2 client rewire |

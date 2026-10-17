@@ -1,6 +1,6 @@
 import { CONTRACT_ROWS } from './contractRows';
 import { TRADES } from './trades';
-import { WEAPON_FINISHES } from '../data/weaponFinishes';
+import { WEAPON_FINISHES } from './weaponFinishes';
 import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 
 type BorrowedCall = NonNullable<NonNullable<QuestPageInteractionsData['bindings']>['calls']>[number];

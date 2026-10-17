@@ -15,9 +15,6 @@ const outputPath = v.pipe(v.array(text), v.minLength(1), v.maxLength(16));
 const output = v.strictObject({ property: v.picklist(['x','y','z','yaw','pitch','roll','scaleX','scaleY','scaleZ','visible','value','turn']), target: text, path: outputPath });
 const outputs = v.pipe(v.array(output), v.maxLength(128));
 const pool = v.strictObject({ url: text, parts: strings });
-const skinPickup = v.strictObject({ options: v.strictObject({ tier: text, prompt: text, scale: number }),
-  toss: v.strictObject({ horizontal: number, up: number }), walkIn: v.nullable(v.strictObject({ radius: number, height: number })), takenGrace: number,
-  unique: v.boolean(), disposeItemOnTake: v.boolean(), retireBeforeCallback: v.boolean() });
 const icon = v.picklist(['deer','boar','elk','bear','ghost','ironhide','claw','antlers','poi','laurel','rope','seaglass','coin','check','lock','tusk','longbow']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, kind: v.exactOptional(text), variant: v.exactOptional(text), event: v.exactOptional(text), title: text, icon });
 const bagItem = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
@@ -72,8 +69,6 @@ const knifeLook = v.strictObject({name:text,standIn:v.strictObject({roughness:nu
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {
-  'custom/skinPickups':v.strictObject({ 'ghost-stag':skinPickup, 'hollow-ash':skinPickup, ironhide:skinPickup,
-    blackpaw:skinPickup, imperial:skinPickup, warden:skinPickup, 'scarback-furnace':skinPickup }),
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
   'custom/heldPlayback':v.strictObject({crossbow:Channels,lever:Channels,crossbowParts:Channels,leverParts:Channels}),

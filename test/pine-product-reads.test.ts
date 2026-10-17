@@ -13,7 +13,7 @@ test('Pine client reads resolve against the emitted output', async () => {
     if (bytes === undefined) throw new Error(`Pine output has no ${name}`);
     return v.parse(SECTIONS[name], JSON.parse(new TextDecoder().decode(bytes)));
   };
-  const rows = value('custom/skinPickups');
+  const rows = loaded.shard.items.pickups ?? {};
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
   const inventory = value('custom/questInventory');
   expect(inventory.feats.length).toBeGreaterThan(0);

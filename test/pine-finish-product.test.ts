@@ -3,7 +3,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { loadPineFinishes, pineSkins, PINE_FINISH_VARIANTS } from '../src/shards/pine-hollow/runtime/loadout/skins';
-import { WEAPON_FINISHES } from '../src/shards/pine-hollow/data/weaponFinishes';
+import { WEAPON_FINISHES } from '../src/shards/pine-hollow/generators/weaponFinishes';
 import { output } from '../src/shards/pine-hollow/generators/output';
 
 const shardfile = emptyShardfile({ slug: 'pine-finish-test', name: 'Finish test', author: 'Wildshard', revision: 1, seed: 1 });

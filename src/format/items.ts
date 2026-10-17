@@ -1,4 +1,5 @@
-import { NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
+import { BodyLaunchSchema, NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
+import { ClaimedPickupSchema } from './lootEconomy';
 import * as v from 'valibot';
 import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
@@ -63,6 +64,8 @@ const inventory = v.pipe(v.strictObject({ kinds: v.pipe(v.array(name), v.minLeng
   stackLimit: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER))), restoreError: text }),
   v.check(row => new Set(row.kinds).size === row.kinds.length && row.counts.min <= row.counts.max, 'Unique inventory kinds and ordered count bounds'));
 const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
+  launches: v.exactOptional(v.pipe(v.record(name, BodyLaunchSchema), v.maxEntries(64))),
+  pickups: v.exactOptional(v.pipe(v.record(name, ClaimedPickupSchema), v.maxEntries(128))),
   contexts: v.pipe(v.array(context), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
   loadout: v.strictObject({ native: v.exactOptional(NativeLoadoutRowSchema), inventory: v.exactOptional(inventory), primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });

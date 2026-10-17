@@ -13,6 +13,7 @@ import { coinsFor, coinsOn, type LootGate } from './coins';
 import { isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
 import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
 import type { ShardContext } from "../plugin/context";
+import { DynamicBodySlots } from '@wildshard/engine/physics/bodies';
 
 export interface LootShop { readonly isOpen: boolean; render: () => void; dispose: () => void }
 export interface LootPresentation {
@@ -100,6 +101,8 @@ export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresenta
 
 /** Bounded authored presentation and retirement of an already claimed loot identity. */
 export interface ClaimedPickupRow {
+  readonly death?: { readonly kind: string; readonly variant?: string; readonly floor: 'source' | 'ground' | 'max';
+    readonly towardPlayer?: { readonly distance: number; readonly epsilon: number } };
   readonly options: Pick<ConstructorParameters<typeof ItemPickup>[0], 'scale' | 'tilt' | 'glow' | 'prompt'> & { readonly tier?: string };
   readonly toss: { readonly horizontal: number; readonly up: number };
   readonly walkIn: { readonly radius: number; readonly height: number } | null;
@@ -123,7 +126,7 @@ export class ClaimedPickupRoster<I extends string> {
   readonly drops = new Map<I, ItemPickup>();
   private readonly active = new Map<ItemPickup, { id: I; row: ClaimedPickupRow }>();
   private readonly fading: { drop: ItemPickup; left: number }[] = [];
-  constructor(private readonly rows: Readonly<Record<I, ClaimedPickupRow>>, private readonly ports: ClaimedPickupPorts<I>) {
+  constructor(private readonly rows: Readonly<Record<string, ClaimedPickupRow | undefined>>, private readonly ports: ClaimedPickupPorts<I>) {
     const keys = Object.keys(rows);
     if (keys.length === 0 || keys.length > 128) throw new Error('Claimed pickup rows exceed their bound');
     for (const id in rows) {
@@ -134,6 +137,24 @@ export class ClaimedPickupRoster<I extends string> {
         || (row.walkIn !== null && (!(row.walkIn.radius > 0) || !(row.walkIn.height > 0)))) throw new Error('Invalid claimed pickup row');
     }
   }
+  /** Resolve a death without sampling terrain or claiming ownership. The caller keeps its current floor query and event order. */
+  death(actor: { readonly kind: string; readonly variant?: string | undefined; readonly position: THREE.Vector3 }, player: THREE.Vector3,
+    candidates: readonly string[] = Object.keys(this.rows)): { id: I; at: THREE.Vector3; floor: 'source' | 'ground' | 'max' } | null {
+    if (candidates.length > 128) throw new Error('Claimed death candidates exceed their bound');
+    for (const candidate of candidates) {
+      if (!Object.hasOwn(this.rows, candidate)) continue;
+      const id = candidate as I, policy = this.rows[id]?.death;
+      if (policy === undefined || policy.kind !== actor.kind || policy.variant !== undefined && policy.variant !== actor.variant) continue;
+      if (this.ports.has(id)) return null;
+      const at = actor.position.clone(), toward = policy.towardPlayer;
+      if (toward !== undefined) {
+        const distance = Math.hypot(at.x - player.x, at.z - player.z), ratio = distance > toward.epsilon ? Math.min(1, toward.distance / distance) : 0;
+        at.x = player.x + (at.x - player.x) * ratio; at.z = player.z + (at.z - player.z) * ratio;
+      }
+      return { id, at, floor: policy.floor };
+    }
+    return null;
+  }
   spawn(id: I, at: THREE.Vector3, toss: boolean): ItemPickup | null {
     const row = this.rows[id];
     if (row === undefined) throw new Error('Unknown claimed pickup row');
@@ -141,9 +162,10 @@ export class ClaimedPickupRoster<I extends string> {
     if (this.active.size + this.fading.length >= 128) throw new Error('Claimed pickup roster is full');
     const { tier, ...options } = row.options;
     if (tier !== undefined && tier !== 'common' && tier !== 'rare' && tier !== 'legendary') throw new Error('Invalid claimed pickup tier');
-    const item = this.ports.model(id), angle = this.ports.random() * Math.PI * 2;
+    const item = this.ports.model(id), angle = this.ports.random() * Math.PI * 2, velocity = { x: 0, y: 0, z: 0 };
+    if (toss) DynamicBodySlots.velocity({ kind: 'radial', ...row.toss }, at, at, angle, velocity);
     const drop = new ItemPickup({ ...options, ...(tier === undefined ? {} : { tier }), scene: this.ports.scene, item, position: at.clone(),
-      ...(toss ? { toss: { x: Math.sin(angle) * row.toss.horizontal, y: row.toss.up, z: Math.cos(angle) * row.toss.horizontal } } : {}),
+      ...(toss ? { toss: velocity } : {}),
       ...(this.ports.visualRandom === undefined ? {} : { random: this.ports.visualRandom }) });
     this.ports.enter?.(id, drop);
     const retire = (): void => {

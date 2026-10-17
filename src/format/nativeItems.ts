@@ -6,6 +6,12 @@ const positive = v.pipe(scalar, v.minValue(0.000001));
 const count = v.pipe(scalar, v.integer(), v.maxValue(1024));
 const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const pair = v.strictObject({ gravity: scalar, drag: scalar });
+/** Aimed and radial launches contain coefficients only; their stream and body owners remain native. */
+export const BodyLaunchSchema = v.variant('kind', [
+  v.pipe(v.strictObject({ kind: v.literal('target'), speed: positive, time: v.tuple([positive, positive]), gravity: scalar,
+    rotation: v.tuple([finite, finite, finite]) }), v.check(row => row.time[0] <= row.time[1], 'Ordered flight time bounds')),
+  v.strictObject({ kind: v.literal('radial'), horizontal: scalar, up: finite }),
+]);
 /** Bounded numeric projectile/contact and continuation policy. It supplies values, never executable hooks. */
 export const NativeRangedRowSchema = v.pipe(v.strictObject({
   step: name, slot: v.pipe(count, v.maxValue(31)), eye: v.pipe(scalar, v.maxValue(20)), extent: positive, floor: finite,

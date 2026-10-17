@@ -1,4 +1,5 @@
 import KEEPSAKES from '../data/keepsakes.json' with { type: 'json' };
+import PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
 import { DRIFTWOOD_EFFECTS, DRIFTWOOD_COIN_VALUES, GOODS, DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from './economy';
 import { DRIFTWOOD_FINDS } from './finds';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
@@ -10,7 +11,11 @@ const charms = ['charm-1', 'charm-2', 'charm-3'] as const;
 /** Build the original flag ranges and world-space chart once; the page only filters current saved flags. */
 export const DRIFTWOOD_LOOT = {
   id: 'driftwood.loot', gear: 'purse.coins', finds: null, marks: null, charted: false, chime: 'cue.loot.chime',
-  economy: { progression: { flags: glass, states: Array.from({ length: glass.length + 1 }, (_, found) => ({
+  economy: { pickups: Object.fromEntries(Object.entries(PICKUPS).map(([id, row]) => {
+    const match = KEEPSAKES.trophies[id as keyof typeof KEEPSAKES.trophies];
+    return [id, { ...row, death: { kind: match.kind, ...(match.variant === null ? {} : { variant: match.variant }),
+      floor: id === 'captain-hat' ? 'ground' : 'source', ...(id === 'captain-hat' ? { towardPlayer: { distance: 1.5, epsilon: .001 } } : {}) } }];
+  })), progression: { flags: glass, states: Array.from({ length: glass.length + 1 }, (_, found) => ({
     earned: charms.slice(0, Math.max(0, Math.min(3, Math.floor(found / every)))).map(id => ({ id, text: KEEPSAKES.charms.toast[id] })), displayCount: Math.max(0, Math.floor(found / every) * every),
     next: (Math.floor(found / every) + 1) * every > glass.length ? null : (Math.floor(found / every) + 1) * every,
   })), glow: { owned: 'charm-3', curve: { terms: [{ gain: 1, ramp: [0.3, 0.45], fold: true }] } } }, tables: [

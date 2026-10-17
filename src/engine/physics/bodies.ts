@@ -24,9 +24,15 @@ import { groups, type GroupName } from './groups';
 import { tagCollider, untagCollider, type Material } from './surface';
 import { overlapBox as queryOverlapBox } from './overlap';
 import { floorBelow } from './query';
+import { Euler, Quaternion } from 'three';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
+
+/** Numeric launch laws for aimed bodies and radial loot. Random phases are lent as data by their existing stream owner. */
+export type BodyLaunchRow =
+  | { readonly kind: 'target'; readonly speed: number; readonly time: readonly [number, number]; readonly gravity: number; readonly rotation: readonly [number, number, number] }
+  | { readonly kind: 'radial'; readonly horizontal: number; readonly up: number };
 
 export type BodyShape =
   | { ball: number }
@@ -335,6 +341,23 @@ export interface DynamicBodySlotsPorts<T> {
 }
 /** One body slot owner for volleys and tossed loot. No fixed phase, collider or Rapier service is installed here. */
 export class DynamicBodySlots<T> {
+  private readonly launchVelocity = { x: 0, y: 0, z: 0 };
+  private readonly launchRotation = new Quaternion();
+  private readonly launchEuler = new Euler();
+  /** Evaluate the same bounded launch data for both a body volley and a tossed pickup. No RNG is advanced here. */
+  static velocity(row: BodyLaunchRow, from: Vec3, to: Vec3, phase: number, out: Vec3): void {
+    if (!Number.isFinite(phase)) throw new RangeError('Invalid body launch phase');
+    if (row.kind === 'radial') {
+      if (![row.horizontal, row.up].every(Number.isFinite)) throw new RangeError('Invalid radial body launch');
+      out.x = Math.sin(phase) * row.horizontal; out.y = row.up; out.z = Math.cos(phase) * row.horizontal;
+    } else {
+      if (!(row.speed > 0) || !(row.time[0] > 0) || row.time[1] < row.time[0]
+        || ![row.speed, ...row.time, row.gravity, ...row.rotation].every(Number.isFinite)) throw new RangeError('Invalid aimed body launch');
+      const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
+      const time = Math.max(row.time[0], Math.min(row.time[1], Math.hypot(dx, dz) / row.speed));
+      out.x = dx / time; out.y = dy / time + 0.5 * row.gravity * time; out.z = dz / time;
+    }
+  }
   private readonly body: (Body | null)[];
   private readonly state: Int8Array;
   private readonly rest: Float32Array | number[];
@@ -369,6 +392,13 @@ export class DynamicBodySlots<T> {
     const body = bodies.spawn(this.spec(k),from,velocity,rotation);
     this.body[k] = body; this.state[k] = this.row.initial; this.rest[k] = 0; this.age[k] = 0; this.source[k] = source;
     return body;
+  }
+  /** Launch coefficients own velocity and initial orientation; the caller keeps draw order and post-spawn angular velocity. */
+  launch(row: BodyLaunchRow, from: Vec3, to: Vec3, phase: number, source: T | null = null): Body | null {
+    DynamicBodySlots.velocity(row, from, to, phase, this.launchVelocity);
+    const rotation = row.kind === 'target' ? this.launchRotation.setFromEuler(this.launchEuler.set(
+      phase * row.rotation[0], phase * row.rotation[1], phase * row.rotation[2])) : undefined;
+    return this.spawn(from, this.launchVelocity, rotation, source);
   }
   free(k: number): void {
     const body = this.bodyAt(k); this.body[k] = null; this.state[k] = 0; this.gone[k] = 1;

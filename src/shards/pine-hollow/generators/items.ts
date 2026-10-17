@@ -1,4 +1,5 @@
 import { NATIVE_LOADOUT } from './nativeLoadout';
+import { pinePickups } from './pickups';
 import { PINE_NATIVE_PACK } from './nativeInventory';
 import { LEVER_WEAPON_PROFILE } from './leverProfile';
 import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
@@ -8,7 +9,7 @@ import { CROSSBOW, LEVER, LONGBOW } from './equipment';
 /** These contacts are bounded placeholders: the trusted native projectile families own flight, damage and reload. */
 const contact = (id: string) => ({ id, damage: 0, cooldown: 1, range: 0.01, width: 0.01, tags: [], effect: null });
 /** Existing saved equipment ids and the exact authored glyphs; shard-owned families resolve the G51 native recipes. */
-export const PINE_ITEMS = { version: 1, rows: [
+export const PINE_ITEMS = { version: 1, pickups: pinePickups(), rows: [
   { row: CROSSBOW, family: 'firearm', context: 'weapon.ranged' },
   { row: LEVER, family: 'firearm', context: 'weapon.ranged' },
   { row: LONGBOW, family: 'bow', context: 'weapon.bow' },
