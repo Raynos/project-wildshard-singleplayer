@@ -1,0 +1,128 @@
+{
+  "ASSET_GLOBS": [
+    "public/assets/nine-dragon/**",
+    "public/assets/gpu/nine-dragon/**",
+    "public/assets/music/nine-dragon-stack/**",
+    "public/assets/sfx/nine-dragon-stack/**",
+    "public/assets/title/nine-dragon-stack-portrait.jpg",
+    "public/assets/nine-dragon-stack/map/**"
+  ],
+  "BOOT_FILES": [
+    "/assets/nine-dragon/paint/concrete.jpg",
+    "/assets/nine-dragon/paint/flag.jpg",
+    "/assets/nine-dragon/paint/flag-a.jpg",
+    "/assets/nine-dragon/paint/flag2.jpg",
+    "/assets/nine-dragon/paint/flag2-a.jpg",
+    "/assets/nine-dragon/paint/lacquer.jpg",
+    "/assets/nine-dragon/paint/panel.jpg",
+    "/assets/nine-dragon/paint/poster.jpg",
+    "/assets/nine-dragon/paint/poster-a.jpg",
+    "/assets/nine-dragon/paint/stone.jpg",
+    "/assets/nine-dragon/paint/tiles.jpg",
+    "/assets/nine-dragon/paint/wood.jpg",
+    "/assets/nine-dragon/lab/walker.glb",
+    "/assets/nine-dragon/lab/sitter.glb",
+    "/assets/nine-dragon/lab/grapple/dragon-hook.glb",
+    "/assets/nine-dragon/lab/organic/lion.glb",
+    "/assets/nine-dragon/lab/organic/pots.glb",
+    "/assets/nine-dragon/lab/organic/lanterns.glb",
+    "/assets/nine-dragon/lab/organic/leaf-atlas.webp",
+    "/assets/nine-dragon/lab/organic/scroll.webp",
+    "/assets/nine-dragon/grade-lut-cleanroom.bin",
+    "/assets/nine-dragon/viewmodel/fp-rig.glb",
+    "/assets/nine-dragon/viewmodel/hand-r-maps.webp",
+    "/assets/nine-dragon/viewmodel/hand-r-nrm.webp",
+    "/assets/nine-dragon/viewmodel/arm-r-maps.webp",
+    "/assets/nine-dragon/viewmodel/arm-r-nrm.webp",
+    "/assets/nine-dragon/viewmodel/fist-l-maps.webp",
+    "/assets/nine-dragon/viewmodel/fist-l-nrm.webp",
+    "/assets/nine-dragon/viewmodel/gauntlet-maps.webp",
+    "/assets/nine-dragon/viewmodel/gauntlet-nrm.webp"
+  ],
+  "COMPARE_ROWS": [
+    {
+      "id": "gate",
+      "label": "Lantern gate",
+      "model": "nine-gate",
+      "target": "art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg"
+    },
+    {
+      "id": "stair",
+      "label": "Stair street",
+      "model": "nine-stair",
+      "target": "art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg"
+    }
+  ],
+  "CREATURE_LOOK": {
+    "lowPoly": false,
+    "waitForModels": false,
+    "furRim": false,
+    "tintRange": 0.2,
+    "oneMaterial": false
+  },
+  "LOADOUT": {
+    "weapons": [
+      "weapon.jian"
+    ],
+    "tools": [
+      "tool.fei-zhua",
+      "tool.hoverboard"
+    ],
+    "start": [
+      "weapon.jian",
+      "tool.hoverboard"
+    ],
+    "pickups": []
+  },
+  "NINE_STRINGS": {
+    "name": "Nine Dragon Stack",
+    "label": "(−2, +1)",
+    "biome": "Vertical neon city",
+    "blurb": "Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment — the square, the Well's rim and the stair-street — rough edges everywhere.",
+    "roadPortal": "Road portal"
+  },
+  "PLACE_AT": {
+    "lantern-square": {
+      "x": 11,
+      "z": -3,
+      "r": 16
+    },
+    "night-market": {
+      "x": 19,
+      "z": -17,
+      "r": 6
+    },
+    "stair-street": {
+      "x": 46,
+      "z": 6,
+      "r": 24
+    },
+    "well-rim": {
+      "x": -14,
+      "z": -14,
+      "r": 18
+    }
+  },
+  "ROAD_PORTAL_PINS": [
+    {
+      "edge": "north",
+      "x": 0,
+      "z": 236
+    },
+    {
+      "edge": "east",
+      "x": 236,
+      "z": 0
+    },
+    {
+      "edge": "south",
+      "x": 0,
+      "z": -236
+    },
+    {
+      "edge": "west",
+      "x": -236,
+      "z": 0
+    }
+  ]
+}

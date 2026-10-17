@@ -10,7 +10,7 @@ import {parseAudioData} from '@wildshard/format/audio';
 import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
 import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
 import {NALATI_AUDIO} from '../src/shards/nalati-grasslands/generators/audio';
-import {ND_AUDIO} from '../src/shards/nine-dragon-stack/data/audio';
+import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
 import {createNalatiAudio} from '../src/shards/nalati-grasslands-legacy/runtime/audio/files';
 import {createNdAudio,ndPick} from '../src/shards/nine-dragon-stack-legacy/runtime/audio/files';
 import {steppePick,createSteppeScore} from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore';

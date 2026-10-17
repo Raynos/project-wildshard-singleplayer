@@ -1,6 +1,6 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { NINE_FLOOR_PLAN } from './floorPlan';
-import { MOVERS } from './worldDressing';
+import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+import { MOVERS } from '../data/worldDressing';
 
 const datum = NINE_FLOOR_PLAN.datum;
 const train = new ClientChannels('nds-train'), trainTime = train.clock('time');

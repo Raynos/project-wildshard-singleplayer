@@ -1,9 +1,9 @@
-import { BUDGET_CEILINGS } from './budgetCeilings';
+import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 
 /** E357 S1.6 allocation inputs; all count targets rederive after a stable M5 calibration. */
 export const ND_BUDGET_INPUTS: LevelSpec['budgets'] = {
-  ceilings: BUDGET_CEILINGS,
+  ceilings: bootMetadata.ceilings,
   phone: {
     fps: 30, variability: 1.3, cpuMs: 9.6, gcMs: 0.6,
     systems: { physics: 0.8, ai: 0.8, animation: 1, player: 0.4, world: 0.5, hud: 0.3, audio: 0.2 },

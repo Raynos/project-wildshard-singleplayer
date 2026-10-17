@@ -74,8 +74,7 @@ import { cullHandedBatches } from '../runtime/cull/handedBatches';
 import { convertKits } from '../runtime/kit/kitConvert';
 import { waitForFonts } from '../runtime/signs/fontWait';
 import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeometry';
-import { NINE_CLIENT_CHANNELS } from '../data/clientMotion';
-import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
+import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 import { FONT_LOAD, KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '../runtime/cull/meshLod';
@@ -314,11 +313,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
   nd.look.neon = { mat: neon, atlas };
-  const movers = (model: ModelDef<object>, programs: readonly ClientChannelProgram[], id: string): RunningMover[] => placeMovers(model, programs, { ctx: nd.ctx, parent: root, id, name: 'movers' });
+  const movers = (model: ModelDef<object>, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(model, programs, { ctx: nd.ctx, parent: root, id, name: 'movers' });
   const running = [
-    ...movers(monorailTrain, NINE_CLIENT_CHANNELS.slice(0, 1), 'nds-train'),
-    ...movers(cableGondola, NINE_CLIENT_CHANNELS.slice(1, 2), 'nds-gondola'),
-    ...movers(drone, NINE_CLIENT_CHANNELS.slice(2), 'nds-drones'),
+    ...movers(monorailTrain, declarations.clientChannels.slice(0, 1), 'nds-train'),
+    ...movers(cableGondola, declarations.clientChannels.slice(1, 2), 'nds-gondola'),
+    ...movers(drone, declarations.clientChannels.slice(2), 'nds-drones'),
   ];
   await slice();
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');

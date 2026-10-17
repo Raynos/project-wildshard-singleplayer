@@ -1,9 +1,8 @@
-import { NINE_CLIENT_CHANNELS } from './data/clientMotion';
+import declarations from './data/declarations.generated.json' with { type: 'json' };
 import { NINE_MODES } from './data/modes';
-import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
+import NINE_DRAGON_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
 import { NINE_LEDGER } from './data/ledger';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
@@ -28,6 +27,6 @@ const budgets = { ...base.budgets, sim: { resident: navigationResident, compress
 export default parseShardfile({ ...base, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident },
   files: [...world.shardfile.files, ...navigation.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: world.shardfile.library,
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, clientChannels: NINE_CLIENT_CHANNELS, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: declarations.audio, clientChannels: declarations.clientChannels, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });

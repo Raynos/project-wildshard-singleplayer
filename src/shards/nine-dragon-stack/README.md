@@ -42,7 +42,7 @@ Layout debt (grandfathered): `grapple/`, `vm/`, `mockupCameras.ts`, `places.ts`,
 ## Budgets
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). No cold-load cap yet (its F2 baseline, rounded up, is shown at M1
-for Jake to confirm). F2 ceilings for the poses `spawn-rail`, `well-edge`, `stair-street` in `budgetCeilings.ts`.
+for Jake to confirm). F2 ceilings for the poses `spawn-rail`, `well-edge`, `stair-street` in `data/budgetCeilings.json`.
 Memory: 1.8 GB loading and 1.0 GB in Explore are hard limits on the iPhone.
 
 ## Look

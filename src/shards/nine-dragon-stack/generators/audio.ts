@@ -1,5 +1,5 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
-import { ND_SAMPLES } from './audioSamples';
+import ND_SAMPLES from '../data/audioSamples.json' with { type: 'json' };
 
 /** Today's market/Well beds, enclosed blend regions, lantern hum limits and ordered cue aliases. */
 export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,

@@ -1,7 +1,5 @@
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
-import { ND_SAMPLES } from './data/audioSamples';
-import { bootSources } from './boot/files';
+import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
 import exploreGrapple from './explore/playground-grapple.webp';
 import { JIAN_ROW } from './vm/jianRow';
 import exploreWorld from './explore/world-nine-dragon-stack.webp';
@@ -27,7 +25,6 @@ import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import { NINE_DRAGON_PLACES } from './places';
-import { ASSET_GLOBS, BOOT_FILES as FILES, COMPARE_ROWS, CREATURE_LOOK, LOADOUT, NINE_STRINGS, PLACE_AT, ROAD_PORTAL_PINS } from './data/manifest';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';
 import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import heroLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
@@ -41,43 +38,43 @@ const SEED = 0x9d2a;
 
 const COMPARE_IMAGES = [{ live: compareGateLive, image: compareGateTarget }, { live: compareStairLive, image: compareStairTarget }];
 const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },
-  compare: COMPARE_ROWS.flatMap((row, i) => { const art = COMPARE_IMAGES[i]; return art === undefined ? [] : [{ ...row, ...art }]; }) } satisfies NonNullable<ShardManifest['explore']>;
+  compare: bootMetadata.manifest.COMPARE_ROWS.flatMap((row, i) => { const art = COMPARE_IMAGES[i]; return art === undefined ? [] : [{ ...row, ...art }]; }) } satisfies NonNullable<ShardManifest['explore']>;
 
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
-  runtimeCost: NINE_DRAGON_RUNTIME_COST,
+  runtimeCost: bootMetadata.runtimeCost,
   entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
   gridShardfile: '/shardfiles/nine-dragon-stack/shard.json',
   navigation: { row: navigation.navigation, url: navigation.url },
   trustedRuntime: { get slug() { return NINE_DRAGON_STACK.slug; }, entry: 'runtime/index.ts' },
   kitLook: 'pbr',
-  creatures: CREATURE_LOOK,
+  creatures: bootMetadata.manifest.CREATURE_LOOK,
   debugOptions: [],
   budgets: ND_BUDGET_INPUTS,
   uses: ['hover', 'explore', 'practice'],
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, attackers: Infinity },
-  loadout: LOADOUT,
+  loadout: bootMetadata.manifest.LOADOUT,
   bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },
   species: [],
   encounters: [],
   dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
   load: () => import('./plugin'),
-  boot: { steps: {}, files: () => FILES, sources: (tier, tex) => bootSources(tier, tex, FILES), audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nine-dragon-stack'), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
-  audio: { bed: ND_SAMPLES.bed, samples: { omitLoops: ND_SAMPLES.omitLoops, omitShots: ND_SAMPLES.omitShots, loopGains: ND_SAMPLES.loopGains }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioCatalogue('nine-dragon-stack') },
+  boot: { steps: {}, files: bootMetadata.manifest.BOOT_FILES, sources: bootMetadata.sources, audio: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioFiles('nine-dragon-stack'), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
+  audio: { bed: bootMetadata.samples.bed, samples: { omitLoops: bootMetadata.samples.omitLoops, omitShots: bootMetadata.samples.omitShots, loopGains: bootMetadata.samples.loopGains }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('@wildshard/game/shardfile/audioCatalogue')).productAudioCatalogue('nine-dragon-stack') },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
-  assetGlobs: ASSET_GLOBS,
+  assetGlobs: bootMetadata.manifest.ASSET_GLOBS,
   ktx2: () => import('./ktx2.generated'),
   order: 4,
   status: 'experimental',
   
   slug: 'nine-dragon-stack',
-  name: NINE_STRINGS.name,
-  label: NINE_STRINGS.label,
+  name: bootMetadata.manifest.NINE_STRINGS.name,
+  label: bootMetadata.manifest.NINE_STRINGS.label,
   seed: SEED,
   treeCount: 0,
   accent: 'iris', // G104: the HUD accent inside its grid cell
-  biome: NINE_STRINGS.biome,
-  blurb: NINE_STRINGS.blurb,
+  biome: bootMetadata.manifest.NINE_STRINGS.biome,
+  blurb: bootMetadata.manifest.NINE_STRINGS.blurb,
 
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
 
@@ -137,10 +134,10 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // from above (the Well's galleries and crossings hang under its rim, so the rim names them) and the road's four portals
   pois: [
     ...NINE_DRAGON_PLACES.flatMap(({ id, label }) => {
-      const at = PLACE_AT[id];
+      const at = Object.entries(bootMetadata.manifest.PLACE_AT).find(([key]) => key === id)?.[1];
       return at === undefined ? [] : [{ id, name: label.charAt(0) + label.slice(1).toLowerCase(), ...at }];
     }),
-    ...ROAD_PORTAL_PINS.map(({ edge, x, z }) => ({ id: `portal-${edge}`, name: NINE_STRINGS.roadPortal, x, z, r: 8 })),
+    ...bootMetadata.manifest.ROAD_PORTAL_PINS.map(({ edge, x, z }) => ({ id: `portal-${edge}`, name: bootMetadata.manifest.NINE_STRINGS.roadPortal, x, z, r: 8 })),
   ],
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
