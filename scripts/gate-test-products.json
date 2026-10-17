@@ -1,4 +1,5 @@
 {
+  "test/boss-fight-platform.test.ts": [],
   "test/parked-viewmodels.test.ts": [],
   "test/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": ["far-reach", "sunscar-dunes"],

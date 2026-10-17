@@ -15,7 +15,8 @@ import { app as clientApp } from '@wildshard/engine/app/runtime';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
-import { DrownedCaptain } from '../combat/captain';
+import { WakeBossEncounter } from '@wildshard/game/boss/wake';
+import { presentWakeBoss } from '@wildshard/game/boss/presentation';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -61,12 +62,15 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     captain.herd = -1;
     captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ARENA_R;
   };
-  const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
+  const encounter = new WakeBossEncounter(driftwoodRows('custom/fixedLayouts').nativeView.BOSS_ENCOUNTER, pool);
+  const frame: { player: THREE.Vector3; animal: AdvAnimal | null; wake: boolean; dead: boolean } = { player: w.player.position, animal: null, wake: false, dead: false };
+  const observation = () => { frame.animal = captain; frame.wake = flags.has(encounter.row.wakeFlag); frame.dead = flags.has(encounter.row.deadFlag); return frame; };
+  const present = (): void => { presentWakeBoss(encounter, bar, app.events); };
   const scope = app.levelScope;
   if (scope !== null) {
     app.encounters.register({ id: driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ID, displayName: driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_NAME }, scope);
     app.encounters.boss(driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ID, encounter, scope);
-    app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
+    app.events.on('player.died', () => { encounter.onPlayerDeath(w.player.position); present(); }, scope);
     scope.onDispose(() => { bar.root.remove(); });
   }
   // ── per frame: wake on approach, the boss bar, the reward view ──
@@ -81,12 +85,12 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     finish: () => adv.complete?.showAfterReward() === true,
   });
   w.game.onUpdate((dt) => {
-    encounter.update(dt, app.clock.now);
+    bar.update(dt); encounter.update(observation()); present();
   }, 'shard.driftwood-isle.installFinale');
   return { captain: () => captain, rewardAt, rewardPose,
     director: { flags, player: w.player.position, rewardAt, reward: state, captain: { restore: spawn,
       wake: () => {
-        spawn(); encounter.wake();
+        spawn(); encounter.wake(observation()); present();
         w.hud.toast('The pool boils — the Drowned Captain rises!'); w.music.combat?.(1);
       },
       dead: () => { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); },

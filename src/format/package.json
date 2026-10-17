@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./bossEncounter": "./bossEncounter.ts",
+
     "./specimenCatalogue": "./specimenCatalogue.ts",
     "./exchange": "./exchange.ts",
     "./panelTemplate": "./panelTemplate.ts",

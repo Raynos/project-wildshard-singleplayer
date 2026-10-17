@@ -3,10 +3,11 @@ import { Vector3 } from 'three';
 import type { BossPresentation } from '../../src/engine/ai/BossBrain';
 import { Scope } from '../../src/engine/app/scope';
 import { Events } from '../../src/engine/events/events';
-import { DrownedCaptain } from '../../src/shards/driftwood-isle/combat/captain';
+import { WakeBossEncounter } from '@wildshard/game/boss/wake';
+import rows from '../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 
 export function captainFixture(): {
-  boss: DrownedCaptain; actor: { position: Vector3; mem: Record<string, number>; alive: boolean; hp: number; maxHp: number };
+  boss: WakeBossEncounter; actor: { position: Vector3; mem: Record<string, number>; alive: boolean; hp: number; maxHp: number };
   player: { position: Vector3 }; ui: BossPresentation; flags: Set<string>; events: Events; scope: Scope;
 } {
   const actor = { position: new Vector3(), mem: { rise: 0, phase: 1 } as Record<string, number>, alive: true, hp: 320, maxHp: 320 };
@@ -18,6 +19,6 @@ export function captainFixture(): {
     hideNameCard: vi.fn(noop), hideReward: vi.fn(noop), showRetry: vi.fn(noop), showNameCard: vi.fn(noop),
     setSkip: vi.fn(noop), showBar: vi.fn(() => { shown = true; }), setHp: vi.fn(noop), setShield: vi.fn(noop), setPhase: vi.fn(noop),
   };
-  const boss = new DrownedCaptain({ player, pool: { x: 0, z: 0 }, flags: { has: (flag) => flags.has(flag) }, animal: () => actor, events, ui });
+  const boss = new WakeBossEncounter(rows, { x: 0, z: 0 });
   return { boss, actor, player, flags, events, ui, scope };
 }

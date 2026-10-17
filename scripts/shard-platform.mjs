@@ -490,6 +490,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 // these platform approvals, and an ordinary pending row cannot claim one.
 /** @type {Record<string,string>} */
 const approvedFeatures = {
+  'boss fight host':'G474',
   'weather-keyed-sky':'G474', 'quadruped-rig':'G474', 'actor-spawn':'G474',
   'bolt-flight':'G474', 'quest-step-runner':'G474', 'loadout':'G474',
   'streamed-cover':'G475', 'collections':'G475', 'held-arms':'G475',

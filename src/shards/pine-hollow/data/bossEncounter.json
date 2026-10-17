@@ -1,0 +1,161 @@
+{
+  "definition": {
+    "id": "antler-king",
+    "name": "THE ANTLER KING",
+    "title": "WARDEN OF PINE HOLLOW",
+    "retryTitle": "THE WARDEN STANDS",
+    "intro": 4.2,
+    "introShort": 1.4,
+    "phases": [
+      {
+        "at": 1,
+        "caption": "I \u00b7 THE WARDEN",
+        "name": "The Warden"
+      },
+      {
+        "at": 0.6,
+        "caption": "II \u00b7 LANTERNS FALL",
+        "name": "Lanterns Fall"
+      },
+      {
+        "at": 0.3,
+        "caption": "III \u00b7 THE LAST LIGHT",
+        "name": "The Last Light"
+      }
+    ]
+  },
+  "kind": "antler-king",
+  "streams": {
+    "call": "pine.king.call",
+    "charge": "pine.king.charge"
+  },
+  "strikePrefix": "strike.antler-king.",
+  "presence": {
+    "enter": 80,
+    "leave": 110
+  },
+  "steps": {
+    "fight": "pine.king",
+    "presence": "pine.king.presence",
+    "dormant": "pine.king.dormant",
+    "reward": "pine.king.reward"
+  },
+  "record": {
+    "defeated": "dead:king",
+    "paid": "paid:king"
+  },
+  "lanes": {
+    "boss": "strike.antler-king.last-light",
+    "add": "strike.antler-king.thrall",
+    "count": 3
+  },
+  "adds": {
+    "variant": "thrall",
+    "state": "sidestep"
+  },
+  "actions": {
+    "roar": 3,
+    "sweep": 1,
+    "strike": 2,
+    "brace": 4
+  },
+  "reward": {
+    "hover": 0.5,
+    "radius": 2.6
+  },
+  "wire": [
+    [
+      "king",
+      "body"
+    ],
+    [
+      "present",
+      "present"
+    ],
+    [
+      "sealed",
+      "sealed"
+    ],
+    [
+      "sealK",
+      "sealK"
+    ],
+    [
+      "darkK",
+      "darkK"
+    ],
+    [
+      "glow",
+      "glow"
+    ],
+    [
+      "invuln",
+      "invuln"
+    ],
+    [
+      "lockHp",
+      "lockHp"
+    ],
+    [
+      "won",
+      "won"
+    ],
+    [
+      "phase",
+      "phase"
+    ],
+    [
+      "mode",
+      "mode"
+    ],
+    [
+      "modeT",
+      "modeT"
+    ],
+    [
+      "sweepCd",
+      "strikeCd"
+    ],
+    [
+      "stompCd",
+      "burstCd"
+    ],
+    [
+      "callCd",
+      "summonCd"
+    ],
+    [
+      "laneN",
+      "chain"
+    ],
+    [
+      "open",
+      "open"
+    ],
+    [
+      "lane",
+      "lane"
+    ],
+    [
+      "waves",
+      "rings"
+    ],
+    [
+      "lanterns",
+      "hazards"
+    ],
+    [
+      "thralls",
+      "adds"
+    ],
+    [
+      "thrallLanes",
+      "addLanes"
+    ],
+    [
+      "rngs",
+      "rngs"
+    ]
+  ],
+  "actionField": "act"
+}

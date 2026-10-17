@@ -1,6 +1,6 @@
 import { COVER_LOOKS } from '../data/coverLook';
 import { BOAT_LAYOUT } from './boatLayout';
-import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from '../data/captainEncounter';
+import captain from '../data/bossEncounter.json' with { type: 'json' };
 import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
 import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
@@ -32,10 +32,11 @@ import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 
 /** Canonical authored view rows, emitted into the admitted native-view section. */
 export const NATIVE_VIEW = {
+  BOSS_ENCOUNTER: captain,
   BOAT_LAYOUT,
-  CAPTAIN_ARENA_R: CAPTAIN_DEF.arena.r,
-  CAPTAIN_ID: CAPTAIN_DEF.id,
-  CAPTAIN_NAME: CAPTAIN_PRESENTATION.name,
+  CAPTAIN_ARENA_R: captain.arena.radius,
+  CAPTAIN_ID: captain.id,
+  CAPTAIN_NAME: captain.name,
   CASCADE_LOOKS,
   CASTAWAY_FACING,
   CASTAWAY_HEAD_FOCUS,

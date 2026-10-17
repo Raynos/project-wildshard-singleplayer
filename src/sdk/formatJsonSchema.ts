@@ -1,3 +1,5 @@
+import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
+import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
@@ -115,6 +117,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'heldArms.ToonArmsLook': ToonArmsLookSchema,
   'npcs.QuestNpcBinding': QuestNpcBindingSchema,
   'questHost.QuestHost': QuestHostSchema,
   'npcs.QuestNpcBindings': QuestNpcBindingsSchema,
@@ -127,6 +130,10 @@ const wireRoots = {
   'bossProfiles.SpawnedBossProfile': SpawnedBossProfileSchema,
   'bossProfiles.HeldBossProfile': HeldBossProfileSchema,
   'bossProfiles.ScriptBossProfile': ScriptBossProfileSchema,
+  'bossEncounter.RoamingEncounter': RoamingEncounterSchema,
+  'bossEncounter.WakeEncounter': WakeEncounterSchema,
+  'bossEncounter.BossEncounterPresentation': BossEncounterPresentationSchema,
+  'bossEncounter.NativeBossBinding': NativeBossBindingSchema,
   'weaponProfiles.WeaponProfile': WeaponProfileSchema,
   'weaponProfiles.MeleeWeaponProfile': MeleeWeaponProfileSchema,
   'weaponProfiles.BowWeaponProfile': BowWeaponProfileSchema,

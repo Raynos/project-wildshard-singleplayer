@@ -37,7 +37,8 @@ import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { antlerKingFight, KING_KIND } from '../runtime/antlerKing';
-import { ANTLER_KING_PRESENTATION } from '../data/antlerKing';
+import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
+import { pineView } from '../runtime/world/context';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { PINE_PHASES } from '../look/dayKeys';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
@@ -159,9 +160,10 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
+  const encounterRows = pineView().BOSS_ENCOUNTER;
   let forcedNight = false;
   const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
-  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => antlerKingFight(ctx,PINE_LEVEL_SEED,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
+  const king = installBossEncounter(bossEncounterPresentation(pineView().BOSS_PRESENTATION, encounterRows), () => antlerKingFight(ctx,PINE_LEVEL_SEED,h.decisionProgram,h.decisions,entered === undefined ? undefined : install => {
     installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
   }, body === undefined ? undefined : () => {
     const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;

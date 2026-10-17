@@ -3065,6 +3065,48 @@ The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md
 
 `@wildshard/engine/ai/phases` drives declared elite and boss tables over the existing `BossBrain`, combat pipeline, checkpoint/retry clocks and scoped sim snapshot adapters. `BossBrain.snapshot/restore` captures the complete continuation without replaying grants. `@wildshard/game/shardfile/encounters` validates ordered phases and actor/panel references; `@wildshard/game/shard/declaredEncounters` binds an already mounted SF7f panel. Encounter-owned spawns use a null ordinary brain, while `buildPlatformSpawns` accepts a catalogue variant resolver. See [PLATFORM-AI.md](PLATFORM-AI.md) for thresholds, persistence ports, restore and presentation.
 
+### Ground boss encounter host (G474 / G475 / G477)
+
+`@wildshard/format/bossEncounter` admits encounter identity, phases, arena and
+presence bands, strike bindings, presentation actions, rewards and ordered save
+aliases. `bossEncounterPresentation` admits the reward card and music rows.
+`NativeBossBindingSchema` admits concrete population/inventory service ids and
+a weak-point joint/offset. Unknown keys and callback bags are rejected.
+
+`@wildshard/game/boss/native` takes the existing `SimHost`, encounter/profile
+rows, a species program and native binding rows. It resolves the population by
+its installed step id, the existing admitted decision authority and the retained
+actor's `NativeCreaturePose`. No shard callback, subclass or reflection binding
+is accepted. The host adopts the reserved body once, spawns later lives through
+that population, owns phases, arena effects, telegraphs, damage and reward
+lifetime, and preserves the original fixed-step and continuation order.
+Reward grant rows resolve the existing `NativeInventory` by world and pack id;
+the pack's own item/count admission remains authoritative. Native inventories
+may register their concrete world/id in their constructor. They retain their
+existing snapshot owner and do not create another save adapter.
+
+`@wildshard/game/boss/wake` is a closed value machine. Its constructor takes rows
+and an arena center. `update` observes plain player/body/flag data;
+`takeEffects` returns bar and attempt-outcome rows once. `wake` and
+`onPlayerDeath` take observations/positions, never hooks. Restoration is silent.
+`@wildshard/game/boss/presentation` is client-only: `presentWakeBoss` applies
+effect rows to the existing `BossBar` and `Events`, without renderer hooks.
+`@wildshard/game/boss/nativeWake` resolves the existing body's declared kind on
+its actual `SimHost`; materialization stays with the existing AS director and
+roster command. It binds death flags, attempts and the exact save envelope.
+
+Private implementation modules `game/boss/lane`, `game/boss/roaming` and
+`game/boss/continuation` keep the native strike clock, seeded streams and ordered
+wire aliases. They are not shard extension APIs. The older callback-driven
+`game/shardfile/phasedBossRoaming` and `game/plugin/bossPhase` remain migration
+scaffolding and receive no new approved-feature credit in this slice. The
+counted client rig/effect and lane bindings remain with their shard.
+
+`test/boss-fight-platform.test.ts` drives invented Salt Marsh/Reed Titan rows,
+including phase presentation, arena leave/return, one-shot victory and silent
+mid-fight native restoration. Native encounter scenarios and strict shipping
+replays cover both real fights, damage ranges and save continuation.
+
 ### Author dev client (SF8c)
 
 `buildProject` in `@wildshard/sdk/project` accepts an optional third argument choosing the compiled client or a product-only build. `wildshard dev` rebuilds admitted static products and reloads the normal client, using a separate compiled author mode. `__DEVSERVER__` is false in production/native modes; the production artifact checker refuses an enabled flag. See [SDK-DEV.md](SDK-DEV.md) for commands, cleanup and build-mode checks.

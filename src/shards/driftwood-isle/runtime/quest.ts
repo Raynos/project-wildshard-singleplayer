@@ -111,7 +111,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const { table, spots } = ports, flags = host.flags;
   const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
-  const pack = new NativeInventory(readItemInventory(ports.source.items));
+  const pack = new NativeInventory(readItemInventory(ports.source.items), host);
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
   const cables = cableModes(host.scope), cableId = 'driftwood.zipline', rider = cables.nativeRider(cableId);

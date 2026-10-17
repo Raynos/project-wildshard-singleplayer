@@ -1,0 +1,42 @@
+{
+  "id": "boss.captain",
+  "level": "driftwood-isle",
+  "name": "The Drowned Captain",
+  "step": "driftwood.captain",
+  "arena": {
+    "radius": 22
+  },
+  "wakeFlag": "used:altar",
+  "deadFlag": "dead:captain",
+  "phases": [
+    {
+      "at": 1
+    },
+    {
+      "at": 0.66
+    },
+    {
+      "at": 0.33
+    }
+  ],
+  "fields": {
+    "awake": "awake",
+    "rise": "rise",
+    "phase": "phase",
+    "poolX": "poolX",
+    "poolZ": "poolZ",
+    "arena": "arena"
+  },
+  "presentation": {
+    "riseAbove": 0.5,
+    "cuts": [
+      0.66,
+      0.33
+    ]
+  },
+  "events": {
+    "restore": "captain.restore",
+    "wake": "captain.wake"
+  },
+  "kind": "captain"
+}

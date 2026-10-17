@@ -25,7 +25,7 @@ import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' 
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 import { parseQuestLeadRows } from '../../../src/shards/pine-hollow/quest/stagWalk';
 import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
-import { KING_RECORD, KING_STEP } from '../../../src/shards/pine-hollow/runtime/king';
+import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../fixtures/weapon-oracle/nativeLoadout';
 import { AIM_COMMAND, AIM_RIBS } from '../../fixtures/weapon-oracle/headlessRanged';
 import { canonicalSimDigest } from '../../fake/simState';
@@ -241,7 +241,7 @@ export class PineTape {
       }
       case 'ride': return host.flags.has('used:ph-zip') ? null : [move(0, 0, host.player.yaw)];
       case 'wait': return leg.until(host) ? null : [move(0, 0, host.player.yaw)];
-      case 'king': return host.flags.has(KING_RECORD.defeated) ? null : kingPlay(host);
+      case 'king': return host.flags.has(bossRows.record.defeated) ? null : kingPlay(host);
       default: return null;
     }
   }
@@ -253,7 +253,7 @@ const KingRow = v.object({ boss: v.object({ state: v.string(), phase: v.number()
     thralls: v.array(v.object({ a: v.string(), mode: v.string() })) }) });
 /** The King's encounter and fight as the boss row continues them (what a player sees: his state, his root rings, his thralls). */
 export function kingRow(host: SimHost): v.InferOutput<typeof KingRow> {
-  const saved = host.adapters.get(KING_STEP)?.snapshot();
+  const saved = host.adapters.get(bossRows.steps.fight)?.snapshot();
   if (typeof saved !== 'string') throw new Error('Missing the King\'s continuation');
   return v.parse(KingRow, (JSON.parse(saved) as { boss: unknown; fight: unknown }));
 }
@@ -385,7 +385,7 @@ const atCheckpoint = (name: CheckpointName, host: SimHost): boolean => {
     case 'ridge': return host.state.tick >= 16000;
     case 'night': return host.state.tick >= 24000;
     case 'king': { const row = kingRow(host); return row.boss.state === 'fight' && row.boss.phase === 1; }
-    case 'fallen': return host.flags.has(KING_RECORD.defeated);
+    case 'fallen': return host.flags.has(bossRows.record.defeated);
     default: throw new Error('Unknown checkpoint');
   }
 };
@@ -506,7 +506,7 @@ async function collectGameplayProof(rapier: Rapier, from?: 'night') {
       } else receipts.push(...ingress.ingest(effects));
       if (session.host.player.health.attributes.health <= 0) throw new Error('Player died');
     }
-    if (!tape.walked || !session.host.flags.has(QUEST_DONE) || !session.host.flags.has(KING_RECORD.defeated)) throw new Error('King/dawn tape unfinished');
+    if (!tape.walked || !session.host.flags.has(QUEST_DONE) || !session.host.flags.has(bossRows.record.defeated)) throw new Error('King/dawn tape unfinished');
     const durable = ledger.state(), rows = Object.values(durable.facts), reopened = profile(local);
     if (JSON.stringify(reopened.state()) !== JSON.stringify(durable) || rows.some(row => reopened.record(row).status !== 'duplicate')) throw new Error('Gameplay ledger not durable/deduplicated');
     const pack = v.parse(v.object({ pack: nativeInventorySchema(readItemInventory(source.items)) }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;

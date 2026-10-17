@@ -27,6 +27,12 @@ export interface PopulationRosterPorts {
   readonly poses?: { attach: (actor: NativePopulationActor) => void; retire: (id: string) => void };
 }
 
+const installed = new WeakMap<SimHost, Map<string, ReturnType<typeof installPopulationRoster>>>();
+/** Resolve an installed built-in roster by its declared step id; no shard hook is accepted. */
+export function populationRoster(host: SimHost, id: string): ReturnType<typeof installPopulationRoster> {
+  const roster = installed.get(host)?.get(id); if (roster === undefined) throw new Error('Missing native population service'); return roster;
+}
+
 const finite = v.pipe(v.number(), v.finite());
 const Stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
 const Memory = v.record(v.string(), v.union([finite, v.boolean(), v.array(v.tuple([finite, finite, finite]))]));
@@ -211,7 +217,11 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
     if (row === undefined) throw new Error(`native population has no parked body ${id}`);
     return join(intake.arrive(slot(id, row.kind, row.variant, row.spec, row.seed, row.scale, { x, y: 0, z }, yaw)), row.kind, false);
   };
-  return { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant),
+  const service: ReturnType<typeof installPopulationRoster> = { bodies: () => list, parked: () => parked, hunt, spawn: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant),
     spawnLoose: (kind, x, z, yaw, variant) => spawn(kind, x, z, yaw, variant, false), retire, adoptParked,
     actor: made };
+  const services = installed.get(host) ?? new Map<string, ReturnType<typeof installPopulationRoster>>();
+  if (services.has(rows.step)) throw new Error('Duplicate native population service');
+  services.set(rows.step, service); installed.set(host, services);
+  return service;
 }

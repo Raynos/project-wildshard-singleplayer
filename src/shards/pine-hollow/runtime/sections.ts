@@ -1,3 +1,4 @@
+import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
@@ -33,6 +34,7 @@ export const SECTIONS = {
 
 /** World-only view rows: the reader checks the named product before any builder uses them. */
 export const NativeViewSchema = v.strictObject({
+  BOSS_RIBS: triple, BOSS_ENCOUNTER: RoamingEncounterSchema, BOSS_PRESENTATION: BossEncounterPresentationSchema,
   KINGS_CLEARING: v.strictObject({ x:number, z:number, r:number, blend:number, clear:number }),
   BEAR_CAVE: v.strictObject({ x:number, z:number, rot:number }), KING_ARENA_FOG:number,
   KING_FX_LOOKS:v.strictObject({ fog:text, flame:text }), CRAG_LOOK:text, SPRAY_LOOK:text,

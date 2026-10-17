@@ -150,7 +150,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const { resinCount: RESIN_COUNT, tokenNames: TOKEN_NAMES, readingDelay: PINE_READING_DELAY, lanternIds: PINE_LANTERN_IDS } = content.policy;
   if (RESIN_COUNT !== 30) throw new Error('Pine resin continuation requires its thirty authored drops');
   const { table } = content, indexed = bindQuestTableSpots(table, spots.rows, flags);
-  const pack = new NativeInventory(ports.inventory), Saved = questSaved(nativeInventorySchema(ports.inventory));
+  const pack = new NativeInventory(ports.inventory, host), Saved = questSaved(nativeInventorySchema(ports.inventory));
   const required = (id: string): Rule => {
     const row = indexed.get(id);
     if (row === undefined) throw new Error(`Missing Pine quest row ${id}`);

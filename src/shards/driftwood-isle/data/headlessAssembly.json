@@ -10,8 +10,8 @@
     "src/shards/driftwood-isle/sim/keeper": [
       "installIsland"
     ],
-    "src/shards/driftwood-isle/sim/captainEncounter": [
-      "installCaptain"
+    "@wildshard/game/boss/nativeWake": [
+      "installWakeBoss"
     ],
     "@wildshard/game/quest/killSteps": [
       "installQuestKillSteps"
@@ -61,6 +61,20 @@
     ]
   },
   "prepare": [
+    {
+      "name": "bossView",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "product",
+              "section"
+            ]
+          },
+          "custom/fixedLayouts"
+        ]
+      }
+    },
     {
       "name": "countersJson",
       "value": {
@@ -517,16 +531,28 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/driftwood-isle/sim/captainEncounter", "installCaptain"]
+            "$ref": [
+              "@wildshard/game/boss/nativeWake",
+              "installWakeBoss"
+            ]
           },
           {
-            "$ref": ["host"]
+            "$ref": [
+              "host"
+            ]
           },
           {
-            "$ref": ["bake"]
+            "$ref": [
+              "bossView",
+              "nativeView",
+              "BOSS_ENCOUNTER"
+            ]
           },
           {
-            "$ref": ["island"]
+            "$ref": [
+              "bake",
+              "captain"
+            ]
           }
         ]
       }
@@ -593,23 +619,105 @@
                   {
                     "restore": {
                       "$fn": {
-                        "$call": [
-                          {
-                            "$ref": ["captain", "publish"]
-                          },
-                          "captain.restore"
-                        ]
-                      }
+                                "$sequence": [
+                                  {
+                                    "$if": [
+                                      {
+                                        "$eq": [
+                                          {
+                                            "$call": [
+                                              {
+                                                "$ref": [
+                                                  "island",
+                                                  "captain"
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          null
+                                        ]
+                                      },
+                                      {
+                                        "$call": [
+                                          {
+                                            "$ref": [
+                                              "island",
+                                              "spawnCaptain"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "$ref": [
+                                          "absent"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "$call": [
+                                      {
+                                        "$ref": [
+                                          "captain",
+                                          "publish"
+                                        ]
+                                      },
+                                      "captain.restore"
+                                    ]
+                                  }
+                                ]
+                              }
                     },
                     "wake": {
                       "$fn": {
-                        "$call": [
-                          {
-                            "$ref": ["captain", "publish"]
-                          },
-                          "captain.wake"
-                        ]
-                      }
+                                "$sequence": [
+                                  {
+                                    "$if": [
+                                      {
+                                        "$eq": [
+                                          {
+                                            "$call": [
+                                              {
+                                                "$ref": [
+                                                  "island",
+                                                  "captain"
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          null
+                                        ]
+                                      },
+                                      {
+                                        "$call": [
+                                          {
+                                            "$ref": [
+                                              "island",
+                                              "spawnCaptain"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "$ref": [
+                                          "absent"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "$call": [
+                                      {
+                                        "$ref": [
+                                          "captain",
+                                          "publish"
+                                        ]
+                                      },
+                                      "captain.wake"
+                                    ]
+                                  }
+                                ]
+                              }
                     },
                     "dead": {
                       "$fn": {

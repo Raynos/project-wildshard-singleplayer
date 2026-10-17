@@ -25,6 +25,11 @@ export interface BorrowedDecisionPorts extends Pick<DecisionRuntime, 'scope' | '
   readonly fixed: (id: string, run: () => void, scope: DecisionRuntime['scope']) => void;
 }
 /** Existing encounter owners look up the controller bound to their actual body. */
+const nativeAuthorities = new WeakMap<SimHost, SpeciesDecisionAuthority>();
+/** The existing native world's admitted guest authority, never a per-shard callback. */
+export function nativeDecisions(host: SimHost): SpeciesDecisionAuthority {
+  const value = nativeAuthorities.get(host); if (value === undefined) throw new Error('Missing native decision authority'); return value;
+}
 const controls = new WeakMap<object, BorrowedSpeciesControl>();
 export function borrowedDecisionControl(actor: object): BorrowedSpeciesControl {
   const control = controls.get(actor); if (control === undefined) throw new Error('Encounter body has no admitted decision owner'); return control;
@@ -32,11 +37,12 @@ export function borrowedDecisionControl(actor: object): BorrowedSpeciesControl {
 /** Bind a verified product to its existing renderer-free host. The existing after-body phase
  * keeps spawn and restored observation order equal; physics is read live across native restore. */
 export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, host: SimHost): SpeciesDecisionAuthority {
-  return borrowedDecisionAuthority(source, assets, outputDescriptor(source)?.sections ?? new Map(), { scope: host.scope,
+  const authority = borrowedDecisionAuthority(source, assets, outputDescriptor(source)?.sections ?? new Map(), { scope: host.scope,
     events: host.events, flags: host.flags, get physics(){return host.physics;}, player: host.player, groundHeightAt: (x,z)=>host.groundHeightAt(x,z),
     live: actor => host.entities.get(actor.entityId) === actor,
     fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run, undefined, 'afterBodies')); },
   });
+  nativeAuthorities.set(host, authority); return authority;
 }
 /** Prepare flag-free species guests before the page builds its bodies. All physics, contacts and fixed ticks
  * come from the existing page. Flag-using guests must use the quest-bound catalogue instead of this port.

@@ -38,7 +38,12 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
     try {
       const host=resident.host,spawn=product.shardfile.runtime?.spawns?.bosses.find(row=>row.kind===kind);
       if(spawn===undefined)throw new Error('Missing retained boss row');
-      host.events.answer('damage.modify',request=>request?.target===host.player.health?null:request,host.scope);
+      const incoming: number[] = [];
+      host.events.answer('damage.modify',request=>{
+        if(request?.target!==host.player.health)return request;
+        if(request.cause?.kind===kind)incoming.push(request.amount);
+        return null;
+      },host.scope);
       host.player.position.set(spawn.at[0]+4,host.groundHeightAt(spawn.at[0],spawn.at[1])+.1,spawn.at[1]);
       if(kind==='captain')host.flags.set('used:altar');else host.dayClock?.setTime('night');
       for(let i=0;i<600;i++)resident.step([]);
@@ -46,12 +51,17 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
       if(body===undefined)throw new Error('Missing existing encounter body');
       const control=borrowedDecisionControl(body),policy=()=>v.parse(savedControl,JSON.parse(v.parse(v.string(),control.snapshot())));
       expect(control.fighting).toBe(true);
-      for(const fraction of [.6,.3]) {
+      for(const [index,fraction] of [.6,.3].entries()) {
         body.hp=body.maxHp*fraction;
         for(let i=0;i<300;i++)resident.step([]);
         expect(host.entities.get(body.entityId)).toBe(body);
         expect(v.parse(logical,JSON.parse(policy().decision)).decision.bindings[0]?.failures,policy().decision).toBe(0);
+        const encounter=host.adapters.get(kind==='captain'?'driftwood.captain':'pine.king')?.snapshot();
+        expect(v.parse(v.object({boss:v.object({phase:v.number()})}),JSON.parse(v.parse(v.string(),encounter))).boss.phase).toBe(index+1);
       }
+      expect(incoming.length).toBeGreaterThan(0);
+      const damage=kind==='captain'?[16,24]:[9,20,24,32];
+      expect(incoming.every(amount=>damage.includes(amount)),JSON.stringify(incoming)).toBe(true);
       body.startAttack(1.4);
       const attacking = await createTrustedHeadlessResident(preparation, entry, snapshotSimHost(host));
       try {
@@ -92,6 +102,11 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
         expect(migrated.fighting).toBe(true);
         expect(v.parse(logical,JSON.parse(migrated.decision)).decision.bindings[0]?.failures).toBe(0);
       }finally{upgraded.dispose();}
+      const outcomes: string[] = [];
+      host.events.on('boss.attempt',event=>{outcomes.push(event.outcome);},host.scope);
+      body.hp=0;body.alive=false;
+      for(let i=0;i<40;i++)resident.step([]);
+      expect(outcomes).toEqual(['won']);
     } finally {resumed?.dispose();resident.dispose();}
   },120_000);
 }

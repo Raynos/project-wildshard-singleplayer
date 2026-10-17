@@ -11,7 +11,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
 import source from '../../../src/shards/driftwood-isle/shard.config';
-import { CAPTAIN_STEP } from '../../../src/shards/driftwood-isle/sim/captainEncounter';
+import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 import { driftwoodSpots } from '../../../src/shards/driftwood-isle/runtime/quest';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -337,7 +337,7 @@ export async function replayProof(rapier: Rapier): Promise<object> {
   const original = await resume(rapier, cp); let restored: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
   try {
     const captain = [...original.host.entities.values()].find(actor => actor.kind === 'captain');
-    const encounter = original.host.adapters.get(CAPTAIN_STEP)?.snapshot();
+    const encounter = original.host.adapters.get(bossRows.step)?.snapshot();
     if (captain === undefined || !captain.alive || captain.hp >= 200 || typeof encounter !== 'string') throw new Error('Checkpoint is not the living mid-fight Captain');
     const hp = captain.hp, checkpoint = save(original); restored = await boot(rapier, checkpoint);
     if (digest(original) !== digest(restored)) throw new Error('Mid-fight restore not exact');

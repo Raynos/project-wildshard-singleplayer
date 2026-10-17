@@ -16344,7 +16344,7 @@
         "src/shards/pine-hollow/generators/kingFight.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
         "src/shards/pine-hollow/data/eliteHomes.ts",
-        "src/shards/pine-hollow/data/antlerKing.ts",
+        "src/shards/pine-hollow/data/bossEncounter.json",
         "src/shards/pine-hollow/data/kingTiming.json",
         "src/shards/pine-hollow/behaviour/ironhide.json",
         "src/shards/pine-hollow/behaviour/ghostStag.json",

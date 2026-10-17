@@ -24,7 +24,6 @@ import { Puffs } from './combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from './models/antlerKing';
-import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
 
 /**
@@ -101,8 +100,6 @@ class Dim {
 }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color(), _fog = [0, 0, 0];
-/** the move the King's rig plays for the attack about to start (kingRig.ts ACT_*) */
-const ACTS = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE } as const;
 
 /**
  * The page's King: the shared roaming phasedBoss fight (combat/kingFight.ts: the BossScript, his moves, the root rings, the
@@ -112,7 +109,7 @@ const ACTS = { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_
  * boot (their models and programs compile with the rest) and parked.
  */
 export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgramData, decisions:SpeciesDecisionAuthority, entered?: (install: () => () => void) => void, body?: () => Animal): KingFight<Animal> {
-  const scene = ctx.game.scene, kit = makeKingKit(ctx.sky);
+  const scene = ctx.game.scene, kit = makeKingKit(ctx.sky), encounterRows = pineView().BOSS_ENCOUNTER, actions = new Map(Object.entries(encounterRows.actions));
   const spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
   const tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
   const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
@@ -169,7 +166,10 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
       unpark: a => { a.hidden = false; a.mesh.visible = true; if (!ctx.animals.animals.includes(a)) ctx.animals.animals.push(a); },
     },
     adds: {
-      spawn: (kind, x, z, yaw) => { const a = spawnThrallFrom(spawner, kind, x, z, yaw, () => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind))); own(a); return a; },
+      spawn: (kind, x, z, yaw) => {
+        const a = spawnThrallFrom(spawner, kind, x, z, yaw, () => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
+        own(a); return a;
+      },
       retire: a => { if (spawner === null) retire(ctx.animals, a); else spawner.retire(a); }, lanes: () => thrallLanes,
     },
     lane: () => lane, rings: () => waves,
@@ -182,7 +182,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
         if (on) light ??= pool.acquire(0xffa040, 0, 18, 1.6);
         else if (light) { pool.release(light); light = null; }
       },
-      action: (k, move) => { k.mem['act'] = ACTS[move]; }, roar: k => { voice(ctx.animals, 'bear_roar', k.position); },
+      action: (k, move) => { k.mem['act'] = actions.get(move) ?? 0; }, roar: k => { voice(ctx.animals, 'bear_roar', k.position); },
       burst: k => { Impacts.for(ctx.game).burst('dirt', _v.set(k.position.x, k.position.y + 0.3, k.position.z), _w.set(0, 1, 0), 24); },
       hazard: (i, f, t, event) => {
         const view = fallen[i]; if (view === undefined) return;

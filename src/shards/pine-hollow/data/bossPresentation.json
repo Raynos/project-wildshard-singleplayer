@@ -1,0 +1,59 @@
+{
+  "reward": {
+    "tier": "LEGENDARY",
+    "name": "THE WARDEN'S LONGBOW",
+    "flavour": "his bow, and his amber for your crossbow",
+    "prompt": "Take the Warden's Longbow"
+  },
+  "score": {
+    "intro": [
+      {
+        "kind": "scene",
+        "value": "boss"
+      },
+      {
+        "kind": "phase",
+        "value": 1
+      },
+      {
+        "kind": "combat",
+        "value": 1
+      }
+    ],
+    "phase": [
+      {
+        "kind": "phase-index",
+        "values": [
+          1,
+          2,
+          3
+        ],
+        "otherwise": 1
+      }
+    ],
+    "victory": [
+      {
+        "kind": "ambient"
+      },
+      {
+        "kind": "sting",
+        "value": "chunk"
+      }
+    ],
+    "death": [
+      {
+        "kind": "ambient"
+      },
+      {
+        "kind": "sting",
+        "value": "death"
+      }
+    ],
+    "pickup": [
+      {
+        "kind": "sting",
+        "value": "pickup"
+      }
+    ]
+  }
+}

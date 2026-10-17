@@ -5,10 +5,14 @@ import { app } from '../src/engine/app/runtime';
 import { Scope } from '../src/engine/app/scope';
 import type { BossScript } from '../src/engine/ai/BossBrain';
 import { installBossEncounter, type BossEncounterPorts, type BossEncounterRows, type BossPersistence } from '../src/game/Boss';
-import { ANTLER_KING_PRESENTATION } from '../src/shards/pine-hollow/data/antlerKing';
+import bossRows from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
+import bossPresentation from '../src/shards/pine-hollow/data/bossPresentation.json' with { type: 'json' };
+import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { mockCanvas } from './fake/weaponParity';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
+
+const ANTLER_KING_PRESENTATION = bossEncounterPresentation(bossPresentation, bossRows);
 
 function fixture(rows: BossEncounterRows, owned = false) {
   const events: string[] = [], scope = new Scope('boss-encounter'), scene = new Scene(), camera = new PerspectiveCamera();

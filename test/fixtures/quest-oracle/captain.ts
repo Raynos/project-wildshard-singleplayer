@@ -1,5 +1,5 @@
 import { BossBrain, type BossContinuation, type BossPorts, type BossPresentation, type BossScript } from '@wildshard/engine/ai/BossBrain';
-import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from '../data/captainEncounter';
+import { CAPTAIN_DEF, CAPTAIN_PRESENTATION } from './captainEncounter';
 import type { Events } from '@wildshard/engine/events/events';
 import { Vector3 } from 'three';
 

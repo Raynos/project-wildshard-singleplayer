@@ -1,7 +1,13 @@
 import type { RoamingBossRow } from '@wildshard/sdk/phasedBoss';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { ANTLER_KING_PHASES } from '../data/antlerKing';
+import bossRows from '../data/bossEncounter.json' with { type: 'json' };
 import KING_ATTACK_TIMING from '../data/kingTiming.json' with { type: 'json' };
+
+function phaseAt(index: number): number {
+  const phase = bossRows.definition.phases[index];
+  if (phase === undefined) throw new Error('Missing authored boss phase');
+  return phase.at;
+}
 
 /** The shipped Warden fight as phasedBoss data: each stance, contact, lane chain, lantern and phase. */
 export const ANTLER_KING_FIGHT = {
@@ -9,9 +15,9 @@ export const ANTLER_KING_FIGHT = {
     modeT:'king.mode-t',strikeCd:'king.strike-cd',burstCd:'king.burst-cd',summonCd:'king.summon-cd',chain:'king.chain',
     modes:['dormant','intro','dead','stalk','sweep','stomp','waves','open','call','stalk3']}, origin: LAYOUT.KINGS_CLEARING,
   phases: [
-    {at: ANTLER_KING_PHASES[0].at,beginMode:'stalk',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:false,rings:1,darkness:false},
-    {at: ANTLER_KING_PHASES[1].at,beginMode:'stalk',chaseSpeed:2.8,recoverySeconds:2.6,burstCooldown:7.5,summons:true,rings:2,darkness:false,enter:{mode:'stalk',drop:true,summonDelay:1.2}},
-    {at: ANTLER_KING_PHASES[2].at,beginMode:'stalk3',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:true,rings:2,darkness:true,enter:{mode:'stalk3',resetChain:true,roar:true}},
+    {at: phaseAt(0),beginMode:'stalk',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:false,rings:1,darkness:false},
+    {at: phaseAt(1),beginMode:'stalk',chaseSpeed:2.8,recoverySeconds:2.6,burstCooldown:7.5,summons:true,rings:2,darkness:false,enter:{mode:'stalk',drop:true,summonDelay:1.2}},
+    {at: phaseAt(2),beginMode:'stalk3',chaseSpeed:2.3,recoverySeconds:3.2,burstCooldown:9,summons:true,rings:2,darkness:true,enter:{mode:'stalk3',resetChain:true,roar:true}},
   ],
   modes: {
     dormant:{kind:'idle',damage:0.01}, intro:{kind:'intro',damage:0.25}, dead:{kind:'dead',damage:0.25},

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type { SimHost } from '@wildshard/engine/sim';
 
 /** The shipping pack limit when its shard has not authored a different policy. */
 export const DEFAULT_PACK_SLOTS = 12;
@@ -58,14 +59,27 @@ export function nativeInventorySchema<K extends string>(profile: NativeInventory
     v.check(state => new Set(state.order).size === state.order.length && Object.keys(state.counts).every(id => state.order.some(item => item === id))
       && (!profile.counts.complete || state.order.every(id => state.counts[id] !== undefined)), profile.restoreError));
 }
+const nativePacks = new WeakMap<SimHost, Map<string, (item: string, count: number) => boolean>>();
+/** Apply row grants to an existing native pack, through its own admission law. */
+export function grantNativeInventory(host: SimHost, id: string, grants: readonly { readonly item: string; readonly count: number }[]): void {
+  const grant = nativePacks.get(host)?.get(id); if (grant === undefined) throw new Error('Missing native inventory');
+  for (const row of grants) if (!grant(row.item, row.count)) throw new Error('Boss reward rejected by native inventory');
+}
+
 /** Native inventory over existing add/trade laws, retaining the saved roster and ordering policy. */
 export class NativeInventory<K extends string> {
   private state: InventoryState<K> = { counts: {}, order: [] };
   private readonly saved: v.GenericSchema<unknown, InventoryState<K>>;
   private readonly policy: InventoryPolicy<K>;
-  constructor(private readonly profile: NativeInventoryProfile<K>) {
+  constructor(private readonly profile: NativeInventoryProfile<K>, host?: SimHost, inventoryId = 'pack') {
     this.saved = nativeInventorySchema(profile); const kinds = new Set(profile.kinds);
     this.policy = { has: id => kinds.has(id), keeps: id => kinds.has(id), slots: () => profile.slots };
+    if (host !== undefined) {
+      const packs = nativePacks.get(host) ?? new Map<string, (item: string, count: number) => boolean>();
+      if (packs.has(inventoryId)) throw new Error('Duplicate native inventory');
+      packs.set(inventoryId, (item: string, count: number) => this.add(v.parse(v.picklist(profile.kinds), item), count));
+      nativePacks.set(host, packs);
+    }
   }
   /** Stack through the original admission law with only the authored quantity/overflow guards. */
   readonly add = (id: K, n = 1): boolean => {

@@ -20,7 +20,7 @@
     "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
     "src/shards/pine-hollow/runtime/herds": ["pineHuntGround"],
     "src/shards/pine-hollow/runtime/kingPoseKeeper": ["installKingPoseKeeper"],
-    "src/shards/pine-hollow/runtime/king": ["installPineKing"],
+    "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
     "@wildshard/game/loadout/nativeAmmunition": ["NativeHeldAmmunition"],
@@ -33,6 +33,25 @@
     "src/shards/pine-hollow/combat/lane": ["Lane"]
   },
   "prepare": [
+    {
+      "name": "bossView",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "look/native-view.json"
+        ]
+      }
+    },
     {
       "name": "bowRow",
       "value": {
@@ -624,138 +643,65 @@
       "value": {
         "$call": [
           {
-            "$ref": ["src/shards/pine-hollow/runtime/king", "installPineKing"]
+            "$ref": [
+              "@wildshard/game/boss/native",
+              "installGroundBoss"
+            ]
           },
           {
-            "$ref": ["host"]
+            "$ref": [
+              "host"
+            ]
           },
           {
-            "decisionProgram": {
-              "$ref": ["decisionProgram"]
+            "$ref": [
+              "bossView",
+              "BOSS_ENCOUNTER"
+            ]
+          },
+          {
+            "$ref": [
+              "bossView",
+              "BOSS_ENCOUNTER",
+              "profile"
+            ]
+          },
+          {
+            "$ref": [
+              "decisionProgram"
+            ]
+          },
+          {
+            "population": {
+              "$ref": [
+                "populationRoster",
+                "step"
+              ]
             },
-            "decisions": {
-              "$ref": ["decisions"]
-            },
-            "heightAt": {
-              "$ref": ["heightAt"]
-            },
-            "parked": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "parked"]
-                  }
+            "weakPoint": {
+              "joint": "chest",
+              "at": {
+                "$ref": [
+                  "bossView",
+                  "BOSS_RIBS"
+                ]
+              },
+              "radius": {
+                "$ref": [
+                  "bake",
+                  "kingHit",
+                  "radius"
                 ]
               }
             },
-            "adoptParked": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "adoptParked"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["args", 1]
-                  },
-                  {
-                    "$ref": ["args", 2]
-                  },
-                  {
-                    "$ref": ["args", 3]
-                  }
-                ]
-              }
-            },
-            "spawn": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "spawn"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["args", 1]
-                  },
-                  {
-                    "$ref": ["args", 2]
-                  },
-                  {
-                    "$ref": ["args", 3]
-                  },
-                  {
-                    "$ref": ["args", 4]
-                  }
-                ]
-              }
-            },
-            "spawnLoose": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "spawnLoose"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["args", 1]
-                  },
-                  {
-                    "$ref": ["args", 2]
-                  },
-                  {
-                    "$ref": ["args", 3]
-                  },
-                  {
-                    "$ref": ["args", 4]
-                  }
-                ]
-              }
-            },
-            "retire": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "retire"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  }
-                ]
-              }
-            },
-            "find": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["roster", "actor"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  }
-                ]
-              }
-            },
-            "night": {
-              "$fn": {
-                "$ref": ["day", "night"]
-              }
-            },
-            "grantTrophy": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["quest", "pack", "add"]
-                  },
-                  "amber-resin",
-                  3
-                ]
-              }
+            "reward": {
+              "inventory": "pack",
+              "grants": [
+                {
+                  "item": "amber-resin",
+                  "count": 3
+                }
+              ]
             }
           }
         ]

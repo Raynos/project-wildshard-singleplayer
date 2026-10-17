@@ -21,7 +21,7 @@ import { nativeDecisionAuthority as module15NativeDecisionAuthority } from '@wil
 import { installPopulationRoster as module16InstallPopulationRoster } from '@wildshard/sdk/populationRoster';
 import { pineHuntGround as populationGround } from '../runtime/herds';
 import { installKingPoseKeeper as populationPose } from '../runtime/kingPoseKeeper';
-import { installPineKing as module18InstallPineKing } from '../runtime/king';
+import { installGroundBoss as module18InstallPineKing } from '@wildshard/game/boss/native';
 import { DayCycle as module19DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY as module20PINE_DAY } from '../look/dayKeys';
 import { NativeHeldAmmunition as module21NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
@@ -52,7 +52,7 @@ export const headlessModules = {
   '@wildshard/sdk/populationRoster': { installPopulationRoster: module16InstallPopulationRoster },
   'src/shards/pine-hollow/runtime/herds': { pineHuntGround: populationGround },
   'src/shards/pine-hollow/runtime/kingPoseKeeper': { installKingPoseKeeper: populationPose },
-  'src/shards/pine-hollow/runtime/king': { installPineKing: module18InstallPineKing },
+  '@wildshard/game/boss/native': { installGroundBoss: module18InstallPineKing },
   '@wildshard/engine/world/dayCycle': { DayCycle: module19DayCycle },
   'src/shards/pine-hollow/look/dayKeys': { PINE_DAY: module20PINE_DAY },
   '@wildshard/game/loadout/nativeAmmunition': { NativeHeldAmmunition: module21NativeHeldAmmunition },

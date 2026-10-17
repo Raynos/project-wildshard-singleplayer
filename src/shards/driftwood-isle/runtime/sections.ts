@@ -1,3 +1,4 @@
+import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
@@ -73,6 +74,7 @@ export const SECTIONS = {
   'custom/fixedLayouts': v.strictObject({
     /** Authored native view parameters, read only after product admission. */
     nativeView: v.strictObject({
+      BOSS_ENCOUNTER: WakeEncounterSchema,
     ISLAND_TIERS: v.strictObject({ phone: v.strictObject({ casterTiles: number, coverTiles: number, share: number, cover: reach, big: reach }), desktop: v.strictObject({ casterTiles: number, coverTiles: number, share: number, cover: reach, big: reach }) }),
     BOAT_LAYOUT: v.strictObject({"length": number, "beam": number, "floor": number, "deckThickness": number}),
     CAPTAIN_ARENA_R: number,
