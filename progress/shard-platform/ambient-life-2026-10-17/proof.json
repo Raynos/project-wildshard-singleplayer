@@ -1,0 +1,659 @@
+{
+  "scope": "H6 ambient life",
+  "hostScore": 6,
+  "sourceRuler": {
+    "basis": "source",
+    "parent": "16f54aa07f9e033d68f44eb8bc08ef1f1da95e70",
+    "before": {
+      "pine-hollow": {
+        "custom": 8405,
+        "as": 351,
+        "ceiling": 2130
+      },
+      "driftwood-isle": {
+        "custom": 5521,
+        "as": 96,
+        "ceiling": 1716
+      }
+    },
+    "platformBefore": {
+      "engine": 75391,
+      "game": 54500,
+      "sdk": 11049
+    },
+    "validatedSource": "d8e9e726aa31947f9bb732dc2388658ff7806820",
+    "after": {
+      "pine-hollow": {
+        "custom": 8093,
+        "as": 351,
+        "ceiling": 2130,
+        "components": {
+          "C1": 2433,
+          "C2": 898,
+          "C3": 345,
+          "C4": 1780,
+          "C5": 1289,
+          "C6": 408,
+          "C7": 7,
+          "C8": 33,
+          "C9": 900
+        }
+      },
+      "driftwood-isle": {
+        "custom": 5517,
+        "as": 96,
+        "ceiling": 1716,
+        "components": {
+          "C1": 2253,
+          "C2": 633,
+          "C3": 0,
+          "C4": 759,
+          "C5": 772,
+          "C6": 276,
+          "C7": 0,
+          "C8": 17,
+          "C9": 807
+        }
+      }
+    },
+    "platformAfter": {
+      "engine": 75391,
+      "game": 54847,
+      "sdk": 11048
+    },
+    "netShard": {
+      "pine-hollow": -312,
+      "driftwood-isle": -4
+    },
+    "netPlatform": {
+      "engine": 0,
+      "game": 347,
+      "sdk": -1
+    },
+    "baselineRuntimeRevision": "64265f9326e29a52c3c41fd989d93cf46ccf2ae7",
+    "format": {
+      "before": 79,
+      "after": 83
+    }
+  },
+  "scenarios": {
+    "shippingFrames": 18000,
+    "shippingRevision": "6655c8a0a565ec19f3f721edf5cb9dedb78b663a",
+    "visitorSourceSha256": "f1de5bfd5d1f5d90415f3f4f6f1164de19ca977cb4ee9fd22331877a0c53d5d6",
+    "tests": 8,
+    "asAdded": 0
+  },
+  "pixels": {
+    "before": "6655c8a-mvcrjz3z",
+    "after": "27444b5-mvcrumj7",
+    "method": "Unmasked 7x7 luma SSIM; exact RGBA8 comparison, paired real scene meshes/materials at pinned shipping ambient poses; phone iPhone 16 Pro and desktop at 2x render scale.",
+    "rows": [
+      {
+        "tier": "phone",
+        "shard": "driftwood-isle",
+        "name": "gull",
+        "frame": 0,
+        "count": 18,
+        "target": {
+          "x": 40,
+          "y": 10.221,
+          "z": 30
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "d2cc203b0ce12f4b7152dcd923416bccc8bb4b46f4ad9eb571f257e11a42b611",
+        "after": "d2cc203b0ce12f4b7152dcd923416bccc8bb4b46f4ad9eb571f257e11a42b611"
+      },
+      {
+        "tier": "phone",
+        "shard": "driftwood-isle",
+        "name": "gull",
+        "frame": 600,
+        "count": 18,
+        "target": {
+          "x": 40,
+          "y": 10.221,
+          "z": 30
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "adfd5cb8e1ba489edbfcbf3d97afe4c14a5862aba285114ee691f6274d796718",
+        "after": "adfd5cb8e1ba489edbfcbf3d97afe4c14a5862aba285114ee691f6274d796718"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "scavenger",
+        "frame": 600,
+        "count": 2,
+        "target": {
+          "x": 32.72996569896095,
+          "y": 15.238498097300685,
+          "z": 37.41492834837065
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "b5bc44d3449993a9b85f36573cdcf0fc06f4cc5dfb981df8df6f9b0f8ac7fb28",
+        "after": "b5bc44d3449993a9b85f36573cdcf0fc06f4cc5dfb981df8df6f9b0f8ac7fb28"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "scavenger",
+        "frame": 1800,
+        "count": 2,
+        "target": {
+          "x": 45.558728099551175,
+          "y": 21.039418175647345,
+          "z": 36.84757899082471
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "91d1f57a296d88f0ec8f7b3b3d92327c4470412d931afa60958e6986a33edb2c",
+        "after": "91d1f57a296d88f0ec8f7b3b3d92327c4470412d931afa60958e6986a33edb2c"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "sentinel",
+        "frame": 600,
+        "count": 1,
+        "target": {
+          "x": 29.072077307606374,
+          "y": 11.681915089044871,
+          "z": 5.412173942114336
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "180c3d4381540ec35eca1bfb53dad6b1e4a1d6b9257806185ed7e4b1e57204aa",
+        "after": "180c3d4381540ec35eca1bfb53dad6b1e4a1d6b9257806185ed7e4b1e57204aa"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "sentinel",
+        "frame": 1800,
+        "count": 1,
+        "target": {
+          "x": 69.66796084568232,
+          "y": 14,
+          "z": 39.88932028189411
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "5fd6bafc6d3fee1dc6e323b4fb25098cc06c43896761bf241f5c522a41985c57",
+        "after": "5fd6bafc6d3fee1dc6e323b4fb25098cc06c43896761bf241f5c522a41985c57"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "trunkForager",
+        "frame": 2400,
+        "count": 1,
+        "target": {
+          "x": 72,
+          "y": 14,
+          "z": 54
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "061c18760a6da4cd09747f02b048a9367ce2dea0a7480a0876164b0b35c16984",
+        "after": "061c18760a6da4cd09747f02b048a9367ce2dea0a7480a0876164b0b35c16984"
+      },
+      {
+        "tier": "phone",
+        "shard": "pine-hollow",
+        "name": "trunkForager",
+        "frame": 3599,
+        "count": 1,
+        "target": {
+          "x": 40,
+          "y": 10.18,
+          "z": 30
+        },
+        "canvas": [
+          804,
+          1362
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "3371f8082bf84e9340ec171c717df54bd00b680a3fa614b7458788184c6e228a",
+        "after": "3371f8082bf84e9340ec171c717df54bd00b680a3fa614b7458788184c6e228a"
+      },
+      {
+        "tier": "desktop",
+        "shard": "driftwood-isle",
+        "name": "gull",
+        "frame": 0,
+        "count": 18,
+        "target": {
+          "x": 40,
+          "y": 10.221,
+          "z": 30
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "90e6f4c73a146b925bf44b421d0fef9d75338bc83a9766407e8f172213291db0",
+        "after": "90e6f4c73a146b925bf44b421d0fef9d75338bc83a9766407e8f172213291db0"
+      },
+      {
+        "tier": "desktop",
+        "shard": "driftwood-isle",
+        "name": "gull",
+        "frame": 600,
+        "count": 18,
+        "target": {
+          "x": 40,
+          "y": 10.221,
+          "z": 30
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "6c953fb067e852185dec3ce10a75ba086d5f63a66f1ad8f0de151c2d91119b48",
+        "after": "6c953fb067e852185dec3ce10a75ba086d5f63a66f1ad8f0de151c2d91119b48"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "scavenger",
+        "frame": 600,
+        "count": 2,
+        "target": {
+          "x": 32.72996569896095,
+          "y": 15.238498097300685,
+          "z": 37.41492834837065
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "c47fca0a0ab0db3928707b088394f11333e34ab2756c7671b9837727e485235a",
+        "after": "c47fca0a0ab0db3928707b088394f11333e34ab2756c7671b9837727e485235a"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "scavenger",
+        "frame": 1800,
+        "count": 2,
+        "target": {
+          "x": 45.558728099551175,
+          "y": 21.039418175647345,
+          "z": 36.84757899082471
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "1af49c24a841122d92f5798e19460357fb77d762eaed2ae5230c7c5382b6a385",
+        "after": "1af49c24a841122d92f5798e19460357fb77d762eaed2ae5230c7c5382b6a385"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "sentinel",
+        "frame": 600,
+        "count": 1,
+        "target": {
+          "x": 29.072077307606374,
+          "y": 11.681915089044871,
+          "z": 5.412173942114336
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "c1d48c8dd6ac3491bae5483667d527704320f301776b98bef082b63a7408804c",
+        "after": "c1d48c8dd6ac3491bae5483667d527704320f301776b98bef082b63a7408804c"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "sentinel",
+        "frame": 1800,
+        "count": 1,
+        "target": {
+          "x": 69.66796084568232,
+          "y": 14,
+          "z": 39.88932028189411
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "d3766746b76fed70ffd402679d66212342a68d2cc8770d95774dcc9d39bf6e2f",
+        "after": "d3766746b76fed70ffd402679d66212342a68d2cc8770d95774dcc9d39bf6e2f"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "trunkForager",
+        "frame": 2400,
+        "count": 1,
+        "target": {
+          "x": 72,
+          "y": 14,
+          "z": 54
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "3dd5579a372c15a6d496054e4acb824a0ec238ca417168aeef70048e4ea214a4",
+        "after": "3dd5579a372c15a6d496054e4acb824a0ec238ca417168aeef70048e4ea214a4"
+      },
+      {
+        "tier": "desktop",
+        "shard": "pine-hollow",
+        "name": "trunkForager",
+        "frame": 3599,
+        "count": 1,
+        "target": {
+          "x": 40,
+          "y": 10.18,
+          "z": 30
+        },
+        "canvas": [
+          2160,
+          1350
+        ],
+        "ssim": 1.0,
+        "exact": true,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "before": "4059f4d5a035e5508d3e664aea6e0bc7d86b7a49b50d20e205865ec9506003f1",
+        "after": "4059f4d5a035e5508d3e664aea6e0bc7d86b7a49b50d20e205865ec9506003f1"
+      }
+    ]
+  },
+  "floor": {
+    "parent": {
+      "sha": "6dfc334fc9f3d5cada9640f86bb5b7ccfa84ef94",
+      "pass": true,
+      "complete": true,
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "spawn",
+            "x": -3.095993744720027e-06,
+            "y": 0.012599999536178075,
+            "z": -234.99999984452614,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "cabin",
+            "x": -14,
+            "z": -62,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "gate",
+            "x": 0,
+            "z": -200,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "sha": "260c324c9ff5e7fed9201d39901872b28f847b14",
+      "pass": true,
+      "complete": true,
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "spawn",
+            "x": -3.1033977297006965e-06,
+            "y": 0.012499999538704287,
+            "z": -234.99999984082416,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "cabin",
+            "x": -14,
+            "z": -62,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": {
+            "name": "pond",
+            "x": -56,
+            "z": 95,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        }
+      ]
+    },
+    "driftwood": {
+      "sha": "27444b5cbbf03c4ff983e99286603cf7136aff3b",
+      "pass": true,
+      "complete": true,
+      "rows": [
+        {
+          "shard": "driftwood-isle",
+          "pose": {
+            "name": "spawn",
+            "x": -3.8667315568341465e-06,
+            "y": 1.212499994089012,
+            "z": -194.0000011601637,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "driftwood-isle",
+          "pose": {
+            "name": "beach",
+            "x": -10,
+            "z": -150,
+            "yaw": 4.3,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        },
+        {
+          "shard": "driftwood-isle",
+          "pose": {
+            "name": "pier",
+            "x": 0,
+            "z": -194,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "cpuPass": true,
+          "pass": true
+        }
+      ]
+    },
+    "earlierMiss": "The older 27444 candidate had Pine cabin p95 misses during shared workload. A new exact Z1-parent/candidate pair passed; Pine owner CPU stayed below its 4.1667 ms ceiling."
+  },
+  "checks": {
+    "source": "d8e9e726aa31947f9bb732dc2388658ff7806820",
+    "allProducts": 10,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "ambientTests": 8,
+    "foragerTests": 1,
+    "shardHeadless": 17,
+    "pendingUsers": 4,
+    "allFocusedPassed": 30,
+    "canonicalGenerationAndBake": "One continuous check2 lease: generation, all products, source checks, exact served build, regeneration, official bake, explicit input/pixel assertions.",
+    "allProductsAfterBake": 10
+  },
+  "maps": {
+    "source": "d8e9e726aa31947f9bb732dc2388658ff7806820",
+    "parent": "16f54aa07f9e033d68f44eb8bc08ef1f1da95e70",
+    "command": "node scripts/bake-maps.mjs --url=http://127.0.0.1:4402 --shards=driftwood-isle,pine-hollow",
+    "sameMirrorLease": true,
+    "inputAssertions": true,
+    "pixelAssertions": true,
+    "allTenAfterBake": true,
+    "staleMapsAfterBake": false,
+    "rows": {
+      "pine-hollow": {
+        "version": 1,
+        "tilesHash": "9c302d18d9bca4bfc651a11880c1453b87e56559b721e49f441fcc70aa8e0e94",
+        "pixelHash": "5ff27135406a6b9ff2258922aa2d0eba7cf65fbaa01470a18e2368f2f4fc93d1",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95090,
+        "identicalImageToParent": true
+      },
+      "driftwood-isle": {
+        "version": 1,
+        "tilesHash": "7d601e5c21c6df077fd1e6dad94db9d4eb00fba45052080f4029cc49007fa148",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604,
+        "identicalImageToParent": true
+      }
+    }
+  }
+}

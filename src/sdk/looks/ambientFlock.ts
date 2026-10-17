@@ -12,8 +12,7 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { AmbientFlock } from '@wildshard/engine/ai/ambientFlock';
-import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { AmbientGroup, type AmbientVisitorPlayer } from '@wildshard/game/ambient/flock';
 import { parseAmbientFlock, type AmbientFlockData } from '@wildshard/format/ambientLife';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { PosedDraw } from './posedInstances';
@@ -24,7 +23,7 @@ export interface AmbientFlockLook { readonly name: string; readonly geometry: TH
 
 /** A flock row and its one posed draw. */
 export class AmbientFlockDraw {
-  readonly flock: AmbientFlock;
+  readonly flock: AmbientGroup;
   readonly mesh: THREE.InstancedMesh;
   /** the draw's parent (add this to the scene) */
   readonly group = new THREE.Group();
@@ -33,16 +32,16 @@ export class AmbientFlockDraw {
   readonly row: AmbientFlockData;
   constructor(row: AmbientFlockData, look: AmbientFlockLook, perches: readonly Point[]) {
     this.row = row;
-    this.flock = new AmbientFlock(row, perches, terrainHeight);
+    this.flock = new AmbientGroup(row, perches);
     const [, second] = row.attributes;
-    this.posed = new PosedDraw({ name: look.name, attributes: second === null ? [row.attributes[0]] : [row.attributes[0], second], channels: row.channels[1] === null ? [row.channels[0]] : [row.channels[0], row.channels[1]], scale: row.scale }, Math.max(1, this.flock.birds.length), look.geometry, look.material);
+    this.posed = new PosedDraw({ name: look.name, attributes: second === null ? [row.attributes[0]] : [row.attributes[0], second], channels: row.channels[1] === null ? [row.channels[0]] : [row.channels[0], row.channels[1]], scale: row.scale }, row.count, look.geometry, look.material);
     this.mesh = this.posed.mesh;
     this.mesh.castShadow = look.castShadow ?? false; this.mesh.receiveShadow = false;
     this.group.add(this.mesh);
     this.draw();
   }
   /** one frame: the motion, the squawks, the draw */
-  update(dt: number, player: Point): void {
+  update(dt: number, player: AmbientVisitorPlayer): void {
     this.flock.update(dt, player);
     for (const p of this.flock.calls) app.audio?.cue(p.cue, { point: this.point.set(p.x, p.y, p.z) });
     this.draw();

@@ -5999,13 +5999,32 @@ Users: Driftwood's gulls (`custom/gullFlock`, data/gullsLook.ts GULL_FLOCK,
 perched on the pier, boat, rocks and sand) and Pine Hollow's breadcrumb
 ravens (`custom/ambientLife` `guide.flock`, hidden until a guide pass).
 
-Pine's carcass `scavenge` and perch `visit` rows have one shipped user.
-They run in `src/shards/pine-hollow/runtime/life/visitors.ts` as counted
-custom C3 code. The shared host refuses either section when non-null;
-Pine's guide ravens continue using the shared core. The private visitor
-preserves the former perch-shuffle and bird-phase RNG draws.
-`test/ambient-flock-host.test.ts` checks both shared users' formation rows
-and Pine's custom gather/release and nocturnal visit lifetimes.
+`@wildshard/game/ambient/flock#AmbientGroup` admits the same flock rows plus
+`AmbientPerchesSchema` numeric sites (bounded to 4,096, with optional bark
+radius `r` and selection weight `w`). Driftwood's gulls, Pine's guide ravens,
+scavengers, night sentinels and trunk foragers all use this render-free game
+host. `birds` and `calls` lend current pose and cue buffers; `update(dt,
+viewer)` reads numeric position, sprint, night light, forward and optional
+heading. No shard function, port or reflected owner enters the host.
+Optional `when.light` and named numeric `when.weather` ranges park inactive
+presentation groups: no poses or calls, no clock advance, no reseeding on
+resume. A missing weather observation refuses that gate. These are view
+gates; authoritative actor spawn/retire decisions remain ABI v1 commands.
+
+`scavenge` rows describe arrival, circle, land, peck, hop, flush, return and
+departure motion; `gather(x,z,width,count)` borrows hidden birds, `siteVisit(id)`
+reads the visit and `release(id,viewer)` sends them away. `visit` rows select
+weighted nearby perches, gate arrivals and departures on light, face or cling
+to a perch, animate calls and flee when approached. `visitAt` / `visitSoon`
+retain capture controls. Seeds, perch-shuffle draws and all motion equations
+are preserved. The existing engine owns wheel/guide flight and the SDK owns
+one instanced posed draw; Pine keeps its shared wildlife draw.
+
+Carcass selection, harvest rewards, guide discovery and story remain shard
+rules and count as custom until their script migration. H6 adds no shard
+callbacks or decision guest; arbitrary shard decisions use ABI v1 scripts.
+`test/ambient-flock-host.test.ts` checks counts, flee and night gates plus
+18,000 pose/call frames against a pinned pre-migration shipping trace.
 
 ### Ambient foragers (G466 H6)
 

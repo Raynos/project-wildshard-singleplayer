@@ -44,6 +44,8 @@ const depart=v.strictObject({distance:finite,up:range,speed:positive,lift:finite
 /** One ambient flock (G466 H6): perched, wheeling, flushed and guiding flyers as rows; the platform owns the frame. */
 export const AmbientFlockSchema=v.strictObject({
   seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),count,scale:positive,foot:finite,wingbeat:id,
+  /** Optional presentation gates. Light is the night fraction; weather names numeric channels, never shard code. */
+  when:v.exactOptional(v.strictObject({light:v.exactOptional(range),weather:v.exactOptional(v.pipe(v.record(id,range),v.check(rows=>Object.keys(rows).length<=16)))})),
   flight:v.strictObject({wave:finite,amplitude:finite,pitch:finite,pitchRate:positive,bank:finite,bankLimit:positive,bankRate:positive,directionEpsilon:v.exactOptional(v.pipe(finite,v.minValue(1e-9),v.maxValue(1)))}),
   wingbeats:v.pipe(v.record(id,burst),v.check(rows=>Object.keys(rows).length<=16)),
   /** null: idle birds are hidden until a guide pass borrows them */
@@ -77,6 +79,11 @@ export const AmbientFlockSchema=v.strictObject({
   attributes:v.tuple([id,v.nullable(id)]),
   system:v.strictObject({id,after:v.pipe(v.array(id),v.maxLength(16)),before:v.pipe(v.array(id),v.maxLength(16))}),
 });
+/** Numeric spawn/perch sites for an ambient group. Radius selects bark-clinging
+ * arrival; weight biases site selection. No runtime function may cross the row. */
+export const AmbientPerchesSchema=v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.exactOptional(positive),w:v.exactOptional(positive)})),v.maxLength(4096));
+export type AmbientPerches=v.InferOutput<typeof AmbientPerchesSchema>;
+export function parseAmbientPerches(value:unknown):AmbientPerches {return v.parse(AmbientPerchesSchema,value);}
 export type AmbientFlockData=v.InferOutput<typeof AmbientFlockSchema>;
 export function parseAmbientFlock(value:unknown):AmbientFlockData {return v.parse(AmbientFlockSchema,value);}
 /** Ambient populations borrow actual models and world owners. No resources or callbacks are encoded in rows. */

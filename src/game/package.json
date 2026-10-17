@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ambient/flock": "./ambient/flock.ts",
     "./grid/pageMode": "./grid/pageMode.ts",
     "./shard/declaredEntry": "./shard/declaredEntry.ts",
     "./shardfile/clientPlan": "./shardfile/clientPlan.ts",

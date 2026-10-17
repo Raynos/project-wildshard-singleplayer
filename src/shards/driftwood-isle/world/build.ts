@@ -31,8 +31,7 @@ import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { placeIslandBushes } from './Bushes';
-import { gullFlock } from '../runtime/world/Gulls';
-import type { AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
+import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { buildTrailside } from './Trailside';
 import { placeRopeBridge } from './RopeBridge';
 import { buildSeabed, type Seabed } from './Seabed';
@@ -158,7 +157,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const foliage = fixed.foliage.tiers[game.tier];
   const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = await stages.build('Gulls', () => gullFlock(fixed.gullPerches), { objects: value => [value.group] });
+  const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   const trailside = buildTrailside(sky);
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their

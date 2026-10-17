@@ -519,6 +519,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 // these platform approvals, and an ordinary pending row cannot claim one.
 /** @type {Record<string,string>} */
 const approvedFeatures = {
+  'H6 ambient life':'G474',
   'declared runtime entry':'G483',
   'contracts + elites':'G473',
   'world scene assembly':'G483',
