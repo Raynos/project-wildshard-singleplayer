@@ -1,3 +1,4 @@
+import { driftwoodRows } from './boot/rows';
 /**
  * The finale (A6 + D3/D5): the Drowned Captain and the golden-hour reward view.
  *
@@ -15,7 +16,6 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain } from '../combat/captain';
-import { CAPTAIN_ARENA_R, CAPTAIN_ID, CAPTAIN_NAME, FINALE_REWARD } from './const';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { prepareDriftwoodDirector, createDriftwoodFinale } from './director';
 
@@ -46,7 +46,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   let captain: AdvAnimal | null = null;
 
   // The page and native reward controller share the author-only placement row.
-  const target = FINALE_REWARD, rewardAt = new THREE.Vector3(target.x, target.y, target.z);
+  const target = driftwoodRows('custom/fixedLayouts').nativeView.FINALE_REWARD, rewardAt = new THREE.Vector3(target.x, target.y, target.z);
 
   adv.setAnchor('shrine.reward', { x: rewardAt.x, y: rewardAt.y, z: rewardAt.z });   // the quest's last marker
 
@@ -58,13 +58,13 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
     }
     catch (e) { console.error('[finale] the captain failed to spawn', e); flags.set('dead:captain'); return; }   // never strand the quest
     captain.herd = -1;
-    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = CAPTAIN_ARENA_R;
+    captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ARENA_R;
   };
   const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
   const scope = app.levelScope;
   if (scope !== null) {
-    app.encounters.register({ id: CAPTAIN_ID, displayName: CAPTAIN_NAME }, scope);
-    app.encounters.boss(CAPTAIN_ID, encounter, scope);
+    app.encounters.register({ id: driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ID, displayName: driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_NAME }, scope);
+    app.encounters.boss(driftwoodRows('custom/fixedLayouts').nativeView.CAPTAIN_ID, encounter, scope);
     app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
     scope.onDispose(() => { bar.root.remove(); });
   }

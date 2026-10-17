@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * Waterfall v3 (E150) — Driftwood's toon cascade, a stepped faceted curtain in the Wind Waker / Sea of Thieves manner.
  * It replaced the soft, blurred v2 curtain (DRIFTWOOD-REMASTER W5), which went in E162. SHARD-PLATFORM C2: its geometry
@@ -10,14 +11,13 @@
  *   scene.add(fall);
  */
 import * as THREE from 'three';
-import { CASCADE_LOOKS } from '../const';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { fixedDraw } from '../boot/modelGeometry';
 
 /** the toon cascade (E150): the baked curtain, pool rings and foam puffs on their lent graphs (data/waterfallLook.ts), drawn
  *  after the sea */
 export function waterfall(): THREE.Group {
-  const looks = { curtain: lentLook(CASCADE_LOOKS.curtain), pool: lentLook(CASCADE_LOOKS.pool), puffs: lentLook(CASCADE_LOOKS.puffs) };
+  const looks = { curtain: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS.curtain), pool: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS.pool), puffs: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS.puffs) };
   const group = new THREE.Group();
   const draw = (name: string, geometry: THREE.BufferGeometry, material: THREE.Material, order: number): THREE.Mesh => {
     const mesh = new THREE.Mesh(geometry, material);

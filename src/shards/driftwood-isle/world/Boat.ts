@@ -23,7 +23,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
 import { fixedDraw } from '../runtime/boot/modelGeometry';
-import { BEAM, BOAT_FLOOR, LENGTH, boat } from '../runtime/models/boat';
+import { boatLayout, boat } from '../runtime/models/boat';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -44,7 +44,7 @@ export class Boat {
   /** The gameplay installer projects an admitted fixed-step script; dev model pages retain their preview clock. */
   private floorY: number;
 
-  constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + BOAT_FLOOR; }
+  constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + boatLayout().floor; }
 
   /** the game's: placed and registered (piece `boat`, the catalog's Sailboat; its colliders ride it) */
   place(registry: WorldRegistry): this {
@@ -57,7 +57,7 @@ export class Boat {
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
     if (this.spec.moored === true) {
-      this.moorings = new MooringLines(fixedDraw('mooringLines').copy(), [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], mat);
+      this.moorings = new MooringLines(fixedDraw('mooringLines').copy(), [-boatLayout().length / 2 + 0.3, boatLayout().length / 2 - 0.3], mat);
       this.ropes = this.moorings.mesh;
     }
     // gunwales + bow / stern as thin walls: they keep you in the boat once you're in, and keep a swimmer out
@@ -65,7 +65,7 @@ export class Boat {
     {
       const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h), yTop = this.spec.waterY + 0.8, yBottom = this.spec.waterY - 1.2;
       const wall = (lx: number, lz: number, hw: number, hd: number) => this.colliders.push({ x: this.spec.x + lx * cs + lz * sn, z: this.spec.z - lx * sn + lz * cs, hw, hd, rot: -h, yTop, yBottom });
-      wall(-BEAM / 2, 0, 0.08, LENGTH / 2); wall(BEAM / 2, 0, 0.08, LENGTH / 2); wall(0, -LENGTH / 2, BEAM / 2, 0.08); wall(0, LENGTH / 2, BEAM / 2, 0.08);
+      wall(-boatLayout().beam / 2, 0, 0.08, boatLayout().length / 2); wall(boatLayout().beam / 2, 0, 0.08, boatLayout().length / 2); wall(0, -boatLayout().length / 2, boatLayout().beam / 2, 0.08); wall(0, boatLayout().length / 2, boatLayout().beam / 2, 0.08);
     }
     return this;
   }
@@ -75,7 +75,7 @@ export class Boat {
 
   /** the boat's floor if (x, z) is inside the hull */
   floorHeightAt(x: number, z: number): number | undefined {
-    return floorAtRects([{ x: this.spec.x, z: this.spec.z, hw: BEAM / 2 * 0.8, hd: LENGTH / 2 - 0.3, y: this.floorY, rot: this.spec.heading ?? 0 }], x, z, 'first');
+    return floorAtRects([{ x: this.spec.x, z: this.spec.z, hw: boatLayout().beam / 2 * 0.8, hd: boatLayout().length / 2 - 0.3, y: this.floorY, rot: this.spec.heading ?? 0 }], x, z, 'first');
   }
 
   private moorings: MooringLinesSet | null = null;

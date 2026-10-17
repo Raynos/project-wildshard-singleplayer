@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/sdk/random';
 import { finishRock, type RockOpts, type RockPalette } from '../world/rockKit';
-import { SHORE_ROCK, REEF_ROCK, ROCK_PROFILES, ROCK_KINDS } from '../data/rockProfiles';
+import { SHORE_ROCK, REEF_ROCK, ROCK_PROFILES, ROCK_KINDS } from './rockProfiles';
 
 const smoothstep = (a: number, b: number, x: number): number => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));

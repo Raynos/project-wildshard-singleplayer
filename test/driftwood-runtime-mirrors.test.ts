@@ -1,17 +1,48 @@
 import { expect, test } from 'vitest';
-import { runtimeMirrorIssues } from '../src/sdk/runtimeMirrors';
-import { RUNTIME_MIRRORS } from '../src/shards/driftwood-isle/generators/runtimeMirrors';
-import * as runtimeConst from '../src/shards/driftwood-isle/runtime/const';
+import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
 import { driftwoodTierShadows, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { _buildAs } from '../src/engine/core/tier';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
+import { namedModelProduct } from './fixtures/namedModelProduct';
+import { prepareToon } from '../src/shards/driftwood-isle/runtime/look/toon';
+import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { rockGeometry } from '../src/shards/driftwood-isle/world/rockKit';
+import { addGeometryBake } from '../src/engine/world/geometryBake';
+import { Rng } from '../src/engine/core/rng';
+import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';
+// oxlint-disable-next-line import/no-nodejs-modules -- The regression loads the committed offline rock table.
+import { readFileSync } from 'node:fs';
 
-// P2a spec §2.3 / review item 8: Driftwood's runtime/const.ts copies must equal the data/ values they mirror.
-test('Driftwood runtime/const.ts mirrors data/ exactly', () => {
-  expect(runtimeMirrorIssues(RUNTIME_MIRRORS, runtimeConst)).toEqual([]);
+test('native view rows are admitted from canonical authored data', () => {
+  admitDriftwoodFixtureRows();
+  expect(driftwoodRows('custom/fixedLayouts').nativeView).toEqual(NATIVE_VIEW);
+});
+
+test('render setup retains the live uniforms used by parked views', () => {
+  const state = prepareToon(namedModelProduct(new Map()));
+  state.dayLight.uCloudTime.value = 42;
+  expect(prepareToon(namedModelProduct(new Map()))).toBe(state);
+  expect(state.dayLight.uCloudTime.value).toBe(42);
+});
+
+test('canonical wire key order retains every original rock recipe', () => {
+  const wire = namedModelProduct(new Map(), false).section('custom/fixedLayouts', SECTIONS).nativeView.SHORE_ROCK;
+  expect(Object.keys(wire)).not.toEqual(Object.keys(SHORE_ROCK));
+  const release = addGeometryBake(Uint8Array.from(readFileSync(new URL('../public/assets/models/driftwood-blender/geometry.bin', import.meta.url))).buffer);
+  const build = (palette: typeof SHORE_ROCK) => {
+    const rng = new Rng(0x5ea1 ^ 0x70c5), moss = rng.range(0.25, 0.85);
+    return rockGeometry(1.8, rng, { moss, squash: 0.72, palette, ground: -0.35 * 1.8 * 0.72 });
+  };
+  try {
+    const original = build(SHORE_ROCK), admitted = build(wire);
+    try {
+      for (const name of ['position', 'normal', 'color']) expect(admitted.getAttribute(name).array).toEqual(original.getAttribute(name).array);
+      expect(admitted.index?.array).toEqual(original.index?.array);
+    } finally { original.dispose(); admitted.dispose(); }
+  } finally { release(); }
 });
 
 test('admitted shadow tiers retain both original view choices', () => {

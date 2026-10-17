@@ -1,3 +1,4 @@
+import ziplineRows from '../data/zipline.generated.json' with { type: 'json' };
 import { GROUND_FILES } from './groundFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
@@ -45,6 +46,7 @@ function registerDraws(label: string, value: unknown): void {
   } else throw new Error('Draw file labels require named source leaves');
 }
 for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES })) registerDraws(`draw:${family}`, files);
+registerDraws('draw:zipline', { world: ziplineRows.world, trolley: ziplineRows.trolley, specimen: ziplineRows.specimen, parked: ziplineRows.parked });
 /** Build-only mapping for the runtime's checked logical-name mirrors. */
 export const DRIFTWOOD_ASSET_NAMES = byUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */

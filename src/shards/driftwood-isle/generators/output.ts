@@ -22,7 +22,6 @@ import { keeperRows } from './keeperRows';
 import { emitDefinedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from './clientSections';
-import { RUNTIME_MIRRORS } from './runtimeMirrors';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const values=[{name:'custom/assets',value:DRIFTWOOD_OUTPUT.custom},...DRIFTWOOD_CLIENT_SECTIONS];
@@ -44,8 +43,6 @@ const placements = emitNamedBlobs([
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
-/** Strict output copies prove the same constants the source mirror fixture checks. */
-export const mirrors = [...RUNTIME_MIRRORS];
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

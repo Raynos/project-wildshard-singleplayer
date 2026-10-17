@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * The Blender spawn cove's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts). The cove
  * (DRIFTWOOD-REMASTER X2, E52) is built by src/shards/driftwood-isle/blender/build_island.py into one file,
@@ -16,7 +17,6 @@
 import type * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Pipeline } from '@wildshard/engine/world/registry';
-import { ISLAND_LOOK } from '../const';
 
 /** a family's look in the world: the casters', the small cover's or the big cover's (data/islandLook.ts) */
 export type CoveLook = 'cast' | 'cover' | 'big';
@@ -46,13 +46,13 @@ interface Family {
   /** a caster (palms, crags, driftwood) casts a shadow; the ground cover does not, the big cover keeps a longer reach */
   readonly look: CoveLook;
   /** a far copy (`<proto>_lo`, the near one simplified) from this many metres */
-  readonly far?: number;
+  readonly far?: boolean;
 }
 
 /** the families, by the prototype names' stem (build_island.py: PALM_SRC, the broad palms, CLIFF_V, KIND) */
 const FAMILIES = {
-  palm: { name: 'Cove palm', protos: ['palm0', 'palm1', 'palm2', 'palm3', 'palm4'], pipeline: ['cc0', 'trellis', 'blender'], look: 'cast', far: ISLAND_LOOK.lod },
-  bpalm: { name: 'Broad-frond palm', protos: ['bpalm0', 'bpalm1', 'bpalm2', 'bpalm3'], pipeline: 'blender', look: 'cast', far: ISLAND_LOOK.lod },
+  palm: { name: 'Cove palm', protos: ['palm0', 'palm1', 'palm2', 'palm3', 'palm4'], pipeline: ['cc0', 'trellis', 'blender'], look: 'cast', far: true },
+  bpalm: { name: 'Broad-frond palm', protos: ['bpalm0', 'bpalm1', 'bpalm2', 'bpalm3'], pipeline: 'blender', look: 'cast', far: true },
   cliff: { name: 'Crag plate', protos: ['cliff0', 'cliff1', 'cliff2', 'cliff3', 'cliff4', 'cliff5'], pipeline: 'blender', look: 'cast' },
   drift: { name: 'Driftwood', protos: ['drift0', 'drift1', 'drift2', 'drift3'], pipeline: ['trellis', 'blender'], look: 'cast' },
   coconuts: { name: 'Coconut cluster', protos: ['coconuts0'], pipeline: ['trellis', 'blender'], look: 'cast' },
@@ -86,7 +86,7 @@ function coveModel(key: CoveFamily): ModelDef<CoveParams> {
     defaults: { proto: first },
     variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
     build: (ctx, p) => protoPart(ctx, p.proto, f.look, f.look),
-    ...(f.far === undefined ? {} : { lods: [{ from: f.far, build: (ctx: ModelContext, p: CoveParams) => protoPart(ctx, `${p.proto}_lo`, f.look, f.look) }] }),
+    get lods() { return f.far === undefined ? [] : [{ from: driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.lod, build: (ctx: ModelContext, p: CoveParams) => protoPart(ctx, `${p.proto}_lo`, f.look, f.look) }]; },
     // the Explorer's turntable: one copy in the casters' look (a cover look fades its copies by their distance)
     specimen: (ctx, p) => protoPart(ctx, p.proto, f.look, 'cast'),
   });

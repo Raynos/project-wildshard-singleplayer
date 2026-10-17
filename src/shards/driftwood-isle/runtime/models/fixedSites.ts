@@ -25,7 +25,6 @@ import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryMo
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { driftwoodRows } from '../boot/rows';
-import { SHRINE_POOL_LOOK, SHRINE_SITES, WRECK_SITES } from '../const';
 import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 
 /** Where a building stands: its centre (world xz) and which way its front faces (rot, radians about +Y). */
@@ -63,9 +62,9 @@ export function bakedSite(kind: Kind, p: SitePlacement): { origin: { x: number; 
 }
 
 /** Select the world landmark or flat-ground Explorer wreck; a new site needs an authored bake. */
-export function wreckSiteKind(site: WreckSpec): keyof typeof WRECK_SITES {
+export function wreckSiteKind(site: WreckSpec): 'world' | 'specimen' {
   for (const kind of ['world', 'specimen'] as const) {
-    const row = WRECK_SITES[kind];
+    const row = driftwoodRows('custom/fixedLayouts').nativeView.WRECK_SITES[kind];
     if (site.x === row.x && site.z === row.z && site.heading === row.heading && site.floorY === row.floorY
       && (site.roll ?? -0.2) === row.roll && (site.pitch ?? 0.05) === row.pitch) return kind;
   }
@@ -76,7 +75,7 @@ export const SHRINE_RUNE = new THREE.Color('#7fd9ff');
 /** the shrine's pool (its lent graph, data/poolLook.ts: the ripples, its toon look following the day clock with the cove's
  *  pools; a shrine built before the lend refuses) and its glyphs, which the world pulses */
 export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; glyphs: THREE.MeshBasicMaterial } {
-  return ctx.once('driftwood-isle/shrine:materials', () => ({ water: lentLook(SHRINE_POOL_LOOK), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) }));
+  return ctx.once('driftwood-isle/shrine:materials', () => ({ water: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) }));
 }
 
 const DRAWS = { 'hut-kit': fixedDraw('hutKit'), 'hut-flames': fixedDraw('hutFlames'), lookout: fixedDraw('lookout'),
@@ -87,9 +86,9 @@ type Draw = LibraryDraw<'kit' | 'still' | 'glow' | 'water' | 'glyphs', keyof typ
 const shadowed = (draw: Draw['draw'], material: Draw['material']): Draw => ({ draw, material, castShadow: true, receiveShadow: true });
 
 /** One fixed-site model: its baked draws, the shared materials, its bake's colliders and its late-loading card. */
-const fixedModel = <P extends object>(id: string, name: string, surface: 'planks' | 'stone', size: readonly [number, number, number], defaults: P,
+const fixedModel = <P extends object>(id: string, name: string, surface: 'planks' | 'stone', size: readonly [number, number, number], defaults: P | (() => P),
   draws: (p: P) => readonly Draw[], colliders?: (p: P) => ReturnType<typeof readColliderRows>) => defineModel<P>({
-  id: `driftwood-isle/${id}`, name, category: 'buildings', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/fixedSites.ts', surface, defaults,
+  id: `driftwood-isle/${id}`, name, category: 'buildings', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/fixedSites.ts', surface, get defaults() { return typeof defaults === 'function' ? defaults() : defaults; },
   ...libraryModel<P, Draw['material'], Draw['draw']>({
     draws, geometry: (_, draw) => DRAWS[draw].copy(),
     material: (ctx, key) => key === 'kit' ? lowPolyLookMaterial(ctx.sky) : key === 'still' ? lowPolyLookMaterial(ctx.sky, 'still')
@@ -104,8 +103,8 @@ export const hut = fixedModel('hut', 'Hut', 'planks', [11, 7, 8], {}, () => [sha
 export const lookout = fixedModel('lookout', 'Lookout tower', 'planks', [6, 11, 9], {}, () => [shadowed('lookout', 'kit')], () => descsOf('lookout', layouts().lookout.descs));
 /** The world copy's colliders and draw are the Wreck site's (world/Wreck.ts: `drawnInto`); this draws its Explorer card. */
 export const shipwreck = fixedModel<{ readonly site: WreckSpec; readonly ground: (x: number, z: number) => number }>('shipwreck', 'Shipwreck', 'planks', [12, 15, 24],
-  { site: WRECK_SITES.specimen, ground: () => 0 }, p => { const k = wreckSiteKind(p.site); return [shadowed(`wreck-${k}-kit`, 'kit'), { draw: `wreck-${k}-glow`, material: 'glow' }]; });
-export const shrine = fixedModel<ShrineParams>('shrine', 'Ring shrine', 'stone', [20, 13, 30], { site: SHRINE_SITES.specimen, ground: () => 0 }, p => {
+  () => ({ site: driftwoodRows('custom/fixedLayouts').nativeView.WRECK_SITES.specimen, ground: () => 0 }), p => { const k = wreckSiteKind(p.site); return [shadowed(`wreck-${k}-kit`, 'kit'), { draw: `wreck-${k}-glow`, material: 'glow' }]; });
+export const shrine = fixedModel<ShrineParams>('shrine', 'Ring shrine', 'stone', [20, 13, 30], () => ({ site: driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_SITES.specimen, ground: () => 0 }), p => {
   const k = shrineSiteKind(p.site);
   return [shadowed(`shrine-${k}-kit`, 'still'), { draw: `shrine-${k}-water`, material: 'water', receiveShadow: true, renderOrder: 1 }, { draw: `shrine-${k}-glyphs`, material: 'glyphs', renderOrder: 1 }];
 }, p => descsOf('shrine', shrineRow(p.site).descs));

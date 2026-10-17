@@ -224,6 +224,18 @@
         "bytes": 517540
       },
       "why": "G468 C9: 86 fixed draw slot/channel declarations (+3683 B) replace the deleted runtime fixedGeometry module and parallel preload lists. Existing owned geometry batch preserves copy/take ownership; the source index runs offline. No new section or host."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 8,
+        "bytes": 517540
+      },
+      "to": {
+        "count": 7,
+        "bytes": 527343
+      },
+      "why": "G463 reviewed C9: 12729 bytes of authored native view rows replace the deleted runtime/const.ts mirrors inside existing fixedLayouts. Seven sections total; no new section, host or raw escape. The same commit deletes runtimeMirrors and the dead island-cover baker."
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * Shrine — where the Ring Shrine stands, and what moves round it (E306 / E315 M1: the shrine itself is the fixed-site model
  * src/shards/driftwood-isle/runtime/models/fixedSites.ts; this is the world side). It places the shrine on its knoll in
@@ -14,7 +15,6 @@ import { placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { SHRINE_RUNE, bakedSite, shrine, shrineMaterials, shrineRow, type ShrineSite } from '../models/fixedSites';
-import { FIREFLY_LOOK } from '../const';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { fixedDraw } from '../boot/modelGeometry';
 
@@ -23,7 +23,7 @@ export interface Shrine extends ModelSite { readonly update: (dt: number) => voi
 
 /** Place the shrine on its baked site (registered as piece `shrine` when a registry is given). */
 export function placeShrine(sky: Sky, site: ShrineSite, registry: WorldRegistry | null): Shrine {
-  const ctx = modelContext(sky), { origin, layout } = bakedSite('shrine', { site }), { baseY, terrace } = shrineRow(site), look = hasLentLook(FIREFLY_LOOK) ? lentLook(FIREFLY_LOOK) : null;
+  const ctx = modelContext(sky), { origin, layout } = bakedSite('shrine', { site }), { baseY, terrace } = shrineRow(site), look = hasLentLook(driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK) ? lentLook(driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK) : null;
   const placed = placeModelSite(shrine, origin, layout, { ctx, registry, params: { site }, piece: { id: 'shrine' } });
   const glyphs = shrineMaterials(ctx).glyphs;
   // the firefly cloud (an effect, not the model): the baked quads (generators/fireflies.ts) the graph circles round the platform, 0.4–3 m up
@@ -40,9 +40,9 @@ export function placeShrine(sky: Sky, site: ShrineSite, registry: WorldRegistry 
       const pulse = 0.55 + 0.45 * Math.sin(t * 1.1) * Math.sin(t * 0.37 + 1);
       glyphs.color.copy(SHRINE_RUNE).multiplyScalar(1.6 + 2.6 * pulse * (0.6 + 0.4 * dusk));
     },
-    setDusk: (k) => { dusk = Math.max(0, Math.min(1, k)); setLentParam(FIREFLY_LOOK, 'dusk', dusk); },
+    setDusk: (k) => { dusk = Math.max(0, Math.min(1, k)); setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, 'dusk', dusk); },
   };
-  setLentParam(FIREFLY_LOOK, 'dusk', dusk);
+  setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, 'dusk', dusk);
   out.update(0);
   return out;
 }

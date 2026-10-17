@@ -19,7 +19,7 @@ export const ISLAND_TIERS = {
  * The tier-free numbers. `lod`: past this (m, camera to the tile's rect) a caster tile draws its far copy (E90: the palms
  * keep their full model to 110 m on the phone too, and every far copy casts). `far`: E117, a caster's far copy is its near
  * one simplified to `ratio` of the triangles, never past `error` of its size (~8 cm on a palm). `coverDepth`: how much of
- * the cover the splat turns into optical depth. `coverFile`: the baked splat's magic ('WSIC') and version. `names`: which
+ * the cover the splat turns into optical depth. `names`: which
  * placements set apart (E114: the shore boulders are Boulders.ts's, the small rocks rockKit's), which kinds cast, which
  * cover is big. `protoPrefix`: the prototypes' mesh names in island.glb.
  */
@@ -27,7 +27,6 @@ export const ISLAND_LOOK = {
   lod: 110,
   far: { ratio: 0.25, error: 0.01 },
   coverDepth: 0.6,
-  coverFile: { magic: 0x43495357, version: 2 },
   names: { casterKinds: ['palm', 'rock', 'prop'], skip: '^rockb?\\d+$', apart: '^smallrock\\d+$', big: '^(bush|flowerbush|hibiscus|fern)\\d+$' },
   protoPrefix: 'proto_',
   meshPrefix: 'island-',

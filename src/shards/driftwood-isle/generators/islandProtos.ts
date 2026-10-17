@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { ISLAND_LOOK } from '../data/islandRows';
+import { ISLAND_LOOK } from './islandRows';
 
 /** The Blender cove's prototypes at build (SHARD-PLATFORM C2): read from island.glb for the facts and the cover splat,
  *  and baked for the page with each palm's far copy simplified. Reads no generated table (the facts bake imports it). */

@@ -26,7 +26,6 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { TRADER_POSE, TRADER_HEAD_FOCUS, TRADER_FACING } from '../const';
 import { driftwoodRows } from '../boot/rows';
 import { NPC_KIT_GEOMETRY } from '../boot/modelGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -101,27 +100,27 @@ export class Trader {
     if (d > REARM_R) this.greeted = false;
     if (this.gesture !== 'none') { this.gT += dt; if (this.gT > GESTURE_S[this.gesture]) this.gesture = 'none'; }
     if (this.gesture === 'none') {
-      if (!this.greeted && d < GREET_R && d > TRADER_FACING.range * 0.6) { this.greeted = true; this.start('beckon'); }
+      if (!this.greeted && d < GREET_R && d > driftwoodRows('custom/fixedLayouts').nativeView.TRADER_FACING.range * 0.6) { this.greeted = true; this.start('beckon'); }
       else if (d >= GREET_R) { this.idleT -= dt; if (this.idleT <= 0) { this.idleT = 8 + (Math.sin(t * 0.83) + 1) * 2; this.start('tidy'); } }
-      else if (d < TRADER_FACING.range) { this.offerT -= dt; if (this.offerT <= 0) { this.offerT = 5 + (Math.sin(t * 1.31) + 1) * 1.5; this.start('offer'); } }
+      else if (d < driftwoodRows('custom/fixedLayouts').nativeView.TRADER_FACING.range) { this.offerT -= dt; if (this.offerT <= 0) { this.offerT = 5 + (Math.sin(t * 1.31) + 1) * 1.5; this.start('offer'); } }
     }
 
     // ── the figure turns to face you when you come close, and eases back to her counter after (E129) ──
     const toYou = Math.atan2(dx, dz);
-    this.turn = stepNpcFacing(this.turn, d < TRADER_FACING.range && this.gesture !== 'tidy' ? toYou - bodyYaw : 0, TRADER_FACING, dt);
+    this.turn = stepNpcFacing(this.turn, d < driftwoodRows('custom/fixedLayouts').nativeView.TRADER_FACING.range && this.gesture !== 'tidy' ? toYou - bodyYaw : 0, driftwoodRows('custom/fixedLayouts').nativeView.TRADER_FACING, dt);
     // ── the head leads: at you when you're near, else a glance about; down at the goods while she tidies them ──
     const g = this.gesture, gu = g === 'none' ? 0 : ease(this.gT / GESTURE_S[g]);
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - bodyYaw - this.turn;
     focus.playerY = player.y; focus.headY = gp.y + NECK + 0.1;
     focus.overrideYaw = g === 'tidy' ? -0.25 : undefined; focus.overridePitch = g === 'tidy' ? 0.45 : undefined;
     focus.offsetYaw = g === 'offer' && d < GREET_R ? -0.35 * gu : 0; focus.offsetPitch = g === 'offer' && d < GREET_R ? 0.3 * gu : 0;
-    stepNpcHeadFocus(this.gaze, TRADER_HEAD_FOCUS, focus, dt, t);
+    stepNpcHeadFocus(this.gaze, driftwoodRows('custom/fixedLayouts').nativeView.TRADER_HEAD_FOCUS, focus, dt, t);
     this.body.scale.set(1, 1 + Math.sin(t * 1.5 + 0.7) * 0.006, 1);
     const pose = this.pose; pose.t = t; pose.phase = this.gT;
     pose.mem['gesture'] = g === 'offer' ? 3 : g === 'tidy' ? 2 : g === 'beckon' ? 1 : 0;
     pose.mem['weight'] = gu; pose.mem['turn'] = this.turn;
     pose.mem['headPitch'] = this.gaze.headPitch; pose.mem['headYaw'] = this.gaze.headYaw;
-    playClips(TRADER_POSE, pose);
+    playClips(driftwoodRows('custom/fixedLayouts').nativeView.TRADER_POSE, pose);
   }
 }
 

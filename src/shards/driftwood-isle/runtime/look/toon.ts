@@ -1,3 +1,5 @@
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { SECTIONS } from '../sections';
 /**
  * Driftwood's day light and colour-ramp fog (DRIFTWOOD-REMASTER L1, the user's pick D1: "toon two-band ramp + coloured
  * shadows + rim", BotW / Wind Waker / Rime). Every lit material on the island is a graph toon look (the toon family's light
@@ -11,25 +13,27 @@
  */
 import * as THREE from 'three';
 import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
-import { DAY_LIGHT, RAMP_FOG } from '../const';
 import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
-/** the day light the clock turns (look/backdrop.ts); the sea sets its caustics' level */
-export const dayLight = {
-  uToonLift: { value: new THREE.Color(...DAY_LIGHT.uToonLift) }, uToonRim: { value: new THREE.Color(...DAY_LIGHT.uToonRim) },
-  uCloudShadow: { value: DAY_LIGHT.uCloudShadow }, uToonNight: { value: DAY_LIGHT.uToonNight }, uSeaLevel: { value: DAY_LIGHT.uSeaLevel }, uCloudTime: { value: DAY_LIGHT.uCloudTime },
-};
-
-/**
- * L3 — colour-ramp fog (Firewatch): distance × height. Before its start the island is crisp; out to its end the colour
- * ramps from a cool aerial blue-violet into the sky dome's own gradient in that direction (so the sea's horizon dissolves
- * into the sky seamlessly), warmer toward the sun; high ground keeps more contrast than the water line. The engine's
- * exponential terms still run (with Driftwood's thin dry densities) so the underwater blend in Atmosphere.ts works.
- */
-export const rampFog = new ColourRampFog(RAMP_FOG);
+/** Day uniforms and fog are constructed by the product's render setup, never by importing this module. */
+function createToon(product: ShardProduct) {
+  const { DAY_LIGHT: row, RAMP_FOG: fog } = product.section('custom/fixedLayouts', SECTIONS).nativeView;
+  return { dayLight: {
+    uToonLift: { value: new THREE.Color(...row.uToonLift) }, uToonRim: { value: new THREE.Color(...row.uToonRim) },
+    uCloudShadow: { value: row.uCloudShadow }, uToonNight: { value: row.uToonNight }, uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime },
+  }, rampFog: new ColourRampFog(fog) };
+}
+let current: ReturnType<typeof createToon> | null = null;
+/** Session-called: initialize admitted toon state before building any view. */
+export function prepareToon(product: ShardProduct): ReturnType<typeof createToon> { current ??= createToon(product); return current; }
+/** Native meshes borrow the explicitly installed view state. */
+export function toonState(): ReturnType<typeof createToon> {
+  if (current === null) throw new Error('Driftwood toon state requires its admitted render setup');
+  return current;
+}
 
 /** The catalogue's live toon look (the graph toon materials', data/reefLook.ts) as it follows the day light, once a frame. */
 export function followToon(look: Awaited<ReturnType<typeof runtimeLookMaterials>>['toon']): () => void {
-  const u = dayLight, t = look.uniforms;
+  const u = toonState().dayLight, t = look.uniforms;
   return () => { t.famToonLift.value.copy(u.uToonLift.value); t.famToonRim.value.copy(u.uToonRim.value); t.famToonCloud.value.x = u.uCloudShadow.value; t.famToonWater.value.x = u.uSeaLevel.value; t.famToonTime.value = u.uCloudTime.value; };
 }

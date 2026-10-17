@@ -8,7 +8,7 @@ import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
 import { buildIronSwordDisplay } from '../src/shards/driftwood-isle/runtime/fpArms';
-import { FP_ARMS_MATERIALS } from '../src/shards/driftwood-isle/runtime/const';
+import { FP_ARMS_MATERIALS } from '../src/shards/driftwood-isle/generators/fpArmsLook';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 
 test('the admitted iron sword keeps its authored scene, material loans and owned buffers', async () => {

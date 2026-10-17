@@ -1,8 +1,8 @@
+import { driftwoodRows } from '../boot/rows';
 import type * as THREE from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import { CREATURE_LOOKS } from '../const';
 
 /**
  * The island's creatures on their graph toon looks (data/creatureLook.ts): the runtime lends the compiled bodies before
@@ -22,9 +22,9 @@ function body(id: string): MeshStandardNodeMaterial {
  *  body, its glow the species' colour × intensity. */
 export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
   return { ...look, faceted: true, material: (_sky, glow, intensity = 1) => {
-    if (glow === undefined) return body(CREATURE_LOOKS.body).clone();
-    setLentParam(CREATURE_LOOKS.glowing, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
-    return body(CREATURE_LOOKS.glowing).clone();
+    if (glow === undefined) return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.body).clone();
+    setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
+    return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing).clone();
   } };
 }
 
@@ -32,10 +32,10 @@ export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
  *  glow the species' colour × intensity. */
 export function graphCaptainLook(look: SpeciesLook, coat: () => THREE.Texture | null): SpeciesLook {
   return { ...look, faceted: true, material: (_sky, glow, intensity = 1) => {
-    const captain = body(CREATURE_LOOKS.captain), map = coat();
+    const captain = body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain), map = coat();
     if (map === null) throw new Error('Creature looks: the captain has no painted coat');
-    setLentTexture(CREATURE_LOOKS.captain, 'coatMap', map);
-    if (glow !== undefined) setLentParam(CREATURE_LOOKS.captain, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
+    setLentTexture(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'coatMap', map);
+    if (glow !== undefined) setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
     return captain.clone();
   } };
 }

@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * Driftwood Isle's trader and her counter (E314, Jake's picks 2026-09-30: "a trader at Wendell's hut", the goods laid
  * out on a small driftwood counter in front of her — board 9 and board 2 A in art/loot/round-1-loop/). Code models on
@@ -22,7 +23,6 @@ import type { Trader } from '../npc/Trader';
 import { traderRig } from '../npc/people';
 import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
 
-import { COUNTER_TOP as TOP } from '../const';
 import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
@@ -43,5 +43,5 @@ export const tradeCounter: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'wood',
   prepare: loadFixedGeometry, defaults: {},
   build: (ctx): readonly ModelPart[] => [{ geometry: fixedDraw('tradeCounter').copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }],
-  colliders: () => [{ kind: 'box', x: 0, y: TOP.y / 2, z: 0, hx: TOP.w / 2, hy: TOP.y / 2, hz: TOP.d / 2 + 0.02 }],
+  colliders: () => [{ kind: 'box', x: 0, y: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.y / 2, z: 0, hx: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.w / 2, hy: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.y / 2, hz: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.d / 2 + 0.02 }],
 });

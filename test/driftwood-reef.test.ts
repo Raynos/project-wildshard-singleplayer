@@ -1,3 +1,4 @@
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
 import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
@@ -32,6 +33,7 @@ it('owns the native reef wind channels and full picking boxes without a geometry
 });
 
 it('loads all authored reef cards with the borrowed material and refuses undeclared shapes', async () => {
+  admitDriftwoodFixtureRows();
   const material = new MeshStandardMaterial(), ctx = modelContext(null);
   ctx.once('driftwood-isle/reef:material', () => ({material, uniforms: {uTime: {value: 0}}}));
   const emitted = new Map<string, Uint8Array>(), expected = new Map<string, { attributes: Record<string, number[]>; index: number[] | null }[]>();

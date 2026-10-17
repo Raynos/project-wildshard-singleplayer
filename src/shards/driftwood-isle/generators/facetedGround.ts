@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { PainterField } from '@wildshard/engine/render/look';
 import { GROUND_PATHS } from './groundLook';
-import { LP, hash2, lowPolyGroundColor } from '../look/groundColor';
+import { LP, hash2, lowPolyGroundColor } from './groundColor';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { islandClippedIndex } from './islandClips';
 

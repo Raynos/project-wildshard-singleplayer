@@ -5,9 +5,8 @@ import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import RuntimePlugin from './index';
 import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
-import { CASCADE_LOOKS, SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, CREATURE_LOOKS, COVER_LOOKS, ISLAND_LOOKS, GULL_GRAPH_LOOK } from './const';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
-import { admitDriftwoodRows } from './boot/rows';
+import { admitDriftwoodRows, driftwoodRows } from './boot/rows';
 
 // The static transitional world belongs to the resident, not a single entered play scope; its motion binds the admitted
 // product's boat and bridge movers to their real rendered/native owners (one resident per admitted product).
@@ -40,7 +39,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // day clock's toon tunables once a frame
       admitDriftwoodRows(context.product); // the client rows the world's models read (custom sections, W2b)
       const built = await residentWorld(context).load(context, async (owner) => {
-        lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: context.game }, context.product.shardfile, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS, ...Object.values(CREATURE_LOOKS), ...Object.values(ISLAND_LOOKS)]));
+        lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: context.game }, context.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS)]));
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;

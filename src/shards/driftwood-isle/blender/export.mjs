@@ -9,7 +9,7 @@ import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'
 //                                                                    structures go to ctx.addObject / ctx.tryBuild
 
 export async function groundColor({ THREE, imp, hf, def }) {
-  const { lowPolyGroundColor } = await imp('src/shards/driftwood-isle/look/groundColor.ts');
+  const { lowPolyGroundColor } = await imp('src/shards/driftwood-isle/generators/groundColor.ts');
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   const pathC = new THREE.Color('#d6bd84');
   const ss = THREE.MathUtils.smoothstep;

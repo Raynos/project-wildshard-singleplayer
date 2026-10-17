@@ -27,7 +27,6 @@
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
-import { CASTAWAY_POSE, CASTAWAY_HEAD_FOCUS, CASTAWAY_FACING, CASTAWAY_SMOKE } from '../const';
 import { driftwoodRows } from '../boot/rows';
 import { NPC_KIT_GEOMETRY, fixedDraw } from '../boot/modelGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -94,7 +93,7 @@ export class Castaway {
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
-    const smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
+    const smoke = new SmokeColumn(driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_SMOKE, f);
 
     const made = createClientScene(rows.recipe, { geometry: id => geometry.get(id), materials: new Map([['coat', mat]]),
       objects: new Map<string, THREE.Object3D>([['flames', this.flames], ['smoke', smoke.mesh]]) });
@@ -120,19 +119,19 @@ export class Castaway {
     if (near !== this.figure.visible) { this.figure.visible = this.camp.visible = this.flames.visible = near; }
     // the body turns to face you when you come to talk (or while you do), and eases back to his idle facing after
     const toYou = Math.atan2(dx, dz);
-    this.turn = stepNpcFacing(this.turn, d < CASTAWAY_FACING.range || this.talking ? toYou - this.bodyYaw : 0, CASTAWAY_FACING, dt);
+    this.turn = stepNpcFacing(this.turn, d < driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_FACING.range || this.talking ? toYou - this.bodyYaw : 0, driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_FACING, dt);
     this.figure.rotation.y = this.turn;
     // the head leads: it turns toward you whenever you are near, on top of the body's turn
     const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - this.bodyYaw - this.turn;
     focus.playerY = player.y; focus.headY = gp.y + NECK + 0.1;
-    stepNpcHeadFocus(this.gaze, CASTAWAY_HEAD_FOCUS, focus, dt, t);
+    stepNpcHeadFocus(this.gaze, driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_HEAD_FOCUS, focus, dt, t);
     this.body.scale.set(1, 1 + Math.sin(t * 1.6) * 0.006, 1);
     const pose = this.pose; pose.t = t; pose.mem['waving'] = this.waveT >= 0 ? 1 : 0;
     if (this.waveT >= 0) this.waveT += dt;
     pose.phase = this.waveT; if (this.waveT > 2.2) this.waveT = -1;
     pose.mem['talking'] = this.talking ? 1 : 0;
     pose.mem['headPitch'] = this.gaze.headPitch; pose.mem['headYaw'] = this.gaze.headYaw;
-    playClips(CASTAWAY_POSE, pose);
+    playClips(driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_POSE, pose);
     // flames flicker; smoke rises (only near enough to see it: 260 m covers the whole island)
     const fl = 1 + Math.sin(t * 13) * 0.1 + Math.sin(t * 31 + 2) * 0.06;
     this.flames.scale.set(1 + Math.sin(t * 17) * 0.05, fl, 1 + Math.cos(t * 19) * 0.05);

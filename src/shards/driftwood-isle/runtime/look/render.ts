@@ -16,13 +16,17 @@ import type { LookStrategy } from '@wildshard/engine/render/look';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { stylizedBackdrop } from './backdrop';
 import { LOWPOLY_TERRAIN, prepareGround } from './terrainPainter';
-import { rampFog } from './toon';
+import { prepareToon } from './toon';
+import { admitDriftwoodRows } from '../boot/rows';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
 const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
 
 /** The look over the island's built output (the game hands the product in: ShardManifest.render). */
-export const shardRender = (product: ShardProduct): LookStrategy => ({
+export const shardRender = (product: ShardProduct): LookStrategy => {
+  admitDriftwoodRows(product);
+  const { rampFog } = prepareToon(product);
+  return {
   mode: 'extend',
   chain: 'clean',
   compose: (c) => ({ chain: c.engineChain('clean') }),
@@ -32,4 +36,5 @@ export const shardRender = (product: ShardProduct): LookStrategy => ({
   backdrop: stylizedBackdrop(product),
   prepareWorld: prepareGround(product),
   terrainPainter: LOWPOLY_TERRAIN,
-});
+  };
+};

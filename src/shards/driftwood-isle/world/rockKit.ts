@@ -18,7 +18,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { ModelPart } from '@wildshard/engine/models/model';
-import { SHORE_ROCK } from '../data/rockProfiles';
+import { driftwoodRows } from '../runtime/boot/rows';
 import { bakedGeometry, withGeometryBake } from '@wildshard/engine/world/geometryBake';
 
 type Sky = Parameters<typeof lowPolyLookMaterial>[0];
@@ -47,14 +47,14 @@ export function rockMaterial(sky: Sky): THREE.Material {
 const paletteIds = new WeakMap<RockPalette, string>();
 function rockBakeId(pal: RockPalette): string {
   let id = paletteIds.get(pal);
-  if (id === undefined) { id = `driftwood-isle/rock:${Object.values(pal).join(',')}`; paletteIds.set(pal, id); }
+  if (id === undefined) { id = `driftwood-isle/rock:${[pal.foot, pal.dark, pal.mid, pal.light, pal.edge, pal.warm, pal.cool, pal.crease, pal.moss, pal.mossLight, pal.mossDark, pal.wet].join(',')}`; paletteIds.set(pal, id); }
   return id;
 }
 
 /** one rock — non-indexed, with `position`, `normal` and `color`. Built at `wildshard build` time and read back at load
  *  (SF67: src/engine/world/geometryBake.ts, scripts/bake-geometry.mjs); a missing required recipe refuses */
 export function rockGeometry(r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {
-  const sq = o.squash ?? 0.7, moss = o.moss ?? 0.8, palette = o.palette ?? SHORE_ROCK, ground = o.ground ?? -0.3 * r * sq, detail = o.detail ?? 0;
+  const sq = o.squash ?? 0.7, moss = o.moss ?? 0.8, palette = o.palette ?? driftwoodRows('custom/fixedLayouts').nativeView.SHORE_ROCK, ground = o.ground ?? -0.3 * r * sq, detail = o.detail ?? 0;
   // the bake holds the welded, painted pieces (position, colour, index: a sixth of the finished rock's bytes); the rest is
   // exact arithmetic (no Math.sin / exp: the same bits on every engine), so it runs at load
   return finishRock(bakedGeometry(rockBakeId(palette), [r, sq, moss, ground, detail], rng, () => { throw new Error(`Required baked rock is missing: ${rockBakeId(palette)}`); }));

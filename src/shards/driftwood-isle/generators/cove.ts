@@ -7,7 +7,7 @@ import { rock, log, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
-import { REEF_ROCK } from '../data/rockProfiles';
+import { REEF_ROCK } from './rockProfiles';
 import { ANTE, PASS, ALC_FLOOR, ANTE_FLOOR, RAMP, coveFloorAt, coveHalfWidth, coveCeil, coveWorld, type CoveSpec } from './coveLayout';
 
 // the crag's rock: E310 T2 B, a warmer grey lifted ~25 % from the old charcoal (#50555d): still heavy, never black

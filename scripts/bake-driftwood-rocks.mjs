@@ -7,8 +7,17 @@ import { seedOf, paramsOf } from '../src/engine/models/model.ts';
 import { recordGeometryBake, encodeGeometryBake, addGeometryBake, geometryBakeStats } from '../src/engine/world/geometryBake.ts';
 import { shoreBoulder, smallRock, reefRock } from '../src/shards/driftwood-isle/runtime/models/shoreBoulder.ts';
 import { byteWriter } from './bake-output.mjs';
+import { createShardProduct } from '../src/game/shardfile/shardProduct.ts';
+import { emptyShardfile } from '../src/sdk/author.ts';
+import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections.ts';
+import { admitDriftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows.ts';
 
 const root = resolve(import.meta.dirname, '..');
+// The retained model reader uses its canonical admitted rows in the author build too.
+const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 0x5ea1 };
+admitDriftwoodRows(createShardProduct({ slug: identity.slug, revision: identity.revision, shardfile: emptyShardfile(identity),
+  sections: new Map(DRIFTWOOD_CLIENT_SECTIONS.map(({name,value})=>[name,value])), files: new Map(),
+  read: () => Promise.reject(new Error('The rock author product has no streamed files')), check: true }));
 const entry = process.argv[2];
 if (!entry || entry.startsWith('--')) throw new Error('Expected the authored rock producer module');
 const { sculptBakedRock } = await import(pathToFileURL(resolve(root, entry)).href);

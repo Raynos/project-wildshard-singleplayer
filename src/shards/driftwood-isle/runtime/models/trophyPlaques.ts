@@ -20,17 +20,14 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 import { loadFixedGeometry, fixedDraw } from '../boot/modelGeometry';
 import { driftwoodRows } from '../boot/rows';
-import { TROPHY_LAYOUT } from '../const';
 
 export type TrophyId = 'bear' | 'boar';
-export const TROPHIES: readonly TrophyId[] = TROPHY_LAYOUT.ids;
+const trophies = () => driftwoodRows('custom/fixedLayouts').nativeView.TROPHY_LAYOUT.ids;
 
 /** the most trophies the wall carries (today two: the bear's and the boar's) */
 const MAX_TROPHIES = 8;
 /** where a trophy hangs on its plaque (the peg), from the plaque's bottom point */
-const MOUNT_Y = TROPHY_LAYOUT.mountY;
 /** panel front: board thickness plus panel offset */
-const FRONT = TROPHY_LAYOUT.thickness + TROPHY_LAYOUT.panelOffset;
 
 /** the two plaques: one mesh; `setFilled(id, filled)` hangs a trophy or leaves its print */
 export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
@@ -46,7 +43,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
     this.name = 'trophy-plaques';
     this.castShadow = true;
     this.receiveShadow = true;
-    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) { const id = TROPHIES[i]; if (id !== undefined) this.setFilled(id, filled[id] ?? false); }
+    for (let i = 0; i < Math.min(trophies().length, MAX_TROPHIES); i++) { const id = trophies()[i]; if (id !== undefined) this.setFilled(id, filled[id] ?? false); }
   }
   /** is this trophy hung */
   filled(id: TrophyId): boolean { return this.slots.shown(this.full[id]); }
@@ -58,7 +55,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
   /** the trophy alone, no plaques or prints (the loose drop a kill leaves, src/shards/driftwood-isle/loot/keepsakes.ts) */
   trophyOnly(id: TrophyId): void {
     this.slots.set(0, false);
-    for (let i = 0; i < Math.min(TROPHIES.length, MAX_TROPHIES); i++) { const t = TROPHIES[i]; if (t !== undefined) { this.slots.set(this.empty[t], false); this.slots.set(this.full[t], t === id); } }
+    for (let i = 0; i < Math.min(trophies().length, MAX_TROPHIES); i++) { const t = trophies()[i]; if (t !== undefined) { this.slots.set(this.empty[t], false); this.slots.set(this.full[t], t === id); } }
   }
 }
 
@@ -69,7 +66,8 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
 export function buildTrophy(ctx: ModelContext, id: TrophyId): THREE.Group {
   const m = new TrophyPlaques(true, lowPolyLookMaterial(ctx.sky, 'still'), {});
   m.trophyOnly(id);
-  m.position.set(0, -(MOUNT_Y + (id === 'boar' ? 0.13 : 0.01)), -FRONT - 0.04);
+  const layout = driftwoodRows('custom/fixedLayouts').nativeView.TROPHY_LAYOUT;
+  m.position.set(0, -(layout.mountY + (id === 'boar' ? 0.13 : 0.01)), -layout.thickness - layout.panelOffset - 0.04);
   const g = new THREE.Group();
   g.name = `trophy-${id}`;
   g.add(m);

@@ -44,8 +44,7 @@ import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
 import { smallRock } from '../runtime/models/shoreBoulder';
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
-import { ISLAND_LOOKS } from '../data/islandLook';
-import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
+import { driftwoodRows } from '../runtime/boot/rows';
 import type { IslandCover } from './islandCover';
 import { lentLook, lentToon, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../runtime/look/toon';
@@ -62,7 +61,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** the tier's cover share and reaches (data/islandRows.ts) */
-const TIER_LOOK = TIER === 'phone' ? ISLAND_TIERS.phone : ISLAND_TIERS.desktop;
+const tierLook = () => driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_TIERS[TIER];
 
 export interface BlenderIslandCtx {
   scene: THREE.Scene;
@@ -139,21 +138,21 @@ export class BlenderIsland {
 
     // ── materials: the graph toon looks the runtime lent (data/islandLook.ts), the bake's maps lent to the terrain's and the
     //    tier's cover reach set on the two cover sets' ──
-    setLentTexture(ISLAND_LOOKS.terrain, 'ao', ao); setLentTexture(ISLAND_LOOKS.terrain, 'bounceMap', bounce);
+    setLentTexture(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain, 'ao', ao); setLentTexture(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain, 'bounceMap', bounce);
     // E156: each cover plant fades into the ground the cover paints under it (the baked cover map, sampled at its origin)
     const { ground, groundRect } = ctx.islandCover;
-    for (const [id, c] of [[ISLAND_LOOKS.cover, TIER_LOOK.cover], [ISLAND_LOOKS.coverBig, TIER_LOOK.big]] as const) {
+    for (const [id, c] of [[driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.cover, tierLook().cover], [driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.coverBig, tierLook().big]] as const) {
       setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...groundRect]); setLentTexture(id, 'groundMap', ground);
     }
-    const terrainMat = lentLook(ISLAND_LOOKS.terrain), propsMat = lentLook(ISLAND_LOOKS.props);
-    const coverMat = lentLook(ISLAND_LOOKS.cover), bigMat = lentLook(ISLAND_LOOKS.coverBig);
+    const terrainMat = lentLook(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain), propsMat = lentLook(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.props);
+    const coverMat = lentLook(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.cover), bigMat = lentLook(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.coverBig);
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
     const models = modelContext(ctx.sky);
     const found: THREE.Mesh[] = [], terrainTiles: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => { if (isMesh(o)) found.push(o); });
-    const protoNames = new Set(ISLAND_FACTS.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`));
+    const protoNames = new Set(ISLAND_FACTS.protos.map((p) => `${driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.protoPrefix}${p.name}`));
     for (const o of found) {
       if (protoNames.has(o.name)) continue;
       // a terrain tile — the 1 m grid on desktop, the 2 m one (terrainlo_*) on the phone; keep its node transform (meshopt's
@@ -161,8 +160,8 @@ export class BlenderIsland {
       if (o.name.startsWith('terrainlo') !== phone) continue;
       const m = new THREE.Mesh(o.geometry, terrainMat);
       m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
-      m.name = `${ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
-      m.onBeforeRender = followToon(lentToon(ISLAND_LOOKS.terrain)); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
+      m.name = `${driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
+      m.onBeforeRender = followToon(lentToon(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain)); // the terrain draws whenever the cove is in view: its toon look follows the day clock here
       ctx.islandCover.wear(o.geometry, terrainTiles.length + 1); // E156: the cove's ground wears the cover it carries (baked over the estimate)
       terrainTiles.push(m);
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
@@ -229,7 +228,7 @@ export class BlenderIsland {
       p.copyBox(i,box).getBoundingSphere(ball).applyMatrix4(this.group.matrixWorld);ball.radius+=4;
       return view.intersectsSphere(ball)||sky.csm.lights.some(l=>l.castShadow&&l.shadow.getFrustum().intersectsSphere(ball));
     };
-    const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:TIER_LOOK.cover.far+1,cells:cell}),big:()=>({far:TIER_LOOK.big.far+1,cells:cell})};
+    const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:tierLook().cover.far+1,cells:cell}),big:()=>({far:tierLook().big.far+1,cells:cell})};
     for(const row of plan.families){
       const placements=row.indices.map(i=>{
         const o=i*10,x=f[o+1]??0,y=(f[o+2]??0)-WORLD_DROP,z=f[o+3]??0,sc=f[o+8]??1,t=f[o+9]??1;
@@ -249,6 +248,6 @@ export class BlenderIsland {
     const l = sky.csm.lights[0];
     if (!l) return;
     const lum = l.intensity * (0.2126 * l.color.r + 0.7152 * l.color.g + 0.0722 * l.color.b);
-    setLentParam(ISLAND_LOOKS.terrain, 'bounce', lum * (Math.max(0, sky.sunDir.y) / Math.max(0.2, ISLAND_FACTS.bake.sunY)) / ISLAND_FACTS.bake.bounceGain);
+    setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS.terrain, 'bounce', lum * (Math.max(0, sky.sunDir.y) / Math.max(0.2, ISLAND_FACTS.bake.sunY)) / ISLAND_FACTS.bake.bounceGain);
   }
 }

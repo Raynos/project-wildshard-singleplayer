@@ -1,10 +1,13 @@
-import { expect, it } from 'vitest';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
+import { beforeAll, expect, it } from 'vitest';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwreck';
 import { wreckSiteKind } from '../src/shards/driftwood-isle/runtime/models/fixedSites';
 import { floorAtRects } from '../src/engine/physics/box';
 import { WRECK_SITES } from '../src/shards/driftwood-isle/data/wreckSites';
 import bake from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };
+
+beforeAll(admitDriftwoodFixtureRows);
 
 it('admits the authored world wreck and Explorer specimen, refusing an unbaked site', () => {
   expect(wreckSiteKind(WRECK_SITES.world)).toBe('world');

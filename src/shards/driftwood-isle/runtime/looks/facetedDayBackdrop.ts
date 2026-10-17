@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * Driftwood's sky backdrop (DRIFTWOOD-REMASTER L2, the user's pick D2: a stylized gradient dome + faceted cumulus, no HDRI):
  * the dome and cumulus are the shard's material graphs (data/skyLook.ts) on the SDK's graph day sky
@@ -17,9 +18,14 @@ import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import type { DayClock, DayClockStyle } from '@wildshard/sdk/looks/dayClock';
 import { domeEnvironmentScene, graphDaySkyBackdrop } from '@wildshard/sdk/looks/graphDaySky';
 import * as THREE from 'three';
-import { MIDDAY_SKY_ROWS, SKY_CLOUD_LOOK, SKY_DOME_LOOK, type FACETED_DAY_PRESET } from '../const';
 import { SECTIONS } from '../sections';
-import { dayLight, rampFog } from '../look/toon';
+import { toonState } from '../look/toon';
+
+export const FACETED_DAY_PRESET = {
+  sky: { zenith: 'colour', horizon: 'colour', below: 'colour', sunGlow: 'colour', cloudLit: 'colour', cloudShade: 'colour', night: 'number' },
+  light: 'colour', lightI: 'number', hemiSky: 'colour', hemiGround: 'colour', hemiI: 'number',
+  lift: 'colour', rim: 'colour', fogNear: 'colour', fogSun: 'colour', disc: 'colour', cloudShadow: 'number', dusk: 'number',
+} as const;
 
 /** the whole cycle in seconds (E147, the user: "72 minutes is too big … 48 is good"; it was 24 min, as BotW's) */
 const CYCLE_S = 48 * 60;
@@ -43,12 +49,13 @@ type FacetedDay = DayClock<typeof FACETED_DAY_PRESET, DayClockStyle<typeof FACET
 
 /** The backdrop over the island's built output and its day clock: its sky graphs compile from the product's look materials. */
 export const facetedDayBackdrop = (product: ShardProduct, day: FacetedDay): SkyBackdropFactory => {
-  const style = day.style, mid = MIDDAY_SKY_ROWS, rgb = (c: readonly [number, number, number]): THREE.Color => new THREE.Color(...c);
+  const { dayLight, rampFog } = toonState();
+  const style = day.style, mid = driftwoodRows('custom/fixedLayouts').nativeView.MIDDAY_SKY_ROWS, rgb = (c: readonly [number, number, number]): THREE.Color => new THREE.Color(...c);
   const startSun = new THREE.Vector3(...style.startSun).normalize(), second = style.frames[1]?.[1] ?? style.frames[0]?.[1], first = day.presets[second ?? ''];
   if (first === undefined) throw new Error('faceted day: keys missing');
-  return graphDaySkyBackdrop({ name: 'driftwood-isle', source: product.shardfile, ids: [SKY_DOME_LOOK, SKY_CLOUD_LOOK], dome: { graph: SKY_DOME_LOOK, radius: 2200, segments: [48, 24], order: -20 }, channels: 'driftwood.sky', build: (context, g, dome) => {
-    const { sky, scene, level } = context, envScene = domeEnvironmentScene(dome), cloudMaterial = g.material(SKY_CLOUD_LOOK);
-    sky.sunDir.copy(startSun); g.setParam(SKY_DOME_LOOK, 'sunDir', startSun.toArray()); // the first (offscreen) environment's sun
+  return graphDaySkyBackdrop({ name: 'driftwood-isle', source: product.shardfile, ids: [driftwoodRows('custom/fixedLayouts').nativeView.SKY_DOME_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SKY_CLOUD_LOOK], dome: { graph: driftwoodRows('custom/fixedLayouts').nativeView.SKY_DOME_LOOK, radius: 2200, segments: [48, 24], order: -20 }, channels: 'driftwood.sky', build: (context, g, dome) => {
+    const { sky, scene, level } = context, envScene = domeEnvironmentScene(dome), cloudMaterial = g.material(driftwoodRows('custom/fixedLayouts').nativeView.SKY_CLOUD_LOOK);
+    sky.sunDir.copy(startSun); g.setParam(driftwoodRows('custom/fixedLayouts').nativeView.SKY_DOME_LOOK, 'sunDir', startSun.toArray()); // the first (offscreen) environment's sun
     cloudMaterial.toneMapped = false;
     const clouds = new THREE.Mesh(cumulusGeometry(product.section('custom/cumulusPuffs', SECTIONS)), cloudMaterial);
     clouds.frustumCulled = false; clouds.renderOrder = -15; dome.add(clouds); // drawn after the world (depth-tested against it)

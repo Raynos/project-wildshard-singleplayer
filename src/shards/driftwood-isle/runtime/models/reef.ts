@@ -1,3 +1,4 @@
+import { driftwoodRows } from '../boot/rows';
 /**
  * The lagoon floor's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts; they were built inside
  * src/shards/driftwood-isle/world/Seabed.ts): faceted low-poly CORAL CLUMPS in pastel pink / orange / purple / cream (four shapes: brain
@@ -15,10 +16,11 @@ import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { reefSpecimen } from '../boot/reefGeometry';
 import { lentLook, lentToon } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../look/toon';
-import { REEF_LOOK, REEF_SPECIMENS } from '../const';
+
+const reefRows = () => driftwoodRows('custom/fixedLayouts').nativeView.REEF_SPECIMENS;
 
 /** the reef's three Explorer specimen kinds */
-export type ReefKind = keyof typeof REEF_SPECIMENS;
+export type ReefKind = keyof ReturnType<typeof reefRows>;
 
 
 export interface ReefParams {
@@ -35,7 +37,7 @@ export interface ReefParams {
 /** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
  *  following the day clock once a frame; the runtime lends it before the world builds, and a reef built before that refuses */
 export function reefMaterial(ctx: ModelContext): { material: THREE.Material; update?: () => void } {
-  return ctx.once('driftwood-isle/reef:material', () => ({ material: lentLook(REEF_LOOK), update: followToon(lentToon(REEF_LOOK)) }));
+  return ctx.once('driftwood-isle/reef:material', () => ({ material: lentLook(driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK), update: followToon(lentToon(driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK)) }));
 }
 
 /** The three cards differ only in their existing metadata and authored specimen rows. */
@@ -46,10 +48,10 @@ const CARDS = {
 } as const;
 
 function reefModel(kind: ReefKind) {
-  const card = CARDS[kind], rows = REEF_SPECIMENS[kind];
+  const card = CARDS[kind];
   return defineModel<ReefParams>({
     id: `driftwood-isle/${card.id}`, name: card.name, category: 'nature', pipeline: 'code',
-    file: 'src/shards/driftwood-isle/runtime/models/reef.ts', defaults: rows.defaults, variants: rows.variants,
+    file: 'src/shards/driftwood-isle/runtime/models/reef.ts', get defaults() { return reefRows()[kind].defaults; }, get variants() { return reefRows()[kind].variants; },
     seed: 0x5ea1 ^ 0xc0,
     build: (ctx, p) => reefSpecimen(kind, p, reefMaterial(ctx).material),
   });
