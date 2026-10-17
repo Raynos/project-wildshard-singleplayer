@@ -1,3 +1,8 @@
+import { bakedPlaceSteps, placer } from './placeBake';
+import type { PoiCtx, PoiPiece } from './types';
+import { yurt } from '../models/yurt';
+import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campProps';
+
 /**
  * NomadCamp — the spring camp (kystau) in the Kunes valley, the shard's hub (map-01 "NOMAD CAMP", (95, 205)).
  * Six white felt yurts in an arc round a yard that opens east toward the N road; a round pole corral to the west;
@@ -17,14 +22,6 @@
  * draped over the terrain (./Yard.ts: world, welded to the ground).
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
-import { bakedPlaceSteps, placer } from './placeBake';
-import type { PoiCtx, PoiPiece } from './types';
-import { yurt } from '../models/yurt';
-import {
-  ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack,
-  corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans,
-} from '../models/campProps';
-import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
 
 /** the models the camp places, by id */
 const PLACERS = new Map([

@@ -1,4 +1,27 @@
-import { fieldstone } from '../models/fieldstone';
+import * as THREE from 'three';
+import { graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/campProps';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { app } from '@wildshard/engine/app/runtime';
+import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
+import type { Placed } from '@wildshard/engine/models/place';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import { instancedQuad } from '@wildshard/sdk/looks/cardField';
+import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { Flutter } from './Flutter';
+import { nomadCampSteps } from './NomadCamp';
+import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
+import { buildBridge } from './Bridge';
+import { buildRoadFurniture } from './RoadFurniture';
+import { summerCampSteps } from './SummerCamp';
+import { buildBalbals, type Balbals } from './Balbals';
+import { buildCairn } from './Cairn';
+import { buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
+import type { Box } from './solid';
+import { NO_PLUMES, type Ground, type PlumeOptions, type Plumes, type PoiCtx, type PoiPiece, type KurganEntrance, type Ledge } from './types';
+
 /**
  * Nalati POIs (B5) — builds every point of interest on the Nalati Grasslands and wires them into the player.
  *
@@ -25,29 +48,6 @@ import { fieldstone } from '../models/fieldstone';
  * Draw calls: one merged mesh per POI (all on the one painterly material) + the shared cloth mesh + the shared smoke
  * mesh + the balbal InstancedMeshes.
  */
-import * as THREE from 'three';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { app } from '@wildshard/engine/app/runtime';
-import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
-import type { Placed } from '@wildshard/engine/models/place';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { painterlyUniforms } from '@wildshard/engine/world/painterly';
-import { instancedQuad } from '@wildshard/sdk/looks/cardField';
-import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { Flutter } from './Flutter';
-import { cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/campProps';
-import { nomadCampSteps } from './NomadCamp';
-import { preloadNalatiPlaces, bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
-import { buildBridge } from './Bridge';
-import { buildRoadFurniture } from './RoadFurniture';
-import { summerCampSteps } from './SummerCamp';
-import { buildBalbals, type Balbals } from './Balbals';
-import { buildCairn } from './Cairn';
-import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
-import type { Box } from './solid';
-import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece, KurganEntrance, Ledge } from './types';
 
 /** the camp smoke's look (data/lookGraphs.json, compiled and lent by runtime/index.ts): each puff a camera-facing card
  *  whose whole life (rise, swell, lean downwind, fade) the graph computes from its plume, seed and the look clock */
@@ -147,7 +147,7 @@ export class NalatiPOIs {
     { const k = yield* timed(bakedPlaceSteps('crags', ctx, CRAG_PLACERS)), anchors = bakedPlaceAnchors('crags'); this.cragLedges = anchors.ledges ?? []; this.cragCave = anchors.cave ?? null; add('crags', k.value, k.ms); }
     yield;
     // layout v2 (N9): the watchtower, the kokpar field + its riders, the herds in the hundreds, snow lotus
-    run('watchtower', buildWatchtower);
+    { const tower = yield* timed(bakedPlaceSteps('watchtower', ctx, new Map([placer(watchtower), placer(fieldstone), placer(stoneStep)]))); add('watchtower', tower.value, tower.ms); }
     yield;
     run('kokpar', buildKokpar);
     yield;
@@ -223,4 +223,10 @@ export class NalatiPOIs {
     out['smoke'] = this.smokeMesh === null ? 0 : this.plumes.reduce((n, e) => n + 2 * e.puffs, 0);
     return out;
   }
+}
+
+/** Static escarpment geometry shares the same baked-place owner as the landmarks. */
+export async function buildBakedOutcrops(sky: Sky, yieldTask: () => Promise<void>): Promise<PoiPiece> {
+  await preloadNalatiPlaces();
+  return bakedPlaceSliced('outcrops', { sky, ground: () => 0, flutter: new Flutter(), smoke: NO_PLUMES }, new Map([placer(graniteOutcrop), placer(roundedBoulder)]), yieldTask, { every: 200, yieldTask });
 }

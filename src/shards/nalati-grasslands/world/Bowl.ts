@@ -1,3 +1,26 @@
+import * as THREE from 'three';
+import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
+import { poiMaterial } from './paint';
+import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
+import { KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../layout';
+import { inPoiClearing } from './clearings';
+import { NalatiSet } from './painted';
+import type { PoiCtx, PoiPiece } from './types';
+import { kokparPost, kokparGoal, saddledHorse, kokparRider } from '../models/campProps';
+import { bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
+import { herdHorse } from '../models/herdHorse';
+import { snowLotus } from '../models/snowLotus';
+import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER } from '@wildshard/engine/core/tier';
+import { place as placeModel } from '@wildshard/engine/models/place';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
+import { createClientChannels } from '@wildshard/game/plugin/channels';
+
 /**
  * Bowl — layout v2's new set pieces (docs/design/nalati/layout-v2.md, N9), all placed from `src/shards/nalati-grasslands/layout.ts`:
  *
@@ -17,67 +40,11 @@
  * the watchtower (+ its stone steps and fallen blocks), the kokpar field (posts, goals, the spectators' saddled horses,
  * the riders), the herd horses, the snow lotus, the glacier's snout (the tongue under it is the terrain's: world).
  */
-import * as THREE from 'three';
-import { PaintKit, poiMaterial, v3 } from './paint';
-import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
-import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../layout';
-import { inPoiClearing } from './clearings';
-import { NalatiSet } from './painted';
-import { addStoneStair } from './Stair';
-import type { PoiCtx, PoiPiece } from './types';
-import { watchtower } from '../models/watchtower';
-import { fieldstone } from '../models/fieldstone';
-import { kokparPost } from '../models/kokparPost';
-import { kokparGoal } from '../models/kokparGoal';
-import { saddledHorse } from '../models/saddledHorse';
-import { kokparRider } from '../models/kokparRider';
-import { herdHorse } from '../models/herdHorse';
-import { snowLotus } from '../models/snowLotus';
-import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
-import { Rng } from '@wildshard/engine/core/rng';
-import { TIER } from '@wildshard/engine/core/tier';
-import { place as placeModel } from '@wildshard/engine/models/place';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
-import { createClientChannels } from '@wildshard/game/plugin/channels';
-import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 
 /** the GLSL below is trusted custom code (runtime/looks/bowlGlsl.ts); `@{name}` splices the fragments this module passes */
 const BOWL_GLSL_FAMILY = new ShaderFamily(BOWL_GLSL, {});
 
 const PHONE = TIER === 'phone';
-
-// ── the watchtower ──────────────────────────────────────────────────────────────────────────────────────────────────
-
-export function buildWatchtower(ctx: PoiCtx): PoiPiece {
-  const { sky, ground } = ctx;
-  const group = new THREE.Group();
-  group.name = 'nalati-watchtower';
-  const { x, z } = WATCHTOWER;
-  // stand it on the lowest ground under its footprint so no corner floats; the rubble skirt runs into the rock
-  let y = ground(x, z);
-  for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; y = Math.min(y, ground(x + Math.cos(t) * 3.2, z + Math.sin(t) * 3.2)); }
-  const rot = Math.PI / 2; // the doorway (the model's +Z) faces west (+x), into the bowl
-  const kit = new PaintKit(0x70e7);
-  const rng = kit.rng;
-  const set = new NalatiSet(kit, ctx);
-  set.instance(watchtower, { x, y, z, rot }, {});
-  // a few fallen blocks down the slope below it
-  for (let i = 0; i < 9; i++) {
-    const a = rng.range(0, Math.PI * 2), r = rng.range(5, 12), bx = x + Math.cos(a) * r, bz = z + Math.sin(a) * r, s = rng.range(0.35, 0.8);
-    set.paint(fieldstone, { x: bx, y: ground(bx, bz), z: bz, yaw: 0 }, { s, squash: 0.7, rough: 0.25, lift: -0.2, look: 'rubble' });
-  }
-  // NALATI-MERGE P1: the tower's rock stands past the motor's 40° on every side — a stone stair climbs its west shoulder
-  // from the bowl (the walkable way up, found over the physics heightfield) to the doorway's terrace
-  addStoneStair(set, ground, [[x + 31.5, z + 4.7], [x + 23.7, z + 2.7], [x + 10, z + 0.7], [x + 7.5, z + 0.5]], { depth: 0.4, maxRise: 0.33 });
-  const mesh = kit.mesh(sky, { ground });
-  group.add(mesh);
-  set.flush(group, sky);
-  return { name: 'watchtower', object: group, colliders: set.boxes, surface: 'stone', tris: set.tris() + mesh.geometry.getAttribute('position').count / 3, register: (o) => set.register({ ...o, object: mesh, group }) };
-}
 
 // ── the riders' gallop ──
 
@@ -113,36 +80,10 @@ function onOval(t: number, k: number): { x: number; z: number; yaw: number } {
 }
 
 export function buildKokpar(ctx: PoiCtx): PoiPiece {
-  const { sky, ground, flutter } = ctx;
-  const kit = new PaintKit(0x60ba);
-  const rng = kit.rng;
-  const set = new NalatiSet(kit, ctx);
-  const group = new THREE.Group();
-  group.name = 'nalati-kokpar';
-  // marker posts round the oval, a pennant on every fourth
-  const n = 34;
-  for (let i = 0; i < n; i++) {
-    const p = onOval((i / n) * Math.PI * 2, 1.08), gy = ground(p.x, p.z);
-    set.paint(kokparPost, { x: p.x, y: gy, z: p.z, yaw: 0 }, {});
-    if (i % 4 === 0) flutter.flag(v3(p.x, gy + 1.2, p.z), 0.25, 0.55, i % 8 === 0 ? '#c9361f' : '#2f5fae', { taper: 1, droop: 0.2 });
-  }
-  // the two goals (the tai-kazan: a raised ring of turf with a stone rim) at the oval's ends
-  for (const t of [0, Math.PI]) {
-    const p = onOval(t, 0.82);
-    set.paint(kokparGoal, { x: p.x, y: ground(p.x, p.z), z: p.z, yaw: 0 }, {});
-  }
-  const mesh = kit.mesh(sky, { ground });
-  group.add(mesh);
-  // the spectators' saddled horses standing round the rail (static), a little way out
-  for (let i = 0; i < 6; i++) {
-    const p = onOval(1.2 + i * 0.55 + rng.range(-0.1, 0.1), 1.2 + rng.range(0, 0.1));
-    set.instance(saddledHorse, { x: p.x, y: ground(p.x, p.z) - 0.03, z: p.z, rot: p.yaw + Math.PI / 2 + rng.range(-0.3, 0.3) }, {});
-  }
-  set.flush(group, sky);
-
-  // the riders: six laps round the oval at different radii and speeds, bunched as in a game (the goat carried by one)
-  const riders = Array.from({ length: 6 }, (_, i) => ({ t: (i < 4 ? 0.35 * i : 3 + i * 0.5), k: 0.45 + (i % 3) * 0.14, w: 0.28 + (i % 2) * 0.03 + i * 0.006, bob: rng.range(0, 6) }));
-  set.moving(kokparRider, riders.map((r) => { const p = onOval(r.t, r.k); return { x: p.x, y: ground(p.x, p.z), z: p.z, rot: p.yaw }; }));
+  const { sky, ground } = ctx;
+  const base = readPlace('kokpar', ctx, new Map([placer(kokparPost), placer(kokparGoal), placer(saddledHorse), placer(kokparRider)]));
+  const group = base.object;
+  const riders = (bakedPlaceAnchors('kokpar').riders ?? []).map(r => ({ t: r.t, k: r.k, w: r.w, bob: r.bob }));
   let inst: THREE.InstancedMesh | null = null;
   const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
   loadNalatiModel(sky, 'kokpar-rider', { rim: 0.8, bands: 0.85 }, PHONE ? 'far' : 'near').then((m) => {
@@ -174,7 +115,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     m.instanceMatrix.needsUpdate = true;
   };
   const riderTris = riders.length * (PHONE ? FAR_TRIS['kokpar-rider'] : MODEL_TRIS['kokpar-rider']);
-  return { name: 'kokpar', object: group, colliders: set.boxes, surface: 'wood', tris: mesh.geometry.getAttribute('position').count / 3 + set.tris() + riderTris, update, register: (o) => set.register({ ...o, object: mesh, group }) };
+  return { ...base, tris: base.tris + riderTris, update };
 }
 
 // ── the herds in the hundreds ────────────────────────────────────────────────────────────────────────────────────────
@@ -323,4 +264,9 @@ export function buildGlacier(ctx: PoiCtx): PoiPiece {
     name: 'glacier', object: mesh, colliders: [], surface: 'ground', tris: (geo.index?.count ?? 0) / 3,
     register: (o) => [placeModel(glacierSnout, [at], { ctx: o.ctx, draw: 'single', registry: o.registry, drawnInto: { object: mesh, boxes: Float32Array.of(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z) }, piece: { solidFloor: true } })],
   };
+}
+
+function readPlace(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>): PoiPiece {
+  const steps = bakedPlaceSteps(name, ctx, placers);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }

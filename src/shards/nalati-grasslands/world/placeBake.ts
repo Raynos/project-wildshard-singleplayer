@@ -240,7 +240,7 @@ export const placer = <P extends object>(def: ModelDef<P>): readonly [string, Pl
  * A baked place as its builder made it, a mesh a step (SF67): its object (the group, or its one mesh), its data boxes,
  * its cloth and smoke, and `register` placing each model's copies (`placers`: the models it places, by id) in order.
  */
-export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>): Generator<void, PoiPiece> {
+export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>, split?: SetRegister['split']): Generator<void, PoiPiece> {
   if (places === null && placesProvider !== null) { const read = placesProvider; placesProvider = null; useNalatiPlaces(read()); }
   const bake = places, index = PLACES.rows.findIndex((r) => r.name === name), row = PLACES.rows[index];
   if (bake === null) throw new Error(`[nalati-grasslands] the baked places are not loaded (${name})`);
@@ -277,9 +277,9 @@ export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap
   const register = (o: Omit<SetRegister, 'object' | 'group'>): Placed[] => members.map(([id, m]) => {
     const put = placers.get(id);
     if (put === undefined) throw new Error(`[nalati-grasslands] baked place '${name}' places an unknown model '${id}'`);
-    return put(m, { ...o, object: group }, group);
+    return put(m, { ...o, object: group, ...(split === undefined ? {} : { split }) }, group);
   });
-  return { name: row.name, object, colliders: row.colliders.map((b) => ({ ...b })), surface: row.surface as Material, tris: row.tris, register };
+  return { name: row.name, object, colliders: row.colliders.map((b) => ({ ...b })), surface: row.surface as Material, tris: row.tris, descs: members.flatMap(([, m]) => m.descs), register };
 }
 
 let specimens: { bytes: Uint8Array; at: number[] } | null = null;
@@ -329,4 +329,10 @@ export function bakedPainted<P extends object>(def: Omit<ModelDef<P>, 'build'>):
       return g;
     },
   };
+}
+
+/** Load a place a mesh at a time while preserving the caller's task budget. */
+export async function bakedPlaceSliced(name: string, ctx: PoiCtx, placers: ReadonlyMap<string, Placer>, yieldTask: () => Promise<void>, split?: SetRegister['split']): Promise<PoiPiece> {
+  const steps = bakedPlaceSteps(name, ctx, placers, split);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; await yieldTask(); }
 }

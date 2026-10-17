@@ -34,9 +34,8 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
-import { buildOutcropsSliced } from '../outcrops';
 import { buildCragRockSliced } from '../cragRock';
-import { NalatiPOIs } from '../world/index';
+import { NalatiPOIs, buildBakedOutcrops } from '../world/index';
 import { NalatiDressing } from '../world/dressing/index';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
 import { wireElites, type NalatiElites } from '../combat/elites';
@@ -160,15 +159,16 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(++completed, total, 'Water');
 
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
-  const outcrops = await buildOutcropsSliced(sky, slicer(30).due); // SF67: ~30 ms a task, the same rocks
-  game.scene.add(outcrops.mesh);
+  const outcrops = await buildBakedOutcrops(sky, macrotask);
+  game.scene.add(outcrops.object);
   // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `its registry piece`) —
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
   const rockCtx = modelContext(sky);
   await macrotask(); // the merged mesh and the first hulls a task apart (SF67)
-  const rockPlaced = [...await outcrops.register(plugin.app.registry, rockCtx, macrotask)];
+  const rockPlaced = [...(outcrops.register?.({ registry: plugin.app.registry, ctx: rockCtx }) ?? [])];
+  await Promise.all(rockPlaced.map(p => p.registered));
   await slice(++completed, total, 'Outcrops');
-  groups['outcrops'] = outcrops.mesh;
+  groups['outcrops'] = outcrops.object;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = await buildCragRockSliced(sky, slicer(30).due); // SF67: ~30 ms a task, the same pieces

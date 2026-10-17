@@ -10,15 +10,15 @@
   "pins": [
     {
       "path": "public/assets/nalati/baked/places.bin",
-      "oid": "3402323712175bd9b8152d1d87ee9d9a2107b9b8",
-      "bytes": 3628528,
+      "oid": "654f2d2ff2b549fcfcd6e3fca217bb139cda42c3",
+      "bytes": 7759545,
       "kind": "runtime",
-      "purpose": "Nalati places bake (camps, bridge, Eagle Rock, Wind Cairn, kurgans, crags): static painted meshes, colliders and gameplay anchors"
+      "purpose": "Nalati static places: camps, bridge, landmarks, roads, watchtower, kokpar, outcrops and dressing; exact painted meshes, colliders and gameplay anchors"
     },
     {
       "path": "public/assets/nalati/baked/specimens.bin",
-      "oid": "1600de2fb9f299523980f17af6b4e8f7c5c29bed",
-      "bytes": 2141647,
+      "oid": "7d8fd541808578582735321e75792ce1dfe0819d",
+      "bytes": 2342425,
       "kind": "runtime",
       "purpose": "Nalati places bake Explorer specimens, fetched only when the Model Explorer builds one"
     }

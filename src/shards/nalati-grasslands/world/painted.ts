@@ -1,4 +1,3 @@
-import { blob } from '@wildshard/engine/world/geometryKit';
 /**
  * Nalati's models on the model contract (E306 / E315 M3; the contract is src/engine/models/model.ts): how a Nalati model is
  * built, drawn and placed.
@@ -32,7 +31,7 @@ import { blob } from '@wildshard/engine/world/geometryKit';
  * physics world and the navmesh bake see exactly what they did.
  */
 import * as THREE from 'three';
-import { PaintKit, M, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
+import { PaintKit, v3, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
 import { Flutter } from './Flutter';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
@@ -330,9 +329,8 @@ export class NalatiSet {
 
   /** a generated copy's placement, and its world box into `_box` (the file's measured size, before it has loaded) */
   private generatedCopy(name: NalatiModelName, pose: ModelPlacement): Omit<Placement<object>, 'params'> {
-    const [w, h, d] = MODEL_SIZE[name];
     const matrix = placementMatrix(pose);
-    _box.set(_part.min.set(-w / 2, 0, -d / 2), _part.max.set(w / 2, h, d / 2)).applyMatrix4(matrix);
+    generatedBounds(name, _box).applyMatrix4(matrix);
     return { x: pose.x, y: pose.y, z: pose.z, matrix };
   }
 
@@ -408,14 +406,38 @@ export interface FieldstoneParams {
   readonly look: FieldstoneLook;
 }
 
-const FIELDSTONE_LOOK: Readonly<Record<FieldstoneLook, { stone: THREE.Color; lichen: THREE.Color; threshold: number; brush: number }>> = {
-  kurgan: { stone: new THREE.Color('#77736c'), lichen: new THREE.Color('#b9a45a'), threshold: 0.5, brush: 0.07 },
-  rubble: { stone: new THREE.Color('#948b7c'), lichen: new THREE.Color('#b3a35a'), threshold: 0.6, brush: 0.12 },
-};
 
-/** `at`: the point on the ground it lies on (it takes its own turn) */
-export const paintFieldstone: Paint<FieldstoneParams> = (kit, at, p) => {
-  const rng = kit.rng, look = FIELDSTONE_LOOK[p.look];
-  kit.add(blob(p.s, rng, 1, p.squash, p.rough), look.stone, { matrix: M(at.x, at.y + p.s * p.lift, at.z, rng.range(0, 6)), top: { color: look.lichen, threshold: look.threshold, amount: 0.4 }, brush: look.brush });
-  return {};
-};
+export interface Board {
+  readonly text: string;
+  /** the way the arrow points (world yaw of the direction, atan2(dx, dz)) */
+  readonly dir: number;
+}
+
+export interface SignpostParams { readonly boards: readonly Board[] }
+
+/** one board's plank: its centre, its yaw (local +x = the pointing way), its width */
+export interface BoardSpot { readonly p: THREE.Vector3; readonly yaw: number; readonly w: number }
+
+/** where a signpost at (x, gy, z) hangs its boards, top down */
+export function boardSpots(x: number, z: number, gy: number, boards: readonly Board[]): BoardSpot[] {
+  const H = 1.9 + boards.length * 0.36;
+  return boards.map((b, i) => {
+    const y = gy + H - 0.3 - i * 0.36, w = 1.45;
+    const yaw = b.dir - Math.PI / 2;                                       // M's local +x → world (sin dir, cos dir)
+    const cx = x + Math.sin(b.dir) * (w / 2 + 0.05), cz = z + Math.cos(b.dir) * (w / 2 + 0.05);
+    return { p: v3(cx, y, cz), yaw, w };
+  });
+}
+
+
+/** Native model bounds used by both authored collision recipes and live placement boxes. */
+export function generatedBounds(name: NalatiModelName, box = new THREE.Box3()): THREE.Box3 {
+  const [w, h, d] = MODEL_SIZE[name];
+  box.min.set(-w / 2, 0, -d / 2); box.max.set(w / 2, h, d / 2);
+  return box;
+}
+
+/** Generated model data; its existing loader supplies the Explorer view. */
+export function generatedModel<P extends object>(def: Omit<ModelDef<P>, 'build'>, spec: GeneratedSpec<P>): ModelDef<P> {
+  return { ...def, build: generated(spec) };
+}

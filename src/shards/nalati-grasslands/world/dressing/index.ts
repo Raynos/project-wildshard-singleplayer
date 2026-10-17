@@ -26,7 +26,6 @@
  */
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { slicer } from '@wildshard/engine/boot/plan';
 import { TIER } from '@wildshard/engine/core/tier';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
@@ -37,16 +36,16 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
-import { DressLayer, DRESSING_PLAN, CAMP_CLUTTER, type Inst, type DressPlan, type ClutterSpots } from './layer';
-import { buildStaticsSliced, buildCampClutter, buildCampClutterSliced, type CampClutter } from './statics';
+import { DressLayer, DRESSING_PLAN, type Inst, type DressPlan } from './layer';
+import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter } from '../../models/campProps';
+import { NO_PLUMES, type PoiPiece } from '../types';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../modelView';
-import type { NalatiSet } from '../painted';
 import { hullAt, hullCandidates, type Box } from '../solid';
 import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
 } from '../../models/dressing';
-import { preloadNalatiPlaces } from '../placeBake';
+import { preloadNalatiPlaces, bakedPlaceSteps, placer } from '../placeBake';
 
 const PHONE = TIER === 'phone';
 
@@ -114,10 +113,10 @@ export class NalatiDressing {
   descs: ColliderDesc[] = [];
   plan: DressPlan | null = null;
   /** the one-off props (merged per region: the props' tap target) and the camps' clutter */
-  readonly statics = new THREE.Group();
+  statics: THREE.Object3D = new THREE.Group();
   private drawn: Drawn[] = [];
-  private staticsSet: NalatiSet | null = null;
-  private clutter: { set: NalatiSet; mesh: THREE.Mesh } | null = null;
+  private staticPiece: PoiPiece | null = null;
+  private clutter: PoiPiece | null = null;
   /** build ms per stage */
   timings: Record<string, number> = {};
   private frustum = new THREE.Frustum();
@@ -131,7 +130,6 @@ export class NalatiDressing {
 
   constructor(private sky: Sky) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
 
-  private clutterSpots: ClutterSpots = [];
 
   async build(product: { file: (name: string) => Promise<Uint8Array> }, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     let t0 = diagnosticNow();
@@ -139,7 +137,6 @@ export class NalatiDressing {
     const read = async (key: string): Promise<unknown> => JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
     const entries = await Promise.all(Object.keys(DRESSING_PLAN.entries).map(async key => [key, await read(key)]));
     const plan = this.plan = v.parse(DRESSING_PLAN, Object.fromEntries(entries));
-    this.clutterSpots = v.parse(CAMP_CLUTTER, await read('clutter'));
     lap('plan');
     await yieldTask();
     await preloadNalatiPlaces(); // the scatter shapes' bake (../placeBake.ts; in already when the POIs built first)
@@ -196,15 +193,18 @@ export class NalatiDressing {
     await yieldTask();
     t0 = diagnosticNow();
 
-    const st = await buildStaticsSliced(this.sky, plan, this.flutter, slicer(30).due); // SF67: ~30 ms a task, the same props
-    this.props = st.meshes;
+    const steps = this.staticSteps('dressing-statics');
+    let step = steps.next();
+    while (step.done !== true) { await yieldTask(); step = steps.next(); }
+    const st = step.value;
+    this.props = st.object.children.filter((o): o is THREE.Mesh => o instanceof THREE.Mesh);
     this.propTris = st.tris;
-    this.staticsSet = st.set;
-    for (const m of st.meshes) this.statics.add(m);
+    this.staticPiece = st;
+    this.statics = st.object;
     this.group.add(this.statics);
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     this.colliders = [...plan.colliders, ...st.colliders];
-    this.descs.push(...st.descs);
+    this.descs.push(...(st.descs ?? []));
     lap('props');
     await yieldTask();
     t0 = diagnosticNow();
@@ -219,17 +219,26 @@ export class NalatiDressing {
   /** Into the scene; camp clutter uses its already-cleared build-time anchors. */
   addTo(scene: THREE.Object3D): void {
     scene.add(this.group);
-    this.addClutter(buildCampClutter(this.sky, this.clutterSpots));
+    const steps = this.staticSteps('dressing-clutter');
+    for (;;) { const step = steps.next(); if (step.done === true) { this.addClutter(step.value); break; } }
   }
 
   /** `addTo`, the clutter a task apart whenever `due` says the task is over budget (SF67); the same clutter */
   async addToSliced(scene: THREE.Object3D, due: () => Promise<void> | null): Promise<void> {
     scene.add(this.group);
-    this.addClutter(await buildCampClutterSliced(this.sky, this.clutterSpots, due));
+    const steps = this.staticSteps('dressing-clutter');
+    for (;;) {
+      const step = steps.next(); if (step.done === true) { this.addClutter(step.value); break; }
+      const pause = due(); if (pause !== null) await pause;
+    }
   }
 
-  private addClutter(cl: CampClutter): void {
-    if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; this.clutter = { set: cl.set, mesh: cl.mesh }; }
+  private staticSteps(name: string): Generator<void, PoiPiece> {
+    return bakedPlaceSteps(name, { sky: this.sky, ground: () => 0, flutter: this.flutter, smoke: NO_PLUMES }, new Map([placer(fallenLog), placer(stump), placer(ovoo), placer(viewpointPole), placer(skyGateway), placer(fence), placer(campClutter)]));
+  }
+
+  private addClutter(cl: PoiPiece): void {
+    if (isMesh(cl.object)) { this.group.add(cl.object); this.props.push(cl.object); this.propTris += cl.tris; this.clutter = cl; }
     this.colliders.push(...cl.colliders);
     if (import.meta.env.DEV) Object.assign(window, { __nalatiDressing: this }); // dev: stats / poking from the console
   }
@@ -251,9 +260,9 @@ export class NalatiDressing {
       out.push(placed);
       await yieldTask();
     }
-    if (this.staticsSet) out.push(...this.staticsSet.register({ ctx, registry, object: this.statics }));
+    if (this.staticPiece?.register) out.push(...this.staticPiece.register({ ctx, registry }));
     await yieldTask();
-    if (this.clutter) out.push(...this.clutter.set.register({ ctx, registry, object: this.clutter.mesh }));
+    if (this.clutter?.register) out.push(...this.clutter.register({ ctx, registry }));
     return out;
   }
 
@@ -285,3 +294,5 @@ export class NalatiDressing {
     return { layers, propTris: Math.round(this.propTris), clothVerts: this.flutter.vertexCount, calls: calls + this.props.length + 4 };
   }
 }
+
+function isMesh(object: THREE.Object3D): object is THREE.Mesh { return object instanceof THREE.Mesh; }

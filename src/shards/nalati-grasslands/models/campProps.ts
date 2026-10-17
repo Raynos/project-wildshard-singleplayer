@@ -12,8 +12,9 @@
  * ONE mesh by ../generators/places.ts, the camp's rng stream in the old builder's order); the page draws the bake
  * (../world/placeBake.ts). Here are the models' defs: the camps place them, the Explorer shows their baked specimens.
  */
+import type { Box } from '../world/solid';
 import { defineModel } from '@wildshard/engine/models/model';
-import type { FieldstoneParams } from '../world/painted';
+import { generatedModel, type FieldstoneParams, type SignpostParams } from '../world/painted';
 import { bakedPainted } from '../world/placeBake';
 
 export interface HitchingRailParams { readonly length: number; readonly height: number }
@@ -189,3 +190,213 @@ export const fieldstoneBaked = defineModel<FieldstoneParams>(bakedPainted<Fields
     { id: 'rubble', label: 'Tower rubble', params: { s: 0.6, squash: 0.7, rough: 0.25, lift: -0.2, look: 'rubble' } },
   ],
 }));
+
+export interface LogParams {
+  /** its ends, relative to the placement (normally the near end: 0, 0; see `logEnds`) */
+  readonly ax: number;
+  readonly az: number;
+  readonly bx: number;
+  readonly bz: number;
+  readonly r: number;
+  /** bleached driftwood on a gravel bar (else a fallen spruce, mossed) */
+  readonly drift: boolean;
+}
+
+
+export interface StumpParams { readonly s: number }
+export interface OvooParams { readonly s: number }
+export interface ClutterParams { readonly kind: number }
+export const CLUTTER_KINDS = ['Firewood tipi', 'Dung-cake stack', 'Chopping block', 'Pots and a bucket', 'Sacks', 'Folded felts', 'Kumis churn'] as const;
+
+
+export const fallenLog = defineModel<LogParams>(bakedPainted<LogParams>({
+  id: 'nalati-grasslands/fallen-log', name: 'Fallen log', category: 'nature', pipeline: 'code', file: PLACES_FILE, surface: 'wood',
+  defaults: { ax: 0, az: 0, bx: 4.5, bz: 1.2, r: 0.3, drift: false },
+  variants: [{ id: 'spruce', label: 'Spruce', params: {} }, { id: 'driftwood', label: 'Driftwood', params: { drift: true, r: 0.22 } }],
+}));
+export const stump = defineModel<StumpParams>(bakedPainted<StumpParams>({
+  id: 'nalati-grasslands/stump', name: 'Spruce stump', category: 'nature', pipeline: 'code', file: PLACES_FILE, surface: 'wood',
+  defaults: { s: 0.3 },
+}));
+export const ovoo = defineModel<OvooParams>(bakedPainted<OvooParams>({
+  id: 'nalati-grasslands/ovoo', name: 'Ovoo cairn', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'stone',
+  defaults: { s: 1 },
+}));
+export const viewpointPole = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/viewpoint-pole', name: 'Viewpoint ribbon pole', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}));
+export const skyGateway = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/sky-gateway', name: 'Sky road gateway', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}));
+export const campClutter = defineModel<ClutterParams>(bakedPainted<ClutterParams>({
+  id: 'nalati-grasslands/camp-clutter', name: 'Camp clutter', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'wood',
+  defaults: { kind: 0 },
+  variants: CLUTTER_KINDS.map((label, kind) => ({ id: label.toLowerCase().replaceAll(' ', '-'), label, params: { kind } })),
+}));
+
+export interface FenceParams {
+  /** the run's points, relative to the placement: (x, z), the first (0, 0) */
+  readonly pts: readonly (readonly [number, number])[];
+  /** post height (m) and spacing along the run */
+  readonly h: number;
+  readonly spacing: number;
+}
+
+
+export const fence = defineModel<FenceParams>(bakedPainted<FenceParams>({
+  id: 'nalati-grasslands/fence', name: 'Split-rail fence', category: 'props', pipeline: 'code',
+  file: PLACES_FILE, surface: 'wood',
+  defaults: { pts: [[0, 0], [0, 7.2], [2.4, 12]], h: 1.15, spacing: 2.4 },
+}));
+
+export type RockTint = 'granite' | 'warm' | 'cool';
+
+export interface GraniteOutcropParams {
+  /** the block: width (along the contour), height, depth; how rough its surface */
+  readonly w: number;
+  readonly h: number;
+  readonly d: number;
+  readonly rough: number;
+  /** its tip into the slope (radians about its own x / z) */
+  readonly pitch: number;
+  readonly roll: number;
+  /** its tint; absent: drawn from the stream after the block's shape (`draw`: of two, granite / warm, or of three) */
+  readonly tint?: RockTint;
+  readonly draw?: 2 | 3;
+  /** how much lichen on its tops */
+  readonly lichen: number;
+  /** it collides (as the hull of what it draws) */
+  readonly solid: boolean;
+}
+
+export type BoulderLook = 'lean' | 'channel' | 'bank' | 'bed' | 'streambank';
+
+export interface RoundedBoulderParams {
+  /** radius, metres */
+  readonly r: number;
+  readonly look: BoulderLook;
+  /** its tint; absent: drawn from the stream after its shape, cool with these odds, else granite */
+  readonly tint?: RockTint;
+  readonly coolOdds?: number;
+  readonly solid: boolean;
+}
+
+
+export const graniteOutcrop = defineModel<GraniteOutcropParams>(bakedPainted<GraniteOutcropParams>({
+  id: 'nalati-grasslands/granite-outcrop', name: 'Granite outcrop', category: 'nature', pipeline: 'code', file: PLACES_FILE, surface: 'rock',
+  defaults: { w: 4.2, h: 1.6, d: 2.4, rough: 0.22, pitch: 0.12, roll: 0, tint: 'granite', lichen: 0.55, solid: true },
+  variants: [
+    { id: 'escarpment', label: 'Escarpment', params: {} },
+    { id: 'rim', label: 'Rim band', params: { w: 5.5, h: 2.2, d: 2.8, rough: 0.24, tint: 'warm', lichen: 0.5 } },
+  ],
+}));
+
+export const roundedBoulder = defineModel<RoundedBoulderParams>(bakedPainted<RoundedBoulderParams>({
+  id: 'nalati-grasslands/rounded-boulder', name: 'Rounded boulder', category: 'nature', pipeline: 'code', file: PLACES_FILE, surface: 'rock',
+  defaults: { r: 0.9, look: 'bank', tint: 'cool', solid: false },
+  variants: [
+    { id: 'bank', label: 'River bank', params: {} },
+    { id: 'channel', label: 'In the current', params: { look: 'channel' } },
+    { id: 'lean', label: 'Leaning on a block', params: { look: 'lean', tint: 'granite', r: 0.7 } },
+    { id: 'streambank', label: 'Meltwater bank', params: { look: 'streambank', r: 1.1 } },
+  ],
+}));
+
+
+export const kokparGoal = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/kokpar-goal', name: 'Kokpar goal', category: 'props', pipeline: 'code',
+  file: PLACES_FILE, surface: 'earth',
+  defaults: {},
+}));
+
+
+export const kokparPost = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/kokpar-post', name: 'Kokpar marker post', category: 'props', pipeline: 'code',
+  file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}));
+
+export interface StoneStepParams {
+  /** the tread's width across the flight and its depth along it, the block's height (m) */
+  readonly width: number;
+  readonly depth: number;
+  readonly height: number;
+  /** its shape's seed (the stair's step number) */
+  readonly seed: number;
+}
+
+
+export const stoneStep = defineModel<StoneStepParams>(bakedPainted<StoneStepParams>({
+  id: 'nalati-grasslands/stone-step', name: 'Stone step', category: 'props', pipeline: 'code',
+  file: PLACES_FILE, surface: 'stone',
+  defaults: { width: 1.8, depth: 0.4, height: 0.6, seed: 0x5a1 },
+}));
+
+export const signpostBaked = defineModel<SignpostParams>(bakedPainted<SignpostParams>({
+  id: 'nalati-grasslands/signpost', name: 'Carved signpost', category: 'props', pipeline: 'code',
+  file: 'src/shards/nalati-grasslands/models/signpost.ts', surface: 'wood',
+  defaults: { boards: [{ text: 'NOMAD CAMP', dir: Math.PI / 2 }, { text: 'SKY GRASSLAND', dir: Math.PI }, { text: 'KUNES BRIDGE', dir: 0 }] },
+}));
+
+export const kazan = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/kazan', name: 'Kazan on its tripod', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}, { id: 'nalati-grasslands/kazan', name: 'cauldron' }));
+
+export const chest = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/chest', name: 'Sandyq chest', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}, { id: 'nalati-grasslands/chest', name: 'chest' }));
+
+export const firewood = defineModel<FirewoodParams>(generatedModel<FirewoodParams>({
+  id: 'nalati-grasslands/firewood', name: 'Firewood stack', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: { dy: 0 },
+}, { id: 'nalati-grasslands/firewood', name: 'firewood' }));
+
+export const kumisChurn = defineModel<ChurnParams>(generatedModel<ChurnParams>({
+  id: 'nalati-grasslands/kumis-churn', name: 'Kumis churn', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: { hw: 0.28, h: 1.1 },
+}, { id: 'nalati-grasslands/kumis-churn', name: 'kumis-churn' }));
+
+export const groundSaddle = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/ground-saddle', name: 'Saddle on the grass', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}, { id: 'nalati-grasslands/ground-saddle', name: 'saddle' }));
+
+export const perchedEagle = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/perched-eagle', name: 'Golden eagle on its perch', category: 'props', pipeline: 'trellis', file: PLACES_FILE, surface: 'wood',
+  defaults: {},
+}, { id: 'nalati-grasslands/perched-eagle', name: 'eagle' }));
+
+export interface FirewoodParams {
+  /** a turn of this copy off its pile's line (a pile is two stacks side by side) */
+  readonly dy: number;
+  /** the pile's one box (world space), carried by the first stack of a pile */
+  readonly pile?: Box;
+}
+
+export interface ChurnParams {
+  /** its box's half-width and height */
+  readonly hw: number;
+  readonly h: number;
+}
+
+export const watchtower = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/watchtower', name: 'Watchtower', category: 'buildings', pipeline: 'hunyuan',
+  file: PLACES_FILE, surface: 'stone',
+  defaults: {},
+}, { id: 'nalati-grasslands/watchtower', name: 'watchtower', look: { rim: 0.3, bands: 0.8 } }));
+
+export const saddledHorse = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/saddled-horse', name: 'Saddled horse (standing)', category: 'props', pipeline: 'hunyuan',
+  file: PLACES_FILE, surface: 'flesh',
+  defaults: {},
+}, { id: 'nalati-grasslands/saddled-horse', name: 'horse-saddled', look: { rim: 0.8, bands: 0.85 } }));
+
+export const kokparRider = defineModel<object>(generatedModel<object>({
+  id: 'nalati-grasslands/kokpar-rider', name: 'Kokpar rider', category: 'people', pipeline: 'hunyuan',
+  file: PLACES_FILE, surface: 'flesh',
+  defaults: {},
+}, { id: 'nalati-grasslands/kokpar-rider', name: 'kokpar-rider', look: { rim: 0.8, bands: 0.85 } }));

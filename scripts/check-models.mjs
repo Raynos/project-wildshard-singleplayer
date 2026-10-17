@@ -63,9 +63,9 @@ function sources(dir = join(ROOT, 'src')) {
  */
 export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/painted.ts', 'src/shards/nalati-grasslands/world/Balbals.ts', 'src/shards/nalati-grasslands/world/Bridge.ts',
-  'src/shards/nalati-grasslands/world/Cairn.ts', 'src/shards/nalati-grasslands/world/Stair.ts',
+  'src/shards/nalati-grasslands/world/Cairn.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts', 'src/shards/nalati-grasslands/world/NomadCamp.ts', 'src/shards/nalati-grasslands/world/SummerCamp.ts', 'src/shards/nalati-grasslands/world/RoadFurniture.ts',
-  'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts', 'src/shards/nalati-grasslands/world/dressing/statics.ts', 'src/shards/nalati-grasslands/outcrops.ts',
+  'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
   'src/shards/nalati-grasslands/cragRock.ts',
 ];
 
@@ -101,7 +101,6 @@ export const DONE = {
     'src/shards/nalati-grasslands/world/Balbals.ts': { why: 'the balbals are placed instanced; an empty mesh stands in for a carved variant no crown wears (B11 hides a waking warrior by instance)', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands/world/dressing/layer.ts': { why: "the dressing's scatter field: one InstancedMesh per kind drawing its model's copies (placed drawnInto), culled per instance with per-instance draw distances (world, §1)", counts: { InstancedMesh: 1 } },
-    'src/shards/nalati-grasslands/world/dressing/statics.ts': { why: "the region meshes the dressing's prop models are painted into (placed drawnInto), and the fences' timber layer", counts: { mergeGeometries: 2 } },
     'src/shards/nalati-grasslands/world/dressing/life.ts': { why: 'pollen and seed fluff (an effect), butterflies and the kites (ambient creatures, M5)', counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/campPeople.ts': { why: 'the camp people are People (M5)', counts: { 'registry add with object': 1, BatchedMesh: 1 } },

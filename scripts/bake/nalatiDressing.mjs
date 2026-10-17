@@ -24,9 +24,9 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/world/terrain.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { buildOutcrops }, { buildCragRock }] = await Promise.all([
+    const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { outcropsPlace }, { buildCragRock }] = await Promise.all([
       import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/world/Spruce.ts'),
-      import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/outcrops.ts'), import('../../src/shards/nalati-grasslands/cragRock.ts'),
+      import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'), import('../../src/shards/nalati-grasslands/cragRock.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([
       import('../../src/shards/nalati-grasslands/layout.ts'), import('../../src/shards/nalati-grasslands/world/terrain.ts'),
@@ -41,7 +41,9 @@ async function bakeNalatiDressing(dressingRecipe) {
     const forest = { trees, nearby: (x, z, r) => grid.nearby(x, z, r) };
     const plan = await planDressing(forest);
     const pois = await new NalatiPOIs(sky).buildSliced(() => Promise.resolve());
-    const outcrops = buildOutcrops(sky), crags = buildCragRock(sky);
+    const steps = outcropsPlace({ ground: heightAt, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } });
+    let step = steps.next(); while (!step.done) step = steps.next();
+    const outcrops = step.value, crags = buildCragRock(sky);
     const avoid = [...pois.colliders, ...outcrops.colliders, ...crags.colliders];
     const clutter = campClutterSpots(avoid);
     const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');

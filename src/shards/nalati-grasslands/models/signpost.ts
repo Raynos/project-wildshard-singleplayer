@@ -7,49 +7,11 @@
  * (`letteringMesh`), so a signpost costs no draw of its own. Collides: the post as a box.
  */
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { defineModel } from '@wildshard/engine/models/model';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { M, v3, woodPole } from '../world/paint';
-import { PC, GRAIN, WOOD } from '../world/props';
-import { painted, type Paint } from '../world/painted';
-
-export interface Board {
-  readonly text: string;
-  /** the way the arrow points (world yaw of the direction, atan2(dx, dz)) */
-  readonly dir: number;
-}
-
-export interface SignpostParams { readonly boards: readonly Board[] }
-
-/** one board's plank: its centre, its yaw (local +x = the pointing way), its width */
-export interface BoardSpot { readonly p: THREE.Vector3; readonly yaw: number; readonly w: number }
-
-/** where a signpost at (x, gy, z) hangs its boards, top down */
-export function boardSpots(x: number, z: number, gy: number, boards: readonly Board[]): BoardSpot[] {
-  const H = 1.9 + boards.length * 0.36;
-  return boards.map((b, i) => {
-    const y = gy + H - 0.3 - i * 0.36, w = 1.45;
-    const yaw = b.dir - Math.PI / 2;                                       // M's local +x → world (sin dir, cos dir)
-    const cx = x + Math.sin(b.dir) * (w / 2 + 0.05), cz = z + Math.cos(b.dir) * (w / 2 + 0.05);
-    return { p: v3(cx, y, cz), yaw, w };
-  });
-}
-
-const paint: Paint<SignpostParams> = (kit, at, p, c) => {
-  const s = { x: at.x, z: at.z };
-  const gy = c.ground(s.x, s.z), H = 1.9 + p.boards.length * 0.36;
-  kit.add(woodPole(v3(s.x, gy - 0.4, s.z), v3(s.x, gy + H, s.z), 0.09, 0.075, 8, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
-  kit.add(new THREE.ConeGeometry(0.11, 0.2, 8).translate(s.x, gy + H + 0.1, s.z), PC.woodDark);
-  for (const b of boardSpots(s.x, s.z, gy, p.boards)) {
-    const m = M(b.p.x, b.p.y, b.p.z, b.yaw);
-    kit.add(new THREE.BoxGeometry(b.w, 0.27, 0.045), PC.woodDark, { matrix: m, flat: true });
-    const tip = new THREE.CylinderGeometry(0.19, 0.19, 0.045, 3).rotateX(Math.PI / 2).scale(0.75, 1, 1).translate(b.w / 2 + 0.06, 0, 0);
-    kit.add(tip, PC.woodDark, { matrix: m, flat: true });
-  }
-  return { boxes: [{ x: s.x, z: s.z, hw: 0.14, hd: 0.14, rot: 0, yBottom: gy - 1, yTop: gy + H }] };
-};
+import { boardSpots, type Board, type BoardSpot, type SignpostParams } from '../world/painted';
+import { signpostBaked } from './campProps';
 
 const LABEL_H = 64, ATLAS_W = 512;
 
@@ -130,19 +92,12 @@ function lettering(sky: Sky, posts: Lettered): { geometry: THREE.BufferGeometry;
   return { geometry: g, material };
 }
 
-const specimen = painted(paint, { seed: 0x5197, layers: ['rock'] });
-
 export const signpost = defineModel<SignpostParams>({
-  id: 'nalati-grasslands/signpost', name: 'Carved signpost', category: 'props', pipeline: 'code',
-  file: 'src/shards/nalati-grasslands/models/signpost.ts', surface: 'wood',
-  defaults: { boards: [{ text: 'NOMAD CAMP', dir: Math.PI / 2 }, { text: 'SKY GRASSLAND', dir: Math.PI }, { text: 'KUNES BRIDGE', dir: 0 }] },
-  // the painted post and boards (NalatiSet paints them into the roads' mesh), and for the Explorer's specimen its own
-  // boards' lettering too (in the world, the roads letter every board on one mesh)
-  build: Object.assign((ctx: ModelContext, p: SignpostParams, rng: Rng): ModelBuild => {
-    const built = specimen(ctx, p, rng);
-    if (!Array.isArray(built)) return built;
-    const text = lettering(ctx.sky, [{ spots: boardSpots(0, 0, 0, p.boards), boards: p.boards }]);
-    const parts: ModelPart[] = [...(built as readonly ModelPart[]), { geometry: text.geometry, material: text.material, receiveShadow: true }];
-    return parts;
-  }, { paint: specimen.paint, spec: specimen.spec }),
+  ...signpostBaked,
+  build: (ctx, p, rng) => {
+    const built = signpostBaked.build(ctx, p, rng);
+    if (!(built instanceof THREE.Object3D)) throw new Error('[nalati roads] baked signpost must return its group');
+    built.add(letteringMesh(ctx.sky, [{ spots: boardSpots(0, 0, 0, p.boards), boards: p.boards }]));
+    return built;
+  },
 });

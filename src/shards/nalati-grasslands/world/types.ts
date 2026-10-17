@@ -58,6 +58,8 @@ export interface PoiPiece {
 export interface Ledge { x: number; y: number; z: number; r: number }
 export interface KurganEntrance { x: number; y: number; z: number; facing: number }
 export interface PlaceAnchors {
+  readonly signposts?: { x: number; y: number; z: number; boards: { readonly text: string; readonly dir: number }[] }[];
+  readonly riders?: { t: number; k: number; w: number; bob: number }[];
   readonly entrance?: KurganEntrance;
   readonly balbalSpots?: { x: number; z: number; yaw: number; scale: number }[];
   readonly ledges?: Ledge[];
