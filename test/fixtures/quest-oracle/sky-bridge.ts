@@ -3,7 +3,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
-import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
+import { KEEPER_AT } from '../../../src/shards/far-reach/generators/quests';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };
 
 /** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */

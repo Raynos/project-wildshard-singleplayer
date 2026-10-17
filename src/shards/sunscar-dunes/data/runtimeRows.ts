@@ -1,5 +1,6 @@
 import { WHIP_HELD_RECIPE } from './heldWeapon';
-import { SIGNAL_QUEST_PAGE } from './questPage';
+import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
+import questPage from './questPage.generated.json' with { type: 'json' };
 import { STRINGS } from './strings';
 import { WHIP_ROW } from './equipment';
 import { SIGNAL_RUNTIME_BOOT } from './runtimeBoot';
@@ -8,7 +9,7 @@ import { SIGNAL_MOTION } from './nativeMotion';
 
 /** Discovery, boot and population facts; the native plugin supplies only its admitted source. */
 export const SIGNAL_RUNTIME_ROWS = { clientMotion: SIGNAL_MOTION, pageFight: { kind: 'spawned', armed: { owner: 'plugin', path: ['places', 'fire', 'lit'] }, bindStages: true, dress: { owner: 'looks', path: ['dress'] } } as const, melee: { recipe: WHIP_HELD_RECIPE, stage: 'equipment', targets: 'raycast', expose: 'whip' } as const, expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
-  pageQuest: { stages: {actions:[{id:'sunscar.signal-fire',action:{spawn:'sunscar.matriarch'},owner:'fight',path:['summon']}],events:[{id:'sunscar.signal-fire',owner:'plugin',path:['places','fire','onLight']}]}, data: SIGNAL_QUEST_PAGE, flags: { owner: 'plugin', path: ['places', 'flags'] },
+  pageQuest: { stages: {actions:[{id:'sunscar.signal-fire',action:{spawn:'sunscar.matriarch'},owner:'fight',path:['summon']}],events:[{id:'sunscar.signal-fire',owner:'plugin',path:['places','fire','onLight']}]}, data: parsePersistedQuestPage(questPage), flags: { owner: 'plugin', path: ['places', 'flags'] },
     model: { kind: 'mesh', read: { owner: 'models', path: ['mesh'] } },
     dress: [{ call: { owner: 'scope', path: ['ownPrimitives'] }, args: ['group'] },
       { call: { owner: 'looks', path: ['dress'] }, args: ['group', 'scope'] }],

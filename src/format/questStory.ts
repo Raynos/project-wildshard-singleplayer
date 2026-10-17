@@ -53,3 +53,30 @@ export type QuestStory = v.InferOutput<typeof Story>;
 /** Strict story admission adds no cursor, save or callback policy. */
 export function parseQuestStory(input: unknown): QuestStory { return v.parse(Story, input); }
 
+
+const bossRecord = v.variant('kind', [
+  v.strictObject({ kind: v.literal('state'), key: text, actor: text, jsonError: text, writeError: text }),
+  v.strictObject({ kind: v.literal('flags'), names: v.strictObject({ defeated: text, paid: text }), actor: text }),
+]);
+const pageStage = v.strictObject({ system: text, data: v.unknown(), initial: v.array(v.record(text, v.boolean())) });
+const PersistedPage = v.strictObject({
+  id: text, rewardId: text, npc: text,
+  strings: v.looseObject({ reward: v.string(), newQuest: v.string(), quest: v.string(), rewardKicker: v.string(), rewardSubtitle: v.string() }),
+  persistence: v.strictObject({ reward: v.strictObject({ kind: v.picklist(['state', 'flag']), key: text, legacy: text }),
+    boss: v.exactOptional(v.strictObject({ record: bossRecord, defeated: v.strictObject({ fact: text, entity: text }) })) }),
+  model: v.exactOptional(v.strictObject({ id: text, kind: v.picklist(['mesh', 'pivots']), material: v.exactOptional(text) })),
+  places: v.pipe(v.array(v.strictObject({ id: text, label: text, x: finite, z: finite, r: positive,
+    quiet: v.exactOptional(v.boolean()), y: v.exactOptional(finite) })), v.maxLength(64)),
+  markers: v.exactOptional(v.record(text, markerAt)),
+  presentationFlags: v.exactOptional(v.boolean()), projectProgress: v.exactOptional(v.boolean()), unpaid: v.exactOptional(v.picklist(['live', 'initial'])),
+  beat: v.exactOptional(v.strictObject({ at: v.strictObject({ x: finite, y: finite, z: finite }),
+    toward: v.looseObject({ x: finite, z: finite }), pitch: finite, holdSeconds: positive })),
+  finishFlags: v.exactOptional(v.pipe(v.array(text), v.maxLength(256))), stages: v.exactOptional(v.pipe(v.array(pageStage), v.maxLength(64))),
+  repair: v.exactOptional(v.strictObject({ data: v.unknown(), initial: v.array(v.record(text, v.boolean())),
+    legacyObservation: text, advances: v.pipe(positive, v.safeInteger(), v.maxValue(64)) })),
+  capture: v.exactOptional(v.record(text, v.pipe(v.array(v.union([v.strictObject({ flag: text }), v.strictObject({ call: text })])), v.maxLength(64)))),
+});
+/** Page policy borrows existing flag, reward and presentation owners; it adds no saved cursor. */
+export type PersistedQuestPage = v.InferOutput<typeof PersistedPage>;
+/** Validate compiled page JSON before the existing shared quest owner installs it. */
+export function parsePersistedQuestPage(input: unknown): PersistedQuestPage { return v.parse(PersistedPage, input); }

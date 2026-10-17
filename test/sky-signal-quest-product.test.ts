@@ -1,8 +1,16 @@
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { parsePersistedQuestPage } from '../src/sdk/quests';
+import skyPage from '../src/shards/far-reach/data/questPage.generated.json' with { type: 'json' };
+import signalPage from '../src/shards/sunscar-dunes/data/questPage.generated.json' with { type: 'json' };
+import signalPhysics from '../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
+import skyPrompts from '../src/shards/far-reach/data/questPrompts.generated.json' with { type: 'json' };
+import { SKY_SPOTS, SKY_ACT, SKY_INTERACT, QUEST_STEP, ROOST_IDS } from '../src/shards/far-reach/generators/questPrompts';
+import { KEEPER_AT } from '../src/shards/far-reach/generators/quests';
 
 // Shipping declarations frozen before the quest authoring modules left data/.
+// The moved scout source path is diagnostic metadata, normalized below.
 const originals = {
   "far-reach": {
     "quests": "21786c235b2d674a50c42fe406f31f37d5be6bcf0e61815fb70f4149760236f3",
@@ -22,8 +30,32 @@ for (const slug of ['far-reach', 'sunscar-dunes'] as const) {
   test(`${slug} compiles identical quest, NPC and director continuations`, async () => {
     const loaded = await readProjectAssets(`src/shards/${slug}`);
     for (const section of ['quests', 'questHost', 'questNpcs', 'directors'] as const) {
-      const bytes = new TextEncoder().encode(JSON.stringify(loaded.shard[section]));
+      const bytes = new TextEncoder().encode(JSON.stringify(loaded.shard[section]).replaceAll('sunscar-dunes/generators/questPresentation.ts', 'sunscar-dunes/data/questPresentation.ts'));
       expect(hashImmutableBytes(bytes), section).toBe(originals[slug][section]);
     }
   }, 30_000);
 }
+
+// Frozen before moving page composition: strings, model, places, repairs,
+// captures, finish flags, camera and persistence all retain their exact bytes.
+for (const [slug, page, hash] of [
+  ['far-reach', skyPage, '5bde92d1d3e601d20518a33a204c26cb117e5432cb8403720726a921860c12ac'],
+  ['sunscar-dunes', signalPage, '50f8d95f610b2ab6faa67abe3ee7c83253ad3d4ca6d833c65a5a21143d27ed9b'],
+] as const) {
+  test(`${slug} retains the original saved page policy`, () => {
+    expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(page)))).toBe(hash);
+    expect(parsePersistedQuestPage(page)).toEqual(page);
+    expect(() => parsePersistedQuestPage({ ...page, persistence: { reward: { kind: 'other', key: 'paid', legacy: 'paid' } } })).toThrow();
+    expect(() => parsePersistedQuestPage({ ...page, unexpectedCursor: 1 })).toThrow();
+  });
+}
+
+test('Sky prompt compilation retains native command and position order', () => {
+  expect(skyPrompts).toEqual({ SKY_INTERACT, SKY_ACT, QUEST_STEP, SKY_SPOTS, ROOST_IDS, KEEPER_AT });
+});
+
+// Frozen from the exact 5c6e5ff49 physics producer before moving its scout source.
+test('moving the scout author changes no physics or prompt bytes', () => {
+  const original = JSON.stringify(signalPhysics).replaceAll('sunscar-dunes/generators/questPresentation.ts', 'sunscar-dunes/data/questPresentation.ts');
+  expect(hashImmutableBytes(new TextEncoder().encode(`${original}\n`))).toBe('e72089068751162e0321825165cafc33a2efe18d9123e75bc8e8ce0966f3ba64');
+});

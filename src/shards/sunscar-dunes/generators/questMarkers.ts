@@ -1,10 +1,10 @@
-import caravan from './caravan.json' with { type: 'json' };
-import well from './well.json' with { type: 'json' };
-import tower from './tower.json' with { type: 'json' };
-import braziers from './braziers.json' with { type: 'json' };
-import ground from './manifestGround.generated.json' with { type: 'json' };
-import { SCOUT_AT } from './flags';
-import { BRAZIERS, TOWER, WELL } from './layout';
+import caravan from '../data/caravan.json' with { type: 'json' };
+import well from '../data/well.json' with { type: 'json' };
+import tower from '../data/tower.json' with { type: 'json' };
+import braziers from '../data/braziers.json' with { type: 'json' };
+import ground from '../data/manifestGround.generated.json' with { type: 'json' };
+import { SCOUT_AT } from '../data/flags';
+import { BRAZIERS, TOWER, WELL } from '../data/layout';
 
 const [logX, logY, logZ] = caravan.anchors.logbook;
 if (caravan.anchors.logbook.length !== 3 || logX === undefined || logY === undefined || logZ === undefined

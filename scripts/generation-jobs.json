@@ -6959,7 +6959,7 @@
         "src/shards/sunscar-dunes/data/layout.ts",
         "src/shards/sunscar-dunes/data/physicsRows.json",
         "src/shards/sunscar-dunes/data/places.ts",
-        "src/shards/sunscar-dunes/data/questPresentation.ts",
+        "src/shards/sunscar-dunes/generators/questPresentation.ts",
         "src/shards/sunscar-dunes/data/signalQuest.ts",
         "src/shards/sunscar-dunes/data/spawns.ts",
         "src/shards/sunscar-dunes/data/strings.ts",
@@ -6977,7 +6977,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/physics.generated.json": "365a787a6e28be24848d656d92b5849527f25855134cccf28fde8006c84071b8"
+        "src/shards/sunscar-dunes/data/physics.generated.json": "bdbf2c00ba7f6dbc57a8b9e99cfed893b144a58099fa15501fbdd55be6e60cbc"
       },
       "seedOutputs": []
     },
@@ -12150,7 +12150,7 @@
         "src/shards/sunscar-dunes/generators/questHost.ts",
         "src/shards/sunscar-dunes/generators/questNpc.ts",
         "src/shards/sunscar-dunes/generators/questPageInteractions.ts",
-        "src/shards/sunscar-dunes/data/questPresentation.ts",
+        "src/shards/sunscar-dunes/generators/questPresentation.ts",
         "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
@@ -12337,7 +12337,7 @@
         "src/shards/sunscar-dunes/generators/questHost.ts",
         "src/shards/sunscar-dunes/generators/questNpc.ts",
         "src/shards/sunscar-dunes/generators/questPageInteractions.ts",
-        "src/shards/sunscar-dunes/data/questPresentation.ts",
+        "src/shards/sunscar-dunes/generators/questPresentation.ts",
         "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
@@ -14031,13 +14031,13 @@
         "src/shards/far-reach/data/geometries.json",
         "src/shards/far-reach/data/groundScene.generated.ts",
         "src/shards/far-reach/data/isletRig.json",
-        "src/shards/far-reach/data/keeperStand.ts",
+        "src/shards/far-reach/generators/keeperStand.ts",
         "src/shards/far-reach/data/knolls.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/mill.json",
         "src/shards/far-reach/data/physicsPlacements.generated.json",
         "src/shards/far-reach/data/placements.json",
-        "src/shards/far-reach/data/quests.ts",
+        "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/roost.json",
         "src/shards/far-reach/data/routeScene.generated.ts",
         "src/shards/far-reach/data/strings.ts",
@@ -14086,14 +14086,14 @@
         "src/shards/far-reach/data/groundScene.generated.ts",
         "src/shards/far-reach/data/isletRig.json",
         "src/shards/far-reach/data/isletScenes.generated.json",
-        "src/shards/far-reach/data/keeperStand.ts",
+        "src/shards/far-reach/generators/keeperStand.ts",
         "src/shards/far-reach/data/knolls.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/mill.json",
         "src/shards/far-reach/data/millScene.generated.ts",
         "src/shards/far-reach/data/physicsPlacements.generated.json",
         "src/shards/far-reach/data/placements.json",
-        "src/shards/far-reach/data/quests.ts",
+        "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/data/roost.json",
         "src/shards/far-reach/data/routeScene.generated.ts",
@@ -14522,9 +14522,9 @@
         "src/shards/far-reach/generators/questHost.ts",
         "src/shards/far-reach/generators/questNpc.ts",
         "src/shards/far-reach/generators/questPageInteractions.ts",
-        "src/shards/far-reach/data/questPrompts.ts",
+        "src/shards/far-reach/generators/questPrompts.ts",
         "src/shards/far-reach/generators/questStages.ts",
-        "src/shards/far-reach/data/quests.ts",
+        "src/shards/far-reach/generators/quests.ts",
         "src/shards/far-reach/data/rayWakeLook.ts",
         "src/shards/far-reach/data/rocFight.ts",
         "src/shards/far-reach/generators/sections.ts",
@@ -16449,6 +16449,99 @@
       "buildOutputs": {
         "src/shards/nine-dragon-stack/world/portalPlan.generated.json": "e2dcbc18557c7c9c3e4bef8568e8a159cd4fa2a8c35e464b9cbea3a2c2cea893"
       }
+    },
+    {
+      "id": "sky-quest-page",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/questRows.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/questRows.ts",
+        "questPageFiles",
+        "src/shards/far-reach",
+        "--files"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/sdk/quests.ts",
+        "src/shards/far-reach/data/bossStages.json",
+        "src/shards/far-reach/data/flags.json",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/rocFight.ts",
+        "src/shards/far-reach/data/spawns.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/persistence.ts",
+        "src/shards/far-reach/generators/places.ts",
+        "src/shards/far-reach/generators/questPage.ts",
+        "src/shards/far-reach/generators/questPrompts.ts",
+        "src/shards/far-reach/generators/questRows.ts",
+        "src/shards/far-reach/generators/quests.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/questPage.generated.json",
+        "src/shards/far-reach/data/questPrompts.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/questPage.generated.json",
+        "src/shards/far-reach/data/questPrompts.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "signal-quest-page",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/questRows.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/sunscar-dunes/generators/questRows.ts",
+        "questPageFiles",
+        "src/shards/sunscar-dunes",
+        "--files"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/sdk/quests.ts",
+        "src/shards/sunscar-dunes/data/braziers.json",
+        "src/shards/sunscar-dunes/data/caravan.json",
+        "src/shards/sunscar-dunes/data/flags.ts",
+        "src/shards/sunscar-dunes/data/layout.ts",
+        "src/shards/sunscar-dunes/data/manifestGround.generated.json",
+        "src/shards/sunscar-dunes/data/signalQuest.ts",
+        "src/shards/sunscar-dunes/data/strings.ts",
+        "src/shards/sunscar-dunes/data/tower.json",
+        "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/generators/persistence.ts",
+        "src/shards/sunscar-dunes/generators/questMarkers.ts",
+        "src/shards/sunscar-dunes/generators/questPage.ts",
+        "src/shards/sunscar-dunes/generators/questPresentation.ts",
+        "src/shards/sunscar-dunes/generators/questRepair.ts",
+        "src/shards/sunscar-dunes/generators/questRows.ts"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/data/questPage.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/sunscar-dunes/data/questPage.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

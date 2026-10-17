@@ -1,4 +1,4 @@
-import { SKY_BOSS_STATE, ROC_FACT, ROC_ID } from './rocFight';
+import { SKY_BOSS_STATE, ROC_FACT, ROC_ID } from '../data/rocFight';
 
 /** The original reward state, read-only seed and boss-to-ledger projection. */
 export const SKY_PERSISTENCE = { reward: { kind: 'state', key: 'far-reach.rewarded', legacy: 'far-reach.rewarded' },

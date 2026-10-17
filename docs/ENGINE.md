@@ -8582,3 +8582,8 @@ Affordability reads precede ordered payments and grants. A payment
 marked `required` returning false stops the purchase before grants.
 Panels keep their original hold lifetimes; native modal saves retain
 `{ version: 1, open }`, with silent validation before restore.
+
+`@wildshard/sdk/quests.parsePersistedQuestPage` validates compiled saved-page JSON
+for the shared persisted-quest host: places, markers, model, reward persistence,
+held camera beat, transient startup repair and bounded capture steps. It adds no
+quest state or callbacks; both Sky Reach and Signal Dunes use the same reader.

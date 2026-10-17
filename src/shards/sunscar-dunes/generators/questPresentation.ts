@@ -1,6 +1,6 @@
-import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from './layout';
-import { SCOUT_AT, SCOUT_FLAG } from './flags';
-import { STRINGS } from './strings';
+import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../data/layout';
+import { SCOUT_AT, SCOUT_FLAG } from '../data/flags';
+import { STRINGS } from '../data/strings';
 import { COMPLETE_FLAG } from '../data/signalQuest';
 
 /** Sefa's authored quest-giver, figure pivots, native column and ordered dialogue. */

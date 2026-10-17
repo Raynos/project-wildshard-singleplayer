@@ -1,4 +1,4 @@
-import { SKY_ACT, SKY_INTERACT } from '../data/questPrompts';
+import { SKY_ACT, SKY_INTERACT } from './questPrompts';
 import { VANES } from '../data/layout';
 import FLAGS from '../data/flags.json' with { type: 'json' };
 
