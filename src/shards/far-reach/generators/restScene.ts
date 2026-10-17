@@ -3,8 +3,9 @@ import { LECTERN } from './rows/bookStand';
 import { REST_URLS } from './restFiles';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
-import { SPANS, UPDRAFT } from "./layout";
-import { STORM } from '../data/storm';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { CROWN, SPANS, UPDRAFT } from "./layout";
+import { STORM } from './rows/storm';
 
 /** Original winch parts in their local frame; wood and rope remain named client material owners. */
 export function winchRest(): ClientSceneBake {
@@ -85,20 +86,22 @@ function boltGeometry(random: () => number, length: number): BufferGeometry {
   const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); return g;
 }
 /**
- * The crown's storm (loop 3), centred at its origin (world/build.ts hangs it over the crown at `STORM.lift`, leaning
- * toward the arena): the vortex's dished ring (the first layer's; data/lookGraphs.json paints it in the `storm-ring` look)
- * and three hidden lightning bolts the plugin flashes (world/storm.ts). Ring and bolts are client material ports; the
- * lightning's per-vertex flash stays the client's.
+ * The crown's storm (loop 3), hung over the crown (`STORM.lift` up, `STORM.ahead` north) and leaning toward the arena:
+ * the vortex's dished ring (the first layer's; data/lookGraphs.json paints it in the `storm-ring` look) and the three
+ * lightning bolts in one mesh, each bolt's index in its uv.x, which the `storm-bolt` graph shows one at a time on the
+ * ring's strike clock. Ring and bolts are client material ports.
  */
 export function stormRest(): ClientSceneBake {
   const root = new Group(), ringLook = new MeshStandardMaterial(), boltLook = new MeshStandardMaterial(); root.name = 'storm';
+  root.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); root.rotation.x = STORM.lean;
   const layer = STORM.layers[0], ringShape = new RingGeometry(0.5, STORM.radius * layer.r, 72, 10); ringShape.rotateX(-Math.PI / 2);
   const ring = new Mesh(ringShape, ringLook); ring.name = 'storm-ring'; ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; root.add(ring);
-  const random = stormRandom(STORM.boltSeed);
+  const random = stormRandom(STORM.boltSeed), parts: BufferGeometry[] = [];
   for (let i = 0; i < STORM.bolts; i++) {
-    const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltLook), a = random() * Math.PI * 2, rr = 8 + random() * 18; bolt.name = `storm-bolt-${String(i)}`;
-    bolt.position.set(Math.cos(a) * rr, 2, Math.sin(a) * rr); bolt.visible = false; bolt.frustumCulled = false; root.add(bolt);
+    const part = boltGeometry(random, 18 + i * 6), a = random() * Math.PI * 2, rr = 8 + random() * 18, count = part.getAttribute('position').count;
+    part.translate(Math.cos(a) * rr, 2, Math.sin(a) * rr); part.setAttribute('uv', new Float32BufferAttribute(Array.from({ length: count * 2 }, () => i), 2)); parts.push(part);
   }
+  const bolts = new Mesh(mergeGeometries(parts), boltLook); bolts.name = 'storm-bolts'; bolts.frustumCulled = false; root.add(bolts);
   const made = clientSceneGlb(root, new Map([[ringLook, 'storm-ring'], [boltLook, 'storm-bolt']])), top = made.scene.nodes.find(node => node.id === 'storm');
   if (top?.kind !== 'group') throw new Error('Storm scene lost its root');
   top.name = 'far.storm';

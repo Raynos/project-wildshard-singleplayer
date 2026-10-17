@@ -1,5 +1,6 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
+import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
 import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -12,8 +13,6 @@ import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { WORLD } from './baked';
 import { routeScenePorts, vaneGeometry } from './shapes';
-import { crownStorm, type CrownStorm } from './storm';
-import { STORM } from '../data/storm';
 
 const { SKY_GROUND } = groundScene;
 const { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES, SKY_VANES } = routeScene;
@@ -32,8 +31,6 @@ export interface BuiltWorld {
   /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
-  /** The crown's storm vortex (the plugin turns it and fires its lightning). */
-  readonly storm: CrownStorm;
   readonly vanes: readonly { readonly id: string; readonly flag: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
   readonly notes: Interactable;
@@ -126,9 +123,9 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   });
 
   await fixedScene(staticRows.fixed.bindings.crown);
-  // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
+  // the storm: a lit vortex high over the crown only (loop 3), its lightning flashed by the `storm-ring` / `storm-bolt` graphs
   await pause();
-  const storm = crownStorm(rnd); storm.group.position.set(LAYOUT.CROWN.x, LAYOUT.CROWN.y + STORM.lift, LAYOUT.CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
+  root.add(createClientScene(REST_SCENES.storm, { geometry: SKY_LIBRARY.geometry, materials: new Map(['storm-ring', 'storm-bolt'].map(id => [id, SKY_LIBRARY.look(id) ?? new MeshBasicMaterial({ visible: false })])) }).root);
 
   await pause();
   const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(ISLET_SCENES.scene.nodes.flatMap(row => row.kind === 'object' && row.source !== undefined ? [[row.source, islandMesh(row.source)] as const] : [])) });
@@ -136,6 +133,6 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const islets = bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets: scene.parts, copiedOwners: ids, initialPoses: ISLET_SCENES.rest });
   root.add(scene.root);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
-  return { hoverDeck, fallen, millHub, storm, vanes, winch: handle, notes, notesAt, state, islets };
+  return { hoverDeck, fallen, millHub, vanes, winch: handle, notes, notesAt, state, islets };
 }
 

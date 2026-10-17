@@ -107,7 +107,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
-      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
+      built.millHub.rotation.z += dt * 0.35;
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const vane = built.vanes[i]; if (vane === undefined) break;
         vane.rotor.rotation.y += dt * (flags.has(vane.flag) ? 6 : 0.25);

@@ -6,7 +6,7 @@ import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { Vector3 } from 'three';
 import { CROWN, DAIS, ROC } from "../../../src/shards/far-reach/generators/layout";
-import { STORM } from '../../../src/shards/far-reach/data/storm';
+import { STORM } from '../../../src/shards/far-reach/generators/rows/storm';
 import { pushPlayer, yawTo } from './heldAuthority';
 
 // Frozen crown placement law from the pre-row native oracle dependency.

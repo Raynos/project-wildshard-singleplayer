@@ -2518,7 +2518,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -2645,7 +2645,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -2773,7 +2773,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -2901,7 +2901,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -3029,7 +3029,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -3157,7 +3157,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -3285,7 +3285,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
@@ -15102,7 +15102,7 @@
         "src/shards/far-reach/data/skyMaps.json",
         "src/shards/far-reach/generators/rows/spawns.ts",
         "src/shards/far-reach/generators/rows/state.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/generators/rows/stormNoise.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/rows/swardAtlas.ts",
@@ -15270,7 +15270,7 @@
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts"
