@@ -4,7 +4,10 @@
 // build mirror on a commit (never the shared working tree). The admin build only reads the committed file.
 //
 //   node scripts/admin-data/ruler.mjs [--rev=HEAD]       measure <rev> in the `check` mirror slot, rewrite ruler.json
-//   then: git commit -m "chore(admin): refresh the plan ruler" -- progress/shard-platform/ruler/ruler.json
+//   then: git commit -m "chore(admin): refresh the plan ruler" -- progress/shard-platform/ruler/ruler.json \
+//           src/game/shard/portShares.json
+// It also rewrites SHARD SELECT's PORTED table from the new ruler (scripts/gen-port-shares.mjs, E486); pre-commit
+// refuses a ruler.json committed without its matching table.
 //
 // Whole plan = 60 % × M3 + 40 % × M2 (a range while M2 has unknown checks). Per shard: custom lines ÷ frozen legacy
 // lines (lower is better; goal 20 %, 10 % for Sky Reach and Signal Dunes). No effort, hours or projections.
@@ -12,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { writePortShares } from '../gen-port-shares.mjs';
 
 export const RULER_PATH = 'progress/shard-platform/ruler/ruler.json';
 export const RULER_CHART = 'progress/shard-platform/ruler/custom-vs-hours.jpg';
@@ -181,5 +185,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(`${file}.tmp`, `${JSON.stringify(next, null, 1)}\n`);
   renameSync(`${file}.tmp`, file);
+  writePortShares(repo);
   console.info(`ruler ${revision.slice(0, 9)}: plan ${pct1(next.plan.lower * 100)}–${pct1(next.plan.upper * 100)} %, M3 ${pct1(next.m3.fraction * 100)} %, M2 ${next.m2.ready}/${next.m2.total}; ${next.wave.id} ${next.wave.pct} % → ${RULER_PATH}`);
 }

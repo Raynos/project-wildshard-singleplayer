@@ -8,6 +8,7 @@ import { openMirror } from './build-mirror.mjs';
 import { discoverGeneration, generateShardJob } from './generate.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
+import { PORT_SHARES_JSON, portSharesMismatch, RULER_JSON } from './gen-port-shares.mjs';
 
 /** A warm mirror needs missing declared build outputs before resolving typed imports. */
 export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
@@ -35,6 +36,12 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     const show = (/** @type {string} */ spec) => { try { return /** @type {unknown} */ (JSON.parse(git(['show', spec]))); } catch { return undefined; } };
     const staged = show(`:${RUNTIME_FILES_LIST}`), failures = staged === undefined ? [`${RUNTIME_FILES_LIST}: removed or unreadable`] : compareRuntimeFiles(show(`HEAD:${RUNTIME_FILES_LIST}`), staged);
     if (failures.length > 0) throw new Error(failures.join('\n'));
+  }
+  // E486: SHARD SELECT's PORTED badges are the staged ruler's numbers (scripts/gen-port-shares.mjs); two git shows.
+  if (changed.includes(RULER_JSON) || changed.includes(PORT_SHARES_JSON)) {
+    const text = (/** @type {string} */ path) => { try { return execFileSync('git', ['show', `:${path}`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }); } catch { return undefined; } };
+    const reason = portSharesMismatch(text(RULER_JSON), text(PORT_SHARES_JSON));
+    if (reason) throw new Error(reason);
   }
   if (!changed.some(file => /^(src|scripts|lint|test|api|admin|drafts)\//u.test(file) || /^(package|pnpm|vite|vitest|tsconfig|\.oxlint)/u.test(file))) return;
   const mirror = openMirror(git(['write-tree']), { repo: root, slot: 'commit' });

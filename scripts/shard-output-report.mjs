@@ -6,7 +6,6 @@ import {runtimeClosures} from './shard-runtime-closure.mjs';
 import {outputShardLines,portHeadline,sourceProgressLines,codeLines,shaderCodeLines} from './shard-platform.mjs';
 import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
-import {genPortShares} from './gen-port-shares.mjs';
 import {writeGeneratorInventory} from './generator-inventory.mjs';
 import {gridReady,m3Progress,planProgress} from './shard-milestones.mjs';
 import {runtimeReceiptPaths} from './grid-runtime-evidence.mjs';
@@ -57,6 +56,5 @@ export async function outputReport(root,{build=true,products=resolve(root,'out')
 /** Cycle-free post-output publication. gen calls neither the builder nor ruler.
  * @param {string} root @param {Record<string,import('./shard-platform.mjs').ShardLines>} measures */
 export function refreshOutputReports(root,measures) {
-  genPortShares(root,measures);
   writeGeneratorInventory(root,measures);
 }

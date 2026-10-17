@@ -3,7 +3,6 @@ import { genShards } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
-import { genPortShares } from './gen-port-shares.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
@@ -41,9 +40,8 @@ await step('boot-tables', async () => {
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
 await step('shards', () => genShards(undefined, false, false, shard));
-// P4: generation precedes output, so clear old percentages. Only a completed
-// strict output report may repopulate badges; no source-side ruler fallback.
-await step('port-shares', () => genPortShares());
+// E486: SHARD SELECT's PORTED badges read the committed src/game/shard/portShares.json, which the plan ruler writes with
+// ruler.json (scripts/gen-port-shares.mjs) and pre-commit keeps in step; gen has no port-shares step.
 // SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1.6 s).
 // Commit-time inputs (scripts/precommit-inputs.mjs) keep only src/public outputs, so they skip these docs.
 if (!buildInputs && !proof) {

@@ -28,7 +28,7 @@ import { ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
 import { chooseShardEntry, hasEntry, shardEntries } from './shard/entryMode';
-import { PORT_SHARES } from './shard/portShares.generated';
+import { PORT_SHARES } from './shard/portShares';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -56,7 +56,7 @@ export interface TitleCard {
   unavailable?: ShardRefusal;
   /** SF65 (G237 / G241): the shard's LEGACY / SHARDFILE entries, the Developer buttons' enabled state */
   entries?: ShardEntries;
-  /** SF65 (G238): the SF6 public share (0..1, measured at build time), the Developer card's "N% PORTED" badge */
+  /** SF65 (G238): the ported share (0..1, from the last committed plan ruler run, E486), the Developer card's "N% PORTED" badge */
   ported?: number;
 }
 
