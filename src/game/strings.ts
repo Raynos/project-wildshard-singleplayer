@@ -20,6 +20,9 @@ export const GAME_STRINGS = {
     infinite: 'INFINITE WILDSHARD',
     settings: 'SETTINGS',
     back: 'BACK',
+    /** E483 (E140 again): the compact Developer switch beside SETTINGS, the same switch as Settings ▸ Developer */
+    developer: 'DEV',
+    developerLabel: 'Developer mode',
     /** SF60 / G214 (art/menu/round-12-whats-new/B-banner*.jpg): the day's WHAT'S NEW banner under the logo */
     whatsNew: {
       label: "What's new",

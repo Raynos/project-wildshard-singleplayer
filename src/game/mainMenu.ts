@@ -10,8 +10,10 @@
  * Both ways in (src/entry.ts's cold title and the HUD's showIntro, wired in src/game/session/loadout.ts) build it, so the
  * main menu is the first screen either way. A rebuild (Settings ▸ Developer flips it) keeps the screen it was on.
  * With Developer on, the day's WHAT'S NEW banner sits under the logo (SF60 / G214, src/game/whatsNewBanner.ts).
+ * A compact DEV switch beside SETTINGS flips Settings ▸ Developer from the menu itself (E483).
  */
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
+import { setDev } from '@wildshard/engine/core/devMode';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { gridEntryShown, menuMode } from './grid/menu';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './plugin/ui';
@@ -77,6 +79,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     onExplore: (card) => { screen = 'main'; deckOpts.onExplore(card); } });
   const grid = gridEntryShown(mode());
   const s = GAME_STRINGS.mainMenu;
+  const dev = mode().developer;
 
   const root = document.createElement('div');
   root.className = 'ws-title-stack';
@@ -90,7 +93,10 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
         <button class="ws-main-card ws-main-select" type="button"><span class="ws-main-icon">${CARDS_ICON}</span><b>${s.shardSelect}</b></button>
         ${grid ? `<button class="ws-main-card ws-main-grid" type="button"><span class="ws-main-icon">${GRID_ICON}</span><b>${s.infinite}</b></button>` : ''}
       </div>
-      <button class="ws-main-settings" type="button">${s.settings}</button>
+      <div class="ws-main-row">
+        <button class="ws-main-settings" type="button">${s.settings}</button>
+        <button class="ws-main-dev${dev ? ' on' : ''}" type="button" role="switch" aria-checked="${dev}" aria-label="${s.developerLabel}"><i class="ws-main-dev-track" aria-hidden="true"></i>${s.developer}</button>
+      </div>
     </div>`;
   const hero = required(main, '.ws-main-hero', HTMLElement);
   hero.style.setProperty('--ws-hero-landscape', `url('${MAIN_MENU_HERO}')`);
@@ -137,6 +143,10 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
   deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
+  // E483 (Jake: "a better dev toggle … without having to go to the settings page"; E140's ask): the same live switch as
+  // Settings ▸ Developer. Both title paths rebuild on the change (StartTitle / HUD `onDev`) on this screen, so the menu, the
+  // INFINITE WILDSHARD card and SHARD SELECT's locked cards follow it at once.
+  deck.onTap(required(main, '.ws-main-dev', HTMLButtonElement), () => { setDev(!dev); });
   deck.onTap(back, () => { show('main'); });
   show(first ?? screen);
 
