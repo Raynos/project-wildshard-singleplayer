@@ -144,3 +144,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 21:07 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/take-map.py`
 - 2026-10-16 21:09 · wT:p4 · `cat > tmp/sp-x4-grazers/message <<'EOF' refactor(pine): emit grazer bodies as data  Read deer and elk fields and skeletons from the built product's named blob. Keep the authored definitions in generat`
 - 2026-10-16 21:09 · wT:pE · `SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/land.py > tmp/c9-repair/land.log 2>&1`
+- 2026-10-16 21:10 · wT:pE · `git diff --name-only 2cf02e87a HEAD; SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/candidate.py && SKIP_SWEEPGUARD=1 python3 tmp/c9-repair/land.py > tmp/c9-repair/land.log 2>&1`
