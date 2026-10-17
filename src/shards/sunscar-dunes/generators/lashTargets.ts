@@ -1,5 +1,5 @@
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
-import { WHIP_ITEM } from '../data/items';
+import { WHIP_ITEM } from './rows/items';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { SIGNAL_SPAWNS } from './spawns';
-import { WHIP_ITEM, WHIP_PROFILE } from '../../data/items';
+import { WHIP_ITEM, WHIP_PROFILE } from './items';
 import { SCOUT_FLAG } from './flags';
 
 /** The admitted item owns its stable player-contact identity. */

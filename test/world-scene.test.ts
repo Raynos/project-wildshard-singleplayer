@@ -3,6 +3,25 @@ import { Group, MeshStandardMaterial } from 'three';
 import { createWorldScene } from '../src/game/plugin/ui';
 import { worldPieces } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
+import { admitHeldRecipe } from '../src/game/plugin/heldRecipe';
+import { WHIP_HELD_RECIPE } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
+import { FAN_HELD_RECIPE } from '../src/shards/far-reach/generators/rows/heldWeapon';
+
+it('admits both shipping held recipes and refuses malformed private capabilities', () => {
+  for (const recipe of [WHIP_HELD_RECIPE, FAN_HELD_RECIPE]) {
+    expect(admitHeldRecipe(recipe)).toBe(recipe);
+    expect(() => admitHeldRecipe({ ...recipe, scene: { version: 1, root: 'missing', nodes: [], materials: [] } })).toThrow();
+    expect(() => admitHeldRecipe({ ...recipe, phases: { ...recipe.phases, charge: Infinity } })).toThrow();
+    expect(() => admitHeldRecipe({ ...recipe, playback: {} })).toThrow('Missing held playback channel');
+    expect(() => admitHeldRecipe({ ...recipe, restingGroup: 'absent' })).toThrow('Missing held resting part');
+    expect(() => admitHeldRecipe({ ...recipe, resources: { geometry: [
+      { id: 'bad', from: { owner: 'world', path: ['constructor'] } },
+    ] } })).toThrow();
+    expect(() => admitHeldRecipe({ ...recipe, resources: { geometry: [
+      { id: 'bad', from: { owner: 'world', path: ['geometry'] }, args: [() => null] },
+    ] } })).toThrow();
+  }
+});
 
 it('binds real world resources and registers parts without changing their hierarchy or pose', async () => {
   const bake = new Group(), hero = new Group(), material = new MeshStandardMaterial();

@@ -1,6 +1,6 @@
-import SURFACES from '../assets/surfaces.generated.json' with { type: 'json' };
-import playback from './heldPlayback.generated.json' with {type:'json'};
-import lash from './lash.json' with {type:'json'};
+import SURFACES from '../../assets/surfaces.generated.json' with { type: 'json' };
+import playback from '../../data/heldPlayback.generated.json' with {type:'json'};
+import lash from '../../data/lash.json' with {type:'json'};
 import { WHIP_ROW } from './equipment';
 import { WHIP_PHASE } from './meleePhase';
 import { WHIP_SCENE, WHIP_WRAP_SCENE, HD_GLOVE_SIZE } from './whip';

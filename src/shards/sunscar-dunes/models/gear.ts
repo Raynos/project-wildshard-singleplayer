@@ -4,7 +4,7 @@ import { WORLD } from '../world/baked';
 import { buildPlace } from '../world/places';
 import source from '../runtime/source';
 import { DUNE_LIBRARY } from '../world/meshes';
-import { GEAR_SCENE_ROWS } from '../data/gearModels';
+import GEAR_SCENE_ROWS from '../data/gearRows.generated.json' with { type: 'json' };
 
 /** Lazy ports retain each real page builder; shared rows own Explorer framing. */
 export const GEAR_MODELS = modelCatalogue(GEAR_SCENE_ROWS,{owners:new Map<string,unknown>([...Object.entries(WHIP_HELD_OWNERS),['npcModels',DUNE_LIBRARY]]),source,builds:[

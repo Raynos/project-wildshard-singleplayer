@@ -14,8 +14,8 @@ import { InteractionRules, installInteractionRows } from '../src/game/quest/inte
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { bindMeleeContacts, bindNativeWorldTargets, installNativeMelee, type NativeRuntimeEffect, type NativeMeleeInput } from '../src/game/plugin/simulation';
 import { TickEffectSchema, TickCommitSchema } from '../src/sdk/tickProtocol';
-import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/data/whipContacts';
-import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/data/nativeMelee';
+import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
+import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/generators/rows/nativeMelee';
 import { FAN_CONTACTS } from '../src/shards/far-reach/generators/rows/fanContacts';
 import { SKY_MELEE_HOST } from '../src/shards/far-reach/generators/rows/nativeMelee';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

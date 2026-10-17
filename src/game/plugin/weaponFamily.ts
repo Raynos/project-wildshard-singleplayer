@@ -1,3 +1,4 @@
+import { admitHeldRecipe } from './heldRecipe';
 import { createClientChannels, bindClientChannelInputs } from './channels';
 import { readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { bindMeleeContacts } from './simulation';
@@ -654,6 +655,7 @@ function heldResources(rows:HeldResourceRows,owners:ReadonlyMap<string,unknown>,
   }};
 }
 function heldPresentation(recipe:HeldMeleeRecipe,ports:HeldPresentationPorts):{readonly model:HeldPlayback;readonly scene:ClientScenePorts} {
+  admitHeldRecipe(recipe);
   const rows=recipe.attachments??[],locals:Record<string,unknown>={};
   if(rows.length>16||new Set(rows.map(row=>row.id)).size!==rows.length||rows.some(row=>!/^[a-z][a-zA-Z0-9.-]{0,127}$/u.test(row.id)))throw new Error('Invalid held attachment roster');
   if(recipe.resources!==undefined&&ports.owners===undefined)throw new Error('Held recipe needs its sealed resource owners');

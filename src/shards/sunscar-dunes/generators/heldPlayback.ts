@@ -1,5 +1,5 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { LASH_CORD, WHIP_VIEW } from '../data/whip';
+import { LASH_CORD, WHIP_VIEW } from './rows/whip';
 
 /** Compile the original grip flick and root observations without changing the contact clock. */
 export function heldPlayback(): Record<string, ReturnType<ClientChannels['build']>[]> {

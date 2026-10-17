@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, CatmullRomCurve3, InstancedMesh, MeshStandardMaterial, TubeGeometry, Vector3, Euler } from 'three';
 import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
-import { LASH_TIP, WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow, type LashView, type PlaitStyle } from '../data/whip';
+import { LASH_TIP, WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow, type LashView, type PlaitStyle } from './rows/whip';
 
 /**
  * Build-time only (G345, the lash's graphical port): the bullwhip's held geometry, baked offline

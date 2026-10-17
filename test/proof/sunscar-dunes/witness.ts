@@ -20,7 +20,7 @@ import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/s
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/generators/rows/matriarchEncounter';
 import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
-import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
+import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/generators/rows/items';
 import signalFlags from '../../../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };

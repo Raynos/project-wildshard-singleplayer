@@ -16,7 +16,7 @@ import { headlessSections } from '../src/sdk/headlessSections';
 import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { FAN_CONTACTS } from '../src/shards/far-reach/generators/rows/fanContacts';
-import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/data/whipContacts';
+import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
 
 const from = new Vector3(), dir = new Vector3(0, 0, -1);
 function contacts(rows: typeof FAN_CONTACTS | typeof WHIP_CONTACT_MOVES, weaponId: string): ContactMoveRow[] {

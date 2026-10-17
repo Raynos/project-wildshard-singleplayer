@@ -1,9 +1,9 @@
 import type { HybridRuntimeRows } from '@wildshard/game/plugin/headless';
-import { WHIP_HELD_RECIPE } from '../../data/heldWeapon';
+import { WHIP_HELD_RECIPE } from './heldWeapon';
 import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
 import questPage from '../../data/questPage.generated.json' with { type: 'json' };
 import STRINGS from '../../data/strings.json' with { type: 'json' };
-import { WHIP_ROW } from '../../data/equipment';
+import { WHIP_ROW } from './equipment';
 import SIGNAL_RUNTIME_BOOT from '../../assets/runtimeBoot.generated.json' with { type: 'json' };
 import { SIGNAL_PAGE_PROGRAM } from './population';
 import SIGNAL_MOTION from '../../data/nativeMotion.json' with { type: 'json' };
