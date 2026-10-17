@@ -57,32 +57,56 @@ function profile(rows:WeatherProgram):WeatherProfile<string,WeatherValues> {
 export class WeatherContinuation extends Weather<string,WeatherValues> {
   readonly gust:GustContinuation|null;
   private cadence=TickScheduler.isolated();
-  private publishedBoost=0;
+  /** Plain numeric registers; authored actions run without invoking shard functions. */
+  readonly registers:Record<string,number>;
+  /** The same stream as phase lengths: native mechanics preserve historical draw order. */
+  readonly random:Rng;
   private readonly system;
   readonly rows:WeatherProgram;
   constructor(rows:WeatherProgram,options:{seed:number;mode?:string}) {
-    super(profile(rows),new Rng(options.seed ^ rows.salt));
+    const random=new Rng(options.seed ^ rows.salt);
+    super(profile(rows),random);
+    this.random=random;this.registers={...rows.registers};
     this.rows=rows;
     this.gust=rows.air===undefined?null:new GustContinuation(rows.air);
     this.system={id:rows.air?.system??'',phase:'update' as const,tick:rows.air?.tick??'',run:():void=>undefined};
     if(options.mode!==undefined)this.setMode(options.mode);
   }
+  /** Evaluate one bounded authored action list, in order, on this owner's RNG. */
+  applyActions(event:string,dt=0):void {
+    const read=(id:string):number=>{
+      if(id==='t')return this.phaseT;if(id==='u')return this.phaseT/this.phaseLen;if(id==='dt')return dt;
+      if(id.startsWith('state.'))return Number(this.state===id.slice(6));
+      if(id.startsWith('mode.'))return Number(this.mode===id.slice(5));
+      const value=id.startsWith('register.')?this.registers[id.slice(9)]:id.startsWith('output.')?this.n[id.slice(7)]:undefined;
+      if(value===undefined)throw new Error(`Missing weather action input: ${id}`);return value;
+    };
+    for(const action of this.rows.actions?.[event]??[]){
+      if(action.when!==undefined&&!audioMixValue(action.when,read))continue;
+      const value=action.value;
+      this.registers[action.target]=typeof value==='object'&&'range' in value
+        ?this.random.range(audioMixValue(value.range[0],read),audioMixValue(value.range[1],read)):audioMixValue(value,read);
+    }
+  }
+  protected override entered(_state:string):void { this.applyActions('enter'); }
+  protected override afterForce(_state:string):void { this.applyActions('force'); }
+  protected override outputs(dt:number,phase:number):void { super.outputs(dt,phase);this.applyActions('tick',dt); }
   /** Compatibility view of the same weather owner, never a second clock. */
   get weather():this { return this; }
   step(dt:number,dayPhase:number):void {
     if(!Number.isFinite(dayPhase))throw new RangeError('Invalid weather day phase');
     this.cadence.beginFrame(dt);const due=this.cadence.systemDt(this.system,dt);
-    this.gust?.advance(dt,this.publishedBoost);if(due>0)this.update(due,dayPhase);this.publishedBoost=this.wind;
+    this.gust?.advance(dt,this.registers['boost']??0);if(due>0)this.update(due,dayPhase);this.applyActions('step',dt);
   }
   captureContinuation():{version:1;weather:ReturnType<Weather['captureWeather']>;wind:v.InferOutput<typeof GustSaved>;cadence:string;boost:number} {
     if(this.gust===null)throw new Error('Weather has no wind continuation');
-    return {version:1,weather:this.captureWeather(),wind:this.gust.snapshot(),cadence:this.cadence.captureIsolated(this.system),boost:this.publishedBoost};
+    return {version:1,weather:this.captureWeather(),wind:this.gust.snapshot(),cadence:this.cadence.captureIsolated(this.system),boost:this.registers['boost']??0};
   }
   prepareContinuationRestore(value:unknown):()=>void {
     if(this.gust===null)throw new Error('Weather has no wind continuation');
     const saved=v.parse(Saved,value),weather=this.prepareWeatherRestore(saved.weather),wind=this.gust.prepareRestore(saved.wind),cadence=TickScheduler.isolated();
     cadence.restoreIsolated(this.system,saved.cadence);
     if(v.parse(Time,saved.wind).time!==v.parse(Time,JSON.parse(saved.cadence)).time)throw new RangeError('Incompatible weather wind clock');
-    return ()=>{weather();wind();this.cadence=cadence;this.publishedBoost=saved.boost;};
+    return ()=>{weather();wind();this.cadence=cadence;this.registers['boost']=saved.boost;};
   }
 }

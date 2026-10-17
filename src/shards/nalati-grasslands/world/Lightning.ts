@@ -1,34 +1,6 @@
 import type { RngState } from '@wildshard/engine/core/rng';
-import { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { WeatherProgram } from '@wildshard/format/weatherProgram';
-/**
- * Weather — the steppe storm as a seeded state machine (Nalati B10; docs/design/nalati/stealth-and-storms.md "Steppe
- * storms", the plan's Decisions: a storm every 20–30 min of play, lightning CAN hit the player — 60, GET LOW first).
- *
- *   clear (20–30 min) → building (90 s) → gust (20 s) → storm (2–3 min) → clearing (60 s) → after (3 min) → clear
- *
- * No rendering here: `Weather` owns the phase clock, the numbers every other system reads, and the lightning logic
- * (where it strikes, the telegraph, who gets hurt). `WeatherFX.ts` draws it; `src/shards/nalati-grasslands/weather.ts` wires it.
- *
- *   const weather = new Weather({ seed, world });      // `world`: terrain height, exposed things, the player (LightningWorld)
- *   weather.update(dt)                                  // every frame
- *   weather.state                                       // 'clear' | 'building' | 'gust' | 'storm' | 'clearing' | 'after'
- *   weather.stormActive                                 // gust front or storm proper (AI: herds skittish, wolves bolder)
- *   weather.overcast · rain · front · wet · rainbow · flash · windSpeed   // 0..1 (front 0..1.5, windSpeed m/s)
- *   weather.getLow                                      // the player is the highest thing within 30 m in the storm
- *   weather.phaseLeft · untilStorm                      // seconds (the HUD chip)
- *   weather.onPhase((phase, prev) => …)                 // every change
- *   weather.onTelegraph((s) => …)                       // 1.2 s before a strike: crackle + violet glow at s.x/y/z
- *   weather.onStrike((s) => …)                          // the bolt lands: s.x/y/z, s.kind ('tree' | 'player' | 'ground'), s.tree
- *   weather.onFlash((dist, dir) => …)                   // any lightning (strikes and in-cloud): the sky flash + thunder later
- *   weather.onPlayerHit((dmg) => …)                     // the player was within 4 m of a strike (60 damage)
- *   weather.force('storm')                              // dev `?weather=storm`: jump into a phase
- *   weather.hold = true                                 // a boss fight: no storm may start (one in progress runs out)
- *
- * The world the lightning reads (`LightningWorld`): it scores every exposed thing near a strike cell by its top's
- * height (+1.5 m for a mounted rider, +1 m on a ridge crest), and the highest one takes the bolt. Anything sheltered
- * (inside / beside a yurt) scores nothing.
- */
+import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
+
 export type StormPhase = string;
 interface SteppeNumbers { overcast:number;rain:number;wet:number;wind:number;fog:number;front:number;rainbow:number }
 
@@ -57,15 +29,6 @@ export interface Strike {
   ref?: unknown;
 }
 
-export interface WeatherOpts {
-  program: WeatherProgram;
-  seed: number;
-  world: LightningWorld;
-  /** minutes of clear weather before the first storm (default 12–18) and between storms (default 20–30) */
-  firstClear?: [number, number];
-  clear?: [number, number];
-}
-
 /**
  * The storm's whole continuation as plain values (SF72: a renderer-free host saves it in its snapshot): the phase clock,
  * the mode and hold, the continuous numbers, its own random stream, the flash, the wind it asks for, GET LOW, an armed strike
@@ -88,30 +51,36 @@ const PLAYER_BODY = 1.75, PLAYER_CROUCHED = 1.05, MOUNT_BONUS = 1.5;
 /** metres: ground within 30 m this close under the player's head shelters them from GET LOW */
 const LOW_MARGIN = 1.2;
 
-const sm = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
-const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
-
 type Fn<A extends unknown[]> = (...a: A) => void;
 
-export class SteppeStorm extends WeatherContinuation {
-  get front(): number { return this.n['front'] ?? 0; }
-  get rainbow(): number { return this.n['rainbow'] ?? 0; }
+/** Nalati-only strike targeting and damage. Weather phases, ramps and cadence are admitted DATA. */
+export class Lightning {
+  constructor(readonly weather:WeatherContinuation,private readonly world:LightningWorld) {}
+  /** Existing look projection, borrowing the continuation without copying its values. */
+  get overcast():number { return this.weather.overcast; }
+  get rain():number { return this.weather.rain; }
+  private get rng() { return this.weather.random; }
+  get windSpeed():number|null { const value=this.weather.registers['windSpeed']??-1;return value<0?null:value; }
+  get windGustiness():number { return this.weather.registers['windGustiness']??.6; }
+  private get nextBolt():number { return this.weather.registers['nextBolt']??0; }
+  private get nextGust():number { return this.weather.registers['nextGust']??0; }
+  private get windTarget():number { return this.weather.registers['windTarget']??5; }
+  get front(): number { return this.weather.n['front'] ?? 0; }
+  get rainbow(): number { return this.weather.n['rainbow'] ?? 0; }
   /** 0 … 1 the lightning flash (decays in ~0.25 s) */
-  flash = 0;
+  get flash():number { return this.weather.registers['flash']??0; }
+  set flash(value:number) { this.weather.registers['flash']=value; }
   /** the wind the storm asks for, m/s (null = leave the wind to itself) */
-  windSpeed: number | null = null;
-  windGustiness = 0.6;
+
   /** in a storm, the player is the highest thing within 30 m */
   getLow = false;
   /** the bearing the storm comes FROM, radians atan2(z, x) in world space (the wiring sets it upwind) */
   stormFrom = 0;
   /** an armed strike (telegraphing) */
-  pending: (Strike & { t: number }) | null = null;
+  private armed: (Strike & { t: number }) | null = null;
+  get pending():(Strike & {t:number})|null { if(this.weather.registers['armed']!==1)this.armed=null;return this.armed; }
+  private set pending(value:(Strike & {t:number})|null) { this.armed=value;this.weather.registers['armed']=Number(value!==null); }
 
-  private readonly world: LightningWorld;
-  private nextBolt = 0;
-  private nextGust = 0;
-  private windTarget = 5;
   private getLowFor = 0;
   private getLowTick = 0;
   private readonly cand: Exposed[] = [];
@@ -120,22 +89,14 @@ export class SteppeStorm extends WeatherContinuation {
   private readonly flashFns: Fn<[number, number]>[] = [];
   private readonly hitFns: Fn<[number]>[] = [];
 
-  constructor(opts: WeatherOpts) {
-    super({...opts.program,
-      ...(opts.clear===undefined?{}:{length:{...opts.program.length,clear:[opts.clear[0]*60,opts.clear[1]*60]}}),
-      ...(opts.firstClear===undefined?{}:{firstLength:{clear:[opts.firstClear[0]*60,opts.firstClear[1]*60]}}),
-    },{seed:opts.seed});
-    this.world = opts.world;
-  }
-
   /** gust front or storm proper — the AI's "a storm is on" */
-  get stormActive(): boolean { return this.state === 'gust' || this.state === 'storm'; }
+  get stormActive(): boolean { return this.weather.state === 'gust' || this.weather.state === 'storm'; }
   /** seconds left in this phase */
-  override get phaseLeft(): number { return Math.max(0, this.phaseLen - this.phaseT); }
+  get phaseLeft(): number { return Math.max(0, this.weather.phaseLen - this.weather.phaseT); }
   /** seconds until the gust front hits (0 once it has) */
   get untilStorm(): number {
-    if (this.state === 'clear') return this.phaseLeft + (this.profile.length['building']?.[0] ?? 0);
-    if (this.state === 'building') return this.phaseLeft;
+    if (this.weather.state === 'clear') return this.phaseLeft + (this.weather.profile.length['building']?.[0] ?? 0);
+    if (this.weather.state === 'building') return this.phaseLeft;
     return 0;
   }
 
@@ -149,8 +110,8 @@ export class SteppeStorm extends WeatherContinuation {
   snapshot(): StormState {
     const p = this.pending;
     if (p?.ref !== undefined) throw new Error('A storm with an armed strike on a tree or a thing cannot be saved');
-    const n = this.n;
-    return { state: this.state, phaseT: this.phaseT, phaseLen: this.phaseLen, mode: this.mode, hold: this.hold,
+    const n = this.weather.n;
+    return { state: this.weather.state, phaseT: this.weather.phaseT, phaseLen: this.weather.phaseLen, mode: this.weather.mode, hold: this.weather.hold,
       n: { overcast: n.overcast, rain: n.rain, wet: n.wet, wind: n.wind, fog: n.fog, front: n['front'] ?? 0, rainbow: n['rainbow'] ?? 0 }, rng: this.rng.snapshot(),
       flash: this.flash, windSpeed: this.windSpeed, windGustiness: this.windGustiness, getLow: this.getLow, stormFrom: this.stormFrom,
       pending: p === null ? null : { x: p.x, y: p.y, z: p.z, kind: p.kind, t: p.t },
@@ -162,56 +123,25 @@ export class SteppeStorm extends WeatherContinuation {
     const { n, pending: p } = saved;
     const numbers = [saved.phaseT, saved.phaseLen, n.overcast, n.rain, n.wet, n.wind, n.fog, n.front, n.rainbow, saved.flash, saved.windGustiness, saved.stormFrom,
       saved.nextBolt, saved.nextGust, saved.windTarget, saved.getLowFor, saved.getLowTick];
-    if (!this.profile.states.includes(saved.state) || this.profile.modes[saved.mode] === undefined || typeof saved.hold !== 'boolean' || typeof saved.getLow !== 'boolean'
+    if (!this.weather.profile.states.includes(saved.state) || this.weather.profile.modes[saved.mode] === undefined || typeof saved.hold !== 'boolean' || typeof saved.getLow !== 'boolean'
       || !numbers.every(finite) || !(saved.windSpeed === null || finite(saved.windSpeed))
       || !(p === null || ([p.x, p.y, p.z, p.t].every(finite) && STRIKE_KINDS.has(p.kind)))) throw new RangeError('Invalid storm state');
     this.rng.restore(saved.rng);
-    this.state = saved.state; this.phaseT = saved.phaseT; this.phaseLen = saved.phaseLen; this.mode = saved.mode; this.hold = saved.hold;
-    Object.assign(this.n, n);
-    this.flash = saved.flash; this.windSpeed = saved.windSpeed; this.windGustiness = saved.windGustiness; this.getLow = saved.getLow; this.stormFrom = saved.stormFrom;
+    this.weather.state=saved.state;this.weather.phaseT=saved.phaseT;this.weather.phaseLen=saved.phaseLen;this.weather.mode=saved.mode;this.weather.hold=saved.hold;
+    Object.assign(this.weather.n, n);
+    this.flash = saved.flash; this.weather.registers['windSpeed']=saved.windSpeed??-1;this.weather.registers['windGustiness']=saved.windGustiness; this.getLow = saved.getLow; this.stormFrom = saved.stormFrom;
     this.pending = p === null ? null : { x: p.x, y: p.y, z: p.z, kind: p.kind, t: p.t };
-    this.nextBolt = saved.nextBolt; this.nextGust = saved.nextGust; this.windTarget = saved.windTarget; this.getLowFor = saved.getLowFor; this.getLowTick = saved.getLowTick;
+    Object.assign(this.weather.registers,{nextBolt:saved.nextBolt,nextGust:saved.nextGust,windTarget:saved.windTarget}); this.getLowFor = saved.getLowFor; this.getLowTick = saved.getLowTick;
   }
 
 
-  override update(dt: number): void {
+  update(dt: number): void {
     if (dt <= 0) return;
-    super.update(dt);
+    this.weather.update(dt);
     this.lightning(dt);
     this.getLowTick -= dt;
     if (this.getLowTick <= 0) { this.getLowTick = 0.25; this.getLow = this.checkGetLow(); }
     this.getLowFor = this.getLow ? this.getLowFor + dt : 0;
-  }
-
-  protected override entered(phase: StormPhase): void {
-    this.nextBolt = phase === 'storm' ? this.rng.range(2, 5) : this.rng.range(6, 14);
-    this.nextGust = 0;
-    this.pending = null;
-  }
-  protected override afterForce(phase: StormPhase): void { this.nextBolt = phase === 'storm' ? 2.5 : 4; }
-
-  /** every continuous number, from the phase and how far into it we are */
-  protected override outputs(dt: number): void {
-    super.outputs(dt, 0);
-    const t=this.phaseT, u=this.phaseLen>0?t/this.phaseLen:0;
-    let wind: number | null=null, gustiness=0.6;
-    switch(this.state) {
-      case 'building': wind=mix(7,12,sm(0,1,u));gustiness=0.7;break;
-      case 'gust': wind=mix(14,18,sm(0,0.4,u));gustiness=0.95;break;
-      case 'storm': gustiness=0.9;break;
-      case 'clearing': wind=mix(12,6,sm(0,1,u));gustiness=0.7;break;
-      case 'after': wind=mix(5,3.5,u);gustiness=0.5;break;
-      case 'clear': break;
-      default: break;
-    }
-    if (this.state === 'storm') {
-      // the storm wind wanders 18–24 m/s, a new target every few seconds
-      this.nextGust -= dt;
-      if (this.nextGust <= 0) { this.nextGust = this.rng.range(3, 7); this.windTarget = this.rng.range(18, 24); }
-      wind = this.windTarget;
-    }
-    this.windSpeed = wind; this.windGustiness = gustiness;
-    this.flash = Math.max(0, this.flash - dt * 4.5);
   }
 
   private lightning(dt: number): void {
@@ -222,16 +152,13 @@ export class SteppeStorm extends WeatherContinuation {
       if (p.t <= 0) { this.pending = null; this.land(p); }
       return;
     }
-    const s = this.state;
-    if (s === 'clear' || s === 'after') return;
-    this.nextBolt -= dt;
-    if (this.nextBolt > 0) return;
+    const s = this.weather.state;
+    this.weather.applyActions('lightning',dt);
+    if (!this.weather.registers['ready']) return;
     if (s === 'storm') {
-      this.nextBolt = this.rng.range(6, 15);
       this.arm();
     } else {
       // building / gust / clearing: flicker in the cloud, far off on the storm's side (no bolt to the ground)
-      this.nextBolt = s === 'gust' ? this.rng.range(4, 8) : this.rng.range(7, 16);
       const dist = s === 'gust' ? this.rng.range(500, 1200) : this.rng.range(1200, 3000);
       this.flash = Math.max(this.flash, s === 'gust' ? 0.55 : 0.3);
       for (const f of this.flashFns) f(dist, this.stormFrom + this.rng.range(-0.6, 0.6));

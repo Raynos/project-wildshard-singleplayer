@@ -1,7 +1,9 @@
+import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
+import type { SimHost } from '@wildshard/engine/sim';
 import type { WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { WildEnv } from '../creatures/env';
 import { wildLight, type SunClock } from '../look/wildLight';
-import { SteppeStorm, type Exposed, type LightningWorld } from './Weather';
+import { Lightning, type Exposed, type LightningWorld } from './Lightning';
 
 /**
  * The steppe weather's simulation rules, renderer-free (SF72): what the page's wiring (world/installWeather.ts, every frame)
@@ -24,8 +26,8 @@ export interface SteppeWindPort {
 }
 
 /** The storm on the level's seed, coming FROM the opposite of its heading. */
-export function steppeStorm(seed: number, world: LightningWorld, program:WeatherProgram): SteppeStorm {
-  const weather = new SteppeStorm({ seed, world, program });
+export function steppeStorm(seed: number, world: LightningWorld, program:WeatherProgram,host?:SimHost): Lightning {
+  const weather = new Lightning(installWeatherContinuation(host??{seed},program,{phase:0},undefined),world);
   weather.stormFrom = Math.atan2(Math.cos(STORM_HEADING), Math.sin(STORM_HEADING));
   return weather;
 }
@@ -36,16 +38,16 @@ export interface StormWind { readonly calm: { readonly speed: number; readonly d
 export function stormWind(wind: SteppeWindPort): StormWind { return { calm: { speed: wind.speed, dir: wind.dir, gust: wind.gustiness }, asked: null }; }
 
 /**
- * One frame of the storm (after the page sets `weather.hold` and steps its clock): the state machine; while the Storm Titan
+ * One frame of the storm (after the page sets `weather.weather.hold` and steps its clock): the state machine; while the Storm Titan
  * holds it (`titanHeld`) the storm that called him rages on; then the wind — the gust front swings it round to the storm's
  * own heading (building and after keep the calm heading), and once the storm stops asking it eases back to the calm.
  */
-export function stepStorm(weather: SteppeStorm, ask: StormWind, wind: SteppeWindPort, dt: number, titanHeld: boolean): void {
+export function stepStorm(weather: Lightning, ask: StormWind, wind: SteppeWindPort, dt: number, titanHeld: boolean): void {
   weather.update(dt);
-  if (titanHeld && weather.state === 'storm' && weather.phaseLeft < 30) weather.phaseT = weather.phaseLen - 30;   // it rages on
+  if (titanHeld && weather.weather.state === 'storm' && weather.phaseLeft < 30) weather.weather.phaseT = weather.weather.phaseLen - 30;   // it rages on
   if (weather.windSpeed !== null) {
-    const dir = weather.state === 'building' ? ask.calm.dir : weather.state === 'after' ? ask.calm.dir : STORM_HEADING;
-    wind.setTarget(weather.windSpeed, dir, weather.windGustiness, weather.state === 'gust' ? 6 : 10);
+    const dir = weather.weather.state === 'building' ? ask.calm.dir : weather.weather.state === 'after' ? ask.calm.dir : STORM_HEADING;
+    wind.setTarget(weather.windSpeed, dir, weather.windGustiness, weather.weather.state === 'gust' ? 6 : 10);
     ask.asked = weather.windSpeed;
   } else if (ask.asked !== null) {
     wind.setTarget(ask.calm.speed, ask.calm.dir, ask.calm.gust, 30);
@@ -54,7 +56,7 @@ export function stepStorm(weather: SteppeStorm, ask: StormWind, wind: SteppeWind
 }
 
 /** What the creatures read from the hour and the storm: the light (dimmed by an active storm) and whether one is on. */
-export function stormEnv(env: Pick<WildEnv, 'light' | 'storm'>, clock: SunClock, weather: SteppeStorm): void {
+export function stormEnv(env: Pick<WildEnv, 'light' | 'storm'>, clock: SunClock, weather: Lightning): void {
   env.light = wildLight(clock, weather.stormActive);
   env.storm = weather.stormActive;
 }

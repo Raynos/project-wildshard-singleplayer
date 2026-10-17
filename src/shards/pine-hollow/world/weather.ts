@@ -41,7 +41,8 @@ import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind'
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
+import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
+import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { wetFlight } from '@wildshard/engine/combat/ammo';
 import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
@@ -88,7 +89,9 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
-  const weather = new WeatherContinuation(rows, { seed: SEED, mode: 'live' });
+  const dev={paused:false};
+  const installation={seed:SEED,system:ctx.system,state:dev};
+  const weather=installWeatherContinuation(installation,rows,pine.clock,'live');
   weather.setMode(setting('weather'), atT);
   // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
   const hood = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, rot: BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(BEAR_CAVE.x, BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
@@ -151,7 +154,6 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   };
   blob.set(0, -1e4, 0);
 
-  const dev = { paused: false };
   const update = (dt: number): void => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
     const eye = h.viewer();
@@ -166,8 +168,6 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
     shelter.update(dt, weather.rain);
     stagInFog(eye, dt);
   };
-  const state = (dt: number): void => { if (!dev.paused) weather.update(dt, pine.clock); };
-  ctx.system({ id: 'shard.pine.weather.state', phase: 'update', after: ['audio'], before: ['world.life', 'first hints', 'main.frame'], tick: 'weather', run: state });
   ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], before: ['world.life', 'first hints', 'main.frame'], run: update });
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };

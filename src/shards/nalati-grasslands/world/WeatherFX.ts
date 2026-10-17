@@ -24,7 +24,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { trailDistance, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { SteppeStorm as Weather, Strike } from './Weather';
+import type { Lightning as Weather, Strike } from './Lightning';
 import type { SkyLook } from '../look/skyRig';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { WEATHER_FX_GLSL } from '../runtime/looks/weatherFxGlsl';
@@ -369,7 +369,7 @@ export class WeatherFX {
     if (deckOn) {
       this.deck.position.copy(cam);
       const d = this.deckU;
-      d.uOvercast.value = w.overcast;
+      d.uOvercast.value = w.weather.overcast;
       d.uLight.value.copy(L.cloudLight).multiplyScalar(1.35);
       d.uSunDir.value.copy(L.sunDir); d.uSunCol.value.copy(L.keyColor);
       d.uFlash.value = w.flash; d.uFlashDir.value.copy(this.flashDir);
@@ -382,11 +382,11 @@ export class WeatherFX {
     if (curtainsOn) {
       this.curtains.position.set(cam.x, 0, cam.z);
       const c = this.curtainU;
-      c.uRain.value = w.rain; c.uLight.value.copy(L.cloudLight); c.uWind.value.set(wind.x, wind.z);
-      c.uStorm.value = Math.max(0, w.overcast - 0.3) / 0.7;
+      c.uRain.value = w.weather.rain; c.uLight.value.copy(L.cloudLight); c.uWind.value.set(wind.x, wind.z);
+      c.uStorm.value = Math.max(0, w.weather.overcast - 0.3) / 0.7;
     }
     // rain around the camera: the count follows the intensity
-    const rainOn = w.rain > 0.01;
+    const rainOn = w.weather.rain > 0.01;
     this.rain.visible = rainOn;
     if (rainOn) {
       const r = this.rainU;
@@ -398,10 +398,10 @@ export class WeatherFX {
       const box = 2 * R;
       r.uOffset.value.set(((r.uOffset.value.x % box) + box) % box, ((r.uOffset.value.y % box) + box) % box, ((r.uOffset.value.z % box) + box) % box);
       r.uR.value = R;
-      r.uLen.value = 0.7 + 0.4 * w.rain;
+      r.uLen.value = 0.7 + 0.4 * w.weather.rain;
       r.uCol.value.copy(L.fogColor).lerp(L.hemiSky, 0.5).multiplyScalar(1.9).addScalar(0.05 + 0.8 * w.flash);
-      r.uAlpha.value = 0.16 + 0.16 * w.rain;
-      this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
+      r.uAlpha.value = 0.16 + 0.16 * w.weather.rain;
+      this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.weather.rain * 1.1)) * 6);
     }
     // the bolt: two re-strikes, then gone
     if (this.boltMesh.visible) {
@@ -423,7 +423,7 @@ export class WeatherFX {
     // smoke + embers at a struck tree
     this.smokeLeft = Math.max(0, this.smokeLeft - dt);
     const smokeOn = this.smokeLeft > 0;
-    this.smoke.visible = smokeOn; this.fire.visible = smokeOn && w.state !== 'clear';
+    this.smoke.visible = smokeOn; this.fire.visible = smokeOn && w.weather.state !== 'clear';
     if (smokeOn) {
       this.smokeU.uTime.value += dt;
       this.smokeU.uAmt.value = Math.min(1, this.smokeLeft / 30);
@@ -434,13 +434,13 @@ export class WeatherFX {
       this.fire.scale.setScalar(2.2);
     }
     // puddles
-    const pOn = w.wet > 0.02;
+    const pOn = w.weather.wet > 0.02;
     this.puddles.visible = pOn;
     if (pOn) {
       const p = this.puddleU;
-      p.uWet.value = w.wet; p.uRain.value = w.rain; p.uTime.value += dt;
+      p.uWet.value = w.weather.wet; p.uRain.value = w.weather.rain; p.uTime.value += dt;
       p.uSky.value.copy(L.zenith); p.uHorizon.value.copy(L.horizon);
-      p.uSunDir.value.copy(L.keyDir); p.uSunCol.value.copy(L.keyColor).multiplyScalar(L.keyIntensity * (1 - w.overcast));
+      p.uSunDir.value.copy(L.keyDir); p.uSunCol.value.copy(L.keyColor).multiplyScalar(L.keyIntensity * (1 - w.weather.overcast));
     }
   }
 }

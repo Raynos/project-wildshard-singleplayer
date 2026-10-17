@@ -8331,19 +8331,33 @@ install an audio service. Ordered temporary values precede output evaluation.
 rows on the existing `Weather` transition loop. Pine and Nalati are real users:
 their differences are phase lengths, mode policies and numeric DATA. The host
 knows no shard names, requires no DOM, and replaces both private profile bodies.
-Nalati retains its separate lightning owner and the existing phase hook order. The C3 review still marks weather
-unclosed: Nalati's `SteppeStorm` overrides and Pine's separate page clock
-remain counted custom; the native installer has only Pine as a shipped
-user. New callback subscriptions are not a migration path (G469).
+The optional `registers` box and bounded `actions` lists contain no functions.
+Each action assigns one declared register from a scalar expression or a two-end
+random range, gated by an optional `when`. Lists run in order; they read `t`,
+`u`, `dt`, `state.*`, `mode.*`, `output.*` and `register.*`. `enter` runs after
+the phase-length draw and before existing phase observers; `force` follows the
+forced phase position/wetness; `tick` follows numeric outputs. Native consumers
+may invoke another declared list with `applyActions`. Range actions and native
+mechanics borrow `random`, the same stream as phase lengths, so draw order is
+preserved. No shard callback enters this host.
 
-Optional cadence and wind state use `captureContinuation` and the atomic
-`prepareContinuationRestore`; validation draws no RNG, emits no event and
-preserves the borrowed gust publication's identity. The v1 envelope retains
-weather, wind, cadence and boost. `@wildshard/game/plugin/weather` installs this
-owner from admitted rows and a borrowed day clock at the declared step id.
-Both Pine and Nalati read `world/weather.json` through their admitted product
-in page and native paths;
-H4's existing channel programs remain the weather's read-only visual consumer.
+Pine publishes its previous wind boost through the post-cadence `step` action. Nalati declares
+its phase-entry resets, wind ramps/targets and bolt cadence as actions; its
+counted `world/Lightning.ts` composes the plain continuation and retains strike
+targeting, GET LOW and damage. There is no storm subclass or phase subscription.
+Nalati's combined snapshot adapter preserves the old flat storm save, including
+register values, while Pine's v1 envelope retains weather, wind, cadence and boost.
+Silent restore draws no RNG, emits no event and preserves the gust publication.
+
+`@wildshard/game/plugin/weather.installWeatherContinuation` is used by both
+shards. Native wind rows install the declared fixed-step and save owner. A page
+borrows its existing `system` service, clock and optional plain pause box; the
+admitted `page` row preserves the system id, ordering and weather tick. Pine's
+page uses this installer rather than constructing/stepping a second owner.
+A native composite without an independent wind cadence retains its existing
+combined step/save adapter and drives the returned owner directly (Nalati's
+weather/lightning/wind order). Both shards read admitted `world/weather.json`;
+H4 channel programs remain read-only visual consumers.
 `@wildshard/engine/combat/ammo.wetFlight` shares exact wet-flight arithmetic
 between the page request and authoritative item policies.
 

@@ -393,5 +393,28 @@
     },
     "base": 1.2,
     "scale": 7
+  },
+  "registers": {
+    "boost": 0
+  },
+  "actions": {
+    "step": [
+      {
+        "target": "boost",
+        "value": "output.wind"
+      }
+    ]
+  },
+  "page": {
+    "id": "shard.pine.weather.state",
+    "tick": "weather",
+    "after": [
+      "audio"
+    ],
+    "before": [
+      "world.life",
+      "first hints",
+      "main.frame"
+    ]
   }
 }

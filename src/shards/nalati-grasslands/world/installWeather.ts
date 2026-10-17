@@ -18,7 +18,7 @@ import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, type SkyLook } fr
  * optionally part-way). `window.__weather` = the lot.
  *
  * Hooks for other rows: B11 balbals `w.clock.onDusk(…)`, ghost riders `w.clock.onNight(…)`; B12 Qyran and B14 the
- * Storm Titan read `w.weather.stormActive` / `onPhase`; B13 sets `w.weather.hold = true` during a boss fight; the
+ * Storm Titan read `w.weather.stormActive`; B13 sets `w.air.hold = true` during a boss fight; the
  * herds / packs: `w.weather.onStrike((s) => wildlife.scare(s.x, s.z, 60))` (or pass `scare` to `bind`).
  */
 import * as THREE from 'three';
@@ -36,7 +36,8 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
-import type { SteppeStorm as Weather, Exposed, LightningPlayer } from './Weather';
+import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
+import type { Lightning as Weather, Exposed, LightningPlayer } from './Lightning';
 import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { WeatherFX } from './WeatherFX';
@@ -62,13 +63,13 @@ export interface WeatherHooks {
   /**
    * The player is somewhere the weather cannot reach (the great kurgan's dungeon, `boss.inside`): no lightning at
    * them, no GET LOW, no rain / storm audio around them — and, since that is where the Golden King is fought, no
-   * storm may start meanwhile (`weather.hold`).
+   * storm may start meanwhile (`air.hold`).
    */
   indoors?: () => boolean;
   /**
    * The Storm Titan's fight is on (B14, src/shards/nalati-grasslands/stormTitan.ts): the storm that called him may not run out until he
    * falls (the storm phase is held open), no new storm cycle starts, and the natural lightning leaves the player alone —
-   * his strikes take its place. Combined with `indoors` into `weather.hold`, never overwritten by it.
+   * his strikes take its place. Combined with `indoors` into `air.hold`, never overwritten by it.
    */
   stormHold?: () => boolean;
 }
@@ -76,6 +77,8 @@ export interface WeatherHooks {
 export interface NalatiWeather {
   clock: DayCycle<SteppeKey>;
   weather: Weather;
+  /** Plain admitted weather owner; lightning is composed separately. */
+  air: WeatherContinuation;
   rig: SkyRig;
   fx: WeatherFX;
   /** the look applied last frame (clock + storm) */
@@ -147,8 +150,8 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');
-    const phase = weather.profile.states.find((p) => p === ph);
-    if (phase) weather.force(phase, Number.parseFloat(at) || 0);
+    const phase = weather.weather.profile.states.find((p) => p === ph);
+    if (phase) weather.weather.force(phase, Number.parseFloat(at) || 0);
   }
 
   const fx = new WeatherFX({ phone: TIER === 'phone', seed: def.seed }).build();
@@ -186,23 +189,23 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   let audioT = 0;
 
   const out: NalatiWeather = {
-    clock, weather, rig, fx, look, yurts,
+    clock, weather, air:weather.weather, rig, fx, look, yurts,
     bind(h) { Object.assign(hooks, h); },
     update(dt) {
       indoors = hooks.indoors?.() === true;
       held = hooks.stormHold?.() === true;
       // the Golden King is fought indoors (no storm starts meanwhile); the Storm Titan in the storm that called him
-      weather.hold = indoors || held;
+      weather.weather.hold = indoors || held;
       clock.update(dt);
       // the storm (the Storm Titan's holds it open) and the wind it asks for (world/weatherStep.ts, the host's rule too)
       stepStorm(weather, windAsk, wind, dt, held);
       // the look
       rig.look(clock, base);
       copyLook(look, base);
-      stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.overcast,flash:weather.flash,rain:weather.rain,wet:weather.wet}});
+      stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.weather.overcast,flash:weather.flash,rain:weather.weather.rain,wet:weather.weather.wet}});
       rig.flash = weather.flash * 0.7;
       rig.apply(look, dt);
-      dimWater?.(look, dayFog, dayKey, indoors ? 0 : weather.rain);
+      dimWater?.(look, dayFog, dayKey, indoors ? 0 : weather.weather.rain);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
       // the creatures
@@ -210,10 +213,10 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       // HUD (the event fires on change only)
       const ws = `WIND ${Math.round(wind.speed)} m/s`;
       let chip: WeatherHUD['chip'] = null;
-      if (weather.state === 'building' && weather.untilStorm <= 45) chip = { title: `Storm in ${mmss(weather.untilStorm)}`, sub: ws, tone: 'soon' };
-      else if (weather.state === 'gust') chip = { title: 'Storm', sub: ws, tone: 'storm' };
-      else if (weather.state === 'storm') chip = { title: `Storm ${mmss(weather.phaseLeft)}`, sub: ws, tone: 'storm' };
-      else if (weather.state === 'clearing') chip = { title: 'Clearing', sub: ws, tone: 'clearing' };
+      if (weather.weather.state === 'building' && weather.untilStorm <= 45) chip = { title: `Storm in ${mmss(weather.untilStorm)}`, sub: ws, tone: 'soon' };
+      else if (weather.weather.state === 'gust') chip = { title: 'Storm', sub: ws, tone: 'storm' };
+      else if (weather.weather.state === 'storm') chip = { title: `Storm ${mmss(weather.phaseLeft)}`, sub: ws, tone: 'storm' };
+      else if (weather.weather.state === 'clearing') chip = { title: 'Clearing', sub: ws, tone: 'clearing' };
       const detail: WeatherHUD = { chip, getLow: weather.getLow && !indoors };
       const key = `${chip?.title ?? ''}|${chip?.sub ?? ''}|${String(detail.getLow)}`;
       if (key !== hudKey) { hudKey = key; ctx.ctx.app.events.emit('weather.changed', detail); }
@@ -222,7 +225,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       if (audioT <= 0 && hooks.audio) {
         audioT = 0.25;
         const windLevel = smoothstep(6, 22, wind.speed);
-        steppeVoices(hooks.audio).setStorm(indoors ? 0 : weather.rain, indoors || weather.state === 'clear' ? 0 : windLevel);
+        steppeVoices(hooks.audio).setStorm(indoors ? 0 : weather.weather.rain, indoors || weather.weather.state === 'clear' ? 0 : windLevel);
       }
     },
   };

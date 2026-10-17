@@ -400,5 +400,289 @@
       ],
       0
     ]
+  },
+  "registers": {
+    "nextBolt": 0,
+    "nextGust": 0,
+    "windTarget": 5,
+    "windSpeed": -1,
+    "windGustiness": 0.6,
+    "armed": 0,
+    "ready": 0,
+    "flash": 0
+  },
+  "actions": {
+    "enter": [
+      {
+        "target": "nextBolt",
+        "value": {
+          "range": [
+            [
+              "if",
+              "state.storm",
+              2,
+              6
+            ],
+            [
+              "if",
+              "state.storm",
+              5,
+              14
+            ]
+          ]
+        }
+      },
+      {
+        "target": "nextGust",
+        "value": 0
+      },
+      {
+        "target": "armed",
+        "value": 0
+      }
+    ],
+    "force": [
+      {
+        "target": "nextBolt",
+        "value": [
+          "if",
+          "state.storm",
+          2.5,
+          4
+        ]
+      }
+    ],
+    "tick": [
+      {
+        "target": "nextGust",
+        "value": [
+          "-",
+          "register.nextGust",
+          "dt"
+        ],
+        "when": "state.storm"
+      },
+      {
+        "target": "ready",
+        "value": [
+          "and",
+          "state.storm",
+          [
+            "not",
+            [
+              "gt",
+              "register.nextGust",
+              0
+            ]
+          ]
+        ]
+      },
+      {
+        "target": "nextGust",
+        "value": {
+          "range": [
+            3,
+            7
+          ]
+        },
+        "when": "register.ready"
+      },
+      {
+        "target": "windTarget",
+        "value": {
+          "range": [
+            18,
+            24
+          ]
+        },
+        "when": "register.ready"
+      },
+      {
+        "target": "windSpeed",
+        "value": [
+          "if",
+          "state.building",
+          [
+            "lerp",
+            7,
+            12,
+            [
+              "ss",
+              0,
+              1,
+              "u"
+            ]
+          ],
+          [
+            "if",
+            "state.gust",
+            [
+              "lerp",
+              14,
+              18,
+              [
+                "ss",
+                0,
+                0.4,
+                "u"
+              ]
+            ],
+            [
+              "if",
+              "state.storm",
+              "register.windTarget",
+              [
+                "if",
+                "state.clearing",
+                [
+                  "lerp",
+                  12,
+                  6,
+                  [
+                    "ss",
+                    0,
+                    1,
+                    "u"
+                  ]
+                ],
+                [
+                  "if",
+                  "state.after",
+                  [
+                    "lerp",
+                    5,
+                    3.5,
+                    "u"
+                  ],
+                  -1
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      {
+        "target": "windGustiness",
+        "value": [
+          "if",
+          "state.building",
+          0.7,
+          [
+            "if",
+            "state.gust",
+            0.95,
+            [
+              "if",
+              "state.storm",
+              0.9,
+              [
+                "if",
+                "state.clearing",
+                0.7,
+                [
+                  "if",
+                  "state.after",
+                  0.5,
+                  0.6
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      {
+        "target": "flash",
+        "value": [
+          "max",
+          0,
+          [
+            "-",
+            "register.flash",
+            [
+              "*",
+              "dt",
+              4.5
+            ]
+          ]
+        ]
+      }
+    ],
+    "lightning": [
+      {
+        "target": "ready",
+        "value": 0
+      },
+      {
+        "target": "nextBolt",
+        "value": [
+          "-",
+          "register.nextBolt",
+          "dt"
+        ],
+        "when": [
+          "and",
+          [
+            "not",
+            "state.clear"
+          ],
+          [
+            "not",
+            "state.after"
+          ]
+        ]
+      },
+      {
+        "target": "ready",
+        "value": [
+          "and",
+          [
+            "not",
+            "state.clear"
+          ],
+          [
+            "not",
+            "state.after"
+          ],
+          [
+            "not",
+            [
+              "gt",
+              "register.nextBolt",
+              0
+            ]
+          ]
+        ]
+      },
+      {
+        "target": "nextBolt",
+        "value": {
+          "range": [
+            [
+              "if",
+              "state.storm",
+              6,
+              [
+                "if",
+                "state.gust",
+                4,
+                7
+              ]
+            ],
+            [
+              "if",
+              "state.storm",
+              15,
+              [
+                "if",
+                "state.gust",
+                8,
+                16
+              ]
+            ]
+          ]
+        },
+        "when": "register.ready"
+      }
+    ]
   }
 }

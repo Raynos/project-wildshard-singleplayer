@@ -1046,7 +1046,7 @@ export class StormTitan {
     listenPage(game.levelScope, 'pointercancel', () => { this.skipTouch = false; });
     // dev: `?boss=storm-titan` — a storm, mounted at the cairn, the strip tied; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'storm-titan') {
-      this.ctx.weather.weather.force('storm', 0.1);
+      this.ctx.weather.air.force('storm', 0.1);
       const r = this.fight.respawnPoint();
       this.respawnMounted(r.pos, r.yaw);
       this.fight.tied = true;
@@ -1112,7 +1112,7 @@ export class StormTitan {
     if (boss.state === 'victory' && this.fight.tied) {
       // the rain curtain: the storm lets go and clears
       this.fight.tied = false;
-      this.ctx.weather.weather.force('clearing');
+      this.ctx.weather.air.force('clearing');
       play.record?.('storm-titan', 'jel-ata');
     }
     if (boss.state !== 'dormant' || this.fight.body.visible) boss.update(dt, t);

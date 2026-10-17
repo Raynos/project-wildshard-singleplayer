@@ -26,7 +26,7 @@ import { clockForSun } from '../look/dayKeys';
 import * as v from 'valibot';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import type { WildEnv } from '../creatures/env';
-import type { LightningPlayer, SteppeStorm } from '../world/Weather';
+import type { LightningPlayer, Lightning } from '../world/Lightning';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import type { SunClock } from '../look/wildLight';
 import { exposeTrees, steppeStorm, stepStorm, stormEnv, stormWind, windEnv, yurtShelters, type StormWind, type YurtCircle } from '../world/weatherStep';
@@ -142,7 +142,7 @@ export function installNalatiTrample(host: SimHost, trample: TrampleField): void
 }
 
 /** The host's weather: its own steppe wind, the storm on the page's seed and the wind the storm last asked for. */
-export interface NalatiHostWeather { readonly wind: Wind; readonly storm: SteppeStorm; readonly ask: StormWind }
+export interface NalatiHostWeather { readonly wind: Wind; readonly storm: Lightning; readonly ask: StormWind }
 const weathers = new WeakMap<SimHost, NalatiHostWeather>();
 /** The weather installed into `host` (its tests read it), or undefined. */
 export function nalatiWeatherOf(host: SimHost): NalatiHostWeather | undefined { return weathers.get(host); }
@@ -202,8 +202,8 @@ export function installNalatiWeather(host: SimHost, ports: { program:WeatherProg
       lp.sheltered = yurtShelters(ground.yurts, p.x, p.z);
       return lp;
     },
-  }, ports.program);
-  const savedSchema=WeatherValue(storm.profile.states);
+  }, ports.program, host);
+  const savedSchema=WeatherValue(storm.weather.profile.states);
   storm.onStrike(strike => { ports.scare(strike.x, strike.z); });
   storm.onPlayerHit(dmg => {
     const health = host.player.health;

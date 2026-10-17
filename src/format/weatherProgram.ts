@@ -5,6 +5,8 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const duration = v.tuple([v.pipe(finite, v.minValue(Number.MIN_VALUE)), v.pipe(finite, v.minValue(Number.MIN_VALUE))]);
 const fields = v.pipe(v.record(id, finite), v.check(rows => Object.keys(rows).length <= 32));
+const actionSchema = v.strictObject({target:id, when:v.exactOptional(AudioMixExpressionSchema),
+  value:v.union([AudioMixExpressionSchema,v.strictObject({range:v.tuple([AudioMixExpressionSchema,AudioMixExpressionSchema])})])});
 /** Bounded scalar weather program. Phase transitions, cadence and random ownership remain engine mechanics. */
 export const WeatherProgramSchema = v.pipe(v.strictObject({
   states: v.pipe(v.array(id), v.minLength(1), v.maxLength(32)), next: v.record(id, id),
@@ -16,6 +18,9 @@ export const WeatherProgramSchema = v.pipe(v.strictObject({
   forceWet: v.exactOptional(AudioMixExpressionSchema),
   values: v.pipe(v.array(v.tuple([id, AudioMixExpressionSchema])), v.maxLength(128)),
   outputs: v.record(id, AudioMixExpressionSchema),
+  registers:v.exactOptional(fields),
+  actions:v.exactOptional(v.pipe(v.record(id,v.pipe(v.array(actionSchema),v.maxLength(64))),v.check(rows=>Object.keys(rows).length<=16))),
+  page:v.exactOptional(v.strictObject({id,after:v.array(id),before:v.array(id),tick:id})),
   wetProjectile: v.exactOptional(v.strictObject({gravity: finite, drag: finite})),
   air: v.exactOptional(v.strictObject({step:id, system:id, tick:id,
     field:v.strictObject({x:finite,z:finite,frontLength:finite,frontSpeed:finite,secondaryLength:finite}),base:finite,scale:finite})),
@@ -31,7 +36,10 @@ function validReferences(row:v.InferOutput<typeof WeatherProgramSchema>):boolean
   const valid=(expr:AudioMixExpr,names:ReadonlySet<string>):boolean=>typeof expr==='number'||(typeof expr==='string'?names.has(expr):expr[0]!=='zone'&&expr[0]!=='dist'&&expr.slice(1).every(value=>valid(value,names)));
   if(row.forceWet!==undefined&&!valid(row.forceWet,new Set(['t','prev.wet',...row.states.map(state=>`state.${state}`)])))return false;
   for(const [name,expr] of row.values){if(known.has(name)||/^(state|mode|prev)\./u.test(name)||!valid(expr,known))return false;known.add(name);}
-  return Object.values(row.outputs).every(expr=>valid(expr,known));
+  const actionInputs=new Set(['t','u','dt',...row.states.map(state=>`state.${state}`),...Object.keys(row.modes).map(mode=>`mode.${mode}`),...Object.keys(row.initial).map(field=>`output.${field}`),...Object.keys(row.registers??{}).map(field=>`register.${field}`)]);
+  return Object.values(row.outputs).every(expr=>valid(expr,known)) && Object.values(row.actions??{}).flat().every(action=>
+    Object.hasOwn(row.registers??{},action.target) && (action.when===undefined||valid(action.when,actionInputs)) &&
+    (typeof action.value==='object'&&'range' in action.value?action.value.range.every(expr=>valid(expr,actionInputs)):valid(action.value,actionInputs)));
 }
 export type WeatherProgram = v.InferOutput<typeof WeatherProgramSchema>;
 /** Parse authored or hash-checked product data before creating a weather owner. */
