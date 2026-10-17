@@ -81,3 +81,36 @@ test('admission rejects executable, duplicate, missing and crossed references be
   expect(context.app.registry.pieces).toHaveLength(0);
   await expect(installWorldScenes(context, rows)).resolves.toBeDefined(); context.scope.dispose();
 });
+
+test('scene catalogue keeps fixed draws, authored floors and model collision ownership', async () => {
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { BufferGeometry, BufferAttribute, MeshBasicMaterial }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('three'),
+  ]);
+  const owner = new Scope('scene-catalogue'), ctx = modelContext(null), registry = new WorldRegistry();
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
+  const material = new MeshBasicMaterial({ color: 0x7fd9ff });
+  const catalogueRows = { product: 'fixture-port', models: [{ key: 'tower', id: 'fixture-port/tower', name: 'Tower', category: 'buildings', pipeline: 'code', file: 'models/fixture.ts', surface: 'stone', defaults: {}, choices: [{ id: 'world', params: {}, size: [2, 3, 4],
+    draws: [{ id: 'wall', library: 'bakes', model: 'wall', material: 'glyph', castShadow: true, receiveShadow: true, renderOrder: 1 }],
+    colliders: [{ kind: 'box', x: 0, y: 1, z: 0, hx: 1, hy: 1, hz: 1, surface: 'stone' }],
+    site: { origin: { x: 3, y: 4, z: 5 }, colliders: [], floors: [{ x: 0, z: 0, hw: 2, hd: 2, y: 1 }], anchors: { door: { x: 0, y: 1, z: 1, yaw: 0 } } },
+  }] }] };
+  const { parseWorldSceneModels } = await import('../src/format/worldSceneModels');
+  bindWorldSceneModelSources(ctx, 'fixture-port', { catalogue: parseWorldSceneModels(catalogueRows), geometries: new Map([[JSON.stringify(['bakes', 'wall']), geometry]]), materials: new Map([['glyph', material]]) }, owner);
+  const catalogue = defineWorldSceneCatalogue(catalogueRows), model = catalogue.model('tower'), built = model.build(ctx, {}, new Rng(1));
+  if (!(built instanceof Group)) throw new Error('Missing scene model group');
+  const mesh = built.children[0]; if (!(mesh instanceof Mesh)) throw new Error('Missing scene model draw');
+  const actualGeometry: unknown = mesh.geometry; if (!(actualGeometry instanceof BufferGeometry)) throw new Error('Missing owned scene geometry');
+  const actualAttribute: unknown = actualGeometry.getAttribute('position'), sourceAttribute: unknown = geometry.getAttribute('position');
+  if (!(actualAttribute instanceof BufferAttribute) || !(sourceAttribute instanceof BufferAttribute)) throw new Error('Missing scene vertex channel');
+  expect(mesh.material).toBe(material); expect(actualGeometry).not.toBe(geometry); expect(actualAttribute.array).toEqual(sourceAttribute.array);
+  expect([mesh.castShadow, mesh.receiveShadow, mesh.renderOrder]).toEqual([true, true, 1]);
+  const site = catalogue.site('tower', 'world', ctx, registry);
+  expect(site.floorHeightAt(3, 5)).toBe(5); expect(site.floorHeightAt(20, 20)).toBeUndefined();
+  expect(site.anchors['door']).toEqual({ x: 3, y: 5, z: 6, yaw: 0 });
+  expect(site.colliderDescs()).toEqual([{ kind: 'box', x: 3, y: 5, z: 5, hx: 1, hy: 1, hz: 1, surface: 'stone' }]);
+  expect(() => model.build(ctx, { site: 'unbaked' }, new Rng(1))).toThrow('authored choice');
+  expect(() => defineWorldSceneCatalogue({ ...catalogueRows, callback: () => undefined })).toThrow();
+  owner.dispose(); expect(() => catalogue.material('glyph', ctx)).toThrow('Missing scene model material');
+  geometry.dispose(); material.dispose(); registry.retire();
+});
+

@@ -173,7 +173,8 @@
     "./animation/limbCollision": "./animation/limbCollision.ts",
     "./animation/limbQueryPose": "./animation/limbQueryPose.ts",
     "./animation/limbQueryView": "./animation/limbQueryView.ts",
-    "./animation/limbPopulation": "./animation/limbPopulation.ts"
+    "./animation/limbPopulation": "./animation/limbPopulation.ts",
+    "./models/worldSceneCatalogue": "./models/worldSceneCatalogue.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

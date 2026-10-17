@@ -171,7 +171,8 @@
     "./buildings": "./buildings.ts",
     "./limbRig": "./limbRig.ts",
     "./limbCollision": "./limbCollision.ts",
-    "./limbPopulation": "./limbPopulation.ts"
+    "./limbPopulation": "./limbPopulation.ts",
+    "./worldSceneModels": "./worldSceneModels.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

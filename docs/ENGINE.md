@@ -9187,6 +9187,23 @@ pending-user table. `residentWorldScope(context)` resolves a transitional
 world hook to its resident owner. Instance attributes remain bounded static data.
 
 
+
+`@wildshard/game/models/worldSceneCatalogue.defineWorldSceneCatalogue(rows)`
+defines resident fixed models from plain JSON metadata, exact parameter
+choices, library/material ids, draw flags, native collider rows and optional
+site origins, floor rectangles, boxes and anchors. `model(key)` returns the
+standard model contract; `site(key, choice, context, registry)` places its
+admitted site. The platform assembler lends prepared resources through
+`bindWorldSceneModelSources`; the construction owner retires the loan.
+Missing resources and undeclared parameter choices refuse before drawing.
+This is client-only presentation; it accepts no shard callbacks or builders.
+
+Host bar: **5/6**, passing tests 2–6. Test 1 uses G483's approved-platform
+exception: Driftwood fixed sites adopt next, then Pine cabin shells and
+homestead, with the pending Pine user rechecked at the end of W3. The
+independent fictional-port fixture covers draw flags, geometry ownership,
+colliders, translated floors/anchors, invalid choices and disposal.
+
 ## Contract boards (G473, G474)
 
 `format/contracts` admits finite offer rows, match rules, weighted draw bands,
