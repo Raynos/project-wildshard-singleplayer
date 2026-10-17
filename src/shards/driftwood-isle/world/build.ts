@@ -1,8 +1,8 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
-import { driftwoodRows } from '../runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
-import { readDriftwoodBlob, loadFixedGeometry } from '../runtime/boot/blobAssets';
+import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -22,9 +22,14 @@ import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
 import { shoreBoulder } from '../runtime/models/shoreBoulder';
-import { hut as hutModel, lookout as lookoutModel, bakedSite } from '../runtime/models/fixedSites';
+import { hut as hutModel, lookout as lookoutModel, bakedSite, shrine as shrineModel, shrineRow, shrineMaterials } from '../runtime/models/fixedSites';
 import { Wreck } from './Wreck';
-import { placeShrine, type Shrine } from '../runtime/world/Shrine';
+import * as v from 'valibot';
+import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
+import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
+import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
+import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { placeIslandBushes } from './Bushes';
 import { gullFlock } from '../runtime/world/Gulls';
 import type { AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
@@ -40,6 +45,8 @@ import { ENTRY_LANDINGS, type EntryLanding } from '../data/entryLandings';
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeSliced, placeModelSite, type ModelSite, type Placed } from '@wildshard/engine/models/place';
+
+type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -130,7 +137,17 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
   const wreck = await stages.build('Wreck', () => new Wreck(sky, WRECK).place(registry), { objects: value => [value.group], values: value => value.colliders });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-  const shrine = await stages.build('Shrine', () => placeShrine(sky, SHRINE, registry), { values: value => value.colliders });
+  const shrine = await stages.build('Shrine', async () => {
+    const ctx = modelContext(sky), { origin, layout } = bakedSite('shrine', { site: SHRINE }), { baseY, terrace } = shrineRow(SHRINE);
+    const placed = placeModelSite(shrineModel, origin, layout, { ctx, registry, params: { site: SHRINE }, piece: { id: 'shrine' } });
+    const resources = new SceneResources(sky), graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
+    resources.publish('shrine.glyphs', shrineMaterials(ctx).glyphs);
+    placed.group.add(createBuildingCloud(resources, { geometry: resources.lend(fixedDraw('shrineFireflies').copy()), material: lit ? resources.lend(lentLook(graph)) : null,
+      seeds: false, name: 'shrine-fireflies', at: [SHRINE.x - origin.x, baseY, SHRINE.z - origin.z], center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
+    const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
+    const life = new LivingBuildings(resources, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
+    return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
+  }, { values: value => value.colliders });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
   for (const [i] of JETTIES.entries()) {

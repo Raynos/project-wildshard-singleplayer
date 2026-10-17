@@ -21,7 +21,6 @@ import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import * as THREE from 'three';
 import { pineRifleFloor } from '../quest/rifleFloor';
 import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
@@ -124,16 +123,8 @@ export class PineHollow extends ShardPlugin {
       content.add(built.group);
       rt.interactables.push(...built.interactables);
       await placeCabins({ cabins, sky, registry, scope: ctx.scope });
-      const at = new THREE.Vector3();
-      for (const door of cabins.doorPieces()) {
-        let on = true;
-        registry.add({ id: door.id, name: 'Cabin door', category: 'buildings', file: 'src/shards/pine-hollow/world/homestead.ts', surface: 'wood', follows: door.pivot, colliders: door.colliders,
-          active: () => {
-            if (door.swinging()) on = false;
-            else if (!on) on = door.pivot.getWorldPosition(at).distanceToSquared(player.position) > 1.4 * 1.4;
-            return on;
-          } });
-      }
+      cabins.life.persist(ctx.app.saves, residentWorldScope(ctx), { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: 'cabins' });
+      cabins.life.registerDoors(registry, player.position);
       const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: retainsRuntimeServices(ctx)
         ? fn => { installEnteredRuntimeUpdate(ctx, { id: 'pine.landmarks', phase: 'update', run: fn }); } : fn => { game.onUpdate(fn, 'pine.landmarks'); } });
       const cave = landmarks.crags?.cave;
@@ -263,7 +254,7 @@ export class PineHollow extends ShardPlugin {
     placePineHollowSets(registry);
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx);
-    await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, doors: cabins, owners: { sky, animals, elites: fights.elites } });
+    await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, ...(cabins === null ? {} : { doorChanges: cabins.life.doorChanges }), owners: { sky, animals, elites: fights.elites } });
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });

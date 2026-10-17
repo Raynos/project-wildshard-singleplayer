@@ -20,13 +20,27 @@ import { Audio } from '@wildshard/engine/audio/Audio';
 import { Music } from '@wildshard/engine/audio/Music';
 import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
-import type { DeclaredGameplayPorts } from '@wildshard/engine/audio/declaredGameplay';
+import type { DeclaredGameplayPorts, DoorMotionEvents } from '@wildshard/engine/audio/declaredGameplay';
 import { createAudioObserver,requireAudioProfile,type AudioObservationEntity } from '@wildshard/engine/audio/audioProfiles';
 import { parseAudioData } from '@wildshard/format/audio';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 
 const pine=parseAudioData(pineSource.audio),island=parseAudioData(islandSource.audio);
+it('hears native door data only during its entered audio scope',()=>{
+  class Feed extends EventTarget implements DoorMotionEvents {
+    current:DoorMotionEvents['current']=null;
+    move(opening:boolean):void{this.current={position:{x:3,y:4,z:5},opening};this.dispatchEvent(new Event('door'));}
+  }
+  const native=fixture(),changes=new Feed(),scope=new Scope('building-audio');
+  const controller=installDeclaredAudio(pine,{...native.ports,doorChanges:changes},'gameplay');
+  controller.enter(scope,true);expect(native.trace).not.toContainEqual(['subscribe']);
+  changes.move(true);changes.move(false);
+  const sounds=requireAudioProfile(pine.gameplay?.doors,'doors');
+  expect(native.trace).toContainEqual(['shot',sounds.open,{x:3,y:4,z:5}]);
+  expect(native.trace).toContainEqual(['shot',sounds.close,{x:3,y:4,z:5}]);
+  scope.dispose();const count=native.trace.length;changes.move(true);expect(native.trace).toHaveLength(count);
+});
 function fixture(){
   const trace:unknown[]=[];
   class Mixer extends Audio {override shadeAmbient(level:number,cutoff:number):void{trace.push(['shade',level,cutoff]);}}

@@ -166,7 +166,8 @@
     "./heldFinishes": "./heldFinishes.ts",
     "./heldGear": "./heldGear.ts",
     "./geometryPack": "./geometryPack.ts",
-    "./worldScenes": "./worldScenes.ts"
+    "./worldScenes": "./worldScenes.ts",
+    "./buildings": "./buildings.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

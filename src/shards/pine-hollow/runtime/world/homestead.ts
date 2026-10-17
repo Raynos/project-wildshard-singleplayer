@@ -6,7 +6,10 @@ import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
-import { BuildingLife } from '../props/buildingLife';
+import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
+import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import { BakedBuildingLookSchema, BuildingLifeLookSchema, emptyBuildingLifeRows, type BakedBuildingLook } from '@wildshard/format/buildings';
+import type { SiteLightState } from '@wildshard/engine/fx/SiteLights';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
@@ -18,7 +21,7 @@ import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
 import { pineModels } from './context';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
+import { CABIN_ROWS, createLogBuilding, loadCabinBake, type LogBuilding, type CabinGeometries } from './cabinBake';
 
 /**
  * Pine Hollow's homestead: the three log cabins and the mill hamlet's five buildings, as a living place (E347: its log kit
@@ -58,7 +61,6 @@ export interface Mats {
 export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
 
 const number = v.pipe(v.number(), v.finite()), pair = v.tuple([number, number]), triple = v.tuple([number, number, number]);
-const waves = v.pipe(v.array(triple), v.maxLength(32));
 const materialRow = v.strictObject({ color: number, roughness: number, metalness: number,
   transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(number), envMapIntensity: v.exactOptional(number),
   emissiveIntensity: v.exactOptional(number), emissive: v.exactOptional(number), side: v.exactOptional(v.picklist([0, 1, 2])),
@@ -67,11 +69,10 @@ const timberDraw = v.strictObject({ depth: v.picklist(['proxy', 'near']), receiv
   castShadow: v.exactOptional(v.boolean()), until: v.exactOptional(number) });
 /** Client-only author rows: unknown fields, malformed vectors and unbounded lists refuse before construction. */
 export const CabinRowsSchema = v.strictObject({
+  BUILDING_LOOK: BakedBuildingLookSchema,
   CABIN_DOOR_LOOK: v.string(), CABIN_MOSS_LOOKS: v.strictObject({ roof: v.string(), stone: v.string() }),
   HEARTH_LOOKS: v.strictObject({ smoke: v.string(), flame: v.string(), ember: v.string() }),
-  CABIN_LIFE: v.strictObject({ door: v.strictObject({ seconds: number, angle: number }),
-    flicker: v.strictObject({ depth: number, waves }), fire: pair, lamp: pair, glass: pair,
-    swing: v.strictObject({ z: waves, x: pair }), indoor: v.strictObject({ doorRadius: number, ranks: pair }) }),
+  CABIN_LIFE: BuildingLifeLookSchema,
   CABIN_PBR: v.pipe(v.array(v.strictObject({ key: v.picklist(['log', 'roof', 'beam', 'deck', 'door', 'stone', 'bark']),
     scan: v.string(), color: triple, normal: pair })), v.length(7)),
   CABIN_MATERIALS: v.strictObject({ endGrain: materialRow, chink: materialRow, glass: materialRow, iron: materialRow, cloth: materialRow, char: materialRow }),
@@ -151,11 +152,27 @@ export interface CabinBuilding {
 }
 
 /**
- * The homestead: the buildings built from the bake, and their life (@wildshard/sdk/props/buildingLife, the look
+ * The homestead: the buildings built from the bake, and their shared living-building host (the look
  * ../../generators/cabinLook.ts `CABIN_LIFE`: doors, fires and lamps on the clock, the phone's pooled lights, swings, the wheel,
  * floors and solids). The smoke's sun and night hold are Pine's (`update`).
  */
-export class Cabins extends BuildingLife implements BuildingOwner {
+export class Cabins {
+  readonly resources: SceneResources;
+  readonly life: LivingBuildings;
+  private readonly lampStates: { readonly id: string; readonly state: SiteLightState }[] = [];
+  get interactables(): Interactable[] { return this.life.interactables; }
+  get audioState(): LivingBuildings['audioState'] { return this.life.audioState; }
+  get buildingLook(): BakedBuildingLook { return this.rows.BUILDING_LOOK; }
+  get wheelSpeed(): number { return this.life.wheelSpeed; }
+  set wheelSpeed(value: number) { this.life.wheelSpeed = value; }
+  doorPieces(): ReturnType<LivingBuildings['doorPieces']> { return this.life.doorPieces(); }
+  /** Temporary publication of native waystone anchors; ignition crosses as an id command. */
+  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, state: SiteLightState): void {
+    if (this.lampStates.length >= 8) throw new Error('Building lamp site capacity');
+    const id = this.resources.lend(anchor), rows = emptyBuildingLifeRows();
+    rows.sites.push({ id, root: id, anchors: [{ anchor: id, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 }] });
+    this.life.add(rows); this.lampStates.push({ id, state });
+  }
   group = new THREE.Group();
   /** the hamlet's one set: its root, posed at the hamlet's centre (null without extra buildings); `place` welds into it */
   cluster: THREE.Group | null = null;
@@ -179,7 +196,8 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    * 162 ms Simulator frame of Pine's `world` hook). In the parked frame the lights are future lights the entry warms.
    */
   constructor(sky: Sky, lightScene: THREE.Scene, rows: CabinRows) {
-    super(rows.CABIN_LIFE);
+    this.resources = new SceneResources(sky);
+    this.life = new LivingBuildings(this.resources, rows.CABIN_LIFE);
     this.rows = rows;
     this.sky = sky;
     this.lightScene = lightScene;
@@ -210,10 +228,12 @@ export class Cabins extends BuildingLife implements BuildingOwner {
       const row = authored.cabinProps[kind];
       props[kind] = prepModel(rigRoot(scan), this.sky).map(part => ({ geometry: geometries.geometry(row.name), material: part.material, matrix: new THREE.Matrix4().fromArray(row.matrix) }));
     }
-    this._lamp(mats.glass, mats.glass.emissiveIntensity);
+    const lifeRows = emptyBuildingLifeRows();
+    lifeRows.lamps.push({ material: this.resources.lend(mats.glass), full: mats.glass.emissiveIntensity });
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < Math.min(CABIN_LIGHT.count, MAX_SHARED_LIGHTS); k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay));
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < Math.min(CABIN_LIGHT.count, MAX_SHARED_LIGHTS); k++) lifeRows.shared.push(this.resources.lend(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay)));
+    this.life.add(lifeRows);
     if (geometries === null) return { group: this.group, interactables: this.interactables };
     const models = { firePit: rigRoot(firePitGltf), lantern: rigRoot(lanternGltf) };
     this.loaded = { mats, props, firePit: models.firePit, lantern: models.lantern, geometries };
@@ -228,7 +248,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
         this.cluster = new THREE.Group(); this.cluster.name = 'cabin-cluster'; this.cluster.position.set(...hamlet.at); this.cluster.updateMatrixWorld(true); this.clusterPad = hamlet.pad;
       }
       if (this.buildings.length > 0 || row.hamlet) await macrotask(); // one native building per task, in original role order
-      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, row.hamlet ? 'member' : 'standalone');
+      const b = createLogBuilding(this.resources, row, geometries, mats, models, row.hamlet ? 'member' : 'standalone', this.rows.BUILDING_LOOK);
       if (row.hamlet) b.root.name = row.id;
       else {
         this.group.add(b.root);
@@ -247,7 +267,9 @@ export class Cabins extends BuildingLife implements BuildingOwner {
         }
       }
       this.buildings.push({ id: row.id, index: row.index, site: row, owner: b, weld: b.weldBuild() });
-      this.addSite({ root: b.root, anchors: b.anchors, rooms: b.rooms, door: b.doorAt });
+      b.lifeRows.sites.push({ id: row.id, root: this.resources.lend(b.root),
+        anchors: b.anchors.map(anchor => ({ ...anchor, anchor: this.resources.lend(anchor.anchor) })), rooms: [...b.rooms], door: b.doorAt });
+      this.life.add(b.lifeRows);
       if (row.hamlet) this.group.add(b.root);
       else this.cabinCount++;
     }
@@ -262,7 +284,8 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    *  wheel), then the smoke's sun colour and night hold (its shade dims at night, the chimney glow lights with the lamps) */
   update(dt: number, t: number): void {
     const cam = this.sky.viewCamera, sky = this.sky; cam.getWorldPosition(this.tmpV);
-    this.tick(dt, t, this.tmpV, sky.lamps);
+    for (let i = 0; i < 8; i++) { const lamp = this.lampStates[i]; if (lamp !== undefined) this.life.setLit(lamp.id, lamp.state.lit); }
+    this.life.tick(dt, t, this.tmpV, sky.lamps);
     const id = this.rows.HEARTH_LOOKS.smoke, c = sky.sunColor;
     this.sunColour[0] = c.r; this.sunColour[1] = c.g; this.sunColour[2] = c.b;
     setLentParam(id, 'sunColour', this.sunColour); setLentParam(id, 'lamps', sky.lamps); setLentParam(id, 'shade', 1 - 0.8 * sky.night);

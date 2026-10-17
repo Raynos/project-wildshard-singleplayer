@@ -10,6 +10,11 @@ import { audioLog } from './audioLog';
 import type { DeclaredSoundBank } from './declaredBank';
 import type { DeclaredAmbience } from './declaredAmbience';
 
+/** Output-only native door events. Row-authored sound selection subscribes through Scope. */
+export interface DoorMotionEvents extends EventTarget {
+  readonly current: { readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly opening: boolean } | null;
+}
+
 /** Native loans only. All observation routing, commands and entry policy come from admitted rows. */
 export interface DeclaredGameplayPorts {
   scope?:Scope;audio:Pick<Audio,'ambientShade'|'shadeAmbient'>; music:Music; camera:Camera;
@@ -17,6 +22,7 @@ export interface DeclaredGameplayPorts {
   owners:Readonly<Record<string,object|null|undefined>>;
   emitters?:Readonly<Record<string,{update:(camera:Camera)=>void}|null>>;
   dusk?:{setDusk:(value:number)=>void}|null;
+  doorChanges?:DoorMotionEvents;
   doors?:{onDoor:(listener:(door:{position:{x:number;y:number;z:number}},opening:boolean)=>void)=>()=>void}|null;
 }
 interface Reference {owner:string;path:readonly string[]}
@@ -68,7 +74,9 @@ export function declaredGameplay(rows:{gameplay?:NonNullable<AudioData['gameplay
     const previousShade=ports.audio.ambientShade;
     if(retained&&policy.activate)ports.ambience.setActive(true);
     const doors=policy.doors;
-    const stop=doors===undefined?undefined:ports.doors?.onDoor((door,opening)=>{ports.ambience.sfx.shot(opening?doors.open:doors.close,{at:door.position});});
+    const changes=ports.doorChanges;
+    if(doors!==undefined&&changes!==undefined)scope.listen(changes,'door',()=>{const change=changes.current;if(change!==null)ports.ambience.sfx.shot(change.opening?doors.open:doors.close,{at:change.position});});
+    const stop=doors===undefined||changes!==undefined?undefined:ports.doors?.onDoor((door,opening)=>{ports.ambience.sfx.shot(opening?doors.open:doors.close,{at:door.position});});
     if(retained)scope.onDispose(()=>{stop?.();if(policy.activate)ports.ambience.setActive(false);if(policy.restoreShade)ports.audio.shadeAmbient(previousShade.level,previousShade.cutoff);});
   }};
 }

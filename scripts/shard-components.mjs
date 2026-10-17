@@ -107,13 +107,8 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/assets/contracts/wreck.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/kit/caveInterior.ts', 'C1'],
-  ['src/shards/pine-hollow/runtime/props/bakedBuilding.ts', 'C1'],
-  ['src/shards/pine-hollow/runtime/props/buildingLife.ts', 'C3'],
-  // Pine's unshared door simulation remains custom C7; swings and wheels draw in C3.
-  ...['BuildingDoor', 'doors', 'stepDoors', 'doorPieces', 'barDoor', 'onDoor', '_doorUse', '_doorMoved', '_door'].map(name => [`src/shards/pine-hollow/runtime/props/buildingLife.ts#${name}`, 'C7']),
   // Material/rig look decoding and authored appearance rows.
   ['src/sdk/bake/rig.ts', 'C2'],
-  ['src/shards/pine-hollow/runtime/props/cabinBuild.ts', 'C2'],
   // Weather and visual fight effects.
   ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
   // C3 review: private ambient orchestration and weather remain counted custom.
@@ -125,9 +120,6 @@ const reviewedW2Owners = new Map([
   ...['AmbientFlockBird','AmbientFlockPlayer','AmbientFlockLook','ForagerPopulation','PlaceGuide','guide','flyCrumbs'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C3']),
   ...['AmbientFlockBird','AmbientFlockPlayer','AmbientPerch','AmbientFlockState','CirclingFlyer'].map(name => [`src/shards/pine-hollow/runtime/life/visitors.ts#${name}`, 'C3']),
   ...['items','item'].map(name => [`src/shards/pine-hollow/runtime/combat/fxKit.ts#${name}`, 'C3']),
-  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#swings', 'C3'],
-  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#BuildingFloor', 'C8'],
-  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#doorListeners', 'C8'],
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],

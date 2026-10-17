@@ -1,0 +1,58 @@
+{
+  "detail": [
+    "iron",
+    "cloth",
+    "char",
+    "chink"
+  ],
+  "far": [
+    "endGrain",
+    "bark",
+    "door"
+  ],
+  "door": {
+    "leaf": "door",
+    "hinges": "iron",
+    "battens": "beam",
+    "reach": 2.4,
+    "open": "Open door",
+    "close": "Close door"
+  },
+  "wheel": "beam",
+  "lantern": {
+    "ring": "iron",
+    "ringY": -0.03,
+    "drop": -0.46,
+    "scale": 1.35,
+    "glassName": "glass",
+    "glass": {
+      "color": 16767392,
+      "emissive": [
+        1,
+        0.72,
+        0.4
+      ],
+      "emissiveIntensity": 3,
+      "roughness": 0.2,
+      "metalness": 0,
+      "opacity": 0.85
+    },
+    "frame": {
+      "metalness": 0.9,
+      "roughness": 1,
+      "color": 14200944
+    }
+  },
+  "particles": {
+    "center": [
+      0,
+      5,
+      0
+    ],
+    "radius": 18
+  },
+  "deck": [
+    0.3,
+    4.5
+  ]
+}

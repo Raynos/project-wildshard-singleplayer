@@ -14,7 +14,8 @@ export const CABIN_MOSS_LOOKS = { roof: 'pine-cabin-moss-roof', stone: 'pine-cab
  * lamp (rank 2) and the hearth (rank 3) take the phone's pooled pair first.
  */
 export const CABIN_LIFE = {
-  door: { seconds: 0.6, angle: 1.85 },
+  wheel: 0.55,
+  door: { seconds: 0.6, angle: 1.85, collision: { name: 'Cabin door', file: 'src/shards/pine-hollow/world/homestead.ts', surface: 'wood', rearmRadius: 1.4 } },
   flicker: { depth: 0.28, waves: [[11, 1, 0.5], [23.7, 2.3, 0.3], [3.1, 1, 0.2]] },
   fire: [0.7, 0.3],
   lamp: [0.1, 0.9],

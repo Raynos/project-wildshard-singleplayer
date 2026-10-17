@@ -95,5 +95,7 @@
   "test/driftwood-sword-scene.test.ts": [
     "driftwood-isle"
   ],
-  "test/nine-cloth-bake.test.ts": []
+  "test/nine-cloth-bake.test.ts": [],
+  "test/living-buildings-platform.test.ts": [],
+  "test/declared-audio-gameplay.test.ts": []
 }

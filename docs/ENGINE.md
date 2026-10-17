@@ -9230,3 +9230,43 @@ product byte/memory admission; automatic actor decisions still read only
 resolves the exact declared module through the admitted product inventory,
 then supplies those verified bytes to the synchronous owner. The worker
 forwards this catalogue as part of its explicit admitted context.
+
+### Living buildings (G474)
+
+`format/buildings` holds bounded, JSON-only building, life and cloud rows.
+`game/shardfile/sceneResources` is the platform's typed resource context:
+exact ids resolve native geometries, materials, objects and lights. Publication
+lends engine resources; it accepts no shard behavior or reflection path.
+Native publication adapters remain custom code until Z2 assembles their data.
+
+`game/shardfile/buildingAssembly` builds a record's static weld parts and its
+live fittings against that context. It emits life rows for doors, lamps,
+swings and wheels. Assembly has no owner callbacks and needs no subclass.
+A specimen can assemble the same rows without entering a living system.
+`game/shardfile/buildingCloud` draws either baked smoke quads or instanced
+hearth seeds with their authored bounds and graph material. Both cloud kinds
+use the same resource-id contract; they have no CPU particle update.
+
+`game/shardfile/livingBuildings` owns reversible eased doors, prompts,
+kinematic-leaf descriptions, clock-driven lamp glass, lantern swings, wheel
+rotation, flickering lights and pooled site lights. Door pieces and prompts
+command one state. Its native door event stream is an output notification surface for
+platform audio observers, never a shard behavior hook. Static collision
+stays with the scene/weld; `registerDoors` registers each moving leaf once
+using the declared collision metadata. Moving leaves stay passable until
+motion stops and the player clears the declared hinge radius.
+The light count stays fixed; day/night and ignition change intensity only.
+
+`snapshot` / `restore` carry door direction, collision rearm state, fractional progress and wheel
+phase. Restore validates the complete continuation and stable identities
+before changing any live pose. `persist` binds the engine SaveStore and an
+instance/group row after all buildings are admitted; interaction, periodic,
+page-hide and scope-end checkpoints preserve continuation. Native UUIDs are
+resource references only and never durable door or wheel identities.
+
+The assembly and life owners use G474's approved-platform exception while
+Nalati's SF48 buildings adopt them; the declaration lives in
+`lint/platform-pending-users.json`. Pine drives the complete contract today;
+Driftwood's castaway camp drives the same smoke-cloud and resource context;
+its shrine drives living material pulse rows and graph dusk parameters.
+A made-up second building tests different door motion, prompts and lights.

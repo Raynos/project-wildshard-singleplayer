@@ -18,7 +18,7 @@
  * The campfire stays put in the NPC group's frame.
  *
  * Draw calls: body, campfire (two merged meshes, the shadow casters), head, waving arm (each its own pivot), flames
- * (unlit), smoke (puff quads); past 85 m only the smoke. The smoke is a thin, broken wisp (runtime/looks/smokeColumn.ts, its
+ * (unlit), smoke (puff quads); past 85 m only the smoke. The smoke is a thin, broken wisp (@wildshard/game/shardfile/buildingCloud, its
  * material graph data/smokeLook.ts from generators/castawayLook.ts's row, all on the GPU): each puff grows as it climbs, fades in over the fire and out
  * toward the top, wanders on its own turbulence and leans downwind — so from the pier it reads as smoke, not a straight
  * bright streak.
@@ -28,11 +28,13 @@ import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { driftwoodRows } from '../boot/rows';
-import { fixedDraw, fixedGeometryGroups } from '../boot/blobAssets';
+import { fixedDraw, fixedGeometryGroups, fixedGeometryReady } from '../boot/blobAssets';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { SmokeColumn } from '../looks/smokeColumn';
+import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
+import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -93,10 +95,15 @@ export class Castaway {
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
-    const smoke = new SmokeColumn(driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_SMOKE, f);
+    const native = driftwoodRows('custom/fixedLayouts').nativeView, smokeRow = native.CASTAWAY_SMOKE, resources = new SceneResources(this.sky);
+    const ready = fixedGeometryReady(), lit = hasLentLook(native.SMOKE_LOOK);
+    const smoke = createBuildingCloud(resources, { geometry: resources.lend(ready ? fixedDraw('castawaySmoke').copy() : new THREE.BufferGeometry()),
+      material: lit ? resources.lend(lentLook(native.SMOKE_LOOK)) : null, seeds: false, name: smokeRow.name,
+      at: [f.x, f.y, f.z], center: smokeRow.bounds.offset,
+      radius: smokeRow.bounds.radius, order: smokeRow.renderOrder, visible: lit && ready });
 
     const made = createClientScene(rows.recipe, { geometry: id => geometry.get(id), materials: new Map([['coat', mat]]),
-      objects: new Map<string, THREE.Object3D>([['flames', this.flames], ['smoke', smoke.mesh]]) });
+      objects: new Map<string, THREE.Object3D>([['flames', this.flames], ['smoke', smoke]]) });
     Object.assign(this, bindWorldSceneParts(made, rows.parts, rows.bindings));
     this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { head: this.head, arm: this.arm, flames: this.flames };

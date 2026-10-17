@@ -1,0 +1,78 @@
+{
+  "look": {
+    "door": {
+      "seconds": 1,
+      "angle": 0
+    },
+    "fire": [
+      1,
+      0
+    ],
+    "lamp": [
+      1,
+      0
+    ],
+    "glass": [
+      1,
+      0
+    ],
+    "flicker": {
+      "depth": 0,
+      "waves": []
+    },
+    "swing": {
+      "z": [],
+      "x": [
+        1,
+        0
+      ]
+    },
+    "wheel": 0
+  },
+  "life": {
+    "doors": [],
+    "swings": [],
+    "wheels": [],
+    "flickers": [],
+    "lamps": [],
+    "sites": [],
+    "shared": [],
+    "colors": [
+      {
+        "material": "shrine.glyphs",
+        "color": [
+          0.21223075740342198,
+          0.6938717612856897,
+          1
+        ],
+        "offset": 1.6,
+        "gain": 2.6,
+        "pulse": [
+          0.55,
+          0.45
+        ],
+        "waves": [
+          [
+            1.1,
+            0
+          ],
+          [
+            0.37,
+            1
+          ]
+        ],
+        "night": [
+          0.6,
+          0.4
+        ]
+      }
+    ],
+    "params": [
+      {
+        "look": "driftwood-shrine-fireflies",
+        "param": "dusk"
+      }
+    ]
+  },
+  "initialDusk": 0.35
+}

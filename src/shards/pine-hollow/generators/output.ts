@@ -1,3 +1,4 @@
+import buildingLook from '../data/buildingLook.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS } from './worldScenes';
 import { HELD_GEAR, HELD_FINISHES, HELD_TOOL_LIFETIME } from './heldGear';
 import heldLoadout from '../data/loadout.json' with { type: 'json' };
@@ -87,7 +88,7 @@ const clientJson=emitNamedBlobs([...SCENE_BLOBS,nameBlob('quests/persistence.jso
   ...([['quests/mill-door.json', PINE_MILL_DOOR], ['quests/consequences.json', PINE_QUEST_CONSEQUENCES], ['quests/clock.json', PINE_CLOCK_CONSEQUENCES], ['quests/transactions.json', PINE_QUEST_TRANSACTIONS]] as const).map(([name, rows]) =>
     nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(rows))))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('world/cabins.json','json',new TextEncoder().encode(encodeCanonicalJson({
- CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
+ BUILDING_LOOK:buildingLook,CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS,
 }))), nameBlob('people/figure.json','json',new TextEncoder().encode(JSON.stringify(NPC_FIGURE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(floorRows))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES))), nameBlob('look/runtime-graphs.json','json',new TextEncoder().encode(encodeCanonicalJson(lookMaterials.runtime)))]);
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;

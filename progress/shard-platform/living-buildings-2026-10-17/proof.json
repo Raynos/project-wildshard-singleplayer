@@ -1,0 +1,458 @@
+{
+  "parity": {
+    "before": "a87394b-mvcpawvm",
+    "after": "d022e7c-mvcpy4aa",
+    "method": "Unmasked 7x7 luma SSIM; same equations as scripts/parity/ssim.mjs",
+    "rows": [
+      {
+        "shard": "pine-hollow",
+        "time": "midday",
+        "pose": "cabin",
+        "calls": 125,
+        "triangles": 1464025,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": false,
+        "trianglesEqual": false,
+        "collidersEqual": true,
+        "before": {
+          "calls": 125,
+          "triangles": 1464025,
+          "pixels": "854c300f9444bf6d1ab50af3e637e8623ea28d7a9ce539e42b35b261f365c2ac",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "after": {
+          "calls": 123,
+          "triangles": 1447244,
+          "pixels": "854c300f9444bf6d1ab50af3e637e8623ea28d7a9ce539e42b35b261f365c2ac",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "cameraPose": {
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": -0.1
+        }
+      },
+      {
+        "shard": "pine-hollow",
+        "time": "midday",
+        "pose": "mill",
+        "calls": 157,
+        "triangles": 2184260,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 157,
+          "triangles": 2184260,
+          "pixels": "398ba0789b657bcde8733111cc680f60d881b6dbe62a9db94a77b0c95b4d8240",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "after": {
+          "calls": 157,
+          "triangles": 2184260,
+          "pixels": "398ba0789b657bcde8733111cc680f60d881b6dbe62a9db94a77b0c95b4d8240",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "cameraPose": {
+          "x": -214,
+          "z": -169,
+          "yaw": -2.33658915933514,
+          "pitch": 0.04
+        }
+      },
+      {
+        "shard": "pine-hollow",
+        "time": "night",
+        "pose": "cabin",
+        "calls": 124,
+        "triangles": 1439498,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 124,
+          "triangles": 1439498,
+          "pixels": "b1266a1c24049cdb7db644fae38bd12b358d2b50cc24d38c6cc98cb982fdc3d3",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "after": {
+          "calls": 124,
+          "triangles": 1439498,
+          "pixels": "b1266a1c24049cdb7db644fae38bd12b358d2b50cc24d38c6cc98cb982fdc3d3",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "cameraPose": {
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": -0.1
+        }
+      },
+      {
+        "shard": "pine-hollow",
+        "time": "night",
+        "pose": "mill",
+        "calls": 160,
+        "triangles": 2191836,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 160,
+          "triangles": 2191836,
+          "pixels": "b214220b9fd513e344625d35ead22c080509584307b1e9b086a6a3367562558e",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "after": {
+          "calls": 160,
+          "triangles": 2191836,
+          "pixels": "b214220b9fd513e344625d35ead22c080509584307b1e9b086a6a3367562558e",
+          "colliders": "583b5197f20476907359117e940c8136f45de4284eb62ee0d82463b3727fb22f"
+        },
+        "cameraPose": {
+          "x": -214,
+          "z": -169,
+          "yaw": -2.33658915933514,
+          "pitch": 0.04
+        }
+      },
+      {
+        "shard": "driftwood-isle",
+        "time": "midday",
+        "pose": "hut",
+        "calls": 165,
+        "triangles": 755606,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 165,
+          "triangles": 755606,
+          "pixels": "057ab2e83479d108eb2d47ac7b513e9354a88e513eeb1850bed4a855aa6eab8b",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "after": {
+          "calls": 165,
+          "triangles": 755606,
+          "pixels": "057ab2e83479d108eb2d47ac7b513e9354a88e513eeb1850bed4a855aa6eab8b",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "cameraPose": {
+          "x": -22,
+          "z": -91,
+          "yaw": 3.141592653589793,
+          "pitch": 0.06
+        }
+      },
+      {
+        "shard": "driftwood-isle",
+        "time": "midday",
+        "pose": "shrine",
+        "calls": 74,
+        "triangles": 799898,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 74,
+          "triangles": 799898,
+          "pixels": "098487e9bf1a48434eb5e1097a2482f271690e5756fcb50e35d155e51f1d6659",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "after": {
+          "calls": 74,
+          "triangles": 799898,
+          "pixels": "098487e9bf1a48434eb5e1097a2482f271690e5756fcb50e35d155e51f1d6659",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "cameraPose": {
+          "x": -84,
+          "z": 94,
+          "yaw": 2.356194490192345,
+          "pitch": 0.04
+        }
+      },
+      {
+        "shard": "driftwood-isle",
+        "time": "night",
+        "pose": "hut",
+        "calls": 167,
+        "triangles": 774769,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": true,
+        "trianglesEqual": true,
+        "collidersEqual": true,
+        "before": {
+          "calls": 167,
+          "triangles": 774769,
+          "pixels": "1b72551dd5839ea7869b25266cd3b00919211834da5949462381221a31174d15",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "after": {
+          "calls": 167,
+          "triangles": 774769,
+          "pixels": "1b72551dd5839ea7869b25266cd3b00919211834da5949462381221a31174d15",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "cameraPose": {
+          "x": -22,
+          "z": -91,
+          "yaw": 3.141592653589793,
+          "pitch": 0.06
+        }
+      },
+      {
+        "shard": "driftwood-isle",
+        "time": "night",
+        "pose": "shrine",
+        "calls": 76,
+        "triangles": 807594,
+        "exactPixels": true,
+        "ssim": 1,
+        "changedBytes": 0,
+        "maxDifference": 0,
+        "drawsEqual": false,
+        "trianglesEqual": false,
+        "collidersEqual": true,
+        "before": {
+          "calls": 76,
+          "triangles": 807594,
+          "pixels": "7454fb7e9330f1ae07bea45967d711e651c33525dbdfe0dc18b8d0ef2d44cb3b",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "after": {
+          "calls": 71,
+          "triangles": 803747,
+          "pixels": "7454fb7e9330f1ae07bea45967d711e651c33525dbdfe0dc18b8d0ef2d44cb3b",
+          "colliders": "32acb7e86542939b8e8c584608505e162904f7bf62569d7bccaac83afabb6b8b"
+        },
+        "cameraPose": {
+          "x": -84,
+          "z": 94,
+          "yaw": 2.356194490192345,
+          "pitch": 0.04
+        }
+      }
+    ],
+    "profile": "iPhone 16 Pro, DPR 2, Metal, muted; fixed day/night capture clock; unmasked real 3D scene"
+  },
+  "physics": {
+    "label": "living-buildings",
+    "build": "d022e7c-mvcpy4aa",
+    "tier": "phone",
+    "date": "2026-10-17T18:17:53.899Z",
+    "physics": {
+      "pine-hollow": {
+        "colliders": 2419
+      }
+    },
+    "walkErrors": [],
+    "routes": [
+      {
+        "shard": "pine-hollow",
+        "name": "cabin-porch",
+        "frames": 1329,
+        "seconds": 44.3,
+        "end": {
+          "x": -10.24,
+          "y": 3.833,
+          "z": -34.382
+        },
+        "expectY": 3.815,
+        "maxY": 4.25,
+        "groundSpeedP50": 4.24,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "pond",
+        "frames": 1348,
+        "seconds": 44.9,
+        "end": {
+          "x": -63.882,
+          "y": -2.005,
+          "z": 109.25
+        },
+        "expectY": -2.01,
+        "maxY": 3.82,
+        "groundSpeedP50": 4.27,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lookout-climb",
+        "frames": 352,
+        "seconds": 11.7,
+        "end": {
+          "x": 34.809,
+          "y": 57.477,
+          "z": 211.343
+        },
+        "expectY": 57.46,
+        "maxY": 57.48,
+        "groundSpeedP50": 1.93,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "zip-landing",
+        "frames": 66,
+        "seconds": 2.2,
+        "end": {
+          "x": 3.242,
+          "y": 3.304,
+          "z": 20.128
+        },
+        "expectY": 3.29,
+        "maxY": 3.31,
+        "groundSpeedP50": 3.93,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "creek-bridge",
+        "frames": 225,
+        "seconds": 7.5,
+        "end": {
+          "x": -135.967,
+          "y": 1.488,
+          "z": -5.3
+        },
+        "expectY": 1.42,
+        "maxY": 1.53,
+        "groundSpeedP50": 4.26,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lodge-porch",
+        "frames": 46,
+        "seconds": 1.5,
+        "end": {
+          "x": -165.198,
+          "y": -0.16,
+          "z": -114.231
+        },
+        "expectY": -0.18,
+        "maxY": -0.16,
+        "groundSpeedP50": 4.21,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "den-cave",
+        "frames": 341,
+        "seconds": 11.4,
+        "end": {
+          "x": 218.91,
+          "y": 8.036,
+          "z": 217.581
+        },
+        "expectY": 8.01,
+        "maxY": 9.07,
+        "groundSpeedP50": 4.33,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      }
+    ]
+  },
+  "maps": {
+    "servedTrees": {
+      "pine-hollow": "203417d3deda97a855f7d355c0d8bf5e3135c02b",
+      "driftwood-isle": "2d8656aea5bbead38611ee4aec1522244bf858ef"
+    },
+    "capturedInputGuard": "Both capture stamps match fully regenerated final candidate map input hashes and their captured image pixels.",
+    "captures": {
+      "pine-hollow": {
+        "version": 1,
+        "tilesHash": "49ac4e773515b8416e4f10568a0023f6617c4998555aede27f28a78563cbd3fb",
+        "pixelHash": "5ff27135406a6b9ff2258922aa2d0eba7cf65fbaa01470a18e2368f2f4fc93d1",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95090
+      },
+      "driftwood-isle": {
+        "version": 1,
+        "tilesHash": "f3953a23a7903437315ea2d7cb74424403d8638dc018798537c8038c4369dd29",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    }
+  },
+  "checks": {
+    "base": "f4e0c85ae7ba579a744d2fffbe37d88293a5f9f2",
+    "sourceBaseline": "f4e0c85ae7ba579a744d2fffbe37d88293a5f9f2",
+    "sourceEquivalentMetadata": false,
+    "candidate": "203417d3deda97a855f7d355c0d8bf5e3135c02b",
+    "checks": [
+      "gen",
+      "all-10-products",
+      "root-types",
+      "layer-types",
+      "typed-lint",
+      "focused-tests",
+      "17-headless-cases",
+      "source-component-ruler"
+    ],
+    "focusedTests": 35,
+    "headlessCases": 17,
+    "toolingPaths": "passed"
+  }
+}

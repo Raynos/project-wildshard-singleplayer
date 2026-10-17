@@ -11,11 +11,12 @@
  * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts.
  */
 import * as THREE from 'three';
+import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins } from '../world/homestead';
-import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
+import { CABIN_ROWS, createLogBuilding } from '../world/cabinBake';
 import { PROP_KINDS } from '../../world/logKit';
 
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
@@ -59,7 +60,7 @@ const MAX_PROP_KINDS = 4, MAX_PROP_PARTS = 16;
 export function buildingSpecimen(ctx: ModelContext, id: string): ModelBuild {
   const cabins = cabinsOf(ctx), b = cabins.buildings.find((x) => x.id === id), kit = cabins.kit, row = CABIN_ROWS.buildings.find((r) => r.id === id);
   if (b === undefined || kit === null || row === undefined) return new THREE.Group();
-  const cb = new LogBuilding(NO_OWNER, row, kit.geometries, kit.mats, ctx.sky, kit, 'specimen');
+  const cb = createLogBuilding(new SceneResources(ctx.sky), row, kit.geometries, kit.mats, kit, 'specimen', cabins.buildingLook);
   const props = cb.props;
   const unit = new UnitParts();
   unit.add(cb.weldParts());

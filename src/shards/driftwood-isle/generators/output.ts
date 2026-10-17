@@ -1,3 +1,4 @@
+import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes';
 import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
@@ -54,6 +55,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
+  nameBlob('world/building-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(buildingLife))),
   nameBlob('scenes/cove.json', 'json', new TextEncoder().encode(encodeCanonicalJson(coveScene))),
   nameBlob('scenes/cascade.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cascadeScene))),
   nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(FixedGeometryGroupsSchema, fixedInventory.groups)))),

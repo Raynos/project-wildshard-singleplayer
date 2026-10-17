@@ -522,6 +522,7 @@ const approvedFeatures = {
   'contracts + elites':'G473',
   'world scene assembly':'G483',
   'boss fight host':'G474',
+  'living-buildings':'G474',
   'weather-keyed-sky':'G474', 'quadruped-rig':'G474', 'actor-spawn':'G474',
   'bolt-flight':'G474', 'quest-step-runner':'G474', 'loadout':'G474',
   'streamed-cover':'G475', 'collections':'G475', 'held-arms':'G475',

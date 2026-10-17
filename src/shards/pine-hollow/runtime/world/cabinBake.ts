@@ -5,19 +5,19 @@
  * homestead (./homestead.ts) and `place` (./cabins.ts) work with: its root with what draws on its own (the door on its pivot,
  * the glows, the fire pit and lantern model copies, smoke and flames, the wheel, its lights or the phone's anchors), its
  * parts per material for the weld, its colliders, floors and live parts handed to its owner, in the order the builder
- * handed them: the SDK's baked buildings (@wildshard/sdk/props/bakedBuilding) over the look row ../data/cabinBuild.ts.
+ * handed them: the game's building assembly over the named building-look row.
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { loadSiteTimbers } from './timberSites';
 import { mossHint } from '../../world/timberBake';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
-import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type BakedBuildingRole, type BakedBuildingTier } from '../props/bakedBuilding';
-import { CABIN_BUILD } from '../props/cabinBuild';
+import { BakedBuildingAssembly } from '@wildshard/game/shardfile/buildingAssembly';
+import type { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import type { BakedBuildingLook, BakedBuildingRole, BuildingAssemblyRows } from '@wildshard/format/buildings';
 import rows from '../../data/cabins.json' with { type: 'json' };
-import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from '../../world/logKit';
+import { CabinRowsSchema, type CabinRows, type BakedBuilding } from '../../world/logKit';
 import type { Mats } from './homestead';
 
 /** Unchanged native owner rows, parsed strictly once. */
@@ -57,29 +57,21 @@ export async function loadCabinBake(ctx: Parameters<typeof loadSiteTimbers>[0]):
   }
 }
 
-/** What a log building hands its owner as it is assembled: the homestead (./homestead.ts `Cabins`). */
-export type BuildingOwner = BakedBuildingOwner;
-/** the owner that keeps nothing (a specimen's) */
-export const NO_OWNER: BuildingOwner = NO_BUILDING_OWNER;
-/** `standalone`: one of the three cabins; `member`: a mill-hamlet building; `specimen`: the Model Explorer's copy */
+/** Native resource publication remains a counted adapter until Z2 owns these static parts. */
 export type BuildingRole = BakedBuildingRole;
-
-/** the tier's cabin settings, read live */
-const TIER: BakedBuildingTier = {
-  get detailDist() { return TIER_CONFIG.cabinDetailDist; },
-  get detailShadows() { return TIER_CONFIG.cabinDetailShadows; },
-  get sharedLights() { return TIER_CONFIG.sharedCabinLights; },
-};
-const matrix = (e: readonly number[]): THREE.Matrix4 => new THREE.Matrix4().fromArray(e);
-
-/** One log building assembled from its record where it stands (the SDK's baked building), and the props it set about. */
-export class LogBuilding extends BakedBuildingAssembly<KitMat, 'flame' | 'ember' | 'smoke'> {
-  /** the props it set about (world matrices) */
-  readonly props: Record<PropKind, THREE.Matrix4[]>;
-
-  /** `b` its record, `role` how it draws (see BuildingRole) */
-  constructor(owner: BuildingOwner, b: BakedBuilding, geometries: CabinGeometries, mats: Mats, sky: Pick<Sky, 'setupMaterial'>, models: { firePit: THREE.Object3D; lantern: THREE.Object3D }, role: BuildingRole) {
-    super({ owner, record: b, geometries, mats: { parts: mats, particles: mats, glass: mats.glass, glow: mats.glow }, sky, models, role, look: CABIN_BUILD, tier: TIER });
-    this.props = { crate: b.props.crate.map(matrix), barrel: b.props.barrel.map(matrix), bucket: b.props.bucket.map(matrix), hatchet: b.props.hatchet.map(matrix) };
-  }
+export type LogBuilding = BakedBuildingAssembly<string, 'flame' | 'ember' | 'smoke'> & { readonly props: { crate: THREE.Matrix4[]; barrel: THREE.Matrix4[]; bucket: THREE.Matrix4[]; hatchet: THREE.Matrix4[] } };
+const matrix = (elements: readonly number[]): THREE.Matrix4 => new THREE.Matrix4().fromArray(elements);
+export function createLogBuilding(resources: SceneResources, b: BakedBuilding, geometries: CabinGeometries, mats: Mats,
+  models: { firePit: THREE.Object3D; lantern: THREE.Object3D }, role: BuildingRole, look: BakedBuildingLook): LogBuilding {
+  const ordinals = new Set([...b.parts.map(([, ordinal]) => ordinal), ...b.glass,
+    ...b.nodes.flatMap(node => node.t === 'door' ? [node.leaf, node.iron, node.batten] : node.t === 'glow' || node.t === 'wheel' ? [node.g] : node.t === 'particles' ? [node.seeds] : node.t === 'lantern' ? [node.ring] : [])]);
+  const names = Object.fromEntries(Object.entries<THREE.Material>({ ...mats }).map(([key, material]) => [key, resources.lend(material)]));
+  const material = (key: keyof Mats): string => { const id = names[key]; if (id === undefined) throw new Error('Missing building material'); return id; };
+  const parts = Object.fromEntries(['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'bark', 'iron', 'cloth', 'char'].map(key => [key, names[key] ?? '']));
+  const input: BuildingAssemblyRows<string, 'flame' | 'ember' | 'smoke'> = { id: b.id, record: b,
+    geometry: Object.fromEntries([...ordinals].map(ordinal => [String(ordinal), resources.lend(geometries.geometry(ordinal))])),
+    materials: { parts, particles: { flame: material('flame'), ember: material('ember'), smoke: material('smoke') }, glass: material('glass'), glow: material('glow') },
+    models: { firePit: resources.lend(models.firePit), lantern: resources.lend(models.lantern) },
+    role, look, tier: { detailDist: TIER_CONFIG.cabinDetailDist, detailShadows: TIER_CONFIG.cabinDetailShadows, sharedLights: TIER_CONFIG.sharedCabinLights } };
+  return Object.assign(new BakedBuildingAssembly(resources, input), { props: { crate: b.props.crate.map(matrix), barrel: b.props.barrel.map(matrix), bucket: b.props.bucket.map(matrix), hatchet: b.props.hatchet.map(matrix) } });
 }
