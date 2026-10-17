@@ -29,7 +29,7 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
     if (slug.startsWith('_')) continue;
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const legacy = config.legacy[primary] ?? { entries: [], missing: [] };
-    for (const name of names) if (!files.has(name) && !folders.has(name) && !dataHomes.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
+    for (const name of names) if (!Object.keys(frozen.shards[slug]?.files ?? {}).some(file => file === name || file.startsWith(name)) && !files.has(name) && !folders.has(name) && !dataHomes.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
     const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
     const descriptor = manifest === null ? null : shardfileDescriptor(manifest);
     const dataManifest = descriptor?.path === `/shardfiles/${slug}/shard.json` && !descriptor.load;
@@ -77,6 +77,12 @@ export function shardEntries(paths, selected, homes = []) {
   return Object.fromEntries(Object.entries(entries).map(([slug, names]) => [slug, [...names].sort((a, b) => a.localeCompare(b))]));
 }
 
+// Empty build scaffolding carries no source entry; symlinks and every real file
+// still participate in layout validation.
+function hasFiles(folder) {
+  return readdirSync(folder, { withFileTypes: true }).some(entry => !entry.isDirectory() || hasFiles(resolve(folder, entry.name)));
+}
+
 // Only the registered, flat content-addressed product transport is generated
 // storage, beside the SDK writer's informational validation receipt. Unknown
 // files, source modules, symlinks and other hidden folders still
@@ -84,9 +90,21 @@ export function shardEntries(paths, selected, homes = []) {
 function generatedProduct(root, slug) {
   if (!existsSync(resolve(root, 'scripts/generation-jobs.json'))) return false;
   const base = `src/shards/${slug}/.wildshard`;
-  const homes = readdirSync(resolve(root, base), { withFileTypes: true });
-  const home = homes.find(entry => entry.name === 'product');
-  if (homes.length !== 1 || home?.isDirectory() !== true) return false;
+  const homes = readdirSync(resolve(root, base), { withFileTypes: true }).filter(entry => !entry.isDirectory() || hasFiles(resolve(root, base, entry.name)));
+  const policy = homes.find(entry => entry.name === 'build-policy.json');
+  if (policy !== undefined) {
+    if (!policy.isFile()) return false;
+    try {
+      const bytes = readFileSync(resolve(root, base, policy.name));
+      if (bytes.length > 4096) return false;
+      const value = JSON.parse(bytes.toString('utf8'));
+      if (value.version !== 1 || !Number.isSafeInteger(value.decisionLegacyLines) || value.decisionLegacyLines < 1 || Object.keys(value).length !== 2) return false;
+    } catch { return false; }
+  }
+  const products = homes.filter(entry => entry.name !== 'build-policy.json');
+  if (products.length === 0) return policy !== undefined;
+  const home = products.find(entry => entry.name === 'product');
+  if (products.length !== 1 || home?.isDirectory() !== true) return false;
   const prefix = `${base}/product/`;
   const files = readdirSync(resolve(root, prefix), { withFileTypes: true });
   if (files.length === 0 || files.some(file => !file.isFile() || !/^(?:[a-f0-9]{64}|shard\.json|validation\.json)$/u.test(file.name))) return false;
@@ -111,6 +129,7 @@ export function checkShards(root, selected) {
   for (const dir of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
     if (!dir.isDirectory() || (selected && !selected.has(dir.name))) continue;
     entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true })
+      .filter(entry => !entry.isDirectory() || hasFiles(resolve(root, 'src/shards', dir.name, entry.name)))
       .filter(entry => entry.name !== '.wildshard' || !entry.isDirectory() || !generatedProduct(root, dir.name))
       .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
     for (const home of Object.values(config.dataHomes ?? {})) if (existsSync(resolve(root, 'src/shards', dir.name, home))) entries[dir.name].push(home);

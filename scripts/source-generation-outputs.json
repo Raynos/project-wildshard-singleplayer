@@ -10,9 +10,7 @@
       "src/shards/pine-hollow/ktx2.generated.ts"
     ],
     "scripts/bake/movers.mjs": [
-      "src/shards/driftwood-isle/data/movers.ts",
       "src/shards/driftwood-isle/data/movers.generated.json",
-      "src/shards/far-reach/data/movers.ts",
       "src/shards/far-reach/data/movers.generated.json"
     ],
     "scripts/bake-astc6.mjs": [

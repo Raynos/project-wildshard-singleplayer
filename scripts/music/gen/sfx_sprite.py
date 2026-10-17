@@ -72,19 +72,15 @@ RAW_DIR = {"moss": "moss", "sa3-medium": "medium"}  # sfx-raw-dir/<model>/<famil
 # ffmpeg's `-ac 2` (stems.encode) put a mono take in each channel at -3.01 dB (swresample's centre mix level); WebAudio
 # up-mixes a mono buffer to L = R = m ("speakers"), so the mono file carries that same per-channel level
 UPMIX = 1 / np.sqrt(2)
-AMBIENCE = REPO / "src/shards/pine-hollow/runtime/audio/ambience.ts"
+AMBIENCE = REPO / "src/shards/pine-hollow/data/audioSource.json"
 
 
 def panned_beds() -> set[str]:
     """the beds ForestAmbience sends through a StereoPannerNode (its PANNED set). Those stay stereo: the panner pans a mono
     input at equal power but a 2-channel one by its stereo law, which on these dual-mono files is up to ~3 dB louder
     off-centre, so a mono file would change how loud the bed is to one side"""
-    import re
-
-    m = re.search(r"const PANNED = new Set<PhBed>\(\[([^\]]*)\]\)", AMBIENCE.read_text())
-    if m is None:
-        raise SystemExit(f"beds: no `const PANNED = new Set<PhBed>([...])` in {AMBIENCE} - which beds pan is unknown")
-    return set(re.findall(r"'([^']+)'", m.group(1)))
+    beds = json.loads(AMBIENCE.read_text())["audio"]["zones"]["routing"]["samples"]["beds"]
+    return {bed["id"] for bed in beds if bed["panned"]}
 
 
 # ─────────────── decode / encode ───────────────

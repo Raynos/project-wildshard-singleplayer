@@ -76,8 +76,7 @@ export const ON_CONTRACT = [
  */
 export const DONE = {
   'driftwood-isle': {
-    'src/shards/driftwood-isle/runtime/looks/instancedTiles.ts': { why: "a baked island's placements drawn instanced per tile set (SHARD-PLATFORM M3, moved from Driftwood's world/islandInstances.ts, whose legacy copy keeps its entry; G144 / G173): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/shards/driftwood-isle-legacy/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/driftwood-isle/world/rockKit.ts': { why: "the rock kit the rock models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
@@ -88,7 +87,7 @@ export const DONE = {
     'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their baked smooth mesh', counts: { 'registry add with object': 1 } },
     'src/shards/driftwood-isle-legacy/world/Cove.ts': { why: 'the frozen sea cave retains its original world geometry weld and reef-rock merge; the primary Cove now admits baked geometry', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
     'src/shards/driftwood-isle/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (E117 / E186): world (§1). Its dune logs are drift-log models drawnInto their mesh; its five plant kinds have no fixed copies for place() to count', counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
+    'src/shards/driftwood-isle-legacy/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle-legacy/world/islandInstances.ts': { why: "G144 / G173 (E435, E450): the Blender island's placements drawn instanced per tile set (the merged tiles retired): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
   },
   'nalati-grasslands': {
@@ -110,7 +109,7 @@ export const DONE = {
     'src/shards/nalati-grasslands/campPeople.ts': { why: 'the camp people are People (M5)', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
     'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
-    'src/shards/nalati-grasslands/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
+    'src/shards/nalati-grasslands-legacy/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
   'nine-dragon-stack': {
     'src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
@@ -126,19 +125,17 @@ export const DONE = {
   },
   'pine-hollow': {
     'src/shards/pine-hollow/runtime/compendium/trophyWall.ts': { why: "the compendium's trophy wall (SHARD-PLATFORM M3, moved from Pine Hollow's world/): its mounts, each a creature's head built from its rig, merged into one draw", counts: { mergeGeometries: 2 } },
-    'src/shards/pine-hollow/runtime/looks/posedInstances.ts': { why: "the posed-instances look (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts, a models file): a shard's small posable creatures packed into one geometry and drawn as one instanced mesh, each instance its own kind and pose", counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow/world/logKit.ts': { why: "G285: the log kit's shared log shape (`logGeo`: a log's side and its two end caps merged) that the cabin bake and the landmarks' timber build with; it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/world/treeFactory.ts': { why: "the forest field's authored tree geometry, moved from TreeFactory (world, not a placed thing)", counts: { mergeGeometries: 1 } },
-    'src/shards/pine-hollow/runtime/weapons/longbowView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow-legacy/world/trophyWall.ts': { why: "the frozen copy keeps its own trophy wall mounts (a creature's head built from its rig); the primary wall moved to @wildshard/game/compendium/trophyWall", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/runtime/weapons/LeverRifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 8 } },
-    'src/shards/pine-hollow/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
-    'src/shards/pine-hollow/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
+    'src/shards/pine-hollow-legacy/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
+    'src/shards/pine-hollow-legacy/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow/runtime/world/crags.ts': { why: "the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground; SHARD-PLATFORM W2a, moved from world/crags.ts, whose entry still covers its frozen legacy copy)", counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow/runtime/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders (SHARD-PLATFORM W2a, moved from world/landmarks.ts, whose entry still covers its frozen legacy copy)", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow/runtime/world/streams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
-    'src/shards/pine-hollow/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
-    'src/shards/pine-hollow/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
+    'src/shards/pine-hollow-legacy/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
+    'src/shards/pine-hollow-legacy/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 4 } },
     'src/shards/pine-hollow-legacy/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
   },

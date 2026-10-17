@@ -39,40 +39,23 @@ const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/kingQueryPose.ts',
   'src/shards/pine-hollow/runtime/kingQueryView.ts',
   'src/shards/pine-hollow/runtime/roster.ts',
-  'src/shards/pine-hollow/runtime/fauna.ts',
   'src/shards/driftwood-isle/sim/keeper.ts',
-  'src/shards/driftwood-isle/sim/fauna.ts',
   'src/shards/pine-hollow/runtime/herds.ts',
   'src/shards/driftwood-isle/runtime/ecology.ts',
   'src/shards/driftwood-isle/sim/captainEncounter.ts',
-  'src/shards/pine-hollow/runtime/KingGoals.ts',
   'src/shards/pine-hollow/runtime/antlerKing.ts',
   'src/shards/pine-hollow/runtime/king.ts',
-  'src/shards/pine-hollow/runtime/elitePrelude.ts',
   'src/shards/pine-hollow/runtime/nightPopulation.ts',
   'src/shards/pine-hollow/combat/kingFight.ts',
-  'src/shards/pine-hollow/combat/kingTiming.ts',
-  'src/shards/driftwood-isle/runtime/placement.ts',
   'src/shards/driftwood-isle/combat/captain.ts',
 ]);
 const questOwners=new Set([
-  'src/shards/driftwood-isle/runtime/director.ts',
   'src/sdk/runtime/prompts.ts',
-  'src/shards/pine-hollow/runtime/facts.ts',
-  'src/shards/pine-hollow/runtime/people.ts',
   'src/shards/pine-hollow/runtime/lodge.ts',
-  'src/shards/pine-hollow/runtime/trader.ts',
-  'src/shards/pine-hollow/runtime/questLifetime.ts',
-  'src/shards/driftwood-isle/runtime/reward.ts',
-  'src/shards/pine-hollow/runtime/dialogue.ts',
-  'src/shards/pine-hollow/runtime/directorClock.ts',
-  'src/shards/pine-hollow/runtime/pack.ts',
   'src/shards/pine-hollow/runtime/npc/standInPerson.ts',
-  'src/shards/driftwood-isle/runtime/pack.ts',
   'src/shards/driftwood-isle/sim/kills.ts',
   'src/shards/driftwood-isle/runtime/npc/Castaway.ts',
   'src/shards/driftwood-isle/runtime/npc/Trader.ts',
-  'src/shards/driftwood-isle/npc/faceHeads.ts',
   'src/game/systems/npc/npcRig.ts',
   'src/game/complete/ShardComplete.ts',
 ]);
@@ -137,7 +120,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/assets/contracts/wreck.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/kit/caveInterior.ts', 'C1'],
-  ['src/shards/pine-hollow/runtime/kit/lodGlb.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/props/bakedBuilding.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts', 'C3'],
   // Pine's unshared door simulation remains custom C7; swings and wheels draw in C3.
@@ -150,7 +132,6 @@ const reviewedW2Owners = new Map([
   // C3 review: private ambient orchestration and weather remain counted custom.
   ['src/shards/pine-hollow/runtime/life/ambientLife.ts', 'C3'],
   ['src/shards/pine-hollow/runtime/life/visitors.ts', 'C3'],
-  ['src/shards/pine-hollow/data/ambientLife.ts', 'C3'],
   ['src/shards/pine-hollow/world/weather.ts', 'C3'],
   ['src/game/plugin/weather.ts', 'C3'],
   ...['beatEnvelope','harvest','harvestColors','BEAT','voice','beatCancel','beatT','beatCarcass','beatGive','cutsDone','addPitch','addY','lastRx','lastPy','fx','knife','interrupted','previousWeapons','updateBeat'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C6']),
@@ -160,12 +141,10 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts#swings', 'C3'],
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts#BuildingFloor', 'C8'],
   ['src/shards/pine-hollow/runtime/props/buildingLife.ts#doorListeners', 'C8'],
-  ['src/shards/pine-hollow/runtime/air.ts', 'C3'],
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
   ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose', 'swingValues', 'swingWindow', 'swingEase'].map(name => [`src/game/plugin/animation.ts#${name}`, 'C4']),
-  ['src/shards/pine-hollow/combat/combatMath.ts', 'C4'],
   ['src/shards/pine-hollow/combat/ctx.ts', 'C4'],
   ['src/shards/pine-hollow/combat/eliteStreams.ts', 'C4'],
   ['src/shards/pine-hollow/combat/elites.ts', 'C4'],
@@ -173,11 +152,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/combat/lane.ts', 'C4'],
   ['src/shards/pine-hollow/combat/spawns.ts', 'C4'],
   ['src/shards/pine-hollow/combat/strikes.ts', 'C4'],
-  ['src/shards/pine-hollow/life/birdFix.ts', 'C4'],
-  ['src/shards/pine-hollow/life/birdModels.ts', 'C4'],
-  ['src/shards/pine-hollow/life/index.ts', 'C4'],
-  ['src/shards/pine-hollow/life/lifeMath.ts', 'C4'],
-  ['src/shards/pine-hollow/life/trunks.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingCollision.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/rainShelter.ts', 'C4'],
@@ -185,7 +159,6 @@ const reviewedW2Owners = new Map([
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   ['src/shards/driftwood-isle/runtime/onboarding/firstMinutes.ts', 'C5'],
   ['src/shards/driftwood-isle/runtime/finalePresentation.ts', 'C5'],
-  ['src/shards/pine-hollow/compendium.ts', 'C5'],
   ['src/shards/pine-hollow/runtime/compendium/install.ts', 'C5'],
   ['src/shards/pine-hollow/runtime/compendium/trophyWall.ts', 'C1'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
@@ -228,27 +201,18 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/runtime/fpArms.ts', 'C6'],
   ['src/shards/driftwood-isle/loadout/rows.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/effects.ts', 'C6'],
-  ['src/shards/driftwood-isle/loot/finds.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/keepsakes.ts', 'C6'],
-  ['src/shards/driftwood-isle/loot/perks.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/presentation.ts', 'C6'],
-  ['src/shards/driftwood-isle/loot/shop.ts', 'C6'],
-  ['src/shards/driftwood-isle/loot/tables.ts', 'C6'],
-  ['src/shards/driftwood-isle/runtime/loadout.ts', 'C6'],
-  ['src/shards/driftwood-isle/runtime/swords.ts', 'C6'],
   ['src/shards/driftwood-isle/runtime/viewmodel/toonArms.ts', 'C6'],
   ['src/shards/pine-hollow/combat/chargeTells.ts', 'C6'],
   ['src/shards/pine-hollow/combat/install.ts', 'C4'],
   ['src/shards/pine-hollow/loadout/ammo.ts', 'C6'],
   ['src/shards/pine-hollow/loadout/effects.ts', 'C6'],
   ['src/shards/pine-hollow/loadout/events.ts', 'C6'],
-  ['src/shards/pine-hollow/runtime/loadout/finishes.ts', 'C6'],
   ['src/shards/pine-hollow/loadout/loadout.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/loadout/skins.ts', 'C6'],
-  ['src/shards/pine-hollow/runtime/combatService.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/kingLifetime.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kit/heldTool.ts', 'C6'],
-  ['src/shards/pine-hollow/runtime/rangedVolumes.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/viewmodel/gloveHands.ts', 'C6'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/core/assets.ts#gltfLoader', 'C9'],
@@ -269,7 +233,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/dev/perfLap.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/baked.ts', 'C9'],
-  ['src/shards/pine-hollow/runtime/landmarkLifetime.ts', 'C9'],
   ['src/shards/pine-hollow/strings.ts', 'C9'],
 ]);
 function namedRole(name,path='') {
@@ -286,7 +249,6 @@ function fileRole(path, name = '') {
   if (path === 'src/shards/driftwood-isle/runtime/hybrid.ts' || path === 'src/game/shardfile/hybrid.ts') return 'C9';
   if(creatureOwners.has(path))return 'C4';
   if(questOwners.has(path))return 'C5';
-  if(path==='src/shards/driftwood-isle/combat/coconuts.ts')return 'C6';
   if(path==='src/engine/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
   if (path === 'src/game/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
   if (path === 'src/game/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
@@ -332,7 +294,7 @@ function runtimeTags(source, path, fallback) {
       const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
         && node.source.value === '@wildshard/sdk/movers';
       const bindingOwner = path === 'src/shards/driftwood-isle/runtime/models/zipline.ts' ? 'C1'
-        : ['src/shards/pine-hollow/quest/rides.ts', 'src/shards/pine-hollow/runtime/quest.ts',
+        : ['src/shards/pine-hollow/runtime/quest.ts',
           'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
       const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';
       const owner = admittedBoot ? 'C9' : cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;

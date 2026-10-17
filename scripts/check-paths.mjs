@@ -39,7 +39,9 @@ function strings(text) {
 }
 function check(file, text, path, index, folder = ROOT) {
   if (allowed.has(`${file}\0${path}`)) return;
-  const at = resolve(folder, path);
+  // Component ownership keys append a declaration name to an existing module.
+  const target = file === 'scripts/shard-components.mjs' ? path.split('#')[0] : path;
+  const at = resolve(folder, target);
   const found = GLOB.test(path) ? globSync(at).some((p) => statSync(p).isFile()) : existsSync(at);
   if (!found) failures.add(`${file}:${text.slice(0, index).split('\n').length}: ${GLOB.test(path) ? 'empty glob' : 'missing path'} ${path}`);
 }
@@ -63,14 +65,16 @@ for (const file of tooling) {
     continue;
   }
   const shell = /\.(sh|py)$/.test(file);
-  const code = codeOnly(text, shell);
+  // Python docstrings are documentation, just like JS block comments.
+  const source = file.endsWith('.py') ? text.replaceAll(/^[ \t]*(?:"""[\s\S]*?"""|'''[\s\S]*?''')/gm, token => token.replaceAll(/[^\n]/g, ' ')) : text;
+  const code = codeOnly(source, shell);
   for (const match of strings(code)) {
-    if (file.endsWith('.py') && /\bf$/.test(code.slice(Math.max(0, match.index - 2), match.index))) continue;
+    if (file.endsWith('.py') && /\b[fr]$/.test(code.slice(Math.max(0, match.index - 2), match.index))) continue;
     const path = match[0].slice(1, -1);
     if (PATH.test(path)) check(file, text, path, match.index);
   }
   // Match standalone tokens, never a suffix of /tmp/.../src or weapons-src/...; punctuation may follow prose paths.
-  if (shell) for (const match of code.matchAll(/(?<![\w/.-])(?:\.\/)?src\/[\w./*{}?[\],$-]+/g)) check(file, text, match[0].replace(/\.$/, ''), match.index);
+  if (shell) for (const match of code.matchAll(/(?<![\w/.-])(?:\.\/)?src\/[\w./*{}?[\],$-]+/g)) check(file, text, match[0].replace(/[.,]$/, ''), match.index);
 }
 
 for (const file of globSync(['src/**/*.ts', 'test/**/*.ts'], { cwd: ROOT })) {

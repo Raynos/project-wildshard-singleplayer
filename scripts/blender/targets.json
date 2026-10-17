@@ -24,7 +24,7 @@
     "test/fixtures/sdk-authored-world/world.glb"
    ],
    "feeds": [
-    "test/sdk-authored-world.test.ts"
+    "test/world-scene.test.ts"
    ]
   },
   "driftwood-isle/island": {
