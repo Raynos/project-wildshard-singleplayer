@@ -40,6 +40,7 @@ import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { noteFrameDrawn, setFramePacing } from './framePacing';
 import { buildYield } from './workSlice';
+import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
@@ -794,21 +795,40 @@ export class Game {
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
-   * A retained view may supply its whole future root, including sibling authored lights outside the bound scene. */
-  async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D): Promise<void> {
+   * A retained view may supply its whole future root, including sibling authored lights outside the bound scene.
+   * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
+   * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage. */
+  async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D, before?: () => Promise<void> | void): Promise<void> {
     const composer = this._composer;
-    if (composer === null) return;
-    for (;;) {
-      const pending = this.postPreparation;
-      await pending;
-      if (this.postPreparation === pending) break;
-    }
+    if (composer === null) { await before?.(); return; }
+    const trace = { root: (futureRoot ?? this.scene).uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number }[] };
+    this._entryPreparation = trace;
+    // OP: every wait below is bounded in presented time; a stall rejects naming its stage (an admission issue), never a
+    // silent hang. `current` turns false with the bound, so the abandoned stages stop at their next check.
+    let phase = before === undefined ? 'post-preparation' : 'before-warm';
+    const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? phase : `${phase} (after ${last.phase})`; };
+    await boundEntryWarmup(owner, () => this.frameCount, stage, async current => {
+      if (before !== undefined) {
+        await before();
+        if (!current()) throw new Error('Shader warm-up owner left');
+        phase = 'post-preparation';
+      }
+      for (;;) {
+        const pending = this.postPreparation;
+        await pending;
+        if (!current()) throw new Error('Shader warm-up owner left');
+        if (this.postPreparation === pending) break;
+      }
+      phase = 'shaders-and-composer';
+      await this.warmEnteredStages(owner, composer, trace, current, futureRoot, next => { phase = next; });
+    });
+  }
+
+  private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: NonNullable<Game['_entryPreparation']>,
+    current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
-    const trace = { root: futureLighting.uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number }[] };
-    this._entryPreparation = trace;
     const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
-    const current = (): boolean => !owner.disposed;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
@@ -826,6 +846,7 @@ export class Game {
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
     if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
+      enter('parked-draws');
       const start = diagnosticNow();
       // Tiny already-linked draws can share the bounded construction slice. Each draw restores every flag
       // before yielding; the final painted barrier still precedes readiness. Desktop retains its prior cadence.
@@ -837,6 +858,7 @@ export class Game {
     }
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real
     // update, after entry; draw each once into a 1×1 stand-in of its target first.
+    enter('offscreen-draws');
     const offscreenStart = diagnosticNow();
     const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause, entryFrameExclusions(this.rootScene, futureRoot));
     onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);

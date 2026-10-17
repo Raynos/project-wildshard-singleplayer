@@ -330,9 +330,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               // G217 stays up until the actual page composer has warmed this newly entered world and kit.
-              await foundation.beforeWarm?.();
               // Authored ctx.root is a sibling of the native scene under this view; its lights draw on entry too.
-              await request.page.world.game.warmEnteredFrame(owner, view.root);
+              // The region's own last preparation (its sky build, beforeWarm) runs inside the warm-up's time bound:
+              // a stall there or in the warm-up is this admission's reported issue, never a silent hang (OP).
+              await request.page.world.game.warmEnteredFrame(owner, view.root, foundation.beforeWarm);
               restored = true;
             },
           };
