@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { checkModels } from '../scripts/check-models.mjs';
 
 describe('model contract after client relocation', () => {
+  it.each(['src/shards/nalati-grasslands-legacy/cragRock.ts', 'src/shards/nine-dragon-stack-legacy/vm/geo.ts'])('retains the frozen merge ceiling at %s', (file) => {
+    expect(checkModels({ [file]: 'mergeGeometries(parts);' }).violations).toEqual([]);
+    expect(checkModels({ [file]: 'mergeGeometries(parts); mergeGeometries(parts);' }).violations)
+      .toEqual([expect.stringContaining('2 × mergeGeometries')]);
+  });
+
+  it('keeps the frozen crag on the model contract', () => {
+    expect(checkModels({ 'src/shards/nalati-grasslands-legacy/cragRock.ts': 'registerSolid(piece);' }).violations)
+      .toContainEqual(expect.stringContaining('on the model contract — it places models'));
+  });
+
   it.each([['driftwood-isle', 'boat'], ['pine-hollow', 'logCabin']])('checks the relocated %s model', (slug, name) => {
     const file = `src/shards/${slug}/runtime/models/${name}.ts`;
     expect(checkModels({ [file]: `defineModel({ id: '${slug}/specimen' });` }).violations).toEqual([]);

@@ -14,10 +14,10 @@ export const SKY_PAINTER_LIGHT = {
   prefix: 'far', optOut: 'FAR_NO_PAINT',
 } as const;
 
-/** The fixed sun, toward the light (the panorama's sun at heading 352.16°, elevation 6.01°: look/panoramaData.ts PANO_SUN). */
+/** The fixed sun, toward the light (the panorama's sun at heading 352.16°, elevation 6.01°: data/panorama.json PANO_SUN). */
 export const SKY_SUN = [-0.13565746816854515, 0.10470203849028618, -0.9852078635831522] as const;
 /** The god rays' source (degrees, the engine compass): the painted sun. The engine compass faces (-sin az, cos az), the
- * panorama heading (sin h, -cos h), so az = h + 180 (E398; the panorama's sun: look/panoramaData.ts PANO_SUN). */
+ * panorama heading (sin h, -cos h), so az = h + 180 (E398; the panorama's sun: data/panorama.json PANO_SUN). */
 export const SKY_RAYS = { azimuth: (352.16 + 180) % 360, elevation: 6.01 } as const;
 /** The key light (its direction is `SKY_SUN`): colour (sRGB) and intensity. */
 export const SKY_KEY = { colour: 0xffd2a2, intensity: 2 } as const;
@@ -50,7 +50,7 @@ export const SEA = { size: 64, low: -48, high: -34, radius: 1400, handoff: [240,
 
 /**
  * Sky Reach's haze (the engine's `headingHaze`): the painted horizon's colour in the direction you look (gold toward the
- * sun, rose-lavender away), from the panorama's haze strip (look/panoramaData.ts) warmed to gold (E392: the targets sink
+ * sun, rose-lavender away), from the panorama's haze strip (data/panorama.json) warmed to gold (E392: the targets sink
  * far islands into warm gold); E399 (the council: 'no golden haze toward the sun'): the air toward the low sun goes only
  * a little gold over distance. Its near / far / max are `SKY_FOG`.
  */

@@ -26,7 +26,7 @@
       "src/shards/nalati-grasslands/look/panoramaData.ts"
     ],
     "art/far-reach/round-14-loop-4/pano/prep.py": [
-      "src/shards/far-reach/look/panoramaData.ts"
+      "src/shards/far-reach/data/panorama.json"
     ],
     "scripts/gen-shards.mjs": [
       "src/shards/_template/discovery.generated.ts",

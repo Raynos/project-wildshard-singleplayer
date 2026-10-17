@@ -1970,3 +1970,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 /src/shards/nalati-grasslands/boot/peopleFrames.generated.json
 /src/shards/nalati-grasslands/boot/peopleFallback.generated.json
+
+# Sky pre-admission boot metadata
+/src/shards/far-reach/boot/*.generated.json

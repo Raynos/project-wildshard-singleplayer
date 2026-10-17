@@ -66,7 +66,8 @@ export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/Cairn.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts', 'src/shards/nalati-grasslands/world/NomadCamp.ts', 'src/shards/nalati-grasslands/world/SummerCamp.ts', 'src/shards/nalati-grasslands/world/RoadFurniture.ts',
   'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
-  'src/shards/nalati-grasslands/cragRock.ts',
+  // e6b43b9aa retires the primary; its frozen copy keeps this contract.
+  'src/shards/nalati-grasslands-legacy/cragRock.ts',
 ];
 
 /**
@@ -108,7 +109,8 @@ export const DONE = {
     'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands/world/dressing/layer.ts': { why: "the dressing's scatter field: one InstancedMesh per kind drawing its model's copies (placed drawnInto), culled per instance with per-instance draw distances (world, §1)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/dressing/life.ts': { why: 'pollen and seed fluff (an effect), butterflies and the kites (ambient creatures, M5)', counts: { InstancedMesh: 2 } },
-    'src/shards/nalati-grasslands/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
+    // e6b43b9aa retires the primary; its frozen copy keeps this contract.
+    'src/shards/nalati-grasslands-legacy/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/campPeople.ts': { why: 'the camp people are People (M5)', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
     'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
@@ -119,11 +121,13 @@ export const DONE = {
     'src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack/playground/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
-    'src/shards/nine-dragon-stack/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
+    // 7d0e103ec retires the primary; its frozen copy keeps this contract.
+    'src/shards/nine-dragon-stack-legacy/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
     'src/shards/nine-dragon-stack/world/portals.ts': { why: 'G224: the portals are an effect, not a thing: five shader rings and swirl discs (instanced, animated on the GPU) with no collision, the ride is world/portalRide.ts', counts: { InstancedMesh: 2 } },
     'src/shards/nine-dragon-stack/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
-    'src/shards/nine-dragon-stack/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
+    // 87178e614 retires the primary; its frozen copy keeps this contract.
+    'src/shards/nine-dragon-stack-legacy/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
     'src/shards/pine-hollow/runtime/compendium/trophyWall.ts': { why: "the compendium's trophy wall (SHARD-PLATFORM M3, moved from Pine Hollow's world/): its mounts, each a creature's head built from its rig, merged into one draw", counts: { mergeGeometries: 2 } },
@@ -412,7 +416,7 @@ export function checkModels(files) {
     // a shard's generators are build-time only (SHARDS.md: run by the bake, never imported by the runtime, never shipped):
     // what they build reaches the page as baked data, drawn and registered through the model contract there
     if (/^src\/shards\/[^/]+\/generators\//.test(file)) continue;
-    if (ON_CONTRACT.includes(policy) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
+    if ((ON_CONTRACT.includes(file) || ON_CONTRACT.includes(policy)) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
     const area = areaOf(policy);

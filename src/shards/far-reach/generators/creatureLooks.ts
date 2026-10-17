@@ -1,4 +1,4 @@
-import { DRIFT_RAY_LOOK_ROW, SKY_GOAT_LOOK_ROW, GALE_WISP_LOOK_ROW, STORM_ROC_LOOK_ROW } from './species';
+import { DRIFT_RAY_LOOK_ROW, SKY_GOAT_LOOK_ROW, GALE_WISP_LOOK_ROW, STORM_ROC_LOOK_ROW } from '../data/species';
 import { DRIFT_RAY_CLIPS, SKY_GOAT_CLIPS, GALE_WISP_CLIPS } from './creatureClips';
 import { ROC_CLIPS } from './rocClips';
 

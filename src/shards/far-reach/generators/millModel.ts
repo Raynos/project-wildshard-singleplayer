@@ -1,11 +1,11 @@
 import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
-import { MILL_REST_URL } from '../data/restFiles';
+import { MILL_REST_URL } from './restFiles';
 import { Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { hdGeometry, fitModel } from './modelIntake';
 import { MILL_COURSES, MILL_TOWER, MODELLED } from '../data/millShape';
-import { HD_URLS } from '../data/files';
+import { HD_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): the windmill's modelled tower and rock foot (E410; world/mill.ts

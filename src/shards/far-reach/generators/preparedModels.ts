@@ -1,8 +1,8 @@
 import { MeshStandardMaterial, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
-import { HD_URLS, MODEL_URLS, SKY_HD, type SkyHdName } from '../data/files';
-import { CARVED, MODEL_FITS } from '../data/modelFrames';
+import { HD_URLS, MODEL_URLS, SKY_HD, type SkyHdName } from './fileInventory';
+import { CARVED, MODEL_FITS } from './modelFrames';
 import frames from '../data/skyIsleFrames.json' with { type: 'json' };
 import { facetedGeometry, fitModel, hdGeometry } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';

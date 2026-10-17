@@ -1,18 +1,17 @@
 import MILL_REST from '../data/millRest.generated.json' with { type: 'json' };
 import HEROES from '../data/heroLibrary.generated.json' with { type: 'json' };
-import { ISLET_POOL } from '../data/restFiles';
-import { SKY_RIG_LIBRARY } from '../data/rigLibrary';
-import { SKY_MESHES, MODEL_URLS, FAN_POOL, type SkyMeshName } from '../data/files';
+import files from '../boot/assets.generated.json' with { type: 'json' };
+import { SKY_RIG_LIBRARY } from '../data/population';
 import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
 import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
-import { SKY_AO_FLOOR } from '../data/modelFrames';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { MeshStandardMaterial, type Texture } from 'three';
 
+type SkyMeshName = keyof typeof files.MODEL_URLS;
 /** Shared admission and caching over authored rest primitives, original atlases and existing rigs. */
-export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {},
-  geometryPools: [FAN_POOL, ...REST_POOLS, BRIDGES.pool, ISLET_POOL, MILL_REST], rigs: SKY_RIG_LIBRARY, rigLoad: 'manual', mappedFallback: { roughness: 0.85, metalness: 0 } }, '[far-reach]');
-export const HERO_LIBRARY = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {},
+export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: files.SKY_MESHES as SkyMeshName[], preparedMeshes: files.SKY_MESHES as SkyMeshName[], meshUrls: files.MODEL_URLS, hd: [], hdUrls: {}, aoFloor: files.SKY_AO_FLOOR, hdLooks: {},
+  geometryPools: [files.FAN_POOL, ...REST_POOLS, BRIDGES.pool, files.ISLET_POOL, MILL_REST], rigs: SKY_RIG_LIBRARY, rigLoad: 'manual', mappedFallback: { roughness: 0.85, metalness: 0 } }, '[far-reach]');
+export const HERO_LIBRARY = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: files.SKY_AO_FLOOR, hdLooks: {},
   geometryPools: [HEROES.pool], paintedModels: HEROES.models }, '[far-reach]');
 /** Prepared channels and pivots with independent geometry copies for each owner. */
 export type SkyHd = NonNullable<ReturnType<typeof HERO_LIBRARY.painted>>;

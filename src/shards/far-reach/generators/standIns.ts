@@ -1,4 +1,4 @@
-import type { SkyCreature } from './files';
+import type { SkyCreature } from './fileInventory';
 
 export interface Bone { readonly name: string; readonly parent: string | null; readonly pos: readonly [number, number, number] }
 export interface Dims { readonly bodyY: number; readonly bodyHalfLen: number; readonly bodyRadius: number; readonly headRadius: number; readonly legLen: number; readonly halfWidth: number }

@@ -267,16 +267,16 @@
     },
     "boot": {
       "files": {
-        "module": "./data/boot",
-        "export": "BOOT_FILES"
+        "module": "./boot/files.generated.json",
+        "export": "default"
       },
       "sources": {
-        "module": "./data/boot",
-        "export": "BOOT_SOURCES"
+        "module": "./boot/sources.generated.json",
+        "export": "default"
       },
       "lateReads": {
-        "module": "./data/boot",
-        "export": "LATE_READS"
+        "module": "./boot/lateReads.generated.json",
+        "export": "default"
       }
     },
     "render": {

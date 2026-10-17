@@ -3,7 +3,8 @@ import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type:'json' };
 import { bakedMeshWorld, type BakedMeshKindRow, type WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
 import WORLD_ROWS from '../data/worldRows.generated.json' with { type: 'json' };
-import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
+import files from '../boot/assets.generated.json' with { type: 'json' };
+import * as v from 'valibot';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
 import { dressingMaterial } from './dressing';
@@ -22,8 +23,12 @@ const shackKind = (kind: object): ShackKind | undefined => {
   return SHACK.find((k) => k === name);
 };
 
-export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_ROWS.bakes, BAKED_URLS, 'far-reach', {
-  resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:WORLD_ROWS.pieces as readonly WorldPieceRow<BakedPiece>[],colliders:STATIC_SCENES.standalone.fixed.colliders},
+type BakedPiece = keyof typeof files.BAKED_URLS;
+const resources = v.parse(v.array(v.object({ id: v.string(), url: v.string(), compression: v.literal('deflate'),
+  fault: v.object({ level: v.picklist(['warn', 'error']), message: v.string() }) })), files.WORLD_BYTES);
+
+export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_ROWS.bakes, files.BAKED_URLS, 'far-reach', {
+  resources, readBytes: fetchDeflated, placements:{rows:WORLD_ROWS.pieces as readonly WorldPieceRow<BakedPiece>[],colliders:STATIC_SCENES.standalone.fixed.colliders},
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return 'look' in kind && typeof kind.look === 'string' ? SKY_LIBRARY.look(kind.look) : shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },

@@ -4,7 +4,7 @@ import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { FAN } from '../data/fanGeometry';
 import { hdGeometry } from './modelIntake';
-import { HD_URLS } from '../data/files';
+import { HD_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): the war fan's built shapes (weapons/fanModel.ts, mockup C), baked by

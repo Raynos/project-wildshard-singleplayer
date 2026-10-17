@@ -3,7 +3,7 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { hdGeometry } from './modelIntake';
 import { SKY_ISLE_HD, SKY_ISLE_MODELS, type SkyIsleFrame } from '../data/skyIsles';
 import { skyIsleHitDown } from './skyIsleProbe';
-import { HD_URLS } from '../data/files';
+import { HD_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): each textured sky-isle model's unit frame (world/skyIsleHd.ts), found

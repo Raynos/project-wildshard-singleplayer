@@ -2,10 +2,18 @@ import stages from './bossStages.json' with { type: 'json' };
 import { ROC_DEFINITION, ROC_BOSS_PROFILE, ROC_ID, BOSS_REWARD } from './rocFight';
 import FLAGS from './flags.json' with { type: 'json' };
 import { STRINGS } from './strings';
-import { SKY_RIG_LIBRARY } from './rigLibrary';
+import rigs from '../boot/rigs.generated.json' with { type: 'json' };
+import type { ModelLibraryRows } from '@wildshard/sdk/looks/modelLibrary';
+import * as v from 'valibot';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_ROWS, SKY_PAGE_HOMES } from './brains';
 import { SKY_FLOCK_ROWS, SKY_FLOCK_PLACEMENT, SKY_KILL_Y, FLOCK_STEP, SKY_FLOCK_GROUPS, SKY_PAGE_HELD, SKY_PAGE_BODY_HOMES } from './spawns';
 
+/** Restore tuple positions at the generated JSON boundary; authoring checks the rig contract. */
+type RigLibraryRows = NonNullable<ModelLibraryRows<string, never>['rigs']>;
+export const SKY_RIG_LIBRARY: RigLibraryRows = { bodies: { ...rigs.library.bodies,
+  standIns: Object.fromEntries(Object.entries(rigs.library.bodies.standIns).map(([id, row]) => [id, { ...row,
+    bones: row.bones.map(bone => ({ ...bone, pos: v.parse(v.tuple([v.number(), v.number(), v.number()]), bone.pos) })) }])) },
+  looks: rigs.library.looks as RigLibraryRows['looks'] };
 /** The same authored catalogue enters page and native hosts; each keeps its original phase and lifetime. */
 const program = { species: SKY_CREATURE_ROWS, strikes: SKY_CREATURE_STRIKES };
 export const SKY_PAGE_PROGRAM = { species: { program, page: SKY_PAGE_ROWS, homes: SKY_PAGE_HOMES, shove: true, library: SKY_RIG_LIBRARY },

@@ -4,7 +4,7 @@ import { skyIsleHitDown } from './skyIsleProbe';
 import { hdGeometry } from './modelIntake';
 import { SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, type SkyIsleModel, type SkyIsleFrame } from '../data/skyIsles';
 import { skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';
-import { HD_URLS } from '../data/files';
+import { HD_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): the firs on the decorative sky isles (world/build.ts), placed here

@@ -5,8 +5,8 @@ import { facetedGeometry, fitModel } from './modelIntake';
 import { FALLEN_BRIDGE, SPANS, type Span } from "./layout";
 import { ropeSag } from "./layoutMath";
 import { RISING_ISLETS } from './risingIslets';
-import { SKY_AO_FLOOR } from '../data/modelFrames';
-import { MODEL_URLS } from '../data/files';
+import { SKY_AO_FLOOR } from './modelFrames';
+import { MODEL_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): Sky Reach's rope bridges, baked by `scripts/bake-sky-world.mjs` into

@@ -1,8 +1,8 @@
 import {ISLET_POOL, BRIDGE_REST_URL, MILL_REST_URL } from './restFiles';
-import REST_POOLS from './restPools.generated.json' with { type: 'json' };
+import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
 import { PREPARED_MODELS_URL } from './modelFrames';
 import { GPU_FILES } from '../ktx2.generated';
-import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, ISLES_URL, FAN_URL, MEADOW_BLADES_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './files';
+import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, ISLES_URL, FAN_URL, MEADOW_BLADES_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './fileInventory';
 
 /** Ordered boot rows retain image/GPU selection until the platform resolves its chosen tier. */
 const shared = {

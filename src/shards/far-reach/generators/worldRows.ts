@@ -1,4 +1,4 @@
-import type { BakedPiece } from '../data/files';
+import type { BakedPiece } from './fileInventory';
 import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };

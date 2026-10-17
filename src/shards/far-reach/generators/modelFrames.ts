@@ -1,7 +1,7 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
-import { LECTERN } from './bookStand';
-import { TREE_MODELS, TREES } from './trees';
-import type { SkyHdName } from './files';
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import { LECTERN } from '../data/bookStand';
+import { TREE_MODELS, TREES } from '../data/trees';
+import type { SkyHdName } from './fileInventory';
 
 /** A finite model's static fitting rule, consumed only by the retained author generator. */
 interface StaticModelFit { readonly size: number; readonly by: 'height' | 'span'; readonly floor: number; readonly centre: 'base' }

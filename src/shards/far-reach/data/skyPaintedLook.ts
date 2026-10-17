@@ -1,6 +1,6 @@
-import { PANO_URL, TEX_URL } from './files';
+import files from '../boot/assets.generated.json' with { type: 'json' };
 import { SKY, SKY_DAY, SKY_FOG, SKY_HAZE, SKY_KEY, SKY_PAINTER_LIGHT, SKY_RAYS, SKY_SUN } from './skyLook';
-import { PANO_FOG_SRGB } from '../look/panoramaData';
+import panorama from './panorama.json' with { type: 'json' };
 import DRESSING from './skyDressing.json' with { type: 'json' };
 
 const [sunX, sunY, sunZ] = SKY_SUN;
@@ -15,10 +15,10 @@ const [sunX, sunY, sunZ] = SKY_SUN;
 const painted = (url: string, name: string) => ({ url, name, warn: `[far-reach] ${name} not loaded:`, sampler: { release: true } }) as const;
 const PANO_SAMPLER = { release: true, wrapS: 1001, wrapT: 1001, mips: false, minFilter: 1006, magFilter: 1006 } as const;
 const SKY_LOOK_TEXTURES = {
-  pano: { phone: { ...painted(PANO_URL.phone, 'far.panorama'), sampler: PANO_SAMPLER }, desktop: { ...painted(PANO_URL.desktop, 'far.panorama'), sampler: PANO_SAMPLER } },
-  rest: [painted(TEX_URL.clouds, 'far.cumulus'),
-    { ...painted(TEX_URL.cloudsea, 'far.cloudsea'), sampler: { release: true, wrapS: 1000, wrapT: 1000, mips: true, minFilter: 1008, anisotropy: 4 } },
-    painted(TEX_URL.maelstrom, 'far.maelstrom')],
+  pano: { phone: { ...painted(files.PANO_URL.phone, 'far.panorama'), sampler: PANO_SAMPLER }, desktop: { ...painted(files.PANO_URL.desktop, 'far.panorama'), sampler: PANO_SAMPLER } },
+  rest: [painted(files.TEX_URL.clouds, 'far.cumulus'),
+    { ...painted(files.TEX_URL.cloudsea, 'far.cloudsea'), sampler: { release: true, wrapS: 1000, wrapT: 1000, mips: true, minFilter: 1008, anisotropy: 4 } },
+    painted(files.TEX_URL.maelstrom, 'far.maelstrom')],
 } as const;
 
 /**
@@ -31,5 +31,5 @@ const SKY_LOOK_TEXTURES = {
 export const SKY_PAINTED = {
   look: { light: SKY_PAINTER_LIGHT, sun: { ...SKY_KEY, dir: { x: sunX, y: sunY, z: sunZ } }, fog: { color: SKY.fog, near: SKY_FOG.near, far: SKY_FOG.far }, horizon: SKY.horizon,
     neutral: true, rays: SKY_RAYS },
-  haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, day: SKY_DAY, images: SKY_LOOK_TEXTURES, dressing: DRESSING,
+  haze: { ...SKY_HAZE, ...SKY_FOG, strip: panorama.PANO_FOG_SRGB }, day: SKY_DAY, images: SKY_LOOK_TEXTURES, dressing: DRESSING,
 } as const;

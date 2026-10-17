@@ -3,8 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import source from '../data/bridges.json' with { type: 'json' };
-import { BRIDGES_URL } from '../data/files';
-import { BRIDGE_REST_URL } from '../data/restFiles';
+import { BRIDGES_URL } from './fileInventory';
+import { BRIDGE_REST_URL } from './restFiles';
 import type { PrivateScene } from '@wildshard/format/clientChannels';
 
 type ReadAsset = (url: string) => Uint8Array;

@@ -13,7 +13,7 @@
  * standalone sky docks (G200) never draw in the grid, so they stay out.
  */
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
-import { HD_URLS } from '../data/files';
+import { HD_URLS } from './fileInventory';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLE_MODELS, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
 import { keelIsles, skyIslePose, skyIslesIn, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';
 import { skyIsleFrame } from './skyIsleFrames';

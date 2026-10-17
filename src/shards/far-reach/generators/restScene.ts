@@ -1,6 +1,6 @@
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { LECTERN } from '../data/bookStand';
-import { REST_URLS } from '../data/restFiles';
+import { REST_URLS } from './restFiles';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { SPANS, UPDRAFT } from "./layout";

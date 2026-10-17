@@ -1,5 +1,5 @@
 import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
-import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
+import preparation from '../boot/worldTextures.generated.json' with { type: 'json' };
 import { ROC_STRIKES } from '../data/brains';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
@@ -23,7 +23,7 @@ import { meadow } from '../world/meadow';
 import { bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
-import { bindRuntimeProductProps, prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
+import { bindRuntimeProductProps, prepareClientWorld, type ClientWorldPreparation } from '@wildshard/game/shardfile/runtimeProduct';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -55,7 +55,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
-    const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION, SKY_LIBRARY);
+    const compiled = await prepareClientWorld(ctx, source, preparation as ClientWorldPreparation, SKY_LIBRARY);
     this.leaf = compiled.painted.get('leaf') ?? null; this.board = () => ctx.app.player?.mode === 'board';
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
