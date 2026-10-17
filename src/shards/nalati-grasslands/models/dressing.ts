@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { loadNalatiModel, type NalatiModel } from '../world/glbPaint';
+import { loadNalatiModel, type NalatiModel } from '../world/modelView';
 import { bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
 import { modelReady } from '../world/painted';
 

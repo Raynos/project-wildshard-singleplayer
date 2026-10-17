@@ -19,7 +19,7 @@
  */
 import * as THREE from 'three';
 import { PaintKit, poiMaterial, v3 } from './paint';
-import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
+import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
 import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../layout';
 import { inPoiClearing } from './clearings';
 import { NalatiSet } from './painted';

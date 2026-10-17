@@ -27,7 +27,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  *   5. unpose  the A-pose arm swung down to the procedural arm's rest (blended by its weight), so the same swings read.
  */
 import * as THREE from 'three';
-import { rawFromGltf } from './world/glbPaint';
+import { rawFromGltf } from './world/modelView';
 
 
 import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from './models/npc/figureRig';

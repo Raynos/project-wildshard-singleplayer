@@ -26,7 +26,7 @@ import { Flock, type FlockBody } from '../creatures/flock';
 import { readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadCreatureRig } from '../species/hulls';
-import { modelsOn } from '../world/glbPaint';
+import { modelsOn } from '../world/modelView';
 import { buildMarmotGeometry } from '../creatures/marmots';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { TitanBody } from '../combat/stormTitan';

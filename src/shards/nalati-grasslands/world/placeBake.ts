@@ -21,7 +21,7 @@ import specimensJson from '../data/placeSpecimens.json' with { type: 'json' };
 import dressingJson from '../data/dressingGeos.json' with { type: 'json' };
 import type { NalatiTexName } from '../look/nalatiTextures';
 import { unshuffleBodyLanes } from '../species/bodies';
-import type { ModelPlacement, NalatiModelName } from './glbPaint';
+import type { ModelPlacement, NalatiModelName } from './modelView';
 import { poiMaterial, texturedMaterial } from './paint';
 import { flushInstances, modelReady, placeMember, type InstanceData, type MemberData, type SetRegister } from './painted';
 import type { Box } from './solid';

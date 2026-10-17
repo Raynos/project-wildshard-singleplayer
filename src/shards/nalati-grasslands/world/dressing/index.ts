@@ -40,7 +40,7 @@ import { Flutter } from '../Flutter';
 import { DressLayer, DRESSING_PLAN, CAMP_CLUTTER, type Inst, type DressPlan, type ClutterSpots } from './layer';
 import { buildStaticsSliced, buildCampClutter, buildCampClutterSliced, type CampClutter } from './statics';
 import { DressLife } from './life';
-import { loadNalatiModel, modelsOn } from '../glbPaint';
+import { loadNalatiModel, modelsOn } from '../modelView';
 import type { NalatiSet } from '../painted';
 import { hullAt, hullCandidates, type Box } from '../solid';
 import {

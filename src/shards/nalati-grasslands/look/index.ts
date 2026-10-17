@@ -26,7 +26,7 @@ import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
-import { setModelShade } from '../world/glbPaint';
+import { setModelShade } from '../world/modelView';
 import { applyCloudSeaV2 } from './cloudSea';
 import { smoothstep } from '@wildshard/engine/core/noise';
 

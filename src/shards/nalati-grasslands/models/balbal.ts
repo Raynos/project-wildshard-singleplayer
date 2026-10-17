@@ -19,7 +19,7 @@ import { defineModel } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PaintKit, v3, poiMaterial } from '../world/paint';
 import { pole, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
-import { loadNalatiModel, MODEL_SIZE } from '../world/glbPaint';
+import { loadNalatiModel, MODEL_SIZE } from '../world/modelView';
 
 export type BalbalCarving = 'bare' | 'capped';
 

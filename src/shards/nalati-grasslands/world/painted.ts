@@ -34,7 +34,7 @@ import * as THREE from 'three';
 import { PaintKit, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
 import { Flutter } from './Flutter';
 import { boxDescs, highest, type Box } from './solid';
-import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
+import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ModelBuild, ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
 import { place, type Draw, type Placed } from '@wildshard/engine/models/place';

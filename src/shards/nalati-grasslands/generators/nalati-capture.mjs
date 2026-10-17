@@ -34,7 +34,7 @@ const meshSummary = mesh => ({ sourceMesh: mesh.sourceMesh, name: mesh.name, typ
 try {
   const [{ captureNalatiAuthoredWorld }, { nalatiGroundSource }, { awaitNalatiModelLoads }, { Terrain }] = await Promise.all([
     import('./nalatiCaptureInventory.ts'), import('./nalatiGroundSource.ts'),
-    import('../world/glbPaint.ts'), import('@wildshard/engine/world/Terrain'),
+    import('../world/modelView.ts'), import('@wildshard/engine/world/Terrain'),
   ]);
   const nativeTerrain = readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'));
   const capture = await captureNalatiAuthoredWorld({ root, sky, element: environment.element, nativeTerrain,

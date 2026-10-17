@@ -30,7 +30,7 @@ import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/ent
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { creatureRigUrl, nalatiCoatUrl, type CreatureRigName } from './rigs';
-import { modelsOn } from '../world/glbPaint';
+import { modelsOn } from '../world/modelView';
 
 import { adoptCoat, coatAtlas, HULL_COATS, isOwnCoat, paintCoat } from './coats';
 

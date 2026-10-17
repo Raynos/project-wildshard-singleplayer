@@ -8,7 +8,7 @@
  * doorway).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { MODEL_SIZE } from '../world/glbPaint';
+import { MODEL_SIZE } from '../world/modelView';
 import { generated } from '../world/painted';
 
 const [W, H, D] = MODEL_SIZE.watchtower;

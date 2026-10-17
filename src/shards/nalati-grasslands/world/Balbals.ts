@@ -19,7 +19,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
-import { MODEL_TRIS } from './glbPaint';
+import { MODEL_TRIS } from './modelView';
 import { balbal, wearGenerated, type BalbalCarving, type BalbalParams } from '../models/balbal';
 
 export interface Statue { x: number; y: number; z: number; yaw: number; scale: number; tilt: number; variant: number; slot: number; collider: Collider }

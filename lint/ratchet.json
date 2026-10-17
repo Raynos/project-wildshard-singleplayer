@@ -2269,7 +2269,6 @@
     "src/shards/nalati-grasslands/world/Balbals.ts": 1,
     "src/shards/nalati-grasslands/world/Bowl.ts": 2,
     "src/shards/nalati-grasslands/world/KurganDungeon.ts": 2,
-    "src/shards/nalati-grasslands/world/glbPaint.ts": 2,
     "src/shards/nalati-grasslands/world/granite.ts": 1,
     "src/shards/nalati-grasslands/world/installWeather.ts": 36,
     "src/shards/nalati-grasslands/world/paint.ts": 3,
@@ -2439,6 +2438,7 @@
     "src/shards/pine-hollow/runtime/life/ambientLife.ts": 43,
     "src/shards/driftwood-isle/runtime/world/systems.ts": 8,
     "src/shards/driftwood-isle/runtime/world/Shrine.ts": 3,
-    "src/shards/driftwood-isle/runtime/models/fixedSites.ts": 10
+    "src/shards/driftwood-isle/runtime/models/fixedSites.ts": 10,
+    "src/shards/nalati-grasslands/world/modelView.ts": 2
   }
 }

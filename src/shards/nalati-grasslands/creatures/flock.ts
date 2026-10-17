@@ -19,7 +19,7 @@ import * as THREE from 'three';
 
 import type { PackPrey } from '../runtime/groupRegistry';
 import { loadCreatureRig, type RigAsset } from '../species/hulls';
-import { modelsOn } from '../world/glbPaint';
+import { modelsOn } from '../world/modelView';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { wildEnv, angDiff } from './env';
