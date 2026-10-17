@@ -169,3 +169,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 22:36 · wT:p5 · `cat > tmp/nalati-sim-lane/message <<'MSG' refactor(nalati): bake flock geometry  Remove the whole procedural sheep module from play. Publish its unchanged vertices, rig weights, indices, pivots and pa`
 - 2026-10-16 22:37 · wT:p5 · `python3 tmp/nalati-sim-lane/candidate.py python3 - <<'PY' from pathlib import Path import json p=Path('tmp/nalati-sim-lane'); (p/'intent').write_text(json.dumps({'base':(p/'base').read_text(),'paths':`
 - 2026-10-16 22:38 · wT:p5 · `TASK_INTENT=$(cat tmp/nalati-sim-lane/intent) GIT_INDEX_FILE="$PWD/tmp/nalati-sim-lane/index" WS_COMMIT_INTENT="$TASK_INTENT" SKIP_SWEEPGUARD=1 .githooks/commit-msg "$PWD/tmp/nalati-sim-lane/message" `
+- 2026-10-16 23:00 · wT:p3 · `python3 tmp/nalati-paint/prepare.py GIT_INDEX_FILE="$PWD/tmp/nalati-paint/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/nalati-paint/precommit.log 2>&1`
