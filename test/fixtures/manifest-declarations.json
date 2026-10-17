@@ -1,0 +1,1169 @@
+{
+  "nalati-grasslands": {
+    "accent": "ember",
+    "api": 1,
+    "assetGlobs": [
+      "public/assets/nalati/**",
+      "public/assets/gpu/nalati/**",
+      "public/assets/music/nalati/**",
+      "public/assets/sfx/nalati-grasslands/**",
+      "public/assets/title/nalati-grasslands-portrait.jpg",
+      "public/assets/nalati-grasslands/map/**"
+    ],
+    "assets": {
+      "groundLayers": [
+        "leafy_grass",
+        "stony_dirt_path",
+        "rock_ground",
+        "forest_ground_04"
+      ],
+      "groundTints": [
+        [
+          0.7,
+          0.85,
+          0.5
+        ],
+        [
+          0.9,
+          0.84,
+          0.66
+        ],
+        [
+          0.7,
+          0.7,
+          0.72
+        ],
+        [
+          0.95,
+          0.95,
+          0.95
+        ]
+      ],
+      "slabRock": "rock_ground"
+    },
+    "atmosphere": {
+      "fogDistDensity": 0.002,
+      "fogHeight": -30,
+      "fogHeightDensity": 0.0006,
+      "fogHeightFalloff": 0.05,
+      "volumetric": {
+        "density": 0.0009,
+        "falloff": 0.06,
+        "height": -30,
+        "strength": 0.35
+      },
+      "volumetricSunColor": [
+        1,
+        0.9,
+        0.72
+      ]
+    },
+    "audio": {
+      "alertOnlyHostile": true,
+      "ambience": "ambience.nalati",
+      "bed": "steppe",
+      "score": "score.nalati"
+    },
+    "bag": {
+      "pack": {
+        "slots": 0
+      },
+      "skinsTitle": "Skins",
+      "tabs": [
+        "map",
+        "gear",
+        "finds",
+        "feats"
+      ]
+    },
+    "biome": "Alpine steppe",
+    "blurb": "SUPER EXPERIMENTAL \u2014 the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.",
+    "boot": {
+      "bytes": {
+        "trees": "spruce bark"
+      },
+      "explore": {
+        "art": [
+          "/src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp",
+          "/src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp",
+          "/src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp",
+          "/src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp",
+          "/src/shards/nalati-grasslands/explore/playground-horse.webp",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg",
+          "/src/shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg"
+        ]
+      },
+      "precache": [],
+      "stagedWorld": true
+    },
+    "budgets": {
+      "ceilings": {
+        "desktop": {
+          "bridge": {
+            "gpuMB": 587.9535007476807
+          },
+          "camp": {
+            "gpuMB": 587.9535007476807
+          },
+          "plains": {
+            "gpuMB": 587.9535007476807
+          }
+        },
+        "phone": {
+          "bridge": {
+            "gpuMB": 225.7965316772461
+          },
+          "camp": {
+            "gpuMB": 225.7965316772461
+          },
+          "plains": {
+            "gpuMB": 225.7965316772461
+          }
+        }
+      },
+      "desktop": {
+        "cpuMs": 4.8,
+        "fps": 60,
+        "gcMs": 0.3,
+        "lanes": {
+          "opaque": 0.5,
+          "post": 0.5
+        },
+        "linkMs": 1000,
+        "systems": {
+          "ai": 0.4,
+          "animation": 0.5,
+          "audio": 0.1,
+          "hud": 0.15,
+          "physics": 0.4,
+          "player": 0.2,
+          "world": 0.25
+        },
+        "variability": 1.3,
+        "vertexShare": 0.5
+      },
+      "load": {
+        "bytesPerSecond": 1125000,
+        "coldPlay4G": 35.5,
+        "cpuRatio": 2,
+        "fixedSeconds": 5.2
+      },
+      "phone": {
+        "cpuMs": 9.6,
+        "fps": 30,
+        "gcMs": 0.6,
+        "lanes": {
+          "foliage": 0.1875,
+          "opaque": 0.3125,
+          "post": 0.125,
+          "reserve": 0.0625,
+          "shadow": 0.15625,
+          "transparent": 0.09375,
+          "viewmodel": 0.0625
+        },
+        "linkMs": 1000,
+        "systems": {
+          "ai": 0.8,
+          "animation": 1,
+          "audio": 0.2,
+          "hud": 0.3,
+          "physics": 0.8,
+          "player": 0.4,
+          "world": 0.5
+        },
+        "variability": 1.3,
+        "vertexShare": 0.5
+      }
+    },
+    "card": {
+      "landscape": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg",
+      "portrait": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg",
+      "thumb": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands.jpg"
+    },
+    "creatures": {
+      "furRim": false,
+      "lowPoly": false,
+      "oneMaterial": false,
+      "tintRange": 0.2,
+      "waitForModels": true
+    },
+    "debugOptions": [],
+    "entries": {
+      "legacy": true,
+      "public": "shardfile",
+      "shardfile": true
+    },
+    "explore": {
+      "art": {
+        "models": "/src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp",
+        "practice": "/src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp",
+        "sets": "/src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp",
+        "world": "/src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp"
+      },
+      "compare": [
+        {
+          "id": "camp",
+          "image": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg",
+          "label": "Camp",
+          "live": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg",
+          "model": "",
+          "target": "art/nalati-grasslands/round-5-paintover/camp-po-phone.jpg"
+        },
+        {
+          "id": "rail",
+          "image": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg",
+          "label": "River rail",
+          "live": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg",
+          "model": "",
+          "target": "art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg"
+        },
+        {
+          "id": "gully",
+          "image": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg",
+          "label": "Gully",
+          "live": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg",
+          "model": "",
+          "target": "art/nalati-grasslands/round-5-paintover/gully-po-phone.jpg"
+        }
+      ]
+    },
+    "fight": {
+      "input": {
+        "bufferMs": 120,
+        "coyoteMs": 100
+      },
+      "telegraphed": true
+    },
+    "forest": {
+      "clearings": [
+        -2,
+        -1.5
+      ],
+      "densityFreq": 0.01,
+      "largeVariantChance": 0.15,
+      "maxSlope": 0.6,
+      "spacing": 4.2,
+      "tintHue": 0.3,
+      "tintHueJitter": [
+        -0.06,
+        0.06
+      ],
+      "tintLight": [
+        0.8,
+        0.95
+      ],
+      "tintSat": [
+        0.05,
+        0.25
+      ]
+    },
+    "grade": {
+      "bloomIntensity": 0.35,
+      "bloomThreshold": 0.86,
+      "brightness": 0,
+      "contrast": 0.15,
+      "gain": [
+        1.02,
+        1.02,
+        1
+      ],
+      "gamma": 1,
+      "highTint": [
+        1.05,
+        1.01,
+        0.94
+      ],
+      "lift": [
+        0,
+        0.004,
+        0.018
+      ],
+      "saturation": 0.1,
+      "shadowTint": [
+        0.9,
+        0.96,
+        1.1
+      ]
+    },
+    "gridShardfile": "/shardfiles/nalati-grasslands/shard.json",
+    "horizon": {
+      "cloudSea": true,
+      "rings": [
+        {
+          "bands": [
+            {
+              "azimuth": 0,
+              "height": 40,
+              "rough": 0.05,
+              "spread": 60
+            },
+            {
+              "azimuth": 300,
+              "height": 20,
+              "rough": 0,
+              "spread": 45
+            },
+            {
+              "azimuth": 90,
+              "height": 145,
+              "rough": 0.3,
+              "spread": 45
+            },
+            {
+              "azimuth": 140,
+              "height": 165,
+              "rough": 0.35,
+              "spread": 30
+            },
+            {
+              "azimuth": 190,
+              "height": 130,
+              "rough": 0.25,
+              "spread": 40
+            },
+            {
+              "azimuth": 240,
+              "height": 75,
+              "rough": 0.12,
+              "spread": 25
+            }
+          ],
+          "base": -95,
+          "color": [
+            0.16,
+            0.3,
+            0.06
+          ],
+          "floor": -95,
+          "haze": 0.06,
+          "r": 800,
+          "snowLine": 2,
+          "top": [
+            0.36,
+            0.46,
+            0.11
+          ]
+        },
+        {
+          "bands": [
+            {
+              "azimuth": 20,
+              "height": 70,
+              "rough": 0.3,
+              "spread": 50
+            },
+            {
+              "azimuth": 290,
+              "height": 35,
+              "rough": 0.1,
+              "spread": 50
+            },
+            {
+              "azimuth": 95,
+              "height": 330,
+              "rough": 0.6,
+              "spread": 40
+            },
+            {
+              "azimuth": 150,
+              "height": 360,
+              "rough": 0.6,
+              "spread": 40
+            },
+            {
+              "azimuth": 205,
+              "height": 280,
+              "rough": 0.5,
+              "spread": 35
+            }
+          ],
+          "base": -150,
+          "color": [
+            0.08,
+            0.14,
+            0.06
+          ],
+          "floor": -150,
+          "haze": 0.12,
+          "r": 1400,
+          "snowLine": 0.9,
+          "top": [
+            0.22,
+            0.27,
+            0.13
+          ]
+        }
+      ]
+    },
+    "hud": {
+      "dayBadge": true
+    },
+    "kitLook": "painterly",
+    "label": "(+4, \u22122)",
+    "loadout": {
+      "held": "bow",
+      "loans": [
+        {
+          "id": "rifle",
+          "in": "practice"
+        }
+      ],
+      "start": [
+        "bow",
+        "sabre",
+        "spear",
+        "tool.hoverboard"
+      ],
+      "tools": [
+        "tool.hoverboard"
+      ],
+      "weapons": [
+        "bow",
+        "sabre",
+        "spear",
+        "rifle"
+      ]
+    },
+    "minimap": {
+      "image": "/assets/nalati-grasslands/map/top.webp"
+    },
+    "name": "Nalati Grasslands",
+    "navmesh": {},
+    "order": 3,
+    "pois": [
+      {
+        "id": "nomad-camp",
+        "name": "Nomad camp",
+        "r": 24,
+        "x": 88,
+        "z": 212
+      },
+      {
+        "id": "sheep-pasture",
+        "name": "Sheep pasture",
+        "r": 24,
+        "x": -120,
+        "z": 212
+      },
+      {
+        "id": "bridge",
+        "name": "Bridge",
+        "r": 24,
+        "x": 0,
+        "z": 172
+      },
+      {
+        "id": "kunes-river",
+        "name": "Kunes river",
+        "r": 24,
+        "x": 150,
+        "z": 170.69679046771836
+      },
+      {
+        "id": "sky-road",
+        "name": "Sky road",
+        "r": 24,
+        "x": 46,
+        "z": 128
+      },
+      {
+        "id": "eagle-rock",
+        "name": "Eagle rock",
+        "r": 24,
+        "x": 180,
+        "z": 85
+      },
+      {
+        "id": "horse-plains",
+        "name": "Horse plains",
+        "r": 24,
+        "x": 65,
+        "z": 36
+      },
+      {
+        "id": "kokpar-field",
+        "name": "Kokpar field",
+        "r": 24,
+        "x": -61,
+        "z": 36
+      },
+      {
+        "id": "kurgan-field",
+        "name": "Kurgan field",
+        "r": 24,
+        "x": -106,
+        "z": 83
+      },
+      {
+        "id": "great-kurgan",
+        "name": "Great kurgan",
+        "r": 24,
+        "x": -191,
+        "z": 75
+      },
+      {
+        "id": "summer-camp",
+        "name": "Summer camp",
+        "r": 24,
+        "x": -91,
+        "z": -26
+      },
+      {
+        "id": "watchtower",
+        "name": "Watchtower",
+        "r": 24,
+        "x": -208,
+        "z": -38
+      },
+      {
+        "id": "wind-cairn",
+        "name": "Wind cairn",
+        "r": 24,
+        "x": -30,
+        "z": -45
+      },
+      {
+        "id": "glacier",
+        "name": "Glacier",
+        "r": 24,
+        "x": -82,
+        "z": -81
+      },
+      {
+        "id": "snow-leopard-cave",
+        "name": "Snow leopard cave",
+        "r": 24,
+        "x": 138,
+        "z": -68
+      },
+      {
+        "id": "the-crags",
+        "name": "The crags",
+        "r": 24,
+        "x": -180,
+        "z": -115
+      },
+      {
+        "id": "snow-lotus",
+        "name": "Snow lotus",
+        "r": 24,
+        "x": 143,
+        "z": -136
+      }
+    ],
+    "runtimeCost": {
+      "device": "iOS Simulator Safari compressed matched pre-entry increment, three cold runs",
+      "engineBaseMB": 299,
+      "evidence": "progress/memory/g258-accounting/summary.json",
+      "glMB": 269.1803,
+      "imagesFirst": {
+        "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+        "engineBaseMB": 299,
+        "evidence": "progress/memory/sf22a-2026-10-04.json",
+        "glMB": 236.8,
+        "rev": "91f97bdfc",
+        "webContentMB": 606
+      },
+      "residentBaseMB": 685.345862,
+      "rev": "f3a42924f51424d2a653597c945451f69505ed14",
+      "webContentMB": 634.916944
+    },
+    "seed": 18970,
+    "sky": {
+      "bgIntensity": 1,
+      "cloudSunColor": [
+        1,
+        0.93,
+        0.82
+      ],
+      "envIntensity": 0.6,
+      "fogSunColor": [
+        1,
+        0.88,
+        0.7
+      ],
+      "hdri": "kloofendal_48d_partly_cloudy_puresky",
+      "hemiGround": 8025142,
+      "hemiIntensity": 0.5,
+      "hemiSky": 10274047,
+      "painted": {
+        "glow": [
+          0.5,
+          0.4,
+          0.25
+        ],
+        "ground": [
+          0.3,
+          0.36,
+          0.3
+        ],
+        "horizon": [
+          0.62,
+          0.78,
+          0.98
+        ],
+        "zenith": [
+          0.1,
+          0.28,
+          0.85
+        ]
+      },
+      "planet": {
+        "azimuth": 205,
+        "elevation": 23,
+        "roll": -20,
+        "size": 26,
+        "tilt": 2
+      },
+      "sun": {
+        "azimuth": 250,
+        "elevation": 26
+      },
+      "sunColor": [
+        1,
+        0.85,
+        0.64
+      ],
+      "sunIntensity": 2.8
+    },
+    "slug": "nalati-grasslands",
+    "spawn": {
+      "x": 0,
+      "yaw": 0,
+      "z": 232
+    },
+    "spawns": [],
+    "status": "earlyAccess",
+    "style": "painterly",
+    "tiers": {
+      "desktop": {
+        "msaa": 4
+      },
+      "phone": {
+        "msaa": 2
+      }
+    },
+    "treeCount": 1400,
+    "trees": {
+      "bark": "pine_bark",
+      "noun": "spruces",
+      "twigAtlas": "pine_tree_01"
+    },
+    "uses": [
+      "dayCycle",
+      "weather",
+      "bosses",
+      "elites",
+      "spawns",
+      "quests",
+      "swim",
+      "hover",
+      "explore",
+      "practice",
+      "loot",
+      "feats"
+    ],
+    "weapon": "custom"
+  },
+  "nine-dragon-stack": {
+    "accent": "iris",
+    "api": 1,
+    "assetGlobs": [
+      "public/assets/nine-dragon/**",
+      "public/assets/gpu/nine-dragon/**",
+      "public/assets/music/nine-dragon-stack/**",
+      "public/assets/sfx/nine-dragon-stack/**",
+      "public/assets/title/nine-dragon-stack-portrait.jpg",
+      "public/assets/nine-dragon-stack/map/**"
+    ],
+    "assets": {
+      "groundLayers": [
+        "forest_ground_04",
+        "leafy_grass",
+        "rock_ground",
+        "stony_dirt_path"
+      ],
+      "groundTints": [
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      "slabRock": "rock_ground"
+    },
+    "atmosphere": {
+      "fogDistDensity": 0.004,
+      "fogHeight": 85,
+      "fogHeightDensity": 0.004,
+      "fogHeightFalloff": 0.05,
+      "volumetric": {
+        "density": 0.003,
+        "falloff": 0.05,
+        "height": 95,
+        "strength": 0.3
+      },
+      "volumetricSunColor": [
+        0.55,
+        0.62,
+        0.85
+      ]
+    },
+    "audio": {
+      "ambience": "ambience.nd",
+      "bed": "forest",
+      "samples": {
+        "loopGains": {
+          "forest": 0.5
+        },
+        "omitLoops": [
+          "shrine"
+        ],
+        "omitShots": [
+          "crab_click",
+          "crab_snap",
+          "monkey_chatter",
+          "monkey_shriek",
+          "sailor_groan",
+          "sailor_slash",
+          "coconut_hit",
+          "coconut_land",
+          "gull"
+        ]
+      },
+      "score": "score.nd"
+    },
+    "bag": {
+      "pack": {
+        "slots": 0
+      },
+      "tabs": [
+        "map",
+        "gear"
+      ]
+    },
+    "biome": "Vertical neon city",
+    "blurb": "Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment \u2014 the square, the Well's rim and the stair-street \u2014 rough edges everywhere.",
+    "boot": {
+      "barrier": true,
+      "cullBeforeFirstDraw": true,
+      "explore": {
+        "art": [
+          "/src/shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp",
+          "/src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp",
+          "/src/shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp",
+          "/src/shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp",
+          "/src/shards/nine-dragon-stack/explore/nine-gate-live.jpg",
+          "/src/shards/nine-dragon-stack/explore/nine-gate-target.jpg",
+          "/src/shards/nine-dragon-stack/explore/nine-stair-live.jpg",
+          "/src/shards/nine-dragon-stack/explore/nine-stair-target.jpg",
+          "/src/shards/nine-dragon-stack/explore/playground-grapple.webp"
+        ]
+      },
+      "phone": {
+        "deferExtras": true,
+        "fragile": true,
+        "trace": true
+      },
+      "precache": []
+    },
+    "bounds": {
+      "floor": 25,
+      "x0": -36,
+      "x1": 90,
+      "z0": -130,
+      "z1": 28
+    },
+    "budgets": {
+      "ceilings": {
+        "desktop": {
+          "D": {
+            "gpuMB": 575.1385869979858
+          },
+          "spawn-rail": {
+            "gpuMB": 574.8232107162476
+          },
+          "stair-street": {
+            "gpuMB": 574.8232107162476
+          },
+          "well-edge": {
+            "gpuMB": 574.8232107162476
+          }
+        },
+        "phone": {
+          "D": {
+            "gpuMB": 271.43809032440186
+          },
+          "spawn-rail": {
+            "gpuMB": 253.6043882369995
+          },
+          "stair-street": {
+            "gpuMB": 253.6043882369995
+          },
+          "well-edge": {
+            "gpuMB": 253.6043882369995
+          }
+        }
+      },
+      "desktop": {
+        "cpuMs": 4.8,
+        "fps": 60,
+        "gcMs": 0.3,
+        "lanes": {
+          "opaque": 0.5,
+          "post": 0.5
+        },
+        "linkMs": 1000,
+        "systems": {
+          "ai": 0.4,
+          "animation": 0.5,
+          "audio": 0.1,
+          "hud": 0.15,
+          "physics": 0.4,
+          "player": 0.2,
+          "world": 0.25
+        },
+        "variability": 1.3,
+        "vertexShare": 0.5
+      },
+      "load": {
+        "bytesPerSecond": 1125000,
+        "coldPlay4G": null,
+        "cpuRatio": 2,
+        "fixedSeconds": 0
+      },
+      "phone": {
+        "cpuMs": 9.6,
+        "fps": 30,
+        "gcMs": 0.6,
+        "lanes": {
+          "foliage": 0.1875,
+          "opaque": 0.3125,
+          "post": 0.125,
+          "reserve": 0.0625,
+          "shadow": 0.15625,
+          "transparent": 0.09375,
+          "viewmodel": 0.0625
+        },
+        "linkMs": 1000,
+        "systems": {
+          "ai": 0.8,
+          "animation": 1,
+          "audio": 0.2,
+          "hud": 0.3,
+          "physics": 0.8,
+          "player": 0.4,
+          "world": 0.5
+        },
+        "variability": 1.3,
+        "vertexShare": 0.5
+      }
+    },
+    "camera": {
+      "portraitFov": 78
+    },
+    "card": {
+      "landscape": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg",
+      "portrait": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg",
+      "thumb": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg"
+    },
+    "creatures": {
+      "furRim": false,
+      "lowPoly": false,
+      "oneMaterial": false,
+      "tintRange": 0.2,
+      "waitForModels": false
+    },
+    "debugOptions": [],
+    "encounters": [],
+    "entries": {
+      "legacy": true,
+      "public": "shardfile",
+      "shardfile": true
+    },
+    "explore": {
+      "art": {
+        "models": "/src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp",
+        "practice": "/src/shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp",
+        "sets": "/src/shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp",
+        "world": "/src/shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp"
+      },
+      "compare": [
+        {
+          "id": "gate",
+          "image": "/src/shards/nine-dragon-stack/explore/nine-gate-target.jpg",
+          "label": "Lantern gate",
+          "live": "/src/shards/nine-dragon-stack/explore/nine-gate-live.jpg",
+          "model": "nine-gate",
+          "target": "art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg"
+        },
+        {
+          "id": "stair",
+          "image": "/src/shards/nine-dragon-stack/explore/nine-stair-target.jpg",
+          "label": "Stair street",
+          "live": "/src/shards/nine-dragon-stack/explore/nine-stair-live.jpg",
+          "model": "nine-stair",
+          "target": "art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg"
+        }
+      ]
+    },
+    "fight": {
+      "attackers": "Infinity",
+      "input": {
+        "bufferMs": 120,
+        "coyoteMs": 100
+      },
+      "telegraphed": true
+    },
+    "forest": {
+      "clearings": [
+        -0.3,
+        0.4
+      ],
+      "densityFreq": 0.01,
+      "largeVariantChance": 0,
+      "maxSlope": 0.7,
+      "spacing": 9,
+      "tintHue": 0.28,
+      "tintHueJitter": [
+        -0.03,
+        0.03
+      ],
+      "tintLight": [
+        0.5,
+        0.62
+      ],
+      "tintSat": [
+        0.5,
+        0.7
+      ]
+    },
+    "grade": {
+      "bloomIntensity": 0.6,
+      "bloomThreshold": 0.9,
+      "brightness": 0,
+      "contrast": 0.1,
+      "gain": [
+        1,
+        1,
+        1
+      ],
+      "gamma": 1,
+      "highTint": [
+        1.06,
+        1,
+        0.92
+      ],
+      "lift": [
+        0,
+        0,
+        0.01
+      ],
+      "saturation": 0.1,
+      "shadowTint": [
+        0.92,
+        0.96,
+        1.08
+      ]
+    },
+    "gridShardfile": "/shardfiles/nine-dragon-stack/shard.json",
+    "horizon": {
+      "cloudSea": false,
+      "rings": []
+    },
+    "kitLook": "pbr",
+    "label": "(\u22122, +1)",
+    "loadout": {
+      "pickups": [],
+      "start": [
+        "weapon.jian",
+        "tool.hoverboard"
+      ],
+      "tools": [
+        "tool.fei-zhua",
+        "tool.hoverboard"
+      ],
+      "weapons": [
+        "weapon.jian"
+      ]
+    },
+    "minimap": {
+      "image": "/assets/nine-dragon-stack/map/top.webp"
+    },
+    "name": "Nine Dragon Stack",
+    "order": 4,
+    "pois": [
+      {
+        "id": "lantern-square",
+        "name": "Lantern square",
+        "r": 16,
+        "x": 11,
+        "z": -3
+      },
+      {
+        "id": "night-market",
+        "name": "Night market",
+        "r": 6,
+        "x": 19,
+        "z": -17
+      },
+      {
+        "id": "stair-street",
+        "name": "Stair-street",
+        "r": 24,
+        "x": 46,
+        "z": 6
+      },
+      {
+        "id": "well-rim",
+        "name": "The well rim",
+        "r": 18,
+        "x": -14,
+        "z": -14
+      },
+      {
+        "id": "portal-north",
+        "name": "Road portal",
+        "r": 8,
+        "x": 0,
+        "z": 236
+      },
+      {
+        "id": "portal-east",
+        "name": "Road portal",
+        "r": 8,
+        "x": 236,
+        "z": 0
+      },
+      {
+        "id": "portal-south",
+        "name": "Road portal",
+        "r": 8,
+        "x": 0,
+        "z": -236
+      },
+      {
+        "id": "portal-west",
+        "name": "Road portal",
+        "r": 8,
+        "x": -236,
+        "z": 0
+      }
+    ],
+    "runtimeCost": {
+      "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+      "engineBaseMB": 299,
+      "evidence": "progress/memory/sf22a-runtime-homes-535780474/summary.json",
+      "glMB": 278.256291,
+      "rev": "5357804745121cdda8f9492b62d3266244f4ac1b",
+      "webContentMB": 399.21624
+    },
+    "seed": 40234,
+    "sky": {
+      "bgIntensity": 1,
+      "cloudSunColor": [
+        0.6,
+        0.66,
+        0.8
+      ],
+      "envIntensity": 0.5,
+      "fogSunColor": [
+        0.6,
+        0.66,
+        0.8
+      ],
+      "hdri": "kloofendal_48d_partly_cloudy_puresky",
+      "hemiGround": 2763828,
+      "hemiIntensity": 0.5,
+      "hemiSky": 7308968,
+      "painted": {
+        "glow": [
+          0.2,
+          0.2,
+          0.3
+        ],
+        "ground": [
+          0.16,
+          0.18,
+          0.22
+        ],
+        "horizon": [
+          0.36,
+          0.44,
+          0.58
+        ],
+        "zenith": [
+          0.09,
+          0.14,
+          0.26
+        ]
+      },
+      "sun": {
+        "azimuth": 250,
+        "elevation": 8
+      },
+      "sunColor": [
+        0.55,
+        0.62,
+        0.85
+      ],
+      "sunIntensity": 0.6
+    },
+    "slug": "nine-dragon-stack",
+    "spawn": {
+      "x": 0.95,
+      "y": 125,
+      "yaw": -0.20943951023931956,
+      "z": 7.5
+    },
+    "spawns": [],
+    "species": [],
+    "status": "experimental",
+    "style": "jiehua",
+    "tiers": {
+      "desktop": {
+        "ao": true,
+        "slices": false
+      },
+      "phone": {
+        "aa": "fxaa",
+        "ao": false,
+        "slices": false,
+        "textures": "img",
+        "warmTurns": 0
+      }
+    },
+    "treeCount": 0,
+    "trees": {
+      "bark": "pine_bark",
+      "factory": "none",
+      "noun": "trees",
+      "twigAtlas": "pine_tree_01"
+    },
+    "uses": [
+      "hover",
+      "explore",
+      "practice"
+    ],
+    "weapon": "sword"
+  }
+}

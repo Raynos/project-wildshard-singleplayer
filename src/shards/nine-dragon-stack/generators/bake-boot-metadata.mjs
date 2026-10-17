@@ -1,3 +1,7 @@
+import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
+import discovery from '../data/discovery.json' with { type: 'json' };
+import { ND_BUDGET_INPUTS } from '../data/budgets.ts';
+import { MOCKUP_CAMERAS } from './mockupCameras.ts';
 import { NINE_MANIFEST_ROWS } from './manifestRows.ts';
 import { bootSources } from './bootFiles.ts';
 import manifest from '../data/manifest.json' with { type: 'json' };
@@ -40,4 +44,14 @@ const sources = { modes: {
 } };
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS }));
+const { extraArt, compareImages, ...fixed } = discovery;
+if (compareImages.length !== manifest.COMPARE_ROWS.length) throw new Error('Comparison rows require one image pair each');
+const explore = { ...fixed.explore, compare: manifest.COMPARE_ROWS.map((row, index) => ({ ...row, ...compareImages[index] })) };
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/declaration.generated.ts'), manifestDeclaration(root, 'nine-dragon-stack', {
+  ...NINE_MANIFEST_ROWS, ...fixed, budgets: ND_BUDGET_INPUTS, runtimeCost,
+  fight: { ...fixed.fight, attackers: fixed.fight.attackers === 'unbounded' ? Infinity : fixed.fight.attackers }, poses: MOCKUP_CAMERAS,
+  explore,
+  audio: { ...fixed.audio, bed: samples.bed, samples: { omitLoops: samples.omitLoops, omitShots: samples.omitShots, loopGains: samples.loopGains } },
+  boot: { ...fixed.boot, files: manifest.BOOT_FILES, sources, explore: { art: [...Object.values(explore.art), ...explore.compare.flatMap(({ live, image }) => [live, image]), ...extraArt] } },
+}, ['load', 'ground', 'slug']));
 writer.finish();

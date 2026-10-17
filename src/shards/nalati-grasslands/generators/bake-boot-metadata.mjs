@@ -1,3 +1,6 @@
+import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
+import discovery from '../data/discovery.json' with { type: 'json' };
+import { NALATI_MAP } from './layout.ts';
 import { nalatiDayClockRow } from './dayClock.ts';
 import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
 import { NALATI_BUDGET_INPUTS } from './budgets.ts';
@@ -37,4 +40,13 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ ...nalatiBootInventory(ordered), dayClock: nalatiDayClockRow(), runtimeCost, strings, grassLayout: NALATI_GRASS_LAYOUT, manifest: NALATI_MANIFEST_ROWS, budgets: NALATI_BUDGET_INPUTS, horizon: NALATI_HORIZON_V2 }));
+const { captureProbes: _captureProbes, extraArt, ...fixed } = discovery;
+const inventory = nalatiBootInventory(ordered);
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generated.ts'), manifestDeclaration(root, 'nalati-grasslands', {
+  ...NALATI_MANIFEST_ROWS, ...fixed, budgets: NALATI_BUDGET_INPUTS, runtimeCost,
+  horizon: NALATI_HORIZON_V2,
+  pois: NALATI_MAP.pois.map(p => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
+  minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
+  boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
+}, ['load', 'ground', 'seed', 'spawn', 'slug']));
 writer.finish();

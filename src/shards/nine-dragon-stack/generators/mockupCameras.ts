@@ -1,4 +1,5 @@
 /**
+ * Build-only camera author for the boot producer and capture scripts.
  * The four round-6 mockups' cameras (art/nine-dragon-stack/round-6-baseline-hud/: A style-A-jiehua-neon, B comp-B-well-edge,
  * C comp-C-stair-street, D comp-D-well-down), eye-matched in the engine on the phone frame (402×874, the shard's
  * portrait FOV: def.ts `fov.portrait` 78 ≈ 58° across). ONE place: every capture script and dome uses these, never its

@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "ambience": "ambience.nd",
+    "score": "score.nd"
+  },
+  "boot": {
+    "precache": [],
+    "barrier": true,
+    "phone": {
+      "deferExtras": true,
+      "fragile": true,
+      "trace": true
+    },
+    "cullBeforeFirstDraw": true,
+    "steps": {}
+  },
+  "forest": {
+    "spacing": 9,
+    "densityFreq": 0.01,
+    "clearings": [
+      -0.3,
+      0.4
+    ],
+    "maxSlope": 0.7,
+    "tintHue": 0.28,
+    "tintHueJitter": [
+      -0.03,
+      0.03
+    ],
+    "tintSat": [
+      0.5,
+      0.7
+    ],
+    "tintLight": [
+      0.5,
+      0.62
+    ],
+    "largeVariantChance": 0
+  },
+  "card": {
+    "thumb": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg",
+    "portrait": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg",
+    "landscape": "/src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg"
+  },
+  "explore": {
+    "art": {
+      "world": "/src/shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp",
+      "models": "/src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp",
+      "sets": "/src/shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp",
+      "practice": "/src/shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp"
+    }
+  },
+  "extraArt": [
+    "/src/shards/nine-dragon-stack/explore/playground-grapple.webp"
+  ],
+  "compareImages": [
+    {
+      "live": "/src/shards/nine-dragon-stack/explore/nine-gate-live.jpg",
+      "image": "/src/shards/nine-dragon-stack/explore/nine-gate-target.jpg"
+    },
+    {
+      "live": "/src/shards/nine-dragon-stack/explore/nine-stair-live.jpg",
+      "image": "/src/shards/nine-dragon-stack/explore/nine-stair-target.jpg"
+    }
+  ],
+  "fight": {
+    "input": {
+      "bufferMs": 120,
+      "coyoteMs": 100
+    },
+    "telegraphed": true,
+    "attackers": "unbounded"
+  }
+}

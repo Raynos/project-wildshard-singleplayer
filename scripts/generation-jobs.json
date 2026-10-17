@@ -926,13 +926,20 @@
         "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
         "src/shards/nalati-grasslands/data/runtimeCost.json",
         "src/shards/nalati-grasslands/data/budgetCeilings.json",
-        "src/shards/nalati-grasslands/data/strings.json"
+        "src/shards/nalati-grasslands/data/strings.json",
+        "scripts/manifest-declaration.mjs",
+        "src/shards/nalati-grasslands/data/discovery.json",
+        "src/shards/nalati-grasslands/explore",
+        "src/shards/nalati-grasslands/thumbs",
+        "src/shards/nalati-grasslands/generators/layout.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/bootMetadata.generated.json"
+        "src/shards/nalati-grasslands/bootMetadata.generated.json",
+        "src/shards/nalati-grasslands/boot/declaration.generated.ts"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/bootMetadata.generated.json"
+        "src/shards/nalati-grasslands/bootMetadata.generated.json",
+        "src/shards/nalati-grasslands/boot/declaration.generated.ts"
       ],
       "platform": "portable"
     },
@@ -16794,13 +16801,21 @@
         "src/shards/nine-dragon-stack/data/strings.json",
         "src/shards/nine-dragon-stack/generators/manifestRows.ts",
         "src/shards/nine-dragon-stack/generators/places.ts",
-        "src/shards/nine-dragon-stack/data"
+        "src/shards/nine-dragon-stack/data",
+        "scripts/manifest-declaration.mjs",
+        "src/shards/nine-dragon-stack/data/discovery.json",
+        "src/shards/nine-dragon-stack/explore",
+        "src/shards/nine-dragon-stack/thumbs",
+        "src/shards/nine-dragon-stack/data/budgets.ts",
+        "src/shards/nine-dragon-stack/generators/mockupCameras.ts"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/boot/metadata.generated.json"
+        "src/shards/nine-dragon-stack/boot/metadata.generated.json",
+        "src/shards/nine-dragon-stack/boot/declaration.generated.ts"
       ],
       "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/boot/metadata.generated.json"
+        "src/shards/nine-dragon-stack/boot/metadata.generated.json",
+        "src/shards/nine-dragon-stack/boot/declaration.generated.ts"
       ],
       "platform": "portable"
     },

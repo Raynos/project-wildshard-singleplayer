@@ -15,7 +15,7 @@
 // put the phone at ~6× the M5 when cool, and it throttles ~2× within minutes.
 //
 // Jake's phone frame: an iPhone 17 Pro home-screen PWA, 402×812 CSS px, tier phone → the game's DPR 2 (804×1624).
-// Each pose is one of the four mockup cameras (src/shards/nine-dragon-stack/mockupCameras.ts), posed through a late hook
+// Each pose is one of the four mockup cameras (src/shards/nine-dragon-stack/generators/mockupCameras.ts), posed through a late hook
 // while the game runs (the culler and the LODs settle on it), then the loop is paused (`game.frameGate`) and the frozen
 // frame is timed: 12 composer frames back to back, one real GPU sync (a fresh 1-px clear + readPixels of the canvas), wall
 // time ÷ 12, the p20 of several rounds (other GPU clients only add time). `cpu` is the median CPU submit of one frame: a
@@ -67,7 +67,7 @@ const slot = await takeSlot();
 const release = () => { try { if (readFileSync(slot, 'utf8').trim() === String(process.pid)) unlinkSync(slot); } catch { /* gone */ } };
 process.on('exit', release);
 
-const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/mockupCameras.ts'));
+const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/generators/mockupCameras.ts'));
 
 /** in the page, once: window.__gpu — the clock, the toggles */
 function installProbe() {

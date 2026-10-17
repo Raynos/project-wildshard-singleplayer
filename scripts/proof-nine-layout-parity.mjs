@@ -13,7 +13,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
-import { MOCKUP_CAMERAS } from '../src/shards/nine-dragon-stack/mockupCameras.ts';
+import { MOCKUP_CAMERAS } from '../src/shards/nine-dragon-stack/generators/mockupCameras.ts';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const compare = arg('compare');

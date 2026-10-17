@@ -21,6 +21,10 @@ meets Kowloon Walled City (E169). Fourth card on the title deck.
 | `audio` | its own ambience and score (S1.5); the forest bed's shrine and island sounds omitted |
 | `assetGlobs`, `ktx2` | `public/assets/nine-dragon/**` and its KTX2, music, SFX and title folders; `ktx2.generated.ts` |
 
+Explore images, forest settings and boot policy live in `data/discovery.json`. The boot producer combines
+them with the existing metadata rows in `boot/declaration.generated.ts`; `manifest.ts` retains native bindings. The four camera recipes stay in
+`generators/mockupCameras.ts`, and the budget author in `data/budgets.ts` runs only in that producer.
+
 ## Its custom code, and why
 
 | Folder / file | What | Why custom |
@@ -33,7 +37,7 @@ meets Kowloon Walled City (E169). Fourth card on the title deck.
 | `playground/` | the grapple course | it needs the grapple |
 | `audio/` | its ambience, cues and files | its own sound |
 
-Layout debt (grandfathered): `grapple/`, `vm/`, `mockupCameras.ts`, `places.ts`, `runtime.ts`, `terrain.ts`, `tier.ts`,
+Layout debt (grandfathered): `grapple/`, `vm/`, `places.ts`, `runtime.ts`, `terrain.ts`, `tier.ts`,
 `util.ts`. Fragile-boot flags were moved into `boot` (§8 of ENGINE.md).
 
 **Facade multi-draw is banned** (E271 / E272, AGENTS.md): the facades stay instanced. `pnpm test:gpu-boot` runs

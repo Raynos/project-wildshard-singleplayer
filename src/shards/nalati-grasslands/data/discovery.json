@@ -1,0 +1,108 @@
+{
+  "audio": {
+    "bed": "steppe",
+    "ambience": "ambience.nalati",
+    "score": "score.nalati",
+    "alertOnlyHostile": true
+  },
+  "boot": {
+    "precache": [],
+    "stagedWorld": true,
+    "bytes": {
+      "trees": "spruce bark"
+    }
+  },
+  "forest": {
+    "spacing": 4.2,
+    "densityFreq": 0.01,
+    "clearings": [
+      -2,
+      -1.5
+    ],
+    "maxSlope": 0.6,
+    "tintHue": 0.3,
+    "tintHueJitter": [
+      -0.06,
+      0.06
+    ],
+    "tintSat": [
+      0.05,
+      0.25
+    ],
+    "tintLight": [
+      0.8,
+      0.95
+    ],
+    "largeVariantChance": 0.15
+  },
+  "trees": {
+    "bark": "pine_bark",
+    "twigAtlas": "pine_tree_01",
+    "noun": "spruces"
+  },
+  "card": {
+    "thumb": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands.jpg",
+    "portrait": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg",
+    "landscape": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg"
+  },
+  "explore": {
+    "art": {
+      "world": "/src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp",
+      "models": "/src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp",
+      "sets": "/src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp",
+      "practice": "/src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp"
+    },
+    "compare": [
+      {
+        "id": "camp",
+        "label": "Camp",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/camp-po-phone.jpg"
+      },
+      {
+        "id": "rail",
+        "label": "River rail",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg"
+      },
+      {
+        "id": "gully",
+        "label": "Gully",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/gully-po-phone.jpg"
+      }
+    ]
+  },
+  "captureProbes": [
+    {
+      "name": "camp",
+      "x": 60,
+      "z": 214,
+      "yaw": -1.5707963267948966,
+      "pitch": 0
+    },
+    {
+      "name": "bridge",
+      "x": 0,
+      "z": 200,
+      "yaw": 0,
+      "pitch": 0
+    },
+    {
+      "name": "plains",
+      "x": 65,
+      "z": 0,
+      "yaw": 3.141592653589793,
+      "pitch": 0
+    }
+  ],
+  "extraArt": [
+    "/src/shards/nalati-grasslands/explore/playground-horse.webp"
+  ]
+}
