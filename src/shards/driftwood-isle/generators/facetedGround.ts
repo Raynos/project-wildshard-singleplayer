@@ -12,6 +12,7 @@ import type { PainterField } from '@wildshard/engine/render/look';
 import { GROUND_PATHS } from './groundLook';
 import { LP, hash2, lowPolyGroundColor } from '../look/groundColor';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { islandClippedIndex } from './islandClips';
 
 /** A faceted ground's numbers as data. */
 interface FacetedGroundRow {
@@ -137,12 +138,13 @@ export function facetedSlab(f: FacetedGroundField, row: FacetedGroundRow): { pos
   return { pos: Float32Array.from(verts), col: Float32Array.from(cols) };
 }
 
-/** The baked ground's two static GLBs: the grid (Uint8 colour, u16 index in the provoking order) and the slab walls. */
+/** The baked ground's two static GLBs: the grid (Uint8 colour, u16 index in the provoking order, without the baked
+ *  island's cells: generators/islandClips.ts) and the slab walls. */
 export function facetedGroundGlbs(f: FacetedGroundField, row: FacetedGroundRow, seaLevel: number): { ground: Uint8Array; slab: Uint8Array } {
   const grid = facetedGrid(f, row, seaLevel), walls = facetedSlab(f, row), material = new THREE.MeshStandardMaterial();
   const ground = new THREE.BufferGeometry(), slab = new THREE.BufferGeometry();
   ground.setAttribute('position', new THREE.BufferAttribute(grid.pos, 3)); ground.setAttribute('color', new THREE.BufferAttribute(grid.col, 3, true));
-  ground.setIndex(new THREE.BufferAttribute(grid.idx, 1));
+  ground.setIndex(new THREE.BufferAttribute(islandClippedIndex(grid.idx), 1));
   slab.setAttribute('position', new THREE.BufferAttribute(walls.pos, 3)); slab.setAttribute('color', new THREE.BufferAttribute(walls.col, 3));
   try {
     return { ground: staticGlb([{ geometry: ground, material, compactIndex: true }], 'driftwood-ground'), slab: staticGlb([{ geometry: slab, material }], 'driftwood-ground-slab') };

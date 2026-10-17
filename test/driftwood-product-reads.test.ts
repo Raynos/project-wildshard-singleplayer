@@ -21,8 +21,6 @@ test('Driftwood client reads resolve against the emitted output', async () => {
     return v.parse(SECTIONS[name], JSON.parse(new TextDecoder().decode(bytes)));
   };
   expect(value('custom/cumulusPuffs').length).toBeGreaterThan(0);
-  const clip = value('custom/islandClips');
-  expect(clip.ranges.reduce((sum, row) => sum + row.count, 0)).toBe(clip.outputIndices);
   const layouts = value('custom/fixedLayouts');
   expect(layouts.chimeSlots.length).toBe(CHIME_PIECES + 1);
   expect(layouts.cove.native.descs.some(row => row.kind === 'treads')).toBe(true);

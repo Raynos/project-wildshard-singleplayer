@@ -1,25 +1,22 @@
 import { expect, it } from 'vitest';
-import { Mesh, PlaneGeometry } from 'three';
+import { PlaneGeometry } from 'three';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
-import { clipGridTerrain } from '../src/shards/driftwood-isle/runtime/looks/bakedIsland';
+import { islandClippedIndex } from '../src/shards/driftwood-isle/generators/islandClips';
 import { inArea } from '../src/shards/driftwood-isle/world/blenderArea';
-import clip from '../src/shards/driftwood-isle/data/islandClips.generated.json' with { type: 'json' };
 
-it('retains native terrain outside the baked island without replacing vertex channels', () => {
+it('bakes the native terrain index without the baked island, keeping its runs in order', () => {
   const geometry = new PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2);
   try {
-    const position = geometry.getAttribute('position'), normal = geometry.getAttribute('normal'), before = geometry.getIndex()?.count ?? 0;
-    clipGridTerrain(new Mesh(geometry), clip);
-    const index = geometry.getIndex(); if (index === null) throw new Error('Retained index missing');
-    expect(geometry.getAttribute('position')).toBe(position); expect(geometry.getAttribute('normal')).toBe(normal);
-    expect(index.count).toBeGreaterThan(0); expect(index.count).toBeLessThan(before);
+    const position = geometry.getAttribute('position'), source = geometry.getIndex(); if (source === null) throw new Error('Grid index missing');
+    const index = islandClippedIndex(Array.from(source.array));
+    expect(index.length).toBeGreaterThan(0); expect(index.length).toBeLessThan(source.count);
+    expect(Array.from(index.subarray(0, 6))).toEqual(Array.from(source.array.subarray(0, 6)));
     let inside = false;
-    for (let i = 0; i < index.count; i += 3) {
-      const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2);
+    for (let i = 0; i < index.length; i += 3) {
+      const a = index[i] ?? 0, b = index[i + 1] ?? 0, c = index[i + 2] ?? 0;
       if (inArea((position.getX(a) + position.getX(b) + position.getX(c)) / 3, (position.getZ(a) + position.getZ(b) + position.getZ(c)) / 3)) inside = true;
     }
     expect(inside).toBe(false);
-    const other = new PlaneGeometry(2, 2);
-    try { expect(() => clipGridTerrain(new Mesh(other), clip)).toThrow('terrain topology differs'); } finally { other.dispose(); }
+    expect(() => islandClippedIndex([0, 1, 2])).toThrow('terrain topology differs');
   } finally { geometry.dispose(); }
 });

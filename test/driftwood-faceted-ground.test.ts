@@ -12,6 +12,7 @@ import { OCEAN } from '../src/shards/driftwood-isle/world/sites';
 import { facetedGroundGlbs } from '../src/shards/driftwood-isle/generators/facetedGround';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { islandClipFacts } from '../src/shards/driftwood-isle/generators/islandClips';
 import { GROUND_FILES } from '../src/shards/driftwood-isle/generators/groundFiles';
 
 it('bakes the faceted ground on the heights the runtime walks, in the provoking-vertex order', async () => {
@@ -29,7 +30,7 @@ it('bakes the faceted ground on the heights the runtime walks, in the provoking-
     const ground = grid.take(), slab = walls.take();
     const pos = ground.getAttribute('position'), index = ground.getIndex();
     expect(pos.count).toBe(256 * 256);
-    expect(index?.count).toBe(255 * 255 * 6);
+    expect(index?.count).toBe(islandClipFacts().outputIndices); // the baked island's cells dropped (its tiles stand there)
     expect(index?.array).toBeInstanceOf(Uint16Array);
     // the first two cells keep their alternating diagonals, the provoking (last) vertex where the paint expects it
     expect(Array.from(index?.array.slice(0, 12) ?? [])).toEqual([0, 256, 1, 1, 256, 257, 1, 257, 258, 1, 258, 2]);

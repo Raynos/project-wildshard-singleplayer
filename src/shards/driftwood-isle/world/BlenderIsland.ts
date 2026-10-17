@@ -47,8 +47,6 @@ import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } fro
 import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import type { IslandCover } from './islandCover';
-import { driftwoodRows } from '../runtime/boot/rows';
-import { clipGridTerrain, sunBounceLevel } from '../runtime/looks/bakedIsland';
 import { lentLook, lentToon, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../runtime/look/toon';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
@@ -185,9 +183,7 @@ export class BlenderIsland {
     ctx.scene.add(this.group);
     const unclaimed = await this.placeModels(models, new Float32Array(place), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
-    // ── hide what the area replaces ──
-    clipGridTerrain(ctx.terrain, driftwoodRows('custom/islandClips'));
-    await slice();
+    // ── hide what the area replaces (the faceted ground is baked without the island's cells) ──
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
       if (ctx.palms.userData['islandDressingClipped'] !== true) clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
@@ -247,10 +243,12 @@ export class BlenderIsland {
     return plan.unclaimed;
   }
 
-  /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
+  /** per frame: the baked bounce follows the live sun (its luminance × intensity × its elevation over the bake's
+   *  reference sun, floored at 0.2), once the sky has a sun light */
   update(sky: Sky): void {
-    const level = sunBounceLevel(sky, ISLAND_FACTS.bake.sunY);
-    if (level === null) return;
-    setLentParam(ISLAND_LOOKS.terrain, 'bounce', level / ISLAND_FACTS.bake.bounceGain);
+    const l = sky.csm.lights[0];
+    if (!l) return;
+    const lum = l.intensity * (0.2126 * l.color.r + 0.7152 * l.color.g + 0.0722 * l.color.b);
+    setLentParam(ISLAND_LOOKS.terrain, 'bounce', lum * (Math.max(0, sky.sunDir.y) / Math.max(0.2, ISLAND_FACTS.bake.sunY)) / ISLAND_FACTS.bake.bounceGain);
   }
 }

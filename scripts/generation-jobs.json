@@ -812,38 +812,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-island-clips",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/islandClips.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/islandClips.ts",
-        "islandClipFacts",
-        "src/shards/driftwood-isle/data/islandClips.generated.json"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/islandClips.ts",
-        "src/shards/driftwood-isle/data/islandClipRows.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/islandClips.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/islandClips.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "native"
-    },
-    {
       "id": "pine-ambient-birds",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-birds.mjs",
@@ -1774,16 +1742,16 @@
         "src/format/minimap.ts"
       ],
       "outputs": [
-        "public/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
+        "public/assets/driftwood-isle/baked/ground-c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd.glb",
         "public/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb",
-        "src/shards/driftwood-isle/assets/239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6",
+        "src/shards/driftwood-isle/assets/c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd",
         "src/shards/driftwood-isle/assets/c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92",
         "src/shards/driftwood-isle/data/groundBlobs.generated.json"
       ],
       "buildTimeOutputs": [
-        "public/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
+        "public/assets/driftwood-isle/baked/ground-c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd.glb",
         "public/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb",
-        "src/shards/driftwood-isle/assets/239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6",
+        "src/shards/driftwood-isle/assets/c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd",
         "src/shards/driftwood-isle/assets/c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92",
         "src/shards/driftwood-isle/data/groundBlobs.generated.json"
       ],
