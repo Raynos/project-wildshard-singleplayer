@@ -19,7 +19,7 @@ import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
 import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
-import { KINGS_CLEARING, KING_ARENA_FOG, KING_FX_LOOKS } from './const';
+import { pineView } from './world/context';
 import { Puffs } from './combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
@@ -65,7 +65,6 @@ import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
  */
 
 export const KING_KIND = 'antler-king';
-const C = KINGS_CLEARING;
 const AMBER_TELL = new THREE.Color(1.5, 0.62, 0.12), EMBER = new THREE.Color(2.6, 1.1, 0.3);
 
 let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
@@ -120,7 +119,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
   const lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, ctx.reach);
   const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, ctx.reach));
   // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
-  const R = KING_ARENA_FOG;
+  const { KINGS_CLEARING: C, KING_ARENA_FOG: R, KING_FX_LOOKS } = pineView();
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), lentLook(KING_FX_LOOKS.fog));
   wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = 26;
   wall.name = 'antler-king-fog-wall'; scene.add(wall);

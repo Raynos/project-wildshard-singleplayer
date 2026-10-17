@@ -4,7 +4,7 @@ import { loadPineFinishes, pineSkinRows, pineSkins } from '../src/shards/pine-ho
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { FINISH_CARDS } from '../src/shards/pine-hollow/runtime/const';
+import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 
 test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', async () => {
   const file = output.namedFiles.find(row => row.name === 'loadout/finishes.json');

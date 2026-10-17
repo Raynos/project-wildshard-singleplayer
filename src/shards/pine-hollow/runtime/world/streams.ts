@@ -17,10 +17,9 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import { SPRAY_LOOK, SPRAY_PUFFS as SPRAY } from '../const';
 import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { loadSiteTimbers } from './timberSites';
-import { pineModels } from './context';
+import { pineModels, pineView } from './context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineWaterSurface } from '../../world/water';
 
@@ -53,6 +52,7 @@ export class PineStreams {
   /** mist puffs: each rises and swells over its own few-second cycle, drifting downwind (posed by its graph, ../data/streamLook.ts;
    *  their origins and seeds baked offline, ../generators/sprayPuffs.ts) */
   private buildSpray(): THREE.InstancedMesh {
+    const { SPRAY_LOOK, SPRAY_PUFFS: SPRAY } = pineView();
     const total = SPRAY.at.length / 3, geo = new THREE.PlaneGeometry(1, 1), m = new THREE.Matrix4();
     const mesh = new THREE.InstancedMesh(geo, lentLook(SPRAY_LOOK), total);
     if (total > MAX_SPRAY) throw new Error('[streams] more spray puffs than the waterfall draws');

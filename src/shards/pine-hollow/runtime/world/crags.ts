@@ -35,10 +35,9 @@ import authored from '../../data/timberWorld.generated.json' with { type: 'json'
 import cragRows from '../../data/crags.json' with { type: 'json' };
 import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
-import { pineModels } from './context';
+import { pineModels, pineView } from './context';
 import { loadSiteTimbers } from './timberSites';
 import { cragModels } from '../models/cragCliff';
-import { BEAR_CAVE, CAVE_LOOK, CRAG_LOOK } from '../const';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -56,7 +55,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the boot file rows list the kit alongside the landmarks' props
 /** the cave's frame: its mouth at BEAR_CAVE, local +Z into the rock (the mouth faces local −Z), y is world height */
-const CAVE_FRAME = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, yaw: BEAR_CAVE.rot };
+function caveFrame() { const { BEAR_CAVE } = pineView(); return { x:BEAR_CAVE.x, z:BEAR_CAVE.z, yaw:BEAR_CAVE.rot }; }
 /** one placed module (../data/crags.json): its base centre, a turn about +Y (its front, local +Z, faces (sin yaw, cos yaw)), a tilt */
 type CragPlace = (typeof cragRows.places)[number];
 
@@ -84,11 +83,11 @@ const CAVE_FILL = { value: 1.0 };
 function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.Material {
   const lend = (name: string, t: THREE.Texture): void => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true;
-    setLentTexture(CRAG_LOOK, name, t);
+    setLentTexture(pineView().CRAG_LOOK, name, t);
   };
   lend('rockMap', rock.map); lend('rockNormal', rock.normalMap); lend('rockArm', rock.armMap);
   lend('gritMap', grit.map); lend('gritNormal', grit.normalMap);
-  return lentLook(CRAG_LOOK);
+  return lentLook(pineView().CRAG_LOOK);
 }
 
 // ─────────────────────────────────────────────────────── the set ───────────────────────────────────────────────────
@@ -125,7 +124,7 @@ export class PineCrags {
 
   private constructor(sky: Sky | null, kit: Map<string, THREE.BufferGeometry>, caveGeo: Map<string, THREE.BufferGeometry>, caveMeta: CaveMeta | null, mat: THREE.Material | null, skin: Map<string, WholeGeometryView> | null) {
     this.sky = sky; this.kit = kit; this.caveGeo = caveGeo; this.mat = mat; this.skin = skin;
-    this.cave = caveMeta ? new CaveInterior(caveMeta, CAVE_FRAME, CAVE_LOOK, CAVE_FILL) : null;
+    this.cave = caveMeta ? new CaveInterior(caveMeta, caveFrame(), pineView().CAVE_LOOK, CAVE_FILL) : null;
     this.group.name = 'pine-crags';
   }
 
@@ -168,12 +167,12 @@ export class PineCrags {
       if(geometry===undefined)throw new Error('[crags] authored batch geometry missing');return geometry;
     }) : [];
     await yieldTask();
-    const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x,0,CAVE_FRAME.z);
+    const caveM = new THREE.Matrix4().makeRotationY(caveFrame().yaw).setPosition(caveFrame().x,0,caveFrame().z);
     const plan = this.mat ? assembly.plans.map(({cave,...row})=>({...row,matrix:cave?caveM.clone():new THREE.Matrix4()})) : [];
     const caveG=this.caveGeo.get('cave');
     if(caveG){
       const col = this.caveGeo.get('cave-col') ?? caveG;
-      this.caveColliders.push(placedGeometryCollider({ kind: 'trimesh', geometry: col }, caveM, CAVE_LOOK.surface));
+      this.caveColliders.push(placedGeometryCollider({ kind: 'trimesh', geometry: col }, caveM, pineView().CAVE_LOOK.surface));
     }
     if (this.cave) this.caveColliders.push(...this.cave.roofPatch());
 
@@ -238,7 +237,7 @@ export class PineCrags {
     const cam = sky.viewCamera, own = this.own; cam.getWorldPosition(this.tmp);
     for (let i = 0; i < Math.min(own.length, MAX_OWN); i++) own[i]?.update(cam);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
-    if (this.mat) setLentParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
+    if (this.mat) setLentParam(pineView().CRAG_LOOK, 'caveFill', CAVE_FILL.value);
   }
 }
 

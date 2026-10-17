@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { FINISH_CARDS } from '../const';
+import metadata from '../../data/explorerMetadata.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -10,6 +10,10 @@ import { codePart } from '../world/codeParts';
 export type SkinId = 'ghost-stag' | 'hollow-ash' | 'ironhide' | 'scarback-furnace' | 'blackpaw' | 'imperial' | 'warden';
 
 const finishId = v.picklist(['ghost-stag', 'hollow-ash', 'ironhide', 'scarback-furnace', 'blackpaw', 'imperial', 'warden']);
+/** Generated pre-admission card identities also drive the live locker order. */
+const finishCard = v.strictObject({ id:finishId, name:v.string(), blurb:v.string(), lockedBlurb:v.string(), icon:v.picklist(['crossbow','lever']) });
+export function pineFinishCards(): v.InferOutput<typeof finishCard>[] { return v.parse(v.array(finishCard), metadata.cards); }
+
 const finite = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.maxLength(512));
 const override = v.strictObject({ color: v.exactOptional(finite), emissive: v.exactOptional(finite), emissiveIntensity: v.exactOptional(finite),
   roughness: v.exactOptional(finite), metalness: v.exactOptional(finite), envMapIntensity: v.exactOptional(finite), plain: v.exactOptional(v.boolean()) });
@@ -36,7 +40,7 @@ export function pineSkins(): SkinRows { if (admitted === null) throw new Error('
 export const pineSkinRows = (): readonly SkinDef[] => Object.values(pineSkins());
 /** This small card identity list is needed to list Explorer variants before product admission. */
 export const PINE_FINISH_VARIANTS = Object.keys(FinishRowsSchema.entries).map(id => {
-  const card = FINISH_CARDS.find(row => row.id === id);
+  const card = pineFinishCards().find(row => row.id === id);
   if (card === undefined) throw new Error('Pine finish has no pre-admission variant card');
   return { id: card.id, name: card.name, weapon: card.icon === 'lever' ? 'rifle' as const : 'crossbow' as const };
 });

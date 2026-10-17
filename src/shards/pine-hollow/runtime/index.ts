@@ -2,6 +2,7 @@ import { floorAtRects } from '@wildshard/engine/physics/box';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import { SECTIONS } from './sections';
+import metadata from '../data/explorerMetadata.generated.json' with { type: 'json' };
 import { preloadHeldGeometry, bakedHandRows, heldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -33,7 +34,7 @@ import { dressPineWater } from '../world/water';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from './world/undergrowthKit';
 import { loadUnderPlacements } from './world/timberSites';
-import { pineModels } from './world/context';
+import { pineModels, admitPineView } from './world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { placePineProps } from './world/props';
 import { PineStreams } from './world/streams';
@@ -50,7 +51,6 @@ import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { loadBirdModels } from './birds';
 import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
-import { WILDLIFE_LOOK, FINISH_CARDS } from './const';
 import * as v from 'valibot';
 import { installPineAudio, parseCabinAmbienceRows } from './audio/wiring';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
@@ -61,7 +61,7 @@ import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher, bindHeldBow } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { pineFinishEffect } from '../loadout/effects';
-import { pineSkins, pineSkinRows, loadPineFinishes, type SkinId } from './loadout/skins';
+import { pineSkins, pineSkinRows, pineFinishCards, loadPineFinishes, type SkinId } from './loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
@@ -86,13 +86,13 @@ export class PineHollow extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     admitPaintedTextures(ctx.product);
-    await loadPineFinishes(ctx.product);
+    await Promise.all([loadPineFinishes(ctx.product), admitPineView(ctx.product)]);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
     const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trades.json'))));
     const packKinds = readItemInventory(ctx.product.section('combat/items').items).kinds;
-    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(FINISH_CARDS) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? trades.lines[id] ?? 'Mott has no use for it' : null } };
+    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(pineFinishCards()) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? trades.lines[id] ?? 'Mott has no use for it' : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
@@ -103,7 +103,7 @@ export class PineHollow extends ShardPlugin {
     lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
-    lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [WILDLIFE_LOOK]));
+    lendPineWildlifeLook(await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [metadata.wildlifeLook]));
     const streams = await new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
@@ -179,7 +179,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
-    ctx.rows.effect([...FINISH_CARDS.map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
+    ctx.rows.effect([...pineFinishCards().map(({ id }) => pineFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
     ctx.rows.skin(pineSkinRows());
   }
 

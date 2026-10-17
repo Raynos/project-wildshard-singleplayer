@@ -24,7 +24,7 @@ import { uploadTexture } from '@wildshard/engine/core/assets';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { PosedInstances, type PosedInstances as PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { WILDLIFE_LOOK } from '../const';
+import metadata from '../../data/explorerMetadata.generated.json' with { type: 'json' };
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -66,9 +66,9 @@ interface LentLooks {
 }
 /** the compiled wildlife graph (../data/wildlifeLook.ts), lent by the world hook (runtime/index.ts) */
 let lent: { readonly looks: LentLooks; readonly material: THREE.Material } | null = null;
-/** lend the compiled looks (over WILDLIFE_LOOK) before any WildlifeMesh is built */
+/** lend the compiled looks (over metadata.wildlifeLook) before any WildlifeMesh is built */
 export function lendPineWildlifeLook(looks: LentLooks): void {
-  const material = looks.materials.get(WILDLIFE_LOOK);
+  const material = looks.materials.get(metadata.wildlifeLook);
   if (material === undefined) throw new Error('[pine-hollow] no compiled wildlife look');
   lent = { looks, material };
 }
@@ -85,20 +85,20 @@ export class WildlifeMesh {
   readonly glow: { value: number };
   private readonly posed: PosedInstancesView;
   /** the posed look and its authored geometry, for the guide flock's own draw */
-  readonly look = { name: WILDLIFE_LOOK, material: wildlifeLook().material, get geometry(): THREE.BufferGeometry { return authoredWildlife().geometry; } };
+  readonly look = { name: metadata.wildlifeLook, material: wildlifeLook().material, get geometry(): THREE.BufferGeometry { return authoredWildlife().geometry; } };
 
   constructor(readonly sky: Sky, capacity: number) {
     this.capacity = capacity;
     const look = wildlifeLook();
-    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => authoredWildlife().geometry, ['aAnim', 'aAnim2']);
+    this.posed = new PosedInstances(capacity, metadata.wildlifeLook, look.material, () => authoredWildlife().geometry, ['aAnim', 'aAnim2']);
     this.mesh = this.posed.mesh;
     let glow = 0;
-    this.glow = { get value() { return glow; }, set value(v: number) { if (v !== glow) { glow = v; look.looks.setParam(WILDLIFE_LOOK, 'glow', v); } } };
+    this.glow = { get value() { return glow; }, set value(v: number) { if (v !== glow) { glow = v; look.looks.setParam(metadata.wildlifeLook, 'glow', v); } } };
   }
 
   /** Bind the original atlas before the first drawn instance; channels already belong to the authored draw. */
   useBirds(birds: BirdSet): void {
-    wildlifeLook().looks.setTexture(WILDLIFE_LOOK, 'atlas', birds.atlas);
+    wildlifeLook().looks.setTexture(metadata.wildlifeLook, 'atlas', birds.atlas);
     uploadTexture(birds.atlas);
   }
 

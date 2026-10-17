@@ -15710,6 +15710,41 @@
         "src/shards/pine-hollow/data/kingFight.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "pine-boot-metadata",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-boot-metadata.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-boot-metadata.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-boot-metadata.mjs",
+        "src/shards/pine-hollow/generators/bootFiles.ts",
+        "src/shards/pine-hollow/generators/finishCards.ts",
+        "src/shards/pine-hollow/generators/wildlifeLook.ts",
+        "src/shards/pine-hollow/generators/weaponFinishes.ts",
+        "src/shards/pine-hollow/data/treeRest.generated.json",
+        "src/shards/pine-hollow/data/paintedTextures.generated.json",
+        "src/shards/pine-hollow/data/npcSkins.generated.json",
+        "src/shards/pine-hollow/data/questNpcs.generated.json",
+        "src/sdk/bake/source-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/bootMetadata.generated.json",
+        "src/shards/pine-hollow/data/explorerMetadata.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/bootMetadata.generated.json",
+        "src/shards/pine-hollow/data/explorerMetadata.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

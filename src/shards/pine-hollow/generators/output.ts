@@ -45,7 +45,7 @@ import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from './outputInputs';
 import grazers from '../data/grazers.generated.json' with { type: 'json' };
-import { RUNTIME_MIRRORS } from './runtimeMirrors';
+import { NATIVE_VIEW } from './nativeView';
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
 function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(row: T) {
@@ -54,6 +54,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(NATIVE_VIEW))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cabinAmbienceRows()))),
@@ -82,8 +83,6 @@ const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['actors/species-programs', PINE_SPECIES_PROGRAMS],['sim/scripts',KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: PINE_OUTPUT.blobs.map(meshoptSource) };
-/** The data/ values runtime/const.ts copies; the build proves the copied runtime still equals them. */
-export const mirrors = [...RUNTIME_MIRRORS];
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

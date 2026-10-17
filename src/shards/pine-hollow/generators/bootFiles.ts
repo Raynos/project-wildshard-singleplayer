@@ -1,6 +1,6 @@
-import treeRest from './treeRest.generated.json' with {type:'json'};
-import painted from './paintedTextures.generated.json' with {type:'json'};
-import skins from './npcSkins.generated.json' with {type:'json'};
+import treeRest from '../data/treeRest.generated.json' with {type:'json'};
+import painted from '../data/paintedTextures.generated.json' with {type:'json'};
+import skins from '../data/npcSkins.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES = {
   "skyHdr": {
