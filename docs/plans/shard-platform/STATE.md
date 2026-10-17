@@ -1,17 +1,32 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W2 = 9 components (G466, Jake 13:35 Cancun).** Each component is ONE megabuild across Pine AND DW. W2 stays open until its components close (the 05:00Z close is cancelled), and the W1 spike rides along: roc.as/moves → H1 in C4, Sky/Signal quests → H2 in C5, Sky movers → H5 in C7. Close bar: 100/0 per component except listed view code. G465 holds: no runtime/ detours, no const mirrors, every commit a measured net cut. Plan: `progress/shard-platform/host-gap-2026-10-16/README.md` (`6e1fa0038`).
+**Ruler at `7419a09cf` (10-17 ~05:00Z, pinned basis 1258254a3): M3 56.6 % (45,354 of 80,173 cut)**, plan 33.9–67.3 %. Custom left: Pine 10,584, DW 6,661, Sky 1,303, Signal 1,368, Nalati 20,948, Nine 12,636. Since 54.7 %: Kurgan b65a4de9f (Nalati −460), Nine kits 6612812e6 (−726), pickups f6407f626 (Pine −100).
 
-**Headline: components closed 0 / 9.** C7 review `23d1ca30a`: not closed (canoe transit track and door hinge fail G454, Pine-only); 5-item fix list at x1. Ruler at `3243d580d` (09:5xZ local HEAD, pinned basis): **M3 54.7 % (43,840 of 80,173 cut)**, plan 32.8–66.1 %. Custom left: Pine 10,769, DW 6,634, Sky 1,303, Signal 1,368, Nalati 21,510, Nine 13,430. Push queue (specimen host, Nine kits, Nalati metadata/day keys, maps) shipping via sp-x7 after the publish-cleanup fix `3243d580d`. Open: grid memory 431 MB of held neighbour products (sp-x7), grid entry hitches (OP: `cf2ce60fc`, `578db2198`, timing proof pending).
+**Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**For the next switch point:** C3/C5/C7 residuals are honest single-shard laws. The 10-17 C5 joint audit found no shared step runner: Pine quest/index, native quest, lodge, contracts and DW native quest, adventure, finale, Spine hold mechanics only one shard has. The same goes for C7 Pine doors and C3 weather. They close only if listed as shard-owned custom under the G466 bar, or when a new shard adopts them. Recommendation: list them. Lanes that hit the floor move to Nalati (~28,361 custom, on hosts it already uses) under G465 and G468 sizing; sp-x1 starts 10-17.
+**Lanes (one task each):**
+- sp-x1 Nalati + Nine manifests to declared data
+- sp-x4 proof/build-only charges (simulation.ts proofs, Nine boot catalogue); the ruler change lands as its own commit
+- sp-x5 Nalati layout/clearings bake (f4d3b62e7 in checks); terrain.ts stays (live forest mask, paint, water, ambience)
+- sp-x6 Nalati paint.ts + signpost.ts bake
+- sp-x8 Nine signAtlas bake (source done, checks queued)
+- sp-x7 push carrier + grid memory receipt
+- Opus OL Nine look graphs, ON Nalati sky/storm graphs + flock
+- Opus OP3 baked shader source for node-graph builds
+- Opus OP5 road hitches
 
-**G468 (Jake 18:55, `f783bb736`):** every commit deletes a whole runtime file or module with its data path in the same commit (aim ~150+ net, no admit-only); parity per ~5-commit batch; a board only when the look changes; DW first (DW 53.1 % needs ~390/h); x1 joins C5/C4 after the C7 fixes. Relayed to all ten lanes 19:0x.
+**Perf (standing goal 60 fps desktop / 30 fps Sim):**
+- Desktop standalone 7/7 at 60 fps; milestone 8/8 routes, 0 errors.
+- Sim medians 30 fps, but road p95 still fails (Pine ~76, Nalati 52, Sky 42, DW 42 ms).
+- Fixes so far:
+  - Pine posed-atlas crash on re-entry: fixed (7afedf243, OT), with a re-entry scenario (7419a09cf).
+  - Live collider batches split per frame: 2c956f4d9 (OP4), measure pending (OP5).
+  - Node build dedupe: no duplicate builds exist (fd737f504), so OP3 bakes the shader source instead.
 
-**G469 (Jake 19:40):** short-lived agents: one task per Codex agent, then `/new` and a fresh self-contained brief; one job per Opus subagent; no poll loops.
+**Memory:**
+- Neighbour products 436 → 48 MB (sp-x7: e38558916..e6066d1f4).
+- Settled Nine on desktop reads 1,214 MB from late L0 rings (+43 MB) over the 1.2 GB report cap; Sim Pine 1,169 MB.
+- Next: name the top late-ring costs.
 
-**Visual:** A short Opus host review runs at each component's close.
-
-**G467:** generators are not custom code.
-**Floor ledger:** [six-shard inventory and proposed tags](../../../progress/shard-platform/honest-floor-2026-10-17/README.md), pinned at `908dcec0a`; no exemptions granted.
+**For the next switch point:** single-shard laws in Pine/DW/Nalati are documented in the [floor ledger](../../../progress/shard-platform/honest-floor-2026-10-17/README.md). Recommendation: list them as shard-owned custom. The next real cut needs native actor/save, figure/skin and graph ABIs. Rows: [open-x-queue](open-x-queue.md).
 Paused: SF22 SF57 SF67.
