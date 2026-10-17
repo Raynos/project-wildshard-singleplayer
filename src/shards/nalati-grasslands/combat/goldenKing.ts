@@ -20,13 +20,12 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KurganEntrance } from '../world/types';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
-import { KurganDungeon } from '../world/KurganDungeon';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
 import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
 import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
-import { goldenKingViews } from './goldenKingViews';
+import { KurganDungeon, goldenKingViews } from '../world/KurganDungeon';
 
 const { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } = layout;
 
@@ -36,7 +35,7 @@ const { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } = layout;
  * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
  *
  *   goldenKingFight — the admitted arena boss profile (`@wildshard/game/plugin/bossPhase`, SF82) on his row
- *     (data/goldenKing.generated.json) with the chamber's views (combat/goldenKingViews.ts): the King's brain (`bindGoldenKing`,
+ *     (data/goldenKing.generated.json) with the chamber's views (world/KurganDungeon.ts): the King's brain (`bindGoldenKing`,
  *     the species forwards its 10 Hz tick here), his damage rule, the three phases and what each does to the room:
  *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
  *           glints before each cut, the third's wide arc is painted on the floor) and the SUNBURST (sword up, gold spirals
@@ -146,7 +145,7 @@ export function goldenKingFight(dungeon: KurganDungeon, host: FightHost): Golden
     },
     rng: () => app.rng.stream('ai').next(),
     feed: (line) => { host.feed(line); },
-    views: goldenKingViews(dungeon, () => phased.body()),
+    views: goldenKingViews(dungeon, () => phased.body(), kingData.tuning),
     rewardPoint: () => dungeon.world(PEDESTAL.x, PEDESTAL.h + 0.02, PEDESTAL.z),
     respawnPoint: () => ({ pos: dungeon.world(CHECKPOINT.x, 0, CHECKPOINT.z), yaw: CHECKPOINT.yaw }),
   });

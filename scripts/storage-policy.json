@@ -10,10 +10,10 @@
   "pins": [
     {
       "path": "public/assets/nalati/baked/places.bin",
-      "oid": "e72ee8e55734c70fca72319663c0c6e5d4730c2e",
-      "bytes": 8713526,
+      "oid": "7d3fb3c08c279cfa1be727d84b1c3a6f3f29dcd7",
+      "bytes": 11547006,
       "kind": "runtime",
-      "purpose": "Nalati static places: camps, bridge, landmarks, roads, watchtower, kokpar, outcrops and dressing; exact painted meshes, colliders and gameplay anchors; fixed balbal, goat and elite actor shapes"
+      "purpose": "Nalati painted places and fixed actor shapes, including exact Kurgan fabric, baked vertex lighting, encounter rest meshes and sand light"
     },
     {
       "path": "public/assets/nalati/baked/specimens.bin",

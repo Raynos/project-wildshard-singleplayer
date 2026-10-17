@@ -6,7 +6,7 @@ import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from './goldenKingFight';
  * The Golden King's fight as a platform phased boss row (SHARD-PLATFORM SF27; design docs/design/nalati/elites-and-bosses.md
  * §2): the chamber's frame, his coffin and the shield spot, the eight modes (coffin, rising, fight, toCoffin, shield, stun,
  * kneel, dead), the three phases, the akinakes combo and the sunburst, the plaques and the headdress, the balbal adds,
- * the sunburst rings, the sand pours and the sun beam, and the views the chamber binds (combat/goldenKingViews.ts).
+ * the sunburst rings, the sand pours and the sun beam, and the views the chamber binds (world/KurganDungeon.ts).
  */
 export const GOLDEN_KING_ROW: PhasedBossRow = {
   origin: DUNGEON,

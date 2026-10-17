@@ -9,7 +9,9 @@
 // (0.2-0.5 ms in 0.1 ms steps), which moved the day clock, the sun, the wind and the cloud drift and with them most of every
 // frame's pixels from run to run (op-nalati86). `--raw=<dir>` keeps each frame's RGBA so `--compare` counts differing pixels.
 //   scripts/browser-lane.sh node scripts/proof-nalati-look-parity.mjs --url=<DEVSERVER preview> --output=<summary.json> [--raw=<dir>]
+// Add --dungeon to include the sealed chamber after the twelve outdoor frames; residency records renderer + GPU RSS.
 //   node scripts/proof-nalati-look-parity.mjs --compare=<base.json>,<candidate.json>
+import { execFileSync } from 'node:child_process';
 import { chromium, devices } from 'playwright';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -33,11 +35,11 @@ if (compare !== undefined) {
         const pa = readFileSync(fa), pb = readFileSync(fb);
         let n = 0;
         for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2]) n++;
-        console.log(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
+        diffs.push(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
-  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders', 'dungeonColliders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
   console.log(diffs.length === 0 ? `nalati-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -48,6 +50,7 @@ const version = await (await fetch(new URL('/version.json', url))).json();
 const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms); });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const rows = [], tiers = {}, errors = [];
+const poses = process.argv.includes('--dungeon') ? [...POSES, { id: 'dungeon', x: -40, z: -81.8, yaw: 0, pitch: -0.08 }] : POSES;
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
   for (const tier of ['phone', 'desktop']) {
@@ -71,6 +74,14 @@ try {
       return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && window.__wildshard.world.game.app.debug.snapshot()['nalati.weather']?.clock !== undefined && !document.querySelector('.ws-load');
     }, undefined, { timeout: 400000, polling: 1000 });
     await sleep(4000);
+    const resident = async () => {
+      const session = await browser.newBrowserCDPSession();
+      try {
+        const { processInfo } = await session.send('SystemInfo.getProcessInfo');
+        const ids = processInfo.filter(row => row.type === 'renderer' || row.type === 'GPU').map(row => row.id);
+        return execFileSync('ps', ['-o', 'rss=', '-p', ids.join(',')], { encoding: 'utf8' }).trim().split(/\s+/u).reduce((total, kb) => total + Number(kb) * 1024, 0);
+      } finally { await session.detach(); }
+    };
     tiers[tier] = await page.evaluate(() => {
       const w = window.__wildshard.world, pieces = w.game.app.registry.pieceList();
       const copy = value => JSON.parse(JSON.stringify(value, (_key, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
@@ -79,15 +90,31 @@ try {
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
     tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
-    for (const p of POSES) {
+    tiers[tier].residentBootBytes = await resident();
+    for (const p of poses) {
       const yaw = tier === 'phone' && p.phone?.yaw !== undefined ? p.phone.yaw : p.yaw;
       const pitch = tier === 'phone' && p.phone?.pitch !== undefined ? p.phone.pitch : p.pitch;
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__nlpGate' in window) g.frameGate = window.__nlpGate; });
       await page.evaluate(a => {
-        const w = window.__wildshard.world, clock = w.game.app.debug.snapshot()['nalati.weather'].clock;
-        w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
+        const w = window.__wildshard.world;
+        if (a.dungeon) {
+          const boss = w.game.app.debug.snapshot()['nalati.boss'];
+          if (boss === undefined) throw new Error('Missing dungeon debug handle');
+          boss.enter(true, 13.2);
+          if (!boss.dungeon.group.visible) throw new Error('Dungeon entry failed');
+          for (const animal of w.animals.animals) animal.harnessHold = true;
+          w.player.position.set(-40, 140, -81.8); w.player.velocity.set(0, 0, 0);
+        } else w.player.spawn(a.x, a.z, a.yaw);
+        const clock = w.game.app.debug.snapshot()['nalati.weather'].clock;
+        w.player.yaw = a.yaw; w.player.pitch = a.pitch;
         clock.set(a.time ?? window.__nlpHour); clock.paused = true;
-      }, { x: p.x, z: p.z, yaw, pitch, time: p.time ?? null });
+      }, { x: p.x, z: p.z, yaw, pitch, time: p.time ?? null, dungeon: p.id === 'dungeon' });
+      if (p.id === 'dungeon') {
+        const colliders = await page.evaluate(() => JSON.stringify(window.__wildshard.world.game.app.registry.pieceList()
+          .filter(piece => piece.id === 'nalati-kurgan-dungeon' || piece.id === 'nalati-kurgan-seal')
+          .map(piece => ({ id: piece.id, colliders: piece.colliders, active: piece.active?.() ?? true }))));
+        tiers[tier].dungeonColliders = sha(colliders);
+      }
       await sleep(5000);
       await page.evaluate(() => { const g = window.__wildshard.world.game; if (!('__nlpGate' in window)) window.__nlpGate = g.frameGate; g.frameGate = () => false; });
       await sleep(300);
@@ -124,6 +151,7 @@ try {
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
+    tiers[tier].residentFinalBytes = await resident();
     tiers[tier].gpuBytes = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].programs = await page.evaluate(() => window.__wildshard.world.game.renderer.info.programs?.length ?? -1);
     const sources = await page.evaluate(() => [...window.__nlpShaders].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));

@@ -1,3 +1,5 @@
+import dungeonLayout from '../data/kurganLayout.generated.json' with { type: 'json' };
+import { annulus } from '@wildshard/engine/fx/groundFx';
 import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
 import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
 import type { DressPlan } from './dressingPlan';
@@ -943,7 +945,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
     ...[13.6, 18.4].flatMap(nz => [-1, 1].map(sx => [nz > 16 ? 1 : 0, 0xba1 + Math.round(nz * 10) + sx])),
     ...[0, 1, 2, 3].map(i => [i % 2, 0xba7 + i * 3])];
   const actors: [string, THREE.BufferGeometry][] = carvings.map(([variant = 0, seed = 0xba1]) => [`balbal:${String(variant)}:${String(seed)}`, balbalGeometry(variant, seed)]);
-  actors.push(['goat', goatGeometry()], ['rider', riderGeometry()],
+  actors.push(...kurganFabric(balbalGeometry), ['goat', goatGeometry()], ['rider', riderGeometry()],
     ...['aqbars', 'kokbori', 'qyran', 'qara-batyr', 'argymaq'].map((id): [string, THREE.BufferGeometry] => [`trophy:${id}`, trophyGeometry(id)]));
   for (const [key, geometry] of actors) {
     rows.push({ name: `actor:${key}`, group: null, surface: 'stone', tris: geometry.getAttribute('position').count / 3,
@@ -1859,4 +1861,530 @@ export function bakeCragRock(phone: boolean, heightAt: Ground, seed = 0xc4a9): C
     meshes.push({ name: `nalati-crag-rock-${i}`, geometry });
   }
   return { meshes, colliders, descs, count, triangles: Math.round(triangles), placements, boxes };
+}
+
+/** Original Kurgan fabric construction, scoped to the existing places author. */
+function kurganFabric(supplyCarving: (variant: number, seed: number) => THREE.BufferGeometry): [string, THREE.BufferGeometry][] {
+  const { CH, DROMOS_END, COFFIN, PEDESTAL, NICHES } = dungeonLayout;
+
+  const { SAND_N, BEAM_Y, PLANK_Y, DW, DH, DOOR_W, DOOR_H, BRAZIERS, FALLEN } = dungeonLayout.FABRIC;
+
+  const chamberColours = {
+    larch: new THREE.Color('#6f5238'), larchDark: new THREE.Color('#4c3826'), larchOld: new THREE.Color('#6b5f52'),
+    board: new THREE.Color('#5c4430'), boardDust: new THREE.Color('#7d6a52'),
+    earth: new THREE.Color('#4a3524'), black: new THREE.Color('#0c0806'),
+    felt: new THREE.Color('#8a2619'), feltDark: new THREE.Color('#4f150e'), cream: new THREE.Color('#e2cfa0'), ochre: new THREE.Color('#b0843e'),
+    gold: new THREE.Color('#f2c14e'), goldDark: new THREE.Color('#9a6a1c'), bronze: new THREE.Color('#8a5a2a'),
+    stone: new THREE.Color('#8f8b83'), fur: new THREE.Color('#cfc3ad'), sand: new THREE.Color('#a88c62'),
+    day: new THREE.Color('#9fb4c8'),
+  };
+
+  // ─────────────────────────────── motifs ───────────────────────────────
+
+  const inEll = (u: number, v: number, cx: number, cy: number, rx: number, ry: number, rot = 0) => {
+    const c = Math.cos(rot), s = Math.sin(rot), dx = u - cx, dy = v - cy;
+    const x = dx * c + dy * s, y = -dx * s + dy * c;
+    return (x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1;
+  };
+  /** a galloping felt-appliqué horse (Pazyryk style) in the unit square, facing left: true inside the figure */
+  function horseMask(u: number, v: number): boolean {
+    if (inEll(u, v, 0.52, 0.52, 0.25, 0.12, 0.05)) return true;                 // barrel
+    if (inEll(u, v, 0.28, 0.64, 0.07, 0.17, -0.55)) return true;                // neck
+    if (inEll(u, v, 0.15, 0.78, 0.1, 0.05, 0.55)) return true;                  // head
+    if (inEll(u, v, 0.3, 0.84, 0.03, 0.05, -0.3)) return true;                  // ear / mane crest
+    if (inEll(u, v, 0.82, 0.55, 0.12, 0.03, -0.55)) return true;                // tail
+    if (inEll(u, v, 0.3, 0.33, 0.035, 0.16, 0.55)) return true;                 // foreleg, stretched forward
+    if (inEll(u, v, 0.4, 0.3, 0.03, 0.15, -0.2)) return true;                   // foreleg under
+    if (inEll(u, v, 0.66, 0.31, 0.035, 0.16, 0.25)) return true;                // hind leg under
+    if (inEll(u, v, 0.78, 0.33, 0.03, 0.17, -0.65)) return true;                // hind leg, kicked back
+    return false;
+  }
+  /** a felt panel: red ground, a cream border with a running diamond, `horses` horses along it */
+  function feltPainter(w: number, h: number, horses: number, horizontal: boolean): (p: THREE.Vector3) => THREE.Color {
+    const out = new THREE.Color();
+    return (p) => {
+      const u = p.x / w + 0.5, v = p.y / h + 0.5;
+      const bu = Math.min(u, 1 - u) * w, bv = Math.min(v, 1 - v) * h, b = Math.min(bu, bv);
+      if (b < 0.05) return out.copy(chamberColours.feltDark);
+      if (b < 0.16) {
+        // the border: a cream band with red diamonds
+        const along = bu < bv ? v * h : u * w;
+        const across = (b - 0.05) / 0.11;
+        const dmd = Math.abs(((along * 5) % 1) - 0.5) + Math.abs(across - 0.5);
+        return out.copy(dmd < 0.35 ? chamberColours.felt : chamberColours.cream);
+      }
+      if (b < 0.2) return out.copy(chamberColours.ochre);
+      // the field: horses
+      const iw = w - 0.4, ih = h - 0.4;
+      const fu = (u * w - 0.2) / iw, fv = (v * h - 0.2) / ih;
+      if (horizontal) {
+        const k = Math.min(horses - 1, Math.floor(fu * horses)), lu = fu * horses - k;
+        if (horseMask(lu * 1.05 - 0.02, (fv - 0.5) * (ih / (iw / horses)) + 0.5)) return out.copy(chamberColours.cream);
+      } else {
+        const k = Math.min(horses - 1, Math.floor(fv * horses)), lv = fv * horses - k;
+        if (horseMask(fu, (lv - 0.5) * ((ih / horses) / iw) + 0.5)) return out.copy(chamberColours.cream);
+      }
+      return out.copy(chamberColours.felt);
+    };
+  }
+
+  // ─────────────────────────────── the bake ───────────────────────────────
+
+  interface Lamp { x: number; y: number; z: number; r: number; i: number; c: THREE.Color }
+  const WARM = new THREE.Color(1.0, 0.7, 0.44), DAY = new THREE.Color(1.0, 0.93, 0.78), LAMP = new THREE.Color(1.0, 0.72, 0.48);
+  const LAMPS: Lamp[] = [
+    ...BRAZIERS.map((b) => ({ x: b.x, y: 1.5, z: b.z, r: 9.5, i: 1.5, c: WARM })),
+    { x: 0, y: 2.0, z: 12.6, r: 5, i: 0.75, c: LAMP }, { x: 0, y: 2.0, z: 18.2, r: 5, i: 0.7, c: LAMP },
+  ];
+  const AMBIENT = new THREE.Color(0.15, 0.13, 0.115);
+  const _n = new THREE.Vector3(), _d = new THREE.Vector3(), _l = new THREE.Color();
+
+  /** the light at a chamber-local point with normal n (the unlit interior's whole lighting model, baked once) */
+  function lightAt(x: number, y: number, z: number, n: THREE.Vector3, out: THREE.Color): THREE.Color {
+    out.copy(AMBIENT);
+    // soft sky bounce from the looter's hole and the dark ceiling
+    out.multiplyScalar(1 - 0.35 * THREE.MathUtils.smoothstep(y, 3, 6));
+    for (const L of LAMPS) {
+      _d.set(L.x - x, L.y - y, L.z - z);
+      const d = _d.length();
+      if (d > L.r) continue;
+      const f = (1 - (d / L.r) ** 2) ** 2;
+      const lam = Math.max(0.2, n.dot(_d.normalize()));
+      out.r += L.c.r * L.i * f * lam; out.g += L.c.g * L.i * f * lam; out.b += L.c.b * L.i * f * lam;
+    }
+    // the daylight shaft from the looter's hole: a pool on the coffin and the floor round it, and a glow on nearby faces
+    const dx = x - (COFFIN.x + 0.3), dz = z - (COFFIN.z + 0.2), dr = Math.hypot(dx, dz);
+    const pool = (1 - THREE.MathUtils.smoothstep(dr, 1.2, 3.0)) * Math.max(0, n.y);
+    const halo = (1 - THREE.MathUtils.smoothstep(dr, 0.5, 5.5)) * 0.35;
+    out.r += DAY.r * (pool * 1.8 + halo); out.g += DAY.g * (pool * 1.8 + halo); out.b += DAY.b * (pool * 1.8 + halo);
+    // the pedestal's shaft, faint until the victory lights it (the FX does that)
+    const pr = Math.hypot(x - PEDESTAL.x, z - PEDESTAL.z);
+    const pp = (1 - THREE.MathUtils.smoothstep(pr, 0.6, 2.2)) * 0.5;
+    out.r += DAY.r * pp; out.g += DAY.g * pp; out.b += DAY.b * pp;
+    // the dromos' far end: cool daylight leaking in from the mound's door
+    if (z > CH) {
+      const k = THREE.MathUtils.smoothstep(z, DROMOS_END - 4, DROMOS_END);
+      out.r += chamberColours.day.r * 0.5 * k; out.g += chamberColours.day.g * 0.5 * k; out.b += chamberColours.day.b * 0.6 * k;
+    }
+    // corners and the foot of every wall sit in the dark
+    const wx = z > CH ? DW - Math.abs(x) : CH - Math.abs(x), wz = z > CH ? 99 : CH - Math.abs(z);
+    const ao = THREE.MathUtils.smoothstep(Math.min(wx, wz) + y * 0.8, 0.0, 1.4);
+    out.multiplyScalar(0.55 + 0.45 * ao);
+    return out;
+  }
+
+  /** multiply a merged geometry's vertex colours by the baked light (positions are chamber-local) */
+  function bake(geo: THREE.BufferGeometry, from = 0, to = Infinity): void {
+    const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
+    for (let i = from, end = Math.min(to, pos.count); i < end; i++) {
+      _n.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
+      lightAt(pos.getX(i), pos.getY(i), pos.getZ(i), _n, _l);
+      col.setXYZ(i, col.getX(i) * _l.r, col.getY(i) * _l.g, col.getZ(i) * _l.b);
+    }
+    col.needsUpdate = true;
+  }
+
+
+  // ─────────────────────────────── the builder ───────────────────────────────
+
+  /** a horizontal log from (x0, y, z0) to (x1, y, z1) */
+  const log = (x0: number, y: number, z0: number, x1: number, z1: number, r: number, sides = 9) => pole(v3(x0, y, z0), v3(x1, y, z1), r, r * 0.96, sides);
+
+  /** The original chamber recipe, executed only by the offline places bake. */
+  class KurganFabric {
+    readonly group = new THREE.Group();
+    readonly statues: THREE.Mesh[] = [];
+    declare lid: THREE.Mesh;
+    declare heap: THREE.Mesh;
+    declare sandMesh: THREE.Mesh;
+    readonly sandLight = new Float32Array((SAND_N + 1) * (SAND_N + 1) * 3);
+    constructor(private readonly carve: (variant: number, seed: number) => THREE.BufferGeometry) {}
+    build(): [string, THREE.BufferGeometry][] {
+      const kit = new PaintKit(0xb0551), rng = kit.rng;
+      const steps = this.chamberSteps(kit, rng);
+      while (steps.next().done !== true) { /* original paint order */ }
+      this.buildDromos(kit, rng);
+      this.buildGraveGoods(kit, rng);
+      const geometry = kit.finish();
+      bake(geometry);
+      const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
+      const movables = this.movableSteps(mat, rng);
+      while (movables.next().done !== true) { /* original RNG continuation */ }
+      this.buildSand(mat);
+      this.sandMesh.geometry.setAttribute('light', new THREE.BufferAttribute(this.sandLight, 3));
+      mat.dispose();
+      return [['dungeon:interior', geometry], ['dungeon:lid', this.lid.geometry],
+        ...this.statues.map((mesh, i): [string, THREE.BufferGeometry] => [`dungeon:statue:${String(i)}`, mesh.geometry]),
+        ['dungeon:heap', this.heap.geometry], ['dungeon:sand', this.sandMesh.geometry], ...fxFabric()];
+    }
+    private *chamberSteps(kit: PaintKit, rng: Rng): Generator<void, void> {
+      // ── floor: long larch boards, dusty toward the walls ──
+      for (let i = 0; i < 40; i++) {
+        const z = -CH + 0.25 + i * 0.5;
+        kit.add(new THREE.BoxGeometry(CH * 2, 0.16, 0.48), rng.next() < 0.3 ? chamberColours.larchOld : chamberColours.board, { matrix: M(0, -0.08 + rng.range(-0.012, 0.012), z), flat: true, brush: 0.12 });
+      }
+      // ── walls: stacked horizontal logs; openings for the door (north) and the four niches (east / west) ──
+      const rows = Math.ceil(PLANK_Y / 0.42);                // up to the deck: no gap under the ceiling
+      for (let r = 0; r < rows; r++) {
+        const y = 0.22 + r * 0.42, rr = 0.23 + rng.range(-0.015, 0.015);
+        const col = r % 3 === 0 ? chamberColours.larchDark : r % 3 === 1 ? chamberColours.larch : chamberColours.larchOld;
+        // north (z = +CH): split round the door
+        if (y < DOOR_H + 0.1) { kit.add(log(-CH, y, CH, -DOOR_W - 0.35, CH, rr), col, { brush: 0.12 }); kit.add(log(DOOR_W + 0.35, y, CH, CH, CH, rr), col, { brush: 0.12 }); }
+        else kit.add(log(-CH, y, CH, CH, CH, rr), col, { brush: 0.12 });
+        kit.add(log(-CH, y, -CH, CH, -CH, rr), col, { brush: 0.12 });
+        // east (x = −CH) / west (x = +CH): split round the niches
+        for (const sx of [-1, 1]) {
+          const x = sx * CH;
+          if (y < 3.55) {
+            const cuts = NICHES.filter((n) => Math.sign(n.x) === sx).map((n) => n.z).sort((a, b) => a - b);
+            let z0 = -CH;
+            for (const cz of cuts) { kit.add(log(x, y, z0, x, cz - 1.15, rr), col, { brush: 0.12 }); z0 = cz + 1.15; }
+            kit.add(log(x, y, z0, x, CH, rr), col, { brush: 0.12 });
+          } else kit.add(log(x, y, -CH, x, CH, rr), col, { brush: 0.12 });
+        }
+      }
+      // ── posts: the corners, the wall midpoints, either side of every opening ──
+      const post = (x: number, z: number, r = 0.3) => kit.add(pole(v3(x, -0.1, z), v3(x, BEAM_Y + 0.2, z), r, r * 0.9, 10), chamberColours.larchDark, { brush: 0.14, foot: 0.7 });
+      for (const [x, z] of [[-CH, -CH], [CH, -CH], [-CH, CH], [CH, CH], [0, -CH], [-CH, 0], [CH, 0]] as const) post(x * 0.97, z * 0.97, 0.34);
+      for (const sx of [-1, 1]) post(sx * (DOOR_W + 0.3), CH - 0.05, 0.32);
+      kit.add(log(-DOOR_W - 0.9, DOOR_H + 0.3, CH - 0.1, DOOR_W + 0.9, CH - 0.1, 0.3), chamberColours.larchOld, { brush: 0.1 });
+      // niches: framed, recessed, dark inside
+      for (const n of NICHES) {
+        const sx = Math.sign(n.x), x = sx * CH;
+        for (const dz of [-1.15, 1.15]) kit.add(pole(v3(x - sx * 0.1, -0.1, n.z + dz), v3(x - sx * 0.1, 3.7, n.z + dz), 0.24, 0.22, 9), chamberColours.larchDark, { brush: 0.12 });
+        kit.add(log(x - sx * 0.1, 3.72, n.z - 1.4, x - sx * 0.1, n.z + 1.4, 0.26), chamberColours.larchOld);
+        kit.add(new THREE.BoxGeometry(0.2, 3.8, 2.4), chamberColours.earth.clone().multiplyScalar(0.55), { matrix: M(x + sx * 1.2, 1.8, n.z), flat: true });
+        kit.add(new THREE.BoxGeometry(1.3, 0.2, 2.4), chamberColours.earth.clone().multiplyScalar(0.7), { matrix: M(x + sx * 0.6, 3.8, n.z), flat: true });
+        for (const dz of [-1.2, 1.2]) kit.add(new THREE.BoxGeometry(1.3, 3.8, 0.2), chamberColours.earth.clone().multiplyScalar(0.6), { matrix: M(x + sx * 0.6, 1.8, n.z + dz), flat: true });
+        kit.add(new THREE.BoxGeometry(1.3, 0.1, 2.4), chamberColours.earth, { matrix: M(x + sx * 0.6, 0.0, n.z), flat: true });
+      }
+      yield; // the walls and niches, then the ceiling a task later (the yield draws nothing)
+      // ── the ceiling: massive beams across, a plank deck above them, the looter's hole over the coffin ──
+      const hole = (x: number, z: number) => Math.hypot((x - 0.3) / 1.45, (z - COFFIN.z - 0.1) / 1.25) < 1 + 0.12 * Math.sin(Math.atan2(z, x) * 5);
+      for (let k = 0; k < 13; k++) {
+        const z = -CH + 0.6 + k * 1.57;
+        const r = 0.3 + rng.range(-0.02, 0.03);
+        if (Math.abs(z - COFFIN.z) < 1.2) {
+          // the broken beam: two halves hanging into the hole
+          kit.add(pole(v3(-CH, BEAM_Y, z), v3(-1.2, BEAM_Y - 0.55, z + 0.2), r, r * 0.8, 9), chamberColours.larchOld, { brush: 0.14 });
+          kit.add(pole(v3(CH, BEAM_Y, z), v3(1.6, BEAM_Y - 0.9, z - 0.3), r, r * 0.8, 9), chamberColours.larchOld, { brush: 0.14 });
+          continue;
+        }
+        kit.add(log(-CH, BEAM_Y, z, CH, z, r, 10), k % 2 === 0 ? chamberColours.larchDark : chamberColours.larch, { brush: 0.14 });
+      }
+      for (let i = 0; i < 40; i++) {
+        const x = -CH + 0.25 + i * 0.5;
+        // boards along z, cut where they cross the hole (ragged ends)
+        let z0 = -CH;
+        const segs: [number, number][] = [];
+        let inHole = false;
+        for (let z = -CH; z <= CH + 1e-6; z += 0.25) {
+          const h = hole(x, z);
+          if (h && !inHole) { segs.push([z0, z]); inHole = true; }
+          if (!h && inHole) { z0 = z + rng.range(0, 0.2); inHole = false; }
+        }
+        if (!inHole) segs.push([z0, CH]);
+        for (const [a, b] of segs) if (b - a > 0.2) kit.add(new THREE.BoxGeometry(0.47, 0.12, b - a), rng.next() < 0.4 ? chamberColours.larchOld : chamberColours.larchDark, { matrix: M(x, PLANK_Y + rng.range(-0.02, 0.02), (a + b) / 2), flat: true, brush: 0.15 });
+      }
+      // the mound's packed earth over the deck (the plank seams must not show the sky): four slabs framing the hole
+      const HX0 = -1.3, HX1 = 1.9, HZ0 = COFFIN.z - 1.3, HZ1 = COFFIN.z + 1.5, EY = PLANK_Y + 0.2;
+      const earthSlab = (x0: number, x1: number, z0: number, z1: number) => kit.add(new THREE.BoxGeometry(x1 - x0, 0.3, z1 - z0), chamberColours.earth.clone().multiplyScalar(0.4), { matrix: M((x0 + x1) / 2, EY, (z0 + z1) / 2), flat: true, brush: 0 });
+      earthSlab(-CH - 0.5, CH + 0.5, HZ1, CH + 0.5); earthSlab(-CH - 0.5, CH + 0.5, -CH - 0.5, HZ0); earthSlab(-CH - 0.5, HX0, HZ0, HZ1); earthSlab(HX1, CH + 0.5, HZ0, HZ1);
+      // earth and turf showing round the hole's rim (the mound's fill), and dangling roots
+      for (let i = 0; i < 22; i++) {
+        const a = (i / 22) * Math.PI * 2, x = 0.3 + Math.cos(a) * 1.5, z = COFFIN.z + 0.1 + Math.sin(a) * 1.3;
+        kit.add(blob(rng.range(0.25, 0.45), rng, 1, 0.6), chamberColours.earth, { matrix: M(x, PLANK_Y + 0.15, z, rng.range(0, 6)) });
+        if (i % 3 === 0) kit.add(pole(v3(x, PLANK_Y, z), v3(x + rng.range(-0.2, 0.2), PLANK_Y - rng.range(0.5, 1.3), z + rng.range(-0.2, 0.2)), 0.025, 0.008, 4), chamberColours.earth);
+      }
+      // ── the coffin plinth (walkable high ground) and the coffin: a hollowed larch log, horses carved along its sides ──
+      kit.add(new THREE.BoxGeometry(COFFIN.wid + 1.3, COFFIN.plinthH, COFFIN.len + 1.2), chamberColours.larchOld, { matrix: M(COFFIN.x, COFFIN.plinthH / 2, COFFIN.z), flat: true, brush: 0.1 });
+      for (const sx of [-1, 1]) kit.add(log(COFFIN.x + sx * (COFFIN.wid / 2 + 0.55), COFFIN.plinthH - 0.05, COFFIN.z - COFFIN.len / 2 - 0.5, COFFIN.x + sx * (COFFIN.wid / 2 + 0.55), COFFIN.z + COFFIN.len / 2 + 0.5, 0.14), chamberColours.larchDark);
+      const cy = COFFIN.plinthH + COFFIN.h / 2;
+      const sidePaint = (w: number, h: number) => {
+        const out = new THREE.Color();
+        return (p: THREE.Vector3, n: THREE.Vector3) => {
+          if (Math.abs(n.x) > 0.7) {
+            // a frieze of three horses along the side (p.z along, p.y up)
+            const u = p.z / w + 0.5, v = p.y / h + 0.5;
+            const k = Math.min(2, Math.floor(u * 3)), lu = u * 3 - k;
+            if (v > 0.18 && v < 0.86 && horseMask(n.x > 0 ? lu : 1 - lu, (v - 0.18) / 0.68)) return out.copy(chamberColours.larchOld).lerp(chamberColours.cream, 0.25);
+            if (v < 0.12 || v > 0.9) return out.copy(chamberColours.larchDark);
+          }
+          return out.copy(chamberColours.larch);
+        };
+      };
+      kit.add(new THREE.BoxGeometry(COFFIN.wid, COFFIN.h, COFFIN.len, 2, 12, 60), sidePaint(COFFIN.len, COFFIN.h), { matrix: M(COFFIN.x, cy, COFFIN.z), flat: true, brush: 0.08 });
+      kit.add(new THREE.BoxGeometry(COFFIN.wid - 0.22, 0.04, COFFIN.len - 0.22), chamberColours.black, { matrix: M(COFFIN.x, COFFIN.plinthH + COFFIN.h + 0.005, COFFIN.z), flat: true, brush: 0 });
+      // ── the pedestal: a dressed stone block under a red felt with a horse ──
+      kit.add(new THREE.BoxGeometry(1.2, PEDESTAL.h, 1.0), chamberColours.stone, { matrix: M(PEDESTAL.x, PEDESTAL.h / 2, PEDESTAL.z), brush: 0.14, flat: true });
+      kit.add(new THREE.BoxGeometry(1.1, 0.04, 1.3), chamberColours.felt, { matrix: M(PEDESTAL.x, PEDESTAL.h + 0.02, PEDESTAL.z + 0.1), flat: true });
+      kit.add(new THREE.PlaneGeometry(0.95, 0.75, 38, 30), feltPainter(0.95, 0.75, 1, true), { matrix: M(PEDESTAL.x, PEDESTAL.h - 0.36, PEDESTAL.z + 0.505), brush: 0.05 });
+      kit.add(new THREE.BoxGeometry(1.6, 0.18, 1.4), chamberColours.stone.clone().multiplyScalar(0.85), { matrix: M(PEDESTAL.x, 0.09, PEDESTAL.z), flat: true, brush: 0.12 });
+      // ── the braziers: bronze tripods with a bowl of embers ──
+      for (const b of BRAZIERS) {
+        for (let k = 0; k < 3; k++) {
+          const a = (k / 3) * Math.PI * 2;
+          kit.add(pole(v3(b.x + Math.cos(a) * 0.45, 0, b.z + Math.sin(a) * 0.45), v3(b.x + Math.cos(a) * 0.18, 0.9, b.z + Math.sin(a) * 0.18), 0.035, 0.03, 5), chamberColours.bronze);
+        }
+        kit.add(lathe([[0.02, 0.0], [0.34, 0.04], [0.5, 0.2], [0.52, 0.28], [0.47, 0.27], [0.3, 0.12], [0.0, 0.1]], 16), chamberColours.bronze, { matrix: M(b.x, 0.9, b.z), brush: 0.1 });
+        kit.add(blob(0.36, rng, 1, 0.3, 0.3), new THREE.Color(2.2, 0.8, 0.25), { matrix: M(b.x, 1.13, b.z) });  // embers (HDR: they glow)
+      }
+      // ── felt hangings on the walls and red felt rugs on the floor ──
+      const hang = (x: number, z: number, yaw: number) => {
+        kit.add(new THREE.PlaneGeometry(1.7, 2.7, 44, 70), feltPainter(1.7, 2.7, 2, false), { matrix: M(x, 2.55, z, yaw), brush: 0.06 });
+        kit.add(log(x - Math.cos(yaw), 3.95, z + Math.sin(yaw), x + Math.cos(yaw), z - Math.sin(yaw), 0.04, 6), chamberColours.larchDark);
+      };
+      hang(-5.6, CH - 0.28, Math.PI); hang(5.6, CH - 0.28, Math.PI);
+      hang(-4.8, -CH + 0.28, 0); hang(4.8, -CH + 0.28, 0);
+      hang(-CH + 0.28, 0.2, Math.PI / 2); hang(CH - 0.28, 0.2, -Math.PI / 2);
+      const rug = (x: number, z: number, w: number, d: number, yaw: number, horses: number) => {
+        const fp = feltPainter(w, d, horses, true), q = new THREE.Vector3();
+        kit.add(new THREE.PlaneGeometry(w, d, Math.round(w * 22), Math.round(d * 22)).rotateX(-Math.PI / 2), (p) => fp(q.set(p.x, -p.z, 0)), { matrix: M(x, 0.012, z, yaw), brush: 0.05 });
+      };
+      rug(0, 4.4, 3.4, 2.2, 0, 2);
+      rug(-5.8, -6.0, 2.6, 1.8, 0.35, 1);
+      rug(6.2, 0.4, 1.8, 2.8, 0.1, 2);
+      rug(0, -6.9, 2.8, 1.6, 0, 2);
+      // fur pelts by the coffin
+      for (const [x, z, a] of [[-1.9, 0.8, 0.4], [2.0, -1.6, -0.6]] as const) kit.add(blob(0.8, rng, 2, 0.08, 0.3), chamberColours.fur, { matrix: M(x, 0.02, z, a, 1.2, 1, 0.8), brush: 0.1 });
+      // the fallen roof beams (high ground)
+      for (const f of FALLEN) kit.add(pole(v3(f.a.x, f.r, f.a.z), v3(f.b.x, f.r * 0.95, f.b.z), f.r, f.r * 0.9, 10), chamberColours.larchOld, { brush: 0.14 });
+    }
+
+    private buildDromos(kit: PaintKit, rng: Rng): void {
+      const z0 = CH + 0.2, z1 = DROMOS_END;
+      for (let i = 0; i < 7; i++) {
+        const x = -DW + 0.22 + i * 0.43;
+        kit.add(new THREE.BoxGeometry(0.42, 0.16, z1 - z0), rng.next() < 0.4 ? chamberColours.larchOld : chamberColours.board, { matrix: M(x, -0.08, (z0 + z1) / 2), flat: true, brush: 0.12 });
+      }
+      const niche = (z: number) => [13.6, 18.4].some((nz) => Math.abs(z - nz) < 0.9);
+      for (let r = 0; r < 8; r++) {
+        const y = 0.2 + r * 0.4;
+        for (const sx of [-1, 1]) {
+          if (y < 2.4) {
+            kit.add(log(sx * DW, y, z0, sx * DW, 12.7, 0.2), r % 2 ? chamberColours.larch : chamberColours.larchDark);
+            kit.add(log(sx * DW, y, 14.5, sx * DW, 17.5, 0.2), r % 2 ? chamberColours.larch : chamberColours.larchDark);
+            kit.add(log(sx * DW, y, 19.3, sx * DW, z1, 0.2), r % 2 ? chamberColours.larch : chamberColours.larchDark);
+          } else kit.add(log(sx * DW, y, z0, sx * DW, z1, 0.2), r % 2 ? chamberColours.larch : chamberColours.larchDark);
+        }
+      }
+      for (let z = z0 + 0.2; z < z1; z += 0.55) kit.add(log(-DW - 0.3, DH + 0.05, z, DW + 0.3, z, 0.21, 8), chamberColours.larchOld, { brush: 0.12 });
+      // the niches with their dormant balbals (static — only the chamber's four wake)
+      for (const nz of [13.6, 18.4]) for (const sx of [-1, 1]) {
+        kit.add(new THREE.BoxGeometry(0.2, 2.8, 1.8), chamberColours.earth.clone().multiplyScalar(0.55), { matrix: M(sx * (DW + 0.9), 1.3, nz), flat: true });
+        kit.add(new THREE.BoxGeometry(1.1, 0.12, 1.9), chamberColours.earth.clone().multiplyScalar(0.7), { matrix: M(sx * (DW + 0.45), -0.02, nz), flat: true });
+        for (const dz of [-0.95, 0.95]) kit.add(new THREE.BoxGeometry(1.1, 2.8, 0.14), chamberColours.earth.clone().multiplyScalar(0.5), { matrix: M(sx * (DW + 0.45), 1.3, nz + dz), flat: true });
+        kit.add(new THREE.BoxGeometry(1.1, 0.14, 1.9), chamberColours.earth.clone().multiplyScalar(0.45), { matrix: M(sx * (DW + 0.45), 2.72, nz), flat: true });
+        for (const dz of [-0.9, 0.9]) kit.add(pole(v3(sx * DW, -0.1, nz + dz), v3(sx * DW, 2.7, nz + dz), 0.2, 0.18, 8), chamberColours.larchDark);
+        kit.add(log(sx * DW, 2.65, nz - 1.1, sx * DW, nz + 1.1, 0.2), chamberColours.larchOld);
+        const g = this.carve(nz > 16 ? 1 : 0, 0xba1 + Math.round(nz * 10) + sx);
+        g.applyMatrix4(M(sx * (DW + 0.55), 0, nz, sx > 0 ? Math.PI / 2 : -Math.PI / 2, 1.0));
+        kit.add(g, (p) => new THREE.Color(0.4, 0.39, 0.37).multiplyScalar(0.85 + 0.15 * Math.sin(p.y * 7)), { brush: 0.08 });
+      }
+      // the door frame between the dromos and the chamber: massive larch posts and a lintel
+      for (const sx of [-1, 1]) kit.add(pole(v3(sx * (DOOR_W + 0.05), -0.1, CH + 0.3), v3(sx * (DOOR_W + 0.05), DOOR_H + 0.35, CH + 0.3), 0.3, 0.27, 10), chamberColours.larchDark, { brush: 0.14 });
+      kit.add(log(-DOOR_W - 0.6, DOOR_H + 0.3, CH + 0.3, DOOR_W + 0.6, CH + 0.3, 0.3), chamberColours.larch);
+      // the far end: packed earth and daylight coming round the bend from the mound's door
+      kit.add(new THREE.BoxGeometry(DW * 2 + 0.4, DH + 0.4, 0.3), chamberColours.day.clone().multiplyScalar(0.55), { matrix: M(0, DH / 2, z1 + 0.15), flat: true, brush: 0.2 });
+      // gold offerings along the walls, oil lamps on posts
+      for (let i = 0; i < 12; i++) {
+        const z = rng.range(z0 + 0.6, z1 - 1), sx = rng.next() < 0.5 ? -1 : 1;
+        if (niche(z)) continue;
+        this.goldBowl(kit, rng, sx * (DW - 0.35), z, rng.range(0.1, 0.18));
+      }
+      for (const z of [12.6, 18.2]) {
+        kit.add(pole(v3(-DW + 0.25, 0, z), v3(-DW + 0.25, 1.75, z), 0.05, 0.04, 6), chamberColours.larchDark);
+        kit.add(lathe([[0.02, 0], [0.12, 0.04], [0.14, 0.08], [0.0, 0.07]], 10), chamberColours.bronze, { matrix: M(-DW + 0.25, 1.75, z) });
+      }
+    }
+
+    private goldBowl(kit: PaintKit, rng: Rng, x: number, z: number, r: number, y = 0): void {
+      kit.add(lathe([[0.0, 0.0], [r * 0.55, 0.0], [r * 0.9, r * 0.25], [r, r * 0.6], [r * 0.93, r * 0.62], [r * 0.82, r * 0.3], [0.0, r * 0.12]], 14), rng.next() < 0.7 ? chamberColours.gold : chamberColours.goldDark, { matrix: M(x, y, z, rng.range(0, 6)), brush: 0.18 });
+    }
+
+    private buildGraveGoods(kit: PaintKit, rng: Rng): void {
+      const G = kit;
+      const nearWall = (): [number, number] => {
+        const side = rng.int(0, 3), t = rng.range(-CH + 1.2, CH - 1.2), d = rng.range(0.7, 1.9);
+        const p: [number, number] = side === 0 ? [t, -CH + d] : side === 1 ? [t, CH - d] : side === 2 ? [-CH + d, t] : [CH - d, t];
+        return p;
+      };
+      const blocked = (x: number, z: number) => (Math.abs(x) < DOOR_W + 0.8 && z > CH - 2.6)
+        || NICHES.some((n) => Math.abs(x - n.x) < 2.6 && Math.abs(z - n.z) < 1.6)
+        || Math.hypot(x - PEDESTAL.x, z - PEDESTAL.z) < 1.6 || BRAZIERS.some((b) => Math.hypot(x - b.x, z - b.z) < 1.0);
+      // chests (carved boxes), cauldrons, amphorae, bowls, heaps of plaques — against the walls
+      for (let i = 0; i < 70; i++) {
+        const [x, z] = nearWall();
+        if (blocked(x, z)) continue;
+        const kind = rng.next();
+        if (kind < 0.16) {
+          const w = rng.range(0.8, 1.3), d = rng.range(0.55, 0.8), h = rng.range(0.45, 0.7), yaw = Math.abs(x) > Math.abs(z) ? Math.PI / 2 : 0;
+          G.add(new THREE.BoxGeometry(w, h, d), chamberColours.larchDark, { matrix: M(x, h / 2, z, yaw + rng.range(-0.1, 0.1)), flat: true, brush: 0.12 });
+          G.add(new THREE.BoxGeometry(w + 0.06, 0.08, d + 0.06), chamberColours.bronze, { matrix: M(x, h + 0.04, z, yaw), flat: true });
+          for (let k = 0; k < 4; k++) this.goldBowl(G, rng, x + rng.range(-w / 3, w / 3), z + rng.range(-0.15, 0.15), rng.range(0.08, 0.13), h + 0.08);
+        } else if (kind < 0.26) {
+          G.add(lathe([[0.0, 0.0], [0.22, 0.02], [0.4, 0.2], [0.44, 0.45], [0.38, 0.62], [0.34, 0.64], [0.36, 0.6], [0.0, 0.55]], 16), chamberColours.bronze, { matrix: M(x, 0, z), brush: 0.14 });
+          for (const a of [0, Math.PI]) G.add(new THREE.TorusGeometry(0.1, 0.02, 5, 10), chamberColours.bronze, { matrix: M(x + Math.cos(a) * 0.4, 0.62, z + Math.sin(a) * 0.4, a + Math.PI / 2) });
+        } else if (kind < 0.36) {
+          G.add(lathe([[0.0, 0.0], [0.08, 0.02], [0.2, 0.25], [0.21, 0.5], [0.1, 0.72], [0.07, 0.85], [0.1, 0.9], [0.0, 0.9]], 14), rng.next() < 0.5 ? chamberColours.ochre : chamberColours.gold, { matrix: M(x, 0, z, 0, 1, rng.range(0.8, 1.2)), brush: 0.14 });
+        } else if (kind < 0.72) {
+          this.goldBowl(G, rng, x, z, rng.range(0.14, 0.3));
+        } else {
+          // a heap of gold plaques and coins
+          G.add(blob(rng.range(0.35, 0.7), rng, 2, 0.35, 0.35), (p) => (Math.sin(p.x * 60) * Math.sin(p.z * 60) > 0.2 ? chamberColours.gold : chamberColours.goldDark), { matrix: M(x, 0, z, rng.range(0, 6)), brush: 0.25 });
+        }
+      }
+      // gold spilled across the floor
+      for (let i = 0; i < 90; i++) {
+        const x = rng.range(-CH + 0.6, CH - 0.6), z = rng.range(-CH + 0.6, CH - 0.6);
+        if (Math.hypot(x - COFFIN.x, z - COFFIN.z) < 2.4 || blocked(x, z)) continue;
+        G.add(new THREE.CylinderGeometry(0.04, 0.04, 0.012, 7), chamberColours.gold, { matrix: M(x, 0.008, z, 0, 1, 1, 1, rng.range(-0.2, 0.2)) });
+      }
+      // spears with gold horse finials and round gold shields leaning on the walls
+      for (let i = 0; i < 10; i++) {
+        const [x, z] = nearWall();
+        if (blocked(x, z)) continue;
+        const tx = x + Math.sign(x) * (Math.abs(x) > Math.abs(z) ? 0.6 : 0), tz = z + Math.sign(z) * (Math.abs(z) >= Math.abs(x) ? 0.6 : 0);
+        if (i % 2 === 0) {
+          G.add(pole(v3(x, 0, z), v3(tx, 2.9, tz), 0.03, 0.025, 5), chamberColours.larchDark);
+          G.add(new THREE.ConeGeometry(0.06, 0.3, 6), chamberColours.gold, { matrix: M(tx, 3.05, tz) });
+          G.add(new THREE.CylinderGeometry(0.05, 0.05, 0.14, 6), new THREE.Color('#9a1a14'), { matrix: M(tx, 2.78, tz) });
+        } else {
+          const yaw = Math.abs(x) > Math.abs(z) ? (x > 0 ? -Math.PI / 2 : Math.PI / 2) : (z > 0 ? Math.PI : 0);
+          G.add(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 20), (p, n) => (n.y > 0.5 && Math.hypot(p.x, p.z) > 0.3 ? chamberColours.goldDark : chamberColours.gold), { matrix: M(x, 0.45, z, yaw, 1, 1, 1, Math.PI / 2 - 0.25), brush: 0.1 });
+        }
+      }
+      // gold ibex statuettes flanking the pedestal
+      for (const sx of [-1, 1]) {
+        const x = PEDESTAL.x + sx * 1.6, z = PEDESTAL.z + 0.2;
+        G.add(new THREE.BoxGeometry(0.5, 0.5, 0.5), chamberColours.larchDark, { matrix: M(x, 0.25, z), flat: true });
+        G.add(new THREE.CapsuleGeometry(0.1, 0.32, 3, 8).rotateZ(Math.PI / 2), chamberColours.gold, { matrix: M(x, 0.72, z, Math.PI / 2) });
+        G.add(new THREE.CapsuleGeometry(0.05, 0.16, 3, 6), chamberColours.gold, { matrix: M(x, 0.9, z - sx * 0, Math.PI / 2, 1, 1, 1, 0.6) });
+        for (const dz of [-0.13, 0.13]) G.add(new THREE.TorusGeometry(0.1, 0.018, 5, 10, Math.PI * 1.3), chamberColours.gold, { matrix: M(x, 1.05, z + dz, 0, 1, 1, 1, 0) });
+        for (const lx of [-0.12, 0.12]) G.add(new THREE.CylinderGeometry(0.025, 0.02, 0.22, 5), chamberColours.gold, { matrix: M(x + lx, 0.56, z) });
+      }
+    }
+
+    /** the pieces that move or come and go: the coffin lid, the four niche balbals, the heap of plaques */
+    *movableSteps(mat: THREE.MeshBasicMaterial, rng: Rng): Generator<void, void> {
+      {
+        const kit = new PaintKit(0x11d);
+        kit.add(new THREE.BoxGeometry(COFFIN.wid + 0.14, 0.18, COFFIN.len + 0.14, 2, 1, 40), (p, n) => (n.y > 0.5 && horseMask(p.z / COFFIN.len * 3 % 1 + 0.5, p.x / COFFIN.wid + 0.5) ? chamberColours.larchOld : chamberColours.larch), { flat: true, brush: 0.1 });
+        const g = kit.finish();
+        // bake as it lies on the coffin (the lid is small: the light barely changes when it slides)
+        g.translate(COFFIN.x, COFFIN.plinthH + COFFIN.h + 0.09, COFFIN.z); bake(g); g.translate(-COFFIN.x, -(COFFIN.plinthH + COFFIN.h + 0.09), -COFFIN.z);
+        this.lid = new THREE.Mesh(g, mat);
+        this.lid.position.set(COFFIN.x, COFFIN.plinthH + COFFIN.h + 0.09, COFFIN.z);
+        this.lid.frustumCulled = false;
+        this.group.add(this.lid);
+      }
+      for (const [i, n] of NICHES.entries()) {
+        yield;
+        const kit = new PaintKit(0x2b + i);
+        const g0 = this.carve(i % 2, 0xba7 + i * 3);
+        g0.applyMatrix4(M(0, 0, 0, 0, 1.2));
+        kit.add(g0, (p) => new THREE.Color(0.4, 0.39, 0.37).multiplyScalar(0.85 + 0.15 * Math.sin(p.y * 7)), { brush: 0.08 });
+        const g = kit.finish();
+        const sx = Math.sign(n.x);
+        g.applyMatrix4(M(n.x + sx * 0.55, 0, n.z, n.yaw + Math.PI));
+        bake(g);
+        const m = new THREE.Mesh(g, mat);
+        m.frustumCulled = false;
+        this.statues.push(m); this.group.add(m);
+      }
+      yield;
+      {
+        const kit = new PaintKit(0x4ea9);
+        for (let i = 0; i < 70; i++) {
+          const a = rng.range(0, Math.PI * 2), r = Math.sqrt(rng.next()) * 1.1, y = (1.1 - r) * 0.35;
+          kit.add(new THREE.BoxGeometry(0.1, 0.02, 0.13), rng.next() < 0.7 ? chamberColours.gold : chamberColours.goldDark, { matrix: M(Math.cos(a) * r, y + rng.range(0, 0.08), Math.sin(a) * r, rng.range(0, 6), 1, 1, 1, rng.range(-0.8, 0.8), rng.range(-0.8, 0.8)), flat: true });
+        }
+        kit.add(blob(0.9, rng, 2, 0.4, 0.3), chamberColours.goldDark, { matrix: M(0, 0.02, 0) });
+        const g = kit.finish();
+        const col = g.getAttribute('color');
+        for (let i = 0; i < col.count; i++) col.setXYZ(i, col.getX(i) * 1.6, col.getY(i) * 1.35, col.getZ(i) * 1.1);
+        this.heap = new THREE.Mesh(g, mat);
+        this.heap.visible = false;
+        this.group.add(this.heap);
+      }
+    }
+
+    buildSand(mat: THREE.MeshBasicMaterial): void {
+      const g = new THREE.PlaneGeometry(CH * 2, CH * 2, SAND_N, SAND_N).rotateX(-Math.PI / 2);
+      const pos = g.getAttribute('position'), n = pos.count;
+      const col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        const x = pos.getX(i), z = pos.getZ(i);
+        _n.set(0, 1, 0);
+        lightAt(x, 0.2, z, _n, _l);
+        this.sandLight[i * 3] = _l.r; this.sandLight[i * 3 + 1] = _l.g; this.sandLight[i * 3 + 2] = _l.b;
+        pos.setY(i, -0.05);
+      }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      (pos as THREE.BufferAttribute).setUsage(THREE.DynamicDrawUsage);
+      this.sandMesh = new THREE.Mesh(g, mat);
+      this.sandMesh.frustumCulled = false;
+      this.sandMesh.visible = false;
+      this.group.add(this.sandMesh);
+    }
+
+  }
+
+  /** Fixed effect rest shapes; materials and encounter-driven transforms stay live. */
+  function fxFabric(): [string, THREE.BufferGeometry][] {
+    const rows: [string, THREE.BufferGeometry][] = [];
+    for (const [i, top, r0, r1] of [[0, PLANK_Y + 1.5, 1.3, 1.25], [1, PLANK_Y + 0.5, 0.75, 0.65]] as const) {
+      const geometry = new THREE.CylinderGeometry(r0, r1, top, 24, 1, true);
+      geometry.translate(0, top / 2, 0);
+      rows.push([`dungeon:shaft:${String(i)}`, geometry]);
+    }
+    {
+      const parts: THREE.BufferGeometry[] = [];
+      const flame = (x: number, y: number, z: number, h: number) => {
+        for (const a of [0, Math.PI / 2]) { const p = new THREE.PlaneGeometry(h * 0.6, h, 1, 4); p.translate(0, h / 2, 0); p.rotateY(a); p.translate(x, y, z); parts.push(p); }
+      };
+      for (const b of BRAZIERS) flame(b.x, 1.12, b.z, 0.9);
+      flame(-DW + 0.25, 1.8, 12.6, 0.28); flame(-DW + 0.25, 1.8, 18.2, 0.28);
+      const geometry = mergeParts(parts);
+      rows.push(['dungeon:flames', geometry]);
+    }
+    const stream = new THREE.CylinderGeometry(0.28, 0.4, PLANK_Y, 12, 1, true); stream.translate(0, PLANK_Y / 2, 0);
+    const beam = new THREE.CylinderGeometry(0.45, 0.7, 1, 18, 1, true); beam.translate(0, 0.5, 0);
+    const seal = new THREE.PlaneGeometry(DOOR_W * 2 + 0.4, DOOR_H + 0.4, 1, 1); seal.translate(0, (DOOR_H + 0.4) / 2, 0);
+    rows.push(['dungeon:ring', annulus(0.84, 1.0, 128)], ['dungeon:stream', stream],
+      ['dungeon:tell', new THREE.PlaneGeometry(2.4, 2.4).rotateX(-Math.PI / 2)], ['dungeon:beam', beam],
+      ['dungeon:line', annulus(5.85, 6.15, 64, Math.PI * 0.6)],
+      ['dungeon:dome', new THREE.SphereGeometry(1, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.55)],
+      ['dungeon:arc', new THREE.CircleGeometry(1, 32, -Math.PI * 0.35, Math.PI * 0.7).rotateX(-Math.PI / 2)], ['dungeon:seal', seal]);
+    // These effect meshes have one material; constructor material groups are unused.
+    for (const [, geometry] of rows) geometry.clearGroups();
+    return rows;
+  }
+
+  function mergeParts(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+    let n = 0, idx = 0;
+    for (const p of parts) { n += p.getAttribute('position').count; idx += p.index?.count ?? 0; }
+    const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), uv = new Float32Array(n * 2), ind: number[] = [];
+    let o = 0;
+    for (const p of parts) {
+      const pp = p.getAttribute('position'), pn = p.getAttribute('normal'), pu = p.getAttribute('uv');
+      for (let i = 0; i < pp.count; i++) {
+        pos[(o + i) * 3] = pp.getX(i); pos[(o + i) * 3 + 1] = pp.getY(i); pos[(o + i) * 3 + 2] = pp.getZ(i);
+        nrm[(o + i) * 3] = pn.getX(i); nrm[(o + i) * 3 + 1] = pn.getY(i); nrm[(o + i) * 3 + 2] = pn.getZ(i);
+        uv[(o + i) * 2] = pu.getX(i); uv[(o + i) * 2 + 1] = pu.getY(i);
+      }
+      const pi = p.index;
+      if (pi) for (let i = 0; i < pi.count; i++) ind.push(pi.getX(i) + o);
+      o += pp.count;
+      p.dispose();
+    }
+    void idx;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setIndex(ind);
+    return g;
+  }
+  return new KurganFabric(supplyCarving).build();
 }
