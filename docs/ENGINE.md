@@ -8273,6 +8273,9 @@ bodies bind before stepping or saving. A home replacement resets only its
 own continuation with `ShardDecisions.restartActor`; fresh-host restore
 reconstructs logical state and moves without running decision handlers.
 The keeper retains spawn, retirement, attack tokens and rewards.
+Standalone pages allocate these members under their declared ids too,
+then refill a retired home through the same manager's replacement path.
+The existing borrowed-body decision host owns the group adapter.
 
 `buildDecisionRegistries` accepts decision rows as its fifth argument to
 register group ids beside individual spawn ids. `spawnGroupAlive` counts

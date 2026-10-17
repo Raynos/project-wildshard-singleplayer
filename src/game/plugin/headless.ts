@@ -1,4 +1,5 @@
 import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';
@@ -338,6 +339,8 @@ export interface RuntimeHome {
 export interface RuntimeHomePorts {
   /** The keeper's update system id (the runtime's tests and captures find it by name). */
   readonly system: string;
+  /** Decision-bound homes retain their declared actor ids on standalone pages and refills. */
+  readonly decisionActors?: readonly string[];
   /** Each fresh body once spawned (the runtime's look on it). */
   readonly spawned?: (animal: Animal) => void;
   /** Actual homes by declared body address; the existing admitted authority owns their policy binding. */
@@ -356,6 +359,12 @@ export interface RuntimeHomePorts {
     readonly late?: (id: string) => { readonly fromY: number; readonly y: number } | undefined;
     /** Authored late floor placements; absent retains the callback contract. */
     readonly placements?: readonly { readonly id: string; readonly fromY: number; readonly y: number }[] };
+}
+/** The existing page manager allocates a home identity and replaces its retired body. */
+export function spawnRuntimeHome(animals: Pick<Animals, 'spawn' | 'replace'>, home: RuntimeHome, variant: string | undefined, retained: boolean, decisionActors: readonly string[] = []): Animal {
+  const declared = retained || decisionActors.includes(home.id);
+  return declared && home.animal !== null ? animals.replace(home.animal, home.x, home.z, home.yaw, variant, {})
+    : animals.spawn(home.kind, home.x, home.z, home.yaw, variant, declared ? { entityId: home.id } : undefined);
 }
 /** The declared homes as kept: every home, every creature alive in one, and each held body by its row id. */
 export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly all: () => Animal[]; readonly held: (id: string) => Animal | null }
@@ -402,9 +411,7 @@ function* runtimeHomeWork(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>,
   const look = new Map(rows.map((row) => [row.id, row.look]));
   const spawn = (home: RuntimeHome): void => {
     const variant = look.get(home.id);
-    home.animal = retained && home.animal !== null
-      ? animals?.replace(home.animal, home.x, home.z, home.yaw, variant, {}) ?? null
-      : animals?.spawn(home.kind, home.x, home.z, home.yaw, variant, retained ? { entityId: home.id } : undefined) ?? null;
+    home.animal = animals === undefined ? null : spawnRuntimeHome(animals, home, variant, retained, ports.decisionActors);
     home.wait = 0;
     if (home.animal) { ports.spawned?.(home.animal); dress(home.animal, home.id); }
   };
@@ -874,6 +881,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null } = {}, pause?: () => Promise<void>): void | Promise<void> {
     const row = this.runtimeRows.population; if (row === undefined) throw new Error('Missing declared population installation');
     const installation: RuntimeHomePorts = { system: row.system,
+      decisionActors: parseDecisionScripts(outputDescriptor(source)?.sections.get('sim/scripts') ?? []).filter(script => 'spawnGroup' in script.binding).flatMap(script => Object.values(script.actors)),
       ...(row.held === undefined ? {} : { held: row.held }), spawned: animal => {
         ports.spawned?.(animal); this.populationCatalogue?.prepareHeld(animal.kind, animal);
       },

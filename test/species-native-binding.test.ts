@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, MeshStandardMaterial, SkinnedMesh, Vector3 } from 'three';
 import { Animal } from '../src/engine/entities/AnimalView';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
@@ -16,9 +16,10 @@ import { MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
 import { DRIFTWOOD_STRIKE_ROWS } from '../src/shards/driftwood-isle/data/strikes';
 import { SKITTERER_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
+import { spawnRuntimeHome, type RuntimeHome } from '../src/game/plugin/headless';
 import { DUNE_RAY } from '../src/shards/sunscar-dunes/generators/rows/species/duneRay';
 
-function body(row: SpeciesRow, look: SpeciesLook, scale = 1): { actor: Animal; dispose: () => void } {
+function body(row: SpeciesRow, look: SpeciesLook, scale = 1, entityId?: string): { actor: Animal; dispose: () => void } {
   const variant = row.variants[0];
   if (variant === undefined) throw new Error('Test body needs a variant');
   const geometry = new BufferGeometry(), material = new MeshStandardMaterial(), mesh = new SkinnedMesh(geometry, material);
@@ -29,7 +30,7 @@ function body(row: SpeciesRow, look: SpeciesLook, scale = 1): { actor: Animal; d
     geometry, bones: [], dims: { bodyY: 1, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: 1, feet: [], halfWidth: .3 },
     fur: material, hard: material, eye: material, shells: [],
   };
-  const actor = new Animal({ mesh, bones: { body: root, head }, materials: [material] }, model, .5, scale);
+  const actor = new Animal({ mesh, bones: { body: root, head }, materials: [material] }, model, .5, scale, entityId);
   actor.bindSimulation(new AnimalSim({ kind: row.kind, label: actor.label, variant: variant.id, rarity: variant.rarity,
     hp: actor.maxHp, aggressive: actor.aggressive, dims: model.dims, mods: actor.mods,
     ...(row.flight === undefined ? {} : { flight: row.flight }),
@@ -46,6 +47,22 @@ function context(): ThinkCtx {
     confine: () => undefined, reach: () => true, claim: () => true, mayAttack: () => true,
   };
 }
+
+test('standalone decision homes allocate declared page identities and refill through replacement', () => {
+  const id = 'test.pack.member', first = body(CRAB, CRAB_LOOK, 1, id), next = body(CRAB, CRAB_LOOK, 1, id);
+  const animals = { spawn: vi.fn(() => first.actor), replace: vi.fn(() => next.actor) };
+  const home: RuntimeHome = { id, kind: 'crab', x: 2, z: 3, yaw: 0, respawn: 1, animal: null, wait: 0 };
+  try {
+    home.animal = spawnRuntimeHome(animals, home, 'crab', false, [id]);
+    expect(animals.spawn).toHaveBeenCalledWith(home.kind, 2, 3, 0, 'crab', { entityId: id });
+    expect(home.animal.entityId).toBe(id);
+    home.animal = spawnRuntimeHome(animals, home, 'crab', false, [id]);
+    expect(animals.replace).toHaveBeenCalledWith(first.actor, 2, 3, 0, 'crab', {});
+    expect(home.animal).toBe(next.actor); expect(home.animal.entityId).toBe(id);
+    spawnRuntimeHome(animals, { ...home, animal: null }, undefined, false);
+    expect(animals.spawn).toHaveBeenLastCalledWith(home.kind, 2, 3, 0, undefined, undefined);
+  } finally { first.dispose(); next.dispose(); }
+});
 
 test('the species host constructs once on the first act and keeps subsequent contexts live', () => {
   const made = body(CRAB, CRAB_LOOK), catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS));
