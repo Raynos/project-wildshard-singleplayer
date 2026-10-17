@@ -1,4 +1,5 @@
 {
+  "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
   "test/parked-viewmodels.test.ts": [],
   "test/whole-geometry-pacing.test.ts": [],

@@ -35,7 +35,7 @@ const { Parser, NodeKind } = compiler;
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-platform.json';
-const sourceFile = /\.(?:tsx?|as|glsl)$/u;
+const sourceFile = /\.(?:tsx?|as|glsl|json)$/u;
 const producerPath = v.pipe(v.string(), v.check(path => path.length > 0 && !path.startsWith('/') && !path.includes('\\')
   && path.split('/').every(part => part !== '' && part !== '.' && part !== '..')));
 const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outputs/1'),
@@ -105,6 +105,31 @@ export function shaderCodeLines(source) {
 /** @param {string} source @param {string} path @param {unknown} [program] the file's own parse of `source`, reused when given */
 export function rawShaderLines(source, path, program) {
   if (path.endsWith('.glsl')) return shaderCodeLines(source);
+  // G480: JSON is a container, never an exemption for executable source.
+  // Decode strings first, so escaped newlines use the same unit as .ts/.glsl.
+  if (path.endsWith('.json')) {
+    const visit = (value, name = '') => {
+      if (Array.isArray(value)) return value.reduce((sum, child) => sum + visit(child, name), 0);
+      if (value !== null && typeof value === 'object') return Object.entries(value)
+        .reduce((sum, [key, child]) => sum + visit(child, key), 0);
+      if (typeof value !== 'string') return 0;
+      if (shaderText(value, name)) return shaderCodeLines(value);
+      const expressionField = /^(?:code|script|expression|javascript|typescript|callback)$/iu.test(name);
+      if (!/[;{}=]/u.test(value) && !expressionField && !(name === 'source' && /[()]/u.test(value))) return 0;
+      const wrapped = `function embedded() {\n${value}\n}`;
+      const parsed = parseSync('embedded.ts', wrapped);
+      if (parsed.errors.length > 0) return 0;
+      const executable = node => {
+        if (node === null || typeof node !== 'object') return false;
+        if (/^(?:Variable|Function|Class)Declaration$|^(?:Return|Throw|If|For|ForIn|ForOf|While|DoWhile|Switch|Try)Statement$|^(?:ArrowFunction|Function|Assignment|Update|Call|New)Expression$/u.test(node.type)) return true;
+        if (expressionField
+          && /^(?:Binary|Logical|Conditional|Await|Unary)Expression$/u.test(node.type)) return true;
+        return Object.values(node).some(child => Array.isArray(child) ? child.some(executable) : executable(child));
+      };
+      return executable(parsed.program.body[0].body) ? linesWithoutComments(wrapped, parsed.comments) - 2 : 0;
+    };
+    return visit(JSON.parse(source));
+  }
   if (!RULES.typescript.test(path)) return 0;
   let total = 0;
   const visit = (node, inheritedName = '') => {
@@ -114,8 +139,7 @@ export function rawShaderLines(source, path, program) {
     if (node.type === 'VariableDeclarator') name = node.id?.name ?? name;
     const value = node.type === 'TemplateLiteral' ? node.quasis.map(part => part.value.raw).join('\n')
       : node.type === 'Literal' && typeof node.value === 'string' ? node.value : null;
-    if (value !== null && (/\b(?:uniform|varying|attribute|precision)\s+|\b(?:vec[234]|mat[234]|sampler2D)\s+\w+|\bvoid\s+main\s*\(|#include\s*</u.test(value)
-      || (/glsl|shader|^vertex|^fragment/iu.test(name) && /[;{}]/u.test(value))
+    if (value !== null && (shaderText(value, name)
       || /\/\*\s*glsl\s*\*\/\s*$/u.test(source.slice(Math.max(0, node.start - 24), node.start)))) {
       total += shaderCodeLines(value);
       return;
@@ -124,6 +148,11 @@ export function rawShaderLines(source, path, program) {
   };
   visit(program ?? parseSync(path, source).program);
   return total;
+}
+function shaderText(value, name) {
+  return /\b(?:uniform|varying|attribute|precision)\s+|\b(?:vec[234]|mat[234]|sampler2D)\s+\w+|\bvoid\s+main\s*\(|#include\s*</u.test(value)
+    || /\b(?:float|int|uint|bool)\s+\w+\s*[=;(]/u.test(value)
+    || (/glsl|shader|^vertex|^fragment/iu.test(name) && /[;{}]/u.test(value));
 }
 /** G392 call 36: a thin declaration entry is not custom; executable logic is. */
 export function declarationOnlyConfig(source, path = 'shard.config.ts') {
@@ -208,7 +237,7 @@ function filesIn(dir) {
   });
 }
 function sourceInfo(source, path) {
-  if (path.endsWith('.glsl')) return { comments: [], specs: [] };
+  if (path.endsWith('.glsl') || path.endsWith('.json')) return { comments: [], specs: [] };
   if (path.endsWith('.as')) {
     const parsed = assembly(source, path);
     return { comments: parsed.comments, specs: parsed.statements
@@ -607,7 +636,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
   const shaders = path => ignored(path) ? 0 : info(path).shaderLines ?? rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
-  const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
+  const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.json') ? shaders(path) : path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
   const publishedTargetOf = (pkg, spec) => {
     const name = `@wildshard/${pkg}`, manifest = pkg === 'sdk' ? sdk : exists(`src/${pkg}/package.json`) ? JSON.parse(text(`src/${pkg}/package.json`)) : null;
