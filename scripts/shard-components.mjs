@@ -33,7 +33,6 @@ const roles = [
 const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/nightDirector.ts',
   'src/shards/pine-hollow/runtime/elites.ts',
-  'src/shards/pine-hollow/combat/eliteRoster.ts',
   'src/shards/pine-hollow/combat/eliteScripts.ts',
   'src/shards/pine-hollow/runtime/kingPoseKeeper.ts',
   'src/shards/pine-hollow/runtime/kingQueryPose.ts',
@@ -151,7 +150,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/combat/kingRig.ts', 'C4'],
   ['src/shards/pine-hollow/combat/lane.ts', 'C4'],
   ['src/shards/pine-hollow/combat/spawns.ts', 'C4'],
-  ['src/shards/pine-hollow/combat/strikes.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingCollision.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/rainShelter.ts', 'C4'],
@@ -242,7 +240,6 @@ function namedRole(name,path='') {
 function fileRole(path, name = '') {
   const reviewed = reviewedW2Owners.get(name ? `${path}#${name}` : path) ?? reviewedW2Owners.get(path);
   if (reviewed !== undefined) return reviewed;
-  if (path === 'src/shards/pine-hollow/runtime/birds.ts')return 'C4';
   if (/\/systems\/life\//u.test(path)||path==='src/engine/ai/ambientFlight.ts'||name==='installAmbientLife')return 'C4';
   if (path === 'src/engine/world/waves.ts' && name === 'GERSTNER_TERMS') return 'C2';
   if (['src/format/materialGraph.ts', 'src/game/shardfile/clientMaterials.ts', 'src/game/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
