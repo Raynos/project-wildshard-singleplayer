@@ -44,7 +44,12 @@ for (const tier of ['phone', 'desktop'] as const) {
 }
 
 test('separate worlds own separate glyph textures and decoded pixel arrays', async () => {
-  const [a, b] = await Promise.all([loadGlyphField('phone', files), loadGlyphField('phone', files)]);
+  const a = await loadGlyphField('phone', files), b = await loadGlyphField('phone', files);
   expect(a.texture).not.toBe(b.texture); expect(a.texture.image.data).not.toBe(b.texture.image.data);
+  const left = a.texture.image.data, right = b.texture.image.data;
+  if (!(left instanceof Uint8Array) || !(right instanceof Uint8Array)) throw new Error('Glyph pixels must be RG8 bytes');
+  const before = right[0]; if (before === undefined) throw new Error('Missing atlas pixel');
+  left[0] = before ^ 255;
+  expect(right[0]).toBe(before);
   a.texture.dispose(); b.texture.dispose();
 });

@@ -1,3 +1,5 @@
+import { Matrix4 } from 'three';
+import { matrixOf } from '../src/shards/pine-hollow-legacy/world/undergrowth';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
@@ -14,10 +16,21 @@ test('the named floor preserves all 22,250 shipping placements and refuses malfo
   // before moving its decoder: hash every value, tint, normal and array order.
   const facts = Object.fromEntries(Object.entries(rows.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(facts)))).toBe('7c0b23e88b4c31727bed35d146ded1db0c13a6b049657365a0616c44b9704dfb');
-  // The original page composer d7dcfb102 uploads Float32 instance matrices.
-  // Compare every uploaded value; native libm's extra float64 bits vary by CPU.
-  const matrices = Object.values(rows.layout).map(items => items.map(it => it.matrix.map(Math.fround)));
-  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(matrices)))).toBe('1c16bc39f9384dbc3e7b6358245c42499f77f375eee04a038434f3da71cdd008');
+  // Compare all sixteen components with the actual frozen page composer.
+  // Its native libm results vary by CPU even at a Float32 rounding boundary.
+  const matrix = new Matrix4();
+  let worst = 0, compared = 0;
+  for (const items of Object.values(rows.layout)) for (const item of items) {
+    const original = matrixOf(item, matrix).elements;
+    for (let index = 0; index < 16; index++) {
+      const value = original[index], baked = item.matrix[index];
+      if (value === undefined || baked === undefined) throw new Error('Missing matrix component');
+      worst = Math.max(worst, Math.abs(value - baked));
+    }
+    compared++;
+  }
+  expect(compared).toBe(22_250);
+  expect(worst).toBeLessThanOrEqual(1e-12);
   expect(rows.counts).toEqual([6000, 3750, 5000, 3000, 3000, 1500]);
   expect(() => v.parse(FloorRowsSchema, { ...rows, counts: [1, 1, 1, 1, 1, 1] })).toThrow();
   expect(() => v.parse(FloorRowsSchema, { ...rows, extra: true })).toThrow();

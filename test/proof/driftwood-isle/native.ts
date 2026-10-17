@@ -5,8 +5,8 @@ import { execPath } from 'node:process';
 
 const WORKER_WARNING = /^\(node:\d+\) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n\(Use `node --trace-warnings \.\.\.` to show where the warning was created\)\n/gmu;
 /** Preserve every error; suppress only Node's known transform-types warning (native Cocos/SDK classes use parameter properties). */
-export function driftwoodWitness(mode: string): { status: number | null; stdout: string; stderr: string } {
-  const result = spawnSync(execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', 'test/proof/driftwood-isle/run.mjs', mode], { encoding: 'utf8', timeout: 110_000, maxBuffer: 2_000_000 });
+export function driftwoodWitness(mode: string, timeoutMs = 110_000): { status: number | null; stdout: string; stderr: string } {
+  const result = spawnSync(execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', 'test/proof/driftwood-isle/run.mjs', mode], { encoding: 'utf8', timeout: timeoutMs, maxBuffer: 2_000_000 });
   if (result.error !== undefined) throw result.error;
   return { status: result.status, stdout: result.stdout.trim(), stderr: result.stderr.replace(WORKER_WARNING, '') };
 }

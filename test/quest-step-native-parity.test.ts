@@ -19,13 +19,17 @@ const Proof = v.object({ replay: v.object({ status: v.literal('passed'), checkpo
 const SavedValue: v.GenericSchema<unknown, SimValue> = v.lazy(() => v.union([
   v.null(), v.boolean(), v.pipe(v.number(), v.finite()), v.string(), v.array(SavedValue), v.record(v.string(), SavedValue),
 ]));
-for (const [slug, witness] of [['driftwood-isle', driftwoodWitness], ['pine-hollow', pineWitness]] as const)
+// A cold Linux recorder plus replay exceeds 110 s; retain a bounded process deadline.
+for (const [slug, witness] of [
+  ['driftwood-isle', (mode: string) => driftwoodWitness(mode, 270_000)],
+  ['pine-hollow', (mode: string) => pineWitness(mode, 270_000)],
+] as const)
   test(`${slug}: recorded native quest saves restore and replay byte-identically`, () => {
     const result = witness('replay');
     expect(result.status, `${result.stderr}\n${result.stdout}`).toBe(0);
     const proof = v.parse(Proof, JSON.parse(result.stdout.split('\n').at(-1) ?? 'null'));
     expect(proof.replay.replayHash).toBe(proof.replay.hash);
-  }, 120_000);
+  }, 300_000);
 
 for (const slug of ['driftwood-isle', 'pine-hollow'] as const)
   test(`${slug}: an existing native quest envelope retains its exact bytes`, async () => {
