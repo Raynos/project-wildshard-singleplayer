@@ -61,12 +61,15 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pieces.scene(ground, SKY_GROUND.bindings, pause);
   await pause();
   const staticRows = skyPlacements(ctx.cube);
+  // OP5: each mapped look ends a task before the static scene is created (with it they were one long road frame on the
+  // Simulator: 15 ms of JS on desktop); the same calls in the same order
   const models = new Map(staticRows.models.map(name => [name, skyHd(name)]));
   const materials = new Map<string, Material | null>([['falls', SKY_LIBRARY.look('falls') ?? null], ['halo', new MeshBasicMaterial({ ...staticRows.fixed.halo, blending: AdditiveBlending })]]);
   for (const row of [...staticRows.recipe.scene.materials, ...staticRows.fixed.recipe.scene.materials]) {
     if (row.kind !== 'port' || row.source === undefined || materials.has(row.source)) continue;
     const [look, name] = row.source.split(':'), model = name === undefined ? undefined : models.get(name);
     materials.set(row.source, look === undefined || model === undefined || model === null ? null : SKY_LIBRARY.mappedLook(look, model.map));
+    await pause();
   }
   const geometry = (name: string): BufferGeometry | null => name === 'fall' ? WORLD.geometry('geometries','fall',{index:'identity',empty:true})
     : name.startsWith('hero-') ? models.get(name.slice('hero-'.length))?.geometry ?? null : SKY_LIBRARY.geometry(name);
