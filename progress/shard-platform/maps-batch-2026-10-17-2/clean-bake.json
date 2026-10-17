@@ -1,0 +1,123 @@
+{
+  "sourceTree": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+  "sourceParent": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+  "commitParent": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2058,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "b8d1684bc8bcce9bc18e982a3349123ffc51cfae7f6407d6ecef732529cc6ad7",
+      "inputFiles": 263,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "b8d1684bc8bcce9bc18e982a3349123ffc51cfae7f6407d6ecef732529cc6ad7",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "d6956381bdc25ac694d17407051c5b07352103415011433fbb9095775a0d2842",
+      "inputFiles": 242,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "d6956381bdc25ac694d17407051c5b07352103415011433fbb9095775a0d2842",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "sourceRuler": "all10-source-ruler.json",
+  "includedSourceLandings": [
+    {
+      "sha": "b90201ec9e0054c8bcf650566dafd2cff61b497d",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle",
+        "pine-hollow"
+      ],
+      "change": "fixed sites, wreck and trail rows"
+    },
+    {
+      "sha": "d9b1c450d533e072d8d424ba732d41a0415dc91c",
+      "owner": "sp-x4",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "streamed cover and toon look rows"
+    },
+    {
+      "sha": "f3a4c3a1a658968dfdcfaf5773499e40adf14b66",
+      "owner": "sp-x1",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "creature static declarations"
+    },
+    {
+      "sha": "db21e0e02247dd4be2c1fa819652770030964646",
+      "owner": "sp-x6",
+      "shards": [
+        "driftwood-isle",
+        "pine-hollow"
+      ],
+      "change": "declared quest service effects"
+    },
+    {
+      "sha": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+      "owner": "sp-x7",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "portable keyed sky gzip header preserving catalogue hashes"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  }
+}
