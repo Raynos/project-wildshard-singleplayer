@@ -63,15 +63,16 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     if (l === undefined) { l = []; byPiece.set(id, l); }
     l.push(q);
   }
-  const stats: FacadeStats = { draws: 0, tris: 0, instances: 0, windows: d.windows.length, shellTris: d.shell.triangleCount, perPiece: {} };
+  const geometry = d.shell, shellTris = (geometry?.index?.count ?? 0) / 3;
+  const stats: FacadeStats = { draws: 0, tris: 0, instances: 0, windows: d.windows.length, shellTris, perPiece: {} };
   // the shell: one merged mesh
-  if (d.shell.vertexCount > 0) {
-    const shell = new Mesh(d.shell.build(), mat);
+  if (geometry !== null && geometry.getAttribute('position').count > 0) {
+    const shell = new Mesh(geometry, mat);
     shell.name = 'facade-shell';
     group.add(shell);
     stats.draws++;
-    stats.tris += d.shell.triangleCount;
-    d.shell.release();
+    stats.tris += shellTris;
+    d.shell = null;
     // the pieces baked into it are models drawn there (their copies' boxes: each piece's own bounds at its placement)
     const box = new Box3();
     for (const [id, list] of baked) {

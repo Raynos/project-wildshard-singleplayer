@@ -1,5 +1,5 @@
-// Author-only writer: native arithmetic/packing matches runtime/kit/tangentKit.ts.
-// Runtime restore branches are intentionally absent; permanent byte fixtures compare both writers.
+// Author-only tangent writer. Runtime adopts its exact packed GLB buffers in world/layoutBake.ts;
+// test/nine-facade-shell.test.ts checks every restored channel and bound without a runtime writer.
 // The tangent kit (SHARD-PLATFORM M3, the kit system): a geometry builder whose every face is a quad that knows where it
 // sits on itself in metres (aFace = u, v, w, h) and which way its u runs (aTan), so a ruled program draws its edges at
 // a constant pixel width with fwidth — and keeps doing so when an instance is scaled non-uniformly (the vertex shader

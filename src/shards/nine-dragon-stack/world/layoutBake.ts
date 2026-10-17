@@ -12,7 +12,6 @@ import * as v from 'valibot';
 import type { Ctx, InKit } from './ctx';
 import { Kit } from './kit';
 import { KitX } from './hero/kitx';
-import { Builder } from './facade/geo';
 import { isPiece } from './facade/pieceIds';
 import type { SignPlace, SignSink } from '../look/signs';
 import { restoreQueued } from './props3d';
@@ -186,7 +185,7 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   ctx.fd.late = true;
   for (const s of r.slots.late) ctx.fd.addSign({ ...s, at: vec(s.at), normal: vec(s.normal) });
   ctx.fd.late = false;
-  if (r.shell !== null) ctx.fd.shell = Builder.fromBake(bake.geometry(r.shell));
+  if (r.shell !== null) ctx.fd.shell = bake.geometry(r.shell);
   ctx.fd.towers = r.towers;
   for (const [id, b] of r.merged) {
     if (!isPiece(id)) throw new Error(`[nine-dragon] the layout bake merges no facade piece '${id}'`);
