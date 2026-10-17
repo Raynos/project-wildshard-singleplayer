@@ -27,7 +27,6 @@ import { installFogPatch } from '../render/fogPatches';
 import { setAnisotropy } from './assets';
 import { SkyRig as Sky } from '../world/skyRig';
 import type { BackdropLayer } from '../world/backdropLayer';
-import type { NodeBuildStager } from '../render/precompile';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
@@ -846,23 +845,11 @@ export class Game {
       return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };
     };
     const nodesBefore = nodeStats();
-    // OP3: Debug ▸ Performance ▸ Staged node builds: each job's node builds run in steps over painted frames first
-    const stagingHandler = setting('nodeStaging') === 'on' ? installedGraphBackend(this.renderer) : null;
-    const stager: NodeBuildStager | undefined = stagingHandler === null ? undefined : (root, camera, target, enterJob) => stagingHandler.stageCompile(root, camera, target, enterJob);
-    const stagedBefore = stagingHandler === null ? null : { ...stagingHandler.staging };
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, ...(sliceMs === undefined ? {} : { sliceMs }), ...(stager === undefined ? {} : { stager }),
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
-    if (stagingHandler !== null && stagedBefore !== null) {
-      stagingHandler.dropStaged();
-      const now = stagingHandler.staging;
-      // the staged steps (summed ms, count), their longest step (ms) with the staged builds the compile used, and those it rebuilt
-      onStage('node-staged', now.ms - stagedBefore.ms, now.steps - stagedBefore.steps);
-      onStage('node-staged-used', now.maxStepMs, now.used - stagedBefore.used);
-      onStage('node-staged-dropped', 0, now.dropped - stagedBefore.dropped);
-    }
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
