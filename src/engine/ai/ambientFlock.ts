@@ -15,31 +15,22 @@ import { CirclingFlyer, type AmbientWheelOrbit } from './ambientFlight';
 import { terrainHeight } from '../world/terrainHeight';
 import type { AmbientFlockData } from '@wildshard/format/ambientLife';
 
-/** Hidden 0 · Perched 1 · Hop 2 · Takeoff 3 · Wheel 4 · Landing 5 · Guide 6 · Fly 7 · Circle 8 · Feed 9 · Visit 10 */
-export type AmbientFlockState = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+/** Hidden 0 · Perched 1 · Hop 2 · Takeoff 3 · Wheel 4 · Landing 5 · Guide 6 */
+export type AmbientFlockState = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 /** One flyer's pose and rig channels (flap, wing fold, head yaw, leg tuck, head pitch / peck, body upright), read by the drawer. */
 export interface AmbientFlockBird {
   state: AmbientFlockState; x: number; y: number; z: number; yaw: number; pitch: number; roll: number;
   flap: number; fold: number; head: number; legs: number; peck: number; body: number;
-  /** fly: the state on arrival; the site it serves (-1 none); orbit (centre, radius, altitude, rate, phase); peck bouts */
-  next: AmbientFlockState; site: number; ox: number; oz: number; orad: number; oalt: number; ow: number; oph: number; pecks: number; peckT: number;
-  /** the perch spot it settles on (visit) and its facing; a hop on the ground (from, to, clock) */
-  sx: number; sy: number; sz: number; syaw: number; hx: number; hz: number; hopT: number; hopDur: number; gy: number; act: number;
   perch: number; loop: AmbientWheelOrbit; phase: number; scale: number; altOff: number;
   t: number; dur: number; timer: number; flush: number; flapT: number; burst: number; glide: number;
   headFrom: number; headTo: number; headT: number; headDur: number;
   ax: number; ay: number; az: number; bx: number; by: number; bz: number; tx: number; ty: number; tz: number; yaw0: number; call: boolean;
 }
 interface Point { x: number; y: number; z: number }
-/** a perch: a point (a branch, a snag's top), or with `r` a trunk's centre and bark radius at that height; `w` weighs it */
-export interface AmbientPerch extends Point { readonly r?: number; readonly w?: number }
-/** The player as the flock reads it; the optional fields drive the scavenge and visit modes. */
-export interface AmbientFlockPlayer extends Point {
-  /** running / sprinting (the far flush radius) */ readonly fast?: boolean;
-  /** 0 day .. 1 night (a visit row's window) */ readonly light?: number;
-  /** the view's forward on the ground plane (a visitor arrives from behind it) */ readonly fx?: number; readonly fz?: number;
-  /** where a flushed visitor heads (the nearest unseen place), or null */ readonly toward?: { readonly x: number; readonly z: number } | null;
-}
+/** A perch in the content's local frame. */
+export interface AmbientPerch { readonly x:number;readonly y:number;readonly z:number }
+/** Current player position; private visitor state belongs to its content owner. */
+export interface AmbientFlockPlayer { readonly x:number;readonly y:number;readonly z:number }
 /** a voice this frame: where, which cue, how loud */
 export interface AmbientFlockCall extends Point { cue: string; gain: number }
 const HIDDEN = 0, PERCHED = 1, HOP = 2, TAKEOFF = 3, WHEEL = 4, LANDING = 5, GUIDE = 6;
@@ -83,7 +74,6 @@ export class AmbientFlock {
     for (let i = 0; i < n; i++) {
       const b: AmbientFlockBird = {
         state: w === null ? HIDDEN : WHEEL, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, flap: 0.12, fold: 0, head: 0, legs: 1, peck: 0, body: 0,
-        next: HIDDEN, site: -1, ox: 0, oz: 0, orad: 8, oalt: 12, ow: 0.5, oph: 0, pecks: 0, peckT: 0, sx: 0, sy: 0, sz: 0, syaw: 0, hx: 0, hz: 0, hopT: 1, hopDur: 0, gy: 0, act: 0,
         perch: -1, loop: this.loopAt(i), phase: rng.range(0, 6.28), scale: w === null ? 1 : rng.range(...w.bodyScale), altOff: w === null ? 0 : rng.range(...w.bodyAltitude),
         t: 0, dur: 1, timer: w === null ? 0 : rng.range(...w.perchAfter), flush: pr === null ? 0 : pr.flush * rng.range(...pr.flushJitter),
         flapT: 0, burst: 0, glide: rng.range(1, 4), headFrom: 0, headTo: 0, headT: 1, headDur: 1,
@@ -236,7 +226,7 @@ export class AmbientFlock {
           flying++;
           break;
         }
-        case HIDDEN: case 7: case 8: case 9: case 10: break;
+        case HIDDEN: break;
         default: break;
       }
     }

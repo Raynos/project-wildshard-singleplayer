@@ -18,8 +18,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
-import { PineVisitors } from './visitors';
-import type { AmbientFlockBird, AmbientFlockPlayer } from '@wildshard/engine/ai/ambientFlock';
+import { PineVisitors, type PineVisitorBird, type PineVisitorPlayer } from './visitors';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
 
@@ -76,7 +75,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   // ── the birds: three ambient flock rows (the ravens at a kill, the owl on a snag top, the woodpecker on the bark) ──
   const ravens = new PineVisitors(sc.flock), owl = new PineVisitors(data.sentinel.flock, data.sentinel.perches), wood = new PineVisitors(data.trunkForager.flock, data.trunkForager.perches);
   const flocks = [ravens, owl, wood], pose = newPose(0);
-  const lane = (b: AmbientFlockBird, l: PineVisitors['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
+  const lane = (b: PineVisitorBird, l: PineVisitors['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
   /** each flock's live birds into the wildlife draw, and its voices through the ambience's one-shots */
   const shot: { at: { x: number; y: number; z: number } | undefined; gain: number } = { at: undefined, gain: 1 };
   const drawFlock = (f: PineVisitors): void => {
@@ -155,7 +154,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   }
   /** the player as the flocks read it: sprinting, the night, the view's forward, the nearest unseen place (the owl's heading) */
   let night = 0;
-  const reader: AmbientFlockPlayer = { get x() { return player.position.x; }, get y() { return player.position.y; }, get z() { return player.position.z; },
+  const reader: PineVisitorPlayer = { get x() { return player.position.x; }, get y() { return player.position.y; }, get z() { return player.position.z; },
     get fast() { return player.sprinting; }, get light() { return night; }, get fx() { return fwd.x; }, get fz() { return fwd.z; }, get toward() { return guide.target(); } };
 
   // ── the hares: a roaming forager population round the player, drawn into the wildlife mesh ──

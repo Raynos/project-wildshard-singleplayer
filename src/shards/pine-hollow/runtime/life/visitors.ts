@@ -2,27 +2,36 @@
 import { Rng } from '@wildshard/engine/core/rng';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import type { AmbientFlockBird,AmbientFlockCall,AmbientFlockPlayer,AmbientFlockState, AmbientPerch } from '@wildshard/engine/ai/ambientFlock';
+import type { AmbientFlockBird,AmbientFlockCall,AmbientFlockPlayer,AmbientPerch } from '@wildshard/engine/ai/ambientFlock';
 import type { AmbientFlockData } from '@wildshard/format/ambientLife';
 
 interface Point {x:number;y:number;z:number}
+type PineVisitorState=0|7|8|9|10;
+export interface PineVisitorBird extends Omit<AmbientFlockBird,'state'> {
+  state:PineVisitorState;next:PineVisitorState;site:number;ox:number;oz:number;orad:number;oalt:number;ow:number;oph:number;pecks:number;peckT:number;
+  sx:number;sy:number;sz:number;syaw:number;hx:number;hz:number;hopT:number;hopDur:number;gy:number;act:number;
+}
+interface PineVisitorPerch extends AmbientPerch {readonly r?:number;readonly w?:number}
+export interface PineVisitorPlayer extends AmbientFlockPlayer {
+  readonly fast?:boolean;readonly light?:number;readonly fx?:number;readonly fz?:number;readonly toward?:{readonly x:number;readonly z:number}|null;
+}
 type AmbientSiteVisit=0|1|2|3;
 interface Site { x: number; z: number; width: number; visit: AmbientSiteVisit; feedLeft: number; leaveT: number; open: boolean }
 const HIDDEN=0,FLY=7,CIRCLE=8,FEED=9,VISIT=10,TAU=Math.PI*2;
 const wrap=(a:number):number=>Math.atan2(Math.sin(a),Math.cos(a));
 const toward=(v:number,to:number,rate:number,dt:number):number=>v+(to-v)*Math.min(1,dt*rate);
 export class PineVisitors {
-  readonly birds:AmbientFlockBird[]=[];
+  readonly birds:PineVisitorBird[]=[];
   readonly calls:AmbientFlockCall[]=[];
   private readonly rng:Rng;
   private readonly flight:CirclingFlyer;
   private readonly pool:AmbientFlockCall[]=Array.from({length:8},()=>({x:0,y:0,z:0,cue:'',gain:1}));
   private readonly sites:Site[]=[];
   private voiceT=0;private flapT=0;private visitT=0;private time=0;
-  private readonly mine:AmbientFlockBird[]=[];
+  private readonly mine:PineVisitorBird[]=[];
   private readonly ground:[number,number]=[0,0];
   private readonly p:Point={x:0,y:0,z:0};
-  constructor(readonly row:AmbientFlockData,private readonly perches:readonly AmbientPerch[]=[],private readonly heightAt:(x:number,z:number)=>number=terrainHeight){
+  constructor(readonly row:AmbientFlockData,private readonly perches:readonly PineVisitorPerch[]=[],private readonly heightAt:(x:number,z:number)=>number=terrainHeight){
     if(row.wheeling!==null||row.perch!==null||row.guide!==null)throw new Error('Pine visitors require a custom visit or scavenge row');
     const rng=this.rng=new Rng(row.seed);
     this.flight=new CirclingFlyer(row.flight,undefined,row.wingbeats);
@@ -31,7 +40,7 @@ export class PineVisitors {
     for(let k=0;k<4096;k++){const i=perches.length-1-k;if(i<=0)break;rng.int(0,i);}
     for(let i=0;i<256;i++){
       if(i>=row.count)break;
-      const b: AmbientFlockBird = {
+      const b: PineVisitorBird = {
         state: HIDDEN, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, flap: 0.12, fold: 0, head: 0, legs: 1, peck: 0, body: 0,
         next: HIDDEN, site: -1, ox: 0, oz: 0, orad: 8, oalt: 12, ow: 0.5, oph: 0, pecks: 0, peckT: 0, sx: 0, sy: 0, sz: 0, syaw: 0, hx: 0, hz: 0, hopT: 1, hopDur: 0, gy: 0, act: 0,
         perch: -1, loop: { cx:0,cz:0,r:1,alt:0,w:0,p1:0,p2:0,p3:0,p4:0 }, phase: rng.range(0, 6.28), scale: 1, altOff: 0,
@@ -42,22 +51,22 @@ export class PineVisitors {
       this.birds.push(b);
     }
   }
-  private wings(b: AmbientFlockBird, dt: number): void { [b.flap, b.fold] = this.flight.burst(b, dt, b.flap, b.fold, this.row.wingbeat, this.rng, true); }
+  private wings(b: PineVisitorBird, dt: number): void { [b.flap, b.fold] = this.flight.burst(b, dt, b.flap, b.fold, this.row.wingbeat, this.rng, true); }
   private call(x: number, y: number, z: number, cue = this.row.call?.cue, gain = 1): void {
     const c = this.pool[this.calls.length];
     if (c === undefined || cue === undefined) return;
     c.x = x; c.y = y; c.z = z; c.cue = cue; c.gain = gain; this.calls.push(c);
   }
-  private bez(b: AmbientFlockBird, cx: number, cy: number, cz: number, u: number, out: Point): Point {
+  private bez(b: PineVisitorBird, cx: number, cy: number, cz: number, u: number, out: Point): Point {
     const v = 1 - u, w0 = v * v, w1 = 2 * v * u, w2 = u * u;
     out.x = b.ax * w0 + b.bx * w1 + cx * w2; out.y = b.ay * w0 + b.by * w1 + cy * w2; out.z = b.az * w0 + b.bz * w1 + cz * w2;
     return out;
   }
-  private move(b: AmbientFlockBird, to: Point, dt: number, bank: number): void {
+  private move(b: PineVisitorBird, to: Point, dt: number, bank: number): void {
     this.flight.face(b, to.x - b.x, to.y - b.y, to.z - b.z, dt, bank); b.x = to.x; b.y = to.y; b.z = to.z;
   }
 
-  update(dt:number,player:AmbientFlockPlayer):void {
+  update(dt:number,player:PineVisitorPlayer):void {
     this.calls.length=0;if(dt<=0)return;this.time+=dt;
     for(let i=0;i<256;i++){const b=this.birds[i];if(b===undefined)break;switch(b.state){
       case FLY:this.stepFly(b,dt);break;
@@ -65,38 +74,37 @@ export class PineVisitors {
       case FEED:this.stepFeed(b,dt);break;
       case VISIT:this.stepVisit(b,dt,player);break;
       case HIDDEN:if(this.row.visit!==null)this.tryVisit(b,player);break;
-      case 1:case 2:case 3:case 4:case 5:case 6:break;
       default:break;
     }}
     if(this.row.scavenge!==null)this.stepSites(dt,player);
   }
   // ── the scavenge and visit modes ──
   /** fly from where it is to (x, y, z) at `speed` m/s, bowing along its heading and up by `lift`; `next` on arrival */
-  private flyTo(b: AmbientFlockBird, x: number, y: number, z: number, speed: number, lift: number, next: AmbientFlockState): void {
+  private flyTo(b: PineVisitorBird, x: number, y: number, z: number, speed: number, lift: number, next: PineVisitorState): void {
     const d = Math.hypot(x - b.x, y - b.y, z - b.z), lead = b.state === FLY || b.state === CIRCLE ? d * 0.35 : d * 0.12;
     b.ax = b.x; b.ay = b.y; b.az = b.z;
     b.bx = (b.x + x) / 4 + (b.x + Math.sin(b.yaw) * lead) / 2; b.bz = (b.z + z) / 4 + (b.z + Math.cos(b.yaw) * lead) / 2; b.by = Math.max(b.y, y) + lift;
     b.tx = x; b.ty = y; b.tz = z; b.t = 0; b.dur = Math.max(0.8, d / speed); b.next = next; b.state = FLY;
   }
   /** appear at (x, y, z) already flying, heading for (tx, tz) */
-  private spawnAt(b: AmbientFlockBird, x: number, y: number, z: number, tx: number, tz: number): void {
+  private spawnAt(b: PineVisitorBird, x: number, y: number, z: number, tx: number, tz: number): void {
     b.x = x; b.y = y; b.z = z; b.yaw = Math.atan2(tx - x, tz - z); b.pitch = 0; b.roll = 0;
     b.fold = 0; b.legs = 1; b.body = 0; b.head = 0; b.peck = 0; b.burst = 4; b.flapT = 0;
   }
   /** a croak (two trading croaks when `pair`): one at a time across the flock, `voices.gap` apart */
-  private caw(b: AmbientFlockBird, pair = false): void {
+  private caw(b: PineVisitorBird, pair = false): void {
     const v = this.row.scavenge?.voices;
     if (v === undefined || this.time < this.voiceT) return;
     this.voiceT = this.time + this.rng.range(...v.gap);
     this.call(b.x, b.y, b.z, pair ? v.pair : v.call, v.gain);
   }
   /** wings clattering up (one for a flock going up together) */
-  private flapCall(b: AmbientFlockBird): void {
+  private flapCall(b: PineVisitorBird): void {
     const v = this.row.scavenge?.voices;
     if (v === undefined || this.time < this.flapT) return;
     this.flapT = this.time + v.flapGap; this.call(b.x, b.y, b.z, v.flap, v.flapGain);
   }
-  private stepFly(b: AmbientFlockBird, dt: number): void {
+  private stepFly(b: PineVisitorBird, dt: number): void {
     b.t += dt;
     const u = Math.min(1, b.t / b.dur), p = this.bez(b, b.tx, b.ty, b.tz, u * u * (3 - 2 * u) * 0.3 + u * 0.7, this.p);
     const sag = this.row.visit?.sag ?? 0;
@@ -146,7 +154,7 @@ export class PineVisitors {
     const ang = (i / n) * TAU + this.rng.range(-0.5, 0.5), r = s.width + this.rng.range(...ring);
     this.ground[0]=s.x+Math.cos(ang)*r;this.ground[1]=s.z+Math.sin(ang)*r;return this.ground;
   }
-  private circleOver(b: AmbientFlockBird, s: Site, high: boolean): void {
+  private circleOver(b: PineVisitorBird, s: Site, high: boolean): void {
     const c = this.row.scavenge?.circle;
     if (c === undefined) return;
     b.state = CIRCLE; b.ox = s.x; b.oz = s.z; b.orad = this.rng.range(...c.radius);
@@ -154,7 +162,7 @@ export class PineVisitors {
     b.ow = this.rng.range(...c.speed) * (this.rng.next() < 0.5 ? -1 : 1); b.oph = Math.atan2(b.z - b.oz, b.x - b.ox);
     b.timer = this.rng.range(...c.timer);
   }
-  private stepCircle(b: AmbientFlockBird, dt: number): void {
+  private stepCircle(b: PineVisitorBird, dt: number): void {
     const c = this.row.scavenge?.circle;
     if (c === undefined) return;
     this.flight.step(b, b, dt); b.timer -= dt; b.legs = 1;
@@ -163,7 +171,7 @@ export class PineVisitors {
     else { b.flap = toward(b.flap, 0.1, 4, dt); b.fold = toward(b.fold, 0, 4, dt); }
     if (this.rng.next() < dt * c.call) this.caw(b, this.rng.next() < 0.35); // a croak from overhead now and then
   }
-  private stepFeed(b: AmbientFlockBird, dt: number): void {
+  private stepFeed(b: PineVisitorBird, dt: number): void {
     const sc = this.row.scavenge, s = this.sites[b.site];
     if (sc === null) return;
     const f = sc.feed;
@@ -196,7 +204,7 @@ export class PineVisitors {
     } else b.y = this.heightAt(b.x, b.z) + sc.land.stand;
   }
   /** fly off away from the player, out of sight, then hidden */
-  private depart(b: AmbientFlockBird, player: Point): void {
+  private depart(b: PineVisitorBird, player: Point): void {
     const d = this.row.scavenge?.depart ?? this.row.visit?.depart;
     if (d === undefined) { b.state = HIDDEN; return; }
     const ang = Math.atan2(b.z - player.z, b.x - player.x) + this.rng.range(-d.spread, d.spread);
@@ -204,7 +212,7 @@ export class PineVisitors {
     b.body = 0; b.site = -1;
     this.flyTo(b, b.x + Math.cos(ang) * d.distance, b.y + this.rng.range(...d.up), b.z + Math.sin(ang) * d.distance, d.speed, d.lift, HIDDEN);
   }
-  private stepSites(dt: number, player: AmbientFlockPlayer): void {
+  private stepSites(dt: number, player: PineVisitorPlayer): void {
     const sc = this.row.scavenge;
     if (sc === null) return;
     const flushAt = player.fast === true ? sc.flush[1] : sc.flush[0];
@@ -237,13 +245,13 @@ export class PineVisitors {
     }
   }
 
-  private lookAbout(b: AmbientFlockBird, dt: number, range: number, rate: number): void {
+  private lookAbout(b: PineVisitorBird, dt: number, range: number, rate: number): void {
     if (this.rng.next() < dt * rate) b.headTo = this.rng.range(-range, range);
     b.head = toward(b.head, b.headTo, 7, dt);
   }
   /** the best perch `rMin`..`rMax` from (x, z), its weight `w`, facing `to` when given (null: none) */
-  private pickPerch(x: number, z: number, rMin: number, rMax: number, to: { readonly x: number; readonly z: number } | null | undefined): AmbientPerch | null {
-    let best: AmbientPerch | null = null, bs = 0;
+  private pickPerch(x: number, z: number, rMin: number, rMax: number, to: { readonly x: number; readonly z: number } | null | undefined): PineVisitorPerch | null {
+    let best: PineVisitorPerch | null = null, bs = 0;
     for (let i=0;i<4096;i++){
       const p=this.perches[i];if(p===undefined)break;
       const d = Math.hypot(p.x - x, p.z - z);
@@ -255,7 +263,7 @@ export class PineVisitors {
     return best;
   }
   /** fly to a perch: on a trunk, onto its bark on the side toward the player, facing it */
-  private settle(b: AmbientFlockBird, p: AmbientPerch, player: Point): void {
+  private settle(b: PineVisitorBird, p: PineVisitorPerch, player: Point): void {
     const vi = this.row.visit;
     if (vi === null) return;
     if (p.r === undefined) { b.sx = p.x; b.sy = p.y + vi.pose.stand; b.sz = p.z; b.syaw = Infinity; this.flyTo(b, b.sx, b.sy, b.sz, vi.speed, vi.lift, VISIT); return; }
@@ -263,14 +271,14 @@ export class PineVisitors {
     b.sx = p.x + Math.cos(ang) * rad; b.sy = p.y; b.sz = p.z + Math.sin(ang) * rad; b.syaw = Math.atan2(-Math.cos(ang), -Math.sin(ang));
     this.flyTo(b, b.sx - Math.sin(b.syaw) * vi.approach[0], b.sy - vi.approach[1], b.sz - Math.cos(b.syaw) * vi.approach[0], vi.speed, vi.lift, VISIT);
   }
-  private arriveFrom(b: AmbientFlockBird, p: AmbientPerch, player: AmbientFlockPlayer): void {
+  private arriveFrom(b: PineVisitorBird, p: PineVisitorPerch, player: PineVisitorPlayer): void {
     const f = this.row.visit?.from;
     if (f === undefined) return;
     if (f.kind === 'behind') { const x = player.x - (player.fx ?? 0) * f.back, z = player.z - (player.fz ?? 1) * f.back; this.spawnAt(b, x, this.heightAt(x, z) + f.up, z, p.x, p.z); }
     else this.spawnAt(b, p.x + (p.x - player.x) * f.back, p.y + f.up, p.z + (p.z - player.z) * f.back, p.x, p.z);
     this.settle(b, p, player);
   }
-  private tryVisit(b: AmbientFlockBird, player: AmbientFlockPlayer): void {
+  private tryVisit(b: PineVisitorBird, player: PineVisitorPlayer): void {
     const vi = this.row.visit, light = player.light ?? 0;
     if (vi === null || light < vi.enter[0] || light > vi.enter[1] || this.time < this.visitT) return;
     this.visitT = this.time + vi.every;
@@ -278,7 +286,7 @@ export class PineVisitors {
     if (p !== null) this.arriveFrom(b, p, player);
   }
   /** The visitor out now onto the perch nearest (x, z) within `reach`, from behind `player`; false: no perch there. */
-  visitAt(x: number, z: number, reach: number, player: AmbientFlockPlayer): boolean {
+  visitAt(x: number, z: number, reach: number, player: PineVisitorPlayer): boolean {
     const b = this.birds[0], p = this.pickPerch(x, z, 0, reach, null);
     if (b === undefined || p === null) return false;
     this.arriveFrom(b, p, player);
@@ -286,7 +294,7 @@ export class PineVisitors {
   }
   /** Send the visitor away now; it comes back on the next try (captures). */
   visitSoon(): void { const b = this.birds[0]; if (b) b.state = HIDDEN; this.visitT = 0; }
-  private stepVisit(b: AmbientFlockBird, dt: number, player: AmbientFlockPlayer): void {
+  private stepVisit(b: PineVisitorBird, dt: number, player: PineVisitorPlayer): void {
     const vi = this.row.visit;
     if (vi === null) return;
     const d = Math.hypot(b.x - player.x, b.z - player.z), light = player.light ?? 0, acts = vi.acts;
