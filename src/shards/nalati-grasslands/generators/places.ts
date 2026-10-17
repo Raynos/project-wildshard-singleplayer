@@ -8,19 +8,22 @@
  * place's meshes (name, material, child slot, in the order the builder made them), data boxes, cloth and smoke calls, its
  * generated (GLB) instances and per model the copies `place` registers. `world/placeBake.ts` draws them back bit-exact.
  */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { paramsOf, type ModelDef } from '@wildshard/engine/models/model';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
-import { PaintKit, v3 } from '../world/paint';
-import { NalatiSet, paintedSpecimen, type MemberData, type PaintCtx } from '../world/painted';
+import { PaintKit, M, v3 } from '../world/paint';
+import { pole, blob } from '@wildshard/engine/world/geometryKit';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { graniteBlock } from '../world/granite';
+import { NalatiSet, painted, paintedSpecimen, type MemberData, type Paint, type PaintCtx } from '../world/painted';
 import { Flutter } from '../world/Flutter';
-import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE } from '../world/layout';
-import type { Box } from '../world/solid';
+import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE, EAGLE_ROCK, WIND_CAIRN } from '../world/layout';
+import { prism, slab, supportHull, type Box } from '../world/solid';
 import type { Ground, Plumes } from '../world/types';
-import { specimenKey, type DeckRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
+import { specimenKey, torFloor, type DeckRow, type TorFloorRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
-import { EAGLE_PERCH_H } from '../models/campProps';
+import { EAGLE_PERCH_H, eagleRock, windCairn } from '../models/campProps';
 import { yurtPainted } from './yurt';
 import { kunesBridgePainted } from './kunesBridge';
 import { yardGeometry, wearDisc, wearPath } from './yard';
@@ -249,14 +252,251 @@ function summerCamp(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
   return { name: 'summerCamp', group: 'nalati-summer-camp', surface: 'wood', tris, meshes, set, effects };
 }
 
+// ── the rock places' painters (offline only; their defs: ../models/campProps.ts) ──────────────────────────────────────
+
+/**
+ * Eagle Rock (E306 / E315 M3): the granite tor on the west rim (map-01 "EAGLE ROCK", the Tianjie-terrace view) — layers
+ * of rounded, lichened, horizontally-jointed granite blocks, each layer twisted on the one below, narrowing to a summit
+ * block whose flat top is the terrace, boulders round its foot; a scramble of granite slabs steps round its flank from
+ * the south foot (less than one turn, 0.3 m risers) to the summit, where a railed timber viewing deck looks north over
+ * the valley and a blue flag flies (the flag and its streamer are the shard's cloth, not the model). Used once
+ * (src/shards/nalati-grasslands/world/EagleRock.ts).
+ *
+ * Fitted to the ground under it: placed at the tor's centre with `at.y` = the summit terrace's height, it sizes itself
+ * from the knoll it stands on (its foot is the lowest ground 9 m out). Painted into its place's mesh
+ * (src/shards/nalati-grasslands/world/painted.ts). Collides: each layer as a 12-sided prism, the scramble's slabs and the deck as real
+ * geometry, the big foot boulders, the rail and the flagpole as boxes; its floor (placement) is the scramble + the summit.
+ */
+const TOR_C = {
+  granite: new THREE.Color('#9d8f7b'),
+  graniteWarm: new THREE.Color('#b9a88c'),
+  graniteDark: new THREE.Color('#766b5e'),
+  lichen: new THREE.Color('#b4a860'),
+  moss: new THREE.Color('#8c9c4c'),
+  wood: new THREE.Color('#8e6a45'),
+  woodGrey: new THREE.Color('#857866'),
+};
+
+const torPaint: Paint<object> = (kit, at, _p, c) => {
+  const { ground, flutter } = c;
+  const rng = kit.rng;
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
+  const cx = at.x, cz = at.z, top = at.y;
+  let base = Infinity;
+  for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; base = Math.min(base, ground(cx + Math.cos(a) * 9, cz + Math.sin(a) * 9)); }
+  const H = Math.max(6, top - base);
+  const stone = { top: { color: TOR_C.moss, threshold: 0.72, amount: 0.55 }, brush: 0.16 };
+  /** the tor's radius at height y above its base: broad at the foot, a narrower summit block */
+  const R0 = 13.5, R1 = 4.8;
+  const radiusAt = (t: number) => R0 + (R1 - R0) * t ** 0.8;
+
+  // ── the mass: jointed layers, each 3–5 rounded blocks round the core, each layer twisted on the one below ──
+  const layerH = 3.2, nLayers = Math.max(2, Math.round((H + 1.5) / layerH));
+  const lh = (H + 1.5) / nLayers;
+  let y = base - 1.5, twist = rng.range(0, Math.PI);
+  for (let i = 0; i < nLayers; i++) {
+    const t = (i + 0.5) / nLayers, R = radiusAt(t), last = i === nLayers - 1;
+    const hb = last ? top - y : lh * rng.range(0.9, 1.1);
+    twist += rng.range(0.3, 0.9);
+    const nb = last ? 1 : R > 8 ? 5 : R > 6 ? 4 : 3;
+    for (let b = 0; b < nb; b++) {
+      const a = twist + (b / nb) * Math.PI * 2 + rng.range(-0.2, 0.2);
+      const off = last ? 0 : R * rng.range(0.3, 0.5);
+      const bw = last ? R * 2 : R * rng.range(1.05, 1.3), bd = last ? R * 1.7 : R * rng.range(0.8, 1.05);
+      const bx = cx + Math.cos(a) * off, bz = cz + Math.sin(a) * off, byaw = a + rng.range(-0.3, 0.3);
+      const col = rng.next() < 0.4 ? TOR_C.graniteDark : rng.next() < 0.5 ? TOR_C.granite : TOR_C.graniteWarm;
+      kit.add(graniteBlock(bw, hb * rng.range(0.85, 1.15) + 0.45, bd, 0x70 + i * 8 + b, 0.32), (_q, nn) => (nn.y > 0.65 ? TOR_C.graniteWarm : col), { ...stone, matrix: M(bx, y + hb / 2 - 0.15, bz, byaw, 1, 1, 1, rng.range(-0.04, 0.04), rng.range(-0.04, 0.04)) });
+    }
+    // the layer as a 12-sided prism a hair inside the blocks, as narrow as the layer's top (the scramble's slabs run
+    // round it at 0.86 × the radius at their own height + 0.15)
+    const rIn = radiusAt(Math.min(1, (y + hb - base) / H)) * 0.86;
+    descs.push(prism(cx, cz, i === 0 ? base - 4 : y - 0.05, y + hb, rIn, 12, twist, 'rock'));
+    y += hb;
+  }
+  // foot boulders (not on the path's first steps)
+  for (let i = 0; i < 18; i++) {
+    const a = rng.range(0, Math.PI * 2), r = rng.range(R0 + 1, R0 + 7);
+    if (Math.abs(((a - Math.PI * 1.5) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI) < 0.5) continue;
+    const x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r, s = rng.range(0.5, 1.9), g = ground(x, z);
+    kit.add(blob(s, rng, 2, 0.6, 0.25), TOR_C.graniteDark, { ...stone, matrix: M(x, g + s * 0.12, z, rng.range(0, 6)) });
+    if (s > 0.9) colliders.push({ x, z, hw: s * 0.75, hd: s * 0.75, rot: 0, yBottom: g - 1, yTop: g + s * 0.5, surface: 'rock' });
+  }
+
+  // ── the scramble: granite slabs stepping round the tor from its south foot to the summit (< one turn) ──
+  const a0 = -Math.PI / 2 - 0.5;                                   // start: south (−z), a little east
+  const y0 = ground(cx + Math.cos(a0) * (R0 + 1.4), cz + Math.sin(a0) * (R0 + 1.4));
+  const climb = top - y0, RISER = 0.3, nSteps = Math.ceil(climb / RISER), riser = climb / nSteps;
+  const sweep = Math.PI * 1.7, da = sweep / nSteps, W = 1.9;                // clockwise seen from above: west then north
+  const slabs: { y: number; rIn: number }[] = [];
+  for (let s = 1; s <= nSteps; s++) {
+    const a = a0 - s * da, sy = y0 + s * riser, t = Math.min(1, Math.max(0, (sy - base) / H));
+    const rIn = radiusAt(t) * 0.86 + 0.15;
+    slabs.push({ y: sy, rIn });
+    const rc = rIn + W / 2, x = cx + Math.cos(a) * rc, z = cz + Math.sin(a) * rc;
+    const len = Math.max(0.9, (rIn + W) * da + 0.25);
+    const g = graniteBlock(W + 0.5, 0.7, len, 0x400 + s, 0.08, 1);
+    kit.add(g, (_q, nn) => (nn.y > 0.6 ? TOR_C.graniteWarm : TOR_C.graniteDark), { top: { color: TOR_C.lichen, threshold: 0.7, amount: 0.25 }, brush: 0.1, matrix: M(x, sy - 0.35, z, -a) });
+    // the slab as real geometry: its top at the step, down to the one below (a stair of 0.3 m risers round the tor)
+    descs.push(slab(x, z, sy, Math.max(0.7, riser + 0.4), (W + 0.4) / 2, len / 2, -a, 'rock'));
+  }
+  // the summit: a flat terrace over the top block; a railed viewing deck on its north edge, a flag
+  const rTop = radiusAt(1) * 0.8;
+  {
+    const dz = cz + rTop - 1.4;
+    kit.add(new THREE.BoxGeometry(4.4, 0.14, 2.4), TOR_C.wood, { matrix: M(cx, top + 0.03, dz), flat: true });
+    for (let i = 0; i <= 4; i++) kit.add(pole(v3(cx - 2.2 + i * 1.1, top - 0.1, dz + 1.15), v3(cx - 2.2 + i * 1.1, top + 1.1, dz + 1.15), 0.055, 0.05, 6), TOR_C.woodGrey);
+    kit.add(pole(v3(cx - 2.3, top + 1.05, dz + 1.15), v3(cx + 2.3, top + 1.05, dz + 1.15), 0.045, 0.045, 5), TOR_C.woodGrey);
+    colliders.push({ x: cx, z: dz + 1.2, hw: 2.3, hd: 0.1, rot: 0, yBottom: top - 0.5, yTop: top + 1.1, surface: 'wood' });
+    descs.push(slab(cx, dz, top + 0.1, 0.3, 2.2, 1.2, 0, 'planks'));
+    const fp = v3(cx - 1.8, top, cz - 0.8);
+    kit.add(pole(fp, fp.clone().add(v3(0, 4.2, 0)), 0.06, 0.045, 6), TOR_C.woodGrey);
+    kit.add(blob(0.45, rng, 1, 0.7), TOR_C.graniteDark, { matrix: M(fp.x, top + 0.1, fp.z) });
+    flutter.flag(fp.clone().add(v3(0, 4.1, 0)), 0.7, 1.3, '#2f6fb3', { droop: 0.2 });
+    flutter.streamer(fp.clone().add(v3(0, 3.3, 0)), 1.8, 0.1, '#f2ece0');
+    colliders.push({ x: fp.x, z: fp.z, hw: 0.3, hd: 0.3, rot: 0, yBottom: top - 1, yTop: top + 4, surface: 'wood' });
+  }
+  // its floor (placement): the scramble's slabs and the summit, as data (../world/placeBake.ts `torFloor`)
+  return { boxes: colliders, descs, floor: torFloor({ cx, cz, a0, da, w: W, slabs: slabs.map((s) => [s.rIn, s.y] as const), rTop, top }) };
+};
+const eagleRockPainted: ModelDef<object> = { ...eagleRock, build: painted(torPaint, { seed: 0xea61, fitted: true, finish: { aoH: 1.4 } }) };
+
+/**
+ * The Wind Cairn (E306 / E315 M3; Jel Ata the Storm Titan's threshold, B14): an ovoo-style heap of fieldstones round a
+ * core dome, a bundle of weathered poles lashed together at the top and bristling out of it, four sagging lines from the
+ * pole-heads to stakes round the heap, a few horned ram skulls and offering stones on the pile. The cloth strips tied up
+ * the poles and along the lines (white and sky-blue — the khadag colours — with red, yellow and green among them) and the
+ * two long silk streamers are the shard's cloth (they stream with the wind; in the storm they whip), not the model's
+ * geometry. Used once (src/shards/nalati-grasslands/world/Cairn.ts).
+ *
+ * Placed at the heap's centre on the ground (`at.y`); its stakes stand on the ground round it. Painted into its place's
+ * mesh (src/shards/nalati-grasslands/world/painted.ts). Collides: the heap as the hull of its core dome, the stakes as boxes.
+ */
+const CAIRN_C = {
+  stone: new THREE.Color('#9d978b'),
+  stoneLight: new THREE.Color('#b8b1a1'),
+  stoneDark: new THREE.Color('#7f7a71'),
+  lichen: new THREE.Color('#bfa75a'),
+  pole: new THREE.Color('#9b8f7c'),
+  poleDark: new THREE.Color('#6d604e'),
+  bone: new THREE.Color('#e8dfca'),
+  horn: new THREE.Color('#b9a37a'),
+  rope: new THREE.Color('#5f4a33'),
+};
+const STRIPS = ['#f4f1e8', '#f4f1e8', '#8cc2ea', '#4f93d6', '#f4f1e8', '#8cc2ea', '#d8402b', '#e7c23a', '#4f9a52'];
+
+const cairnPaint: Paint<object> = (kit, at, _p, c) => {
+  const { ground, flutter } = c;
+  const rng = kit.rng;
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
+  const cx = at.x, cz = at.z, gy = at.y;
+  const R = 2.9, Hh = 2.4;
+  const stone = { top: { color: CAIRN_C.lichen, threshold: 0.55, amount: 0.45 }, brush: 0.12 };
+
+  // ── the heap: stones in rough rings, smaller toward the top ──
+  for (let ring = 0; ring < 6; ring++) {
+    const t = ring / 5, rr = R * (1 - t * 0.85), yy = gy + Hh * t ** 0.9 * 0.92;
+    const n = Math.max(3, Math.round(rr * 6));
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + ring * 0.6 + rng.range(-0.15, 0.15);
+      const s = rng.range(0.26, 0.42) * (1 - t * 0.3);
+      const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+      const col = rng.next() < 0.3 ? CAIRN_C.stoneLight : rng.next() < 0.5 ? CAIRN_C.stoneDark : CAIRN_C.stone;
+      kit.add(blob(s, rng, 1, rng.range(0.6, 0.85), 0.25), col, { ...stone, matrix: M(x, Math.max(yy, ground(x, z)) + s * 0.25, z, rng.range(0, 6)) });
+    }
+  }
+  // a core so there are no holes between the stones
+  const core = new THREE.SphereGeometry(R * 0.95, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, Hh / R * 0.9, 1);
+  // P1: the heap collides as the hull of its core dome (the stones sit on it)
+  descs.push(supportHull(core, M(cx, gy - 0.1, cz), 'stone'));
+  kit.add(core, CAIRN_C.stone, { matrix: M(cx, gy - 0.1, cz), brush: 0.2 });
+
+  // ── the pole bundle: 7 poles lashed at ~4 m, splaying out of the heap ──
+  const lash = v3(cx, gy + 4.6, cz);
+  const heads: THREE.Vector3[] = [];
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + rng.range(-0.2, 0.2);
+    const foot = v3(cx + Math.cos(a) * 0.55, gy + Hh * 0.55, cz + Math.sin(a) * 0.55);
+    const dir = lash.clone().sub(foot).normalize();
+    const head = lash.clone().add(dir.clone().multiplyScalar(rng.range(0.6, 1.5))).add(v3(-Math.cos(a) * 0.1, 0, -Math.sin(a) * 0.1));
+    kit.add(pole(foot, head, 0.1, 0.05, 7), rng.next() < 0.5 ? CAIRN_C.pole : CAIRN_C.poleDark, { jitter: 0.1 });
+    heads.push(head);
+    // strips tied up the pole
+    for (let k = 0; k < 7; k++) {
+      const u = 0.3 + k * 0.1 + rng.range(-0.03, 0.03);
+      const q = foot.clone().lerp(head, u);
+      flutter.strip(q, rng.range(0.7, 1.2), rng.range(0.12, 0.18), rng.pick(STRIPS));
+    }
+  }
+  kit.add(new THREE.CylinderGeometry(0.18, 0.18, 0.35, 10).translate(lash.x, lash.y, lash.z), CAIRN_C.rope);
+  // the tallest pole carries a long streamer of blue silk
+  const crown = lash.clone().add(v3(0, 1.4, 0));
+  kit.add(pole(lash.clone().add(v3(0, -0.6, 0)), crown, 0.05, 0.03, 6), CAIRN_C.pole);
+  flutter.streamer(crown, 4.2, 0.3, '#4f93d6', { droop: 0.4, taper: 0.4 });
+  flutter.streamer(crown.clone().add(v3(0, -0.25, 0)), 3.4, 0.24, '#f4f1e8', { droop: 0.45, taper: 0.4 });
+
+  // ── four strip lines from the pole heads to stakes ──
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.5 + rng.range(-0.15, 0.15);
+    const sx = cx + Math.cos(a) * 7.5, sz = cz + Math.sin(a) * 7.5, sy = ground(sx, sz);
+    const stakeTop = v3(sx, sy + 1.3, sz);
+    kit.add(pole(v3(sx, sy - 0.3, sz), stakeTop, 0.06, 0.05, 6), CAIRN_C.poleDark);
+    kit.add(blob(0.3, rng, 1, 0.7), CAIRN_C.stone, { ...stone, matrix: M(sx + 0.2, sy + 0.05, sz, rng.range(0, 6)) });
+    const from = heads[(i * 2) % heads.length] ?? lash;
+    const n = 18;
+    for (let k = 0; k <= n; k++) {
+      const t = k / n;
+      const q = from.clone().lerp(stakeTop, t);
+      q.y -= Math.sin(Math.PI * t) * 0.7;                                       // the line sags
+      if (k > 0 && k < n) flutter.strip(q, rng.range(0.5, 0.8), rng.range(0.11, 0.15), rng.pick(STRIPS));
+      if (k < n) {
+        const q2 = from.clone().lerp(stakeTop, (k + 1) / n); q2.y -= Math.sin(Math.PI * ((k + 1) / n)) * 0.7;
+        kit.add(pole(q, q2, 0.012, 0.012, 3), CAIRN_C.rope, { brush: 0 });
+      }
+    }
+    colliders.push({ x: sx, z: sz, hw: 0.15, hd: 0.15, rot: 0, yBottom: sy - 1, yTop: sy + 1.3, surface: 'wood' });
+  }
+
+  // ── ram skulls and offerings on the heap ──
+  for (let i = 0; i < 3; i++) {
+    const a = rng.range(0, Math.PI * 2), rr = R * rng.range(0.35, 0.6);
+    const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr, y = gy + Hh * (1 - rr / R) * 0.9 + 0.2;
+    const m = M(x, y, z, a + Math.PI / 2, 1, 1, 1, -0.3);
+    kit.add(new THREE.SphereGeometry(0.13, 10, 8).scale(0.8, 0.75, 1.3), CAIRN_C.bone, { matrix: m });
+    for (const s of [-1, 1]) kit.add(new THREE.TorusGeometry(0.1, 0.035, 5, 10, Math.PI * 1.5).rotateY(Math.PI / 2).translate(s * 0.11, 0.02, -0.05), CAIRN_C.horn, { matrix: m });
+  }
+  return { boxes: colliders, descs };
+};
+const windCairnPainted: ModelDef<object> = { ...windCairn, build: painted(cairnPaint, { seed: 0xca19, fitted: true }) };
+
+/** Eagle Rock (world/EagleRock.ts's builder): the tor on B0's knoll, painted into its own mesh */
+function eagleRockPlace(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
+  const kit = new PaintKit(0xea61);
+  const set = new NalatiSet(kit, ctx);
+  set.paint(eagleRockPainted, { x: EAGLE_ROCK.x, y: EAGLE_ROCK.top, z: EAGLE_ROCK.z, yaw: 0 }, {});
+  const geometry = kit.finish({ ground: ctx.ground, aoH: 1.4 });
+  return { name: 'eagleRock', group: null, surface: 'rock', tris: trisOf(geometry), meshes: [{ name: 'nalati-eagle-rock', material: 'poi', slot: 0, geometry }], set, effects };
+}
+
+/** the Wind Cairn (world/Cairn.ts's builder): the heap on the bowl's south rim, painted into its own mesh (its strips: cloth) */
+function cairnPlace(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
+  const kit = new PaintKit(0xca19);
+  const set = new NalatiSet(kit, ctx);
+  const cx = WIND_CAIRN.x, cz = WIND_CAIRN.z;
+  set.paint(windCairnPainted, { x: cx, y: ctx.ground(cx, cz), z: cz, yaw: 0 }, {});
+  const geometry = kit.finish({ ground: ctx.ground });
+  return { name: 'cairn', group: null, surface: 'stone', tris: trisOf(geometry), meshes: [{ name: 'nalati-cairn', material: 'poi', slot: 0, geometry }], set, effects };
+}
+
 // ── the bake's binary: each geometry's attributes as their own bytes, welded ──────────────────────────────────────────
 
 const descRow = (d: MemberData['solid'][number]): MemberRow['solid'][number] => (d.kind === 'hull' ? { ...d, points: Array.from(d.points) } : { ...d });
-const deckOf = (f: MemberData['floors'][number]): DeckRow => {
-  if (!('row' in f)) throw new Error('[nalati places] a floor the bake cannot keep (only deckFloor floors are data)');
+const deckOf = (f: MemberData['floors'][number]): DeckRow | TorFloorRow => {
+  if (!('row' in f)) throw new Error('[nalati places] a floor the bake cannot keep (only deckFloor / torFloor floors are data)');
   const row: unknown = f.row;
   if (typeof row !== 'object' || row === null) throw new Error('[nalati places] a floor without its row');
-  return row as DeckRow;
+  return row as DeckRow | TorFloorRow;
 };
 const memberRow = (m: MemberData): MemberRow => ({
   draw: m.draw, inKit: m.inKit, boxes: [...m.boxes], solid: m.solid.map(descRow), descs: m.descs.map(descRow), floors: m.floors.map(deckOf),
@@ -273,7 +513,7 @@ function specimenJobs(): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
   return [job(yurtPainted), job(kunesBridgePainted), job(ribbonPolePainted), job(eaglePerchPainted), job(stovePainted), job(campBenchPainted),
     job(rugRackPainted), job(feltRugPainted), job(cartPainted), job(barrelPainted), job(hitchingRailPainted), job(waterTroughPainted),
     job(saddleRackPainted), job(corralPainted), job(hayPilePainted), job(feedTroughPainted), job(rugLinePainted), job(choppingBlockPainted),
-    job(milkCansPainted), job(tetherLinePainted), job(kurtBoardPainted), job(ribbonPostPainted)];
+    job(milkCansPainted), job(tetherLinePainted), job(kurtBoardPainted), job(ribbonPostPainted), job(eagleRockPainted), job(windCairnPainted)];
 }
 
 /** a bake: its rows and raw binary (not yet lane-shuffled or compressed) */
@@ -283,14 +523,14 @@ type SpecimenScope = (build: () => SpecimenRow[]) => SpecimenRow[];
 const nativeSpecimenScope: SpecimenScope = (build) => build();
 
 /**
- * The bake over the page's ground (its baked terrain sampler): the three places in the page's order (the camp, the
- * bridge, the summer camp), then the specimens (the bridge's fitted to its first placement, so after the places), then
+ * The bake over the page's ground (its baked terrain sampler): the places in the page's order (the camp, the
+ * bridge, the summer camp, Eagle Rock, the Wind Cairn), then the specimens (the bridge's fitted to its first placement, so after the places), then
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
 export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   setTerrainHeight(ground);
   const blocks: Uint8Array[] = [];
-  const rows = [nomadCamp, bridge, summerCamp].map((build): PlaceRow => {
+  const rows = [nomadCamp, bridge, summerCamp, eagleRockPlace, cairnPlace].map((build): PlaceRow => {
     const effects: EffectRow[] = [];
     const ctx: PaintCtx = { ground, flutter: new RecordingFlutter(effects), smoke: recordingPlumes(effects) };
     const p = build(ctx, effects), { members, instances } = p.set.rows();

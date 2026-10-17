@@ -7,5 +7,20 @@
   "maxPushBytes": 10000000,
   "maxWeeklyBytes": 100000000,
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
-  "pins": []
+  "pins": [
+    {
+      "path": "public/assets/nalati/baked/places.bin",
+      "oid": "627bb94b029a1b9092140d11e631ef58ee6b6e8b",
+      "bytes": 3059964,
+      "kind": "runtime",
+      "purpose": "Nalati places bake (camps, bridge, Eagle Rock, Wind Cairn): the page draws these painted meshes instead of running their painters"
+    },
+    {
+      "path": "public/assets/nalati/baked/specimens.bin",
+      "oid": "0a9e69c656099ee491da8f23dd2f57b4fd903c41",
+      "bytes": 2018222,
+      "kind": "runtime",
+      "purpose": "Nalati places bake Explorer specimens, fetched only when the Model Explorer builds one"
+    }
+  ]
 }

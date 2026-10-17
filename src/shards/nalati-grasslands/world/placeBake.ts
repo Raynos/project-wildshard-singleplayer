@@ -36,6 +36,8 @@ export interface PlaceGeometryRow extends BakedGeometryRow { readonly expand: bo
 export interface PlaceMeshRow { readonly name: string; readonly material: string; readonly slot: number; readonly geometry: PlaceGeometryRow }
 /** a level deck with ramps as a floor (the Kunes bridge's): level `deck` over [flat0, flat1], down `slope` beyond, out to [z0, z1] */
 export interface DeckRow { readonly x: number; readonly halfWidth: number; readonly z0: number; readonly z1: number; readonly flat0: number; readonly flat1: number; readonly deck: number; readonly slope: number }
+/** a tor's floor (Eagle Rock's): slabs [inner radius, top] `w` wide round (cx, cz), clockwise `da` apart from `a0`, and its summit disc */
+export interface TorFloorRow { readonly cx: number; readonly cz: number; readonly a0: number; readonly da: number; readonly w: number; readonly slabs: readonly (readonly [number, number])[]; readonly rTop: number; readonly top: number }
 /** a cloth or smoke call as the builders made it: [kind, point, ...arguments] */
 export type EffectRow = readonly [string, readonly number[], ...unknown[]];
 interface DescRow { readonly kind: string; readonly points?: readonly number[]; readonly [k: string]: unknown }
@@ -43,7 +45,7 @@ interface PlacementRow { readonly x: number; readonly y: number; readonly z: num
 /** one model's copies in a place, as data */
 export interface MemberRow {
   readonly draw: string; readonly inKit: boolean; readonly placements: readonly PlacementRow[]; readonly boxes: readonly number[];
-  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly DeckRow[];
+  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly (DeckRow | TorFloorRow)[];
 }
 /** one place: its object (a group by name, or null: its one mesh is the object), meshes, boxes, cloth / smoke, models */
 export interface PlaceRow {
@@ -79,6 +81,18 @@ const DRESSING = bakeOf<DressingGeoRow>(dressingJson, 'dressingGeos.json');
 export function deckFloor(row: DeckRow): Platform & { readonly row: DeckRow } {
   const { x, halfWidth, z0, z1, flat0, flat1, deck, slope } = row;
   const f = (px: number, pz: number): number | undefined => (Math.abs(px - x) <= halfWidth && pz >= z0 && pz <= z1 ? deck - Math.max(0, flat0 - pz, pz - flat1) * slope : undefined);
+  return Object.assign(f, { row });
+}
+/** the tor painter's floor (placement only): the highest of the slab under (x, z) and the summit */
+export function torFloor(row: TorFloorRow): Platform & { readonly row: TorFloorRow } {
+  const { cx, cz, a0, da, w, slabs, rTop, top } = row;
+  const f = (x: number, z: number): number | undefined => {
+    const dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz);
+    let u = a0 - Math.atan2(dz, dx); u = ((u % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const sl = slabs[Math.floor(u / da)], step = sl === undefined || r < sl[0] - 0.2 || r > sl[0] + w + 0.1 ? undefined : sl[1];
+    const summit = r <= rTop ? top : undefined;
+    return step === undefined || (summit !== undefined && summit > step) ? summit : step;
+  };
   return Object.assign(f, { row });
 }
 
@@ -192,7 +206,7 @@ const placement = (p: PlacementRow): Omit<Placement<object>, 'params'> => {
 };
 const member = (m: MemberRow): MemberData => ({
   draw: m.draw === 'instanced' ? 'instanced' : 'merged', inKit: m.inKit, placements: m.placements.map(placement), boxes: [...m.boxes],
-  solid: m.solid.map(desc), descs: m.descs.map(desc), floors: m.floors.map(deckFloor),
+  solid: m.solid.map(desc), descs: m.descs.map(desc), floors: m.floors.map((f) => ('slabs' in f ? torFloor(f) : deckFloor(f))),
 });
 
 /** a material of a baked mesh */

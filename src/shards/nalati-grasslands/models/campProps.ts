@@ -115,3 +115,14 @@ export const ribbonPost = defineModel<object>(bakedPainted<object>({
   id: 'nalati-grasslands/ribbon-post', name: 'Ribbon post', category: 'props', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: {},
 }));
+
+// ── the rock places' models (painted by ../generators/places.ts; drawn by ../world/EagleRock.ts, ../world/Cairn.ts) ──────
+
+const PLACES_FILE = 'src/shards/nalati-grasslands/generators/places.ts';
+
+export const eagleRock = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/eagle-rock', name: 'Eagle Rock', category: 'nature', pipeline: 'code', file: PLACES_FILE, surface: 'rock', defaults: {},
+}));
+export const windCairn = defineModel<object>(bakedPainted<object>({
+  id: 'nalati-grasslands/wind-cairn', name: 'Wind Cairn', category: 'props', pipeline: 'code', file: PLACES_FILE, surface: 'stone', defaults: {},
+}));
