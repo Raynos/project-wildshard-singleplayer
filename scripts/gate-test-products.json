@@ -10,5 +10,6 @@
   "test/scripts/_template-boss.test.ts": ["_template"],
   "test/scripts/far-reach-roc.test.ts": ["far-reach"],
   "test/scripts/ground-encounters.test.ts": ["driftwood-isle", "pine-hollow"],
+  "test/scripts/nine-casts.test.ts": ["nine-dragon-stack"],
   "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"]
 }
