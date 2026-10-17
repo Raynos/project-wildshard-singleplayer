@@ -1,3 +1,4 @@
+import { residentWorldScope } from '@wildshard/game/shardfile/hybrid';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 import { readAdventurePersistence } from '@wildshard/game/quest/persistence';
@@ -36,7 +37,7 @@ import { loadUnderPlacements } from './world/timberSites';
 import { pineModels, admitPineView } from './world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { placePineProps } from './world/props';
-import { PineStreams } from './world/streams';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
 import { placeCabins } from './world/cabins';
 import { placeDrawnModels } from './world/drawnModels';
@@ -104,7 +105,8 @@ export class PineHollow extends ShardPlugin {
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     const wildlife = await PosedDraw.library(ctx.product, 'look/wildlife-draw.json');
     lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name]));
-    const streams = await new PineStreams(sky).build();
+    const sceneHandles = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+    const streams = { group: sceneHandles.group('streams.root'), water: sceneHandles.mesh('streams.water'), spray: sceneHandles.mesh('streams.spray') };
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
       const grass = new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build();

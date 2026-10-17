@@ -1,3 +1,4 @@
+import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -73,7 +74,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 }
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
+export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles): Promise<DriftwoodWorld> {
   const lowered = G164_LOWERED, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
@@ -156,7 +157,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await stages.next('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
-  const cove = new Cove(sky).place(registry);
+  const cove = new Cove(sky, scenes).place(registry);
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');

@@ -519,6 +519,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 // these platform approvals, and an ordinary pending row cannot claim one.
 /** @type {Record<string,string>} */
 const approvedFeatures = {
+  'world scene assembly':'G483',
   'boss fight host':'G474',
   'weather-keyed-sky':'G474', 'quadruped-rig':'G474', 'actor-spawn':'G474',
   'bolt-flight':'G474', 'quest-step-runner':'G474', 'loadout':'G474',
@@ -537,7 +538,7 @@ const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1
   shard:v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack']),
   plan:v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()}),
   documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.literal('end of W3'),
-  approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G474','G475'])})})),
+  approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G474','G475','G483'])})})),
 })) });
 /** Read only documented general platform declarations with a real later-wave plan row.
  * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */

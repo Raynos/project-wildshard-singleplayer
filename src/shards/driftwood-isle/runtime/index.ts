@@ -1,3 +1,4 @@
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
@@ -18,7 +19,7 @@ import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 
-type WorldBuilder = (world: World, viewer: () => Vector3, progress: ShardContext['progress']) => Promise<DriftwoodWorld>;
+type WorldBuilder = (world: World, viewer: () => Vector3, progress: ShardContext['progress'], context: ShardContext) => Promise<DriftwoodWorld>;
 const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
 
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
@@ -26,7 +27,10 @@ export class DriftwoodPlugin extends ShardPlugin {
   private readonly build: WorldBuilder;
   private adventure: Adventure | null = null;
   /** `build` is injectable so the hook runs with a stub world in a node test (test/shards/driftwood-isle/plugin.test.ts) */
-  constructor(build: WorldBuilder = (world, viewer, progress) => buildDriftwoodWorld(world, viewer, progress)) {
+  constructor(build: WorldBuilder = async (world, viewer, progress, context) => {
+    const scenes = await installWorldScenes(context, context.product.section('world/scenes'));
+    return buildDriftwoodWorld(world, viewer, progress, scenes);
+  }) {
     super();
     this.build = build;
   }
@@ -37,7 +41,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;
     if (world === null) throw new Error('Driftwood world requires the bootstrapped world');
-    const built = await this.build(world, shell.viewer, buildProgress(ctx));
+    const built = await this.build(world, shell.viewer, buildProgress(ctx), ctx);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     // G144 / G173 (E450): the built world's vertex data on the GPU only (../world/gpuOnlyCopies.ts), before the first
     // frame: each copy goes as it uploads

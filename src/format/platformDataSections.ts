@@ -1,3 +1,4 @@
+import { WorldScenesSchema, type WorldScenesSection } from './worldScenes';
 import { HeldArmsSchema, type HeldArmsRows } from './heldArms';
 import { HeldGearSchema, type HeldGearRows } from './heldGear';
 import { HeldFinishesSchema, type HeldFinishesRows } from './heldFinishes';
@@ -30,6 +31,7 @@ export interface PlatformDataSections {
   'ui/strings': UiStrings;
   'world/physics': WorldPhysics;
   'world/targets': WorldTargets;
+  'world/scenes': WorldScenesSection;
 }
 
 /** Defining parsers for the first independently authored platform sections. */
@@ -48,6 +50,7 @@ export const PLATFORM_DATA_SECTIONS = {
   'ui/strings': { schema: UiStringsSchema },
   'world/physics': { schema: WorldPhysicsSchema },
   'world/targets': { schema: WorldTargetsSchema },
+  'world/scenes': { schema: WorldScenesSchema },
 } as const;
 
 /** An explicitly declared new platform-section name; no shard-private name is inferred. */
@@ -66,6 +69,7 @@ export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): D
 export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;
+export function parsePlatformDataSection(name: 'world/scenes', value: unknown): WorldScenesSection;
 export function parsePlatformDataSection(name: 'world/targets', value: unknown): WorldTargets;
 export function parsePlatformDataSection(name: 'sim/runtime-plan', value: unknown): NativeRuntimePlanData;
 export function parsePlatformDataSection(name: PlatformDataSectionName, value: unknown): PlatformDataSections[PlatformDataSectionName];

@@ -17921,6 +17921,69 @@
       "buildTimeOutputs": [
         "src/shards/far-reach/data/paintedLook.generated.json"
       ]
+    },
+    {
+      "id": "pine-world-scene-models",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-world-scene-models.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-world-scene-models.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/shards/pine-hollow/generators/bake-world-scene-models.mjs",
+        "src/shards/pine-hollow/generators/streamCodec.ts",
+        "src/shards/pine-hollow/data/streams.json",
+        "public/assets/pine-hollow/baked/streams.bin",
+        "src/format",
+        "src/sdk",
+        "scripts/bake-output.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/assets/stream-scenes/water.glb",
+        "src/shards/pine-hollow/assets/stream-scenes/quad.glb"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/assets/stream-scenes/water.glb",
+        "src/shards/pine-hollow/assets/stream-scenes/quad.glb"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "driftwood-world-scene-models",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-world-scene-models.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-world-scene-models.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/shards/driftwood-isle/generators/bake-world-scene-models.mjs",
+        "public/assets/driftwood-isle/baked/fixed-models/cove-pools.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-output.mjs"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/assets/world-scenes/pools.glb",
+        "src/shards/driftwood-isle/assets/world-scenes/rings.glb"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/assets/world-scenes/pools.glb",
+        "src/shards/driftwood-isle/assets/world-scenes/rings.glb"
+      ],
+      "platform": "portable"
     }
   ]
 }

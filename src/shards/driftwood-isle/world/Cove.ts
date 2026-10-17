@@ -30,19 +30,28 @@
  * `caveBounds` {x, z, r, yMin, yMax} (the cave reverb) — also on `Cove.forIsland()` for the ambience.
  */
 import * as THREE from 'three';
-import { copyCoveGeometry, coveColliderDescs, coveFloors, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from '../runtime/boot/coveGeometry';
-import { waterfall } from '../runtime/world/Waterfall';
-import { rockMaterial } from './rockKit';
+import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
+import { driftwoodRows } from '../runtime/boot/rows';
 import { reefRock } from '../runtime/models/shoreBoulder';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { POOL_LOOK } from '../data/poolLook';
-import { lentLook, lentToon } from '@wildshard/sdk/looks/lentLooks';
+import { lentToon } from '@wildshard/sdk/looks/lentLooks';
 import { followToon } from '../runtime/look/toon';
+
+type CoveBake = ReturnType<typeof driftwoodRows<'custom/fixedLayouts'>>['cove'];
+export type CoveSpec = CoveBake['spec'];
+export type CaveBounds = CoveSpec['caveBounds'];
+export type CoveAnchor = CoveBake['native']['anchors'][string];
+const bake = (): CoveBake => driftwoodRows('custom/fixedLayouts').cove;
+/** Fresh native facts; scene allocation belongs to the declared world host. */
+export function islandCoveSpec(): CoveSpec { return structuredClone(bake().spec); }
+export function coveFloors(): CoveBake['floors'] { return bake().floors; }
+export function coveColliderDescs(): ColliderDesc[] { return readColliderRows(bake().native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true }); }
 
 export class Cove {
   group = new THREE.Group();
@@ -53,13 +62,13 @@ export class Cove {
   /** the pools' toon look follows the day clock once a frame (their ripple runs on the graph's own frame clock) */
   private follow: (() => void) | null = null;
   /** Registration facts borrow the existing baked reef draw; no retained matrix/box copies. */
-  private catalogue: ReturnType<typeof copyCoveGeometry>['catalogue'] = {placements:[],boxes:[]};
-  private cuts: ReturnType<typeof copyCoveGeometry>['native']['cuts'] = [];
+  private catalogue: CoveBake['catalogue'] = {placements:[],boxes:[]};
+  private cuts: CoveBake['native']['cuts'] = [];
   private rockMesh: THREE.Mesh | null = null;
   /** the reef rocks' placement (the Wreck cove set's member) */
   readonly placed: Placed[] = [];
 
-  constructor(private sky: Sky) {}
+  constructor(private sky: Sky, private readonly scenes: SceneHandles) { this.group = scenes.group('cove.root'); }
 
   static forIsland(): CoveSpec { return islandCoveSpec(); }
 
@@ -80,29 +89,16 @@ export class Cove {
 
   /** the baked layout (`Cove.forIsland()`): its geometry, colliders, anchors and crab sites */
   build(): this {
-    const spec = islandCoveSpec(), built = copyCoveGeometry();
+    const spec = islandCoveSpec(), built = bake();
     this.crabSites = spec.crabSites;
     this.caveBounds = spec.caveBounds;
     this.catalogue = built.catalogue;
     this.colliders=structuredClone(built.native.colliders);
     this.anchors=structuredClone(built.native.anchors);
     this.cuts=built.native.cuts;
-    const rocks = new THREE.Mesh(built.geometry.structure, lowPolyLookMaterial(this.sky, 'still'));
-    rocks.castShadow = true; rocks.receiveShadow = true;
-    this.group.add(rocks);
-    const sm = new THREE.Mesh(built.geometry.rocks, rockMaterial(this.sky));
-    sm.name = 'cove-rocks'; sm.castShadow = true; sm.receiveShadow = true;
-    this.group.add(sm); this.rockMesh = sm;
-    const glowMesh = new THREE.Mesh(built.geometry.glow, new THREE.MeshBasicMaterial({ vertexColors: true }));
-    glowMesh.name = 'cove-glow'; this.group.add(glowMesh);
-    // the pools: concentric ripple rings drift outward, the sun catches their crests (data/poolLook.ts)
+    this.rockMesh = this.scenes.mesh('cove.rocks');
     this.follow = followToon(lentToon(POOL_LOOK)); // its lent graph's toon look follows the day clock once a frame
-    const poolMesh = new THREE.Mesh(built.geometry.pools, lentLook(POOL_LOOK));
-    poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
-    this.group.add(poolMesh);
-
-    // E150: the toon cascade in three terraces, baked from spec.fall with the cove (generators/driftwoodCove.mjs)
-    this.group.add(waterfall());
+    this.group.add(this.scenes.group('cascade.root'));
 
     return this;
   }

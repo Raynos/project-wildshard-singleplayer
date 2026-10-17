@@ -2,7 +2,7 @@ import { floorAtRects } from '../src/engine/physics/box';
 import { yawLocal } from '../src/engine/world/yawFrame';
 import { beforeAll, expect, it } from 'vitest';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { coveColliderDescs, coveFloors, islandCoveSpec as admittedCoveSpec } from '../src/shards/driftwood-isle/runtime/boot/coveGeometry';
+import { coveColliderDescs, coveFloors, islandCoveSpec as admittedCoveSpec } from '../src/shards/driftwood-isle/world/Cove';
 import { coveFloorAt, islandCoveSpec, coveHalfWidth, STEPS } from '../src/shards/driftwood-isle/generators/coveLayout';
 
 beforeAll(admitDriftwoodFixtureRows);

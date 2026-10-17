@@ -67,6 +67,13 @@ interface ActiveRuntime {
 
 const residentScopes = new WeakMap<Scope, Scope>();
 
+/** Static presentation belongs to the resident, including transitional entered world hooks. */
+export function residentWorldScope(context: Pick<ShardContext, 'scope'>): Scope {
+  const owner = residentScopes.get(context.scope) ?? context.scope;
+  if (owner.disposed || context.scope.disposed) throw new Error('Missing live resident world');
+  return owner;
+}
+
 /** A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope. */
 /** Static-world recipe optionally binds admitted motion after each entered load, on the existing mover host. */
 export interface ResidentWorldRecipe {

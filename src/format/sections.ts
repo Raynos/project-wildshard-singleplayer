@@ -1,3 +1,4 @@
+import type { WorldScenesSection } from './worldScenes';
 import type { HeldArmsRows } from './heldArms';
 import type { HeldGearRows } from './heldGear';
 import type { HeldFinishesRows } from './heldFinishes';
@@ -50,6 +51,7 @@ export interface PlatformSections {
   'world/physics': WorldPhysics;
   /** new (KA6): immutable strike targets and named movement/perch points. */
   'world/targets': WorldTargets;
+  'world/scenes': WorldScenesSection;
   'world/days': { readonly rows: Pick<Rows, 'days'> };
   'world/weather': { readonly rows: Pick<Rows, 'weather'> };
   'look/look': Pick<Shardfile, 'look' | 'presentation'>;

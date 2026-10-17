@@ -153,7 +153,9 @@
     "./loadout/finishes": "./loadout/finishes.ts",
     "./models/heldGear": "./models/heldGear.ts",
     "./plugin/heldTool": "./plugin/heldTool.ts",
-    "./loadout/claims": "./loadout/claims.ts"
+    "./loadout/claims": "./loadout/claims.ts",
+    "./shardfile/worldScenes": "./shardfile/worldScenes.ts",
+    "./shardfile/lentLooks": "./shardfile/lentLooks.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

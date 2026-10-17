@@ -9108,3 +9108,45 @@ rows, contain no shard identities and are labelled client-only. Test 6 is
 still open: the legacy world/save owners are borrowed as capability bundles
 at the collection entry points. Batch 11 of the Pine under-20 mini-plan owns
 the remaining context-and-id API work (G482, sp-x4, recheck 2026-10-18).
+
+## World scene assembly (Z2, G480/G483)
+
+`@wildshard/game/shardfile/worldScenes.installWorldScenes(context, rows,
+resident)` builds the client-only `world/scenes` platform section once per
+resident scope and product. The optional resident defaults to the context scope; transitional resident
+worlds pass their static world's owner. Re-entry returns
+the same handles. Disposal removes its scene parts, owned materials and geometry,
+and any registered pieces. Failed construction disposes partial results and can
+retry. Nothing installs on import.
+
+The section declares named model libraries (`owned`: exact identity-space GLBs
+with application-channel aliases; `pool`: prepared model pools), material slots
+(existing look ids, low-poly family variants, or plain standard/basic
+materials), and ordered recipe steps.
+Recipes are verified named JSON blobs containing `WorldSceneRecipe` rows.
+Every library, material, recipe port and publication is admitted before visual
+allocation. A cube variant selects standalone or cell data. Repeated steps have
+named instance poses. Bounds overrides retain authored shader-displacement
+spheres. Static box collider rows register through the resident owner.
+
+Each step publishes `<step>.root` and optional typed named handles, with a repeat
+id between the step and handle. `SceneHandles` exposes checked object, group,
+mesh, vector, number, standard-material and point-light accessors. Consumers
+mount the root where their existing hierarchy requires it; the host preserves
+recipe child order. The engine frame budget paces library reads, slots, steps
+and registrations. Existing lent look materials remain shared with their live
+uniform writers; missing look slots compile under the resident.
+
+The first adopters replace Driftwood's cascade and cove geometry modules and
+Pine Hollow's stream assembly module without changing its
+draws, attribute channels, graph materials, render order or puff sphere. Pine's
+stream and quad geometry compile from the retained original bake offline; its
+spray instance matrices and attributes are rows.
+The fictional harbour fixture exercises two steps, cube variants, repeated
+instances, named handles, resident re-entry, collider ownership and disposal.
+Baked imports, props-node libraries and active collider predicates are refused
+until their own data bindings land; ordinary decoration remains props tiles.
+No animation, gameplay or geometry builder runs in this host. Both shards
+drive the host; the G483 platform approval is also recorded in the
+pending-user table. `residentWorldScope(context)` resolves a transitional
+world hook to its resident owner. Instance attributes remain bounded static data.

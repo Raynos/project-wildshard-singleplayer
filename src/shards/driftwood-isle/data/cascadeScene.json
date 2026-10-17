@@ -1,0 +1,62 @@
+{
+  "scene": {
+    "version": 1,
+    "root": "root",
+    "nodes": [
+      {
+        "kind": "group",
+        "id": "root",
+        "children": [
+          "sheet",
+          "rings",
+          "puffs"
+        ]
+      },
+      {
+        "kind": "mesh",
+        "id": "sheet",
+        "geometry": "sheet",
+        "material": "sheet",
+        "missing": "empty",
+        "name": "waterfall-sheet",
+        "renderOrder": 5
+      },
+      {
+        "kind": "mesh",
+        "id": "rings",
+        "geometry": "rings",
+        "material": "rings",
+        "missing": "empty",
+        "name": "waterfall-rings",
+        "renderOrder": 6
+      },
+      {
+        "kind": "mesh",
+        "id": "puffs",
+        "geometry": "puffs",
+        "material": "puffs",
+        "missing": "empty",
+        "name": "waterfall-puffs",
+        "renderOrder": 7
+      }
+    ],
+    "materials": [
+      {
+        "kind": "port",
+        "id": "sheet",
+        "source": "sheet"
+      },
+      {
+        "kind": "port",
+        "id": "rings",
+        "source": "rings"
+      },
+      {
+        "kind": "port",
+        "id": "puffs",
+        "source": "puffs"
+      }
+    ]
+  },
+  "imports": []
+}

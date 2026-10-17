@@ -43,6 +43,7 @@ const hosts = {
   'state/migrations': ['game/shardfile/logicalState#logicalStateFromLane'],
   'state/modes': ['engine/player/modes#playerModes'],
   'sim/runtime-plan': ['game/shardfile/nativePlan#prepareProductRuntimePlan'],
+  'world/scenes': ['game/shardfile/worldScenes#installWorldScenes'],
   'world/targets': ['game/shardfile/worldTargets#WorldTargetHost'],
   'sim/scripts': ['engine/script/decision#DecisionHost', 'format/decisionScripts#parseDecisionScripts'],
   'sim/sim': ['game/shardfile/scripts#createShardfileScriptLane'],

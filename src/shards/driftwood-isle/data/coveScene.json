@@ -1,0 +1,77 @@
+{
+  "scene": {
+    "version": 1,
+    "root": "root",
+    "nodes": [
+      {
+        "kind": "group",
+        "id": "root",
+        "children": [
+          "structure",
+          "rocks",
+          "glow",
+          "pools"
+        ]
+      },
+      {
+        "kind": "mesh",
+        "id": "structure",
+        "geometry": "structure",
+        "material": "structure",
+        "missing": "empty",
+        "castShadow": true,
+        "receiveShadow": true
+      },
+      {
+        "kind": "mesh",
+        "id": "rocks",
+        "geometry": "rocks",
+        "material": "rocks",
+        "missing": "empty",
+        "name": "cove-rocks",
+        "castShadow": true,
+        "receiveShadow": true
+      },
+      {
+        "kind": "mesh",
+        "id": "glow",
+        "geometry": "glow",
+        "material": "glow",
+        "missing": "empty",
+        "name": "cove-glow"
+      },
+      {
+        "kind": "mesh",
+        "id": "pools",
+        "geometry": "pools",
+        "material": "pools",
+        "missing": "empty",
+        "receiveShadow": true,
+        "renderOrder": 1
+      }
+    ],
+    "materials": [
+      {
+        "kind": "port",
+        "id": "structure",
+        "source": "structure"
+      },
+      {
+        "kind": "port",
+        "id": "rocks",
+        "source": "rocks"
+      },
+      {
+        "kind": "port",
+        "id": "glow",
+        "source": "glow"
+      },
+      {
+        "kind": "port",
+        "id": "pools",
+        "source": "pools"
+      }
+    ]
+  },
+  "imports": []
+}
