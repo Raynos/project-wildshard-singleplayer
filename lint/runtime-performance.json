@@ -6137,6 +6137,74 @@
     "src/shards/pine-hollow/runtime/life/bodylessForager.ts:frame-allocation:110b9da692566eaeaecc2cf67585a87307fd8d496ee6fef45f2a9cd8e904f0f0": {
       "count": 1,
       "row": "H1"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:unbounded-loop:319c3d3e80027ec554b56cd9a3a123546d476e3344a9613882976bd09c378516": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:raw-render:c2eb7544a0f67b7d7198b0dd274b484f9163f5ea072be318c1d464d383940bcf": {
+      "count": 5,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 19,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:raw-render:69b596be39ff37a6803b2ade307fd0ddfef51031844a17c0d12fadf8492168d8": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:raw-render:14a7c8382d98507819d4738db4765309ea16d8b4e19c55a5307322e195511ce2": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow-legacy/runtime/antlerKing.ts:unbounded-loop:62beb5176dd42988369c57513c32e592ea9ae168373f41d0f2c16f1b4de066f8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore.ts:frame-allocation:32828fd340a4df6bf6a36d3b2b45bf902e621133fb989e25eb65b831d517f7ba": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore.ts:raw-render:73df3fea97746166e385992c978fb7f28bdbffc839e32097e6bf45379a286a61": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore.ts:frame-allocation:70f9ac480f2f46e7587d0740e4064ba9eb6400f9b0743309e3920cdde66cecd6": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 4,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/files.ts:unbounded-loop:f44150fa525f8a4de0f2118c2c64b6842a2270cdffe8fce44e89bbbff0ea983f": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/audio/files.ts:unbounded-loop:52b33145370cee637e3fb47926a5a7e6a40e928d809d2972b2d1a92e5c8e23aa": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/enteredAdventure.ts:unbounded-loop:e78f760b4f4fdb17ba1b061c269f427996c55e20dafc66cb1a6b944eebd6fb93": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/enteredAdventure.ts:unbounded-loop:71b6e01b37c733c9fd34c51d5bf78f601601f87bd8fe3e42c1061914544edf21": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/enteredAdventure.ts:async:7b5fd8204d464b38bf13bdb0370a29544e9e6988d1454dee9061521337ae4a6a": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nine-dragon-stack-legacy/runtime/audio/files.ts:raw-render:e44f9671c80ea557873b6d09502dcb20507380aa1cd9d3dac5a1266deee139ee": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack-legacy/runtime/audio/files.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 1,
+      "row": "SF51"
     }
   }
 }

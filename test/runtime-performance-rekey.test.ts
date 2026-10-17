@@ -2,6 +2,8 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The guard compares actual immutable Node source trees.
 import { tmpdir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exact frozen fixture identity uses the policy's SHA256.
+import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned fixture trees.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
@@ -77,5 +79,43 @@ test('only consumed verbatim platform sites pay newly visible runtime debt', () 
     expect(check(original, { duplicate: true })).not.toEqual([]);
     expect(check(original, { count: 2 })).not.toEqual([]);
     expect(check(`${original} export function tick() { return new Set(); }`)).not.toEqual([]);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+test('retains exact frozen sites after primary debt retires', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/runtime-frozen-retention-');
+  const baselineRoot = join(root, 'before'), candidateRoot = join(root, 'after');
+  const relative = 'runtime/life.ts', file = `src/shards/example-legacy/${relative}`;
+  const source = 'export function update(items) { for (const item of items) consume(item); }';
+  const put = (base: string, path: string, text: string) => {
+    const target = join(base, path); mkdirSync(join(target, '..'), { recursive: true }); writeFileSync(target, text);
+  };
+  const digest = createHash('sha256').update(source).digest('hex');
+  const inventory = { version: 1, sealed: true, shards: { 'example-legacy': {
+    primary: 'example', source: 'a'.repeat(40), files: { 'manifest.ts': digest, 'plugin.ts': digest, [relative]: digest },
+  } } };
+  const before = { about: 'reviewed', baselineAt: 'fixed', sites: {} };
+  const sites: Record<string, { count: number; row: string }> = {};
+  for (const issue of runtimePerformanceSites(source, file)) {
+    const key = `${file}:${issue.kind}:${issue.site}`;
+    sites[key] ??= { count: 0, row: 'SF46' }; sites[key].count++;
+  }
+  expect(Object.keys(sites).length).toBeGreaterThan(0);
+  const list = 'lint/runtime-performance.json';
+  put(baselineRoot, file, source);
+  put(baselineRoot, 'lint/legacy-shards.json', JSON.stringify(inventory));
+  put(baselineRoot, list, JSON.stringify(before));
+  put(candidateRoot, list, JSON.stringify({ ...before, sites }));
+  const check = () => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot });
+  try {
+    put(candidateRoot, file, source);
+    expect(check()).toEqual([]);
+    put(candidateRoot, file, `${source}\nchanged();`);
+    expect(check()).not.toEqual([]);
+    put(candidateRoot, file, source);
+    put(baselineRoot, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: {} }));
+    expect(check()).not.toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -1,38 +1,96 @@
 {
   "test/world-scenes-platform.test.ts": [],
-  "test/scripts/skitterer-pack.test.ts": ["sunscar-dunes"],
+  "test/scripts/skitterer-pack.test.ts": [
+    "sunscar-dunes"
+  ],
   "test/nalati-spear-pool.test.ts": [],
   "test/nalati-generation-order.test.ts": [],
   "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
   "test/parked-viewmodels.test.ts": [],
   "test/whole-geometry-pacing.test.ts": [],
-  "test/hybrid-product-rows.test.ts": ["far-reach", "sunscar-dunes"],
-  "test/elite-encounters.test.ts": ["pine-hollow", "nalati-grasslands"],
-  "test/ground-borrowed-body.test.ts": ["driftwood-isle", "pine-hollow"],
-  "test/matriarch-borrowed-body.test.ts": ["sunscar-dunes"],
-  "test/roc-borrowed-body.test.ts": ["far-reach"],
-  "test/nalati-kurgan-fabric.test.ts": ["nalati-grasslands"],
-  "test/nalati-static-landmarks.test.ts": ["nalati-grasslands"],
-  "test/nalati-headless-assembly.test.ts": ["nalati-grasslands"],
-  "test/shard-headless.test.ts": ["_template", "pastel-plain", "driftwood-isle", "pine-hollow", "nalati-grasslands", "nine-dragon-stack", "sunscar-dunes", "far-reach"],
-  "test/pine-npc-figure-product.test.ts": ["pine-hollow"],
-  "test/scripts/_template-boss.test.ts": ["_template"],
-  "test/scripts/far-reach-roc.test.ts": ["far-reach"],
-  "test/scripts/ground-encounters.test.ts": ["driftwood-isle", "pine-hollow"],
-  "test/scripts/nine-casts.test.ts": ["nine-dragon-stack"],
+  "test/hybrid-product-rows.test.ts": [
+    "far-reach",
+    "sunscar-dunes"
+  ],
+  "test/elite-encounters.test.ts": [
+    "pine-hollow",
+    "nalati-grasslands"
+  ],
+  "test/ground-borrowed-body.test.ts": [
+    "driftwood-isle",
+    "pine-hollow"
+  ],
+  "test/matriarch-borrowed-body.test.ts": [
+    "sunscar-dunes"
+  ],
+  "test/roc-borrowed-body.test.ts": [
+    "far-reach"
+  ],
+  "test/nalati-kurgan-fabric.test.ts": [
+    "nalati-grasslands"
+  ],
+  "test/nalati-static-landmarks.test.ts": [
+    "nalati-grasslands"
+  ],
+  "test/nalati-headless-assembly.test.ts": [
+    "nalati-grasslands"
+  ],
+  "test/shard-headless.test.ts": [
+    "_template",
+    "pastel-plain",
+    "driftwood-isle",
+    "pine-hollow",
+    "nalati-grasslands",
+    "nine-dragon-stack",
+    "sunscar-dunes",
+    "far-reach"
+  ],
+  "test/pine-npc-figure-product.test.ts": [
+    "pine-hollow"
+  ],
+  "test/scripts/_template-boss.test.ts": [
+    "_template"
+  ],
+  "test/scripts/far-reach-roc.test.ts": [
+    "far-reach"
+  ],
+  "test/scripts/ground-encounters.test.ts": [
+    "driftwood-isle",
+    "pine-hollow"
+  ],
+  "test/scripts/nine-casts.test.ts": [
+    "nine-dragon-stack"
+  ],
   "test/scripts/nine-sign-atlas.test.ts": [],
-  "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"],
+  "test/scripts/sunscar-matriarch.test.ts": [
+    "sunscar-dunes"
+  ],
   "test/painted-look-rows.test.ts": [],
   "test/held-arms-platform.test.ts": [],
   "test/native-actor-interface.test.ts": [],
   "test/population-platform.test.ts": [],
   "test/quest-step-runner.test.ts": [],
   "test/quest-step-traces.test.ts": [],
-  "test/quest-step-native-parity.test.ts": ["pine-hollow", "driftwood-isle"],
-  "test/held-equipment-platform.test.ts": ["pine-hollow"],
-  "test/held-loadout-platform.test.ts": ["pine-hollow"],
-  "test/collections-display.test.ts": ["driftwood-isle", "pine-hollow"],
-  "test/held-finishes-platform.test.ts": ["pine-hollow"],
-  "test/driftwood-sword-scene.test.ts": ["driftwood-isle"]
+  "test/quest-step-native-parity.test.ts": [
+    "pine-hollow",
+    "driftwood-isle"
+  ],
+  "test/held-equipment-platform.test.ts": [
+    "pine-hollow"
+  ],
+  "test/held-loadout-platform.test.ts": [
+    "pine-hollow"
+  ],
+  "test/collections-display.test.ts": [
+    "driftwood-isle",
+    "pine-hollow"
+  ],
+  "test/held-finishes-platform.test.ts": [
+    "pine-hollow"
+  ],
+  "test/driftwood-sword-scene.test.ts": [
+    "driftwood-isle"
+  ],
+  "test/nine-cloth-bake.test.ts": []
 }

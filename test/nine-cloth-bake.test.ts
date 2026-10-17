@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { BufferAttribute, BufferGeometryLoader, Quaternion, Vector3, type BufferGeometry } from 'three';
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import { ClothSheet, StrandTassel } from '../src/shards/nine-dragon-stack/runtime/looks/strandCloth';
+import { Tassel as OriginalTassel, Talisman as OriginalTalisman } from '../src/shards/nine-dragon-stack-legacy/vm/cloth';
 import { TALISMAN, TASSEL } from '../src/shards/nine-dragon-stack/data/cloth';
 import { viewmodelLook } from '../src/shards/nine-dragon-stack/runtime/looks/vmLook';
 import viewmodel from '../src/shards/nine-dragon-stack/data/decals.json' with { type: 'json' };
@@ -41,16 +42,25 @@ test('baked topology retains the original 90-frame cloth and knot motion', async
   const tassel = new StrandTassel(TASSEL, geometry.tassel), talisman = new ClothSheet(TALISMAN, geometry.sheet, geometry.cord);
   const q = new Quaternion(), pivot = new Vector3(), gravity = new Vector3(0, -9.8, 0);
   const caps = [{ a: new Vector3(-0.02, -0.12, 0), b: new Vector3(0.02, -0.2, 0), r: 0.035 }];
-  const trace = [];
+  const originalTassel = new OriginalTassel(), originalTalisman = new OriginalTalisman();
   for (let i = 0; i < 90; i++) {
     const dt = i % 3 === 0 ? 1 / 30 : 1 / 60;
     pivot.set(0.02 * Math.sin(i * 0.13), 0.005 * Math.cos(i * 0.17), 0.01 * Math.sin(i * 0.07));
     q.setFromAxisAngle(new Vector3(0, 0, 1), 0.2 * Math.sin(i * 0.11));
     tassel.step(dt, pivot, q, gravity, 1, caps);
     talisman.step(dt, pivot, q, gravity, 1, caps);
-    if ([0, 29, 59, 89].includes(i)) trace.push({ frame: i, tassel: await channels(tassel.geo), sheet: await channels(talisman.geo), cord: await channels(talisman.cordGeo), cap: tassel.cap.toArray(), direction: tassel.capDir.toArray() });
+    originalTassel.step(dt, pivot, q, gravity, 1, caps);
+    originalTalisman.step(dt, pivot, q, gravity, 1, caps);
+    if ([0, 29, 59, 89].includes(i)) {
+      expect(await channels(tassel.geo)).toEqual(await channels(originalTassel.geo));
+      expect(await channels(talisman.geo)).toEqual(await channels(originalTalisman.geo));
+      expect(await channels(talisman.cordGeo)).toEqual(await channels(originalTalisman.cordGeo));
+      expect(tassel.cap.toArray()).toEqual(originalTassel.cap.toArray());
+      expect(tassel.capDir.toArray()).toEqual(originalTassel.capDir.toArray());
+    }
   }
-  expect(trace).toEqual(baseline.trace);
+  // Both implementations run the host math, so Linux and arm64 compare the
+  // original algorithm instead of requiring one architecture's float hashes.
 });
 
 test('separate rigs retain independent mutable cloth buffers', () => {

@@ -9,7 +9,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in the `behaviour` job (`pnpm gen && pnpm test`, **without
+- **Push / PR CI runs the whole vitest suite once**, in eight `behaviour` shards (`pnpm gen` then `vitest --shard=N/8`, **without
   coverage**, Jake G287); `typecheck-lint` runs typecheck and lint; `build-and-deploy` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
   milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
@@ -22,7 +22,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
-  files (GIT.md); `deploy.yml`'s `behaviour` job runs the whole suite (`pnpm test`) on every code push, so a transitive
+  files (GIT.md); `deploy.yml`'s `behaviour` shards run the whole suite on every code push, so a transitive
   break shows up there first; fix it forward like any red run.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):

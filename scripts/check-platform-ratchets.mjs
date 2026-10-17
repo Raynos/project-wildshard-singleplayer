@@ -288,11 +288,11 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
     // Newly visible debt is paid by exact syntax consumed from engine/game/SDK,
     // not by a review label. Charge ordinary sites to the existing row ceilings.
     const migrated = verbatimRuntimeMoves(before, after, trees);
+    for (const site of frozenRuntimeRetentions(after, trees)) migrated.add(site);
     const charged = Object.fromEntries(Object.entries(after.sites).filter(([site]) => !migrated.has(site)));
     const ceilings = totals(before.sites);
     for (const [key, count] of totals(charged)) if (count > (ceilings.get(key) ?? 0)) failures.push(`${list}: ${key} total rose`);
     for (const site of rekeyedRuntimeSites(before, after, trees)) migrated.add(site);
-    for (const site of frozenRuntimeRetentions(after, trees)) migrated.add(site);
     for (const site of legacyRuntimeCopies(after, trees)) migrated.add(site);
     if (after.baselineAt !== before.baselineAt || (after.about !== before.about && after.about !== RUNTIME_REKEY_ABOUT) || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {

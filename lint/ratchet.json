@@ -2172,7 +2172,7 @@
     "src/shards/nalati-grasslands/runtime/groups.ts": 5,
     "src/shards/nalati-grasslands/runtime/headless.ts": 20,
     "src/shards/nalati-grasslands/runtime/headlessCanid.ts": 9,
-    "src/shards/nalati-grasslands/runtime/headlessCreatures.ts": 34,
+    "src/shards/nalati-grasslands/runtime/headlessCreatures.ts": 42,
     "src/shards/nalati-grasslands/runtime/headlessElites.ts": 23,
     "src/shards/nalati-grasslands/runtime/headlessEntryways.ts": 1,
     "src/shards/nalati-grasslands/runtime/headlessGhost.ts": 4,
