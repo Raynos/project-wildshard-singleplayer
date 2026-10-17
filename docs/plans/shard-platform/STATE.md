@@ -16,6 +16,8 @@
 | C8 audio (+H4, H10) | x4 | 940 | 1,740 |
 | C9 boot glue, escapes, const.ts deletion, P4 re-base | x7 | 2,094 | 2,332 |
 
+**For the next switch point:** C3/C5/C7 residuals are honest single-shard laws. The 10-17 C5 joint audit found no shared step runner: Pine quest/index, native quest, lodge, contracts and DW native quest, adventure, finale, Spine hold mechanics only one shard has. The same goes for C7 Pine doors and C3 weather. They close only if listed as shard-owned custom under the G466 bar, or when a new shard adopts them. Recommendation: list them.
+
 **G468 (Jake 18:55, `f783bb736`):** every commit deletes a whole runtime file or module with its data path in the same commit (aim ~150+ net, no admit-only); parity per ~5-commit batch; a board only when the look changes; DW first (DW 53.1 % needs ~390/h); x1 joins C5/C4 after the C7 fixes. Relayed to all ten lanes 19:0x.
 
 **G469 (Jake 19:40):** short-lived agents: one task per Codex agent, then `/new` and a fresh self-contained brief; one job per Opus subagent; no poll loops.
