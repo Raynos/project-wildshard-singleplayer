@@ -16166,6 +16166,41 @@
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/water.generated.json"
       ]
+    },
+    {
+      "id": "nalati-spear-pool",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-spear.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-spear.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/generators/bake-spear.mjs",
+        "src/shards/nalati-grasslands/generators/spear.ts",
+        "src/shards/nalati-grasslands/data/items.json",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/shards/nalati-grasslands/generators/meleeGeo.ts"
+      ],
+      "outputs": [
+        "public/assets/nalati/baked/af347349c8a7a68f4530e63118ece463692110a380b739e36b1674cb24559259.glb",
+        "src/shards/nalati-grasslands/data/spear.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/nalati/baked/af347349c8a7a68f4530e63118ece463692110a380b739e36b1674cb24559259.glb",
+        "src/shards/nalati-grasslands/data/spear.generated.json"
+      ]
     }
   ]
 }

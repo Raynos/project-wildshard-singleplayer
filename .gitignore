@@ -1949,3 +1949,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Static Storm Titan rows and geometry are cheap build products.
 /src/shards/nalati-grasslands/data/stormTitanFight.generated.json
 /src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json
+
+# Nalati spear geometry and poses are reproducible build products.
+/public/assets/nalati/baked/af347349c8a7a68f4530e63118ece463692110a380b739e36b1674cb24559259.glb
+/src/shards/nalati-grasslands/data/spear.generated.json

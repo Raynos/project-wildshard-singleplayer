@@ -7,19 +7,26 @@ import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import { Thrown } from './Thrown';
 import type { ThrownProfile } from './thrownProfile';
 import type { Targets, TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
-import { impactSurfaceOf, worldHit } from '@wildshard/engine/combat/view/ranged';
+import { impactSurfaceOf, worldHit, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, type WeaponState, type AimInfo, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
 import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
 import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
 import { targetRadius, type AimTarget } from '@wildshard/engine/player/AimTargets';
-import { gloveFist, riderArm, placeArm } from '@wildshard/engine/player/nalatiArms';
+import { placeArm } from '@wildshard/engine/player/nalatiArms';
 import type { Player } from '@wildshard/engine/player/Player';
 import { viewmodel } from '@wildshard/engine/render/viewmodelFeel';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
+import * as schema from 'valibot';
+import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 
 /**
  * The javelin spear family (SHARD-PLATFORM SF36): a two-handed spear that thrusts, throws javelins from the same slot and
@@ -33,7 +40,7 @@ import * as THREE from 'three';
  * at `profile.lance.minSpeed` the spear levels; a creature closing inside its reach and cone takes
  * `baseDamage + speedDamage × speed`, once per `lance.rehit` s.
  *
- *   export const Spear = javelinSpearType({ profile: SPEAR_PROFILE, javelin: JAVELIN, parts: SPEAR_PARTS, view: SPEAR_VIEW });
+ *   await prepareSpear(product);
  *   const spear = new Spear(world, targets, { allowUnlocked });  spear.mount = { speed, yaw };
  */
 
@@ -51,17 +58,6 @@ export interface JavelinSpearProfile extends MeleeProfile {
 
 /** A spear's or a javelin's two draws: the painterly body and the PBR steel (with a `uv`). */
 export interface JavelinSpearDraws { paint: THREE.BufferGeometry; metal: THREE.BufferGeometry }
-/** The shard's model: its materials on the world's sky, the spear (origin at the right hand's grip), the javelin (origin at
- *  its balance point) and its geometry merge (the world javelin and the left fist on the shaft are merged with it). */
-export interface JavelinSpearParts {
-  readonly material: (sky: Sky) => THREE.Material;
-  readonly steel: (sky: Sky) => THREE.Material;
-  readonly spear: () => JavelinSpearDraws;
-  readonly javelin: () => JavelinSpearDraws;
-  readonly merge: (parts: THREE.BufferGeometry[]) => THREE.BufferGeometry;
-  /** the thrown javelins in the world: one instanced mesh of `count` over the world javelin's geometry, on its material */
-  readonly thrown: (sky: Sky, geometry: THREE.BufferGeometry, count: number) => THREE.InstancedMesh;
-}
 /** A pose in camera space: the right hand's grip point and the shaft's rotation (+Y toward the head). */
 export interface JavelinSpearPose { readonly pos: THREE.Vector3; readonly q: THREE.Quaternion }
 /** The family's view as rows (camera space, metres, seconds). */
@@ -70,30 +66,19 @@ export interface JavelinSpearView {
    *  javelin cocked by the ear and the throwing hand out after the release */
   readonly poses: { readonly rest: JavelinSpearPose; readonly cock: JavelinSpearPose; readonly jab: JavelinSpearPose; readonly leftLow: JavelinSpearPose;
     readonly sprint: JavelinSpearPose; readonly lance: JavelinSpearPose; readonly javCock: JavelinSpearPose; readonly javOut: JavelinSpearPose };
-  /** the left fist sits this far up the shaft from the right */
-  readonly leftHandY: number;
-  /** the fists: each forearm's direction (camera space), the glove's radius, its splay, the sleeve's length and where the
-   *  right hand grips a held javelin (up its shaft from the balance point) */
-  readonly hands: { readonly left: readonly [number, number, number]; readonly right: readonly [number, number, number]; readonly radius: number;
-    readonly splay: number; readonly sleeve: number; readonly javelinGrip: number };
   /** where the sleeves run back to (camera space): the elbows, just off the bottom corners of the frame */
   readonly elbows: { readonly left: THREE.Vector3; readonly right: THREE.Vector3 };
   /** a desktop RMB tap shorter than this (s) throws; a held RMB has no action */
   readonly tapMax: number;
+  readonly javelinGrip: number;
+  readonly wrists: { readonly left: THREE.Vector3; readonly right: THREE.Vector3 };
 }
 /** The family's construction: the profile row, the javelin row, the model, the view and the unlock policy. */
 export interface JavelinSpearOptions<P extends JavelinSpearProfile> {
   readonly profile: P;
   readonly javelin: ThrownProfile;
-  readonly parts: JavelinSpearParts;
   readonly view: JavelinSpearView;
   readonly allowUnlocked?: boolean;
-}
-
-/** one geometry for a thrown javelin in the world (painterly only: the head painted steel) */
-function worldJavelin(p: JavelinSpearDraws, merge: JavelinSpearParts['merge']): THREE.BufferGeometry {
-  const m = p.metal.clone(); m.deleteAttribute('uv');
-  return merge([p.paint.clone(), m]);
 }
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -169,7 +154,6 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
   private prevPos = new Map<object, THREE.Vector3>();
 
-  private readonly parts: JavelinSpearParts;
   private readonly view: JavelinSpearView;
 
   constructor(w: JavelinSpearWorld, targets: Targets | undefined, opts: JavelinSpearOptions<P>) {
@@ -178,7 +162,7 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
     this.state = quiverState({ bolts: carried, loaded: true, reloading: false, reloadProgress: 0, ads: false }, carried);
     this.thrown = new Thrown(opts.javelin);
     this.arcPos = new Float32Array(this.thrown.profile.arcPoints * 3);
-    this.parts = opts.parts; this.view = opts.view;
+    this.view = opts.view;
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.spear' } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.setAimSource(() => this.player.sampleAimCommand());
@@ -241,36 +225,22 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
 
   // ── build ──
   private build(): void {
-    const mat = this.parts.material(this.sky), hands = this.view.hands, leftHandY = this.view.leftHandY;
-    const restInv = this.view.poses.rest.q.clone().invert();
-    // the fists ride the rigs (the left on the spear, the right on its own rig — it leaves the shaft to throw); the sleeves
-    // are separate meshes placed every frame from each wrist back to a fixed elbow off the bottom of the frame (nalatiArms)
-    const fist = (dirCam: THREE.Vector3, mirror: boolean) => {
-      const d = dirCam.clone().normalize().applyQuaternion(restInv);
-      const yaw = Math.atan2(d.x, d.z) - Math.atan2(mirror ? -hands.splay : hands.splay, 1);
-      return gloveFist({ R: hands.radius, mirror, yaw });
-    };
-    const lf = fist(new THREE.Vector3(...hands.left), true), rf = fist(new THREE.Vector3(...hands.right), false);
-    const left = lf.geometry.clone().translate(0, leftHandY, 0);
-    this.leftWrist.copy(lf.wrist).setY(lf.wrist.y + leftHandY); this.rightWrist.copy(rf.wrist);
-    this.leftArm = new THREE.Mesh(riderArm(hands.sleeve, 2), mat); this.rightArm = new THREE.Mesh(riderArm(hands.sleeve, 1), mat);
+    const mat = painterlyMaterial(this.sky, { vertexColors: true, rim: 0.55, bands: 0.7, transparent: true, depthWrite: true }); mat.name = 'nalati-viewmodel';
+    const steel = viewmodelMaterial(this.sky, 'nalati-steel', { metalness: 0.55, roughness: 0.3, envMapIntensity: 0.7 }); steel.transparent = true; steel.depthWrite = true;
+    this.leftWrist.copy(this.view.wrists.left); this.rightWrist.copy(this.view.wrists.right);
+    this.leftArm = new THREE.Mesh(spearGeometry('left-arm'), mat); this.rightArm = new THREE.Mesh(spearGeometry('right-arm'), mat);
     for (const a of [this.leftArm, this.rightArm]) { a.frustumCulled = false; a.renderOrder = 1000; a.receiveShadow = true; this.model.add(a); }
-    const steel = this.parts.steel(this.sky);
-    const sp = this.parts.spear();
-    const spear = this.parts.merge([sp.paint, left]);
-    const right = rf.geometry;
     const add = (g: THREE.BufferGeometry, m: THREE.Material, to: THREE.Object3D) => {
       const mesh = new THREE.Mesh(g, m);
       mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
       to.add(mesh);
     };
-    add(spear, mat, this.spearRig); add(sp.metal, steel, this.spearRig); add(right, mat, this.handRig);
-    const jav = this.parts.javelin();
-    const javGeo = worldJavelin(jav, this.parts.merge);
+    add(spearGeometry('held-spear'), mat, this.spearRig); add(spearGeometry('spear-metal'), steel, this.spearRig);
+    add(spearGeometry('right-fist'), mat, this.handRig);
     this.heldJav = new THREE.Group();
-    add(jav.paint, mat, this.heldJav); add(jav.metal, steel, this.heldJav);
+    add(spearGeometry('javelin-paint'), mat, this.heldJav); add(spearGeometry('javelin-metal'), steel, this.heldJav);
     this.heldJav.visible = false;
-    this.heldJav.position.set(0, hands.javelinGrip, 0); // the right hand grips it just behind the balance point
+    this.heldJav.position.set(0, this.view.javelinGrip, 0); // the right hand grips it just behind the balance point
     this.handRig.add(this.heldJav);
     this.model.add(this.spearRig, this.handRig);
     // depth clear so the viewmodel never clips into the world (Sword.ts / Crossbow.ts: 999 in the transparent queue)
@@ -288,7 +258,7 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
     this.arc.frustumCulled = false; this.arc.renderOrder = 1003; this.arc.visible = false;
     this.game.scene.add(this.arc);
     // thrown javelins: one instanced mesh for every javelin in the world
-    this.world = this.parts.thrown(this.sky, javGeo, this.thrown.profile.pool);
+    this.world = new THREE.InstancedMesh(spearGeometry('world-javelin'), painterlyMaterial(this.sky, { vertexColors: true, rim: 0.4 }), this.thrown.profile.pool);
     this.world.count = 0; this.world.castShadow = true; this.world.receiveShadow = true; this.world.frustumCulled = false;
     this.game.scene.add(this.world);
     for (let i = 0; i < this.thrown.profile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
@@ -639,29 +609,51 @@ export class JavelinSpear<P extends JavelinSpearProfile = JavelinSpearProfile> e
   get clock(): number { return this.time; }
 }
 
-/** A shard's spear as a row: its default profile, its javelin, its model and its view. */
-export interface JavelinSpearRow<P extends JavelinSpearProfile> {
-  readonly profile: P;
-  readonly javelin: ThrownProfile;
-  readonly parts: JavelinSpearParts;
-  readonly view: JavelinSpearView;
+const finite = schema.pipe(schema.number(), schema.finite()), triple = schema.tuple([finite, finite, finite]);
+const cue = schema.custom<`cue.${string}`>(value => typeof value === 'string' && /^cue\.[a-z][a-zA-Z0-9.-]*$/u.test(value));
+const pose = schema.strictObject({ pos: triple, q: schema.tuple([finite, finite, finite, finite]) });
+const SpearRows = schema.strictObject({ pool: schema.strictObject({ url: schema.string(), parts: schema.array(schema.string()) }),
+  profile: schema.strictObject({ damage: finite, reach: finite,
+    thrust: schema.strictObject({ damage: finite, stagger: finite, windup: finite, activeEnd: finite, total: finite,
+      fan: schema.strictObject({ yaws: schema.array(finite), pitches: schema.array(finite) }) }),
+    lance: schema.strictObject({ reach: finite, cone: finite, minSpeed: finite, baseDamage: finite, speedDamage: finite, rehit: finite }),
+    hitStop: schema.strictObject({ body: finite, head: finite, kill: finite }),
+    cues: schema.strictObject({ fire: cue, reload: cue, impact: cue, hit: cue,
+      charge: schema.strictObject({ throw: cue, recover: cue }) }),
+    feel: schema.strictObject({ lag: schema.strictObject({ gain: finite, clampYaw: finite, clampPitch: finite, k: finite, c: finite, posYaw: finite, posPitch: finite }),
+      bob: schema.strictObject({ x: finite, y: finite, rx: finite, rz: finite }), sway: schema.strictObject({ ax: finite, fx: finite, ay: finite, fy: finite }), fovHip: finite }) }),
+  view: schema.strictObject({ poses: schema.strictObject({ rest: pose, cock: pose, jab: pose, leftLow: pose, sprint: pose, lance: pose, javCock: pose, javOut: pose }),
+    elbows: schema.strictObject({ left: triple, right: triple }), wrists: schema.strictObject({ left: triple, right: triple }), javelinGrip: finite, tapMax: finite }) });
+let prepared: { parts: ReturnType<typeof createModelLibrary<never, never>>; profile: JavelinSpearProfile; javelin: ThrownProfile; view: JavelinSpearView } | null = null;
+function spearRows(): NonNullable<typeof prepared> { if (prepared === null) throw new Error('Spear rows are not prepared'); return prepared; }
+const spearPose = (row: schema.InferOutput<typeof pose>): JavelinSpearPose => ({ pos: new THREE.Vector3(...row.pos), q: new THREE.Quaternion(...row.q) });
+/** Admit the named spear rows and geometry before constructing held or Explorer weapons. */
+export async function prepareSpear(product: Pick<ShardProduct, 'file' | 'shardfile'>): Promise<void> {
+  const rows = schema.parse(SpearRows, JSON.parse(new TextDecoder().decode(await product.file('weapons/spear.json'))));
+  const item = product.shardfile.items.rows.find(row => row.id === 'weapon.spear');
+  const { family: _family, ...javelin } = schema.parse(ThrownWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
+  const parts = createModelLibrary<never, never>({ meshes: [], hd: [], meshUrls: {}, hdUrls: {}, hdLooks: {}, aoFloor: 1, geometryPools: [rows.pool] }, 'nalati-spear');
+  await parts.preload();
+  const p = rows.view.poses;
+  prepared = { parts, profile: { ...SWORD_WOOD, ...readItemEquipment(product.shardfile.items, 'weapon.spear'), parent: SWORD_WOOD.id, ...rows.profile },
+    javelin: { id: 'weapon.javelin', ...javelin }, view: { ...rows.view,
+      poses: { rest: spearPose(p.rest), cock: spearPose(p.cock), jab: spearPose(p.jab), leftLow: spearPose(p.leftLow), sprint: spearPose(p.sprint), lance: spearPose(p.lance), javCock: spearPose(p.javCock), javOut: spearPose(p.javOut) },
+      wrists: { left: new THREE.Vector3(...rows.view.wrists.left), right: new THREE.Vector3(...rows.view.wrists.right) },
+      elbows: { left: new THREE.Vector3(...rows.view.elbows.left), right: new THREE.Vector3(...rows.view.elbows.right) } } };
 }
-/** Construction of a row-bound spear: the unlock policy and an optional profile over the row's. */
-export interface JavelinSpearRowOptions<P extends JavelinSpearProfile> { allowUnlocked?: boolean; profile?: P }
-/** The constructor a row binds: `new Spear(world, targets, { allowUnlocked })`. */
-export interface JavelinSpearType<P extends JavelinSpearProfile> {
-  new (world: JavelinSpearWorld, targets?: Targets, opts?: JavelinSpearRowOptions<P>): JavelinSpear<P>;
-  readonly prototype: JavelinSpear<P>;
+/** Independent mutable geometry keeps skins and Explorer specimens isolated. */
+export function spearGeometry(name: string): THREE.BufferGeometry {
+  const geometry = spearRows().parts.geometry(name); if (geometry === null) throw new Error(`Missing baked spear part ${name}`); return geometry;
 }
-/**
- * Bind a shard's row to the family (SHARD-PLATFORM SF36): the shard writes data and a model, never a subclass.
- *
- *   export const Spear = javelinSpearType({ profile: SPEAR_PROFILE, javelin: JAVELIN, parts: SPEAR_PARTS, view: SPEAR_VIEW });
- */
-export function javelinSpearType<P extends JavelinSpearProfile>(row: JavelinSpearRow<P>): JavelinSpearType<P> {
-  return class extends JavelinSpear<P> {
-    constructor(world: JavelinSpearWorld, targets?: Targets, opts: JavelinSpearRowOptions<P> = {}) {
-      super(world, targets, { profile: opts.profile ?? row.profile, javelin: row.javelin, parts: row.parts, view: row.view, allowUnlocked: opts.allowUnlocked ?? false });
-    }
-  };
+export const buildSpear = (): JavelinSpearDraws => ({ paint: spearGeometry('spear-paint'), metal: spearGeometry('spear-metal') });
+export const buildJavelin = (): JavelinSpearDraws => ({ paint: spearGeometry('javelin-paint'), metal: spearGeometry('javelin-metal') });
+export const spearProfile = (): JavelinSpearProfile => spearRows().profile;
+/** The original spear slot, with its admitted profile, javelin policy and baked rig. */
+export class Spear extends JavelinSpear {
+  constructor(world: JavelinSpearWorld, targets?: Targets, opts: { allowUnlocked?: boolean; profile?: JavelinSpearProfile } = {}) {
+    const row = spearRows();
+    super(world, targets, { profile: opts.profile ?? row.profile, javelin: row.javelin, view: row.view, allowUnlocked: opts.allowUnlocked ?? false });
+  }
 }
+export type SpearWeapon = JavelinSpear;
+

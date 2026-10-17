@@ -1,5 +1,6 @@
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareSabre } from './weapons/mountedSword';
+import { prepareSpear } from './weapons/javelinSpear';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
 import { STRINGS } from '../strings';
@@ -82,6 +83,7 @@ export class NalatiPlugin extends ShardPlugin {
     await prepareStormTitan(ctx.product);
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);
+    await prepareSpear(ctx.product);
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)

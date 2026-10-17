@@ -13,7 +13,7 @@ import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugi
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { rifleSpecimen } from '../runtime/weapons/magazineFirearm';
 import { buildSabre } from '../runtime/weapons/mountedSword';
-import { buildJavelin, buildSpear, type SpearParts } from '../runtime/weapons/Spear';
+import { buildJavelin, buildSpear, type JavelinSpearDraws } from '../runtime/weapons/javelinSpear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../runtime/weapons/GoldenBow';
 import { naizagaiModel } from '../runtime/weapons/Naizagai';
@@ -83,7 +83,7 @@ export const sabre: ModelDef<object> = defineModel<object>({
 });
 
 /** a spear's or a javelin's two draws on the spear's own materials (the painted wood and horsehair; the steel at 0.3) */
-function spearParts(ctx: ModelContext, key: string, build: () => SpearParts): readonly ModelPart[] {
+function spearParts(ctx: ModelContext, key: string, build: () => JavelinSpearDraws): readonly ModelPart[] {
   const mats = ctx.once('gear:spear-materials', () => ({ paint: opaque(meleeMaterial(ctx.sky)), steel: opaque(steelMaterial(ctx.sky, 0.3)) }));
   const p = ctx.once(key, build);
   return [lit(p.paint, mats.paint), lit(p.metal, mats.steel)];

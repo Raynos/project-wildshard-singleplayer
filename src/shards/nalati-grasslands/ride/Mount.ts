@@ -18,7 +18,7 @@ import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, type MountState } from '../runtime/weapons/mountedSword';
-import { Spear } from '../runtime/weapons/Spear';
+import { Spear } from '../runtime/weapons/javelinSpear';
 import type { SavedRecord as NalatiRecord } from '@wildshard/game/quest/persistence';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 

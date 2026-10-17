@@ -1,15 +1,12 @@
-import items from '../../data/items.json' with { type: 'json' };
+import items from '../data/items.json' with { type: 'json' };
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
-import { javelinSpearType, type JavelinSpearMount, type JavelinSpearParts, type JavelinSpearPose, type JavelinSpearRowOptions, type JavelinSpearView, type JavelinSpear as JavelinSpearWeapon, type JavelinSpearWorld } from './javelinSpear';
 import { lin } from '@wildshard/engine/math/color';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
-import type { ThrownProfile } from './thrownProfile';
 import * as THREE from 'three';
-import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
+import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 
 
@@ -43,14 +40,7 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
  * onImpact · onDry (THROW with none left) · onPickup (a javelin recovered).
  */
 
-/** the host the spear draws into */
-export type SpearWorld = JavelinSpearWorld;
 const JAVELIN_WEAPON_PROFILE = schema.parse(ThrownWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.spear')?.profile);
-/** construction: the unlock policy and an optional profile over SPEAR_PROFILE */
-export type SpearOptions = JavelinSpearRowOptions<typeof SPEAR_PROFILE>;
-/** the riding row's hook (B7): horse speed / heading while mounted */
-export type MountState = JavelinSpearMount;
-
 export const REACH = 3.2;
 const THRUST_DAMAGE = 30, THRUST_STAGGER = 0.5;
 const T_WIND = 0.12, T_ACTIVE_END = 0.22, T_TOTAL = 0.35;
@@ -66,13 +56,6 @@ const JAV_RADIUS = JAVELIN_WEAPON_PROFILE.radius;
 const ARC_POINTS = JAVELIN_WEAPON_PROFILE.arcPoints, ARC_SHOW_AFTER = JAVELIN_WEAPON_PROFILE.arcAfter;
 const FOV_HIP = 72;
 const LEFT_HAND_Y = 0.3;         // the left fist sits this far up the shaft from the right
-
-/** Deterministic javelin substep (the flight uses steps of at most 1/120 s). */
-export function javelinFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number): void {
-  vel.y -= JAV_GRAVITY * h;
-  pos.addScaledVector(vel, h);
-}
-
 
 // ───────────────────────────── geometry (+Y = toward the head; origin = the right hand's grip) ─────────────────────────────
 
@@ -161,7 +144,7 @@ export function buildJavelin(): SpearParts {
 
 const Y = new THREE.Vector3(0, 1, 0);
 const _qr = new THREE.Quaternion();
-function pose(px: number, py: number, pz: number, dx: number, dy: number, dz: number, roll = 0): JavelinSpearPose {
+function pose(px: number, py: number, pz: number, dx: number, dy: number, dz: number, roll = 0): { pos: THREE.Vector3; q: THREE.Quaternion } {
   const q = new THREE.Quaternion().setFromUnitVectors(Y, new THREE.Vector3(dx, dy, dz).normalize());
   q.multiply(_qr.setFromAxisAngle(Y, roll));
   return { pos: new THREE.Vector3(px, py, pz), q };
@@ -176,21 +159,14 @@ const JAV_COCK = pose(0.33, -0.02, -0.55, -0.08, 0.1, -0.99, 0.2);    // the jav
 const JAV_OUT = pose(0.12, -0.12, -0.72, -0.02, 0.02, -1, 0.2);      // the throwing hand, arm out after the release
 
 /** the spear's view row: the poses above, the rider's fists and sleeves (nalatiArms), the RMB tap */
-export const SPEAR_VIEW: JavelinSpearView = {
+export const SPEAR_VIEW = {
   poses: { rest: REST, cock: COCK, jab: JAB, leftLow: LEFT_LOW, sprint: SPRINT, lance: LANCE, javCock: JAV_COCK, javOut: JAV_OUT },
   leftHandY: LEFT_HAND_Y,
-  hands: { left: [-0.42, -0.62, 0.66], right: [0.62, -0.5, 0.6], radius: 0.0165, splay: 0.12, sleeve: 0.75, javelinGrip: 0.1 },
+  hands: { left: [-0.42, -0.62, 0.66] as const, right: [0.62, -0.5, 0.6] as const, radius: 0.0165, splay: 0.12, sleeve: 0.75, javelinGrip: 0.1 },
   elbows: { left: new THREE.Vector3(-0.3, -0.62, 0.05), right: new THREE.Vector3(0.36, -0.6, 0.08) },
   tapMax: RMB_TAP_MAX,
 };
-/** the spear's model: the painterly viewmodel material, the PBR steel, the spear and the javelin, meleeGeo's merge, the
- *  thrown javelins' instanced mesh on a rim-lit painterly material */
-export const SPEAR_PARTS: JavelinSpearParts = {
-  material: (sky) => meleeMaterial(sky), steel: (sky) => steelMaterial(sky, 0.3), spear: buildSpear, javelin: buildJavelin, merge,
-  thrown: (sky, geometry, count) => new THREE.InstancedMesh(geometry, painterlyMaterial(sky, { vertexColors: true, rim: 0.4 }), count),
-};
-
-export const JAVELIN: ThrownProfile = {
+export const JAVELIN = {
   id: 'weapon.javelin', speed: JAV_SPEED, gravity: JAV_GRAVITY, damage: JAV_DAMAGE, headMultiplier: JAV_HEAD,
   radius: JAV_RADIUS, headOffset: JAVELIN_WEAPON_PROFILE.headOffset, windup: WINDUP, release: THROW_T, recovery: THROW_RECOVER,
   carried: JAVELIN_WEAPON_PROFILE.carried, pool: JAV_POOL, pickupRadius: PICKUP_R, pickupHeight: JAVELIN_WEAPON_PROFILE.pickupHeight, survive: JAV_SURVIVE,
@@ -210,7 +186,3 @@ export const SPEAR_PROFILE: MeleeProfile & {
     bob: { x: 0.016, y: 0.013, rx: 0.01, rz: 0.015 }, sway: { ax: 0.003, fx: 0.7, ay: 0.0025, fy: 1.1 }, fovHip: FOV_HIP },
 };
 
-/** A built spear: the type the riding and kit code hold. */
-export type SpearWeapon = JavelinSpearWeapon<typeof SPEAR_PROFILE>;
-/** The spear as a row over the platform's javelin spear: SPEAR_PROFILE (or `opts.profile`), JAVELIN, its model and view. */
-export const Spear = javelinSpearType<typeof SPEAR_PROFILE>({ profile: SPEAR_PROFILE, javelin: JAVELIN, parts: SPEAR_PARTS, view: SPEAR_VIEW });
