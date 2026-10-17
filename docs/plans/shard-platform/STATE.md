@@ -4,7 +4,7 @@
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**Whats-new push blocker:** resolved (pushes went through since).
+**Push discipline (for every session):** sp-x7 is the only pusher (G485). During its 14:36–15:10 safety hold (a Safari crash at DW Props, fixed in 87c717f31), origin still advanced 14:59–15:02 (c82dd929c, 016f28241, 538918559), carrying held lane commits. Please don't run push-main.sh from other sessions; land locally and sp-x7 carries it.
 
 **Lanes (W2):**
 - sp-x5 Z2 world scene assembly (G483; first adopters DW cascade + Pine streams).
