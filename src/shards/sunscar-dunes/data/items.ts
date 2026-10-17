@@ -1,5 +1,5 @@
 import { SIGNAL_MELEE_HOST } from './nativeMelee';
-import { STRINGS } from './strings';
+import STRINGS from './strings.json' with { type: 'json' };
 import { WHIP_CONTACT_MOVES } from './whipContacts';
 
 /** The whip's numbers' tags: what the lash's hits carry into the combat pipeline. */

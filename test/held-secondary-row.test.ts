@@ -6,7 +6,7 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installNativeMelee, type NativeMeleeCommand } from '../src/game/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { SKY_ITEMS } from '../src/shards/far-reach/data/items';
+import { SKY_ITEMS } from '../src/shards/far-reach/generators/rows/items';
 
 test('direct secondaries require a secondary contact and no scripted hook', () => {
   const items = parseItems(SKY_ITEMS), item = items.rows[0];

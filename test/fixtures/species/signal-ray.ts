@@ -1,7 +1,7 @@
 // Shipping declaration oracle captured from 539d18a9262151dbe28aa0656068065e9b3d0193:src/shards/sunscar-dunes/runtime/species/duneRay.ts; no hand-written policy.
 import type { StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { SpeciesRow } from '../../../src/engine/ai/species';
-import { STRINGS } from '../../../src/shards/sunscar-dunes/data/strings';
+import STRINGS from '../../../src/shards/sunscar-dunes/data/strings.json' with { type: 'json' };
 
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;
 

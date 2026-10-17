@@ -1,6 +1,6 @@
 import type { BoxColliderData, ColliderData } from '@wildshard/sdk/physics';
 import { APOTHEM, DECK, ISLES, MILL, MILL_DRUM, NOTES, VANES, WINCH, type Isle } from "./layout";
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { risingIsletRows } from './risingIslets';
 
 /** The original native island/landing/prop rest transport; movable bodies remain runtime-owned. */

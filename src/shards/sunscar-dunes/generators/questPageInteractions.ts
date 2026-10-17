@@ -1,5 +1,5 @@
 import { FLAG } from '../data/flags';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Page beats for the same admitted logbook, well and crank rules. */
 export const SIGNAL_QUEST_PAGE_INTERACTIONS={prompts:[

@@ -1,5 +1,5 @@
 import { SCOUT_FLAG } from '../data/flags';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from './questPresentation';
 import { SIGNAL_PERSISTENCE } from './persistence';
 import { QUEST_MARKERS } from './questMarkers';

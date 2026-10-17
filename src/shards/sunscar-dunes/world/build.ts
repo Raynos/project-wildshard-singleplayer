@@ -7,7 +7,6 @@ import { createQuestPagePrompts, bindClientChannels, bindQuestPageInteractions }
 import type { SignalDunesPlugin } from '../plugin';
 
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { STRINGS } from '../data/strings';
 import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from './places';
 import { WORLD, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
@@ -39,6 +38,7 @@ const WAY_LIGHT = 9;
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, keepChannels: (channels: ReturnType<typeof bindClientChannels>) => ReturnType<typeof bindClientChannels> = channels => channels): SignalWorld {
+  const STRINGS = ctx.product.strings(['lit']);
   const source = ctx.product.shardfile;
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)

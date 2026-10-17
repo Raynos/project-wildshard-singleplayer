@@ -2,7 +2,7 @@ import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import { parseMovers } from '@wildshard/format/movers';
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { FLAG } from '../data/flags';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 
 const id = 'sunscar.well.bucket', drop = scenes.bindings.well.fields.drop.value;

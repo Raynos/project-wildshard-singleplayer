@@ -1,19 +1,15 @@
-import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
+import SKY_RUNTIME_ROWS from '../data/runtimeRows.generated.json' with { type: 'json' };
 import preparation from '../boot/worldTextures.generated.json' with { type: 'json' };
-import { ROC_STRIKES } from '../data/brains';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
-import { STRINGS } from '../data/strings';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
 import { effectField, type EffectFieldRow } from '@wildshard/sdk/looks/effectField';
 import windRows from '../data/wind.generated.json' with { type: 'json' };
 import { FAN_HELD_OWNERS, type WarFanWeapon } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
-import { FAN_ROW } from '../data/equipment';
 import { SKY_LIBRARY, preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
@@ -21,7 +17,6 @@ import { wakeRibbon } from './looks/wakeRibbon';
 import RAY_WAKE from '../data/rayWake.generated.json' with { type: 'json' };
 import { meadow } from '../world/meadow';
 import { bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
-import { ROC_ID } from '../data/rocFight';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, type ClientWorldPreparation } from '@wildshard/game/shardfile/runtimeProduct';
 
@@ -39,7 +34,7 @@ declare module '@wildshard/engine/combat/Equipment' {
 
 // The authored catalogue bounds both view rosters; each contains fewer than 64 rows.
 const MAX_RUNTIME_ROWS = 64;
-const GALE_WALL = ROC_STRIKES[1];
+
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
   built: BuiltWorld | null = null; declare readonly fan: WarFanWeapon | null;
@@ -50,10 +45,15 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
-  protected rows(_product: ShardProduct): HybridRuntimeRows { return { ...SKY_RUNTIME_ROWS, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: SKY_LIBRARY.mappedLook } } }; }
+  protected rows(product: ShardProduct): HybridRuntimeRows {
+    const program = product.section('actors/species-programs').program;
+    const stages = product.section('quests/directors').directors?.find(row => row.id === SKY_RUNTIME_ROWS.fight.stages.id);
+    if (program === undefined || stages === undefined) throw new Error('Missing admitted species program or boss stages');
+    return { ...SKY_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SKY_RUNTIME_ROWS.fight, stages }, species: { ...SKY_RUNTIME_ROWS.species, program }, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: SKY_LIBRARY.mappedLook } } }; }
 
   protected override async build(ctx: ShardContext): Promise<void> {
     const source = ctx.product.shardfile;
+    const STRINGS = ctx.product.strings(['raised', 'turnWinch']);
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
@@ -77,7 +77,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, observation) => {
+    this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_RUNTIME_ROWS.clientMotion.nativeOwners, bindings: [built.islets], observed: (_id, observation) => {
       if (observation.value === undefined || observation.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = observation.value !== 0; built.state.raising = observation.turn === 1;
       built.winch.label = built.state.raised ? STRINGS.raised : STRINGS.turnWinch;
@@ -124,7 +124,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     wind('updraftStreaks').place(...axis); wind('updraftLeaves').place(...axis);
     fan.onGust = (from, dir) => {
       const at = from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), salt = fxRandom.next(); gust[0].burst(at, dir, salt); gust[1].burst(at, dir, salt);
-      rt.play?.cues.charge(FAN_ROW, 'heavy');
+      rt.play?.cues.charge(SKY_RUNTIME_ROWS.weapon, 'heavy');
     };
     ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gust[0].update(dt); gust[1].update(dt); } });
 
@@ -146,11 +146,13 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
     await this.bindPageFight(ctx);
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
+    const GALE_WALL = ctx.product.section('actors/strikes').find(row => row.id === 'far.roc.galeWall');
+    if (GALE_WALL === undefined) throw new Error('Missing admitted gale-wall strike');
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
       new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));
     wall.visible = false; ctx.root.add(wall); ctx.scope.own(wall.geometry); ctx.scope.own(wall.material); ctx.scope.onDispose(() => { wall.removeFromParent(); });
     ctx.system({ id: 'far.galeWall', phase: 'update', run: () => {
-      const roc = this.actor(ROC_ID), body = this.populationControl;
+      const roc = this.actor(SKY_RUNTIME_ROWS.fight.id), body = this.populationControl;
       wall.visible = body?.current?.id === GALE_WALL.id && roc?.alive === true;
       if (!wall.visible || roc === null || body === null) return;
       const k = Math.min(1, body.windup / GALE_WALL.windup), sweep = Math.max(0, body.windup - GALE_WALL.windup) / GALE_WALL.active, reach = 26 * Math.min(1, sweep);

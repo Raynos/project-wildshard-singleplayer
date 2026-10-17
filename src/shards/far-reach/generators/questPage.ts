@@ -1,5 +1,5 @@
 import { CROWN, HIGH, STEP, VANES } from "./layout";
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SKY_PLACES } from './places';
 import { SKY_PERSISTENCE } from './persistence';
 import FLAGS from '../data/flags.json' with { type: 'json' };

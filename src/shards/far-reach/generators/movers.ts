@@ -3,7 +3,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
 import { Mover } from '@wildshard/sdk/movers';
 import { SPANS, FALLEN_BRIDGE, APOTHEM } from "./layout";
-import { FALLEN_ANGLE } from '../data/moverBindings';
+import { FALLEN_ANGLE } from './rows/moverBindings';
 import FLAGS from '../data/flags.json' with { type: 'json' };
 import { deckCollider, saggedColliders, railColliders } from './bridgeColliders';
 import { isletId, gateId, RISING_ISLETS } from './risingIslets';

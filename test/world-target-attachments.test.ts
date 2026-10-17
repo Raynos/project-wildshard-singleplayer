@@ -16,8 +16,8 @@ import { bindMeleeContacts, bindNativeWorldTargets, installNativeMelee, type Nat
 import { TickEffectSchema, TickCommitSchema } from '../src/sdk/tickProtocol';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/data/whipContacts';
 import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/data/nativeMelee';
-import { FAN_CONTACTS } from '../src/shards/far-reach/data/fanContacts';
-import { SKY_MELEE_HOST } from '../src/shards/far-reach/data/nativeMelee';
+import { FAN_CONTACTS } from '../src/shards/far-reach/generators/rows/fanContacts';
+import { SKY_MELEE_HOST } from '../src/shards/far-reach/generators/rows/nativeMelee';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

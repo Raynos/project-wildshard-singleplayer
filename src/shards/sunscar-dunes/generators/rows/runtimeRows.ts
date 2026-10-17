@@ -1,11 +1,12 @@
-import { WHIP_HELD_RECIPE } from './heldWeapon';
+import type { HybridRuntimeRows } from '@wildshard/game/plugin/headless';
+import { WHIP_HELD_RECIPE } from '../../data/heldWeapon';
 import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
-import questPage from './questPage.generated.json' with { type: 'json' };
-import { STRINGS } from './strings';
-import { WHIP_ROW } from './equipment';
-import SIGNAL_RUNTIME_BOOT from '../assets/runtimeBoot.generated.json' with { type: 'json' };
+import questPage from '../../data/questPage.generated.json' with { type: 'json' };
+import STRINGS from '../../data/strings.json' with { type: 'json' };
+import { WHIP_ROW } from '../../data/equipment';
+import SIGNAL_RUNTIME_BOOT from '../../assets/runtimeBoot.generated.json' with { type: 'json' };
 import { SIGNAL_PAGE_PROGRAM } from './population';
-import SIGNAL_MOTION from './nativeMotion.json' with { type: 'json' };
+import SIGNAL_MOTION from '../../data/nativeMotion.json' with { type: 'json' };
 
 /** Discovery, boot and population facts; the native plugin supplies only its admitted source. */
 export const SIGNAL_RUNTIME_ROWS = { clientMotion: SIGNAL_MOTION, pageFight: { kind: 'spawned', armed: { owner: 'plugin', path: ['places', 'fire', 'lit'] }, bindStages: true, dress: { owner: 'looks', path: ['dress'] } } as const, melee: { recipe: WHIP_HELD_RECIPE, stage: 'equipment', targets: 'raycast', expose: 'whip' } as const, expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
@@ -19,4 +20,4 @@ export const SIGNAL_RUNTIME_ROWS = { clientMotion: SIGNAL_MOTION, pageFight: { k
       'pour.1': { owner: 'plugin', path: ['places', 'braziers', 1, 'spot', 'onInteract'] }, 'light.1': { owner: 'plugin', path: ['places', 'braziers', 1, 'light'] },
       'pour.2': { owner: 'plugin', path: ['places', 'braziers', 2, 'spot', 'onInteract'] }, 'light.2': { owner: 'plugin', path: ['places', 'braziers', 2, 'light'] } },
   } as const,
-  complete: 'sunscar.complete', boot: SIGNAL_RUNTIME_BOOT, ...SIGNAL_PAGE_PROGRAM };
+  complete: 'sunscar.complete', boot: SIGNAL_RUNTIME_BOOT, ...SIGNAL_PAGE_PROGRAM } satisfies HybridRuntimeRows;

@@ -1,4 +1,4 @@
-import type { Isle, Span } from '../../data/layoutTypes';
+import type { Isle, Span } from './layoutTypes';
 
 /** Rising Islet dimensions in metres; generator emits the four admitted SDK SocketLift entries. */
 export const ISLET = {

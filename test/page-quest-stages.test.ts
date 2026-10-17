@@ -8,12 +8,12 @@ import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/que
 import { QUEST_HOST as sky } from '../src/shards/far-reach/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
 import FLAGS from '../src/shards/far-reach/data/flags.json' with { type: 'json' };
-import { SIGNAL_RUNTIME_ROWS } from '../src/shards/sunscar-dunes/data/runtimeRows';
+import { SIGNAL_RUNTIME_ROWS } from '../src/shards/sunscar-dunes/generators/rows/runtimeRows';
 import { MoverLifecycle } from '../src/engine/sim/moverLifecycle';
 import { parseMovers } from '../src/format/movers';
 import MOVERS from '../src/shards/far-reach/data/movers.generated.json' with { type: 'json' };
-import { STRINGS } from '../src/shards/far-reach/data/strings';
-import { SKY_RUNTIME_ROWS } from '../src/shards/far-reach/data/runtimeRows';
+import STRINGS from '../src/shards/far-reach/data/strings.json' with { type: 'json' };
+import { SKY_RUNTIME_ROWS } from '../src/shards/far-reach/generators/rows/runtimeRows';
 
 it('a loaded lit Signal save stays quiet', () => {
   const flags = new Flags('page-signal-loaded', false); flags.set(FLAG.lit);

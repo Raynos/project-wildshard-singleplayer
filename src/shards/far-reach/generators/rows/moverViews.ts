@@ -1,5 +1,5 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { SKY_MOVER_BINDING } from '../../data/moverBindings';
+import { SKY_MOVER_BINDING } from './moverBindings';
 import isletMotion from '../../data/isletMotion.generated.json' with { type: 'json' };
 
 const winch = new ClientChannels('far.winch.view'); winch.fromMover(SKY_MOVER_BINDING.winch);

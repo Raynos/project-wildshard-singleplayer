@@ -2,8 +2,8 @@ import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientCh
 import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
-import { FALLEN_ANGLE } from '../data/moverBindings';
-import { STRINGS } from '../data/strings';
+import { FALLEN_ANGLE } from './rows/moverBindings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { RISING_ISLETS } from './risingIslets';
 import { PALETTE } from './palette';
 

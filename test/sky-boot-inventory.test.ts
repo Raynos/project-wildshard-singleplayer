@@ -15,7 +15,7 @@ import rigs from '../src/shards/far-reach/boot/rigs.generated.json' with { type:
 import worldTextures from '../src/shards/far-reach/boot/worldTextures.generated.json' with { type: 'json' };
 import { SKY_RIG_LIBRARY, SKY_MODEL_SPECIMENS } from '../src/shards/far-reach/generators/rigLibrary';
 import { SKY_WORLD_PREPARATION } from '../src/shards/far-reach/generators/worldTextures';
-import { SKY_RIG_LIBRARY as decodedRigs, SKY_PAGE_PROGRAM } from '../src/shards/far-reach/data/population';
+import { SKY_PAGE_PROGRAM } from '../src/shards/far-reach/generators/rows/population';
 
 describe('Sky pre-admission boot metadata', () => {
   it.each(['phone', 'desktop'] as const)('preserves ordered %s reads and the pinned phone inventory', (tier) => {
@@ -29,8 +29,7 @@ describe('Sky pre-admission boot metadata', () => {
     expect(assets).toEqual({ ...authorAssets, SKY_AO_FLOOR, ISLET_POOL });
     expect(lateReads).toEqual(LATE_READS);
     expect(rigs).toEqual({ library: SKY_RIG_LIBRARY, models: SKY_MODEL_SPECIMENS });
-    expect(decodedRigs).toEqual(rigs.library);
-    expect(SKY_PAGE_PROGRAM.species.library).toBe(decodedRigs);
+    expect(SKY_PAGE_PROGRAM.species.library).toBe(SKY_RIG_LIBRARY);
     expect(worldTextures).toEqual(SKY_WORLD_PREPARATION);
   });
 

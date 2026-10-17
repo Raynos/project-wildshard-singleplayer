@@ -1,12 +1,12 @@
 import { AUDIO } from './rows/audio';
-import { SKY_DIRECTORS } from '../data/rocFight';
+import { SKY_DIRECTORS } from './rows/rocFight';
 import { QUEST_HOST } from './questHost';
 import { QUEST_NPC } from './questNpc';
 import { SKY_MODES } from './rows/modes';
 import { SKY_QUESTS } from './quests';
 import { SKY_LEDGER } from './rows/ledger';
 import { SKY_STATE } from './rows/state';
-import { SKY_ITEMS } from '../data/items';
+import { SKY_ITEMS } from './rows/items';
 
 /** Complete authored behaviour sections, consumed directly by the project compiler. */
 export const SKY_SECTIONS = { audio: AUDIO, directors: SKY_DIRECTORS, modes: SKY_MODES, quests: SKY_QUESTS,

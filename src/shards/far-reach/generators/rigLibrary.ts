@@ -1,7 +1,7 @@
 import * as files from './fileInventory';
 import { SKY_STAND_INS } from './standIns';
 import { SKY_CREATURE_LOOK_ROWS } from './creatureLooks';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import type { RigLibraryRows, ModelSpecimenRow } from '@wildshard/game/plugin/geometry';
 
 /** Shared loader descriptor: original load order, body copies and decode release. */

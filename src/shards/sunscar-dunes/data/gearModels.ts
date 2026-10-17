@@ -1,10 +1,10 @@
 import { WHIP_HELD_RECIPE } from './heldWeapon';
-import { SIGNAL_RUNTIME_ROWS } from './runtimeRows';
+import SIGNAL_RUNTIME_ROWS from './runtimeRows.generated.json' with { type: 'json' };
 import LAYOUT from './layout.generated.json' with { type: 'json' };
 import caravan from './caravan.json' with {type:'json'};
 import well from './well.json' with {type:'json'};
 import braziers from './braziers.json' with {type:'json'};
-import { STRINGS } from './strings';
+import STRINGS from './strings.json' with { type: 'json' };
 
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
 /** Original catalogue order; native material/motion builders stay with their owners. */

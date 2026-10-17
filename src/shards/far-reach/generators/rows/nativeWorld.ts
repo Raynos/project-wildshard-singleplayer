@@ -1,7 +1,7 @@
-import questPrompts from './questPrompts.generated.json' with { type: 'json' };
+import questPrompts from '../../data/questPrompts.generated.json' with { type: 'json' };
 import { SKY_NATIVE_POPULATION } from './population';
 import { ROC_OWNER } from './rocFight';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { SKY_ANALYTIC_FLOOR } from './spawns';
 import { SKY_MOVER_BINDING, SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_COMPOSITION, SKY_NATIVE_MOVER_OWNERS } from './moverBindings';
 import { FAN_ID } from './items';

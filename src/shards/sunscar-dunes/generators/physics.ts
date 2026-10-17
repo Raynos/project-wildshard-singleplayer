@@ -1,7 +1,7 @@
 import type { BoxColliderData } from '@wildshard/sdk/physics';
 import { RIDGES, SEED } from "./layout";
-import { SIGNAL_SPAWNS } from '../data/spawns';
-import { STRINGS } from '../data/strings';
+import { SIGNAL_SPAWNS } from './rows/spawns';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SCOUT_ROW } from './questPresentation';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { signalHeightAt } from './landscape';

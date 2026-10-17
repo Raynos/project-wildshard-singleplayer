@@ -1,5 +1,5 @@
 import FLAGS from '../data/flags.json' with { type: 'json' };
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Notes and native winch permissions, with the existing hint/toast beats. */
 export const SKY_QUEST_PAGE_INTERACTIONS={prompts:[

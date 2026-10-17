@@ -1,6 +1,6 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { MATRIARCH_FLAG, COMPLETE_FLAG, PAID_FLAG, MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG, FACT } from '../data/signalQuest';
 

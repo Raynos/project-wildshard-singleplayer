@@ -1,5 +1,5 @@
 import { CROWN, GROVE, KEEPER, ROOST, RUIN, STEP, SUNREST, WINDMILL } from "./layout";
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /**
  * The named places (loop 6, as the other shards: "DISCOVERED · <place>" as you arrive, pins on the full map, and the last

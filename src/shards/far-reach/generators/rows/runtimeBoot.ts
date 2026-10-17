@@ -1,4 +1,4 @@
-import { STRINGS } from './strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 import { GUST_ICON, SWING_ICON } from './icons';
 
 /** Entry bounds and the fan's authored input, resolved by the shared boot host. */

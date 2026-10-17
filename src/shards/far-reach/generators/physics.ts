@@ -1,4 +1,4 @@
-import { SKY_SPAWNS } from '../data/spawns';
+import { SKY_SPAWNS } from './rows/spawns';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyBridgePhysicsPlacements } from './bridgeColliders';

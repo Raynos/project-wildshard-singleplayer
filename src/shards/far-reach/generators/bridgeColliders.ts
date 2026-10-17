@@ -1,7 +1,7 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import type { BoxColliderData } from '@wildshard/sdk/physics';
 import { SPANS, FALLEN_BRIDGE, UPDRAFT, ROPE_SAG, type Span } from "./layout";
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { risingIsletRows } from './risingIslets';
 
 /** Native bridge rest transport; hover gates and winch motion remain runtime-owned. */

@@ -18,11 +18,11 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import { CROWN, DECK, FALLEN_BRIDGE, KEEPER, ROOST, RUIN, STEP, UPDRAFT, VANES, WINCH } from "../../../src/shards/far-reach/generators/layout";
 import { KEEPER_AT } from '../../../src/shards/far-reach/generators/quests';
-import { FAN_SWING } from '../../../src/shards/far-reach/data/items';
+import { FAN_SWING } from '../../../src/shards/far-reach/generators/rows/items';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };
-import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../../../src/shards/far-reach/data/nativeMelee';
+import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../../../src/shards/far-reach/generators/rows/nativeMelee';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/generators/questPrompts';
-import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/data/rocFight';
+import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/generators/rows/rocFight';
 
 /**
  * Sky Reach's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed

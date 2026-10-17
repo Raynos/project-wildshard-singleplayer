@@ -1,5 +1,5 @@
 import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
-import { STRINGS } from '../../data/strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 const PLACES = 'src/shards/sunscar-dunes/generators/places.ts';
 /**

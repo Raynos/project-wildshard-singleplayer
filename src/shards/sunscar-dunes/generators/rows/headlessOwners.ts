@@ -1,10 +1,10 @@
 import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
-import bossStages from './bossStages.json' with { type: 'json' };
+import bossStages from '../../data/bossStages.json' with { type: 'json' };
 import { SIGNAL_OWNER_ROWS } from './hostOwners';
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { SIGNAL_SPAWNS } from './spawns';
 import { MATRIARCH_DEFINITION, MATRIARCH_RECORD, MATRIARCH_REWARD, MATRIARCH_ARENA } from './matriarchEncounter';
-import { FACT, MATRIARCH_FLAG } from './signalQuest';
+import { FACT, MATRIARCH_FLAG } from '../../data/signalQuest';
 
 const matriarch = SIGNAL_SPAWNS.bosses[0];
 if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');

@@ -262,8 +262,8 @@
       "export": "default"
     },
     "audioCues": {
-      "module": "./data/cues",
-      "export": "CUES"
+      "module": "./data/cues.json",
+      "export": "default"
     },
     "boot": {
       "files": {

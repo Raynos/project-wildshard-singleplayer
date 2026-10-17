@@ -1,6 +1,6 @@
 import { SKY_MELEE_HOST } from './nativeMelee';
 import type { ConeWeaponProfile } from '@wildshard/format/weaponProfiles';
-import { STRINGS } from './strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 import { FAN_CONTACTS } from './fanContacts';
 
 /** The declared fan row's id: every contact names it as its weapon. */

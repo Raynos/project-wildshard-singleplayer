@@ -15,7 +15,7 @@ import { parsePlatformDataSection } from '../src/format/platformDataSections';
 import { headlessSections } from '../src/sdk/headlessSections';
 import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { FAN_CONTACTS } from '../src/shards/far-reach/data/fanContacts';
+import { FAN_CONTACTS } from '../src/shards/far-reach/generators/rows/fanContacts';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/data/whipContacts';
 
 const from = new Vector3(), dir = new Vector3(0, 0, -1);

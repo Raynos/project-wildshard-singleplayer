@@ -1,4 +1,4 @@
-import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
+import SIGNAL_RUNTIME_ROWS from './data/runtimeRows.generated.json' with { type: 'json' };
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
@@ -31,7 +31,11 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   declare readonly whip: Bullwhip | null;
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected rows(_product: ShardProduct): HybridRuntimeRows { return { ...SIGNAL_RUNTIME_ROWS, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
+  protected rows(product: ShardProduct): HybridRuntimeRows {
+    const program = product.section('actors/species-programs').program;
+    const stages = product.section('quests/directors').directors?.find(row => row.id === SIGNAL_RUNTIME_ROWS.fight.stages.id);
+    if (program === undefined || stages === undefined) throw new Error('Missing admitted species program or boss stages');
+    return { ...SIGNAL_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SIGNAL_RUNTIME_ROWS.fight, stages }, species: { ...SIGNAL_RUNTIME_ROWS.species, program }, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
   protected override async build(ctx: ShardContext): Promise<void> {
     const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.

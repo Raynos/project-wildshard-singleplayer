@@ -6,7 +6,7 @@ import navigation from '../data/navigation.generated.json' with { type: 'json' }
 import { SKY_REACH_RUNTIME_COST } from './rows/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import { SKY_SPAWNS } from '../data/spawns';
+import { SKY_SPAWNS } from './rows/spawns';
 import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_MOVER_VIEWS } from './rows/moverViews';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };

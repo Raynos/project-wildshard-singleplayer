@@ -1,6 +1,6 @@
-import playback from './heldPlayback.generated.json' with {type:'json'};
-import scene from './fanScene.json' with {type:'json'};
-import hand from './fanHandScene.json' with {type:'json'};
+import playback from '../../data/heldPlayback.generated.json' with {type:'json'};
+import scene from '../../data/fanScene.json' with {type:'json'};
+import hand from '../../data/fanHandScene.json' with {type:'json'};
 import { FAN_ROW } from './equipment';
 import { FAN_PHASE } from './meleePhase';
 

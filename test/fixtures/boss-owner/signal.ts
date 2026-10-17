@@ -1,5 +1,5 @@
 // Frozen native owner before the DIR-5 data binding.
-import type { SIGNAL_HEADLESS } from '../../../src/shards/sunscar-dunes/data/headlessOwners';
+import type { SIGNAL_HEADLESS } from '../../../src/shards/sunscar-dunes/generators/rows/headlessOwners';
 import * as v from 'valibot';
 import stages from '../../../src/shards/sunscar-dunes/data/bossStages.json' with { type: 'json' };
 import { Vector3 } from 'three';

@@ -1,5 +1,5 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { FAN_VIEW } from '../data/fanView';
+import { FAN_VIEW } from './rows/fanView';
 
 /** Compile the original held fan rows into bounded private visual channels. */
 export function heldPlayback(): Record<string, ReturnType<ClientChannels['build']>[]> {

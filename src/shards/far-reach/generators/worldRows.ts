@@ -11,7 +11,7 @@ import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
 import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 

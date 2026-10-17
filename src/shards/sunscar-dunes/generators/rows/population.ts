@@ -1,8 +1,8 @@
-import stages from './bossStages.json' with { type: 'json' };
+import stages from '../../data/bossStages.json' with { type: 'json' };
 import { SIGNAL_PAGE_HOLDS } from './hostOwners';
 import { MATRIARCH_PRESENTATION } from './matriarchPresentation';
-import { SIGNAL_RIG_LIBRARY } from './rigLibrary';
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_PAGE_ROWS } from './brains';
+import { SIGNAL_RIG_LIBRARY } from '../../data/rigLibrary';
+import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_PAGE_ROWS } from '../../data/brains';
 import { SIGNAL_HEADLESS } from './headlessOwners';
 
 /** Authored population policy, retaining preparation-time module admission and home order. */

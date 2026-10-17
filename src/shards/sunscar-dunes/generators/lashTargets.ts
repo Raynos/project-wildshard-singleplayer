@@ -1,6 +1,6 @@
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { WHIP_ITEM } from '../data/items';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** Immutable contact points share the baked places' coordinates and authored nearest-target order. */

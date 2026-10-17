@@ -1,4 +1,4 @@
-import { MATRIARCH_PRESENTATION } from '../../data/matriarchPresentation';
+import { MATRIARCH_PRESENTATION } from './matriarchPresentation';
 
 /**
  * The Matriarch's sand storm shells (SF27, first Signal Dunes' review R5 / TOP-15 #11; SHARD-PLATFORM G397: SF59 material

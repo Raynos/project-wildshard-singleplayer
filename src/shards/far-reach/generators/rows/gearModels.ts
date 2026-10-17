@@ -1,7 +1,7 @@
 import { SKY_RUNTIME_ROWS } from './runtimeRows';
-import questPage from './questPage.generated.json' with { type: 'json' };
+import questPage from '../../data/questPage.generated.json' with { type: 'json' };
 import { FAN_HELD_RECIPE } from './heldWeapon';
-import { STRINGS } from './strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 const FILE = 'src/shards/far-reach/models/gear.ts';
 /** Original lazy Explorer metadata and order; live material owners remain borrowed. */

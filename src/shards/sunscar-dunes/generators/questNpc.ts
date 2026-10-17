@@ -1,7 +1,7 @@
 import { SCOUT_ROW } from './questPresentation';
 import { SCOUT_AT } from '../data/flags';
 import ground from '../data/manifestGround.generated.json' with { type: 'json' };
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** The scout's original exact-point ground query, met flag and loaded-model-only registration. */
 export const QUEST_NPC = { npc: SCOUT_ROW, label: STRINGS.talkScout, system: SCOUT_ROW.id,

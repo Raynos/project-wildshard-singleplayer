@@ -1,6 +1,7 @@
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
-import { SIGNAL_RIG_LIBRARY } from '../data/rigLibrary';
+// The page host and model loader share this exact rig cache key.
+import runtimeRows from '../data/runtimeRows.generated.json' with { type: 'json' };
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
@@ -18,7 +19,7 @@ import type { MeshStandardMaterial } from 'three';
 
 /** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
 const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
-export const DUNE_LIBRARY = createModelLibrary({ ...MODELS.DUNE_MODELS, geometryPools: REST_POOLS, rigs: SIGNAL_RIG_LIBRARY }, '[sunscar-dunes]', SURFACE_INPUTS);
+export const DUNE_LIBRARY = createModelLibrary({ ...MODELS.DUNE_MODELS, geometryPools: REST_POOLS, rigs: runtimeRows.species.library }, '[sunscar-dunes]', SURFACE_INPUTS);
 
 /** A camp material warmed by each burning fire within ~4.5 m (`assets/surfaces.generated.json` FIRELIGHT): its own fire lights it. */
 export const warmByFire = (m: MeshStandardMaterial): void => { applySurfaceLooks(m, SURFACES.CAMP_SURFACE, SURFACE_INPUTS); };

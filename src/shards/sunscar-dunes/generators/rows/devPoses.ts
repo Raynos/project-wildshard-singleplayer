@@ -1,4 +1,4 @@
-import { STRINGS } from '../../data/strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import ground from '../../data/manifestGround.generated.json' with { type: 'json' };
 

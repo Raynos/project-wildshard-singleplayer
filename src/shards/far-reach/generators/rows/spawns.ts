@@ -1,4 +1,4 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import type { Home } from './layoutTypes';
 
 const flying = (id: string, kind: string, look: string, home: Home) => ({ id, kind, look, at: [home.x + home.r, home.z] as const, yaw: 0 });

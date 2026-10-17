@@ -1,7 +1,7 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
-import { STRINGS } from './strings';
-import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from './signalQuest';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
+import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from '../../data/signalQuest';
 
 /** The declared boss, encounter and saved actor share this stable identity. */
 export const MATRIARCH_ID = 'sunscar.matriarch';

@@ -1,4 +1,8 @@
 // @vitest-environment happy-dom
+import skyRows from '../src/shards/far-reach/data/runtimeRows.generated.json' with { type: 'json' };
+import signalRows from '../src/shards/sunscar-dunes/data/runtimeRows.generated.json' with { type: 'json' };
+import { SKY_RUNTIME_ROWS } from '../src/shards/far-reach/generators/rows/runtimeRows';
+import { SIGNAL_RUNTIME_ROWS } from '../src/shards/sunscar-dunes/generators/rows/runtimeRows';
 import { expect, test } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
@@ -54,3 +58,9 @@ test('an absent or refused product cannot publish rows or build the world', asyn
     expect(plugin.events).toEqual(['rows', 'rows', 'build']);
   } finally { scope.dispose(); }
 });
+
+// The portable producer must retain every page owner binding and native recipe.
+test.each([['Sky Reach', skyRows, SKY_RUNTIME_ROWS], ['Signal Dunes', signalRows, SIGNAL_RUNTIME_ROWS]])(
+  '%s emits the complete checked hybrid rows without changing values', (_name, emitted, authored) => {
+    expect(emitted).toStrictEqual(authored);
+  });

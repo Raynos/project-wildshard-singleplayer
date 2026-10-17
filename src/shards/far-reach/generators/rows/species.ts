@@ -1,6 +1,6 @@
 import type { SpeciesData } from '@wildshard/sdk/species';
-import { STRINGS } from './strings';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import STRINGS from '../../data/strings.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { SKY_GOAT_VARIANTS, DRIFT_RAY_VARIANTS, GALE_WISP_VARIANTS, STORM_ROC_VARIANTS } from './variants';
 
 /** The shipping gameplay declaration; native appearance and body remain independently owned. */

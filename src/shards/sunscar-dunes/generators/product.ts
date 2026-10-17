@@ -10,7 +10,7 @@ import { AUDIO } from './rows/audio';
 import tiles from '../data/tiles.json' with { type: 'json' };
 import { SIGNAL_LEDGER } from './rows/ledger';
 import { WHIP_ITEMS } from '../data/items';
-import { SIGNAL_SPAWNS } from '../data/spawns';
+import { SIGNAL_SPAWNS } from './rows/spawns';
 import { SIGNAL_BUCKET_CHANNELS, SIGNAL_BUCKET_MOVERS } from './bucket';
 import { SIGNAL_QUESTS } from './quests';
 import sandMaps from '../data/sandMaps.json' with { type: 'json' };

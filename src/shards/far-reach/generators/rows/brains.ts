@@ -1,6 +1,6 @@
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from './strikes';
 import type { BrainedSpecies, speciesBrains } from '@wildshard/sdk/speciesBrains';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA, STORM_ROC_DATA } from './species';
 
 /** Shipping rim-aware goat policy; the native spawn binds the island home and floor. */

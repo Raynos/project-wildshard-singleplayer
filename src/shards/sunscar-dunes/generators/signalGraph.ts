@@ -1,4 +1,4 @@
-import { MATRIARCH_ID } from '../data/matriarchEncounter';
+import { MATRIARCH_ID } from './rows/matriarchEncounter';
 import { SIGNAL_INTERACT } from './signalInteractions';
 
 /**

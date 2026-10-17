@@ -1,5 +1,5 @@
 import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
-import { STRINGS } from '../strings';
+import STRINGS from '../strings.json' with { type: 'json' };
 import { STRIDER_DIMS } from './bodies';
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 

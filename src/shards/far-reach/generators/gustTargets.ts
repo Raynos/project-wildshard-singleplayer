@@ -1,8 +1,8 @@
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
-import { FAN_GUST, FAN_ID } from '../data/items';
+import { FAN_GUST, FAN_ID } from './rows/items';
 import { VANES } from "./layout";
 import { SKY_ACTIONS } from './questGraph';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 const notes = SKY_ACTIONS.rows.find(row => row.id === 'notes');
 if (notes === undefined) throw new Error('Missing declared Sky notes interaction');

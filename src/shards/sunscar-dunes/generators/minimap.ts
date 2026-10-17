@@ -1,5 +1,5 @@
 import * as LAYOUT from './layout';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import type { MapMark, MapPaletteRow } from '@wildshard/format/minimap';
 
 /**

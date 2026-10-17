@@ -1,7 +1,7 @@
 // Shipping declaration oracle captured from 539d18a9262151dbe28aa0656068065e9b3d0193:src/shards/sunscar-dunes/runtime/species/skitterer.ts; no hand-written policy.
 import type { StrikeSpec } from '../../../src/engine/ai/strikes';
 import type { SpeciesRow } from '../../../src/engine/ai/species';
-import { STRINGS } from '../../../src/shards/sunscar-dunes/data/strings';
+import STRINGS from '../../../src/shards/sunscar-dunes/data/strings.json' with { type: 'json' };
 
 export const SKITTER = { wake: 13, sleep: 34, burst: 0.55, run: 5.6, ring: 2.2, retreat: 1.1, rebury: 5 } as const;
 

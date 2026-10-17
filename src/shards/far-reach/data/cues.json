@@ -1,0 +1,6 @@
+{
+  "fire": "cue.sword.swing",
+  "heavy": "cue.sword.heavy",
+  "impact": "cue.sword.hit",
+  "reload": "cue.reload"
+}

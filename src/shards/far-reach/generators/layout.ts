@@ -1,4 +1,4 @@
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Every coordinate in Sky Reach. Islands float over the cloud sea; each walkable top sits at its own `y`. */
 export const DECK = 30;

@@ -24,7 +24,7 @@ const witness = await import(at('test/proof/far-reach/witness.ts'));
 const { createSimHost } = await import(at('src/engine/sim.ts'));
 const { canonicalSimDigest } = await import(at('test/fake/simState.ts'));
 const { snapshotSimHost } = await import(at('src/engine/sim/snapshot.ts'));
-const { ROC_ID, ROC_STEP } = await import(at('src/shards/far-reach/data/rocFight.ts'));
+const { ROC_ID, ROC_STEP } = await import(at('src/shards/far-reach/generators/rows/rocFight.ts'));
 const { CROWN } = await import(at('src/shards/far-reach/generators/layout.ts'));
 const { default: FLAGS } = await import(at('src/shards/far-reach/data/flags.json'), { with: { type: 'json' } });
 

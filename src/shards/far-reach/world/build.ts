@@ -9,7 +9,6 @@ import source from '../runtime/source';
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { AdditiveBlending, MeshBasicMaterial, Group, type BufferGeometry, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { STRINGS } from '../data/strings';
 import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { WORLD } from './baked';
 import { routeScenePorts, vaneGeometry } from './shapes';
@@ -53,6 +52,7 @@ export interface BuiltWorld {
  * it rejects once the cell has unloaded, and the build stops). `looks` are the rope decks' wood and the hover frames' glow (`look.materials`).
  */
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
+  const STRINGS = ctx.product.strings(['islet']);
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = WORLD.placements(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood');
   const groundGeometry = new Map<string, BufferGeometry | null>(SKY_GROUND.isles.map(row => [row.id, isles.get(row.node)?.geometry ?? null]));

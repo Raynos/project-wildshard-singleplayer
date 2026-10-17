@@ -1,6 +1,6 @@
-import DUNES from './duneRows.generated.json' with { type: 'json' };
+import DUNES from '../../data/duneRows.generated.json' with { type: 'json' };
 import { MATRIARCH_ARENA } from './matriarchEncounter';
-import { STRINGS } from './strings';
+import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 /**
  * Her fight's browser presentation (SF27 / SF7f, a marked boss presentation row): the coin burst leaves from the basin

@@ -1,3 +1,5 @@
+import STRINGS from '../data/strings.json' with { type: 'json' };
+import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
@@ -9,7 +11,9 @@ import { SIGNAL_LASH_TARGETS } from './lashTargets';
 
 /** Both page and native owners consume the same verified decision and mechanics. */
 export const output = { platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
-  ['sim/runtime-plan', { kind: 'held-melee', recipe: SIGNAL_NATIVE_WORLD, baked }],
+  ['ui/strings', STRINGS],
+    ['actors/species-programs', { page: [], native: [], program: SIGNAL_PAGE_PROGRAM.species.program }],
+    ['sim/runtime-plan', { kind: 'held-melee', recipe: SIGNAL_NATIVE_WORLD, baked }],
   ['sim/scripts', MATRIARCH_DECISION], ['actors/moves', MATRIARCH_MOVES], ['actors/strikes', SIGNAL_STRIKES],
   ['world/targets', SIGNAL_LASH_TARGETS],
 ])) } satisfies ProjectOutput;

@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import type { BoxColliderData } from '@wildshard/sdk/physics';
 import { BRAZIERS, CARAVAN, WELL } from "./layout";
 import { CRATES, HORSE, WELL_RIG } from './rows/places';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 import { signalHeightAt } from './landscape';
 
 // A static native horse contact is outside the narrower serialized prop contact set.

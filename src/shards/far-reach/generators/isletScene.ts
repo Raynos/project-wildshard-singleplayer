@@ -3,7 +3,7 @@ import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import entries from '../data/islets.generated.json' with { type: 'json' };
 import rig from '../data/isletRig.json' with { type: 'json' };
 import { isletMotionRows } from './isletMotion';
-import { STRINGS } from '../data/strings';
+import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Finite rest geometry for the shared private-scene host. */
 function isletPool(): ClientSceneBake {

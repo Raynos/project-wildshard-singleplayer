@@ -2,7 +2,7 @@ import MODELS from '../assets/models.generated.json' with { type: 'json' };
 import STRIDER_BODY from '../assets/striderRig.generated.json' with { type: 'json' };
 import { RAY_BODY, SKITTERER_BODY } from './species/bodies';
 import { SIGNAL_CREATURE_LOOK_ROWS } from './creatureLooks';
-import { STRINGS } from './strings';
+import STRINGS from './strings.json' with { type: 'json' };
 
 /** Original rig load order, first-map selection and stand-in skeletons. */
 export const SIGNAL_RIG_LIBRARY = { bodies: { creatures: MODELS.DUNE_RIGS, urls: MODELS.DUNE_RIG_URLS,

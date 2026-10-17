@@ -1,6 +1,6 @@
 import { DECK, NOTES, WINCH } from "./layout";
 import { KEEPER_AT } from './quests';
-import { SKY_FLOCK_GROUPS } from '../data/spawns';
+import { SKY_FLOCK_GROUPS } from './rows/spawns';
 
 /** The native script actor retains its shipping identity. */
 export const SKY_INTERACT = 'far.interact';
