@@ -20,18 +20,18 @@
 import { BackSide, DataTexture, Matrix3, ShaderMaterial, type Texture, Vector4 } from 'three';
 import { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } from '../runtime/looks/vmLook';
 import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
-import { JIAN_DECALS, JIAN_DECAL_UV } from '../data/decals';
+import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
+import decalRows from '../data/decals.json' with { type: 'json' };
 import { decalScale, type NdTier } from '../tier';
 
 
 /** the decal atlas: the blade etch strip (top 256 px of 2048) and the fu talisman cell */
 export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
 
-/** the jian's decal atlas (data/decals.ts JIAN_DECALS), painted at the tier's decal scale */
+/** The authored Jian atlas, painted at the tier's decal scale. */
 export function decalAtlas(tier: NdTier): Decals {
-  const e = JIAN_DECAL_UV.etch, f = JIAN_DECAL_UV.fu;
-  return { tex: paintCanvasAtlas(JIAN_DECALS, decalScale(tier)), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
+  const e = decalRows.JIAN_DECAL_UV.etch, f = decalRows.JIAN_DECAL_UV.fu;
+  return { tex: paintCanvasAtlas(decalRows.JIAN_DECALS as CanvasAtlasRow, decalScale(tier)), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
 }
 
 

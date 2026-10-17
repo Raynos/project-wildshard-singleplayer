@@ -10,12 +10,13 @@
 // - Matte is 3 hard bands of a key light from the upper left + a thin rim on the lit side (a painter's reflected light).
 // - Built parts keep the Kit's ruled face edges (aMisc.y weight, aMisc.w edge bits) in 焦墨; living parts (matte, silk)
 //   get none — their outline is the hull's brush line.
-// The classes, the GLSL and the tuning are data (data/heroVm.ts); the decal atlas is rows (data/decals.ts); this module makes the material.
+// The classes, GLSL and tuning stay in heroVm; the decal atlas is authored JSON.
 import { type Color, type DataTexture, ShaderMaterial, type Texture, type Vector3 } from 'three';
+import * as v from 'valibot';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { plainWeaveTexture } from '../../runtime/looks/weave';
-import { paintCanvasAtlas } from '@wildshard/sdk/looks/canvasAtlas';
-import { HERO_DECALS, HERO_DECAL_UV } from '../../data/decals';
+import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
+import decalRows from '../../data/decals.json' with { type: 'json' };
 import { HERO_VM, HERO_VM_FS, HERO_VM_UNIFORMS, HERO_VM_VS } from '../../runtime/looks/heroVm';
 
 /** material classes (the Kit's `kind` slot, aPat.x); values clear of the architecture kinds 0–8 */
@@ -29,9 +30,10 @@ export function weaveTexture(): DataTexture {
 /** the decal atlas: the blade's etched cloud scrolls (top half) and the fu talisman (bottom-left cell) */
 export interface Decals { tex: Texture; etch: readonly [number, number, number, number]; fu: readonly [number, number, number, number] }
 
-/** the hero lab's decal atlas (data/decals.ts HERO_DECALS) */
+/** The authored hero atlas, on the same canvas painter as the Jian. */
 export function decalAtlas(): Decals {
-  return { tex: paintCanvasAtlas(HERO_DECALS), etch: HERO_DECAL_UV.etch, fu: HERO_DECAL_UV.fu };
+  const rect = v.tuple([v.number(), v.number(), v.number(), v.number()]);
+  return { tex: paintCanvasAtlas(decalRows.HERO_DECALS as CanvasAtlasRow), etch: v.parse(rect, decalRows.HERO_DECAL_UV.etch), fu: v.parse(rect, decalRows.HERO_DECAL_UV.fu) };
 }
 
 export interface VmUniforms {
