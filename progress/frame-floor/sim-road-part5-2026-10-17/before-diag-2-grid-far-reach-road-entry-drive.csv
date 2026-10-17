@@ -1,0 +1,95 @@
+startMs,endMs,intervalMs,frameDelta,latestUpdateMs,latestRenderMs,callbackDelayMs,overlappingCalls
+41023,41058,35,1,2,2,4,
+41091,41125,34,1,2,1,3,41096:6:Renderer.initTexture
+41191,41254,63,1,4,2,6,41254:4:Game.runFixed
+41341,41375,34,1,1,2,3,41346:6:Renderer.compile
+41375,41442,67,1,2,2,4,41379:5:Renderer.compile
+41462,41508,46,1,2,1,4,41467:5:Renderer.compile
+41536,41575,39,1,2,1,3,
+41641,41676,35,1,1,1,3,41646:4:Renderer.compile
+41741,41775,34,1,1,1,2,41749:4:Renderer.initTexture
+41841,41875,34,1,2,1,3,
+41941,41975,34,1,1,1,2.0,
+42041,42075,34,1,1,1,2,
+42141,42175,34,1,2,1,3.0,
+42241,42275,34,1,2,2,4,
+42341,42376,35,1,2,1,3,
+42441,42475,34,1,1,1,2.0,
+42541,42575,34,1,2,1,3,
+42641,42675,34,1,1,1,2,
+42735,42775,40,1,2,1,3,
+42841,42875,34,1,1,1,2,
+42941,42975,34,1,2,38,40,
+42975,43110,135,1,4,2,6,42977:37:Renderer.render | 42977:38:Composer.render
+43141,43175,34,1,3,2,6,
+43241,43275,34,1,5,2,7,43275:4:System.game.grid.session | 43275:4:Game.runPhase:fixed.post | 43275:5:Game.runFixed
+43341,43375,34,1,1,2,3,
+43441,43475,34,1,1,2,3,
+43564,43608,44,1,2,2,4,
+43641,43675,34,1,2,1,3.0,
+43708,43743,35,1,2,2,4,
+43891,43925,34,1,2,2,4,
+43991,44025,34,1,3,2,5,
+44091,44125,34,1,2,2,4,
+44191,44235,44,1,3,3,6,
+44258,44294,36,1,3,2,5,44284:10:Renderer.compile
+44391,44425,34,1,2,2,4,
+44491,44525,34,1,3,2,5,
+44591,44625,34,1,5,2,8,44625:4:System.game.grid.session | 44625:4:Game.runPhase:fixed.post | 44625:5:Game.runFixed
+44658,44692,34,1,2,2,4,
+44791,44825,34,1,4,2,7,44801:5:Renderer.compile
+44891,44925,34,1,2,2,4,
+44989,45025,36,1,3,2,5,44989:6:Input.refresh | 44989:6:System.engine.input.contexts | 44989:6:Game.runPhase:input | 45001:7:Renderer.compile
+45091,45125,34,1,2,1,4,45101:6:Renderer.compile | 45107:4:Renderer.compile
+45191,45225,34,1,1,2,3,45199:5:Renderer.compile | 45205:4:Renderer.compile
+45291,45325,34,1,2,2,4,45298:5:Renderer.compile | 45303:5:Renderer.compile
+45391,45425,34,1,2,2,4,45399:6:Renderer.compile
+45491,45525,34,1,2,2,4,45501:5:Renderer.compile
+45525,45565,40,1,4,2,7,45532:5:Renderer.initTexture | 45539:19:GL.getUniformBlockIndex
+45591,45625,34,1,2,1,3,45598:6:Renderer.compile
+45691,45725,34,1,2,2,4,
+45791,45825,34,1,2,2,4,
+45891,45925,34,1,2,2,4,
+45991,46025,34,1,3,2,5,
+46091,46125,34,1,2,2,4,46101:7:Renderer.compile
+46191,46225,34,1,2,2,4,
+46291,46325,34,1,2,2,4,
+46391,46425,34,1,2,3,5,
+46491,46525,34,1,2,3,5,46499:4:Renderer.compile
+46591,46625,34,1,2,2,4,46595:4:Composer.render
+46691,46725,34,1,2,2,4,
+46791,46825,34,1,2,2,4,
+46889,46925,36,1,2,2,4,
+46958,46992,34,1,2,2,4,
+47091,47125,34,1,2,1,3,
+47191,47225,34,1,2,2,4,
+47291,47325,34,1,2,2,4,
+47391,47425,34,1,2,2,4,
+47491,47525,34,1,2,2,4,
+47591,47625,34,1,7,2,9,47591:5:Game.runFixed | 47600:4:Renderer.initTexture | 47625:6:Game.runFixed
+47691,47725,34,1,5,2,7,47698:4:Renderer.initTexture | 47725:4:Game.runFixed
+47791,47825,34,1,4,3,7,47825:4:Game.runFixed
+47891,47925,34,1,2,2,4,47897:5:Renderer.initTexture
+47991,48025,34,1,4,2,6,
+48091,48125,34,1,2,2,4,
+48191,48225,34,1,2,1,3,
+48291,48326,35,1,2,2,4,
+48391,48425,34,1,2,1,3.0,
+48491,48525,34,1,2,2,4,
+48591,48664,73,1,7,5,12,48593:2:RuntimeHooks.activate | 48592:4:System.game.grid.session | 48592:5:Game.runPhase:fixed.post | 48591:7:Game.runFixed | 48598:6:Game.runPhase:update | 48605:7:Renderer.render | 48605:7:Composer.render
+48664,48703,39,1,3,5,8,48671:5:Renderer.render | 48671:5:Composer.render
+48791,48825,34,1,3,5,8,48795:4:Renderer.render | 48795:5:Composer.render
+48891,48925,34,1,3,5,8,48894:5:Renderer.render | 48894:6:Composer.render
+48991,49025,34,1,24,5,30,48995:5:Composer.render
+49025,49067,42,1,5,5,10,49026:20:System.game.grid.session | 49026:20:Game.runPhase:fixed.post | 49026:22:Game.runFixed | 49049:5:Renderer.render | 49049:5:Composer.render
+49091,49125,34,1,3,5,8,49094:5:Renderer.render | 49094:5:Composer.render
+49191,49225,34,1,3,5,8.0,49195:5:Renderer.render | 49195:5:Composer.render
+49291,49325,34,1,3,5,8,49294:5:Renderer.render | 49294:6:Composer.render
+49391,49425,34,1,3,5,8,49394:5:Renderer.render | 49394:5:Composer.render
+49491,49525,34,1,3,5,8,49494:5:Renderer.render | 49494:5:Composer.render
+49558,49592,34,1,5,5,10.0,49563:4:Renderer.render | 49563:5:Composer.render
+49691,49725,34,1,3,5,8.0,49694:5:Renderer.render | 49694:5:Composer.render
+49791,49825,34,1,2,5,7,49795:5:Renderer.render | 49794:6:Composer.render
+49891,49925,34,1,3,4,7,49894:5:Renderer.render | 49894:5:Composer.render
+49991,50025,34,1,4,5,9,49995:5:Composer.render
+50091,50125,34,1,3,5,8,50094:5:Renderer.render | 50094:5:Composer.render

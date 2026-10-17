@@ -1,0 +1,244 @@
+startMs,endMs,intervalMs,frameDelta,latestUpdateMs,latestRenderMs,callbackDelayMs,overlappingCalls
+121037,121071,34,1,1,1,3,121045:6:Renderer.initTexture
+121071,121105,34,1,1,1,3,
+121105,121139,34,1,2,1,3,
+121237,121278,41,1,2,1,3,
+121337,121371,34,1,2,1,3.0,
+121437,121471,34,1,2,1,3,
+121537,121571,34,1,2,1,3,
+121604,121638,34,1,1,2,3,
+121737,121771,34,1,1,2,3,
+121837,121871,34,1,1,2,3.0,
+121937,121971,34,1,2,1,3,
+122037,122071,34,1,2,1,3,
+122137,122171,34,1,1,2,3,
+122237,122271,34,1,1,2,3,
+122337,122371,34,1,1,1,3.0,122343:4:Renderer.initTexture
+122437,122471,34,1,1,2,3,
+122570,122604,34,1,29,1,30,
+122604,122639,35,1,2,1,3,122606:5:Physics.step | 122606:5:System.physics.step | 122606:5:Game.runPhase:fixed.step | 122605:6:Game.runFixed | 122612:21:Game.runPhase:late
+122704,122742,38,1,2,1,3,
+122837,122871,34,1,1,2,3.0,
+122937,122971,34,1,2,1,3,
+123037,123071,34,1,3,2,6,
+123137,123171,34,1,1,2,3,
+123237,123271,34,1,2,2,4,
+123337,123371,34,1,1,2,3.0,123343:4:Renderer.initTexture
+123437,123471,34,1,1,2,3,123444:7:BuildStages.build:Shore boulders
+123537,123571,34,1,1,2,3,
+123637,123671,34,1,1,2,3,
+123737,123771,34,1,1,2,3,
+123837,123871,34,1,2,1,3.0,
+123937,123971,34,1,1,2,3,
+124037,124071,34,1,2,1,3,124047:6:BuildStages.build:Shrine
+124137,124174,37,1,1,2,3,124161:4:BufferGeometry.computeBoundingBox | 124165:8:BufferGeometry.computeBoundingSphere
+124237,124271,34,1,3,2,6,
+124337,124372,35,1,2,1,3,124367:5:BufferGeometry.computeBoundingSphere
+124372,124414,42,1,2,2,4,124367:5:BufferGeometry.computeBoundingSphere | 124397:5:BufferGeometry.computeBoundingBox | 124402:11:BufferGeometry.computeBoundingSphere
+124471,124507,36,1,11,1,12,
+124537,124571,34,1,2,2,4,
+124637,124671,34,1,1,2,3,
+124737,124771,34,1,2,1,3,
+124837,124871,34,1,1,2,3.0,
+124904,124949,45,1,4,1,6,
+125037,125071,34,1,2,1,3,
+125071,125172,101,1,3,3,6,
+125172,125233,61,1,2,3,5,
+125256,125293,37,1,3,2,5,
+125293,125331,38,1,2,2,4.0,125312:18:Renderer.compile
+125360,125404,44,1,3,2,5,125366:18:Renderer.compile
+125437,125471,34,1,2,2,5,
+125537,125571,34,1,1,3,4,
+125637,125671,34,1,2,3,5,
+125763,125804,41,1,3,3,6,125769:19:Renderer.compile
+125804,125840,36,1,2,2,4.0,125812:27:Renderer.compile
+125866,125904,38,1,2,2,4,125873:18:Renderer.compile
+125929,125971,42,1,3,3,6,
+126029,126071,42,1,2,2,4,126036:16:Renderer.compile
+126098,126137,39,1,1,3,5,126105:19:Renderer.compile
+126166,126204,38,1,2,2,4,126172:19:Renderer.compile
+126261,126304,43,1,17,3,21,126266:20:Renderer.compile
+126304,126349,45,1,3,3,6,126306:12:Physics.step | 126306:12:System.physics.step | 126306:12:Game.runPhase:fixed.step | 126306:15:Game.runFixed | 126327:21:Renderer.compile
+126378,126435,57,1,3,2,5,126384:4:Renderer.initTexture | 126409:26:Renderer.compile
+126490,126527,37,1,2,2,4,126496:20:Renderer.compile
+126527,126571,44,1,2,2,5.0,126533:19:Renderer.compile
+126597,126637,40,1,1,3,5,126603:18:Renderer.compile
+126665,126706,41,1,2,2,4.0,126672:18:Renderer.compile
+126798,126837,39,1,1,2,4.0,126779:19:Renderer.compile | 126805:18:Renderer.compile
+126864,126904,40,1,2,3,5,126871:17:Renderer.compile
+126929,126971,42,1,2,2,4.0,126911:18:Renderer.compile | 126936:18:Renderer.compile
+126996,127033,37,1,2,2,4,126978:18:Renderer.compile | 127003:19:Renderer.compile
+127033,127071,38,1,2,2,4,127040:19:Renderer.compile
+127096,127139,43,1,2,2,4,127078:18:Renderer.compile | 127103:17:Renderer.compile
+127193,127237,44,1,2,2,5,127176:17:Renderer.compile | 127200:18:Renderer.compile
+127263,127304,41,1,2,3,5,127246:17:Renderer.compile | 127271:16:Renderer.compile
+127329,127371,42,1,2,2,4,127337:16:Renderer.compile
+127395,127437,42,1,2,2,5,127402:18:Renderer.compile
+127463,127506,43,1,2,2,4,127445:18:Renderer.compile | 127470:17:Renderer.compile
+127531,127565,34,1,2,2,4,127513:18:Renderer.compile | 127545:18:Renderer.compile
+127565,127604,39,1,2,2,4,127571:17:Renderer.compile
+127631,127671,40,1,2,2,4,127611:20:Renderer.compile | 127638:18:Renderer.compile
+127696,127737,41,1,1,3,5,127678:18:Renderer.compile | 127703:18:Renderer.compile
+127793,127837,44,1,3,2,6,127800:18:Renderer.compile
+127863,127904,41,1,2,2,5,127845:18:Renderer.compile | 127869:18:Renderer.compile
+127928,127971,43,1,2,2,4.0,
+128030,128071,41,1,1,3,4.0,128012:18:Renderer.compile
+128094,128137,43,1,3,2,5,128100:15:Renderer.compile
+128137,128171,34,1,2,2,4.0,
+128230,128271,41,1,2,2,4,128237:16:Renderer.compile
+128297,128337,40,1,2,3,6.0,128303:16:Renderer.compile
+128363,128404,41,1,2,2,5.0,
+128461,128505,44,1,2,2,4.0,128444:17:Renderer.compile | 128470:18:Renderer.compile
+128537,128571,34,1,2,2,4.0,128545:8:Renderer.compile
+128637,128671,34,1,2,2,4.0,
+128737,128771,34,1,2,2,4,
+128837,128871,34,1,2,2,4,
+128937,128971,34,1,2,2,4,
+129037,129071,34,1,2,2,4.0,
+129137,129171,34,1,2,2,4.0,
+129237,129271,34,1,2,2,4,
+129299,129337,38,1,2,2,4.0,
+129337,129371,34,1,1,3,4,129344:9:Renderer.compile
+129437,129471,34,1,2,1,3.0,
+129537,129571,34,1,2,3,5,
+129637,129671,34,1,2,2,4.0,
+129737,129771,34,1,2,2,4,
+129837,129871,34,1,2,2,4,129846:4:ShadowMap.render | 129845:5:Renderer.render
+129937,129971,34,1,2,2,4,
+130037,130071,34,1,2,2,4.0,
+130137,130171,34,1,2,2,4.0,130144:9:Scene.updateMatrixWorld | 130144:11:Renderer.render
+130237,130271,34,1,3,2,5.0,
+130304,130340,36,1,2,2,4,130304:5:Game.runFixed | 130315:5:Renderer.initTexture
+130437,130471,34,1,2,3,14.0,
+130492,130537,45,1,3,2,5,
+130537,130571,34,1,2,2,4.0,
+130637,130671,34,1,2,2,4.0,
+130737,130771,34,1,2,3,5.0,
+130837,130871,34,1,2,2,4,
+130937,130971,34,1,2,2,4,
+131037,131071,34,1,2,2,4,
+131137,131171,34,1,2,2,4,
+131237,131271,34,1,18,16,35,131271:5:Game.runFixed
+131271,131362,91,1,7,6,14,131272:2:RuntimeHooks.activate | 131271:5:Game.runFixed | 131282:5:System.shard.driftwood.adventure | 131276:12:Game.runPhase:update | 131289:16:Renderer.render | 131289:16:Composer.render
+131487,131521,34,1,6,5,11,131494:5:Renderer.render | 131494:5:Composer.render
+131587,131622,35,1,5,6,11,131593:5:Renderer.render | 131593:5:Composer.render
+131687,131721,34,1,4,5,9,131692:5:Renderer.render | 131692:5:Composer.render
+131784,131821,37,1,5,6,11,131786:7:System.grid.runtime.driftwood-isle.animals | 131786:8:Game.runPhase:update | 131821:4:Game.runFixed
+131887,131922,35,1,5,5,10.0,131892:5:Renderer.render | 131892:5:Composer.render
+131987,132022,35,1,5,5,11.0,131992:5:Renderer.render | 131992:5:Composer.render
+132087,132122,35,1,5,5,10,132092:4:Renderer.render | 132092:5:Composer.render
+132154,132189,35,1,5,5,10,132159:5:Renderer.render | 132159:5:Composer.render
+132287,132323,36,1,4,6,10,132292:5:Renderer.render | 132292:5:Composer.render
+132354,132389,35,1,4,6,10,132359:4:Renderer.render | 132359:4:Composer.render
+132487,132521,34,1,4,6,10,132492:5:Renderer.render | 132492:5:Composer.render
+132554,132589,35,1,4,6,10,132559:5:Renderer.render | 132559:5:Composer.render
+132687,132721,34,1,10,5,15,132692:5:Renderer.render | 132692:5:Composer.render
+132754,132789,35,1,5,5,10,132758:5:Renderer.render | 132758:5:Composer.render
+132887,132921,34,1,4,5,9,132892:5:Renderer.render | 132892:5:Composer.render
+132987,133021,34,1,4,5,9,132992:5:Renderer.render | 132992:5:Composer.render
+133087,133121,34,1,4,6,10,133092:4:Renderer.render | 133092:4:Composer.render
+133187,133221,34,1,6,5,11,133192:5:Renderer.render | 133192:5:Composer.render
+133287,133337,50,1,5,6,11,133291:4:Game.runPhase:update | 133296:10:Renderer.render | 133296:10:Composer.render
+133387,133421,34,1,3,6,9,133392:4:Renderer.render | 133392:5:Composer.render
+133487,133522,35,1,4,5,9,133491:5:Renderer.render | 133491:5:Composer.render
+133587,133621,34,1,3,6,9,133592:5:Renderer.render | 133592:5:Composer.render
+133687,133721,34,1,4,5,9,133691:5:Renderer.render | 133691:5:Composer.render
+133721,133756,35,1,3,6,9.0,133725:5:Renderer.render | 133725:5:Composer.render
+133787,133821,34,1,4,6,10,133792:5:Renderer.render | 133792:5:Composer.render
+133887,133921,34,1,4,5,9,133892:5:Renderer.render | 133892:5:Composer.render
+133987,134021,34,1,3,5,9,133992:4:Renderer.render | 133992:5:Composer.render
+134087,134121,34,1,9,5,14,134091:5:Renderer.render | 134091:5:Composer.render
+134187,134221,34,1,4,5,9,134192:4:Renderer.render | 134192:4:Composer.render
+134287,134321,34,1,4,5,9,134291:5:Renderer.render | 134291:5:Composer.render
+134387,134421,34,1,3,6,9,134392:4:Renderer.render | 134392:4:Composer.render
+134454,134488,34,1,3,5,9,134459:4:Renderer.render | 134459:5:Composer.render
+134587,134621,34,1,3,7,10,134592:5:Renderer.render | 134592:5:Composer.render
+134687,134721,34,1,4,6,10,134691:5:Renderer.render | 134691:5:Composer.render
+134787,134821,34,1,4,5,9,134792:5:Renderer.render | 134792:5:Composer.render
+134887,134921,34,1,4,5,9,134892:4:Renderer.render | 134892:4:Composer.render
+134987,135021,34,1,3,5,8,134992:4:Renderer.render | 134992:4:Composer.render
+135087,135121,34,1,5,6,11,135092:4:Renderer.render | 135091:5:Composer.render
+135187,135221,34,1,4,5,9,135192:4:Renderer.render | 135192:5:Composer.render
+135287,135321,34,1,4,5,9,135291:5:Renderer.render | 135291:5:Composer.render
+135354,135389,35,1,4,5,9,135358:5:Renderer.render | 135358:5:Composer.render
+135421,135455,34,1,4,5,9,135424:5:Renderer.render | 135424:5:Composer.render
+135455,135489,34,1,4,4,8,135459:5:Renderer.render | 135459:5:Composer.render
+135489,135523,34,1,3,5,8,135493:4:Renderer.render | 135493:4:Composer.render
+135587,135621,34,1,3,5,8,135592:5:Renderer.render | 135592:5:Composer.render
+135687,135721,34,1,4,5,9,135691:4:Renderer.render | 135691:4:Composer.render
+135787,135822,35,1,5,5,10,135792:5:Renderer.render | 135792:5:Composer.render
+135854,135888,34,1,4,5,9,135858:4:Renderer.render | 135858:5:Composer.render
+135987,136021,34,1,3,5,8,135992:4:Renderer.render | 135992:4:Composer.render
+136021,136056,35,1,4,5,9,136025:4:Renderer.render | 136025:4:Composer.render
+136087,136121,34,1,4,5,9,136091:5:Renderer.render | 136091:5:Composer.render
+136154,136189,35,1,4,5,9,
+136221,136256,35,1,5,4,9.0,136225:5:Renderer.render | 136225:5:Composer.render
+136287,136321,34,1,3,5,8,136291:5:Renderer.render | 136291:5:Composer.render
+136387,136421,34,1,3,6,9,136392:4:Renderer.render | 136392:4:Composer.render
+136487,136521,34,1,4,5,9,136491:5:Renderer.render | 136491:5:Composer.render
+136587,136621,34,1,3,5,8,136592:4:Renderer.render | 136592:4:Composer.render
+136687,136722,35,1,4,5,9,136691:5:Renderer.render | 136691:5:Composer.render
+136787,136821,34,1,5,5,10,136792:4:Renderer.render | 136792:4:Composer.render
+136887,136921,34,1,4,5,9,136891:5:Renderer.render | 136891:5:Composer.render
+136954,136989,35,1,4,5,9,136959:4:Renderer.render | 136959:4:Composer.render
+137087,137121,34,1,4,4,8,137091:4:Renderer.render | 137091:4:Composer.render
+137187,137221,34,1,5,5,10,137192:4:Renderer.render | 137192:5:Composer.render
+137287,137321,34,1,4,4,8,137291:4:Renderer.render | 137291:4:Composer.render
+137321,137356,35,1,3,5,8,
+137387,137421,34,1,3,5,8,137391:5:Renderer.render | 137391:5:Composer.render
+137421,137455,34,1,4,5,9,137425:4:Renderer.render | 137425:4:Composer.render
+137455,137489,34,1,3,5,8,137459:5:Renderer.render | 137459:5:Composer.render | 137468:4:Renderer.initTexture
+137587,137621,34,1,3,5,8,137592:4:Renderer.render | 137592:4:Composer.render
+137687,137721,34,1,4,5,9,137691:4:Renderer.render | 137691:4:Composer.render
+137787,137821,34,1,4,5,9,137792:4:Renderer.render | 137792:4:Composer.render
+137887,137922,35,1,4,5,9,137891:4:Renderer.render | 137891:4:Composer.render
+137987,138021,34,1,3,5,8,137996:4:Renderer.render | 137996:4:Composer.render
+138087,138121,34,1,3,5,8,138091:4:Renderer.render | 138091:4:Composer.render
+138187,138221,34,1,4,5,9,138191:4:Renderer.render | 138191:5:Composer.render
+138221,138256,35,1,5,5,10,138225:5:Renderer.render | 138225:5:Composer.render
+138287,138321,34,1,3,5,8,138291:4:Renderer.render | 138291:4:Composer.render
+138387,138421,34,1,3,4,7,138391:4:Renderer.render | 138391:5:Composer.render
+138421,138455,34,1,4,4,8,138424:4:Renderer.render | 138424:4:Composer.render
+138487,138521,34,1,3,5,8,138491:4:Renderer.render | 138491:4:Composer.render
+138587,138621,34,1,3,5,8,138591:5:Renderer.render | 138591:5:Composer.render
+138687,138721,34,1,3,5,8,138691:4:Renderer.render | 138691:4:Composer.render
+138754,138789,35,1,3,5,8,138757:5:Renderer.render | 138757:5:Composer.render
+138854,138889,35,1,5,5,10,138858:5:Renderer.render | 138858:5:Composer.render
+138987,139021,34,1,3,5,8,138992:4:Renderer.render | 138992:4:Composer.render
+139021,139056,35,1,4,4,8,139024:5:Renderer.render | 139024:5:Composer.render
+139087,139121,34,1,3,5,8,139091:4:Renderer.render | 139091:4:Composer.render
+139187,139221,34,1,4,5,9,139191:4:Renderer.render | 139191:5:Composer.render
+139221,139256,35,1,5,4,9.0,139225:5:Renderer.render | 139225:5:Composer.render
+139287,139321,34,1,3,5,8,139291:4:Renderer.render | 139291:4:Composer.render
+139387,139421,34,1,3,5,13,139391:5:Renderer.render | 139391:5:Composer.render
+139487,139521,34,1,3,5,8,139491:4:Renderer.render | 139491:4:Composer.render
+139587,139621,34,1,3,5,8,139591:5:Renderer.render | 139591:5:Composer.render
+139687,139721,34,1,3,5,8,139691:4:Renderer.render | 139690:5:Composer.render
+139787,139821,34,1,4,4,8,139791:4:Renderer.render | 139791:5:Composer.render
+139887,139921,34,1,3,5,8,139891:4:Renderer.render | 139891:4:Composer.render
+139954,139988,34,1,3,5,8,139957:5:Renderer.render | 139957:5:Composer.render
+140021,140056,35,1,3,5,8,140024:4:Renderer.render | 140024:4:Composer.render
+140087,140121,34,1,3,5,8,140090:4:Renderer.render | 140090:5:Composer.render
+140187,140221,34,1,4,5,9,140191:4:Renderer.render | 140191:4:Composer.render
+140287,140322,35,1,4,4,8,140291:4:Renderer.render | 140291:5:Composer.render
+140387,140421,34,1,2,5,7,140391:4:Renderer.render | 140391:4:Composer.render
+140487,140522,35,1,3,5,8,140491:4:Renderer.render | 140491:4:Composer.render
+140587,140621,34,1,2,5,7,140591:4:Renderer.render | 140591:4:Composer.render
+140687,140721,34,1,3,5,8,140691:4:Renderer.render | 140691:4:Composer.render
+140787,140822,35,1,4,5,9,140791:4:Renderer.render | 140791:5:Composer.render
+140887,140921,34,1,3,5,8,140890:5:Composer.render
+140921,140955,34,1,2,5,7,140924:4:Renderer.render | 140924:4:Composer.render
+140987,141021,34,1,2,5,7,140991:4:Renderer.render | 140991:4:Composer.render
+141087,141121,34,1,3,5,8,141091:4:Renderer.render | 141091:4:Composer.render
+141187,141221,34,1,4,4,9,141191:4:Renderer.render | 141191:4:Composer.render
+141287,141321,34,1,3,4,7,141290:5:Renderer.render | 141290:5:Composer.render
+141387,141421,34,1,2,5,7,141391:4:Renderer.render | 141391:4:Composer.render
+141454,141488,34,1,2,5,7,141458:4:Renderer.render | 141458:4:Composer.render
+141587,141621,34,1,2,5,7,141591:4:Renderer.render | 141591:5:Composer.render
+141687,141721,34,1,3,4,7,141690:5:Renderer.render | 141690:5:Composer.render
+141787,141821,34,1,4,5,9,141791:4:Renderer.render | 141791:4:Composer.render
+141887,141921,34,1,3,5,13,141891:4:Renderer.render | 141890:5:Composer.render
+141987,142021,34,1,2,5,7,141991:4:Renderer.render | 141991:4:Composer.render
+142021,142056,35,1,4,5,9,142024:4:Renderer.render | 142024:4:Composer.render
+142087,142121,34,1,3,5,8,142090:4:Renderer.render | 142090:5:Composer.render
+142154,142189,35,1,3,5,8,142157:5:Renderer.render | 142157:5:Composer.render

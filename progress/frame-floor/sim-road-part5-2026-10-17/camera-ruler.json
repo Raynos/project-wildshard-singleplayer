@@ -1,0 +1,43 @@
+{
+  "beforeSha": "8b36c629a03bba9771388e99d0c3d8ea4ae6ff77",
+  "afterTree": "32e62e2d890d8ff889ee4df797305f8024d9027d",
+  "before": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 6135,
+    "far-reach": 521,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20069,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9838,
+    "sunscar-dunes": 392
+  },
+  "after": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 6135,
+    "far-reach": 521,
+    "ink-cel-valley": 1105,
+    "nalati-grasslands": 20069,
+    "nine-dragon-stack": 11889,
+    "pastel-plain": 733,
+    "pine-hollow": 9838,
+    "sunscar-dunes": 392
+  },
+  "net": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "afterSha": "533662de42c4bedf6c59a5f5107f6065db5c1547",
+  "landedParent": "5e170815d9beb8c23c00845c957af490d115179f",
+  "note": "Checked source rebased across documentation and Git-hook commits; the three source blobs are unchanged."
+}

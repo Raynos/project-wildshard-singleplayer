@@ -1,0 +1,226 @@
+startMs,endMs,intervalMs,frameDelta,latestUpdateMs,latestRenderMs,callbackDelayMs,overlappingCalls
+131418,131452,34,1,2,1,3,
+131518,131552,34,1,2,1,3,
+131618,131654,36,1,4,1,5,
+131718,131752,34,1,2,1,3,
+131775,131818,43,1,1,1,3,
+131818,131852,34,1,1,2,3,
+131918,131952,34,1,2,1,3,
+132018,132052,34,1,1,2,3,
+132140,132185,45,1,2,1,3.0,
+132218,132252,34,1,2,1,3,
+132318,132352,34,1,2,1,3,
+132385,132422,37,1,2,1,3,
+132518,132552,34,1,2,1,3,
+132585,132619,34,1,1,1,2,
+132718,132752,34,1,1,2,3,132724:4:Renderer.initTexture
+132818,132852,34,1,2,1,3,
+132874,132918,44,1,1,1,3,
+132918,132952,34,1,2,1,3,
+133068,133102,34,1,6,13,20,
+133135,133172,37,1,1,2,3,133140:25:System.game.grid.session | 133140:25:Game.runPhase:fixed.post | 133140:26:Game.runFixed
+133235,133272,37,1,2,1,4,
+133368,133402,34,1,1,2,3,
+133468,133502,34,1,1,2,3,133477:4:Renderer.initTexture
+133568,133602,34,1,2,1,3,
+133668,133702,34,1,1,2,3,
+133768,133802,34,1,2,1,3,
+133835,133869,34,1,2,1,3,
+133968,134002,34,1,2,1,3,
+134068,134102,34,1,1,2,3,
+134168,134202,34,1,2,1,3,
+134235,134269,34,1,1,2,3,
+134368,134402,34,1,2,1,3,
+134435,134469,34,1,1,2,3,
+134568,134603,35,1,3,1,4,134580:6:BuildStages.build:Shrine
+134603,134652,49,1,2,2,4,134637:5:BufferGeometry.computeBoundingBox | 134642:9:BufferGeometry.computeBoundingSphere
+134718,134752,34,1,3,1,4,
+134818,134852,34,1,2,1,3,
+134852,134886,34,1,1,2,4.0,134882:4:BufferGeometry.computeBoundingSphere
+134908,134944,36,1,2,2,4,134925:6:BufferGeometry.computeBoundingBox | 134931:12:BufferGeometry.computeBoundingSphere
+134944,134978,34,1,3,1,4,
+134978,135018,40,1,1,2,4,
+135018,135055,37,1,2,2,4,
+135118,135152,34,1,2,1,3,
+135218,135252,34,1,2,1,3,
+135318,135352,34,1,2,1,3,
+135418,135452,34,1,2,2,4,
+135452,135497,45,1,10,2,13,
+135497,135532,35,1,2,2,4,135499:7:Physics.step | 135499:7:System.physics.step | 135499:7:Game.runPhase:fixed.step | 135499:8:Game.runFixed
+135557,135602,45,1,2,2,4,
+135629,135739,110,1,5,2,8,135739:4:Game.runFixed
+135739,135808,69,1,4,2,7,135739:4:Game.runFixed
+135868,135916,48,1,2,3,5,135890:22:Renderer.compile
+136068,136102,34,1,2,2,4,
+136168,136202,34,1,2,2,4,
+136268,136302,34,1,2,3,5.0,
+136368,136407,39,1,12,2,16,136375:31:Renderer.compile
+136407,136445,38,1,2,2,5,136410:9:Physics.step | 136410:9:System.physics.step | 136410:9:Game.runPhase:fixed.step | 136409:11:Game.runFixed | 136426:18:Renderer.compile
+136535,136569,34,1,2,2,5,136543:19:Renderer.compile
+136698,136735,37,1,2,3,5,136704:21:Renderer.compile
+136765,136802,37,1,3,3,16,136772:20:Renderer.compile
+136802,136845,43,1,2,2,5,136820:23:Renderer.compile
+137031,137086,55,1,3,2,5,137038:4:Renderer.initTexture | 137064:22:Renderer.compile
+137117,137153,36,1,1,3,4,137132:19:Renderer.compile
+137268,137302,34,1,2,2,4,
+137368,137402,34,1,2,2,4,137376:20:Renderer.compile
+137402,137442,40,1,2,3,5,137408:21:Renderer.compile
+137567,137602,35,1,2,3,5,137548:19:Renderer.compile | 137575:18:Renderer.compile
+137668,137702,34,1,2,2,4,137675:19:Renderer.compile
+137768,137802,34,1,2,2,12,137776:19:Renderer.compile
+137802,137836,34,1,2,2,4,137817:19:Renderer.compile
+137868,137902,34,1,2,2,4,137875:18:Renderer.compile
+137968,138002,34,1,2,2,4,137976:20:Renderer.compile
+138035,138069,34,1,2,3,5,138042:19:Renderer.compile
+138135,138173,38,1,3,3,6,138135:4:Game.runFixed | 138145:18:Renderer.compile
+138266,138302,36,1,2,2,4,138275:18:Renderer.compile
+138368,138404,36,1,2,3,5,138375:21:Renderer.compile
+138468,138502,34,1,2,2,4,
+138568,138602,34,1,2,2,4,
+138668,138702,34,1,2,2,4,
+138735,138771,36,1,2,2,4,138743:27:Renderer.compile
+138868,138902,34,1,1,3,4,138876:17:Renderer.compile
+138968,139002,34,1,2,2,4,138977:18:Renderer.compile
+139068,139102,34,1,2,2,4,139075:8:Renderer.compile
+139168,139202,34,1,2,2,4,
+139268,139302,34,1,1,3,4,
+139368,139402,34,1,2,2,4,
+139468,139502,34,1,2,2,4,
+139568,139602,34,1,2,2,4,
+139668,139702,34,1,1,2,3,
+139768,139802,34,1,2,2,4,
+139868,139903,35,1,2,2,4,
+139968,140002,34,1,2,2,4,139977:8:Renderer.compile
+140068,140102,34,1,2,2,4,
+140168,140202,34,1,2,2,4,
+140268,140302,34,1,2,2,4,140278:11:Renderer.render
+140335,140461,126,1,2,2,4,
+140518,140552,34,1,2,2,4,140525:4:Renderer.render
+140618,140652,34,1,2,2,4,
+140718,140752,34,1,2,2,4,
+140818,140852,34,1,2,2,4,140825:5:ShadowMap.render | 140825:5:Renderer.render
+140918,140952,34,1,2,2,4,
+141018,141052,34,1,4,2,7,
+141052,141096,44,1,5,2,7,141096:4:Game.runFixed
+141218,141252,34,1,4,2,6,
+141318,141352,34,1,2,2,4,
+141418,141452,34,1,2,2,4,
+141518,141552,34,1,2,3,5.0,
+141618,141652,34,1,2,3,5,
+141718,141752,34,1,2,2,4,
+141818,141852,34,1,2,2,4,
+141918,141952,34,1,3,2,5,
+142018,142109,91,1,7,6,14,142020:2:RuntimeHooks.activate | 142019:5:Game.runPhase:fixed.post | 142019:6:Game.runFixed | 142030:5:System.shard.driftwood.adventure | 142025:11:Game.runPhase:update | 142038:7:Renderer.render | 142038:7:Composer.render
+142161,142202,41,1,6,5,11,142168:4:Renderer.render | 142168:4:Composer.render
+142268,142302,34,1,6,5,11.0,142275:5:Renderer.render | 142275:5:Composer.render
+142358,142402,44,1,5,5,10,142363:5:Renderer.render | 142363:5:Composer.render
+142423,142468,45,1,4,5,10,142428:5:Renderer.render | 142428:5:Composer.render
+142489,142535,46,1,11,6,17,142493:5:Renderer.render | 142493:5:Composer.render
+142590,142635,45,1,5,6,11.0,142596:5:Renderer.render | 142596:5:Composer.render
+142656,142702,46,1,4,6,10,142661:5:Renderer.render | 142661:5:Composer.render
+142752,142814,62,1,7,6,13,142753:4:Game.runFixed | 142762:45:Renderer.render | 142761:46:Composer.render
+142868,142902,34,1,4,6,10,142874:5:Renderer.render | 142874:5:Composer.render
+142968,143002,34,1,6,5,11,142973:5:Renderer.render | 142973:5:Composer.render
+143068,143102,34,1,4,6,10,143074:5:Renderer.render | 143074:5:Composer.render
+143168,143202,34,1,4,6,10,143175:4:Renderer.render | 143174:6:Composer.render
+143268,143302,34,1,4,6,10,143273:5:Renderer.render | 143273:6:Composer.render
+143368,143402,34,1,4,6,10,143373:6:Renderer.render | 143373:6:Composer.render
+143468,143502,34,1,4,6,10,143471:6:System.grid.runtime.driftwood-isle.animals | 143471:7:Game.runPhase:update | 143480:5:Renderer.render | 143480:5:Composer.render
+143568,143602,34,1,5,5,10,143573:5:Renderer.render | 143573:5:Composer.render
+143668,143702,34,1,4,6,10,143674:5:Renderer.render | 143674:5:Composer.render
+143768,143802,34,1,5,6,11.0,143774:4:Renderer.render | 143774:5:Composer.render
+143868,143902,34,1,4,5,9,143874:5:Renderer.render | 143874:5:Composer.render
+143968,144002,34,1,8,5,13.0,143974:5:Renderer.render | 143974:6:Composer.render
+144068,144102,34,1,4,6,10,144073:5:Renderer.render | 144073:5:Composer.render
+144168,144202,34,1,4,6,10,144174:6:Renderer.render | 144174:6:Composer.render
+144268,144302,34,1,4,5,9,144273:5:Renderer.render | 144273:5:Composer.render
+144368,144402,34,1,4,5,10,144373:4:Renderer.render | 144373:5:Composer.render
+144468,144502,34,1,4,5,9,144473:5:Renderer.render | 144473:5:Composer.render
+144568,144602,34,1,4,5,9,144573:4:Renderer.render | 144573:5:Composer.render
+144635,144669,34,1,4,6,10,144639:5:Renderer.render | 144639:6:Composer.render
+144768,144802,34,1,4,6,10,144774:5:Renderer.render | 144774:5:Composer.render
+144868,144902,34,1,3,6,9,144871:5:System.grid.runtime.driftwood-isle.animals | 144871:6:Game.runPhase:update | 144878:5:Renderer.render | 144878:5:Composer.render
+144968,145002,34,1,4,5,9,144980:5:Renderer.render | 144980:5:Composer.render
+145068,145102,34,1,3,6,9,145074:4:Renderer.render | 145074:5:Composer.render
+145102,145136,34,1,4,5,10.0,145106:5:Renderer.render | 145106:5:Composer.render
+145168,145202,34,1,5,5,10,145173:5:Renderer.render | 145173:5:Composer.render
+145268,145302,34,1,3,6,9,145273:5:Renderer.render | 145273:5:Composer.render
+145368,145402,34,1,4,5,9,145372:5:Renderer.render | 145372:5:Composer.render
+145468,145502,34,1,3,6,9,145474:4:Renderer.render | 145474:5:Composer.render
+145568,145602,34,1,5,5,10,145573:5:Renderer.render | 145573:5:Composer.render
+145668,145702,34,1,4,6,10,145674:5:Renderer.render | 145674:5:Composer.render
+145702,145737,35,1,4,6,10,145706:6:Renderer.render | 145706:6:Composer.render
+145768,145802,34,1,4,5,9,145772:5:Renderer.render | 145772:5:Composer.render
+145868,145902,34,1,5,6,11,145875:4:Renderer.render | 145875:4:Composer.render
+145935,145970,35,1,4,5,9,145940:5:Renderer.render | 145940:5:Composer.render
+146068,146102,34,1,3,6,9,146073:4:Renderer.render | 146073:5:Composer.render
+146168,146202,34,1,4,6,10,146173:5:Renderer.render | 146173:5:Composer.render
+146268,146302,34,1,3,6,9,146273:5:Renderer.render | 146273:5:Composer.render
+146368,146402,34,1,4,6,10,146372:5:Renderer.render | 146372:6:Composer.render
+146468,146502,34,1,3,5,8,146474:5:Renderer.render | 146474:5:Composer.render
+146535,146570,35,1,4,5,9,146540:5:Renderer.render | 146540:5:Composer.render
+146668,146702,34,1,3,6,9,146673:5:Renderer.render | 146673:5:Composer.render
+146768,146802,34,1,4,5,9,146772:5:Renderer.render | 146772:5:Composer.render
+146868,146902,34,1,3,5,9,146873:5:Renderer.render | 146873:5:Composer.render
+146968,147002,34,1,5,6,11,146973:4:Renderer.render | 146973:5:Composer.render
+147035,147069,34,1,4,5,9,147039:5:Renderer.render | 147039:5:Composer.render
+147168,147202,34,1,5,5,10,147174:5:Renderer.render | 147174:5:Composer.render
+147235,147269,34,1,5,6,11,147235:4:Game.runFixed | 147240:5:Renderer.render | 147240:5:Composer.render | 147269:4:Game.runFixed
+147368,147402,34,1,4,5,9,147373:4:Renderer.render | 147372:5:Composer.render
+147468,147502,34,1,3,6,9,147473:5:Renderer.render | 147473:5:Composer.render
+147568,147602,34,1,4,6,10,147573:5:Renderer.render | 147573:5:Composer.render
+147668,147702,34,1,3,5,8,147673:5:Renderer.render | 147673:5:Composer.render
+147735,147770,35,1,5,5,10,147740:4:Renderer.render | 147740:5:Composer.render
+147868,147902,34,1,4,5,9,147873:5:Renderer.render | 147873:5:Composer.render
+147968,148002,34,1,5,5,10,147973:4:Renderer.render | 147973:4:Composer.render
+148068,148102,34,1,3,6,9,148073:5:Renderer.render | 148073:5:Composer.render
+148168,148202,34,1,4,5,9,148173:5:Renderer.render | 148173:5:Composer.render
+148268,148302,34,1,3,6,9,148273:5:Renderer.render | 148273:5:Composer.render
+148368,148402,34,1,4,10,14,148373:4:Renderer.render | 148373:5:Composer.render
+148468,148502,34,1,3,6,9,148473:5:Renderer.render | 148473:5:Composer.render
+148535,148569,34,1,3,6,9,148539:5:Renderer.render | 148539:5:Composer.render
+148668,148702,34,1,3,5,8,148673:4:Renderer.render | 148673:5:Composer.render
+148702,148737,35,1,3,6,9,148705:5:Renderer.render | 148705:5:Composer.render
+148768,148802,34,1,4,5,9,148772:5:Renderer.render | 148772:5:Composer.render
+148868,148902,34,1,3,6,9,148873:4:Renderer.render | 148873:5:Composer.render
+148968,149002,34,1,5,5,10,148972:5:Renderer.render | 148972:5:Composer.render
+149068,149102,34,1,3,5,8,149073:4:Renderer.render | 149073:4:Composer.render
+149168,149202,34,1,4,6,10,149173:5:Renderer.render | 149173:5:Composer.render
+149268,149302,34,1,3,6,9,149273:4:Renderer.render | 149273:4:Composer.render
+149368,149402,34,1,3,5,8,149372:5:Renderer.render | 149372:5:Composer.render
+149468,149502,34,1,3,5,8,149473:4:Renderer.render | 149473:4:Composer.render
+149568,149602,34,1,4,5,9,149572:4:Renderer.render | 149572:5:Composer.render
+149668,149702,34,1,3,5,8,149675:5:Renderer.render | 149675:5:Composer.render
+149768,149802,34,1,3,6,9,149773:5:Renderer.render | 149773:5:Composer.render
+149868,149902,34,1,3,5,8,149873:5:Renderer.render | 149873:6:Composer.render
+149968,150002,34,1,5,5,10,149972:5:Renderer.render | 149972:5:Composer.render
+150068,150102,34,1,3,5,8,150072:5:Renderer.render | 150072:5:Composer.render
+150102,150137,35,1,3,5,8,150105:5:Renderer.render | 150105:5:Composer.render
+150168,150202,34,1,3,5,8,150173:4:Renderer.render | 150173:4:Composer.render
+150268,150302,34,1,3,5,8,150272:4:Renderer.render | 150272:5:Composer.render
+150368,150402,34,1,3,5,8,150372:4:Renderer.render | 150372:4:Composer.render
+150468,150502,34,1,3,5,8,150472:5:Renderer.render | 150472:5:Composer.render
+150568,150602,34,1,3,6,9,150572:4:Renderer.render | 150572:4:Composer.render
+150635,150670,35,1,3,5,9,150639:4:Renderer.render | 150639:5:Composer.render
+150702,150736,34,1,3,6,9,150705:5:Renderer.render | 150705:6:Composer.render
+150768,150802,34,1,3,5,8,150772:4:Renderer.render | 150772:5:Composer.render
+150868,150902,34,1,3,4,7,150872:5:Renderer.render | 150872:5:Composer.render
+150968,151002,34,1,4,6,10,150972:5:Renderer.render | 150972:5:Composer.render
+151068,151102,34,1,2,5,7,151073:4:Renderer.render | 151073:5:Composer.render
+151168,151203,35,1,4,5,9,151173:5:Renderer.render | 151173:5:Composer.render
+151268,151302,34,1,3,5,8,151272:5:Renderer.render | 151272:5:Composer.render
+151368,151402,34,1,3,5,8,151372:4:Renderer.render | 151372:4:Composer.render
+151468,151503,35,1,3,5,8,151472:5:Renderer.render | 151472:5:Composer.render
+151568,151602,34,1,3,5,8,151572:5:Renderer.render | 151572:5:Composer.render
+151668,151702,34,1,3,4,8,151672:4:Renderer.render | 151672:5:Composer.render
+151768,151802,34,1,3,5,8,151772:4:Renderer.render | 151772:5:Composer.render
+151868,151902,34,1,2,5,7,151872:5:Renderer.render | 151872:5:Composer.render
+151935,151970,35,1,3,5,8,151939:4:Renderer.render | 151939:4:Composer.render
+152035,152070,35,1,3,6,9,152038:4:Renderer.render | 152038:5:Composer.render
+152168,152202,34,1,3,5,8,152173:4:Renderer.render | 152173:5:Composer.render
+152268,152302,34,1,2,6,8,152273:5:Renderer.render | 152273:5:Composer.render
+152302,152337,35,1,3,5,8,152305:4:Renderer.render | 152305:5:Composer.render
+152368,152402,34,1,3,5,8,152372:4:Renderer.render | 152372:4:Composer.render
+152402,152437,35,1,2,5,7.0,152405:5:Renderer.render | 152405:5:Composer.render
+152468,152502,34,1,2,5,7,152472:5:Renderer.render | 152472:5:Composer.render
+152568,152602,34,1,3,5,8,152572:4:Renderer.render | 152572:4:Composer.render
