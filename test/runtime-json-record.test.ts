@@ -4,12 +4,9 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { bossesSave, elitesSave } from '../src/game/saves';
 import { bindRuntimeJsonRecord } from '../src/game/plugin/headless';
-import { bindPineCombatState } from '../src/shards/pine-hollow/runtime/persistence';
+import { bindAdventurePersistence } from '../src/game/quest/persistence';
+import rows from '../src/shards/pine-hollow/data/persistence.json' with { type: 'json' };
 import source from '../src/shards/pine-hollow/shard.config';
-import { shardProductData } from '../src/game/shardfile/productData';
-
-// The runtime reads its declaration from the product (P2a); this one wraps the in-memory build.
-const product = shardProductData(source, 'http://localhost/', () => Promise.reject(new Error('no blobs in this test')));
 
 test('adopts old Pine boss and elite saves once and reloads current records', () => {
   const instance = 'test-pine-json-old-save', scope = new Scope('old-pine'), next = new Scope('reload-pine');
@@ -18,7 +15,7 @@ test('adopts old Pine boss and elite saves once and reloads current records', ()
   expect(bossesSave.write(bosses, instance)).toBe(true);
   expect(elitesSave.write(elites, instance)).toBe(true);
   try {
-    const records = bindPineCombatState({ app, scope, product }, instance);
+    const records = bindAdventurePersistence({ app, scope }, source, rows, instance);
     expect(records.bosses.read(instance)).toEqual(bosses);
     expect(records.elites.read(instance)).toEqual(elites);
     expect(() => records.bosses.read('another-cell')).toThrow('another instance');
@@ -27,7 +24,7 @@ test('adopts old Pine boss and elite saves once and reloads current records', ()
     expect(records.bosses.write(paid, instance)).toBe(true);
     scope.dispose();
     bossesSave.write({}, instance); elitesSave.write({}, instance);
-    const resumed = bindPineCombatState({ app, scope: next, product }, instance);
+    const resumed = bindAdventurePersistence({ app, scope: next }, source, rows, instance);
     expect(resumed.bosses.read(instance)).toEqual(paid);
     expect(resumed.elites.read(instance)).toEqual(elites);
     expect(() => records.bosses.read(instance)).toThrow('disposed');

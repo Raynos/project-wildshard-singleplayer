@@ -9,7 +9,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
-import type { NalatiPersistence } from '../runtime/persistence';
+import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { Mount } from './Mount';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Taming } from './Taming';
@@ -88,7 +88,7 @@ export function wireRide(ctx: RideCtx): Ride {
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
     player: ctx.player, forest: ctx.forest,
-    ...(ctx.persistence === undefined ? {} : { names: ctx.persistence.horseNames }),
+    ...(ctx.persistence === undefined ? {} : { names: ctx.persistence.names }),
     isDrawing,
     hurt: (d) => { hurt(d); },
     restAt: { x: rest.x, z: rest.z },

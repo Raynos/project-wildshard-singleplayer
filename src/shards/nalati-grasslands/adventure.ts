@@ -11,7 +11,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { QuestLine, type QuestState } from '@wildshard/engine/quest/core';
 import { NpcTalk, QuestChip, placesWithDiscovery, type LiveMarker, type Places } from '@wildshard/engine/quest/view';
 import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
-import type { NalatiPersistence } from './runtime/persistence';
+import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { bindNalatiQuests } from './runtime/quests';
 import type { ProgressSink } from '@wildshard/game/Progress';
 import { elitesSave } from '@wildshard/game/saves';

@@ -3,6 +3,40 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nalati-persistence",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-persistence.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
+        "src/shards/nalati-grasslands/data/persistence.json",
+        "src/shards/nalati-grasslands/data/feats.ts",
+        "src/shards/nalati-grasslands/data/ledger.ts",
+        "src/sdk/ledger.ts",
+        "src/format",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/immutable.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/persistence.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/persistence.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": []
+    },
+    {
       "id": "nalati-kurgan",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",

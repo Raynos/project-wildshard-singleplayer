@@ -27,7 +27,9 @@ import { installNalatiWeaponHooks } from '../weapons/hooks';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from '../adventure';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
-import { bindNalatiPersistence, type NalatiPersistence } from './persistence';
+import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
+import { horseNamesSave, tulparSave } from '../ride/saves';
+import { nalatiSkinsSave } from '../weapons/saves';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
@@ -51,7 +53,11 @@ export class NalatiPlugin extends ShardPlugin {
     const { game, sky, forest, registry } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials)));
-    this.persistence = bindNalatiPersistence(ctx, ctx.product.shardfile, world.chunk.slug);
+    this.persistence = bindAdventurePersistence(ctx, ctx.product.shardfile, await readAdventurePersistence(ctx), world.chunk.slug, {
+      names: () => horseNamesSave.read(ctx.product.shardfile.identity.slug),
+      cosmetics: () => nalatiSkinsSave.read(ctx.product.shardfile.identity.slug),
+      bond: () => tulparSave.read(ctx.product.shardfile.identity.slug),
+    });
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await import('@wildshard/engine/world/Grass');

@@ -1,0 +1,36 @@
+{
+  "bosses": {
+    "key": "nalati.bosses",
+    "flagPrefix": "dead:"
+  },
+  "elites": {
+    "key": "nalati.elites",
+    "flagPrefix": "felled:"
+  },
+  "nonnegative": true,
+  "names": "nalati.horse-names",
+  "cosmetics": {
+    "key": "nalati.cosmetics",
+    "flagPrefix": "owned:"
+  },
+  "bond": {
+    "key": "nalati.bond",
+    "flags": [
+      {
+        "flag": "tamed:horse"
+      },
+      {
+        "flag": "tamed:argymaq",
+        "equals": "argymaq"
+      }
+    ]
+  },
+  "counters": {
+    "key": "nalati.feat-counts",
+    "prefix": "feat.",
+    "separator": ".",
+    "maximum": 25
+  },
+  "legacyNamespace": "content",
+  "refuseWrites": true
+}

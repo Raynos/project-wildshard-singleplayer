@@ -1,7 +1,7 @@
 import { readDataPanels } from '@wildshard/sdk/dataPanels';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import source from '../shard.config';
-import type { NalatiPersistence } from './persistence';
+import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
 import { createNativeFlocks, readFlockBody, type NativeFlocks } from './flockDeclared';

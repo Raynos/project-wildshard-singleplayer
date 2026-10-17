@@ -6859,8 +6859,12 @@ field. The legacy callback seeds that field only on its first initialization.
 Reads and writes validate through the supplied schema and refuse another
 instance namespace. Writes return the underlying durability result; callers
 retain their existing refusal policy. Pine uses this for its boss/elite saves.
-Nalati's W3 `runtime/persistence.ts#record` adopts the same path while keeping
-its explicit failed-write error and native schemas.
+`game/quest/persistence.bindAdventurePersistence(ctx, source, rows, instance?,
+legacy?)` composes those records for Pine and Nalati. Declared keys retain
+content-versus-placement legacy namespaces, numeric validation, failed-write
+policy, boss/elite/cosmetic flags, companion bonds and feat receipt identities.
+Legacy callbacks initialize optional companion records once. Subsequent reads,
+writes and checkpoints use the bound state and projected ledger only.
 
 **Creature swing envelopes (G441).** `game/plugin/animation.sampleCreatureSwing`
 samples a `CreatureSwingSpec` into caller-owned numeric scratch: bounded

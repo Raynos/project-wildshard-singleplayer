@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./quest/persistence": "./quest/persistence.ts",
     "./loot/exchange": "./loot/exchange.ts",
     "./quest/trader": "./quest/trader.ts",
     "./quest/storyLaw": "./quest/storyLaw.ts",

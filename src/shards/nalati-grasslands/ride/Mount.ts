@@ -19,7 +19,7 @@ import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Sabre, type MountState } from '../runtime/weapons/Sabre';
 import { Spear } from '../runtime/weapons/Spear';
-import type { NalatiRecord } from '../runtime/persistence';
+import type { SavedRecord as NalatiRecord } from '@wildshard/game/quest/persistence';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 
 /**

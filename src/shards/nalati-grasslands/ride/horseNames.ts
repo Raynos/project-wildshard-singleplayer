@@ -1,6 +1,6 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
-import type { NalatiRecord } from '../runtime/persistence';
+import type { SavedRecord as NalatiRecord } from '@wildshard/game/quest/persistence';
 
 
 /**

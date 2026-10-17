@@ -5,7 +5,7 @@ import { installBossEncounter } from '@wildshard/game/Boss';
 import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
 import type { Inventory } from '@wildshard/game/Inventory';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
-import { bindPineCombatState } from '../runtime/persistence';
+import { bindAdventurePersistence } from '@wildshard/game/quest/persistence';
 import source from '../shard.config';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
@@ -63,6 +63,7 @@ import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, install
  */
 
 export interface PineCombatHost {
+  persistenceRows: unknown;
   readonly decisionProgram:SpeciesProgramData; readonly decisions:SpeciesDecisionAuthority;
   context?: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
@@ -152,7 +153,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
   };
-  const persistence = h.context === undefined ? undefined : bindPineCombatState(h.context, 'pine-hollow');
+  const persistence = h.context === undefined ? undefined : bindAdventurePersistence(h.context, h.context.product.shardfile, h.persistenceRows, 'pine-hollow');
   const body = h.context === undefined ? undefined : bindRuntimeBoss(h.context, source, 'pine.antler-king', undefined, { identity: 'runtime' });
   const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow', persistence?.elites);
   const pineElites = makePineElites(ctx, elites);
