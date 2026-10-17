@@ -4,7 +4,8 @@ import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { expect, it } from 'vitest';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
-import { contentHash } from '../src/sdk/project';
+import { contentHash, readProjectAssets } from '../src/sdk/project';
+import { outputDecisionScripts } from '../src/sdk/outputProduct';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import product from '../src/shards/driftwood-isle/data/fixedTiles.generated.json' with { type: 'json' };
 import source from '../src/shards/driftwood-isle/shard.config';
@@ -41,9 +42,9 @@ it('assembles the original fixed model identities from the declared tiles and li
   }
 });
 
-it('admits the real generated ground, tile and library assets for the trusted world', () => {
-  const assets = new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/${file.hash}`))]));
-  expect(validateShardfileAssets(source, assets, contentHash)).toEqual(source);
+it('admits the real generated ground, tile and library assets for the trusted world', async () => {
+  const loaded = await readProjectAssets('src/shards/driftwood-isle');
+  expect(validateShardfileAssets(loaded.shard, loaded.assets, contentHash, undefined, undefined, outputDecisionScripts(loaded.output.platform))).toEqual(loaded.shard);
   expect(source.runtime?.binds).toContain('props');
   expect(source.runtime?.binds).toContain('terrain');
 });
