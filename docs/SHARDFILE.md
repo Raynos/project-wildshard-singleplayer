@@ -72,6 +72,17 @@ other shard-file asset (GLB not Blender scripts, KTX2 not source images, JSON no
 generators). The row keeps provenance only: the `source` path, and a SHA-256 of that
 source so a build can prove which `.as` produced the `.wasm`.
 
+**Any language may produce the WASM** (Jake, 2026-10-17, G491). The format is a data
+contract, not our toolchain: a module written in C, Rust, Zig or anything else is
+admitted if it passes Script ABI admission (only `ws_read`/`ws_list` imported, the
+`ws_abi`/`ws_init`/`ws_io`/`ws_handle` exports, 1–4 memory pages, no other imports such
+as WASI). Admission never trusts the producer: it re-parses every section, re-hashes every
+blob, re-checks every module, and re-measures script cost (WASM bytes, fuel per call and
+per tick, CPU) instead of reading a declared figure. Outside authors are budgeted by those
+measured costs; the 10 % AssemblyScript line ceiling stays a first-party rule for this
+repo. `docs/SCRIPT-ABI.md` documents the IO block layout so non-AssemblyScript authors can
+read events and write commands (a generated C header may follow).
+
 `runtime` is the explicitly temporary first-party transition exception: it carries
 a registry selector and bounded data metadata, never TypeScript bytes, a fetch URL
 or an executable callback.
