@@ -20,12 +20,12 @@ test('offline presence preserves coat order, phone fallback and late-read timing
   const inventory = {
     '/assets/nalati/models/coats/z.coat.webp': true,
     '/assets/nalati/models/coats/a.coat.webp': true,
-    '/assets/nalati/models/eagle.phone.glb': true,
+    '/assets/nalati/baked/painted-models/eagle.phone.glb': true,
     '/assets/nalati/models/people/cook.gen.phone.glb': true,
   } satisfies Readonly<Record<string, number | true>>;
   const rows = nalatiBootInventory(inventory);
   expect(bootSourceFiles(rows.sources, 'phone', 'img').props).toEqual([
-    '/assets/nalati/models/eagle.phone.glb',
+    '/assets/nalati/baked/painted-models/eagle.phone.glb',
     '/assets/nalati/models/coats/a.coat.webp',
     '/assets/nalati/models/coats/z.coat.webp',
   ]);
