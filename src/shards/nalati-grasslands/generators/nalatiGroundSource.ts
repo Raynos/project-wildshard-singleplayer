@@ -4,10 +4,13 @@ import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
 import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
+import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
 import { buildPainterlyGeometry } from '../look/terrainPainter';
 import { TERRAIN } from '../world/terrain';
 
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
+/** the painter names its masks as the painted-terrain layer reads them */
+const PAINTED: Readonly<Record<string, string>> = { surf: ATTR.mask.name, rdir: ATTR.track.name, zone: ATTR.zone.name };
 const CUSTOM = { _SURF: 'surf', _RDIR: 'rdir', _ZONE: 'zone' } as const;
 /** Unpacked ground geometry: the shared SDK visitor owns later hash/file/tile row composition. */
 export interface NalatiGroundTile { tile: NativeLatticeTile; bytes: Uint8Array; cost: AssetCost; geometricError: number }
@@ -55,7 +58,7 @@ export function nalatiGroundSource(bytes: Uint8Array): NativeLatticeSource {
     }
     const attributes: Record<string, NativeLatticeAttribute> = {};
     for (const [name, width] of Object.entries(CHANNELS)) {
-      const channel = geometry.getAttribute(name);
+      const channel = geometry.getAttribute(PAINTED[name] ?? name);
       if (channel.itemSize !== width || channel.count !== position.count) throw new Error(`Nalati painter lost channel ${name}`);
       attributes[name] = { itemSize: width, values: Float32Array.from({ length: channel.count * width }, (_, i) => channel.getComponent(Math.floor(i / width), i % width)) };
     }

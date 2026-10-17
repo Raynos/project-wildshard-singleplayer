@@ -308,10 +308,16 @@ export function paintedTerrainBakesKey(params: PaintedTerrainParams, tier: strin
 
 /**
  * Patch a painterly family material with the painted-terrain layer (`compilePainterly` calls it for a surface that
- * declares `terrain`). The five maps resolve as colour. `cheap` (one turned rock tap instead of the stretched big one)
- * and `bakeKey` default from the tier.
+ * declares `terrain`). The five maps resolve as colour, through the resolver or, for a runtime that loaded them itself
+ * (data, G454), a table of textures by reference. `cheap` (one turned rock tap instead of the stretched big one) and
+ * `bakeKey` default from the tier.
  */
-export function applyPaintedTerrain(m: THREE.Material, params: PaintedTerrainParams, textures: TextureResolver, options: { cheap?: boolean; bakeKey?: boolean } = {}): void {
+export function applyPaintedTerrain(m: THREE.Material, params: PaintedTerrainParams, source: TextureResolver | Readonly<Record<string, THREE.Texture>>, options: { cheap?: boolean; bakeKey?: boolean } = {}): void {
+  const textures: TextureResolver = typeof source === 'function' ? source : (ref) => {
+    const texture = source[ref];
+    if (texture === undefined) throw new Error(`painted terrain: no texture ${ref}`);
+    return texture;
+  };
   const cheap = options.cheap ?? TIER_CONFIG.maxTexture <= 1024, bakeKey = options.bakeKey ?? paintedTerrainBakesKey(params);
   const ice = params.ice, z = params.zones;
   const own: PaintedTerrainUniforms = {

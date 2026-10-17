@@ -51,10 +51,10 @@ export function inventoryNalatiWorld(root, edges) {
   });
   const source = 'src/shards/nalati-grasslands';
   return { version: 1, terrain: nativeTerrainWitness(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')), edges),
-    sourceFiles: [...files(`${source}/world`), ...files(`${source}/look`), ...files(`${source}/models`), ...['layout.ts', 'cragRock.ts', 'terrainSurface.ts'].map(name => inspect(`${source}/${name}`))].sort((a, b) => a.path.localeCompare(b.path)),
+    sourceFiles: [...files(`${source}/world`), ...files(`${source}/look`), ...files(`${source}/models`), ...['layout.ts', 'cragRock.ts'].map(name => inspect(`${source}/${name}`))].sort((a, b) => a.path.localeCompare(b.path)),
     modelInputs: files('public/assets/nalati/models'), textureInputs: files('public/assets/nalati/tex'),
     hierarchy: [{ lod: 0, size: 62.5, count: 64 }, { lod: 1, size: 125, count: 16 }, { lod: 'far', size: 500, count: 1 }],
-    preserveTerrainAttributes: ['position', 'normal', 'color', 'surf', 'rdir', 'zone'],
+    preserveTerrainAttributes: ['position', 'normal', 'color', '_surf', '_rdir', '_zone'],
     hybridBoundaries: ['animated/awakened balbals', 'flutter cloth', 'smoke', 'water animation', 'grass/wind', 'ambient life', 'moving herds', 'weather', 'creatures', 'quests', 'combat'],
     costs: { status: 'unbaked', note: 'Per-tile and resident costs require emitted bytes; input sizes are not admission costs.' } };
 }

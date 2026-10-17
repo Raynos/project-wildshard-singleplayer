@@ -9,10 +9,13 @@ import { Noise2D } from '@wildshard/engine/core/noise';
 import type { PainterField, TerrainPainter } from '@wildshard/engine/render/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
+import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
+import { PAINTED_TERRAIN_ATTRIBUTES as ATTR, parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { NALATI_GRASSLANDS as def } from '../manifest';
-import { applyTerrainSurface } from '../terrainSurface';
+import { SNOW_LINE, GLACIER } from '../layout';
 import { zoneWeights } from './zones';
-import { loadNalatiTextures } from './nalatiTextures';
+import { bakeUniforms } from './bake';
+import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
 
 /** the manifest's terrain field (what `terrainFor(def)` returned) */
 function terrain(): NonNullable<typeof def.ground.terrain> {
@@ -29,10 +32,28 @@ export const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: buildPainterly };
  * shared painterly material with soft cel bands (terrain takes a gentler ramp than props, so the slopes still
  * read as gradients). The slab walls are painted rock on the same material. Two draw calls, one program.
  */
+/**
+ * The painted ground as the painterly family's painted-terrain layer (engine/render/families/paintedTerrain.ts): meadow
+ * detail, the dirt track along the trails, gravel, granite, snow, the snow ring and the glacier, per pixel over the
+ * vertex colour. The phone's key light on the ground is shadowed by the look bake (look/bake.ts; CSM adds what moves).
+ */
+const SURFACE = parsePaintedTerrain({
+  maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' },
+  metres: { base: TEX_METRES.meadow, track: TEX_METRES.path, gravel: TEX_METRES.gravel, rock: TEX_METRES.rock, snow: TEX_METRES.snow },
+  means: { base: [...TEX_MEAN.meadow], rock: [...TEX_MEAN.rock] },
+  snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
+  ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half },
+});
+const LAYERS = ['meadow', 'path', 'gravel', 'rock', 'snow'] as const satisfies readonly NalatiTexName[];
+
 async function buildPainterly(t: Terrain, f: PainterField): Promise<void> {
-  const [, tex] = await Promise.all([f.ready(), loadNalatiTextures(['meadow', 'path', 'gravel', 'rock', 'snow'])]);
+  const [, tex] = await Promise.all([f.ready(), loadNalatiTextures(LAYERS)]);
   const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
-  applyTerrainSurface(mat, tex); // the painted ground: meadow, dirt track, gravel, granite, snow (src/shards/nalati-grasslands/terrainSurface.ts)
+  applyPaintedTerrain(mat, SURFACE, tex);
+  bindPaintedTerrainBake(mat, {
+    famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,
+    famTBakeContact: bakeUniforms.tBakeContact, famTContactXf: bakeUniforms.uContactXf,
+  });
   t.material = mat;
   const rows = buildPainterlyGeometry(f);
   let r = rows.next();
@@ -75,7 +96,7 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
       const slope = 1 - ny / l;
       paint?.(x, z, y, slope, terrain(), out); // the manifest always paints (groundColor)
       col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
-      // the surface-detail masks (src/shards/nalati-grasslands/terrainSurface.ts): road across · gravel · snow · rock
+      // the painted-terrain masks: road across · gravel · snow · rock
       const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
       signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
       surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
@@ -92,9 +113,9 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  geo.setAttribute('surf', new THREE.BufferAttribute(surf, 4));
-  geo.setAttribute('rdir', new THREE.BufferAttribute(rdir, 2));
-  geo.setAttribute('zone', new THREE.BufferAttribute(zone, 3));
+  geo.setAttribute(ATTR.mask.name, new THREE.BufferAttribute(surf, 4));
+  geo.setAttribute(ATTR.track.name, new THREE.BufferAttribute(rdir, 2));
+  geo.setAttribute(ATTR.zone.name, new THREE.BufferAttribute(zone, 3));
   geo.setIndex(new THREE.BufferAttribute(idx, 1));
   geo.computeBoundingSphere();
   return geo;
@@ -156,9 +177,9 @@ function buildPainterlySlab(f: PainterField): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-  geo.setAttribute('surf', new THREE.Float32BufferAttribute(surf, 4));
-  geo.setAttribute('rdir', new THREE.Float32BufferAttribute(rdir, 2));
-  geo.setAttribute('zone', new THREE.Float32BufferAttribute(new Float32Array((verts.length / 3) * 3), 3)); // the walls carry no zone
+  geo.setAttribute(ATTR.mask.name, new THREE.Float32BufferAttribute(surf, 4));
+  geo.setAttribute(ATTR.track.name, new THREE.Float32BufferAttribute(rdir, 2));
+  geo.setAttribute(ATTR.zone.name, new THREE.Float32BufferAttribute(new Float32Array((verts.length / 3) * 3), 3)); // the walls carry no zone
   geo.setIndex(idx);
   geo.computeVertexNormals();
   geo.computeBoundingSphere();
