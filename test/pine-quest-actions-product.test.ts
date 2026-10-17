@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
