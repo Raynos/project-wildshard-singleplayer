@@ -1,10 +1,10 @@
 import type { ModelLibraryRows } from '@wildshard/sdk/looks/modelLibrary';
 import { HD_LOOKS } from './surfaces';
-import { FACET_AO_FLOOR } from './facets';
+import FACET_AO_FLOOR from '../../data/facets.json' with { type: 'json' };
 
 /**
  * Signal Dunes' asset files as rows: the generated models, the baked world pieces and creature rigs, the painted skies. The
- * boot lists them (`boot/files.ts`), the loaders read them (`world/meshes.ts`, `world/baked.ts`, look/render.ts's painted sky).
+ * boot lists them (`assets/boot.generated.json`), the loaders read them (`world/meshes.ts`, `world/baked.ts`, look/render.ts's painted sky).
  */
 
 /**

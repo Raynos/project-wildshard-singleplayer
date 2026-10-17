@@ -17,7 +17,7 @@
       "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts"
     ],
     "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": [
-      "src/shards/sunscar-dunes/data/striderRig.baked.ts"
+      "src/shards/sunscar-dunes/data/striderRig.json"
     ],
     "progress/shard-platform/sf48/edges.mjs": [
       "src/shards/nalati-grasslands/generators/edges.ts"

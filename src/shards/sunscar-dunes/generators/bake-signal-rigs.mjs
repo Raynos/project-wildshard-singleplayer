@@ -3,7 +3,7 @@
 // and (G345) the generated strider fitted and skinned from its rows (generators/hulls.ts) through the client's own model intake,
 // and the generated manta band-skinned twice: the dune ray in its tint and the Matriarch untinted.
 // The generators run here only; each body's skinned GLB goes to public/assets/sunscar-dunes/rigs/<name>.glb, which the
-// client reads (world/meshes.ts duneRig); the strider's skeleton goes to data/striderRig.baked.ts.
+// client reads (world/meshes.ts duneRig); the strider's skeleton goes to data/striderRig.json.
 // test/shards/sunscar-dunes/rig-bake.test.ts is the byte-exact stale gate (it re-runs the generator).
 // G320 (SF87): author-only. Every input is a literal import from this shard's authoring folders, the SDK or a package, under
 // the SDK's authoring loader (no game, engine, runtime or look module), and the two generated models are read from their
@@ -16,7 +16,7 @@ import { bakeSignalSkitterer } from './species.ts';
 import { bakeSignalManta, bakeSignalStrider } from './hulls.ts';
 import { facetModel } from './facets.ts';
 import { MANTA_HULL, RAY_TINT, STRIDER_HULL } from './rows/hulls.ts';
-import { FACET_AO_FLOOR } from '../data/facets.ts';
+import FACET_AO_FLOOR from '../data/facets.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/rigs');
@@ -38,7 +38,7 @@ const model = (name) => facetModel(new Uint8Array(readFileSync(resolve(project, 
 {
   const { glb, rig } = bakeSignalStrider(await model('dune-strider'), STRIDER_HULL);
   emit(resolve(out, 'strider.glb'), glb); keep.add('strider.glb');
-  emit(resolve(project, 'data/striderRig.baked.ts'), new TextEncoder().encode(rig));
+  emit(resolve(project, 'data/striderRig.json'), new TextEncoder().encode(rig));
   console.info(`sunscar-dunes strider: ${String(glb.length)} bytes → rigs/strider.glb`);
   const manta = await model('dune-matriarch');
   /** @param {string} name @param {typeof RAY_TINT | null} tint */

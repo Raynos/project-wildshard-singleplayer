@@ -474,41 +474,41 @@
   "bindings": {
     "accent": "orchid",
     "budgets": {
-      "module": "./data/budgets",
-      "export": "BUDGETS"
+      "module": "./assets/budgets.generated.json",
+      "export": "default"
     },
     "navigation": {
       "module": "./data/navigation.generated.json",
       "export": "default"
     },
     "runtimeCost": {
-      "module": "./data/runtimeCost",
-      "export": "SIGNAL_DUNES_RUNTIME_COST"
+      "module": "./data/runtimeCost.json",
+      "export": "default"
     },
     "mapPalette": {
       "module": "./data/mapPalette.generated.json",
       "export": "default"
     },
     "poses": {
-      "module": "./data/devPoses",
-      "export": "SIGNAL_DEV_POSES"
+      "module": "./assets/devPoses.generated.json",
+      "export": "default"
     },
     "audioCues": {
-      "module": "./data/cues",
-      "export": "CUES"
+      "module": "./assets/cues.generated.json",
+      "export": "default"
     },
     "boot": {
       "files": {
-        "module": "./data/boot",
-        "export": "BOOT_FILES"
+        "module": "./assets/boot.generated.json",
+        "export": "default"
       },
       "sources": {
-        "module": "./data/boot",
-        "export": "BOOT_SOURCES"
+        "module": "./assets/bootSources.generated.json",
+        "export": "default"
       },
       "lateReads": {
-        "module": "./data/boot",
-        "export": "LATE_READS"
+        "module": "./assets/lateReads.generated.json",
+        "export": "default"
       }
     },
     "render": {

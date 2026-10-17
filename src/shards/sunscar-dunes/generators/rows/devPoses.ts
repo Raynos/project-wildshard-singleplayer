@@ -1,6 +1,6 @@
-import { STRINGS } from './strings';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
-import ground from './manifestGround.generated.json' with { type: 'json' };
+import { STRINGS } from '../../data/strings';
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import ground from '../../data/manifestGround.generated.json' with { type: 'json' };
 
 const { towerY, heights } = ground;
 

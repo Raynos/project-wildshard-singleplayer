@@ -4,7 +4,7 @@ import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
 import { SKY_LOOK, type DuskSkyRow } from './familyLook';
-import { PAINTED_URLS } from './files';
+import MODELS from '../assets/models.generated.json' with { type: 'json' };
 
 type Rgb = readonly [number, number, number];
 
@@ -69,5 +69,5 @@ export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   curves: DUSK_CURVES,
   // Validate the JSON RGB arity before passing the tint to the existing look.
   tint: v.parse(v.object({ sand: v.tuple([v.number(), v.number(), v.number()]), hollow: v.tuple([v.number(), v.number(), v.number()]), crest: v.tuple([v.number(), v.number(), v.number()]), ring: v.number(), span: v.number(), hollowGain: v.number(), crestGain: v.number(), skirtHollow: v.number() }), DUNES.SAND_TINT), skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
-  sky: { ...SKY_LOOK, strips: [{ key: 'early', url: PAINTED_URLS.early }, { key: 'late', url: PAINTED_URLS.late }], tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
+  sky: { ...SKY_LOOK, strips: [{ key: 'early', url: MODELS.PAINTED_URLS.early }, { key: 'late', url: MODELS.PAINTED_URLS.late }], tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

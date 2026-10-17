@@ -1,4 +1,4 @@
-import { BUDGET_CEILINGS } from './budgetCeilings';
+import BUDGET_CEILINGS from '../../data/budgetCeilings.json' with { type: 'json' };
 
 /**
  * Inputs only (SHARDS §9): the template's numbers per tier, the recorded ceilings and the load model; the engine derives

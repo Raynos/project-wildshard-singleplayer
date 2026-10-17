@@ -1,4 +1,4 @@
-import { CUES } from './cues';
+import CUES from '../assets/cues.generated.json' with { type: 'json' };
 import { WHIP_ITEM } from './items';
 
 /** The native whip's existing identity, cues and sword glyph; its controller stays trusted. */

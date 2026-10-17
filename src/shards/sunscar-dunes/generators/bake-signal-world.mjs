@@ -13,7 +13,7 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 import { signalDunesBake } from './scene.ts';
 import { facetModel, wellShell } from './facets.ts';
-import { FACET_AO_FLOOR } from '../data/facets.ts';
+import FACET_AO_FLOOR from '../data/facets.json' with { type: 'json' };
 import { pieceRows } from './kinds.ts';
 import { bakeSignalLash, plaitTexels } from './lash.ts';
 

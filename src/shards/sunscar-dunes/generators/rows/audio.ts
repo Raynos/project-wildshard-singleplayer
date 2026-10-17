@@ -1,5 +1,5 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
-import { CUES } from '../../data/cues';
+import CUES from '../../data/cues.json' with { type: 'json' };
 
 /** Today's kit voices and intentionally silent score, without added ambience or samples. */
 export const AUDIO = parseAudioData({ cues: [], ambience: null, score: 'silent', routing: [

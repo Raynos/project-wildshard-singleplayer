@@ -3,7 +3,7 @@ import { QUEST_NPC } from './questNpc';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import bossStages from '../data/bossStages.json' with { type: 'json' };
-import { SIGNAL_DUNES_RUNTIME_COST } from '../data/runtimeCost';
+import SIGNAL_DUNES_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { AUDIO } from './rows/audio';

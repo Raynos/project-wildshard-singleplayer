@@ -1,5 +1,5 @@
-import REST_POOLS from './restPools.generated.json' with { type: 'json' };
-import { SAND_FILES } from './sand';
+import REST_POOLS from '../../data/restPools.generated.json' with { type: 'json' };
+import { SAND_FILES } from '../../data/sand';
 import { BAKED_PIECES, BAKED_URLS, DUNE_HD, DUNE_MESHES, DUNE_RIGS, DUNE_HD_URLS, DUNE_MESH_URLS, DUNE_RIG_URLS, PAINTED_STAGES, PAINTED_URLS } from './files';
 
 /** The existing ordered painted sky, sand, model and rig inventory. */

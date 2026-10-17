@@ -1,11 +1,11 @@
-import { DUNE_RIGS, DUNE_RIG_URLS } from './files';
-import { STRIDER_BODY } from './striderRig.baked';
+import MODELS from '../assets/models.generated.json' with { type: 'json' };
+import STRIDER_BODY from '../assets/striderRig.generated.json' with { type: 'json' };
 import { RAY_BODY, SKITTERER_BODY } from './species/bodies';
 import { SIGNAL_CREATURE_LOOK_ROWS } from './creatureLooks';
 import { STRINGS } from './strings';
 
 /** Original rig load order, first-map selection and stand-in skeletons. */
-export const SIGNAL_RIG_LIBRARY = { bodies: { creatures: DUNE_RIGS, urls: DUNE_RIG_URLS,
+export const SIGNAL_RIG_LIBRARY = { bodies: { creatures: MODELS.DUNE_RIGS, urls: MODELS.DUNE_RIG_URLS,
   standIns: { skitterer: SKITTERER_BODY, strider: STRIDER_BODY, ray: RAY_BODY, matriarch: RAY_BODY }, fault: '[sunscar-dunes]' }, looks: SIGNAL_CREATURE_LOOK_ROWS };
 const specimen = { parts: 'first', material: { vertexColors: true, roughness: 0.8, flatShading: true } } as const;
 const file = 'src/shards/sunscar-dunes/data/rigLibrary.ts';

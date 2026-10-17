@@ -1,0 +1,8 @@
+{
+  "webContentMB": 220.400664,
+  "glMB": 133.399284,
+  "engineBaseMB": 299,
+  "rev": "744cf67ef347bd635ae8126cb80d5355a77fec85",
+  "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+  "evidence": "progress/memory/sf50-sun-runtime-744cf67ef/summary.json"
+}

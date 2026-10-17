@@ -1,5 +1,4 @@
-/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */
-export const BUDGET_CEILINGS = {
+{
   "phone": {
     "current": {
       "gpuMB": 152.91958236694336
@@ -25,4 +24,4 @@ export const BUDGET_CEILINGS = {
       "gpuMB": 181.8315734863282
     }
   }
-};
+}

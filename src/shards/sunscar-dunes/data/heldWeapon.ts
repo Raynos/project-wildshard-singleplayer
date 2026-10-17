@@ -1,4 +1,4 @@
-import { COIL_SURFACE } from './surfaces';
+import SURFACES from '../assets/surfaces.generated.json' with { type: 'json' };
 import playback from './heldPlayback.generated.json' with {type:'json'};
 import lash from './lash.json' with {type:'json'};
 import { WHIP_ROW } from './equipment';
@@ -16,5 +16,5 @@ export const WHIP_HELD_RECIPE = {equipment:WHIP_ROW,phases:WHIP_PHASE,playback,s
     {id:'wrap',from:{owner:'world',path:['geometry']},args:['lash','wrap',{index:'array'}]},
   ],objects:[{id:'hero',from:{owner:'locals',path:['hero']}}],
   textures:[{id:'plait',from:{owner:'world',path:['bytes']},args:['plait'],requires:'hero',bytes:196608}],
-  repeats:[{id:'plait.repeat',value:[lash.along,1]}],decorators:[{id:'plait',from:{owner:'surface',path:['decorate']},args:[COIL_SURFACE]}]},
+  repeats:[{id:'plait.repeat',value:[lash.along,1]}],decorators:[{id:'plait',from:{owner:'surface',path:['decorate']},args:[SURFACES.COIL_SURFACE]}]},
   tip:[lash.tip[0]??0,lash.tip[1]??0,lash.tip[2]??0],restingGroup:'glove',caught:{row:WHIP_WRAP_SCENE,part:'wrap'}} as const;
