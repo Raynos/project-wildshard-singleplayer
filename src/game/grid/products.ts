@@ -26,8 +26,8 @@ function accountTransportRelease(admitted: AdmittedProduct, releaseBytes: (bytes
   const release = admitted.releaseTransport;
   if (release === undefined) return;
   const charged = new Map(admitted.source.files.map(file => [file.hash, file.compressed]));
-  admitted.releaseTransport = async refs => {
-    const released = await release(refs); let bytes = 0;
+  admitted.releaseTransport = async (refs, reread) => {
+    const released = await release(refs, reread); let bytes = 0;
     for (const ref of released) { bytes += charged.get(ref) ?? 0; charged.delete(ref); }
     releaseBytes(bytes); return released;
   };
@@ -57,10 +57,10 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
     accountTransportRelease(admitted, releaseBytes);
     // Drop runtime-only wires before neighbours can copy their map. Entered product.file() reads the
-    // same immutable bytes from disk; host-declared tiles/materials/skins/sim inputs stay available.
+    // same immutable bytes from cache or network; host-declared materials/skins/sim inputs stay available.
     const refs = neighbourProductFiles(admitted.source), unpin = options.cache?.pin?.(refs);
-    owner.scope.onDispose(() => { unpin?.(); });
-    await admitted.releaseTransport?.(refs);
+    try { await admitted.releaseTransport?.(refs, 'cache-or-fetch'); }
+    finally { unpin?.(); }
     return { admitted, options };
   }).then(lease => ({ ...lease.value, release: lease.release }));
 }

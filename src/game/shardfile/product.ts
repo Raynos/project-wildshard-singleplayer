@@ -57,24 +57,28 @@ export interface ProductOptions {
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct {
   source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string;
-  /** Forget runtime-only/bound wire copies with verified durable rereads; synchronous host files remain. */
-  releaseTransport?: (refs: Iterable<string>) => Promise<readonly string[]>;
+  /** Forget runtime-only/bound wires with durable rereads, or verified cache/network rereads for an online owner. */
+  releaseTransport?: (refs: Iterable<string>, reread?: 'cache-or-fetch') => Promise<readonly string[]>;
 }
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
-function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): (refs: Iterable<string>) => Promise<readonly string[]> {
+function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): NonNullable<AdmittedProduct['releaseTransport']> {
   const bound = new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source), ...neighbourProductFiles(source)]), files = new Map(source.files.map(file => [file.hash, file]));
   const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
-  return async refs => {
+  return async (refs, reread) => {
     const requested = [...new Set(refs)];
     for (const ref of requested) if (!files.has(ref) && !source.requires.commons.some(value => ref === `commons:${value}`)) throw new Error('Undeclared transport release');
     const released: string[] = [];
-    if (cache === undefined) return released;
-    // Quota failures keep the admitted copy. A reread remains byte/hash checked and its residency owner pins the disk file.
+    // Online grid readers already verify cache misses fetched from the immutable product URL.
+    // Do not pin the whole grid in the bounded disk cache; offline owners still require durable bytes.
+    const canFetch = reread === 'cache-or-fetch' && !options.offline;
+    if (cache === undefined && !canFetch) return released;
     for (const ref of requested) {
       if (!bound.has(ref)) continue;
       const file = files.get(ref);
       if (file === undefined) continue;
+      if (canFetch) { released.push(ref); continue; }
+      if (cache === undefined) continue;
       if (cache.verifiedPresent !== undefined) {
         if (await cache.verifiedPresent(ref, file.compressed)) released.push(ref);
         continue;

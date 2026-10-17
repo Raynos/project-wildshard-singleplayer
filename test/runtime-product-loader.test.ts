@@ -185,6 +185,25 @@ test('failed durable writes retain runtime bytes instead of shrinking admission'
   const admitted = await admitProduct(f.index, options);
   expect(await admitted.releaseTransport?.([f.ref])).toEqual([]);
   expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  options.offline = true;
+  expect(await admitted.releaseTransport?.([f.ref], 'cache-or-fetch')).toEqual([]);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+});
+
+test('online grid wires reread and verify network bytes after cache quota failure', async () => {
+  const f = fixture(); trust(f.receipt);
+  const options: ProductOptions = { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(false),
+    verifiedPresent: () => Promise.resolve(false),
+  } };
+  const admitted = await admitProduct(f.index, options);
+  expect(await admitted.releaseTransport?.([f.ref], 'cache-or-fetch')).toEqual([f.ref]);
+  expect(admitted.assets.has(f.ref)).toBe(false);
+  const reader = new ClientAssets(admitted.source, admitted.assets, options);
+  expect(await reader.read(f.ref)).toEqual(f.blob);
+  f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([9, 9, 9]));
+  await expect(reader.read(f.ref)).rejects.toThrow('hash or size');
 });
 
 test('shrinking residency cannot grow, underflow or revive a released claim', () => {

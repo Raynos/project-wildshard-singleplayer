@@ -4172,16 +4172,20 @@ remains a separate G318 change, requiring the complete product fixtures.
 First-party `AdmittedProduct.releaseTransport(refs)` owns its admission
 Map; it releases `runtimeBoundWorldFiles` after a decoder handoff, or
 `runtimeOnlyProductFiles` before neighbour readers copy it, and only when
-exact-size, hash-checked durable bytes remain available.
-Quota failures retain the admitted copy. Undeclared refs refuse before
+exact-size, hash-checked durable bytes remain available. Online grid
+admission passes `cache-or-fetch`: immutable cache misses may use the
+existing size/hash-checked network reader. Offline or ordinary decoder
+releases still retain the admitted copy after a quota failure.
+Undeclared refs refuse before
 any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
 
 `runtimeOnlyProductFiles(source)` excludes inventory-only references
 (`files`, `critical`, `library`) and retains every host-declared hash and
-its dependency closure. Grid admission pins the remaining runtime-only
-files in the browser cache and releases their page buffers before any
-neighbour reader copies the admission. Entry rereads through the verified
+its dependency closure. Grid admission releases the remaining runtime-only
+page buffers before any neighbour reader copies the admission. Temporary
+release pins end immediately; the bounded browser cache can evict old
+neighbours. Entry rereads through the verified cache-or-network
 asynchronous product API. `ProductLeases` reduces its shared product claim
 by the actual released wire bytes; `ResidencyLease.shrink(bytes)` only
 reduces a live, uncovered allocation, preserving its identity and holders.
