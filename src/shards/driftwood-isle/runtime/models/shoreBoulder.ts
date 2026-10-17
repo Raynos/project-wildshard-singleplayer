@@ -14,7 +14,6 @@
 import type { Rng } from '@wildshard/engine/core/rng';
 import { rockGeometry, rockMaterial, rockSpecimen, type RockOpts } from '../../world/rockKit';
 import { REEF_ROCK, SHORE_ROCK } from '../const';
-import { driftwoodTierShadows } from '../boot/rows';
 import { defineModel, type ModelDef, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 
 export interface ShoreBoulderParams { readonly r: number; readonly squash: number }
@@ -26,8 +25,6 @@ interface RockRow<P extends { readonly r: number }> {
   readonly variants: readonly ModelVariant<P>[];
   /** the rock's paint options; moss read from the stream first, as the old loops did */
   readonly opts: (p: P, rng: Rng) => RockOpts;
-  /** the tier's boulder-shadow knob decides its shadow (else it always casts) */
-  readonly tierShadow?: true;
   readonly colliders?: ModelDef<P>['colliders'];
 }
 
@@ -35,7 +32,7 @@ function rockModel<P extends { readonly r: number }>(row: RockRow<P>): ModelDef<
   const id = `driftwood-isle/${row.id}`;
   const parts = (...[ctx, p, rng]: Parameters<ModelDef<P>['build']>): ModelPart[] => [{
     geometry: rockGeometry(p.r, rng, row.opts(p, rng)), material: rockMaterial(ctx.sky),
-    castShadow: row.tierShadow === undefined || driftwoodTierShadows().boulder, receiveShadow: true,
+    castShadow: true, receiveShadow: true,
   }];
   return defineModel<P>({
     id, name: row.name, category: 'nature', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/shoreBoulder.ts', surface: 'rock',
@@ -46,7 +43,7 @@ function rockModel<P extends { readonly r: number }>(row: RockRow<P>): ModelDef<
 }
 
 export const shoreBoulder = rockModel<ShoreBoulderParams>({
-  id: 'shore-boulder', name: 'Shore boulder', seed: 0x5ea1 ^ 0x70c5, defaults: { r: 1.8, squash: 0.72 }, tierShadow: true,
+  id: 'shore-boulder', name: 'Shore boulder', seed: 0x5ea1 ^ 0x70c5, defaults: { r: 1.8, squash: 0.72 },
   variants: [{ id: 'medium', label: 'Medium', params: {} }, { id: 'small', label: 'Small', params: { r: 0.8, squash: 0.7 } }, { id: 'big', label: 'Big', params: { r: 3.6, squash: 0.62 } }],
   opts: (p, rng) => ({ moss: rng.range(0.25, 0.85), squash: p.squash, palette: SHORE_ROCK, ground: -0.35 * p.r * p.squash }),
   colliders: (p) => (p.r > 0.9 ? [{ kind: 'drawn-hull' }] : []),
