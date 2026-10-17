@@ -7,7 +7,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/runtime/models/trailside';
 import { fencePost as nativePost, signpost as nativeSign, plankStep as nativePlank } from '../src/shards/driftwood-isle/generators/trailsideModels';
-import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/data/trailSpecimens';
+import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/generators/trailSpecimens';
 
 it('transfers sole geometry ownership and leaves no template behind', async () => {
   const original = new BoxGeometry(), intake = modelGeometry('/owned-model.glb');

@@ -2,7 +2,7 @@
 // as JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/reefLook.ts, never these builders.
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
-import { REEF_LOOK } from '../data/reefLook';
+import { REEF_LOOK } from './reefLook';
 
 function reefGraph(): GraphIr {
   const nodes: Record<string, GraphNode> = {};

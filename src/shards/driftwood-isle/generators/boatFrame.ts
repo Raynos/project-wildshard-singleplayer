@@ -1,4 +1,4 @@
-import { BOAT_LAYOUT } from '../data/boatLayout';
+import { BOAT_LAYOUT } from './boatLayout';
 
 /** One offline hull station used by the retained boat and mooring recipes. */
 export interface BoatStation { t: number; z: number; w: number; sheer: number; keel: number; floor: number }

@@ -12,7 +12,7 @@ import {HeightfieldBinding,bindHeightfield} from '@wildshard/engine/world/Height
 import {terrainHeight} from '@wildshard/engine/world/terrainHeight';
 import { WRECK } from '../world/sites';
 import manifest from '../discovery.generated';
-import {REEF_SPECIMENS} from '../data/reefSpecimenRows.ts';
+import {REEF_SPECIMENS} from './reefSpecimenRows.ts';
 import {REEF} from '../runtime/models/reef.ts';
 import {LAGOON_REEF,reefLayoutJson,scatterLagoon} from './reefScatter.ts';
 import {reefGeometry} from './reef.ts';

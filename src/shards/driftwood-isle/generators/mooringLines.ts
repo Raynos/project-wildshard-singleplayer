@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { PierParams, PierSpec } from '../assets/contracts/pier';
-import { BOAT_LAYOUT } from '../data/boatLayout';
+import { BOAT_LAYOUT } from './boatLayout';
 import { BOAT_CLEATS } from './boatFrame';
 import { pierPosts } from '../world/pierLayout';
 import { LOWERED_SEA } from '../world/sea';

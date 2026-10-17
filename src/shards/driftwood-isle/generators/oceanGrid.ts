@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { SEA_RES } from '../data/oceanLook';
+import { SEA_RES } from './oceanLook';
 
 /** the ground the bake samples */
 export interface OceanGround { readonly heightAt: (x: number, z: number) => number; readonly inChunk: (x: number, z: number) => boolean }

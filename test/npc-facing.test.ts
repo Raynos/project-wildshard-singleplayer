@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { stepNpcFacing } from '../src/game/plugin/animation';
-import { CASTAWAY_FACING, TRADER_FACING } from '../src/shards/driftwood-isle/data/npcFocus';
+import { CASTAWAY_FACING, TRADER_FACING } from '../src/shards/driftwood-isle/generators/npcFocus';
 
 const wrap = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
 test('both native NPC profiles retain the wrapped target, exponential response and angular speed cap', () => {

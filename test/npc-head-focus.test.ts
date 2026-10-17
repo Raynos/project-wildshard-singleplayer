@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { stepNpcHeadFocus, type NpcHeadFocusState } from '../src/game/plugin/animation';
-import { CASTAWAY_HEAD_FOCUS, TRADER_HEAD_FOCUS } from '../src/shards/driftwood-isle/data/npcFocus';
+import { CASTAWAY_HEAD_FOCUS, TRADER_HEAD_FOCUS } from '../src/shards/driftwood-isle/generators/npcFocus';
 
 const state = (): NpcHeadFocusState => ({ headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: .1 });
 test('nearby focus follows a bounded head target and pauses the idle glance clock', () => {

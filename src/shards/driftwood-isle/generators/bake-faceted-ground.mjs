@@ -8,7 +8,7 @@ import {bindLevelSelection} from '@wildshard/engine/level/selection';
 import {HeightfieldBinding,bindHeightfield} from '@wildshard/engine/world/Heightfield';
 import manifest from '../discovery.generated';
 import {OCEAN} from '../world/sites';
-import {GROUND_LOOK} from '../data/groundLook.ts';
+import {GROUND_LOOK} from './groundLook.ts';
 import {facetedGroundGlbs} from './facetedGround.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';
 

@@ -2,7 +2,7 @@
 // as JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/waterfallLook.ts, never these builders.
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
-import { CASCADE_SHELF, CASCADE_LOOKS } from '../data/waterfallLook';
+import { CASCADE_SHELF, CASCADE_LOOKS } from './waterfallLook';
 
 /** One graph's node table and its builders (ids `w0`, `w1`, …). */
 function kit(): {

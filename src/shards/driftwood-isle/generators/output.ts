@@ -19,7 +19,7 @@ import { keeperRows } from './keeperRows';
 import { emitDefinedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from './clientSections';
-import { RUNTIME_MIRRORS } from '../data/runtimeMirrors';
+import { RUNTIME_MIRRORS } from './runtimeMirrors';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const values=[{name:'custom/assets',value:DRIFTWOOD_OUTPUT.custom},...DRIFTWOOD_CLIENT_SECTIONS];

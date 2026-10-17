@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { FIREFLY_COUNT } from '../data/fireflyLook';
+import { FIREFLY_COUNT } from './fireflyLook';
 
 /** a firefly quad's four corners, x then y (the graph scales and turns them to the camera) */
 const CORNERS: readonly number[] = [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];

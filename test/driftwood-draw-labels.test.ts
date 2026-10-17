@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { GROUND_FILES } from '../src/shards/driftwood-isle/data/groundFiles';
-import { PALM_FILES } from '../src/shards/driftwood-isle/data/palmFiles';
-import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/data/hibiscusFiles';
-import { REEF_FILES } from '../src/shards/driftwood-isle/data/reefFiles';
+import { GROUND_FILES } from '../src/shards/driftwood-isle/generators/groundFiles';
+import { PALM_FILES } from '../src/shards/driftwood-isle/generators/palmFiles';
+import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/generators/hibiscusFiles';
+import { REEF_FILES } from '../src/shards/driftwood-isle/generators/reefFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
 
 test('all draw labels preserve the authored tier, variant and deduplicated blob identity', () => {

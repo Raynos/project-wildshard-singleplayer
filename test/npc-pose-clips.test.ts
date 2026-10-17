@@ -1,7 +1,7 @@
 import { Group, Mesh } from 'three';
 import { expect, test } from 'vitest';
 import { playClips, type ClipCtx } from '../src/game/plugin/animation';
-import { CASTAWAY_POSE, TRADER_POSE } from '../src/shards/driftwood-isle/data/npcPose';
+import { CASTAWAY_POSE, TRADER_POSE } from '../src/shards/driftwood-isle/generators/npcPose';
 
 function context(): ClipCtx {
   return { bones: { head: new Mesh(), arm: new Mesh(), flames: new Mesh(), figure: new Group(), upper: new Mesh(), fore: new Mesh() },

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { runtimeMirrorIssues } from '../src/sdk/runtimeMirrors';
-import { RUNTIME_MIRRORS } from '../src/shards/driftwood-isle/data/runtimeMirrors';
+import { RUNTIME_MIRRORS } from '../src/shards/driftwood-isle/generators/runtimeMirrors';
 import * as runtimeConst from '../src/shards/driftwood-isle/runtime/const';
 import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
 import { driftwoodTierShadows, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';

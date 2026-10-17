@@ -7,12 +7,12 @@ import { HeightfieldBinding, bindHeightfield } from '@wildshard/engine/world/Hei
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { MANIFEST } from '../src/shards/driftwood-isle/discovery.generated';
-import { GROUND_LOOK } from '../src/shards/driftwood-isle/data/groundLook';
+import { GROUND_LOOK } from '../src/shards/driftwood-isle/generators/groundLook';
 import { OCEAN } from '../src/shards/driftwood-isle/world/sites';
 import { facetedGroundGlbs } from '../src/shards/driftwood-isle/generators/facetedGround';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { GROUND_FILES } from '../src/shards/driftwood-isle/data/groundFiles';
+import { GROUND_FILES } from '../src/shards/driftwood-isle/generators/groundFiles';
 
 it('bakes the faceted ground on the heights the runtime walks, in the provoking-vertex order', async () => {
   const terrain = MANIFEST.ground.terrain;

@@ -26,7 +26,7 @@ import { mooringLinesGeometry } from './mooringLines';
 import { worldPierSites } from './pierSites';
 import { npcKitGeometry } from './npcKits';
 import { entryDeckGeometries } from './entryDeckGeometry';
-import { CASTAWAY_SMOKE } from '../data/smokeLook';
+import { CASTAWAY_SMOKE } from './smokeLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
 export function driftwoodFixedSource(): {

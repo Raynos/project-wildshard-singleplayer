@@ -1,7 +1,7 @@
-import { GROUND_FILES } from '../data/groundFiles';
-import { PALM_FILES } from '../data/palmFiles';
-import { HIBISCUS_FILES } from '../data/hibiscusFiles';
-import { REEF_FILES } from '../data/reefFiles';
+import { GROUND_FILES } from './groundFiles';
+import { PALM_FILES } from './palmFiles';
+import { HIBISCUS_FILES } from './hibiscusFiles';
+import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES } from './modelFiles';
 import fixed from '../data/fixedBlobs.generated.json' with { type: 'json' };
 import reef from '../data/reefBlobs.generated.json' with { type: 'json' };

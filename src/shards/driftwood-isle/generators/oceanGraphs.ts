@@ -2,7 +2,7 @@
 // as JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/oceanLook.ts, never these builders.
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
-import { OCEAN_LOOK, OCEAN_DRY_SLOTS, OCEAN_NO_DRY, SEA_RES } from '../data/oceanLook';
+import { OCEAN_LOOK, OCEAN_DRY_SLOTS, OCEAN_NO_DRY, SEA_RES } from './oceanLook';
 
 /** one texel over in each axis */
 const SEA_TEXEL = 1 / SEA_RES;

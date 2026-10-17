@@ -16,8 +16,8 @@ import trailside from '../data/trailsideBake.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
 import { GULL_FLOCK } from './gullsLook';
-import { OCEAN_SURFACE } from '../data/oceanLook';
-import { OCEAN_FILES } from '../data/oceanFiles';
+import { OCEAN_SURFACE } from './oceanLook';
+import { OCEAN_FILES } from './oceanFiles';
 
 const foliageRows:Readonly<Record<string,unknown>>=foliage;
 

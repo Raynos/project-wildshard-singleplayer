@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { log, plank, rope, rock } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { COUNTER_TOP as TOP } from '../data/counterLayout';
+import { COUNTER_TOP as TOP } from './counterLayout';
 
 const C = {
   wood: '#9a7b58', woodB: '#8a6a48', woodDark: '#6a4a2e', crate: '#a47b4b', crateB: '#8b6538',

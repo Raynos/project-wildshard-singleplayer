@@ -13,7 +13,7 @@
  *   all of them one merged mesh (`aCentre`, `aInfo`, squat face normals) the graph poses.
  */
 import * as THREE from 'three';
-import { CASCADE_SHELF as SHELF } from '../data/waterfallLook';
+import { CASCADE_SHELF as SHELF } from './waterfallLook';
 
 export interface CascadeSpec {
   lip: THREE.Vector3;

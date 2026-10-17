@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { GULL_RIG } from '../data/gullGraphLook';
+import { GULL_RIG } from './gullGraphLook';
 import { GULL_PALETTE } from './gullsLook';
 
 /** vertex part ids (aPart): what the vertex shader rotates */
