@@ -7,6 +7,7 @@ import {dirname,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {checkShares,shardLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
+import {legacyLineBasis} from './fixtures/legacyLineBasis';
 
 it('excludes only the G456 build-tool paths from whole-module charges',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-build-tools-'));
@@ -45,6 +46,7 @@ it('reports the AS tenth without adding its excess to custom TS or enforcing it'
   put('src/shards/pine-hollow-legacy/manifest.ts','export default {};');
   put('src/shards/pine-hollow-legacy/plugin.ts',Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n'));
   put('lint/legacy-shards.json',JSON.stringify({version:1,sealed:true,shards:{'pine-hollow-legacy':{primary:'pine-hollow',source:'a'.repeat(40),files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'c'.repeat(64)}}}}));
+  legacyLineBasis(root,'pine-hollow',{'manifest.ts':'export default {};','plugin.ts':Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n')});
   const row=shardLines(root)['pine-hollow'];
   if(row===undefined)throw new Error('Missing fixture measure');
   expect(row.conversion.customRuntimeLines).toBe(1);

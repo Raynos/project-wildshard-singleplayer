@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable output/reach fixture, never a repository export.
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,unlinkSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture paths.
 import {join,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small temporary test repository.
@@ -69,6 +69,11 @@ it('keeps a data-selected native plan as a real user after its wrapper is remove
   expect(sourceProgressLines(root)['sunscar-dunes']?.customLines).toBe(1);
   expect(outputShardLines(root)['sunscar-dunes']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).not.toContain('prepareRuntimePlan');
   expect(sectionHostImports([{name:'sim/runtime-plan'}])).toContain('prepareProductRuntimePlan');
+  const index=join(root,'out/far-reach/shard.json');
+  unlinkSync(index);
+  expect(()=>sourceProgressLines(root)).toThrow('far-reach: section inventory missing');
+  platformOutput(root,'far-reach',{'runtime/index.ts':'export const view=1;'},{'sim/runtime-plan':'{}'});
+  expect(sourceProgressLines(root)['sunscar-dunes']?.customLines).toBe(1);
   put('out/far-reach/sections/sim/runtime-plan.json','{"corrupt":true}');
   expect(()=>sourceProgressLines(root)).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}

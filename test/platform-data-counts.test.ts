@@ -7,6 +7,7 @@ import {dirname,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {shardLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
+import {legacyLineBasis} from './fixtures/legacyLineBasis';
 
 it('measures shipped TS, including generated copies, and never authoring data or shaders',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-output-data-'));
@@ -33,6 +34,7 @@ it('retains the sealed denominator and omits percentages for raw P0 escapes',()=
   put('src/shards/far-reach-legacy/manifest.ts','export default {};');
   put('src/shards/far-reach-legacy/plugin.ts','export const ONE=1;\nexport const TWO=2;');
   put('lint/legacy-shards.json',JSON.stringify({version:1,sealed:true,shards:{'far-reach-legacy':{primary:'far-reach',source:'a'.repeat(40),files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'b'.repeat(64)}}}}));
+  legacyLineBasis(root,'far-reach',{'manifest.ts':'export default {};','plugin.ts':'export const ONE=1;\nexport const TWO=2;'});
   expect(shardLines(root)['far-reach']?.conversion).toMatchObject({customRuntimeLines:1,legacyLines:3,runtimeShare:1/3});
   put('src/shards/far-reach/runtime/index.ts',"import rows from '../data/table'; export default rows;");
   expect(shardLines(root)['far-reach']).toBeUndefined();

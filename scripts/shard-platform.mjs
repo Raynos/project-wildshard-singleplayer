@@ -45,7 +45,7 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // .as, .d.ts and tests do not enter the TS ratio. Only verified copied
 // out/<slug>/runtime files enter it, including generated TS that ships there.
 // Authoring directories have no numerator exemption rules: they are not inputs.
-// The registered frozen denominator retains its historical producer exclusions.
+// The registered frozen denominator pins historical per-file counts and producer exclusions.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
 // G456 H2: SDK bake modules and project validation are build tools, never shard runtime debt.
 // This exact path exception does not exempt SDK runtime modules or their dependencies.
@@ -566,11 +566,6 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     const catalogue = v.parse(SourceOutputs, JSON.parse(readFileSync(resolve(root, sourceOutputs), 'utf8')));
     for (const outputs of Object.values(catalogue.producers)) for (const path of outputs) generated.add(path);
   }
-  // A sealed copy retains the same producer-output identity, never a basename-based exemption.
-  for (const [folder, legacy] of Object.entries(frozen.shards)) {
-    const prefix = `src/shards/${legacy.primary}/`;
-    for (const path of generated) if (path.startsWith(prefix)) generated.add(`src/shards/${folder}/${path.slice(prefix.length)}`);
-  }
   const text = (path) => {
     if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
     return texts.get(path);
@@ -648,7 +643,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     }
   }
   const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
-    ? {runtime:authoredFiles[slug],sections:existsSync(resolve(sectionProducts,slug,'shard.json')) ? outputSections(root,slug,sectionProducts).sections : [],customSectionBytes:0,customSections:[]}
+    ? {runtime:authoredFiles[slug],sections:outputSections(root,slug,sectionProducts).sections,customSectionBytes:0,customSections:[]}
     : outputRuntime(root, slug, products)]));
   const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
@@ -824,7 +819,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       row.oneUserBuildTools = {lines:tools.reduce((sum, tool) => sum + tool.lines, 0), files:tools};
     }
     const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
-    const legacyLines = decisionLegacyLines(root, slug, { generated, count }) ?? null;
+    const legacyLines = decisionLegacyLines(root, slug) ?? null;
     const {modules,exports,pending} = partitionPendingPlatformUsers(slug,privateModules.get(slug),privateExports.get(slug),pendingUsers);
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
@@ -864,6 +859,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   return outputShardLines(root, includeSources);
 }
 /** Source-basis progress inventory, including component spans and sole-user charges.
+ * Requires every generated product's verified section inventory; never samples a partial out/.
  * Never supplies canonical output percentages for an unclosed shard. */
 export function sourceProgressInventory(root = ROOT, products = resolve(root,'out')) {
   const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true,products);

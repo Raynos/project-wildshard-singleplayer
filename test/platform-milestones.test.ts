@@ -68,6 +68,8 @@ it('labels source progress without exposing an output percentage or executing so
  try{
   mkdirSync(join(root,'src/shards/pine-hollow/runtime'),{recursive:true});
   writeFileSync(join(root,'src/shards/pine-hollow/runtime/index.ts'),'throw new Error("never execute");');
+  expect(()=>sourceProgressLines(root)).toThrow('section inventory missing');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':'throw new Error("never execute");'});
   expect(sourceProgressLines(root)['pine-hollow']).toMatchObject({basis:'source',customLines:1,legacyLines:null});
   expect(sourceProgressLines(root)['pine-hollow']).not.toHaveProperty('runtimeShare');
  }finally{rmSync(root,{recursive:true,force:true});}

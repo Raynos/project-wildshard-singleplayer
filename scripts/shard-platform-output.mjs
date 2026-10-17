@@ -45,12 +45,14 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
 
 
 /** Verified data-selected host roots do not require a closed client runtime.
- * The source-progress caller builds these products first; absent products supply
- * no data-selected user, and corrupt section bytes refuse rather than grant one.
+ * The source-progress caller builds every product first. Missing products refuse:
+ * treating an absent shard as zero users changes G294 attribution on mirror sync.
+ * Corrupt section bytes also refuse rather than grant a user.
  * @param {string} root @param {string} slug @param {string} [products] */
 export function outputSections(root,slug,products=resolve(root,'out')) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
   const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
+  if(!existsSync(indexPath))throw new Error(`${slug}: section inventory missing; build every shard before measuring`);
   const index=parseOutputIndex(JSON.parse(readFileSync(indexPath,'utf8')));
   if(index.identity.slug!==(slug==='_template'?'template':slug))throw new Error(`${slug}: output identity mismatch`);
   let customSectionBytes=0;const sections=[],customSections=[];

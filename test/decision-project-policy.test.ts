@@ -8,6 +8,7 @@ import { readProjectAssets } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
 import { projectDecisionBudget } from '../src/sdk/projectPolicy';
 import { assertProductTargets } from '../src/sdk/productOutput';
+import { legacyLineBasis } from './fixtures/legacyLineBasis';
 
 const directories: string[] = [];
 afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true, force: true }); });
@@ -20,6 +21,8 @@ test('direct project readers use generated sealed policy instead of a standalone
   writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: {
     'example-legacy': { primary: 'example', source: 'a'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'c'.repeat(64) } },
   } }));
+  legacyLineBasis(root, 'example', { 'manifest.ts': 'export const manifest=1;',
+    'plugin.ts': Array.from({ length: 19 }, (_, i) => `export const x${i}=${i};`).join('\n') });
   genDecisionPolicies(root); genDecisionPolicies(root, true);
   expect(projectDecisionBudget(project)).toBe(20); expect(projectDecisionBudget(project, 30)).toBe(30);
   const shard = emptyShardfile({ slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1 });
