@@ -37,7 +37,7 @@ import {
   Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
-  Fn, Loop, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
+  Fn, Loop, Var, and, attribute, cameraNear, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
   instanceIndex, isolate, max, materialEnvIntensity, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
   positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
@@ -308,25 +308,33 @@ class UnflippedNormalNode extends BaseNode<'vec3'> {
 class GraphNormalMaterial extends MeshStandardNodeMaterial {
   vertexNormal: Node<'vec3'> | null = null;
   graphFogScale: Node<'float'> | null = null;
+  /** `surface.targetAlpha`: the opaque draw's written alpha (the node handler's output step) */
+  graphTargetAlpha: Node<'float'> | null = null;
   override setupPosition(builder: NodeBuilder): Node {
     const normal = this.vertexNormal;
     if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
     return super.setupPosition(builder);
   }
   override copy(source: MeshStandardNodeMaterial): this {
-    super.copy(source); if (source instanceof GraphNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; } return this;
+    super.copy(source);
+    if (source instanceof GraphNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; this.graphTargetAlpha = source.graphTargetAlpha; }
+    return this;
   }
 }
 class GraphUnlitNormalMaterial extends MeshBasicNodeMaterial {
   vertexNormal: Node<'vec3'> | null = null;
   graphFogScale: Node<'float'> | null = null;
+  /** `surface.targetAlpha`: the opaque draw's written alpha (the node handler's output step) */
+  graphTargetAlpha: Node<'float'> | null = null;
   override setupPosition(builder: NodeBuilder): Node {
     const normal = this.vertexNormal;
     if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
     return super.setupPosition(builder);
   }
   override copy(source: MeshBasicNodeMaterial): this {
-    super.copy(source); if (source instanceof GraphUnlitNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; } return this;
+    super.copy(source);
+    if (source instanceof GraphUnlitNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; this.graphTargetAlpha = source.graphTargetAlpha; }
+    return this;
   }
 }
 class GraphLitMaterial extends GraphNormalMaterial {
@@ -535,7 +543,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st['vertex.offset']?.offset);
   countRef(st['vertex.position']?.position);
   countRef(st.points?.size);
-  for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'normal'] as const) countRef(st.surface?.[k]);
+  for (const k of ['colour', 'alpha', 'targetAlpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'normal'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
   countRef(st.fog?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
@@ -644,6 +652,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
       case 'cameraPosition': return { t: 'vec3', n: fogIn?.camera ?? frameCameraPosition() };
+      case 'cameraNear': return { t: 'float', n: cameraNear };
       case 'time': return { t: 'float', n: time };
       case 'fogZenithColour': return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
         const bound = materialNodeFogOf(builder.material), patch = bound === undefined ? fogPatches().at(-1)?.node : bound.node;
@@ -989,7 +998,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const fogScale = scales?.fog === undefined ? undefined : varying(clamp(asFloat(ref(scales.fog, root)), 0, 1), 'wildshardGraphFogScale');
     const withScale = (hooks: LitHooks): LitHooks => sunScale === undefined ? hooks : { ...hooks, sunScale };
     const lit = st.lighting, vertexNormal = out(st['vertex.normal']?.normal);
-    const m = ir.model === 'unlit' ? vertexNormal === null && fogScale === undefined ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : vertexNormal === null && fogScale === undefined ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
+    const targetAlpha = out(s.targetAlpha);
+    const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null;
+    const m = ir.model === 'unlit' ? plain ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
+    if (targetAlpha !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphTargetAlpha = asFloat(targetAlpha);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');

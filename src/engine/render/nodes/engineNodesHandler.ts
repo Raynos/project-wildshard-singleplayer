@@ -16,6 +16,8 @@
  *    unlit graph stands for such a GLSL program, so on screen (a plain capture, the map bake) it wrote sRGB-encoded,
  *    paler colour than the program it replaced (G477 OE: Nine's lanterns, Nalati's river on the baked map). Inside a
  *    target both are linear, so the game's composed frame is unchanged; lit graphs keep the classic built-in transform.
+ *    An opaque graph with `surface.targetAlpha` writes that alpha where three forces 1 (G478 OE2: a GLSL program wrote
+ *    near / viewZ there for a post that blends by it, so the graph that replaced it took a grade the program never had).
  * 2. **Render-target samples are upright.** three's GLSL node builder flips every render-target sample for
  *    WebGPURenderer's WebGL backend, which stores targets upside down; the classic renderer stores them upright. A graph
  *    reads a target only through `targetTexture()`, which cancels the flip (§2.10). three's own shadow lookups keep theirs:
@@ -375,6 +377,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         if (material.toneMapped && toneMapping !== THREE.NoToneMapping) mapped = outputNode.toneMapping(toneMapping);
         out = asVec4(workingToColorSpace(mapped, colorSpace));
       }
+      // an opaque graph's written alpha (`surface.targetAlpha`, module comment, 1): three forces an opaque draw's alpha
+      // to 1, where the GLSL program it stands for wrote its own (a renderer's inverse view depth, read by its post)
+      const targetAlpha: unknown = Reflect.get(material, 'graphTargetAlpha');
+      if (typeof targetAlpha === 'object' && targetAlpha !== null && isNode(targetAlpha) && !material.transparent) out = vec4(out.xyz, new ConvertNode<'float'>(targetAlpha, 'float'));
       const ctx: EpilogueContext = { builder, material, fog: fogOf(builder), renderer };
       for (const stage of this.epilogue) out = stage(out, ctx);
       return out;

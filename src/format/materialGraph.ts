@@ -133,6 +133,10 @@ export interface GraphSurface {
   readonly colour?: GraphRef;
   readonly alpha?: GraphRef;
   readonly alphaCutoff?: number;
+  /** float: what an opaque draw writes into the colour target's alpha channel (coverage stays whole, nothing blends), as a
+   *  GLSL program's `gl_FragColor.a` did: a renderer that keeps the inverse view depth there (`cameraNear` over the view
+   *  depth) reads it in its post. Opaque only: never with `alpha` or a blend */
+  readonly targetAlpha?: GraphRef;
   readonly emissive?: GraphRef;
   readonly roughness?: GraphRef;
   readonly metalness?: GraphRef;
@@ -352,6 +356,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   cameraPosition: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
+  // the drawing camera's near plane (m): with the view depth, the inverse depth a renderer keeps in its target's alpha
+  cameraNear: { arity: [0, 0], rule: 'input', cost: 0, type: 'float' },
   time: { arity: [0, 0], rule: 'input', cost: 0, type: 'float' },
   // the day's sun as the engine's atmosphere holds it (Atmosphere.ts `fogUniforms`, read by reference like the fog
   // epilogue): the unit world direction toward the sun and its colour (linear), so an unlit graph shades with the clock
@@ -511,7 +517,7 @@ const VEC_LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, v
 const vecOf = (n: number): GraphValueType | null => (n === 1 ? 'float' : n === 2 ? 'vec2' : n === 3 ? 'vec3' : n === 4 ? 'vec4' : null);
 const isNumeric = (t: GraphValueType): boolean => t !== 'bool';
 const ID = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
-const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool', normal: 'vec3' };
+const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', targetAlpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool', normal: 'vec3' };
 /** an `attribute` node's name: `a` and a capital (`aSeed`), so it never names one of three's own attributes */
 export const GRAPH_ATTRIBUTE_NAME = /^a[A-Z][A-Za-z0-9]{0,31}$/;
 /** where a `varying`'s input runs: the vertex program of the place reading it */
@@ -951,6 +957,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (k === 'normal' && input.model === 'unlit') fail('stages.surface.normal: an unlit graph has no shading normal');
       want(v, 'fragment', t, `stages.surface.${k}`);
     }
+    if (isRecord(s) && s['targetAlpha'] !== undefined && (s['alpha'] !== undefined || (isRecord(input.effectState) && input.effectState.blend !== undefined))) fail('stages.surface.targetAlpha: an opaque draw only (no alpha, no blend)');
     const lit = stages.lighting;
     if (lit !== undefined) {
       if (input.model === 'toon') fail('stages.lighting: toon supplies its family lighting; use standard for an authored lighting stage');

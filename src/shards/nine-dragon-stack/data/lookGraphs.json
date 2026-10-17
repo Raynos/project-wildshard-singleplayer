@@ -14806,6 +14806,39 @@
      "p2t",
      "p34"
     ]
+   },
+   "p36": {
+    "op": "cameraNear"
+   },
+   "p37": {
+    "op": "positionView"
+   },
+   "p38": {
+    "op": "swizzle",
+    "in": [
+     "p37"
+    ],
+    "mask": "z"
+   },
+   "p39": {
+    "op": "negate",
+    "in": [
+     "p38"
+    ]
+   },
+   "p3a": {
+    "op": "max",
+    "in": [
+     "p39",
+     "p36"
+    ]
+   },
+   "p3b": {
+    "op": "div",
+    "in": [
+     "p36",
+     "p3a"
+    ]
    }
   },
   "stages": {
@@ -14816,7 +14849,8 @@
     "fog": "pr"
    },
    "surface": {
-    "colour": "p35"
+    "colour": "p35",
+    "targetAlpha": "p3b"
    }
   }
  }
