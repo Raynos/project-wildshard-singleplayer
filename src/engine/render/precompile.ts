@@ -189,6 +189,14 @@ function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
   return properties === undefined ? undefined : Reflect.get(properties, 'currentProgram');
 }
 
+// compile() can visit several object layouts for one material in a batch. Its
+// currentProgram is only the last one; all acquired layouts need block metadata.
+function materialPrograms(renderer: Renderer, material: THREE.Material): readonly unknown[] {
+  const properties = materialProperties(renderer, material);
+  const programs: unknown = properties === undefined ? undefined : Reflect.get(properties, 'programs');
+  return programs instanceof Map ? [...programs.values()] : [currentProgram(renderer, material)];
+}
+
 /** compile() selects its new program on the borrowed material. Keep the last real draw's selection while
  * that variant links across painted waits; retain the expanded program cache for its later real use. */
 function holdDrawnPrograms(renderer: Renderer, root: THREE.Object3D): () => void {
@@ -586,6 +594,7 @@ export const LIVE_PROGRAMS_PER_FRAME = 1;
 
 // Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
 const resolvedPrograms = new WeakSet<ProgramLike>();
+const preparedBlocks = new WeakMap<ProgramLike, WeakSet<THREE.Material>>();
 
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
 export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
@@ -730,19 +739,27 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const prepareBlocks = (program: ProgramLike): void => {
     const handler = installedGraphBackend(renderer);
     if (handler === null) return;
-    for (const material of nodeMaterials.get(program) ?? []) handler.prepareProgram(material, program);
+    let prepared = preparedBlocks.get(program);
+    if (prepared === undefined) { prepared = new WeakSet(); preparedBlocks.set(program, prepared); }
+    for (const material of nodeMaterials.get(program) ?? []) {
+      if (prepared.has(material)) continue;
+      handler.prepareProgram(material, program); prepared.add(material);
+    }
   };
+  const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program)
+    || [...(nodeMaterials.get(program) ?? [])].some(material => preparedBlocks.get(program)?.has(material) !== true);
   // Keep issue and first use on one painted slice when the driver has already finished linking.
   // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
   const queued: ProgramLike[] = [], enqueued = new Set<ProgramLike>();
   let settled = 0;
   const queue = (program: ProgramLike): void => {
-    if (!enqueued.has(program) && !resolvedPrograms.has(program)) { enqueued.add(program); queued.push(program); }
+    if (!enqueued.has(program) && needsPreparation(program)) { enqueued.add(program); queued.push(program); }
   };
   const settleOne = (): void => {
     const program = queued[settled];
     if (program === undefined || parallel && !program.isReady()) return;
-    program.getUniforms(); prepareBlocks(program); resolvedPrograms.add(program); settled++;
+    if (!resolvedPrograms.has(program)) program.getUniforms();
+    prepareBlocks(program); resolvedPrograms.add(program); enqueued.delete(program); settled++;
   };
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
@@ -765,8 +782,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       job.prepare?.();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) {
-        const program = currentProgram(renderer, material); jobPrograms.add(program);
-        if (Reflect.get(material, 'isNodeMaterial') === true) {
+        for (const program of materialPrograms(renderer, material)) {
+          jobPrograms.add(program);
+          if (Reflect.get(material, 'isNodeMaterial') !== true) continue;
           let variants = nodeMaterials.get(program);
           if (variants === undefined) { variants = new Set(); nodeMaterials.set(program, variants); }
           variants.add(material);
@@ -797,7 +815,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
     onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now();
   }
-  const pending = created.filter(program => !resolvedPrograms.has(program));
+  const pending = created.filter(needsPreparation);
   const n = pending.length;
   // Ordinary parallel preparation waits for the batch before resolving it. Live preparation
   // settles one ready identity below; completion polls also cross the GPU-process boundary.
@@ -833,7 +851,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (parallel && isolateImageUploads) {
       while (!p.isReady()) { await pause(); checkCurrent(); }
     }
-    p.getUniforms(); prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
+    if (!resolvedPrograms.has(p)) p.getUniforms();
+    prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > sliceMs || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }

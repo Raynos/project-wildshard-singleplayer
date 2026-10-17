@@ -1,6 +1,8 @@
-import { expect, test } from 'vitest';
-import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, Scene, Skeleton, SkinnedMesh, type Material } from 'three';
-import { sceneJobs, shadowJobs } from '../src/engine/render/precompile';
+import { expect, test, vi } from 'vitest';
+import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, WebGLRenderer, type Material } from 'three';
+import { runPrecompile, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
+import type { ProgramLike } from '../src/engine/boot/perflog';
+import { loadGraphBackend } from '../src/engine/render/graphBackend';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -55,4 +57,53 @@ test('shadow preparation compiles the depth variant a registered shadow draw sub
   expect(jobs.flatMap(job => job.root.children).some(child => child instanceof Mesh && child.material instanceof MeshDepthMaterial)).toBe(true);
   for (const job of jobs) job.dispose?.();
   geometry.dispose(); moving.dispose(); still.dispose(); variant.dispose();
+});
+
+test('every acquired node layout prepares blocks across paced frames', async () => {
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  Reflect.set(material, 'isNodeMaterial', true);
+  const scene = new Scene(), plain = new Mesh(geometry, material), receiver = new Mesh(geometry, material);
+  receiver.receiveShadow = true; scene.add(plain, receiver);
+  const programs = new Map<string, ProgramLike>(), properties: { programs: typeof programs; currentProgram?: ProgramLike } = { programs };
+  let frame = 0;
+  const resolved: string[] = [], blocks: { material: Material; program: ProgramLike; frame: number }[] = [];
+  const make = (name: string): ProgramLike => ({ name, type: 'node', cacheKey: name, id: programs.size, usedTimes: 1,
+    program: {}, isReady: () => true, getUniforms: () => { resolved.push(name); } });
+  const first = make('plain'), last = make('receiver');
+  const fields: Record<string, unknown> = {
+    info: { programs: [first, last], render: { frame: 0 } }, extensions: { has: () => true },
+    properties: { get: () => properties, has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    getContext: () => ({}), setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
+    compile: () => { programs.set('plain', first); programs.set('receiver', last); properties.currentProgram = last; },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = await loadGraphBackend(renderer);
+  const prepareProgram = vi.spyOn(handler, 'prepareProgram').mockImplementation((value: Material, program) => {
+    const acquired = [first, last].find(candidate => candidate === program);
+    if (acquired === undefined) throw new Error('Unknown program');
+    blocks.push({ material: value, program: acquired, frame });
+  });
+  const warm = async (): Promise<void> => {
+    const jobs = sceneJobs(scene, null).jobs;
+    await runPrecompile(renderer, new PerspectiveCamera(), jobs, 1, undefined, [], () => true, true, () => { frame++; return Promise.resolve(); });
+  };
+  await warm();
+  expect(resolved).toEqual(['plain', 'receiver']);
+  expect(blocks.map(row => row.program)).toEqual([first, last]);
+  expect(new Set(blocks.map(row => row.frame)).size).toBe(2);
+  expect(properties.currentProgram).toBe(last);
+  await warm();
+  expect(blocks).toHaveLength(2); expect(resolved).toHaveLength(2);
+  // Another material can acquire an already-resolved program. Its groups still
+  // need preparation without resolving the program or selecting another variant.
+  const shared = material.clone(); Reflect.set(shared, 'isNodeMaterial', true);
+  plain.material = shared; receiver.material = shared;
+  await warm();
+  expect(blocks.slice(2).map(row => row.material)).toEqual([shared, shared]);
+  expect(blocks.slice(2).map(row => row.program)).toEqual([first, last]);
+  expect(new Set(blocks.slice(2).map(row => row.frame)).size).toBe(2);
+  expect(resolved).toHaveLength(2); expect(properties.currentProgram).toBe(last);
+  prepareProgram.mockRestore(); geometry.dispose(); material.dispose(); shared.dispose();
 });

@@ -74,6 +74,11 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   };
   measure(JSON, 'parse', 'JSON.parse');
   measure(TextDecoder.prototype, 'decode', 'TextDecoder.decode');
+  // Keep the exact query span and its caller, not just the adjacent frame's
+  // aggregate GL bucket. A cold index can originate in preparation or a draw.
+  for (const Context of [W.WebGLRenderingContext, W.WebGL2RenderingContext]) {
+    if (typeof Context === 'function') measure(Context.prototype, 'getUniformBlockIndex', 'GL.getUniformBlockIndex');
+  }
   const moduleCalls = new Set();
   const phaseLists = new WeakSet();
   const prepareWorldCalls = () => {
