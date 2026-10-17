@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, Mesh } from 'three';
 import { parseQuestNpcBinding } from '../src/format/npcs';
 import { borrowedNpcSpecimen } from '../src/game/plugin/ui';
-import { QUEST_NPC } from '../src/shards/sunscar-dunes/data/questNpc';
+import { QUEST_NPC } from '../src/shards/sunscar-dunes/generators/questNpc';
 
 test('borrowed NPC specimen builds its admitted figure and refuses invalid geometry',()=>{
   const source={questNpcs:[parseQuestNpcBinding(QUEST_NPC)]};

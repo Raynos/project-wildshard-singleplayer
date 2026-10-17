@@ -11,10 +11,10 @@ import { expect, test, vi } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseQuestHost } from '../src/format/questHost';
 import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/plugin/ui';
-import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
-import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
+import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
+import { QUEST_HOST as sky } from '../src/shards/far-reach/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
-import { FLAGS } from '../src/shards/far-reach/quests/flags';
+import FLAGS from '../src/shards/far-reach/data/flags.json' with { type: 'json' };
 
 const traderFile = traderOutput.namedFiles.find(row => row.name === 'quests/trader.json');
 const traderBytes = traderFile === undefined ? undefined : traderOutput.assets.get(traderFile.hash);

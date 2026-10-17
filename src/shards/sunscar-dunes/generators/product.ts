@@ -1,5 +1,5 @@
-import { QUEST_HOST } from '../data/questHost';
-import { QUEST_NPC } from '../data/questNpc';
+import { QUEST_HOST } from './questHost';
+import { QUEST_NPC } from './questNpc';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import bossStages from '../data/bossStages.json' with { type: 'json' };

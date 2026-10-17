@@ -2,7 +2,7 @@ import { CROWN, HIGH, STEP, VANES } from './layout';
 import { STRINGS } from './strings';
 import { SKY_PLACES } from './places';
 import { SKY_PERSISTENCE } from './persistence';
-import { FLAGS } from '../quests/flags';
+import FLAGS from './flags.json' with { type: 'json' };
 
 /** Keeper quest composition and held crown-bridge reward view. */
 export const SKY_QUEST_PAGE = {

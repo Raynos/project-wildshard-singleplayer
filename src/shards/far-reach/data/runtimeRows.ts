@@ -5,7 +5,7 @@ import { FAN_ROW, FAN_PRESENTATION } from './equipment';
 import { SKY_RUNTIME_BOOT } from './runtimeBoot';
 import { SKY_PAGE_PROGRAM } from './population';
 import { ROC_ID } from './rocFight';
-import { FLAGS } from '../quests/flags';
+import FLAGS from './flags.json' with { type: 'json' };
 import { SKY_NATIVE_WORLD } from './nativeWorld';
 
 /** Discovery, boot and population facts; the native plugin supplies only its admitted source. */

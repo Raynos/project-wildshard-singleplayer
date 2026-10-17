@@ -1,6 +1,6 @@
 import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
 import stages from './bossStages.json' with { type: 'json' };
-import { FLAGS } from '../quests/flags';
+import FLAGS from './flags.json' with { type: 'json' };
 import { CROWN, DAIS, FALLEN_BRIDGE } from './layout';
 import { STRINGS } from './strings';
 

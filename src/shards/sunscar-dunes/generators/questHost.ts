@@ -1,9 +1,9 @@
 import { SIGNAL_QUEST_PAGE_INTERACTIONS } from './questPageInteractions';
 import { SIGNAL_GRAPH } from './signalGraph';
 import { SIGNAL_INTERACTIONS } from './signalInteractions';
-import { SCOUT_ROW } from './questPresentation';
-import signalStages from './signalStages.json' with { type: 'json' };
-import { FLAG } from './flags';
+import { SCOUT_ROW } from '../data/questPresentation';
+import signalStages from '../data/signalStages.json' with { type: 'json' };
+import { FLAG } from '../data/flags';
 
 /** The accepted fire edge retains its original quiet loaded seed and individual saved cursor. */
 export const QUEST_HOST = {

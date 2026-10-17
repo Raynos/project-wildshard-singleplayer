@@ -1,6 +1,6 @@
-import { SKY_ACT, SKY_INTERACT } from './questPrompts';
-import { VANES } from './layout';
-import { FLAGS } from '../quests/flags';
+import { SKY_ACT, SKY_INTERACT } from '../data/questPrompts';
+import { VANES } from '../data/layout';
+import FLAGS from '../data/flags.json' with { type: 'json' };
 
 /** The native quest keeps its original fixed step; external driving adds no adapter or saved cursor. */
 export const SKY_GRAPH = { actor: SKY_INTERACT, step: 'far.quest.graph', actions: [] };

@@ -12147,9 +12147,9 @@
         "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
         "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
-        "src/shards/sunscar-dunes/data/questHost.ts",
-        "src/shards/sunscar-dunes/data/questNpc.ts",
-        "src/shards/sunscar-dunes/data/questPageInteractions.ts",
+        "src/shards/sunscar-dunes/generators/questHost.ts",
+        "src/shards/sunscar-dunes/generators/questNpc.ts",
+        "src/shards/sunscar-dunes/generators/questPageInteractions.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
         "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -12157,8 +12157,8 @@
         "src/shards/sunscar-dunes/data/sand.ts",
         "src/shards/sunscar-dunes/data/sandFields.ts",
         "src/shards/sunscar-dunes/data/sandMaps.json",
-        "src/shards/sunscar-dunes/data/signalGraph.ts",
-        "src/shards/sunscar-dunes/data/signalInteractions.ts",
+        "src/shards/sunscar-dunes/generators/signalGraph.ts",
+        "src/shards/sunscar-dunes/generators/signalInteractions.ts",
         "src/shards/sunscar-dunes/data/signalQuest.ts",
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
@@ -12334,9 +12334,9 @@
         "src/shards/sunscar-dunes/data/nativeMelee.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/productMap.json",
-        "src/shards/sunscar-dunes/data/questHost.ts",
-        "src/shards/sunscar-dunes/data/questNpc.ts",
-        "src/shards/sunscar-dunes/data/questPageInteractions.ts",
+        "src/shards/sunscar-dunes/generators/questHost.ts",
+        "src/shards/sunscar-dunes/generators/questNpc.ts",
+        "src/shards/sunscar-dunes/generators/questPageInteractions.ts",
         "src/shards/sunscar-dunes/data/questPresentation.ts",
         "src/shards/sunscar-dunes/data/restScenes.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -12344,8 +12344,8 @@
         "src/shards/sunscar-dunes/data/sand.ts",
         "src/shards/sunscar-dunes/data/sandFields.ts",
         "src/shards/sunscar-dunes/data/sandMaps.json",
-        "src/shards/sunscar-dunes/data/signalGraph.ts",
-        "src/shards/sunscar-dunes/data/signalInteractions.ts",
+        "src/shards/sunscar-dunes/generators/signalGraph.ts",
+        "src/shards/sunscar-dunes/generators/signalInteractions.ts",
         "src/shards/sunscar-dunes/data/signalQuest.ts",
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
@@ -14043,7 +14043,7 @@
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/winchHouse.json",
         "src/shards/far-reach/generators/worldRows.ts",
-        "src/shards/far-reach/quests/flags.ts"
+        "src/shards/far-reach/data/flags.json"
       ],
       "outputs": [
         "src/shards/far-reach/data/worldRows.generated.json"
@@ -14102,7 +14102,7 @@
         "src/shards/far-reach/generators/fixedWorld.ts",
         "src/shards/far-reach/generators/staticScene.ts",
         "src/shards/far-reach/generators/worldRows.ts",
-        "src/shards/far-reach/quests/flags.ts"
+        "src/shards/far-reach/data/flags.json"
       ],
       "outputs": [
         "src/shards/far-reach/data/staticScenes.generated.json"
@@ -14356,7 +14356,7 @@
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/data/bridgeRest.generated.json",
         "src/shards/far-reach/data/moverBindings.ts",
-        "src/shards/far-reach/quests/flags.ts"
+        "src/shards/far-reach/data/flags.json"
       ],
       "outputs": [
         "src/shards/far-reach/data/routeScene.generated.ts"
@@ -14503,9 +14503,9 @@
         "src/shards/far-reach/data/islets.generated.json",
         "src/shards/far-reach/data/islets.generated.ts",
         "src/shards/far-reach/data/items.ts",
-        "src/shards/far-reach/data/keeperDialogue.ts",
+        "src/shards/far-reach/generators/keeperDialogue.ts",
         "src/shards/far-reach/data/keeperFigure.ts",
-        "src/shards/far-reach/data/keeperLook.ts",
+        "src/shards/far-reach/generators/keeperLook.ts",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/ledger.ts",
         "src/shards/far-reach/data/liftPrompts.ts",
@@ -14518,16 +14518,16 @@
         "src/shards/far-reach/data/nativeMelee.ts",
         "src/shards/far-reach/data/navigation.generated.json",
         "src/shards/far-reach/data/props.json",
-        "src/shards/far-reach/data/questGraph.ts",
-        "src/shards/far-reach/data/questHost.ts",
-        "src/shards/far-reach/data/questNpc.ts",
-        "src/shards/far-reach/data/questPageInteractions.ts",
+        "src/shards/far-reach/generators/questGraph.ts",
+        "src/shards/far-reach/generators/questHost.ts",
+        "src/shards/far-reach/generators/questNpc.ts",
+        "src/shards/far-reach/generators/questPageInteractions.ts",
         "src/shards/far-reach/data/questPrompts.ts",
-        "src/shards/far-reach/data/questStages.ts",
+        "src/shards/far-reach/generators/questStages.ts",
         "src/shards/far-reach/data/quests.ts",
         "src/shards/far-reach/data/rayWakeLook.ts",
         "src/shards/far-reach/data/rocFight.ts",
-        "src/shards/far-reach/data/sections.ts",
+        "src/shards/far-reach/generators/sections.ts",
         "src/shards/far-reach/data/skyIsles.ts",
         "src/shards/far-reach/data/skyLook.ts",
         "src/shards/far-reach/data/skyMapSources.json",
@@ -14540,7 +14540,7 @@
         "src/shards/far-reach/data/swardAtlas.ts",
         "src/shards/far-reach/data/windLook.ts",
         "src/shards/far-reach/generators/product.ts",
-        "src/shards/far-reach/quests/flags.ts"
+        "src/shards/far-reach/data/flags.json"
       ],
       "outputs": [
         "src/shards/far-reach/data/product.generated.json"

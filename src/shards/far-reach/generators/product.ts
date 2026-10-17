@@ -1,4 +1,4 @@
-import { SKY_SECTIONS } from '../data/sections';
+import { SKY_SECTIONS } from './sections';
 import { STORM_NOISE } from '../data/stormNoise';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../data/swardAtlas';
 import skyMaps from '../data/skyMaps.json' with { type: 'json' };

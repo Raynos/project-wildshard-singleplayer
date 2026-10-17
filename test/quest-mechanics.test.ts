@@ -10,7 +10,7 @@ import { installMoverFixture } from './fixtures/mover-installation';
 import { parseQuestHost } from '../src/format/questHost';
 import { installQuestHost, type QuestCableOwner } from '../src/game/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
+import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
 
 class Cable implements QuestCableOwner {

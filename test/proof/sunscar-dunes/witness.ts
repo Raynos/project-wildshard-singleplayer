@@ -16,7 +16,7 @@ import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRu
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
-import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
+import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/generators/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
 import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';

@@ -1,5 +1,5 @@
-import { FLAGS } from '../quests/flags';
-import { VANES } from './layout';
+import FLAGS from '../data/flags.json' with { type: 'json' };
+import { VANES } from '../data/layout';
 
 /** Independent stage rows preserve the original same-tick roost, vane and raised effects.
  * Both stages dispatch the same guarded edge, so resetting/restoring flags needs no extra cursor. */
