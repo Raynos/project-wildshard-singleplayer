@@ -1,20 +1,8 @@
+// The original hidden support sword: exact float32 channels, baked before play.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { SwordRig } from '@wildshard/engine/combat/view/melee';
 import { lin } from '@wildshard/engine/math/color';
-import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { REST } from '@wildshard/game/weapons/starterMoves';
-
-/** The original wooden support rig for the animated jian. Geometry and material are copied unchanged from the
- * pre-SF54 default; the jian arms hide these meshes while retaining the original blade metadata. */
-export function swordSupport(sky: Sky, blade: 'wood' | 'iron'): SwordRig {
-  const { sword, arms, tipY, baseY } = buildSword(blade);
-  return { sword, arms, tipY, baseY, material: swordMaterial(sky, blade) };
-}
-
-// ───────────────────────────── low-poly geometry ─────────────────────────────
-
 /** sRGB hex → linear Color (vertex colours are linear) */
 const C = {
   blade: lin(0xdcbb8c), bladeEdge: lin(0xe9cda3), guard: lin(0xb08752), grip: lin(0x5a3a22), wrap: lin(0x7b5232), pommel: lin(0x6a4728),
@@ -153,11 +141,3 @@ export function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometr
   return { sword, arms, tipY, baseY: bladeY0 };
 }
 
-/** the low-poly swords' material (flat facets, vertex colours; the iron blade metallic), prepared for the sky — opaque: the
- *  viewmodel turns its own copy into the transparent queue */
-export function swordMaterial(sky: Sky, blade: 'wood' | 'iron'): THREE.MeshStandardMaterial {
-  const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
-  mat.name = 'sword'; setProgramKey(mat, 'sword-lowpoly');
-  sky.setupMaterial(mat);
-  return mat;
-}

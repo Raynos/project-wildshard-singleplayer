@@ -2,13 +2,14 @@ import { installNineGeometry } from './runtime/geometry';
 import { standaloneEntry } from './runtime/standalone';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { JIAN_ROW } from './vm/jianRow';
-import { swordSupport } from './vm/swordSupport';
+import { BufferGeometryLoader, MaterialLoader, type PerspectiveCamera } from 'three';
+import * as v from 'valibot';
+import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
 import { GRAPPLE_PLAYGROUND } from './playground/registration';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
-import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
@@ -55,6 +56,8 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 export class NdPlugin extends ShardPlugin {
   override async kit(ctx: ShardContext): Promise<void> {
     await installAudio(ctx);
+    const support = v.parse(v.strictObject({ sword: v.unknown(), arms: v.unknown(), material: v.unknown(), tipY: v.number(), baseY: v.number() }),
+      JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-support.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     ctx.rows.weapon(JIAN_ROW);
     ctx.rows.tool(FEI_ZHUA_ROW);
     const shell = this.shell;
@@ -63,7 +66,13 @@ export class NdPlugin extends ShardPlugin {
       const world = shell.world;
       if (world === null) throw new Error('Nine Dragon equipment requires its world');
       const { ironArms: _ironArms, swim: _swim, ...ownSword } = viewmodel ?? {};
-      const primary = new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig: ownSword.rig ?? swordSupport(world.sky, 'wood'),
+      let rig = ownSword.rig;
+      if (rig === undefined) {
+        const material = new MaterialLoader().parse(support.material);
+        setProgramKey(material, 'sword-lowpoly'); world.sky.setupMaterial(material);
+        rig = { sword: new BufferGeometryLoader().parse(support.sword), arms: new BufferGeometryLoader().parse(support.arms), material, tipY: support.tipY, baseY: support.baseY };
+      }
+      const primary = new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig,
         ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
       this.primary = primary;
       return Promise.resolve({ primary, rifle: null, secondary: null });

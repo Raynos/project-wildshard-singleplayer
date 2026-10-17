@@ -1,0 +1,84 @@
+{
+  "halo": {
+    "attributes": {
+      "position": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "261798f336231e84b5b8067128217489fa05ef2b6ac8c83326d55550fb190dc2"
+      },
+      "aTan": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "643cdead574bcfdd82f81197aef23b2fb5152c4d822316590a2c552f23b03819"
+      },
+      "aSide": {
+        "type": "Float32Array",
+        "size": 2,
+        "normalized": false,
+        "hash": "ba5fe042bcebac063b90e98897cdcc1ae1d85e4bab45eb4375552786f1aac911"
+      },
+      "aOut": {
+        "type": "Float32Array",
+        "size": 1,
+        "normalized": false,
+        "hash": "a51d647692267bfcccf54280f600c8980f9854e37055fe542450d7d946328abf"
+      }
+    },
+    "index": {
+      "type": "Uint32Array",
+      "hash": "4a71f3ab9aed8e000c588b5b3c14cceca1908de7bb37e184bce9cbb96b533766"
+    }
+  },
+  "sword": {
+    "attributes": {
+      "position": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "82e617bfc772f3718ccba39ed1a41141631a20b438f07f2a8dbde9e5aa80298f"
+      },
+      "normal": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "272c632cc22ab921a322c7b8e9c7a90c1e339ffd9cc8abaab1f86192c8b8f1a7"
+      },
+      "color": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "014e8278d9bfd9413c77f47d6f8d3f35b39cc0e83d16300bda5ca2f57a30a4aa"
+      }
+    },
+    "index": null
+  },
+  "arms": {
+    "attributes": {
+      "position": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "7ffe75236cb596f52d1c8b6c61b2707508ce1ac5404db10b28ccecbce886e173"
+      },
+      "normal": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "d89e5b36c72bde90e73e5eafa65d36bdc0654145d2e9550294726a23a5b6d9b3"
+      },
+      "color": {
+        "type": "Float32Array",
+        "size": 3,
+        "normalized": false,
+        "hash": "5afc437ddb8afab6c66f33c628865e08cde493ef12867fe47d5bd207cacdcddb"
+      }
+    },
+    "index": null
+  },
+  "tipY": 0.619,
+  "baseY": 0.099,
+  "vs": "8e2f2441dc7a34262619fe5665ca5c399559d50b3941a5d03eb91e9ca0b6484f",
+  "fs": "b1ba5ed0d0e39725a551b5ae0c1d90cd144c053828cca3f91f884b5e94e0b894"
+}

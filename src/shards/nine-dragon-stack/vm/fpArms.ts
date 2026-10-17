@@ -20,19 +20,66 @@
 // Timing is the engine's sword timing (SwordMoves.ts): `arms.moves[name].timing` = { windup, slashEnd, total, sweep } —
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
-import { type AnimationClip, DoubleSide, Group, type Matrix3, Mesh, type ShaderMaterial, type Texture, Vector3 } from 'three';
+import { type AnimationClip, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, Group, type Matrix3, Mesh, type Texture, Vector3 } from 'three';
 import { Talisman, Tassel, penetration } from './cloth';
 import { Geo, v3 } from './geo';
 import { CLS } from '../runtime/looks/vmLook';
 import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
 import { plainWeaveTexture } from '../runtime/looks/weave';
-import { buildHalo } from './jian';
+import * as v from 'valibot';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
 import { FpArmsRig, type FpArmsRig as FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '../runtime/viewmodel/fpArmsRig';
 import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '../runtime/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
 import type { NdTier } from '../tier';
+
+interface HaloRows { readonly geometry: unknown; readonly material: Readonly<Record<string, unknown>> }
+const VS_HALO = /* glsl */ `
+attribute vec3 aTan;
+attribute vec2 aSide;
+attribute float aOut;
+uniform vec2 uRes;
+uniform float uPx;
+varying vec2 vS;
+void main() {
+  vec4 c0 = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vec4 c1 = projectionMatrix * modelViewMatrix * vec4(position + aTan * 0.01, 1.0);
+  vec4 c2 = projectionMatrix * modelViewMatrix * vec4(position + vec3(aOut * 0.01, 0.0, 0.0), 1.0);
+  vec2 s0 = c0.xy / c0.w, s1 = c1.xy / c1.w, s2 = c2.xy / c2.w;
+  vec2 d = normalize((s1 - s0) * uRes + 1e-6);
+  vec2 perp = vec2(-d.y, d.x);
+  // the glow lives outside the blade: the side over the black body is a third as wide
+  float outer = dot(perp * aSide.x, (s2 - s0) * uRes) > 0.0 ? 1.0 : 0.3;
+  c0.xy += perp * aSide.x * uPx * outer * 2.0 / uRes * c0.w;
+  vS = vec2(aSide.x, aSide.y);
+  gl_Position = c0;
+}
+`;
+const FS_HALO = /* glsl */ `
+uniform float uTime;
+uniform vec3 uColor;
+uniform float uGain;
+varying vec2 vS;
+float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
+void main() {
+  // across: |vS.x| 0 at the edge → 1 at the ribbon's rim; along: vS.y in metres from the root
+  float along = vS.y;
+  // heat shimmer: the falloff's width and brightness waver along the edge, drifting toward the tip
+  float n1 = vn(vec2(along * 90.0 - uTime * 3.1, vS.x * 1.5 + uTime * 0.7));
+  float n2 = vn(vec2(along * 230.0 - uTime * 7.0, 3.0));
+  float w = 0.55 + 0.45 * n1;
+  float a = exp(-pow(abs(vS.x) / (0.35 * w + 0.12), 2.0) * 2.2);
+  a *= 0.7 + 0.5 * n2;
+  // fade in from the root, out at the very tip
+  a *= smoothstep(0.0, 0.05, along) * (1.0 - smoothstep(0.7, 0.76, along));
+  gl_FragColor = vec4(uColor * a * uGain, 1.0);
+}
+`;
+
 
 export const RIG_URL = `${ARMS_BASE}fp-rig.glb`;
 
@@ -52,7 +99,7 @@ function sharedDecals(tier: NdTier): Decals {
 }
 
 /** the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon */
-function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: Tassel, talisman: Talisman): { knot: Group; halo: Mesh } {
+function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: Tassel, talisman: Talisman, haloRows: HaloRows): { knot: Group; halo: Mesh } {
   const kx = new Geo();
   kx.ellipsoid(v3(0, 0.008, 0), v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1), 0.012, 0.0135, 0.012, { cls: CLS.silk }, (d) => 1 + 0.08 * Math.sin(d.x * 9) * Math.sin(d.z * 9), 14);
   kx.lathe(0, -0.024, 0, [[0.007, 0], [0.0135, 0.005], [0.0145, 0.012], [0.012, 0.018], [0.008, 0.022]], 16, { cls: CLS.brass, line: 1, edges: 4 | 8 });
@@ -70,11 +117,12 @@ function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: Tassel, talisman:
   addInkedPair(rig.root, tassel.geo, body, hullHair, false);
   addInkedPair(rig.root, talisman.geo, cloth, hullThin, false);
   addInkedPair(rig.root, talisman.cordGeo, body, hullThin, false);
-  const h = buildHalo();
-  const halo = new Mesh(h.geo, h.mat);
+  const material = new MaterialLoader().parse({ ...haloRows.material, vertexShader: VS_HALO, fragmentShader: FS_HALO });
+  if (!(material instanceof ShaderMaterial)) throw new Error('Jian halo requires its shader material');
+  const halo = new Mesh(new BufferGeometryLoader().parse(haloRows.geometry), material);
   halo.frustumCulled = false;
   halo.renderOrder = 4;
-  rig.materials.push(h.mat);
+  rig.materials.push(material);
   rig.bones.get(ARMS.weapon)?.add(halo);
   rig.hang('tassel', tassel);
   rig.hang('talisman', talisman);
@@ -89,14 +137,14 @@ export class NineDragonArms extends FpArmsRig {
   private readonly knot: Group;
   private t = 0;
 
-  private constructor(scene: Group, clips: AnimationClip[], textures: InkedRigMaps, silk: Texture, tier: NdTier) {
+  private constructor(scene: Group, clips: AnimationClip[], textures: InkedRigMaps, silk: Texture, tier: NdTier, halo: HaloRows) {
     const tassel = new Tassel(), talisman = new Talisman();
     const u = vmUniforms(silk, sharedDecals(tier));
     const parts: { knot?: Group; halo?: Mesh } = {};
     const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(u, k) };
     super(scene, clips, ARMS, ARMS_CONTRACT, ARMS_BAKE, {
       mesh: (o, ud, rig) => dressInkedMesh(o, ud, rig, look, textures),
-      dress: (rig) => { Object.assign(parts, dressParts(rig, u, tassel, talisman)); },
+      dress: (rig) => { Object.assign(parts, dressParts(rig, u, tassel, talisman, halo)); },
     });
     if (parts.knot === undefined || parts.halo === undefined) throw new Error('nine-dragon: the arms were not dressed');
     this.u = u;
@@ -107,9 +155,11 @@ export class NineDragonArms extends FpArmsRig {
   }
 
   static async load(tier: NdTier = app.render?.tier ?? 'desktop', url = RIG_URL): Promise<NineDragonArms> {
+    const product = await loadFirstPartyProduct('nine-dragon-stack');
+    const halo = v.parse(v.strictObject({ geometry: v.unknown(), material: v.record(v.string(), v.unknown()) }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-halo.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const gltf = await takeRigScene(url);
     const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
-    return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, plainWeaveTexture(), tier);
+    return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, plainWeaveTexture(), tier, halo);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */
