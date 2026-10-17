@@ -144,3 +144,58 @@ fragile port proofs). G454 still asks for a host test.
    generator, not hand-written `data/*.ts`. Move the weather file's wet-flight
    and herd-shelter answers out of the view file. Fix the `item` / `swings`
    mis-tags.
+
+## Codex follow-up (G469)
+
+Source landings: `95804fe8b` (SiteLights), `dcdfb32da` (rows,
+ownership and host tests), `d90d079f3` (private visitor state).
+
+- **2:** `world/ambience.json` emits floor rectangles and fire-pit
+  positions from the existing cabin records, in cabin-then-hamlet order.
+  `BuildingLife` no longer owns floor/fire lists, registration callbacks
+  or `floorHeightAt`. Audio consumes `floorRows`; rain cover and the rifle
+  pickup use the same declared rectangles through `floorAtRects`.
+- **3:** scavenge/visit simulation and its private bird, player and
+  weighted-perch state belong to Pine's counted
+  `runtime/life/visitors.ts`. The shared flock retains perch/wheel/guide
+  and refuses the private modes. No second-user claim is made for them.
+- **4:** Pine and Sunscar publish plain `SiteLightState` boxes before
+  the light pool steps. The host invokes no ignition callback. Its test
+  covers both light rows, room priority and extinguishing unused slots;
+  ENGINE.md documents the port.
+- **6:** `ambient-flock-host`, `ambient-forager-host` and
+  `water-surface-host` test both shipped users' rows. The forager test
+  uses the real terrain override port, without module mocks. The water
+  test exercises Driftwood floor/foam/dry draws and Pine's plain draws.
+- **8, partial:** ambient orchestration is attributed to C3, harvest to
+  C6, and the door sound listener to C8; `items`/`swings` no longer cause
+  the three C6 mis-tags. The ambient rows were already under
+  `generators/ambientLife.ts` when this lane started. Weather remains
+  counted custom, including its page answers.
+
+**Still NOT CLOSED.** G469 rejected new phase-event callbacks and moving
+the page answers into another runtime module. Item 5 and the weather
+part of item 8 remain open: Nalati still subclasses the continuation;
+Pine's page still constructs a separate continuation. Items 1 and 7
+remain with their other owners. This correction claims no net cut and
+deletes no whole runtime file; it returns previously shared modes to
+the custom numerator.
+
+Focused checks passed: six host/audio tests, plus a temporary comparison
+of every bird and voice across 12,000 frames of the original and returned
+Pine modes. No visual tuning changed. The exact SiteLights commit passed
+root/layer types, typed lint, all ten products and all 17 headless cases.
+
+Exact `dcdfb32da` and `d90d079f3` mirror checks also passed root/layer
+types, typed lint, all ten products and 26 selected tests (including all
+17 headless cases). Source-basis inventories used an absent products
+directory consistently, excluding section-host imports from both sides:
+
+| Shard | Before (`45f8647d1`) | After (`d90d079f3`) | Net custom | C3 before → after |
+|---|---:|---:|---:|---:|
+| Pine | 11,618 | 11,930 | **+312** | 99 → 730 |
+| Driftwood | 7,094 | 7,094 | **0** | 0 → 0 |
+
+The increase returns private modes to Pine; attribution also exposes the
+weather and orchestration already present. No whole runtime file was
+deleted. The three code commits are ancestors of `origin/main`.
