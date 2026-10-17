@@ -1,7 +1,7 @@
 import { SKY_GUST_TARGETS } from './gustTargets';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
-import { ROC_DECISION, ROC_MOVES, ROC_WORLD_TARGETS } from '../data/rocDecision';
+import { ROC_DECISION, ROC_MOVES, ROC_WORLD_TARGETS } from './rows/rocDecision';
 import { ROC_STRIKES } from '../data/brains';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';

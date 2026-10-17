@@ -1,5 +1,5 @@
 import { BufferGeometry, BufferAttribute, Float32BufferAttribute } from 'three';
-import { KEEPER_FIGURE } from '../data/keeperFigure';
+import { KEEPER_FIGURE } from './rows/keeperFigure';
 import { fitModel } from './modelIntake';
 
 function partition(source: BufferGeometry, parts: number, of: (x: number, y: number, z: number) => number, flat: boolean): BufferGeometry[] {

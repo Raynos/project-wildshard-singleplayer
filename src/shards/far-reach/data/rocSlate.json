@@ -1,0 +1,17 @@
+[
+  {
+    "stage": "fragment",
+    "find": "#include <map_fragment>",
+    "put": "#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);"
+  },
+  {
+    "stage": "fragment",
+    "find": "#include <emissivemap_fragment>",
+    "put": "#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);"
+  },
+  {
+    "stage": "fragment",
+    "find": "",
+    "put": "vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float gold = (1.0 - smoothstep(0.06, 0.12, c.b / max(c.r, 1e-3))) * smoothstep(0.2, 0.3, c.r); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))) * (1.0 - gold); return mix(c, vec3(0.085, 0.09, 0.11) + vec3(l) * vec3(0.82, 0.9, 1.05) * 1.1, brown * 0.95); }\n"
+  }
+]

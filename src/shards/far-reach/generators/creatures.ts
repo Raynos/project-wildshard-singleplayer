@@ -4,7 +4,7 @@ import type { AnimalDims } from '@wildshard/engine/entities/species/registry';
 import { bindRigid } from '@wildshard/sdk/looks/modelLibrary';
 import { hdGeometry, facetedGeometry, fitModel } from './modelIntake';
 import { SKY_AO_FLOOR } from './modelFrames';
-import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from '../data/creatures';
+import { SKY_CREATURE_SOURCES, type SkyCreatureExtras } from './rows/creatures';
 import type { SkyCreature } from './fileInventory';
 
 /**

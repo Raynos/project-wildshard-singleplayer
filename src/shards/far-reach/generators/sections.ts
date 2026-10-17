@@ -1,11 +1,11 @@
-import { AUDIO } from '../data/audio';
+import { AUDIO } from './rows/audio';
 import { SKY_DIRECTORS } from '../data/rocFight';
 import { QUEST_HOST } from './questHost';
 import { QUEST_NPC } from './questNpc';
-import { SKY_MODES } from '../data/modes';
+import { SKY_MODES } from './rows/modes';
 import { SKY_QUESTS } from './quests';
-import { SKY_LEDGER } from '../data/ledger';
-import { SKY_STATE } from '../data/state';
+import { SKY_LEDGER } from './rows/ledger';
+import { SKY_STATE } from './rows/state';
 import { SKY_ITEMS } from '../data/items';
 
 /** Complete authored behaviour sections, consumed directly by the project compiler. */

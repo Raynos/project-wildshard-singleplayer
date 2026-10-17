@@ -1,6 +1,6 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
-import CROWN_LAYOUT from './crownLayout.generated.json' with { type: 'json' };
-import { STORM } from './storm';
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import CROWN_LAYOUT from '../../data/crownLayout.generated.json' with { type: 'json' };
+import { STORM } from '../../data/storm';
 
 const tallest = CROWN_LAYOUT.CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);
 const spin = Math.sign(STORM.layers[0].spin);

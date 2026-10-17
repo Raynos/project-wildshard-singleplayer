@@ -1,6 +1,6 @@
 import type { ModeRows } from '@wildshard/sdk/modes';
 import type { UpdraftMode } from '@wildshard/format/modes';
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 
 /** The native board wind column's geometry and force; its open boundaries stay platform law. */
 export const SKY_UPDRAFT: UpdraftMode = { kind: 'updraft', id: 'far.updraft',

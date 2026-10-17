@@ -1,4 +1,4 @@
-import { KEEPER_FIGURE } from '../data/keeperFigure';
+import { KEEPER_FIGURE } from './rows/keeperFigure';
 import FLAGS from '../data/flags.json' with { type: 'json' };
 import { SPAWN } from "./layout";
 import { KEEPER_AT } from './quests';
