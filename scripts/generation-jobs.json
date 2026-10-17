@@ -16597,6 +16597,36 @@
         "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
         "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "9fe64f78b5e8b8a2ee01b7d00c50b8c3b3e45c1f82fc22eff599aca98ad015ea"
       }
+    },
+    {
+      "id": "nalati-people-fallback",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/nalati-grasslands",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json": "6b01d0600f1cb151ac247083ec8b40f62772de7608aaca62bc058be250549c00"
+      }
     }
   ]
 }

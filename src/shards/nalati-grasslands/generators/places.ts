@@ -1,10 +1,11 @@
+import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
 import type { DressPlan } from './dressingPlan';
 import * as THREE from 'three';
 import { paramsOf, type ModelDef } from '@wildshard/engine/models/model';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { bakedSamplers, parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { PaintKit, M, v3 } from '../world/paint';
-import { pole, blob, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
+import { pole, lathe, blob, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from './granite';
 import { NalatiSet, painted, paintedSpecimen, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, type FieldstoneParams, type FieldstoneLook, type MemberData, type Paint, type PaintCtx, type Board, generated, generatedBounds } from '../world/painted';
@@ -1565,4 +1566,175 @@ export function trophyGeometry(id: string): THREE.BufferGeometry {
       for (let i = 0; i < 3; i++) kit.add(pole(v3((i - 1) * 0.05, 0.4, 0), v3((i - 1) * 0.08, -0.4, 0.05), 0.03, 0.02, 6), new THREE.Color('#141416'));
   }
   return kit.finish();
+}
+/** Fixed camp fallback shapes use the places painter, before shipping. */
+export function buildPeopleFallback(selected: keyof typeof peopleFallbackFrames): { body: THREE.BufferGeometry; head: THREE.BufferGeometry; arm: THREE.BufferGeometry; height: number; neck: THREE.Vector3; shoulder: THREE.Vector3; radius: number } {
+  type PersonId = keyof typeof peopleFallbackFrames;
+  interface PersonFrame { height: number; neck: THREE.Vector3; shoulder: THREE.Vector3 }
+// ── the palette (painterly: saturated, warm) ─────────────────────────────────────────────────────────────────────────
+const campPalette = {
+  skin: '#c89066', skinDark: '#a8704c', beard: '#ebe6dc', hair: '#2a211c',
+  indigo: '#34315a', gold: '#d2a646', red: '#b5302a', felt: '#efe8d8', black: '#1c1a1a', boot: '#2a1d16',
+  coat: '#7a5634', coat2: '#56613c', trousers: '#39373e', fur: '#8c6a47', tymaqTop: '#a3291f', wood: '#6e4a2c',
+  under: '#6e2a2a', shirt: '#ece4d2', vest: '#2f7a4c', cap: '#a9322a', dress: '#9b2d2a', velvet: '#1f4a3f', apron: '#ebe3d1', scarf: '#f3eee4', iron: '#3b3a3c',
+};
+
+function personFrame(id: PersonId): PersonFrame {
+  const row = peopleFallbackFrames[id];
+  return { height: row.height, neck: new THREE.Vector3(...row.neck), shoulder: new THREE.Vector3(...row.shoulder) };
+}
+
+interface Parts { body: THREE.BufferGeometry; head: THREE.BufferGeometry; arm: THREE.BufferGeometry; neck: THREE.Vector3; shoulder: THREE.Vector3; height: number; radius: number }
+
+/** a sphere shell open at the face (±57° round the front, below the height `open` of the way up the sphere): a headscarf, hair */
+const hood = (r: number, open: number): THREE.BufferGeometry => {
+  const g = new THREE.SphereGeometry(r, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.8);
+  const pos = g.getAttribute('position'), idx = g.getIndex(), keep: number[] = [];
+  if (idx) for (let i = 0; i + 2 < idx.count; i += 3) {
+    let fx = 0, fy = 0, fz = 0;
+    for (let k = 0; k < 3; k++) { const v = idx.getX(i + k); fx += pos.getX(v); fy += pos.getY(v); fz += pos.getZ(v); }
+    const face = fz > 0 && Math.abs(Math.atan2(fx, fz)) < 1.0 && fy / 3 < r * (open - 0.5) * 2;
+    if (!face) keep.push(idx.getX(i), idx.getX(i + 1), idx.getX(i + 2));
+  }
+  g.setIndex(keep);
+  return g;
+};
+/** how far round from the front (+z) a face centre is, radians 0…π — lathe front panels by whole faces (no zig-zag) */
+const front = (p: THREE.Vector3): number => Math.abs(Math.atan2(p.x, p.z));
+const sphere = (r: number, sx = 1, sy = 1, sz = 1, w = 12, h = 9): THREE.BufferGeometry => new THREE.SphereGeometry(r, w, h).scale(sx, sy, sz);
+
+/** a head at the neck pivot (origin = the neck's top), facing +z: face, nose, eyes, ears, the neck (hats are added by the caller) */
+function head(kit: PaintKit, skin: string, r: number): void {
+  kit.add(sphere(r, 0.92, 1.05, 0.98).translate(0, r * 0.95, 0), skin, { brush: 0.05 });
+  kit.add(sphere(r * 0.2, 0.8, 1, 1.1, 8, 6).translate(0, r * 0.85, r * 0.93), campPalette.skinDark);        // nose
+  for (const s of [-1, 1]) {
+    kit.add(sphere(r * 0.1, 1, 1, 0.6, 6, 5).translate(s * r * 0.36, r * 1.08, r * 0.86), campPalette.black, { jitter: 0 }); // eyes
+    kit.add(sphere(r * 0.22, 0.5, 1, 0.8, 6, 5).translate(s * r * 0.93, r * 0.95, 0), campPalette.skinDark);  // ears
+  }
+  kit.add(new THREE.CylinderGeometry(r * 0.42, r * 0.5, r * 0.5, 8).translate(0, -r * 0.05, 0), skin); // neck
+}
+
+/** a sleeve from the shoulder pivot (origin) hanging down-forward, with a hand */
+function arm(kit: PaintKit, sleeve: string, skin: string, len: number, r: number, extra?: (k: PaintKit, hand: THREE.Vector3) => void): void {
+  const hand = v3(0, -len, len * 0.28);
+  kit.add(pole(v3(0, 0.02, 0), hand, r, r * 0.8, 8), sleeve, { brush: 0.06 });
+  kit.add(sphere(r * 0.85, 1, 1.1, 1).translate(hand.x, hand.y - r * 0.6, hand.z), skin);
+  extra?.(kit, v3(hand.x, hand.y - r * 0.6, hand.z));
+}
+
+function finish(kit: PaintKit, ao = false): THREE.BufferGeometry {
+  const g = kit.finish({ ao: ao ? {} : false });
+  if (g.hasAttribute('uv')) g.deleteAttribute('uv');
+  return g;
+}
+
+// ── the figures (local frame: feet at the origin, facing +z, +x = the figure's LEFT) ─────────────────────────────────
+
+function elder(seed: number): Parts {
+  const b = new PaintKit(seed);
+  // the chapan: a long robe to the ankles, a gold hem band, the front edges trimmed
+  const robe = lathe([[0.001, 0.06], [0.34, 0.06], [0.33, 0.3], [0.3, 0.7], [0.26, 0.98], [0.23, 1.15], [0.25, 1.33], [0.2, 1.46], [0.1, 1.52], [0.001, 1.53]], 24);
+  b.add(robe, (p) => { const a = front(p); return p.y < 0.16 ? campPalette.gold : a < 0.2 ? campPalette.under : a < 0.45 ? campPalette.gold : campPalette.indigo; }, { foot: 0.8 });
+  b.add(new THREE.TorusGeometry(0.245, 0.045, 6, 18).rotateX(Math.PI / 2).translate(0, 1.0, 0), campPalette.red);                  // the sash
+  kit2Boots(b, 0.26);
+  // the left arm, merged: down to the staff
+  b.add(pole(v3(0.23, 1.4, 0), v3(0.3, 1.02, 0.2), 0.065, 0.055, 8), campPalette.indigo);
+  b.add(sphere(0.05).translate(0.31, 0.98, 0.23), campPalette.skin);
+  b.add(pole(v3(0.32, 0.0, 0.26), v3(0.31, 1.62, 0.22), 0.025, 0.02, 6), campPalette.wood);                                         // the staff
+  b.add(sphere(0.045).translate(0.31, 1.64, 0.22), campPalette.wood);
+  const h = new PaintKit(seed + 1);
+  head(h, campPalette.skin, 0.115);
+  h.add(new THREE.ConeGeometry(0.078, 0.21, 9).rotateX(Math.PI).scale(1, 1, 0.7).translate(0, -0.04, 0.078), campPalette.beard, { brush: 0.12 }); // the beard, from the mouth down
+  h.add(pole(v3(-0.07, 0.07, 0.1), v3(0.07, 0.07, 0.1), 0.018, 0.018, 5), campPalette.beard);                                       // moustache
+  h.add(lathe([[0.001, 0.2], [0.125, 0.19], [0.11, 0.3], [0.075, 0.4], [0.03, 0.44], [0.001, 0.445]], 12), campPalette.felt);        // the kalpak
+  h.add(new THREE.TorusGeometry(0.125, 0.028, 5, 14).rotateX(Math.PI / 2).translate(0, 0.205, 0), campPalette.black);                // its brim
+  const a = new PaintKit(seed + 2);
+  arm(a, campPalette.indigo, campPalette.skin, 0.44, 0.065);
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('elder'), radius: 0.34 };
+}
+
+/** two boot toes peeking out under a robe */
+function kit2Boots(k: PaintKit, fwd: number): void {
+  for (const s of [-1, 1]) k.add(sphere(0.06, 1, 0.7, 1.7).translate(s * 0.1, 0.045, fwd), campPalette.boot);
+}
+
+function herder(seed: number, hat: 'tymaq' | 'kalpak', coat: string): Parts {
+  const b = new PaintKit(seed);
+  for (const s of [-1, 1]) {
+    b.add(pole(v3(s * 0.1, 0.1, 0), v3(s * 0.11, 0.86, 0), 0.07, 0.08, 8), campPalette.trousers);
+    b.add(lathe([[0.001, 0.0], [0.075, 0.0], [0.075, 0.34], [0.07, 0.36], [0.001, 0.36]], 9).scale(1, 1, 1.25).translate(s * 0.1, 0, 0.02), campPalette.boot); // tall boots
+    b.add(sphere(0.06, 1, 0.7, 1.5).translate(s * 0.1, 0.04, 0.08), campPalette.boot);
+  }
+  // the short chapan to the knee, open at the front over a shirt
+  const coatG = lathe([[0.001, 0.52], [0.27, 0.52], [0.25, 0.8], [0.23, 1.02], [0.25, 1.3], [0.2, 1.44], [0.1, 1.5], [0.001, 1.51]], 24);
+  b.add(coatG, (p) => { const a = front(p); return a < 0.2 && p.y > 1.05 ? campPalette.shirt : p.y < 0.6 || (a < 0.45 && a >= 0.2) ? campPalette.gold : coat; }, { foot: 0.85 });
+  b.add(new THREE.TorusGeometry(0.235, 0.04, 6, 18).rotateX(Math.PI / 2).translate(0, 1.02, 0), campPalette.red);
+  b.add(pole(v3(0.22, 1.38, 0), v3(0.28, 1.0, 0.12), 0.06, 0.05, 8), coat);                                              // the left arm, merged
+  b.add(sphere(0.048).translate(0.29, 0.96, 0.14), campPalette.skin);
+  const h = new PaintKit(seed + 1);
+  head(h, campPalette.skin, 0.11);
+  h.add(pole(v3(-0.07, 0.075, 0.098), v3(0.07, 0.075, 0.098), 0.014, 0.014, 5), campPalette.hair);                                 // moustache
+  if (hat === 'tymaq') {
+    h.add(sphere(0.135, 1, 0.75, 1, 12, 8).translate(0, 0.19, -0.005), campPalette.tymaqTop);
+    h.add(new THREE.TorusGeometry(0.12, 0.045, 6, 14).rotateX(Math.PI / 2).translate(0, 0.17, 0), campPalette.fur, { brush: 0.15 });
+    for (const s of [-1, 1]) h.add(sphere(0.055, 0.5, 1.2, 1).translate(s * 0.125, 0.07, -0.01), campPalette.fur, { brush: 0.15 }); // ear flaps
+    h.add(sphere(0.07, 1, 0.8, 0.5).translate(0, 0.08, -0.12), campPalette.fur, { brush: 0.15 });                                    // the neck flap
+  } else {
+    h.add(lathe([[0.001, 0.2], [0.12, 0.19], [0.105, 0.29], [0.07, 0.37], [0.001, 0.4]], 12), campPalette.felt);
+    h.add(new THREE.TorusGeometry(0.12, 0.026, 5, 14).rotateX(Math.PI / 2).translate(0, 0.205, 0), campPalette.black);
+  }
+  const a = new PaintKit(seed + 2);
+  arm(a, coat, campPalette.skin, 0.42, 0.062, hat === 'tymaq'
+    ? (k, hand) => { k.add(pole(hand, v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), 0.016, 0.012, 5), campPalette.wood); k.add(pole(v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), v3(hand.x - 0.05, hand.y - 0.5, hand.z + 0.4), 0.007, 0.005, 4), campPalette.boot); } // the qamshy (whip)
+    : undefined);
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame(hat === 'tymaq' ? 'herderGate' : 'herderRail'), radius: 0.3 };
+}
+
+function child(seed: number): Parts {
+  const b = new PaintKit(seed);
+  for (const s of [-1, 1]) {
+    b.add(pole(v3(s * 0.065, 0.06, 0), v3(s * 0.07, 0.5, 0), 0.045, 0.05, 7), campPalette.trousers);
+    b.add(sphere(0.045, 1, 0.8, 1.5).translate(s * 0.065, 0.04, 0.03), campPalette.boot);
+  }
+  b.add(lathe([[0.001, 0.46], [0.16, 0.46], [0.15, 0.62], [0.14, 0.78], [0.12, 0.86], [0.06, 0.9], [0.001, 0.905]], 24), (p) => (p.y > 0.55 && front(p) < 0.45 ? campPalette.shirt : p.y < 0.52 ? campPalette.gold : campPalette.vest), { foot: 0.9 });
+  b.add(pole(v3(0.13, 0.84, 0), v3(0.19, 0.58, 0.06), 0.036, 0.032, 7), campPalette.shirt);
+  b.add(sphere(0.03).translate(0.195, 0.55, 0.07), campPalette.skin);
+  const h = new PaintKit(seed + 1);
+  head(h, campPalette.skin, 0.1);
+  h.add(hood(0.104, 0.62).translate(0, 0.1, -0.01), campPalette.hair);                                                            // hair under the cap
+  h.add(lathe([[0.001, 0.15], [0.1, 0.15], [0.098, 0.2], [0.07, 0.23], [0.001, 0.24]], 10), (p) => (Math.floor(Math.atan2(p.x, p.z) * 2.5) % 2 === 0 ? campPalette.cap : campPalette.gold)); // the taqiya
+  const a = new PaintKit(seed + 2);
+  arm(a, campPalette.shirt, campPalette.skin, 0.28, 0.036);
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('child'), radius: 0.2 };
+}
+
+function cook(seed: number): Parts {
+  const b = new PaintKit(seed);
+  b.add(lathe([[0.001, 0.04], [0.33, 0.04], [0.31, 0.35], [0.27, 0.72], [0.22, 0.98], [0.21, 1.12], [0.24, 1.3], [0.19, 1.42], [0.09, 1.47], [0.001, 1.48]], 24),
+    (p) => (p.y > 0.95 && p.y < 1.4 ? campPalette.velvet : front(p) < 0.7 && p.y < 0.98 && p.y > 0.12 ? campPalette.apron : p.y < 0.1 ? campPalette.gold : campPalette.dress), { foot: 0.85 });
+  kit2Boots(b, 0.25);
+  b.add(pole(v3(0.21, 1.34, 0), v3(0.26, 0.98, 0.16), 0.058, 0.05, 8), campPalette.dress);
+  b.add(sphere(0.045).translate(0.265, 0.95, 0.18), campPalette.skin);
+  const h = new PaintKit(seed + 1);
+  head(h, campPalette.skin, 0.105);
+  // the oramal: a white scarf over the head, knotted at the back, its tail down the neck
+  h.add(hood(0.126, 0.7).translate(0, 0.105, -0.012), campPalette.scarf);
+  h.add(sphere(0.06, 1, 1.4, 0.7).translate(0, 0.02, -0.13), campPalette.scarf);
+  const a = new PaintKit(seed + 2);
+  arm(a, campPalette.dress, campPalette.skin, 0.36, 0.058, (k, hand) => {
+    k.add(pole(hand, v3(hand.x, hand.y - 0.05, hand.z + 0.42), 0.012, 0.012, 5), campPalette.wood);                               // the ladle
+    k.add(sphere(0.045, 1, 0.55, 1).translate(hand.x, hand.y - 0.07, hand.z + 0.45), campPalette.iron);
+  });
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('cook'), radius: 0.33 };
+}
+
+/** each figure's builder (the seeds fix its brush noise) */
+const BUILD: Readonly<Record<PersonId, () => Parts>> = {
+  elder: () => elder(0xe1d3), herderGate: () => herder(0x4e7a, 'tymaq', campPalette.coat), herderRail: () => herder(0x4e7b, 'kalpak', campPalette.coat2),
+  child: () => child(0xc41d), cook: () => cook(0xc00c),
+};
+
+
+
+  return BUILD[selected]();
 }

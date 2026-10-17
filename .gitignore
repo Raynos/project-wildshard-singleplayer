@@ -1969,3 +1969,4 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/nalati/baked/people/
 
 /src/shards/nalati-grasslands/boot/peopleFrames.generated.json
+/src/shards/nalati-grasslands/boot/peopleFallback.generated.json
