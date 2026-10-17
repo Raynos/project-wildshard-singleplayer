@@ -506,6 +506,7 @@ async function measureShard(driver, shard, deadline) {
         const { glFrames, ...wholeValue } = whole.value;
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }),
+          ...(glTime && frameTimeline && glFrames !== undefined ? { glFrames } : {}),
           ...(timeline === undefined ? {} : { webkitTimeline: timelineLongFrames(timeline, whole.value.longFrames.at) }),
           ...(glTime ? { entryPreparation: await driver.evaluate('window.__wildshard.world.game.entryPreparation') } : {}),
           ...(taskClock ? { tasks: await driver.evaluate('window.__frameFloorTaskTake?.() ?? []') } : {}) };

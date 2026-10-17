@@ -26,12 +26,20 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { geometryBoundsSteps } from '../world/geometryBounds';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import type { ColliderDesc } from '../world/registry';
 
 /** @types/three says mergeGeometries always returns a geometry; at runtime it returns null on an attribute mismatch */
 export function mergeOrNull(list: THREE.BufferGeometry[]): THREE.BufferGeometry | null {
   return mergeGeometries(list);
+}
+
+// Welding has a synchronous public contract. Exhaust the same exact bounds scan
+// used by sliced placement; packed positions avoid per-coordinate accessors.
+function bound(geometry: THREE.BufferGeometry, bounds: 'sphere' | 'both' = 'sphere'): void {
+  const steps = geometryBoundsSteps(geometry, bounds);
+  while (!steps.next().done) { /* synchronous callers finish all existing steps */ }
 }
 
 // ── depth-only casters (SHADOW_LAYER) ──
@@ -43,7 +51,7 @@ const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
 export function shadowProxy(list: THREE.BufferGeometry[]): THREE.Mesh | null {
   const g = list.length > 0 ? mergeOrNull(list) : null;
   if (g === null) return null;
-  g.computeBoundingSphere();
+  bound(g);
   const proxy = new THREE.Mesh(g, shadowProxyMaterial);
   proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
   return proxy;
@@ -162,7 +170,7 @@ export class UnitParts {
     for (const { part, geos } of this.slots) {
       const merged = mergeOrNull(geos);
       if (merged === null) continue;
-      merged.computeBoundingSphere();
+      bound(merged);
       const mesh = new THREE.Mesh(merged, part.material);
       mesh.receiveShadow = part.receiveShadow ?? false;
       mesh.castShadow = part.castShadow ?? false;
@@ -232,7 +240,7 @@ function geometrySlice(geo: THREE.BufferGeometry, start: number, count: number):
     if (!(a instanceof THREE.BufferAttribute)) return null;
     out.setAttribute(name, new THREE.BufferAttribute(a.array.subarray(start * a.itemSize, (start + count) * a.itemSize), a.itemSize, a.normalized));
   }
-  out.computeBoundingSphere(); out.computeBoundingBox();
+  bound(out, 'both');
   return out;
 }
 
@@ -254,7 +262,7 @@ export function weldAcross(copies: readonly { readonly root: THREE.Object3D; rea
     if (list.length < 2 || first === undefined) continue;
     const merged = mergeOrNull(list.map(({ root, mesh }) => mesh.geometry.clone().applyMatrix4(root.matrix)));   // root → parent frame
     if (merged === null) continue;
-    merged.computeBoundingSphere();
+    bound(merged);
     const batch = new WeldBatch(merged, first.mesh.material);
     batch.castShadow = first.mesh.castShadow; batch.receiveShadow = first.mesh.receiveShadow; batch.renderOrder = first.mesh.renderOrder;
     const views: { root: THREE.Object3D; mesh: THREE.Mesh; view: WeldView }[] = [];

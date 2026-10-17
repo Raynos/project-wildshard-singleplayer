@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, Group } from 'three';
-import type { FarProxyView } from '../src/game/grid/farView';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Group } from 'three';
+import { installFarProxy, type FarProxyView } from '../src/game/grid/farView';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { NearPlaceholders, type NearPlaceholderHost } from '../src/game/grid/nearPlaceholderView';
 
@@ -47,4 +47,17 @@ test.each(['replan', 'dispose', 'failure'] as const)('near preparation cannot pu
     expect(f.disposed).toHaveBeenCalledOnce(); expect(f.undo).toHaveBeenCalledOnce();
     expect(f.allocator.entries()).toHaveLength(0);
   } finally { f.near.dispose(); warning.mockRestore(); }
+});
+
+
+test('proxy installation publishes the same exact packed sphere', () => {
+  const root = new Group(), geometry = new BufferGeometry(), positions = new Float32Array(65538 * 3);
+  for (let i = 0; i < positions.length; i++) positions[i] = Math.sin(i) * (i % 97 - 48);
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  const oracle = geometry.clone(); oracle.computeBoundingSphere();
+  const view = installFarProxy(root, geometry, { family: 'toon', haze: { colour: [1, 1, 1], near: 10, far: 100, max: 1 } });
+  expect(view.mesh.geometry.boundingSphere).toEqual(oracle.boundingSphere);
+  expect(view.mesh.parent).toBe(root);
+  expect(geometry.boundingBox).toBeNull();
+  view.dispose(); oracle.dispose();
 });

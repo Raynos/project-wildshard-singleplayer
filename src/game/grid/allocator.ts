@@ -63,6 +63,8 @@ export class ResidencyAllocator {
   /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
   readonly memory: MemoryAdmission;
   private readonly entries_ = new Map<string, Entry>();
+  private orderedEntries: readonly Entry[] | null = null;
+  private readonly entrySnapshots = new WeakMap<Entry, ResidencyEntry>();
   /** Sim claims whose bytes are a measured whole page or matched runtime increment, the only claims a page component may be covered by. */
   private readonly measured = new Set<string>();
   private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, near: 0, library: 0, sim: 0, commons: 0, product: 0, page: 0 };
@@ -133,7 +135,7 @@ export class ResidencyAllocator {
     const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation, coveredBy: claim.coveredBy, baseCredit };
     const children = this.coverage.get(entry.id);
     if (children !== undefined) this.adjustCoverage(children, -1);
-    this.entries_.set(entry.id, entry); this.track(entry, 1); this.refreshEviction(entry);
+    this.entries_.set(entry.id, entry); this.orderedEntries = null; this.track(entry, 1); this.refreshEviction(entry);
     return this.lease(entry);
   }
 
@@ -142,9 +144,21 @@ export class ResidencyAllocator {
     const input = this.input(); return { ...contentCost(input), input };
   }
 
-  /** The table in id order (deterministic traces). */
+  /** The table in id order (deterministic traces). Membership alone changes the order;
+   * unchanged rows reuse their frozen snapshot, without retaining departed claims. */
   entries(): readonly ResidencyEntry[] {
-    return [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id)).map((e) => Object.freeze({ id: e.id, category: e.category, bytes: e.bytes, owner: e.owner, distance: e.distance, needed: e.needed, refs: e.refs, holds: e.holds, accountedBytes: this.effectiveBytes(e), ...(e.coveredBy === undefined ? {} : { coveredBy: e.coveredBy }) }));
+    const ordered = this.orderedEntries ??= [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id));
+    return ordered.map(entry => {
+      const before = this.entrySnapshots.get(entry), accountedBytes = this.effectiveBytes(entry);
+      if (before !== undefined && before.bytes === entry.bytes && before.distance === entry.distance
+        && before.needed === entry.needed && before.refs === entry.refs && before.holds === entry.holds
+        && before.coveredBy === entry.coveredBy && before.accountedBytes === accountedBytes) return before;
+      const snapshot = Object.freeze({ id: entry.id, category: entry.category, bytes: entry.bytes, owner: entry.owner,
+        distance: entry.distance, needed: entry.needed, refs: entry.refs, holds: entry.holds, accountedBytes,
+        ...(entry.coveredBy === undefined ? {} : { coveredBy: entry.coveredBy }) });
+      this.entrySnapshots.set(entry, snapshot);
+      return snapshot;
+    });
   }
 
   /** SF57 / G258: mark a live sim claim as a reviewed measured whole-page reading or matched pre-entry runtime
@@ -256,7 +270,7 @@ export class ResidencyAllocator {
   }
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
-    this.track(entry, -1); this.entries_.delete(entry.id); this.measured.delete(entry.id); this.refreshEviction(entry);
+    this.track(entry, -1); this.entries_.delete(entry.id); this.orderedEntries = null; this.measured.delete(entry.id); this.refreshEviction(entry);
     const children = this.coverage.get(entry.id);
     if (children !== undefined) this.adjustCoverage(children, 1);
     // The table is already authoritative. Derive warning totals only when a resident report can consume them,

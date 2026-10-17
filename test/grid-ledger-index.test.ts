@@ -20,6 +20,29 @@ function result<T>(run: () => T): T | string { try { return run(); } catch (erro
 const Claim = v.object({ id: v.string(), category: v.picklist(['l0', 'l1', 'far', 'near', 'library', 'sim', 'commons', 'product', 'page']),
   bytes: v.number(), owner: v.string(), distance: v.number(), needed: v.boolean(), coveredBy: v.exactOptional(v.string()) });
 
+test('diagnostic snapshots stay detached across lease and coverage changes', () => {
+  const ledger = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) });
+  const claim = { category: 'sim' as const, owner: 'test', distance: 10, needed: true, bytes: 400, id: 'parent' };
+  const parent = ledger.reserve(claim);
+  const child = ledger.reserve({ ...claim, id: 'child', category: 'commons', bytes: 200, coveredBy: 'parent' });
+  if (parent === null || child === null) throw new Error('Fixture admission failed');
+  const initial = ledger.entries(), oldParent = initial.find(row => row.id === 'parent');
+  expect(initial.map(row => row.id)).toEqual(['child', 'parent']);
+  expect(ledger.entries()[0]).toBe(initial[0]);
+  const shared = ledger.reserve(claim), unhold = parent.hold();
+  parent.update({ needed: false, distance: 30 });
+  expect(ledger.entries().find(row => row.id === 'parent')).toMatchObject({ refs: 2, holds: 1, needed: false, distance: 30 });
+  expect(oldParent).toMatchObject({ refs: 1, holds: 0, needed: true, distance: 10 });
+  expect(Object.isFrozen(oldParent)).toBe(true);
+  unhold(); shared?.release(); parent.release();
+  expect(ledger.entries()).toEqual([expect.objectContaining({ id: 'child', accountedBytes: 200 })]);
+  expect(initial[0]).toMatchObject({ id: 'child', accountedBytes: 0 });
+  const next = ledger.reserve(claim);
+  expect(ledger.entries()[0]).toMatchObject({ id: 'child', accountedBytes: 0 });
+  next?.release(); child.release();
+  expect(ledger.entries()).toEqual([]);
+});
+
 test('recorded Pine retained allocations keep every admission and total identical', () => {
   const ledgers = pair(), parent = v.parse(Claim, recorded.parent), claims = v.parse(v.array(Claim), recorded.claims);
   const held = ledgers.map(ledger => {

@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test } from 'vitest';
-import { BoxGeometry, Matrix4, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, MeshStandardMaterial } from 'three';
+import { geometryBoundsSteps } from '../src/engine/world/geometryBounds';
 import { defineModel, modelContext } from '../src/engine/models/model';
 import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/models/place';
 import { pageScope } from '../src/engine/app/resources';
@@ -63,4 +64,34 @@ test('in play a large unsplit piece splits on the engine\'s yield, the same coll
   expect(await count(false, true)).toEqual({ pieces: 1, colliders: 40 });
   expect(await count(true, true)).toEqual({ pieces: Math.ceil(40 / LIVE_SPLIT_EVERY), colliders: 40 });
   expect(40).toBeGreaterThan(LIVE_SPLIT_OVER);
+});
+
+
+test('packed and fallback bounds preserve three arithmetic and yield publication', () => {
+  const packed = new Float32Array(65538 * 3);
+  for (let i = 0; i < packed.length; i++) packed[i] = Math.sin(i * 1.7) * (i % 179 - 90);
+  const interleaved = new InterleavedBuffer(new Float32Array([1, 3, -4, 99, -2, 0, 7, 99]), 4);
+  const cases = [new BufferAttribute(packed, 3), new BufferAttribute(new Float32Array(), 3),
+    new BufferAttribute(new Float32Array([-0, 0, -0, 0, -0, 0]), 3),
+    new BufferAttribute(new Int16Array([-32768, 0, 32767, 17, -19, 4]), 3, true),
+    new InterleavedBufferAttribute(interleaved, 3, 0)];
+  for (const position of cases) for (const bounds of ['box', 'sphere', 'both'] as const) {
+    const geometry = new BufferGeometry().setAttribute('position', position), oracle = geometry.clone();
+    if (bounds !== 'sphere') oracle.computeBoundingBox();
+    if (bounds !== 'box') oracle.computeBoundingSphere();
+    const steps = geometryBoundsSteps(geometry, bounds);
+    let count = 0;
+    while (!steps.next().done) {
+      count++;
+      expect(geometry.boundingSphere).toBeNull(); expect(geometry.boundingBox).toBeNull();
+    }
+    expect(geometry.boundingBox).toEqual(oracle.boundingBox);
+    expect(geometry.boundingSphere).toEqual(oracle.boundingSphere);
+    if (position instanceof BufferAttribute && position.array === packed) expect(count).toBe(bounds === 'box' ? 2 : 4);
+  }
+  const morph = new BoxGeometry();
+  morph.morphAttributes.position = [new BufferAttribute(new Float32Array(morph.getAttribute('position').array).fill(4), 3)];
+  const oracle = morph.clone(); oracle.computeBoundingBox(); oracle.computeBoundingSphere();
+  Array.from(geometryBoundsSteps(morph));
+  expect(morph.boundingBox).toEqual(oracle.boundingBox); expect(morph.boundingSphere).toEqual(oracle.boundingSphere);
 });

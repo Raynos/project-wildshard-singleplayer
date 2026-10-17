@@ -8,6 +8,7 @@
  */
 import { Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshLambertMaterial, MeshStandardMaterial, RedFormat, RepeatWrapping, Vector2, Vector3, type BufferGeometry, type Material, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { FarLookRuntime } from './farProxy';
 
@@ -134,7 +135,9 @@ export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: 
   const { material, setMask, frame } = farProxyMaterial(look, positionalMask, grain), mesh = new Mesh(geometry, material);
   decorate?.(material);
   mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
-  geometry.computeBoundingSphere(); root.add(mesh);
+  const bounds = geometryBoundsSteps(geometry, 'sphere');
+  while (!bounds.next().done) { /* proxy installation remains synchronous */ }
+  root.add(mesh);
   let disposed = false;
   return {
     mesh,

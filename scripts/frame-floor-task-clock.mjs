@@ -22,7 +22,7 @@
 export function installTaskClock(minMs = 4, cap = 20000) {
   const W = window;
   if (typeof W.__frameFloorTaskTake === 'function') return;
-  let tasks = [], sites = [], siteIds = new Map(), open = null, current = '', serial = 0, dropped = 0;
+  let tasks = [], sites = [], siteIds = new Map(), calls = [], open = null, current = '', serial = 0, dropped = 0;
   const now = () => performance.now();
   const round = (ms) => Math.round(ms * 10) / 10;
   const frames = (stack) => String(stack ?? '').split('\n').map((line) => line.trim())
@@ -37,6 +37,65 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     if (id === undefined) { id = sites.length; sites.push(text); siteIds.set(text, id); }
     return id;
   };
+  // Native/data work often resumes in an unwrapped promise continuation. Its exact
+  // synchronous span distinguishes a slow unit from a task's queueing upper bound.
+  const measured = new WeakMap();
+  const measure = (target, name, label) => {
+    if (!target || measured.get(target)?.has(name)) return;
+    const fn = Reflect.get(target, name);
+    if (typeof fn !== 'function') return;
+    let names = measured.get(target);
+    if (names === undefined) { names = new Set(); measured.set(target, names); }
+    names.add(name);
+    Reflect.set(target, name, function measuredCall(...args) {
+      const start = now();
+      try { return Reflect.apply(fn, this, args); }
+      finally {
+        const ms = now() - start;
+        if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), label === 'Game.runPhase' && typeof args[0] === 'string' ? `${label}:${args[0]}` : label, new Error('frame-floor native call').stack ?? '']);
+      }
+    });
+  };
+  measure(JSON, 'parse', 'JSON.parse');
+  measure(TextDecoder.prototype, 'decode', 'TextDecoder.decode');
+  const moduleCalls = new Set();
+  const prepareWorldCalls = () => {
+    const world = W.__wildshard?.world, game = world?.game, physics = game?.app?.physics;
+    for (const name of ['runPhase', 'runFixed', 'flushEvents']) measure(game, name, `Game.${name}`);
+    measure(game?.composer, 'render', 'Composer.render');
+    measure(game?.renderer, 'render', 'Renderer.render');
+    measure(game?.scene, 'updateMatrixWorld', 'Scene.updateMatrixWorld');
+    measure(physics, 'step', 'Physics.step');
+    measure(physics?.R?.ColliderDesc, 'convexHull', 'Rapier.convexHull');
+    measure(physics?.R?.ColliderDesc, 'trimesh', 'Rapier.trimesh');
+    const geometry = world?.game?.scene?.children?.flatMap(object => {
+      const found = [];
+      object.traverse(child => { if (child.geometry) found.push(child.geometry); });
+      return found;
+    })?.[0];
+    for (const name of ['applyMatrix4', 'computeBoundingBox', 'computeBoundingSphere', 'computeVertexNormals', 'clone', 'toNonIndexed']) {
+      let target = geometry;
+      while (target && !Object.hasOwn(target, name)) target = Object.getPrototypeOf(target);
+      measure(target, name, `BufferGeometry.${name}`);
+    }
+    for (const resource of performance.getEntriesByType('resource')) {
+      if (!/\/assets\/(?:place|weld)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
+      moduleCalls.add(resource.name);
+      void import(resource.name).then(exports => {
+        for (const value of Object.values(exports)) {
+          if (typeof value !== 'function' || !value.prototype) continue;
+          const prototype = value.prototype;
+          if (typeof prototype.finish === 'function' && typeof prototype.join === 'function') {
+            measure(prototype, 'finish', 'Weld.finish'); measure(prototype, 'join', 'Weld.join');
+          } else if (typeof prototype.draw === 'function' && typeof prototype.add === 'function') {
+            measure(prototype, 'draw', 'UnitParts.draw'); measure(prototype, 'add', 'UnitParts.add');
+          }
+        }
+        return undefined;
+      }).catch(() => undefined);
+    }
+  };
+  W.addEventListener('ws:ready', prepareWorldCalls);
   const close = (at, end) => {
     if (open === null) return;
     const total = at - open.start;
@@ -79,9 +138,11 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   }
   /** The tasks since the last take (the open one closed now) and the site table they index. */
   W.__frameFloorTaskTake = () => {
+    prepareWorldCalls();
     close(now(), 'e');
-    const out = { minMs, columns: ['startMs', 'syncMs', 'totalMs', 'end', 'kind', 'site'], dropped, tasks, sites };
-    tasks = []; sites = []; siteIds = new Map(); dropped = 0;
+    const out = { minMs, columns: ['startMs', 'syncMs', 'totalMs', 'end', 'kind', 'site'], dropped, tasks, sites,
+      callColumns: ['startMs', 'syncMs', 'operation', 'stack'], calls };
+    tasks = []; sites = []; siteIds = new Map(); calls = []; dropped = 0;
     return out;
   };
 }
