@@ -110,7 +110,6 @@ export interface BakedBuildingGeometries { readonly geometry: (index: number) =>
  * a specimen's owner keeps nothing (`NO_BUILDING_OWNER`).
  */
 export interface BakedBuildingOwner {
-  readonly _floor: (f: BuildingFloor) => void;
   readonly _door: (d: BuildingDoor) => void;
   /** Notify presentation listeners after the door toggles. */
   readonly _doorMoved: (d: BuildingDoor) => void;
@@ -118,13 +117,12 @@ export interface BakedBuildingOwner {
   readonly _lamp: (mat: THREE.MeshStandardMaterial, full: number) => void;
   readonly _swing: (sw: BuildingSwing) => void;
   readonly _wheel: (o: THREE.Object3D) => void;
-  readonly _firePit: (at: { x: number; y: number; z: number }) => void;
 }
 
 /** The owner that keeps nothing (a specimen's): a door toggles on use. */
 export const NO_BUILDING_OWNER: BakedBuildingOwner = {
-  _floor: () => undefined, _door: () => undefined, _doorMoved: () => undefined, _fire: () => undefined,
-  _lamp: () => undefined, _swing: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
+  _door: () => undefined, _doorMoved: () => undefined, _fire: () => undefined,
+  _lamp: () => undefined, _swing: () => undefined, _wheel: () => undefined,
 };
 
 /**
@@ -227,11 +225,9 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
         default: break;
       }
     }
-    // The door has already validated its legacy box. Keep its life registration before floors and the fire pit.
+    // The door has already validated its legacy box; audio floors and fire emitters are separate product rows.
     // All static boxes remain on this assembly's weld; the life owner does not register them.
     if (door !== null) owner._door(door);
-    for (const f of this.floors) owner._floor(f);
-    if (b.firePit !== null) owner._firePit({ x: b.firePit[0], y: b.firePit[1], z: b.firePit[2] });
     this.band();
   }
 

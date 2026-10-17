@@ -36,8 +36,6 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
  * - `interactables` one per door: `{ position, radius, label, onInteract() }`. `label` toggles
  *                   "Open door" / "Close door". Call `onInteract()` from the HUD's use key.
  * - `update(dt, t)` door swing (0.6 s ease in-out), fire / lantern flicker on the clock, the phone's pooled lights, the wheel.
- * - `floorHeightAt(x, z)` → world y of a cabin floor / porch deck under (x,z), or undefined.
- * - `firePits`      `{ x, y, z }` of the camp fires (audio / warmth logic).
  * - Static collision belongs to each placed building's weld and its prop models; `doorPieces()` hands the door slabs
  *   to the kinematic pieces that follow each pivot.
  *

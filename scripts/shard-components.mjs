@@ -147,6 +147,19 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/props/cabinBuild.ts', 'C2'],
   // Weather and visual fight effects.
   ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
+  // C3 review: private ambient orchestration and weather remain counted custom.
+  ['src/shards/pine-hollow/runtime/life/ambientLife.ts', 'C3'],
+  ['src/shards/pine-hollow/runtime/life/visitors.ts', 'C3'],
+  ['src/shards/pine-hollow/data/ambientLife.ts', 'C3'],
+  ['src/shards/pine-hollow/world/weather.ts', 'C3'],
+  ['src/game/plugin/weather.ts', 'C3'],
+  ...['beatEnvelope','harvest','harvestColors','BEAT','voice','beatCancel','beatT','beatCarcass','beatGive','cutsDone','addPitch','addY','lastRx','lastPy','fx','knife','interrupted','previousWeapons','updateBeat'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C6']),
+  ...['AmbientFlockBird','AmbientFlockPlayer','AmbientFlockLook','ForagerPopulation','PlaceGuide','guide','flyCrumbs'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C3']),
+  ...['AmbientFlockBird','AmbientFlockPlayer','AmbientPerch','AmbientFlockState','CirclingFlyer'].map(name => [`src/shards/pine-hollow/runtime/life/visitors.ts#${name}`, 'C3']),
+  ...['items','item'].map(name => [`src/shards/pine-hollow/runtime/combat/fxKit.ts#${name}`, 'C3']),
+  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#swings', 'C3'],
+  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#BuildingFloor', 'C8'],
+  ['src/shards/pine-hollow/runtime/props/buildingLife.ts#doorListeners', 'C8'],
   ['src/shards/pine-hollow/runtime/air.ts', 'C3'],
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],

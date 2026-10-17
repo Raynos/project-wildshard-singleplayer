@@ -1,3 +1,4 @@
+import { cabinAmbienceRows } from './ambience';
 import traderStall from '../data/traderStall.json' with { type: 'json' };
 import { PINE_PANELS } from './panels';
 import { THRALL_CLIPS } from './thrallClips';
@@ -48,6 +49,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const clientJson=emitNamedBlobs([
+  nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cabinAmbienceRows()))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS))),
   nameBlob('look/creature-clips.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ pose: THRALL_CLIPS, ...thrallLook }))),

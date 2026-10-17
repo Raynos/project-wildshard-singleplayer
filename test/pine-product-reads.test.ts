@@ -26,6 +26,6 @@ test('Pine client reads resolve against the emitted output', async () => {
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));
   const wanted = [value('custom/leverDetails').pool.url, value('custom/crossbowPool').pool.url, value('custom/trophyMounts').url,
     ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
-    ...['ironhide', 'ghostStag', 'blackpaw', 'imperialBull', 'night', 'director'].map(stem => `behaviour/${stem}.wasm`)];
+    'world/ambience.json', ...['ironhide', 'ghostStag', 'blackpaw', 'imperialBull', 'night', 'director'].map(stem => `behaviour/${stem}.wasm`)];
   for (const name of wanted) expect(names.has(name), name).toBe(true);
 }, 30000);

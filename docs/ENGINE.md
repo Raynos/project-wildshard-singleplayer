@@ -5680,27 +5680,13 @@ Users: Driftwood's gulls (`custom/gullFlock`, data/gullsLook.ts GULL_FLOCK,
 perched on the pier, boat, rocks and sand) and Pine Hollow's breadcrumb
 ravens (`custom/ambientLife` `guide.flock`, hidden until a guide pass).
 
-Two more modes are row sections (`null` when unused). `scavenge`:
-`flock.gather(x, z, width, n)` borrows up to `n` hidden birds to a site (a
-kill `width` m across) and returns its id; they come in high from
-`arrive.far`, circle low, land on a ring round it and feed (peck bouts, look
-round, hops, squabble calls), lift and circle high when the player is within
-`flush` (walking, `fast`), re-land once they are past `feed.reland`, and leave
-when fed (`feed.time`), timed out (`feed.leave`) or `release(id, player)`d.
-`siteVisit(id)` reads 1 overhead, 2 feeding, 3 gone. `visit`: one bird comes
-to a perch `near` the player while `player.light` is inside `enter`, arriving
-`behind` the view or from `beyond` the perch, stares (`stare`) or looks about,
-calls (`call`), does its `acts` (hitch up, call, drum roll), relocates within
-`relocate` when flushed (toward `player.toward` with `aim`) and leaves when
-`light` leaves `stay` or the player is past `leave`. A perch with `r` is a
-trunk section: the bird clings to the bark on the side toward the player;
-`w` weighs the pick. `visitAt(x, z, reach, player)` and `visitSoon()` serve
-captures. The voices land in `flock.calls` with their cue id and gain; the
-SDK draw plays them as cues, a caller that draws into its own mesh plays them
-itself. `update(dt, player)` reads the optional `fast`, `light`, `fx` / `fz`
-(the view's forward) and `toward` off the player. Pine Hollow's ravens at a
-kill (`scavenger.flock`), owl on snag tops (`sentinel.flock`) and woodpecker
-on bark (`trunkForager.flock`) are these rows, drawn into its wildlife draw.
+Pine's carcass `scavenge` and perch `visit` rows have one shipped user.
+They run in `src/shards/pine-hollow/runtime/life/visitors.ts` as counted
+custom C3 code. The shared host refuses either section when non-null;
+Pine's guide ravens continue using the shared core. The private visitor
+preserves the former perch-shuffle and bird-phase RNG draws.
+`test/ambient-flock-host.test.ts` checks both shared users' formation rows
+and Pine's custom gather/release and nocturnal visit lifetimes.
 
 ### Ambient foragers (G466 H6)
 
@@ -8067,6 +8053,16 @@ canonical schema as `@wildshard/sdk/species.species`. Pine and Driftwood emit bo
 catalogues in their output producers; their existing hunt/brain and save owners
 remain unchanged.
 
+Pine's `world/ambience.json` emits cabin-then-hamlet floor rectangles and
+fire-pit positions from the building records. The page passes those rows
+to `DeclaredAmbience.floorRows` and its declared fire-point owner. Rain
+cover reads the same rectangles through `floorAtRects`; `BuildingLife`
+keeps lighting, doors and the live wheel gain, without floor/fire lists.
+`test/pine-ambience-rows.test.ts` checks the emitted ordering and floor
+queries. `test/ambient-forager-host.test.ts` exercises shipped hare and
+marmot rows; `test/water-surface-host.test.ts` exercises Driftwood's
+floor/foam/dry draw and Pine's plain water rows.
+
 ### Numeric channel programs (H4)
 
 `@wildshard/game/plugin/channelPrograms#installChannelPrograms` binds one
@@ -8264,7 +8260,10 @@ install an audio service. Ordered temporary values precede output evaluation.
 rows on the existing `Weather` transition loop. Pine and Nalati are real users:
 their differences are phase lengths, mode policies and numeric DATA. The host
 knows no shard names, requires no DOM, and replaces both private profile bodies.
-Nalati retains its separate lightning owner and the existing phase hook order.
+Nalati retains its separate lightning owner and the existing phase hook order. The C3 review still marks weather
+unclosed: Nalati's `SteppeStorm` overrides and Pine's separate page clock
+remain counted custom; the native installer has only Pine as a shipped
+user. New callback subscriptions are not a migration path (G469).
 
 Optional cadence and wind state use `captureContinuation` and the atomic
 `prepareContinuationRestore`; validation draws no RNG, emits no event and

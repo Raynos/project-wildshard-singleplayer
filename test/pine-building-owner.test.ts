@@ -28,7 +28,7 @@ test('building life keeps its door while the assembly owns static collision', ()
     expect(doors).toHaveLength(1);
     expect(made.weldBuild().colliders).toEqual([solid]);
     expect(door.colliders).toEqual([solid]);
-    expect(life.floorHeightAt(0, 0)).toBeDefined();
+    expect(made.floors).toEqual(record.floors);
     const prompt = life.interactables[0];
     if (prompt === undefined) throw new Error('Missing door prompt');
     const heard: { label: string; opening: boolean }[] = [];

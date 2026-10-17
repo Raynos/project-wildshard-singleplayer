@@ -1,3 +1,4 @@
+import { floorAtRects } from '@wildshard/engine/physics/box';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import { SECTIONS } from './sections';
@@ -51,7 +52,7 @@ import { loadBirdModels } from './birds';
 import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from './models/wildlife';
 import { WILDLIFE_LOOK, FINISH_CARDS } from './const';
 import * as v from 'valibot';
-import { installPineAudio } from './audio/wiring';
+import { installPineAudio, parseCabinAmbienceRows } from './audio/wiring';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { installWeather, loadPineRain } from '../world/weather';
@@ -196,6 +197,8 @@ export class PineHollow extends ShardPlugin {
     const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
+    const cabinAudio = parseCabinAmbienceRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/ambience.json'))));
+    if (cabins?.kit === null || cabins === null) { cabinAudio.floors = []; cabinAudio.firePits = []; }
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
@@ -225,7 +228,7 @@ export class PineHollow extends ShardPlugin {
     });
     const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
     const rifleDrop = (() => {
-      const position = pineRifleFloor(cabins);
+      const position = pineRifleFloor(cabins === null ? null : { floorHeightAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') });
       if (position === null) return null;
       const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3, random: pinePickupStream('cabin-rifle') });
       rt.interactables.push(drop.interactable);
@@ -258,12 +261,12 @@ export class PineHollow extends ShardPlugin {
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);
-    const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabins?.audioState.floors ?? [] }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: cabins?.audioState }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
+    const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
     await installPineAudio({context:ctx,game,audio,sky,music,ambience,animals,cabins,elites:fights.elites});
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
-      roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
+      roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
     const wildlife=new WildlifeMesh(sky,lifeRows.scavenger.flock.count+lifeRows.forager.count+2);

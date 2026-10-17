@@ -18,7 +18,8 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { sharedWeaponVoices } from '@wildshard/game/plugin/audio';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
-import { AmbientFlock, type AmbientFlockBird, type AmbientFlockPlayer } from '@wildshard/engine/ai/ambientFlock';
+import { PineVisitors } from './visitors';
+import type { AmbientFlockBird, AmbientFlockPlayer } from '@wildshard/engine/ai/ambientFlock';
 import { parseAmbientLife, type AmbientLifeData } from '@wildshard/format/ambientLife';
 import { createAmbientFlock, installAmbientFlock, type AmbientFlockLook } from '@wildshard/sdk/looks/ambientFlock';
 
@@ -73,12 +74,12 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const fwd = new THREE.Vector3();
 
   // ── the birds: three ambient flock rows (the ravens at a kill, the owl on a snag top, the woodpecker on the bark) ──
-  const ravens = new AmbientFlock(sc.flock), owl = new AmbientFlock(data.sentinel.flock, data.sentinel.perches), wood = new AmbientFlock(data.trunkForager.flock, data.trunkForager.perches);
+  const ravens = new PineVisitors(sc.flock), owl = new PineVisitors(data.sentinel.flock, data.sentinel.perches), wood = new PineVisitors(data.trunkForager.flock, data.trunkForager.perches);
   const flocks = [ravens, owl, wood], pose = newPose(0);
-  const lane = (b: AmbientFlockBird, l: AmbientFlock['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
+  const lane = (b: AmbientFlockBird, l: PineVisitors['row']['channels'][0][number]): number => typeof l === 'number' ? l : b[l];
   /** each flock's live birds into the wildlife draw, and its voices through the ambience's one-shots */
   const shot: { at: { x: number; y: number; z: number } | undefined; gain: number } = { at: undefined, gain: 1 };
-  const drawFlock = (f: AmbientFlock): void => {
+  const drawFlock = (f: PineVisitors): void => {
     const [a, b] = f.row.channels;
     for (let i = 0; i < 8; i++) { const c = f.calls[i]; if (c === undefined) break; shot.at = c; shot.gain = c.gain; h.sfx?.shot(c.cue, shot); }
     for (let i = 0; i < 256; i++) { // a flock row is at most 256 birds

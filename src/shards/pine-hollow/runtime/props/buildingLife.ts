@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
+import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { SiteLights, type LightSite, type SiteLightState, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
@@ -48,7 +48,6 @@ export class BuildingLife {
   get wheelSpeed():number{return this.audioState.wheel.value;}
   set wheelSpeed(value:number){this.audioState.wheel.value=value;}
   interactables: Interactable[] = [];
-  firePits: { x: number; y: number; z: number }[] = [];
   private readonly lifeLook: BuildingLifeLook;
   private wheels: THREE.Object3D[] = [];
   private doors: BuildingDoor[] = [];
@@ -57,9 +56,8 @@ export class BuildingLife {
   /** each light kind's gain this frame (fires and lamps by the night) */
   private readonly gain = { fire: 1, lamp: 1 };
   private swings: BuildingSwing[] = [];
-  private floors: BuildingFloor[] = [];
   /** Live data loan for audio; no building methods or gameplay callbacks cross the host boundary. */
-  readonly audioState={floors:this.floors,firePits:this.firePits,wheel:{value:0.55}};
+  readonly audioState={wheel:{value:0.55}};
   /** emissive materials lit by the clock and their full-night intensity */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
   private readonly doorListeners = new Set<(door: Interactable, opening: boolean) => void>();
@@ -77,8 +75,6 @@ export class BuildingLife {
     return this.doors.map((d) => ({ id: d.id, pivot: d.pivot, colliders: [d.slab], use: d.use, swinging: () => d.t !== (d.open ? 1 : 0) }));
   }
 
-  /** world y of a floor / deck under (x, z), if inside one */
-  floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'first'); }
 
   /** Pine-only reversible doors stay custom until a real second shard uses the same mover row. */
   private stepDoors(dt: number): void {
@@ -122,12 +118,8 @@ export class BuildingLife {
   _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }
   /** a swinging pivot */
   _swing(sw: BuildingSwing): void { this.swings.push(sw); }
-  /** a floor / deck */
-  _floor(f: BuildingFloor): void { this.floors.push(f); }
   /** a wheel turning about its x axis */
   _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
-  /** a fire pit's position (audio / warmth) */
-  _firePit(at: { x: number; y: number; z: number }): void { this.firePits.push(at); }
   /** a site the shared lights may visit (in visiting order of registration) */
   addSite(site: LightSite): void { this.lights.addSite(site); }
   /** a shared point light the nearest site's anchors take */
