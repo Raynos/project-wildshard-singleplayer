@@ -844,7 +844,7 @@ and cell screens before exposure. Near views retain their far fallback while lin
 eviction or preparation failure retires the pending view without covering its far proxy. A screen's slot likewise
 stays hidden until its first painted canvas and material are prepared. The existing page draw barrier paces this work.
 
-`Game.warmEnteredFrame(owner, futureRoot?)` captures the installing content scene before yielding. Regional callers
+`Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the installing content scene before yielding. Regional callers
 pass their whole view root so authored sibling lights outside the native scene are included. Only that root's parked
 visibility is ignored; hidden descendants remain hidden. The bound native scene supplies the PMREM independently.
 Shader preparation includes future lights through detached light clones in jobs targeting the rendered root. This
@@ -857,6 +857,10 @@ An admitted regional sky finishes before warm-up. Its parked scene carries the s
 compile jobs temporarily use that exact PMREM mapping and cube-UV height, then restore the road environment
 in `finally` before yielding or drawing. This changes compilation inputs only, with no new sky allocation,
 visibility change or disposal ownership. Cancellation and driver errors restore the page too.
+The warm-up is bounded in presented time (`boundEntryWarmup`, `src/engine/render/entryWarmupBound.ts`): `before`
+(a region's sky build, `beforeWarm`) runs first inside the bound, and 5 s with no drawn frame or 30 s in all rejects
+with an `EntryWarmupStallError` naming the stage. Each rAF gap counts at most 100 ms, so a hidden page never expires
+it. The grid records the rejection as the cell's admission issue and the next crossing retries; nothing waits silently.
 
 During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolated image uploads.
 `precompileLevel` accepts `isolateImageUploads`; `runPrecompile` accepts it before its optional `pause` callback.
@@ -889,6 +893,11 @@ only. Without isolation (desktop) the same budget replaces the 12 ms check made 
 starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB) during paced live WebKit preparation. Explicit `off` retains isolated uploads; desktop retains its ordinary path unless `uploads` selects `SLICED_UPLOAD_BUDGET` (10 ms, 64 MiB).
 
 Live WebKit parked draws can share the same bounded construction slice through `buildYield`. Each existing drawable/material-count slice restores every flag before its task yield. A final `waitForDrawnFrame` remains before offscreen warm-up and readiness; compressed-upload fences and desktop parked-draw cadence are unchanged.
+
+`pacedResolve(value)` (`@wildshard/engine/core/workSlice`) hands back a value an async API already holds: on its
+microtask, or after the next drawn frame once a presenting frame's shared build budget is spent. Cached product reads
+(`ClientAssets.read`, admitted product files) and the grid runtime's `step()` use it, so a runtime hook awaiting cached
+reads one after another on the road cannot run its whole chain in one task. Not presenting, it is `Promise.resolve`.
 
 cannot release the next preparation batch. Scope retirement or an obsolete owner rejects and clears its scheduling
 handles. It never advances simulation or forces a draw. Initial boot (no completed draw yet) and desktop keep the
