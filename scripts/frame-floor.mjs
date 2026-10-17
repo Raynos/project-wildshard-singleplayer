@@ -512,6 +512,10 @@ async function measureShard(driver, shard, deadline) {
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));
         await sleep(settleMs);
         const standing = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
+        witness.standingMemory = await driver.evaluate(`(() => { const grid = window.__wildshard.shard.grid, state = grid.state(); return {
+          playingMB: state.playingMB, accountedBytes: state.accountedBytes, cost: grid.residency().cost,
+          current: state.live.live.current, ringsRefused: state.rings.refused, issues: state.live.live.issues }; })()`);
+
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
         console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
