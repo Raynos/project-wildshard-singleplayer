@@ -1125,6 +1125,15 @@ on the body clock. A shard overrides a rate in `manifest.tiers.<tier>.ticks`.
 
 ### 13.1 LookStrategy
 
+`render/dataLook` admits generated painted-look JSON with
+`parsePaintedLookRow`, then binds it with `paintedLookFromRow`. The row holds
+the clock, key, fog, painter light and its page/material scope, dusk curves, and two
+painted strips or a heading haze. Image loading, graph compilation, dressing,
+LUTs, terrain ownership and live dusk stay explicit ports; a stateful row
+refuses a missing live state. Material-scoped light stays in the admitted row
+for the caller to apply with `painterLightPatch`. `painterLightPatch(null, ...)`
+installs that light in the page lighting chunk; a material target scopes it.
+
 `manifest.render` returns a `LookStrategy`: how your level looks. It is one of two shapes.
 
 | Shape | `compose` | Use |

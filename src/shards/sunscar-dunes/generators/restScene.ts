@@ -5,7 +5,7 @@ import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '
 import { BRAZIERS, CARAVAN, TOWER, WELL } from "./layout";
 import { signalDunesTiles, signalDunesField } from './tiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, KEEPER_LAMP, SIGNAL_FIRE, type FireSize, type FirePool } from '../data/fire';
+import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, KEEPER_LAMP, SIGNAL_FIRE, type FirePool } from './rows/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
 import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
@@ -150,13 +150,13 @@ export function fireRest(): ClientSceneBake {
 export function fireGlb(): Uint8Array { return fireRest().glb; }
 
 /** Place fields and live-effect attachments; geometry, frames and material ownership remain the existing recipes. */
-interface PlaceBinding { recipe:WorldSceneRecipe;fields:Record<string,unknown>;fires:{part:string;size:FireSize;pool:string|null}[];lamps:{part:string;glow:number;pool:string}[];lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }
+interface PlaceBinding { recipe:WorldSceneRecipe;fields:Record<string,unknown>;fires:{part:string;rows:ReturnType<typeof fireRows>;pool:string|null}[];lamps:{part:string;rows:ReturnType<typeof lampRows>;pool:string}[];lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }
 export function placeBindings():Record<'caravan'|'tower'|'well',PlaceBinding>&{braziers:PlaceBinding[]} {
   const places=placeRecipes(), recipe=(row:WorldSceneRecipe)=>({scene:row.scene,imports:row.imports});
   const group=(part:string)=>({kind:'group',part}), mesh=(part:string)=>({kind:'mesh',part}), vector=(value:readonly number[])=>({kind:'vector',value});
   const root={root:group('root'),colliders:{kind:'colliders',part:'baked'}};
-  const lamp=(part:string,glow:number,pool:string)=>({part,glow,pool});
-  const fire=(part:string,size:typeof COOKFIRE|typeof WAYMARK_FIRE|typeof KEEPER_LAMP|typeof SIGNAL_FIRE,pool:string|null)=>({part,size,pool});
+  const lamp=(part:string,glow:number,pool:string)=>({part,rows:lampRows(glow),pool});
+  const fire=(part:string,size:typeof COOKFIRE|typeof WAYMARK_FIRE|typeof KEEPER_LAMP|typeof SIGNAL_FIRE,pool:string|null)=>({part,rows:fireRows(size),pool});
   const tower=recipe(places.tower);
   const fireNode=tower.scene.nodes.find(node=>node.id==='live.fire');
   if(fireNode===undefined)throw new Error('Missing tower fire anchor');

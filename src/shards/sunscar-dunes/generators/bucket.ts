@@ -1,7 +1,7 @@
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import { parseMovers } from '@wildshard/format/movers';
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { FLAG } from '../data/flags';
+import { FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 

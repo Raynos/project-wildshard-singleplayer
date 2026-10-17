@@ -1,5 +1,5 @@
 import { SCOUT_ROW } from './questPresentation';
-import { SCOUT_AT } from '../data/flags';
+import { SCOUT_AT } from './rows/flags';
 import ground from '../data/manifestGround.generated.json' with { type: 'json' };
 import STRINGS from '../data/strings.json' with { type: 'json' };
 

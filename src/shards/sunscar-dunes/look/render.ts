@@ -1,13 +1,11 @@
-import { Vector3, type Material } from 'three';
+import type { Material } from 'three';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { paintedLook } from '@wildshard/engine/render/dataLook';
-import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { paintedLookFromRow, parsePaintedLookRow } from '@wildshard/engine/render/dataLook';
 import { setGroundPools } from '@wildshard/engine/render/families/ground';
 import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
 import { CubeSkirt } from '../runtime/looks/bakedGround';
 import { DUSK } from './dusk';
-import { SIGNAL_DUSK_LOOK as row } from '../data/lastLight';
-import { SAND_FILES } from '../data/sand';
+import rows from '../data/paintedLook.generated.json' with { type: 'json' };
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { FIRE_LIGHTS } from '../world/fireFx';
 
@@ -31,12 +29,10 @@ export const SKIRT = new CubeSkirt();
  * the lent sand, and feeds the burning fires' light pools to that sand each frame.
  */
 export function signalDunesLook(): LookStrategy {
-  return paintedLook({ sky: { strips: row.sky, load: loadPaintedTexture }, fog: row.fog, clock: () => new DayCycle(row.clock), hold: true,
-    sun: { dir: new Vector3(...row.key.dir).normalize(), colour: row.key.color, intensity: row.key.intensity },
-    state: { value: DUSK, deep: row.key.deep, curves: row.curves },
+  return paintedLookFromRow(parsePaintedLookRow(rows.look), { load: loadPaintedTexture, state: DUSK,
     terrain: {
       build: async (terrain, field, scope) => {
-        await SKIRT.load(terrain.group, { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' }, scope);
+        await SKIRT.load(terrain.group, { url: rows.sand.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' }, scope);
         await field.ready();
       },
       update: () => { if (SAND.material !== null) setGroundPools(SAND.material, FIRE_LIGHTS.value); },

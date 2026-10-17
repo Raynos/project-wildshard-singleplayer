@@ -1,9 +1,14 @@
+import * as schema from 'valibot';
 import { Mesh, Vector4, type BufferGeometry, type Group, type Material, type Object3D, type Vector3 } from 'three';
 import { cardGroup, type CardGroupRow, type CardPrograms } from '@wildshard/sdk/looks/cardField';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
-import { FIRE_GRAPH_IDS, fireRows, lampRows, type FireCard, type FireSize } from '../data/fire';
 import type source from '../runtime/source';
+import FIRE_GRAPH_IDS from '../data/firePrograms.generated.json' with { type: 'json' };
+
+const xyz = schema.tuple([schema.number(), schema.number(), schema.number()]);
+const cards = schema.object({ name: schema.string(), order: schema.number(), cards: schema.array(schema.object({ program: schema.string(), quad: schema.string(), scale: schema.union([schema.number(), xyz]), at: schema.exactOptional(xyz), order: schema.exactOptional(schema.number()) })) });
+const fireRows = schema.object({ fire: cards, smoke: cards, embers: schema.object({ name: schema.string(), shape: schema.literal('point'), count: schema.number(), scale: schema.number(), y: schema.number() }) });
 
 /**
  * Fire, embers and smoke as declared rows (SHARD-PLATFORM SF72, effect rows): each fire's parts are rows (`data/fire.ts`
@@ -19,7 +24,7 @@ import type source from '../runtime/source';
 export const FIRE_LIGHTS = { value: [new Vector4(), new Vector4(), new Vector4(), new Vector4()] };
 
 /** The compiled fire (one per level build): its card programs, ember and pool materials, quads, the clock and the next light slot. */
-interface Fire { readonly cards: CardPrograms<FireCard, Material>; readonly embers: Material; readonly pool: Material; readonly quads: Readonly<Record<'flame' | 'wisp' | 'glow', BufferGeometry>>; readonly made: BufferGeometry[]; readonly setTime: (t: number) => void; slot: number }
+interface Fire { readonly cards: CardPrograms<string, Material>; readonly embers: Material; readonly pool: Material; readonly quads: Readonly<Record<'flame' | 'wisp' | 'glow', BufferGeometry>>; readonly made: BufferGeometry[]; readonly setTime: (t: number) => void; slot: number }
 let fire: Fire | null = null;
 const current = (): Fire => { if (fire === null) throw new Error('Signal Dunes: the fire graphs compile before the world builds (prepareFireFx)'); return fire; };
 
@@ -32,29 +37,30 @@ export async function prepareFireFx(ctx: Parameters<typeof prepareClientWorld>[0
   // the tongues' and plume's quad stands on its foot; the wisp's has 16 rows, so its sway curls it rather than tilting it
   const read = (id: string): BufferGeometry => { const made = library.geometry(id); if (made === null) throw new Error(`Missing declared fire geometry: ${id}`); return made; };
   const quads = { flame: read('fire-flame'), wisp: read('fire-wisp'), glow: read('fire-glow') };
-  const made: Fire = { cards: { material: (program) => library.material(FIRE_GRAPH_IDS[program]) }, embers: library.material(FIRE_GRAPH_IDS.embers), pool: library.material(FIRE_GRAPH_IDS.pool), quads, made: [], setTime: value => { time = value; looks.tick(0); }, slot: 0 };
+  const programs = new Map(Object.entries(FIRE_GRAPH_IDS));
+  const made: Fire = { cards: { material: (program) => { const id = programs.get(program); if (id === undefined) throw new Error('Undeclared fire program'); return library.material(id); } }, embers: library.material(FIRE_GRAPH_IDS.embers), pool: library.material(FIRE_GRAPH_IDS.pool), quads, made: [], setTime: value => { time = value; looks.tick(0); }, slot: 0 };
   for (const v of FIRE_LIGHTS.value) v.w = 0;
   fire = made; for (const quad of Object.values(quads)) ctx.scope.own(quad);
   ctx.scope.onDispose(() => { for (const g of made.made) g.dispose(); if (fire === made) fire = null; });
 }
 
 /** The row's cards and its owned baked ground pool under the original live group. */
-function place(group: Group, row: CardGroupRow<FireCard>, pool: BufferGeometry | null): Object3D[] {
+function place(group: Group, row: CardGroupRow, pool: BufferGeometry | null): Object3D[] {
   const f = current(), parts: Object3D[] = [...cardGroup(f.cards, row, {}, { quads: f.quads, into: group }).meshes];
   if (pool === null) return parts;
   const disc = new Mesh(pool, f.pool); disc.frustumCulled = false; f.made.push(pool); group.add(disc); return [...parts, disc];
 }
 
 /** Adds the original live fire and embers with an optional owned baked pool. */
-export function addFire(group: Group, size: FireSize, pool: BufferGeometry | null = null): Object3D[] {
-  const f = current(), rows = fireRows(size), parts = place(group, rows.fire, null);
+export function addFire(group: Group, input: unknown, pool: BufferGeometry | null = null): Object3D[] {
+  const f = current(), rows = schema.parse(fireRows, input), parts = place(group, rows.fire, null);
   const embers = effectField(rows.embers, f.embers), sparks = embers.object; f.made.push(embers.geometry);
   sparks.scale.setScalar(rows.embers.scale); sparks.position.y = rows.embers.y; group.add(sparks);
   return [...parts, sparks, ...place(group, rows.smoke, pool)];
 }
 
 /** A lamp's live halo and owned baked pool, without another light. */
-export function addLampGlow(group: Group, glow: number, pool: BufferGeometry | null): void { const rows = lampRows(glow); place(group, rows.halo, pool); }
+export function addLampGlow(group: Group, input: unknown, pool: BufferGeometry | null): void { place(group, schema.parse(schema.object({ halo: cards }), input).halo, pool); }
 
 /** Claims a firelight slot at `at`; the switch turns it on or off (`gain`: a lamp is a fraction of a fire). */
 export function fireLight(at: Vector3): (lit: boolean, gain?: number) => void {

@@ -4,7 +4,7 @@ import { SIGNAL_OWNER_ROWS } from './hostOwners';
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import { SIGNAL_SPAWNS } from './spawns';
 import { MATRIARCH_DEFINITION, MATRIARCH_RECORD, MATRIARCH_REWARD, MATRIARCH_ARENA } from './matriarchEncounter';
-import { FACT, MATRIARCH_FLAG } from '../../data/signalQuest';
+import { FACT, MATRIARCH_FLAG } from './signalQuest';
 
 const matriarch = SIGNAL_SPAWNS.bosses[0];
 if (matriarch === undefined) throw new Error('Signal Dunes declares the Matriarch\'s boss row');

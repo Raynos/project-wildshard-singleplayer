@@ -1,15 +1,14 @@
 import { Group, type Texture } from 'three';
 import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { TIER } from '@wildshard/engine/core/tier';
-import { paintedLook, type PaintedDressing, type PaintedDressingContext } from '@wildshard/engine/render/dataLook';
+import { paintedLookFromRow, parsePaintedLookRow, type PaintedDressing, type PaintedDressingContext } from '@wildshard/engine/render/dataLook';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
+import { loadPaintedTexture, type PaintedSampler } from '@wildshard/game/plugin/geometry';
 import { cardGroup } from '@wildshard/sdk/looks/cardField';
 import { discLayer } from '../runtime/looks/discLayer';
 import * as v from 'valibot';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
-import { SKY_PAINTED } from '../data/skyPaintedLook';
+import SKY_PAINTED from '../data/paintedLook.generated.json' with { type: 'json' };
 
 // The dome's and dressing's SF59 graphs, card fields and discs (authored JSON, data/skyDressing.json), admitted
 // once here. P2a's product.section() replaces the JSON import behind SKY_PAINTED.dressing; this schema becomes its
@@ -38,7 +37,7 @@ const DressingSchema = v.object({ dome: v.object({ phone: graph, desktop: graph 
 export async function skyReachLook(): Promise<LookStrategy> {
   const rows = v.parse(DressingSchema, SKY_PAINTED.dressing);
   const [pano = null, cloudAtlas = null, seaPaint = null, vortex = null] = await Promise.all([SKY_PAINTED.images.pano[TIER], ...SKY_PAINTED.images.rest]
-    .map((row) => loadPaintedTexture(row.url, row.name, row.warn, row.sampler)));
+    .map((row) => loadPaintedTexture(row.url, row.name, row.warn, row.sampler as PaintedSampler)));
   const dressing = async (ctx: PaintedDressingContext): Promise<PaintedDressing> => {
     const group = new Group(); group.name = 'far.sky-dressing';
     const glow = await ctx.graph(rows.glow.graph); cardGroup({ material: () => glow }, rows.glow.cards, {}, { into: group });
@@ -49,7 +48,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     if (cloudAtlas !== null) { const puff = await ctx.graph(rows.cumulus.graph, () => cloudAtlas); cardGroup({ material: () => puff }, rows.cumulus.cards, {}, { into: group }); }
     return { group, textures: [], update: () => undefined };
   };
-  return paintedLook({ ...SKY_PAINTED.look, textures: [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null), dressing,
-    sky: { haze: SKY_PAINTED.haze, graph: (strip) => ({ ir: rows.dome[TIER], textures: (ref) => (ref === 'haze' ? strip : pano ?? strip) }) },
-    clock: () => new DayCycle(SKY_PAINTED.day), lut: () => loadLUT('far-reach') });
+  return paintedLookFromRow(parsePaintedLookRow(SKY_PAINTED.look), { load: loadPaintedTexture, textures: [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null), dressing,
+    graph: (strip) => ({ ir: rows.dome[TIER], textures: (ref) => (ref === 'haze' ? strip : pano ?? strip) }),
+    lut: () => loadLUT('far-reach') });
 }

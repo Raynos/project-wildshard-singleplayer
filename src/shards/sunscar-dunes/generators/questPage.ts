@@ -1,4 +1,4 @@
-import { SCOUT_FLAG } from '../data/flags';
+import { SCOUT_FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from './questPresentation';
 import { SIGNAL_PERSISTENCE } from './persistence';

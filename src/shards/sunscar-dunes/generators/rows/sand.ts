@@ -1,4 +1,4 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 
 /**
  * The sand's baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`): their sizes and reach, and the key

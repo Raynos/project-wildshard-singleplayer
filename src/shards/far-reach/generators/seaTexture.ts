@@ -1,4 +1,4 @@
-import { SEA, SKY_SUN } from '../data/skyLook';
+import { SEA, SKY_SUN } from './rows/skyLook';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by scripts/bake-sky-world.mjs into data/seaTexture.json; the client

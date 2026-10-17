@@ -1,6 +1,6 @@
 import { Color, Float32BufferAttribute, PlaneGeometry, type BufferGeometry } from 'three';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { SKIRT_CUBE, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from '../data/sand';
+import { SKIRT_CUBE, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './rows/sand';
 import { SAND_TINT } from "./duneRows";
 import { signalDunesField } from './tiles';
 

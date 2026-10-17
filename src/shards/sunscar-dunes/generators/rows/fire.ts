@@ -15,28 +15,6 @@ export const KEEPER_LAMP = { flame: 2.6, glow: 1.2, smoke: 0.01, embers: 4 } as 
 /** The signal fire on the tower's deck. */
 export const SIGNAL_FIRE = { flame: 3.6, glow: 5, smoke: 48, embers: 160 } as const;
 
-/** The look every Signal fire shares (linear RGB). */
-export const FIRE_STYLE = {
-  // round 18b (mockup C's thin plume drifts LEFT with the sparks): a light dusk breeze from the south-east, not the dune-forming wind
-  breeze: [-0.5, -0.866],
-  // E407 row 6 ('real fire'): a Blender gas sim's burning log pile, 32 frames emission-only, 8 x 4 cells (art/sunscar-dunes/round-26-fire)
-  book: { url: '/assets/sunscar-dunes/fx/fire-book.webp', columns: 8, rows: 4, fps: 16, name: 'sunscar.fire.book' },
-  // mockup C: saturated orange tongues, white only in the core (round 21: the core gated by its place, not its brightness)
-  bookGrade: { power: [1, 1.35, 1.9], tint: [1.2, 0.95, 0.75], core: 5 },
-  // rounds 8-12 (mockup C: a ragged log fire): the flame billboards lean little on the breeze
-  flame: { drift: { lean: 0.06, widen: 0, sway: 0.15 } },
-  // rounds 8-21 (mockup C: a grey-brown billow lit warm at its foot, dark against the night above; round 21: wider, leaning downwind)
-  plume: { drift: { lean: 0.36, widen: 2.6, sway: 0.15 }, foot: [0.3, 0.14, 0.06], top: [0.024, 0.02, 0.022], fade: 0.18, alpha: 0.9 },
-  // mockup B / round 21: the cookfire's pale wisp barely leans on the breeze, it curls
-  wisp: { drift: { lean: 0.025, widen: 6, sway: 2.4 }, foot: [0.16, 0.11, 0.1], top: [0.09, 0.08, 0.12], fade: 0.5, alpha: 0.55 },
-  // loop 5 / round 8: a halo, not a wash, dimmer and redder; round 9 / 11: a lamp's own brighter, depth-tested halo
-  glow: { colour: [1, 0.32, 0.06], gain: 0.14, lampGain: 0.42 },
-  // round 8 / 9 (mockup C: short orange-red streaks)
-  embers: { hot: [1, 0.42, 0.06], cool: [0.8, 0.1, 0], gain: 1.5 },
-  // loop 5 / E399 (mockup C): the fire floods the sand round it orange, hot near the brazier (round 8: redder; round 10: dimmer)
-  pool: { colour: [1, 0.3, 0.04], wide: 0.1, hot: 0.24 },
-} as const;
-
 /** One fire's scale (metres): the flame's height, the glow's radius, the smoke column's height, the ember count. */
 export interface FireSize { readonly flame: number; readonly glow: number; readonly smoke: number; readonly embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ readonly wisp?: boolean }
 

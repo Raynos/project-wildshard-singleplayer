@@ -15,7 +15,7 @@ import { SIGNAL_BUCKET_CHANNELS, SIGNAL_BUCKET_MOVERS } from './bucket';
 import { SIGNAL_QUESTS } from './quests';
 import sandMaps from '../data/sandMaps.json' with { type: 'json' };
 import { SAND_FIELDS } from './rows/sandFields';
-import { SAND_DUSK } from '../data/dusk';
+import { SAND_DUSK } from './rows/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from './rows/stormLook';
 import { FIRE_GRAPHS } from './fireLook';
 import fireBook from '../data/fireBook.generated.json' with { type: 'json' };

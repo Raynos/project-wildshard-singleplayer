@@ -52,8 +52,8 @@ if (compare !== undefined) {
       if (fa !== null && fb !== null && existsSync(fa) && existsSync(fb)) {
         const pa = readFileSync(fa), pb = readFileSync(fb);
         let n = 0;
-        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2]) n++;
-        console.log(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
+        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2] || pa[p + 3] !== pb[p + 3]) n++;
+        if (n > 0) diffs.push(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
@@ -64,6 +64,8 @@ if (compare !== undefined) {
 const url = arg('url'), output = arg('output'), raw = arg('raw');
 // W1 C1 (scripts/w1-c1-parity.mjs): `--poses=c1` adds close-ups of the static pieces C1 bakes and skips the creature shots
 const c1 = arg('poses') === 'c1', SHOTS = c1 ? [...POSES, ...C1_POSES] : POSES;
+// The painted-row proof also exercises the quest's late sky, light curves and burning braziers.
+const shots = process.argv.includes('--dusk') ? [...SHOTS, { id: 'waymarks-dusk', x: 2, z: -60, yaw: -0.38, pitch: 0.25, stage: 'waymarks-lit' }] : SHOTS;
 const frame = arg('frame') ?? 'plain';
 if (!['plain', 'composer'].includes(frame)) throw new Error('Frame must be plain or composer');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
@@ -101,8 +103,14 @@ try {
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
     tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
-    for (const p of SHOTS) {
+    for (const p of shots) {
       const { yaw, pitch } = p;
+      if ('stage' in p) await page.evaluate(stage => {
+        const plugin = window.__wildshard.shard.sunscar;
+        plugin.stage(stage); plugin.settleQuestDusk();
+        const places = plugin.places;
+        if (places === null || places.braziers.length === 0 || places.braziers.some(brazier => !brazier.lit)) throw new Error('Dusk pose requires every waymark lit');
+      }, p.stage);
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__slpGate' in window) g.frameGate = window.__slpGate; });
       await page.evaluate(a => {
         const w = window.__wildshard.world;

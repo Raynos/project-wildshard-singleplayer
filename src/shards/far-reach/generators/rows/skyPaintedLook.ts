@@ -1,7 +1,7 @@
-import files from '../boot/assets.generated.json' with { type: 'json' };
+import * as files from '../fileInventory';
 import { SKY, SKY_DAY, SKY_FOG, SKY_HAZE, SKY_KEY, SKY_PAINTER_LIGHT, SKY_RAYS, SKY_SUN } from './skyLook';
-import panorama from './panorama.json' with { type: 'json' };
-import DRESSING from './skyDressing.json' with { type: 'json' };
+import panorama from '../../data/panorama.json' with { type: 'json' };
+import DRESSING from '../../data/skyDressing.json' with { type: 'json' };
 
 const [sunX, sunY, sunZ] = SKY_SUN;
 

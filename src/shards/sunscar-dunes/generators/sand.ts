@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { GROUND_HALF } from "./layout";
-import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from '../data/sand';
+import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from './rows/sand';
 import { swellSkirtAt } from './skirt';
 import { signalDunesField } from './tiles';
 

@@ -51,8 +51,8 @@ if (compare !== undefined) {
       if (fa !== null && fb !== null && existsSync(fa) && existsSync(fb)) {
         const pa = readFileSync(fa), pb = readFileSync(fb);
         let n = 0;
-        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2]) n++;
-        console.log(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
+        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2] || pa[p + 3] !== pb[p + 3]) n++;
+        if (n > 0) diffs.push(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }

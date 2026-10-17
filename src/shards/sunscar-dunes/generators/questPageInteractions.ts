@@ -1,4 +1,4 @@
-import { FLAG } from '../data/flags';
+import { FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Page beats for the same admitted logbook, well and crank rules. */

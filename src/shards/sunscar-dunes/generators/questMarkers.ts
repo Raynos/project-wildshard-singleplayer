@@ -3,7 +3,7 @@ import well from '../data/well.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
 import braziers from '../data/braziers.json' with { type: 'json' };
 import ground from '../data/manifestGround.generated.json' with { type: 'json' };
-import { SCOUT_AT } from '../data/flags';
+import { SCOUT_AT } from './rows/flags';
 import { BRAZIERS, TOWER, WELL } from "./layout";
 
 const [logX, logY, logZ] = caravan.anchors.logbook;

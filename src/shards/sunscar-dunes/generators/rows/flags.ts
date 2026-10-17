@@ -1,4 +1,4 @@
-import LAYOUT from './layout.generated.json' with { type: 'json' };
+import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 
 /** The quest's flags (persisted per shard by `Flags`); plain data, so shard.config.ts can declare the quest (SHARD-PLATFORM M3). */
 export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazierPrefix: 'sunscar.brazier.', lit: 'sunscar.lit' } as const;

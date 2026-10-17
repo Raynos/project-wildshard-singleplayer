@@ -15,5 +15,6 @@
   "test/scripts/ground-encounters.test.ts": ["driftwood-isle", "pine-hollow"],
   "test/scripts/nine-casts.test.ts": ["nine-dragon-stack"],
   "test/scripts/nine-sign-atlas.test.ts": [],
-  "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"]
+  "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"],
+  "test/painted-look-rows.test.ts": []
 }

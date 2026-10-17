@@ -24,7 +24,7 @@ export function buildPlace<Id extends Place>(id:Id,baked:BakedWorld,index=0,coll
   for(const effect of [...row.lamps,...row.fires]) {
     const group=made.group(effect.part);if(group===null)throw new Error('Missing declared effect anchor');
     const pool=effect.pool===null?null:DUNE_LIBRARY.geometry(effect.pool);
-    if('size' in effect)addFire(group,effect.size,pool);else addLampGlow(group,effect.glow,pool);
+    if('fire' in effect.rows)addFire(group,effect.rows,pool);else addLampGlow(group,effect.rows,pool);
   }
   const light=row.glowAt===null?null:fireLight(new Vector3().fromArray(row.glowAt));
   return Object.assign(parts,{colliders:colliders??parts.colliders,glow:(lit:boolean)=>{light?.(lit);for(const ember of embers)ember.emissiveIntensity=lit?1.1:0;}});

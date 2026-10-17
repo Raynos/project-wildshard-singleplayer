@@ -21,12 +21,14 @@ import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/generators/rows/
 import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
-import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
+import signalFlags from '../../../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/sdk/runtime/prompts';
 import * as v from 'valibot';
-import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/data/signalQuest';
+
+const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;
+
 
 /**
  * Signal Dunes' whole-shard witness (E435 §C / SF72) on its admitted sim/runtime-plan section, composed

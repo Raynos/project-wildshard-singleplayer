@@ -10,7 +10,7 @@ import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
-import { FLAG, SCOUT_FLAG } from './data/flags';
+import flags from './data/flags.generated.json' with { type: 'json' };
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -20,11 +20,11 @@ type ShardContext = Parameters<HybridRuntimePlugin['world']>[0];
 /** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
 function duskOf(places: SignalWorld): number {
   const f = places.flags;
-  if (f.has(FLAG.lit)) return 1;
+  if (f.has(flags.FLAG.lit)) return 1;
   const lit = places.braziers.filter((b) => b.lit).length;
   if (lit > 0) return 0.5 + 0.12 * lit;
   // round 9 (seat B R8B-9: the logbook step's 0.32 under Sefa's 0.5 brightened the sky again in play): never lighter than the step before
-  return f.has(FLAG.oil) ? 0.56 : f.has(FLAG.logbook) ? 0.52 : f.has(SCOUT_FLAG) ? 0.5 : 0;
+  return f.has(flags.FLAG.oil) ? 0.56 : f.has(flags.FLAG.logbook) ? 0.52 : f.has(flags.SCOUT_FLAG) ? 0.5 : 0;
 }
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {

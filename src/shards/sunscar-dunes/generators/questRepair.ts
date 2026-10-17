@@ -1,6 +1,6 @@
-import { COMPLETE_FLAG, PAID_FLAG } from '../data/signalQuest';
+import { COMPLETE_FLAG, PAID_FLAG } from './rows/signalQuest';
 import { LATER_FLAGS } from './quests';
-import { SCOUT_FLAG } from '../data/flags';
+import { SCOUT_FLAG } from './rows/flags';
 
 const later = [...LATER_FLAGS, COMPLETE_FLAG];
 const scouted = `!scouted && (${later.map((_,i)=>`later${String(i)}`).join(' || ')})`;

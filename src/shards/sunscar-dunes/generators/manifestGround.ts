@@ -1,7 +1,7 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { signalHeightAt } from './landscape';
 import { SEED, SPAWN, TOWER } from "./layout";
-import { SCOUT_AT } from '../data/flags';
+import { SCOUT_AT } from './rows/flags';
 import { SAND_TINT } from "./duneRows";
 
 /** Cold author queries that preserve the original manifest poses and sand tint.
