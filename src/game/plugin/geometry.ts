@@ -1,4 +1,5 @@
 import { unzlibSync } from 'fflate';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
@@ -1211,10 +1212,8 @@ export function paintCanvasAtlas(row: CanvasAtlasRow, scale?: number): CanvasTex
 }
 
 /** Fetch a zlib-deflated bake and inflate it (a failed fetch throws). */
-export async function fetchDeflated(url: string): Promise<Uint8Array> {
-  const response = await fetch(url);
-  if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-  return new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+export function fetchDeflated(url: string): Promise<Uint8Array> {
+  return fetchDeflatedBytes(url);
 }
 
 /**
@@ -1232,16 +1231,25 @@ export async function fetchBuildFile(url: string): Promise<Uint8Array> {
 // words whose bytes are split into four lanes (every word's first bytes, then its second …: floats compress ~30 % better
 // so), deflated. A shard's generator writes them; the page reads them here.
 
-/** The words from their byte lanes (the generators' `shuffleLanes` reversed). */
-export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
+/** Restore byte lanes, optionally filling a word range in a distinct complete output. */
+export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
   if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');
-  const n = lanes.length / 4, out = new Uint8Array(lanes.length);
-  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
+  const n = lanes.length / 4;
+  if (out.length !== lanes.length || out.buffer === lanes.buffer || !Number.isSafeInteger(wordStart) || !Number.isSafeInteger(wordEnd)
+    || wordStart < 0 || wordEnd < wordStart || wordEnd > n) throw new Error('unshuffleLanes: bad output/range');
+  for (let b = 0; b < 4; b++) for (let i = wordStart; i < wordEnd; i++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
   return out;
 }
 
-/** Fetch a deflated, lane-shuffled bake, inflate it and put its lanes back. */
-export async function fetchLaneBake(url: string): Promise<Uint8Array> { return unshuffleLanes(await fetchDeflated(url)); }
+/** Fetch a lane-shuffled bake and restore its bytes within the live construction budget. */
+export async function fetchLaneBake(url: string): Promise<Uint8Array> {
+  const lanes = await fetchDeflated(url), out = new Uint8Array(lanes.length), slice = workSlice(), words = lanes.length / 4;
+  for (let start = 0; start < words; start += 16_384) {
+    await slice.check();
+    unshuffleLanes(lanes, out, start, Math.min(words, start + 16_384));
+  }
+  return out;
+}
 
 // Built geometry as an offline bake stores it (SHARD-PLATFORM M3, the kit system): each attribute's typed array exactly
 // as the builder made it (float, half, normalized bytes), so a baked kit draws the same bytes the page's own build would

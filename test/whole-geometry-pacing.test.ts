@@ -1,14 +1,18 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial } from 'three';
+import { zlibSync } from 'fflate';
 import { Scope } from '../src/engine/app/scope';
-import { readWholeGeometry } from '../src/game/plugin/geometry';
+import { pageScope } from '../src/engine/app/resources';
+import { fetchDeflatedBytes } from '../src/engine/core/deflate';
+import { fetchLaneBake, readWholeGeometry, unshuffleLanes } from '../src/game/plugin/geometry';
 import { provideRuntimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const owners: Scope[] = [], geometries: BufferGeometry[] = [], materials: MeshBasicMaterial[] = [];
-afterEach(() => { vi.restoreAllMocks(); for (const owner of owners.splice(0)) owner.dispose(); for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });
+const nativeFetch = globalThis.fetch, nativeDecoder = globalThis.DecompressionStream;
+afterEach(() => { vi.restoreAllMocks(); vi.stubGlobal('fetch', nativeFetch); vi.stubGlobal('DecompressionStream', nativeDecoder); for (const owner of owners.splice(0)) owner.dispose(); for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });
 
 function source(owner: Scope): { geometry: BufferGeometry; ref: string; matrix: Matrix4 } {
   owners.push(owner);
@@ -70,4 +74,54 @@ test('closing the default yield owner cannot strand a reconstruction', async () 
   let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
   vi.spyOn(owner, 'timeout').mockImplementation(() => { owner.dispose(); return 0; });
   await expect(readWholeGeometry(owner, 'whole-pace', [fixture.ref])).rejects.toThrow('Whole geometry unloaded while reading');
+});
+
+test('bounds native inflate input and yields without changing bytes from a single network chunk', async () => {
+  const bytes = new Uint8Array(262_144), chunks: number[] = [];
+  let seed = 17;
+  for (let i = 0; i < bytes.length; i++) { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; bytes[i] = seed & 255; }
+  const compressed = zlibSync(bytes), NativeDecoder = DecompressionStream;
+  vi.stubGlobal('DecompressionStream', class {
+    readonly readable: ReadableStream<Uint8Array<ArrayBuffer>>;
+    readonly writable: WritableStream<BufferSource>;
+    constructor(format: CompressionFormat) {
+      const boundary = new TransformStream<BufferSource, BufferSource>({ transform(chunk, controller) { chunks.push(chunk.byteLength); controller.enqueue(chunk); } });
+      this.readable = boundary.readable.pipeThrough(new NativeDecoder(format)); this.writable = boundary.writable;
+    }
+  });
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(compressed)));
+  const timeout = vi.spyOn(pageScope, 'timeout');
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  expect(await fetchDeflatedBytes('https://test.example/bake')).toEqual(bytes);
+  expect(Math.max(...chunks)).toBeLessThanOrEqual(16_384);
+  expect(chunks.reduce((sum, size) => sum + size, 0)).toBe(compressed.length);
+  expect(timeout.mock.calls.length).toBeGreaterThan(1);
+});
+
+test('restores every lane byte across paced blocks and refuses partial words', async () => {
+  const lanes = new Uint8Array(1_048_576), words = lanes.length / 4, expected = new Uint8Array(lanes.length);
+  for (let i = 0; i < words; i++) for (let b = 0; b < 4; b++) { const value = (i * 13 + b * 53) & 255; lanes[b * words + i] = value; expected[i * 4 + b] = value; }
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(zlibSync(lanes))));
+  const timeout = vi.spyOn(pageScope, 'timeout');
+  let at = 0; vi.spyOn(performance, 'now').mockImplementation(() => { at += 10; return at; });
+  expect(await fetchLaneBake('https://test.example/lanes')).toEqual(expected);
+  expect(unshuffleLanes(lanes)).toEqual(expected);
+  const range = new Uint8Array(lanes.length);
+  unshuffleLanes(lanes, range, 2, 5);
+  expect(range.slice(8, 20)).toEqual(expected.slice(8, 20));
+  expect(range.slice(0, 8)).toEqual(new Uint8Array(8));
+  expect(range.slice(20)).toEqual(new Uint8Array(lanes.length - 20));
+  expect(() => unshuffleLanes(lanes, lanes)).toThrow('bad output/range');
+  expect(() => unshuffleLanes(lanes, range, -1, 5)).toThrow('bad output/range');
+  expect(() => unshuffleLanes(lanes, range, 0, words + 1)).toThrow('bad output/range');
+  expect(timeout.mock.calls.length).toBeGreaterThan(4);
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(zlibSync(new Uint8Array(3)))));
+  await expect(fetchLaneBake('https://test.example/partial')).rejects.toThrow('not whole words');
+});
+
+test('refuses HTTP and invalid deflate responses rather than publishing partial bytes', async () => {
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(null, { status: 404 })));
+  await expect(fetchDeflatedBytes('https://test.example/missing')).rejects.toThrow('404');
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(new Uint8Array([1, 2, 3]))));
+  await expect(fetchDeflatedBytes('https://test.example/invalid')).rejects.toThrow();
 });

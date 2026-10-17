@@ -756,6 +756,14 @@ Piece-to-piece macrotasks share the same budget as sliced loops, capped at a qua
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 
+`fetchDeflatedBytes(url)` in `@wildshard/engine/core/deflate` feeds zlib-compressed
+HTTP bodies to the native decoder in at most 16 KiB blocks, checking the shared
+construction slice between blocks. The geometry bake readers use it without
+changing decoded bytes; lane-shuffled readers also reconstruct bounded word
+blocks before yielding. `unshuffleLanes(lanes, output?, wordStart?, wordEnd?)`
+can fill a validated word range in a distinct complete output buffer; omitted
+arguments restore all words. This changes scheduling, not geometry or compression.
+
 `geometryBoundsSteps(geometry, "box" | "sphere" | "both")` in `@wildshard/engine/world/geometryBounds`
 scans ordinary CPU positions in 8,192-vertex steps using three.js arithmetic. Sliced model builders
 and painted-mesh finishers may pause between steps; synchronous callers exhaust them. Bounds publish

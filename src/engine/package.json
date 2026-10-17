@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./core/deflate": "./core/deflate.ts",
     "./world/weatherContinuation": "./world/weatherContinuation.ts",
     "./audio/declaredAmbience": "./audio/declaredAmbience.ts",
     "./audio/declaredBank": "./audio/declaredBank.ts",
