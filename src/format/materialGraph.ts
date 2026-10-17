@@ -12,7 +12,13 @@
  *   alpha, cutoff, emissive, roughness, metalness, occlusion), `lighting` (the lighting model: see below), `outline` (the
  *   inverted-hull second draw: see below), `post` (a screen pass over `sceneColour`, with SF59 (2b)'s taps `sceneColourAt`,
  *   `sceneDepth` and `sceneNormal`, each input one sampler: `inputs` in the validation names those a pass reads); the engine epilogue (fog, the CSM
- *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end; effectState.fog:false skips fog only;
+ *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end; effectState.fog:false skips fog only, and
+ *   effectState.fog:'<id>' swaps the engine fog for the shard's declared fog graph of that catalogue id (below);
+ * - a `kind: 'fog'` graph is a shard-declared fog (O11): one `stages.fog.colour` (vec3) that runs in the fog epilogue's
+ *   place (`fog`) of every material selecting it, reading `fogInput` (the colour reaching the fog, after the output
+ *   transform), `engineFogged` (the engine fog's result for it), `fogScale` (the material's `vertex.scale.fog`, else 1),
+ *   `positionWorld` and `cameraPosition` (the fog's own frame), its params, textures and the safe maths; it is
+ *   declared once in the look catalogue and costed under its own budget (it adds to each selecting program);
  * - `outline` (SF59 step 7, the ink outline as a render state the format owns, not a free one): a second draw of the
  *   same geometry with a fixed render state: back faces only, depth tested and written, opaque, unlit, fogged by the
  *   epilogue, casting no shadow. `offset` (vec3, the vertex place, model space like `vertex.offset`) pushes the hull out
@@ -38,6 +44,8 @@
  * Pure data and checks: this module imports no three.js, so the shardfile validator can use it on any machine.
  */
 
+/** a fog graph's catalogue id as a material's `effectState.fog` names it (the look catalogue's id pattern) */
+export const GRAPH_FOG_ID = /^[a-z][a-z0-9.-]{0,127}$/u;
 /** the IR version a graph declares; a graph of another version is refused (the lighting stage is additive: still version 1) */
 export const GRAPH_IR_VERSION = 1;
 /** the most iterations a `loop` node may run */
@@ -168,8 +176,8 @@ export interface GraphOutline {
 export interface GraphEffectState {
   /** Alpha uses straight RGB; premultiplied expects RGB already multiplied by alpha. */
   readonly blend?: 'alpha' | 'additive' | 'premultiplied';
-  /** Explicitly bypass the engine fog epilogue for this effect only. */
-  readonly fog?: false;
+  /** false: bypass the engine fog epilogue for this effect only; a catalogue id: fog with that `kind: 'fog'` graph instead */
+  readonly fog?: false | string;
   /** Whether fragments update depth; depth testing stays enabled. */
   readonly depthWrite?: boolean;
   /** Polygon offset factor and units, each finite and within -16 … 16. */
@@ -195,14 +203,16 @@ export interface GraphStages {
   readonly lighting?: GraphLighting;
   readonly outline?: GraphOutline;
   readonly post?: { readonly colour: GraphRef };
+  /** a fog graph's only stage: the fogged colour (vec3) from `fogInput` / `engineFogged`; alpha passes through */
+  readonly fog?: { readonly colour: GraphRef };
 }
 /** a graph */
 export interface GraphIr {
   readonly version: typeof GRAPH_IR_VERSION;
   /** Explicit per-program ceilings. Raising the defaults requires trusted runtime authority. */
   readonly budget?: GraphBudget;
-  /** a material (vertex.offset + surface) or a screen pass (post) */
-  readonly kind: 'material' | 'post';
+  /** a material (vertex.offset + surface), a screen pass (post) or a shard's declared fog (fog, selected by materials) */
+  readonly kind: 'material' | 'post' | 'fog';
   /** a material's lighting model: three's physical standard model, or unlit */
   readonly model?: 'standard' | 'unlit' | 'toon';
   /** Absent: mesh. Points require an unlit graph and a points.size vertex output. */
@@ -284,9 +294,10 @@ export interface GraphCost {
 /**
  * where a node may run: `vertex` (the offset stage), `fragment` (surface), `post` (a screen pass), the lighting
  * stage's three: `sun` (per directional light), `ambient` (the indirect term) and `grade` (after lighting), and the
- * outline's two: `outlineVertex` (its hull offset) and `outline` (its ink; its own program, so counted apart)
+ * outline's two: `outlineVertex` (its hull offset) and `outline` (its ink; its own program, so counted apart), and
+ * `fog` (a fog graph's stage, run in the fog epilogue of each material that selects it)
  */
-type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' | 'outlineVertex' | 'outline';
+type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' | 'outlineVertex' | 'outline' | 'fog';
 
 /** how an op types its inputs */
 type TypeRule =
@@ -331,7 +342,12 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // SF59 step 7: the world position of the object's origin, the instance's own for an instanced mesh (a per-object phase)
   instanceTransform: { arity: [1, 1], rule: 'instanceTransform', cost: 16, type: 'vec4', places: VERT },
   objectOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },
-  positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
+  positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: [...MESH, 'fog'] },
+  // a fog graph's inputs (O11): the colour reaching the fog (after the output transform), the engine fog's result for it,
+  // and the material's fog share (`vertex.scale.fog`, else 1)
+  fogInput: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['fog'] },
+  engineFogged: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['fog'] },
+  fogScale: { arity: [0, 0], rule: 'input', cost: 0, type: 'float', places: ['fog'] },
   positionView: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
@@ -570,7 +586,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   }
   if (input.version !== GRAPH_IR_VERSION) fail(`graph: version ${String(input.version)} (this engine reads ${GRAPH_IR_VERSION})`);
   const kind = input.kind, primitive = input.primitive;
-  if (kind !== 'material' && kind !== 'post') fail(`graph: kind ${String(kind)} (material or post)`);
+  if (kind !== 'material' && kind !== 'post' && kind !== 'fog') fail(`graph: kind ${String(kind)} (material, post or fog)`);
+  if (kind === 'fog') for (const k of ['model', 'primitive', 'effectState', 'doubleSided', 'flipBackfaceNormals', 'toonCaustics', 'flatShading'] as const) if (input[k] !== undefined) fail(`graph: a fog graph has no ${k}`);
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit' && input.model !== 'toon') fail(`graph: model ${JSON.stringify(input.model)} (standard, unlit or toon)`);
   if (input.model === 'toon' && input.kind !== 'material') fail('graph: toon is a material lighting model');
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
@@ -589,7 +606,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     else {
       for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias', 'singlePass'].includes(k)) fail(`effectState: unknown field ${k}`);
       if (effect.blend !== undefined && effect.blend !== 'alpha' && effect.blend !== 'additive' && effect.blend !== 'premultiplied') fail('effectState: unsupported blend');
-      if (effect.fog !== undefined && effect.fog !== false) fail('effectState: fog must be false');
+      if (effect.fog !== undefined && effect.fog !== false && !(typeof effect.fog === 'string' && GRAPH_FOG_ID.test(effect.fog))) fail('effectState: fog must be false or a fog graph\'s catalogue id');
       if (effect.depthWrite !== undefined && typeof effect.depthWrite !== 'boolean') fail('effectState: depthWrite must be boolean');
       if (effect.singlePass !== undefined && effect.singlePass !== true) fail('effectState: singlePass must be true');
       const bias = effect.depthBias;
@@ -844,7 +861,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'shadow.offset', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'shadow.offset', 'surface', 'lighting', 'outline', 'points', 'post', 'fog'].includes(k)) fail(`stages: unknown stage ${k}`);
+  if (kind !== 'fog' && stages.fog !== undefined) fail('stages.fog: only a fog graph has a fog stage');
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -964,6 +982,11 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
+  } else if (kind === 'fog') {
+    for (const k of Object.keys(stages)) if (k !== 'fog') fail(`stages.${k}: a fog graph has only a fog stage`);
+    const f = stages.fog;
+    if (!isRecord(f) || Object.keys(f).some((k) => k !== 'colour')) fail('stages.fog: a fog graph needs { colour }');
+    else want(f.colour, 'fog', 'vec3', 'stages.fog.colour');
   }
 
   const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal, sampled.mesh].filter(Boolean).length, instructions };
@@ -982,7 +1005,7 @@ function asGraph(input: Raw): GraphIr {
   const graph: GraphIr = {
     version: GRAPH_IR_VERSION,
     ...(isRecord(input.budget) ? { budget: { nodes: Number(input.budget.nodes), samplers: Number(input.budget['samplers']), instructions: Number(input.budget['instructions']) } } : {}),
-    kind: input.kind === 'post' ? 'post' : 'material',
+    kind: input.kind === 'post' ? 'post' : input.kind === 'fog' ? 'fog' : 'material',
     nodes: isRecord(input.nodes) ? toNodes(input.nodes) : {},
     stages: isRecord(input.stages) ? toStages(input.stages) : {},
     ...(input.primitive === 'mesh' || input.primitive === 'points' ? { primitive: input.primitive } : {}),
@@ -1001,7 +1024,7 @@ function toEffectState(raw: Raw): GraphEffectState {
   const bias = raw.depthBias;
   return {
     ...(raw.blend === 'alpha' || raw.blend === 'additive' || raw.blend === 'premultiplied' ? { blend: raw.blend } : {}),
-    ...(raw.fog === false ? { fog: false } : {}),
+    ...(raw.fog === false || typeof raw.fog === 'string' ? { fog: raw.fog } : {}),
     ...(typeof raw.depthWrite === 'boolean' ? { depthWrite: raw.depthWrite } : {}),
     ...(raw.singlePass === true ? { singlePass: true } : {}),
     ...(isRecord(bias) && isFiniteNumber(bias.factor) && isFiniteNumber(bias.units) ? { depthBias: { factor: bias.factor, units: bias.units } } : {}),
@@ -1045,6 +1068,7 @@ function toStages(raw: Raw): GraphStages {
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(typeof vo.shadow === 'boolean' ? { shadow: vo.shadow } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
+    ...(isRecord(raw.fog) ? { fog: { colour: toRef(raw.fog.colour) } } : {}),
     ...(isRecord(o) ? { outline: { offset: toRef(o.offset), colour: toRef(o.colour) } } : {}),
     ...(isRecord(l) ? { lighting: {
       sun: toRef(l.sun),

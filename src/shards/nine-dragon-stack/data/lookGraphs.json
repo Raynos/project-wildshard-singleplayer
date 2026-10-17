@@ -2941,7 +2941,7 @@
   "effectState": {
    "blend": "alpha",
    "depthWrite": false,
-   "fog": false,
+   "fog": "nine-silk-fog",
    "singlePass": true
   },
   "arrays": {
@@ -5509,6 +5509,4961 @@
      0.93
     ],
     "alpha": "t113"
+   }
+  }
+ },
+ "nine-silk-fog": {
+  "version": 1,
+  "kind": "fog",
+  "budget": {
+   "nodes": 3400,
+   "samplers": 1,
+   "instructions": 8000
+  },
+  "params": {
+   "rootAt": {
+    "type": "vec3",
+    "value": [
+     0,
+     0,
+     0
+    ]
+   },
+   "datum": {
+    "type": "float",
+    "value": 0
+   },
+   "bandDepth": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 4
+   },
+   "fogBase": {
+    "type": "float",
+    "value": 0.01
+   },
+   "fogStart": {
+    "type": "float",
+    "value": 16
+   },
+   "fogBaseCol": {
+    "type": "vec3",
+    "value": [
+     0.47932,
+     0.539479,
+     0.64448
+    ]
+   },
+   "shaft": {
+    "type": "vec4",
+    "value": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "shaftK": {
+    "type": "vec4",
+    "value": [
+     0.01,
+     0,
+     0.003,
+     30
+    ]
+   },
+   "shaftLit": {
+    "type": "float",
+    "value": 0.8
+   },
+   "fogDeep": {
+    "type": "vec4",
+    "value": [
+     0.3,
+     70,
+     18,
+     0.2
+    ]
+   },
+   "deepAir": {
+    "type": "vec4",
+    "value": [
+     0.08,
+     0.13,
+     0.25,
+     0
+    ]
+   },
+   "deepAir2": {
+    "type": "vec4",
+    "value": [
+     0,
+     8,
+     30,
+     0
+    ]
+   },
+   "puff": {
+    "type": "vec2",
+    "value": [
+     1,
+     2
+    ]
+   }
+  },
+  "arrays": {
+   "bands": {
+    "type": "vec4",
+    "value": [
+     [
+      212,
+      6,
+      0.022,
+      0
+     ],
+     [
+      152,
+      3,
+      0.008,
+      0
+     ],
+     [
+      103,
+      2.5,
+      0.015,
+      1
+     ],
+     [
+      84,
+      3,
+      0.0175,
+      1
+     ],
+     [
+      64,
+      3,
+      0.0175,
+      1
+     ],
+     [
+      44,
+      4,
+      0.05,
+      1
+     ],
+     [
+      -30,
+      5,
+      0.045,
+      0
+     ],
+     [
+      -110,
+      5,
+      0.06,
+      0
+     ],
+     [
+      -190,
+      5,
+      0.1,
+      0
+     ],
+     [
+      -236,
+      5,
+      0.12,
+      0
+     ],
+     [
+      -400,
+      1,
+      0,
+      0
+     ]
+    ]
+   },
+   "bandCols": {
+    "type": "vec3",
+    "value": [
+     [
+      0.672443,
+      0.708376,
+      0.760525
+     ],
+     [
+      0.584078,
+      0.617207,
+      0.672443
+     ],
+     [
+      0.539479,
+      0.590619,
+      0.672443
+     ],
+     [
+      0.514918,
+      0.564712,
+      0.651406
+     ],
+     [
+      0.47932,
+      0.539479,
+      0.630757
+     ],
+     [
+      0.450786,
+      0.514918,
+      0.603827
+     ],
+     [
+      0.341914,
+      0.40724,
+      0.514918
+     ],
+     [
+      0.109462,
+      0.144128,
+      0.238398
+     ],
+     [
+      0.025187,
+      0.042311,
+      0.111932
+     ],
+     [
+      0.008023,
+      0.015996,
+      0.045186
+     ],
+     [
+      0,
+      0,
+      0
+     ]
+    ]
+   }
+  },
+  "nodes": {
+   "s0": {
+    "op": "param",
+    "param": "rootAt"
+   },
+   "s1": {
+    "op": "positionWorld"
+   },
+   "s2": {
+    "op": "sub",
+    "in": [
+     "s1",
+     "s0"
+    ]
+   },
+   "s3": {
+    "op": "cameraPosition"
+   },
+   "s4": {
+    "op": "sub",
+    "in": [
+     "s3",
+     "s0"
+    ]
+   },
+   "s5": {
+    "op": "fogInput"
+   },
+   "s6": {
+    "op": "fogScale"
+   },
+   "s7": {
+    "op": "param",
+    "param": "datum"
+   },
+   "s8": {
+    "op": "param",
+    "param": "fogBase"
+   },
+   "s9": {
+    "op": "param",
+    "param": "fogStart"
+   },
+   "sa": {
+    "op": "param",
+    "param": "fogBaseCol"
+   },
+   "sb": {
+    "op": "param",
+    "param": "shaft"
+   },
+   "sc": {
+    "op": "param",
+    "param": "shaftK"
+   },
+   "sd": {
+    "op": "param",
+    "param": "shaftLit"
+   },
+   "se": {
+    "op": "param",
+    "param": "fogDeep"
+   },
+   "sf": {
+    "op": "param",
+    "param": "deepAir"
+   },
+   "sg": {
+    "op": "param",
+    "param": "deepAir2"
+   },
+   "sh": {
+    "op": "param",
+    "param": "puff"
+   },
+   "si": {
+    "op": "arrayElement",
+    "in": [
+     0
+    ],
+    "param": "bands"
+   },
+   "sj": {
+    "op": "arrayElement",
+    "in": [
+     1
+    ],
+    "param": "bands"
+   },
+   "sk": {
+    "op": "arrayElement",
+    "in": [
+     2
+    ],
+    "param": "bands"
+   },
+   "sl": {
+    "op": "arrayElement",
+    "in": [
+     3
+    ],
+    "param": "bands"
+   },
+   "sm": {
+    "op": "arrayElement",
+    "in": [
+     4
+    ],
+    "param": "bands"
+   },
+   "sn": {
+    "op": "arrayElement",
+    "in": [
+     5
+    ],
+    "param": "bands"
+   },
+   "so": {
+    "op": "arrayElement",
+    "in": [
+     6
+    ],
+    "param": "bands"
+   },
+   "sp": {
+    "op": "arrayElement",
+    "in": [
+     7
+    ],
+    "param": "bands"
+   },
+   "sq": {
+    "op": "arrayElement",
+    "in": [
+     8
+    ],
+    "param": "bands"
+   },
+   "sr": {
+    "op": "arrayElement",
+    "in": [
+     9
+    ],
+    "param": "bands"
+   },
+   "ss": {
+    "op": "arrayElement",
+    "in": [
+     10
+    ],
+    "param": "bands"
+   },
+   "st": {
+    "op": "arrayElement",
+    "in": [
+     0
+    ],
+    "param": "bandCols"
+   },
+   "su": {
+    "op": "arrayElement",
+    "in": [
+     1
+    ],
+    "param": "bandCols"
+   },
+   "sv": {
+    "op": "arrayElement",
+    "in": [
+     2
+    ],
+    "param": "bandCols"
+   },
+   "sw": {
+    "op": "arrayElement",
+    "in": [
+     3
+    ],
+    "param": "bandCols"
+   },
+   "sx": {
+    "op": "arrayElement",
+    "in": [
+     4
+    ],
+    "param": "bandCols"
+   },
+   "sy": {
+    "op": "arrayElement",
+    "in": [
+     5
+    ],
+    "param": "bandCols"
+   },
+   "sz": {
+    "op": "arrayElement",
+    "in": [
+     6
+    ],
+    "param": "bandCols"
+   },
+   "s10": {
+    "op": "arrayElement",
+    "in": [
+     7
+    ],
+    "param": "bandCols"
+   },
+   "s11": {
+    "op": "arrayElement",
+    "in": [
+     8
+    ],
+    "param": "bandCols"
+   },
+   "s12": {
+    "op": "arrayElement",
+    "in": [
+     9
+    ],
+    "param": "bandCols"
+   },
+   "s13": {
+    "op": "arrayElement",
+    "in": [
+     10
+    ],
+    "param": "bandCols"
+   },
+   "s14": {
+    "op": "sub",
+    "in": [
+     "s2",
+     "s4"
+    ]
+   },
+   "s15": {
+    "op": "length",
+    "in": [
+     "s14"
+    ]
+   },
+   "s16": {
+    "op": "swizzle",
+    "in": [
+     "s14"
+    ],
+    "mask": "y"
+   },
+   "s17": {
+    "op": "abs",
+    "in": [
+     "s16"
+    ]
+   },
+   "s18": {
+    "op": "swizzle",
+    "in": [
+     "s4"
+    ],
+    "mask": "y"
+   },
+   "s19": {
+    "op": "swizzle",
+    "in": [
+     "s2"
+    ],
+    "mask": "y"
+   },
+   "s1a": {
+    "op": "mul",
+    "in": [
+     "s16",
+     0.5
+    ]
+   },
+   "s1b": {
+    "op": "add",
+    "in": [
+     "s18",
+     "s1a"
+    ]
+   },
+   "s1c": {
+    "op": "min",
+    "in": [
+     "s18",
+     "s19"
+    ]
+   },
+   "s1d": {
+    "op": "max",
+    "in": [
+     "s18",
+     "s19"
+    ]
+   },
+   "s1e": {
+    "op": "smoothstep",
+    "in": [
+     4,
+     22,
+     "s15"
+    ]
+   },
+   "s1f": {
+    "op": "gt",
+    "in": [
+     "s17",
+     0.001
+    ]
+   },
+   "s1g": {
+    "op": "select",
+    "in": [
+     "s1f",
+     "s16",
+     0.001
+    ]
+   },
+   "s1h": {
+    "op": "swizzle",
+    "in": [
+     "s14"
+    ],
+    "mask": "xz"
+   },
+   "s1i": {
+    "op": "swizzle",
+    "in": [
+     "s4"
+    ],
+    "mask": "xz"
+   },
+   "s1j": {
+    "op": "length",
+    "in": [
+     "s1h"
+    ]
+   },
+   "s1k": {
+    "op": "lt",
+    "in": [
+     "s16",
+     0
+    ]
+   },
+   "s1l": {
+    "op": "param",
+    "param": "bandDepth"
+   },
+   "s8i": {
+    "op": "loop",
+    "in": [
+     [
+      0,
+      0,
+      0,
+      1
+     ]
+    ],
+    "count": 10,
+    "body": {
+     "nodes": {
+      "s1m": {
+       "op": "acc"
+      },
+      "s1n": {
+       "op": "index"
+      },
+      "s1o": {
+       "op": "sub",
+       "in": [
+        9,
+        "s1n"
+       ]
+      },
+      "s1p": {
+       "op": "select",
+       "in": [
+        "s1k",
+        "s1n",
+        "s1o"
+       ]
+      },
+      "s1q": {
+       "op": "arrayElement",
+       "in": [
+        "s1p"
+       ],
+       "param": "bands"
+      },
+      "s1r": {
+       "op": "arrayElement",
+       "in": [
+        "s1p"
+       ],
+       "param": "bandCols"
+      },
+      "s1s": {
+       "op": "swizzle",
+       "in": [
+        "s1q"
+       ],
+       "mask": "x"
+      },
+      "s1t": {
+       "op": "swizzle",
+       "in": [
+        "s1q"
+       ],
+       "mask": "y"
+      },
+      "s1u": {
+       "op": "swizzle",
+       "in": [
+        "s1q"
+       ],
+       "mask": "z"
+      },
+      "s1v": {
+       "op": "mul",
+       "in": [
+        "s1u",
+        "s1l"
+       ]
+      },
+      "s1w": {
+       "op": "lte",
+       "in": [
+        "s1v",
+        0
+       ]
+      },
+      "s1x": {
+       "op": "mul",
+       "in": [
+        "s1t",
+        3
+       ]
+      },
+      "s1y": {
+       "op": "add",
+       "in": [
+        "s1s",
+        "s1x"
+       ]
+      },
+      "s1z": {
+       "op": "gt",
+       "in": [
+        "s1c",
+        "s1y"
+       ]
+      },
+      "s20": {
+       "op": "sub",
+       "in": [
+        "s1s",
+        "s1x"
+       ]
+      },
+      "s21": {
+       "op": "lt",
+       "in": [
+        "s1d",
+        "s20"
+       ]
+      },
+      "s22": {
+       "op": "or",
+       "in": [
+        "s1z",
+        "s21"
+       ]
+      },
+      "s23": {
+       "op": "or",
+       "in": [
+        "s1w",
+        "s22"
+       ]
+      },
+      "s24": {
+       "op": "sub",
+       "in": [
+        "s18",
+        "s1s"
+       ]
+      },
+      "s25": {
+       "op": "div",
+       "in": [
+        "s24",
+        "s1t"
+       ]
+      },
+      "s26": {
+       "op": "clamp",
+       "in": [
+        "s25",
+        -10,
+        10
+       ]
+      },
+      "s27": {
+       "op": "mul",
+       "in": [
+        "s26",
+        2
+       ]
+      },
+      "s28": {
+       "op": "exp",
+       "in": [
+        "s27"
+       ]
+      },
+      "s29": {
+       "op": "add",
+       "in": [
+        "s28",
+        1
+       ]
+      },
+      "s2a": {
+       "op": "div",
+       "in": [
+        2,
+        "s29"
+       ]
+      },
+      "s2b": {
+       "op": "sub",
+       "in": [
+        1,
+        "s2a"
+       ]
+      },
+      "s2c": {
+       "op": "sub",
+       "in": [
+        "s19",
+        "s1s"
+       ]
+      },
+      "s2d": {
+       "op": "div",
+       "in": [
+        "s2c",
+        "s1t"
+       ]
+      },
+      "s2e": {
+       "op": "clamp",
+       "in": [
+        "s2d",
+        -10,
+        10
+       ]
+      },
+      "s2f": {
+       "op": "mul",
+       "in": [
+        "s2e",
+        2
+       ]
+      },
+      "s2g": {
+       "op": "exp",
+       "in": [
+        "s2f"
+       ]
+      },
+      "s2h": {
+       "op": "add",
+       "in": [
+        "s2g",
+        1
+       ]
+      },
+      "s2i": {
+       "op": "div",
+       "in": [
+        2,
+        "s2h"
+       ]
+      },
+      "s2j": {
+       "op": "sub",
+       "in": [
+        1,
+        "s2i"
+       ]
+      },
+      "s2k": {
+       "op": "mul",
+       "in": [
+        "s1v",
+        "s1t"
+       ]
+      },
+      "s2l": {
+       "op": "sub",
+       "in": [
+        "s2j",
+        "s2b"
+       ]
+      },
+      "s2m": {
+       "op": "abs",
+       "in": [
+        "s2l"
+       ]
+      },
+      "s2n": {
+       "op": "mul",
+       "in": [
+        "s2k",
+        "s2m"
+       ]
+      },
+      "s2o": {
+       "op": "mul",
+       "in": [
+        "s2n",
+        "s15"
+       ]
+      },
+      "s2p": {
+       "op": "max",
+       "in": [
+        "s17",
+        0.000001
+       ]
+      },
+      "s2q": {
+       "op": "div",
+       "in": [
+        "s2o",
+        "s2p"
+       ]
+      },
+      "s2r": {
+       "op": "sub",
+       "in": [
+        "s1b",
+        "s1s"
+       ]
+      },
+      "s2s": {
+       "op": "div",
+       "in": [
+        "s2r",
+        "s1t"
+       ]
+      },
+      "s2t": {
+       "op": "clamp",
+       "in": [
+        "s2s",
+        -10,
+        10
+       ]
+      },
+      "s2u": {
+       "op": "exp",
+       "in": [
+        "s2t"
+       ]
+      },
+      "s2v": {
+       "op": "negate",
+       "in": [
+        "s2t"
+       ]
+      },
+      "s2w": {
+       "op": "exp",
+       "in": [
+        "s2v"
+       ]
+      },
+      "s2x": {
+       "op": "add",
+       "in": [
+        "s2u",
+        "s2w"
+       ]
+      },
+      "s2y": {
+       "op": "mul",
+       "in": [
+        "s2x",
+        0.5
+       ]
+      },
+      "s2z": {
+       "op": "mul",
+       "in": [
+        "s1v",
+        "s15"
+       ]
+      },
+      "s30": {
+       "op": "mul",
+       "in": [
+        "s2y",
+        "s2y"
+       ]
+      },
+      "s31": {
+       "op": "div",
+       "in": [
+        "s2z",
+        "s30"
+       ]
+      },
+      "s32": {
+       "op": "mul",
+       "in": [
+        "s1t",
+        0.5
+       ]
+      },
+      "s33": {
+       "op": "gt",
+       "in": [
+        "s17",
+        "s32"
+       ]
+      },
+      "s34": {
+       "op": "select",
+       "in": [
+        "s33",
+        "s2q",
+        "s31"
+       ]
+      },
+      "s35": {
+       "op": "sub",
+       "in": [
+        "s1s",
+        "s18"
+       ]
+      },
+      "s36": {
+       "op": "div",
+       "in": [
+        "s35",
+        "s1g"
+       ]
+      },
+      "s37": {
+       "op": "saturate",
+       "in": [
+        "s36"
+       ]
+      },
+      "s38": {
+       "op": "mul",
+       "in": [
+        "s1h",
+        "s37"
+       ]
+      },
+      "s39": {
+       "op": "add",
+       "in": [
+        "s1i",
+        "s38"
+       ]
+      },
+      "s3a": {
+       "op": "mul",
+       "in": [
+        "s39",
+        0.11
+       ]
+      },
+      "s3b": {
+       "op": "add",
+       "in": [
+        "s3a",
+        "s1s"
+       ]
+      },
+      "s3c": {
+       "op": "floor",
+       "in": [
+        "s3b"
+       ]
+      },
+      "s3d": {
+       "op": "fract",
+       "in": [
+        "s3b"
+       ]
+      },
+      "s3e": {
+       "op": "mul",
+       "in": [
+        "s3d",
+        "s3d"
+       ]
+      },
+      "s3f": {
+       "op": "mul",
+       "in": [
+        "s3d",
+        2
+       ]
+      },
+      "s3g": {
+       "op": "sub",
+       "in": [
+        3,
+        "s3f"
+       ]
+      },
+      "s3h": {
+       "op": "mul",
+       "in": [
+        "s3e",
+        "s3g"
+       ]
+      },
+      "s3i": {
+       "op": "swizzle",
+       "in": [
+        "s3h"
+       ],
+       "mask": "x"
+      },
+      "s3j": {
+       "op": "swizzle",
+       "in": [
+        "s3c"
+       ],
+       "mask": "x"
+      },
+      "s3k": {
+       "op": "swizzle",
+       "in": [
+        "s3c"
+       ],
+       "mask": "y"
+      },
+      "s3l": {
+       "op": "combine",
+       "in": [
+        "s3j",
+        "s3k",
+        "s3j"
+       ]
+      },
+      "s3m": {
+       "op": "mul",
+       "in": [
+        "s3l",
+        0.1031
+       ]
+      },
+      "s3n": {
+       "op": "fract",
+       "in": [
+        "s3m"
+       ]
+      },
+      "s3o": {
+       "op": "swizzle",
+       "in": [
+        "s3n"
+       ],
+       "mask": "yzx"
+      },
+      "s3p": {
+       "op": "add",
+       "in": [
+        "s3o",
+        33.33
+       ]
+      },
+      "s3q": {
+       "op": "dot",
+       "in": [
+        "s3n",
+        "s3p"
+       ]
+      },
+      "s3r": {
+       "op": "add",
+       "in": [
+        "s3n",
+        "s3q"
+       ]
+      },
+      "s3s": {
+       "op": "swizzle",
+       "in": [
+        "s3r"
+       ],
+       "mask": "x"
+      },
+      "s3t": {
+       "op": "swizzle",
+       "in": [
+        "s3r"
+       ],
+       "mask": "y"
+      },
+      "s3u": {
+       "op": "add",
+       "in": [
+        "s3s",
+        "s3t"
+       ]
+      },
+      "s3v": {
+       "op": "swizzle",
+       "in": [
+        "s3r"
+       ],
+       "mask": "z"
+      },
+      "s3w": {
+       "op": "mul",
+       "in": [
+        "s3u",
+        "s3v"
+       ]
+      },
+      "s3x": {
+       "op": "fract",
+       "in": [
+        "s3w"
+       ]
+      },
+      "s3y": {
+       "op": "add",
+       "in": [
+        "s3c",
+        [
+         1,
+         0
+        ]
+       ]
+      },
+      "s3z": {
+       "op": "swizzle",
+       "in": [
+        "s3y"
+       ],
+       "mask": "x"
+      },
+      "s40": {
+       "op": "swizzle",
+       "in": [
+        "s3y"
+       ],
+       "mask": "y"
+      },
+      "s41": {
+       "op": "combine",
+       "in": [
+        "s3z",
+        "s40",
+        "s3z"
+       ]
+      },
+      "s42": {
+       "op": "mul",
+       "in": [
+        "s41",
+        0.1031
+       ]
+      },
+      "s43": {
+       "op": "fract",
+       "in": [
+        "s42"
+       ]
+      },
+      "s44": {
+       "op": "swizzle",
+       "in": [
+        "s43"
+       ],
+       "mask": "yzx"
+      },
+      "s45": {
+       "op": "add",
+       "in": [
+        "s44",
+        33.33
+       ]
+      },
+      "s46": {
+       "op": "dot",
+       "in": [
+        "s43",
+        "s45"
+       ]
+      },
+      "s47": {
+       "op": "add",
+       "in": [
+        "s43",
+        "s46"
+       ]
+      },
+      "s48": {
+       "op": "swizzle",
+       "in": [
+        "s47"
+       ],
+       "mask": "x"
+      },
+      "s49": {
+       "op": "swizzle",
+       "in": [
+        "s47"
+       ],
+       "mask": "y"
+      },
+      "s4a": {
+       "op": "add",
+       "in": [
+        "s48",
+        "s49"
+       ]
+      },
+      "s4b": {
+       "op": "swizzle",
+       "in": [
+        "s47"
+       ],
+       "mask": "z"
+      },
+      "s4c": {
+       "op": "mul",
+       "in": [
+        "s4a",
+        "s4b"
+       ]
+      },
+      "s4d": {
+       "op": "fract",
+       "in": [
+        "s4c"
+       ]
+      },
+      "s4e": {
+       "op": "mix",
+       "in": [
+        "s3x",
+        "s4d",
+        "s3i"
+       ]
+      },
+      "s4f": {
+       "op": "add",
+       "in": [
+        "s3c",
+        [
+         0,
+         1
+        ]
+       ]
+      },
+      "s4g": {
+       "op": "swizzle",
+       "in": [
+        "s4f"
+       ],
+       "mask": "x"
+      },
+      "s4h": {
+       "op": "swizzle",
+       "in": [
+        "s4f"
+       ],
+       "mask": "y"
+      },
+      "s4i": {
+       "op": "combine",
+       "in": [
+        "s4g",
+        "s4h",
+        "s4g"
+       ]
+      },
+      "s4j": {
+       "op": "mul",
+       "in": [
+        "s4i",
+        0.1031
+       ]
+      },
+      "s4k": {
+       "op": "fract",
+       "in": [
+        "s4j"
+       ]
+      },
+      "s4l": {
+       "op": "swizzle",
+       "in": [
+        "s4k"
+       ],
+       "mask": "yzx"
+      },
+      "s4m": {
+       "op": "add",
+       "in": [
+        "s4l",
+        33.33
+       ]
+      },
+      "s4n": {
+       "op": "dot",
+       "in": [
+        "s4k",
+        "s4m"
+       ]
+      },
+      "s4o": {
+       "op": "add",
+       "in": [
+        "s4k",
+        "s4n"
+       ]
+      },
+      "s4p": {
+       "op": "swizzle",
+       "in": [
+        "s4o"
+       ],
+       "mask": "x"
+      },
+      "s4q": {
+       "op": "swizzle",
+       "in": [
+        "s4o"
+       ],
+       "mask": "y"
+      },
+      "s4r": {
+       "op": "add",
+       "in": [
+        "s4p",
+        "s4q"
+       ]
+      },
+      "s4s": {
+       "op": "swizzle",
+       "in": [
+        "s4o"
+       ],
+       "mask": "z"
+      },
+      "s4t": {
+       "op": "mul",
+       "in": [
+        "s4r",
+        "s4s"
+       ]
+      },
+      "s4u": {
+       "op": "fract",
+       "in": [
+        "s4t"
+       ]
+      },
+      "s4v": {
+       "op": "add",
+       "in": [
+        "s3c",
+        [
+         1,
+         1
+        ]
+       ]
+      },
+      "s4w": {
+       "op": "swizzle",
+       "in": [
+        "s4v"
+       ],
+       "mask": "x"
+      },
+      "s4x": {
+       "op": "swizzle",
+       "in": [
+        "s4v"
+       ],
+       "mask": "y"
+      },
+      "s4y": {
+       "op": "combine",
+       "in": [
+        "s4w",
+        "s4x",
+        "s4w"
+       ]
+      },
+      "s4z": {
+       "op": "mul",
+       "in": [
+        "s4y",
+        0.1031
+       ]
+      },
+      "s50": {
+       "op": "fract",
+       "in": [
+        "s4z"
+       ]
+      },
+      "s51": {
+       "op": "swizzle",
+       "in": [
+        "s50"
+       ],
+       "mask": "yzx"
+      },
+      "s52": {
+       "op": "add",
+       "in": [
+        "s51",
+        33.33
+       ]
+      },
+      "s53": {
+       "op": "dot",
+       "in": [
+        "s50",
+        "s52"
+       ]
+      },
+      "s54": {
+       "op": "add",
+       "in": [
+        "s50",
+        "s53"
+       ]
+      },
+      "s55": {
+       "op": "swizzle",
+       "in": [
+        "s54"
+       ],
+       "mask": "x"
+      },
+      "s56": {
+       "op": "swizzle",
+       "in": [
+        "s54"
+       ],
+       "mask": "y"
+      },
+      "s57": {
+       "op": "add",
+       "in": [
+        "s55",
+        "s56"
+       ]
+      },
+      "s58": {
+       "op": "swizzle",
+       "in": [
+        "s54"
+       ],
+       "mask": "z"
+      },
+      "s59": {
+       "op": "mul",
+       "in": [
+        "s57",
+        "s58"
+       ]
+      },
+      "s5a": {
+       "op": "fract",
+       "in": [
+        "s59"
+       ]
+      },
+      "s5b": {
+       "op": "mix",
+       "in": [
+        "s4u",
+        "s5a",
+        "s3i"
+       ]
+      },
+      "s5c": {
+       "op": "swizzle",
+       "in": [
+        "s3h"
+       ],
+       "mask": "y"
+      },
+      "s5d": {
+       "op": "mix",
+       "in": [
+        "s4e",
+        "s5b",
+        "s5c"
+       ]
+      },
+      "s5e": {
+       "op": "mul",
+       "in": [
+        "s5d",
+        0.6
+       ]
+      },
+      "s5f": {
+       "op": "mul",
+       "in": [
+        "s39",
+        0.33
+       ]
+      },
+      "s5g": {
+       "op": "sub",
+       "in": [
+        "s5f",
+        "s1s"
+       ]
+      },
+      "s5h": {
+       "op": "floor",
+       "in": [
+        "s5g"
+       ]
+      },
+      "s5i": {
+       "op": "fract",
+       "in": [
+        "s5g"
+       ]
+      },
+      "s5j": {
+       "op": "mul",
+       "in": [
+        "s5i",
+        "s5i"
+       ]
+      },
+      "s5k": {
+       "op": "mul",
+       "in": [
+        "s5i",
+        2
+       ]
+      },
+      "s5l": {
+       "op": "sub",
+       "in": [
+        3,
+        "s5k"
+       ]
+      },
+      "s5m": {
+       "op": "mul",
+       "in": [
+        "s5j",
+        "s5l"
+       ]
+      },
+      "s5n": {
+       "op": "swizzle",
+       "in": [
+        "s5m"
+       ],
+       "mask": "x"
+      },
+      "s5o": {
+       "op": "swizzle",
+       "in": [
+        "s5h"
+       ],
+       "mask": "x"
+      },
+      "s5p": {
+       "op": "swizzle",
+       "in": [
+        "s5h"
+       ],
+       "mask": "y"
+      },
+      "s5q": {
+       "op": "combine",
+       "in": [
+        "s5o",
+        "s5p",
+        "s5o"
+       ]
+      },
+      "s5r": {
+       "op": "mul",
+       "in": [
+        "s5q",
+        0.1031
+       ]
+      },
+      "s5s": {
+       "op": "fract",
+       "in": [
+        "s5r"
+       ]
+      },
+      "s5t": {
+       "op": "swizzle",
+       "in": [
+        "s5s"
+       ],
+       "mask": "yzx"
+      },
+      "s5u": {
+       "op": "add",
+       "in": [
+        "s5t",
+        33.33
+       ]
+      },
+      "s5v": {
+       "op": "dot",
+       "in": [
+        "s5s",
+        "s5u"
+       ]
+      },
+      "s5w": {
+       "op": "add",
+       "in": [
+        "s5s",
+        "s5v"
+       ]
+      },
+      "s5x": {
+       "op": "swizzle",
+       "in": [
+        "s5w"
+       ],
+       "mask": "x"
+      },
+      "s5y": {
+       "op": "swizzle",
+       "in": [
+        "s5w"
+       ],
+       "mask": "y"
+      },
+      "s5z": {
+       "op": "add",
+       "in": [
+        "s5x",
+        "s5y"
+       ]
+      },
+      "s60": {
+       "op": "swizzle",
+       "in": [
+        "s5w"
+       ],
+       "mask": "z"
+      },
+      "s61": {
+       "op": "mul",
+       "in": [
+        "s5z",
+        "s60"
+       ]
+      },
+      "s62": {
+       "op": "fract",
+       "in": [
+        "s61"
+       ]
+      },
+      "s63": {
+       "op": "add",
+       "in": [
+        "s5h",
+        [
+         1,
+         0
+        ]
+       ]
+      },
+      "s64": {
+       "op": "swizzle",
+       "in": [
+        "s63"
+       ],
+       "mask": "x"
+      },
+      "s65": {
+       "op": "swizzle",
+       "in": [
+        "s63"
+       ],
+       "mask": "y"
+      },
+      "s66": {
+       "op": "combine",
+       "in": [
+        "s64",
+        "s65",
+        "s64"
+       ]
+      },
+      "s67": {
+       "op": "mul",
+       "in": [
+        "s66",
+        0.1031
+       ]
+      },
+      "s68": {
+       "op": "fract",
+       "in": [
+        "s67"
+       ]
+      },
+      "s69": {
+       "op": "swizzle",
+       "in": [
+        "s68"
+       ],
+       "mask": "yzx"
+      },
+      "s6a": {
+       "op": "add",
+       "in": [
+        "s69",
+        33.33
+       ]
+      },
+      "s6b": {
+       "op": "dot",
+       "in": [
+        "s68",
+        "s6a"
+       ]
+      },
+      "s6c": {
+       "op": "add",
+       "in": [
+        "s68",
+        "s6b"
+       ]
+      },
+      "s6d": {
+       "op": "swizzle",
+       "in": [
+        "s6c"
+       ],
+       "mask": "x"
+      },
+      "s6e": {
+       "op": "swizzle",
+       "in": [
+        "s6c"
+       ],
+       "mask": "y"
+      },
+      "s6f": {
+       "op": "add",
+       "in": [
+        "s6d",
+        "s6e"
+       ]
+      },
+      "s6g": {
+       "op": "swizzle",
+       "in": [
+        "s6c"
+       ],
+       "mask": "z"
+      },
+      "s6h": {
+       "op": "mul",
+       "in": [
+        "s6f",
+        "s6g"
+       ]
+      },
+      "s6i": {
+       "op": "fract",
+       "in": [
+        "s6h"
+       ]
+      },
+      "s6j": {
+       "op": "mix",
+       "in": [
+        "s62",
+        "s6i",
+        "s5n"
+       ]
+      },
+      "s6k": {
+       "op": "add",
+       "in": [
+        "s5h",
+        [
+         0,
+         1
+        ]
+       ]
+      },
+      "s6l": {
+       "op": "swizzle",
+       "in": [
+        "s6k"
+       ],
+       "mask": "x"
+      },
+      "s6m": {
+       "op": "swizzle",
+       "in": [
+        "s6k"
+       ],
+       "mask": "y"
+      },
+      "s6n": {
+       "op": "combine",
+       "in": [
+        "s6l",
+        "s6m",
+        "s6l"
+       ]
+      },
+      "s6o": {
+       "op": "mul",
+       "in": [
+        "s6n",
+        0.1031
+       ]
+      },
+      "s6p": {
+       "op": "fract",
+       "in": [
+        "s6o"
+       ]
+      },
+      "s6q": {
+       "op": "swizzle",
+       "in": [
+        "s6p"
+       ],
+       "mask": "yzx"
+      },
+      "s6r": {
+       "op": "add",
+       "in": [
+        "s6q",
+        33.33
+       ]
+      },
+      "s6s": {
+       "op": "dot",
+       "in": [
+        "s6p",
+        "s6r"
+       ]
+      },
+      "s6t": {
+       "op": "add",
+       "in": [
+        "s6p",
+        "s6s"
+       ]
+      },
+      "s6u": {
+       "op": "swizzle",
+       "in": [
+        "s6t"
+       ],
+       "mask": "x"
+      },
+      "s6v": {
+       "op": "swizzle",
+       "in": [
+        "s6t"
+       ],
+       "mask": "y"
+      },
+      "s6w": {
+       "op": "add",
+       "in": [
+        "s6u",
+        "s6v"
+       ]
+      },
+      "s6x": {
+       "op": "swizzle",
+       "in": [
+        "s6t"
+       ],
+       "mask": "z"
+      },
+      "s6y": {
+       "op": "mul",
+       "in": [
+        "s6w",
+        "s6x"
+       ]
+      },
+      "s6z": {
+       "op": "fract",
+       "in": [
+        "s6y"
+       ]
+      },
+      "s70": {
+       "op": "add",
+       "in": [
+        "s5h",
+        [
+         1,
+         1
+        ]
+       ]
+      },
+      "s71": {
+       "op": "swizzle",
+       "in": [
+        "s70"
+       ],
+       "mask": "x"
+      },
+      "s72": {
+       "op": "swizzle",
+       "in": [
+        "s70"
+       ],
+       "mask": "y"
+      },
+      "s73": {
+       "op": "combine",
+       "in": [
+        "s71",
+        "s72",
+        "s71"
+       ]
+      },
+      "s74": {
+       "op": "mul",
+       "in": [
+        "s73",
+        0.1031
+       ]
+      },
+      "s75": {
+       "op": "fract",
+       "in": [
+        "s74"
+       ]
+      },
+      "s76": {
+       "op": "swizzle",
+       "in": [
+        "s75"
+       ],
+       "mask": "yzx"
+      },
+      "s77": {
+       "op": "add",
+       "in": [
+        "s76",
+        33.33
+       ]
+      },
+      "s78": {
+       "op": "dot",
+       "in": [
+        "s75",
+        "s77"
+       ]
+      },
+      "s79": {
+       "op": "add",
+       "in": [
+        "s75",
+        "s78"
+       ]
+      },
+      "s7a": {
+       "op": "swizzle",
+       "in": [
+        "s79"
+       ],
+       "mask": "x"
+      },
+      "s7b": {
+       "op": "swizzle",
+       "in": [
+        "s79"
+       ],
+       "mask": "y"
+      },
+      "s7c": {
+       "op": "add",
+       "in": [
+        "s7a",
+        "s7b"
+       ]
+      },
+      "s7d": {
+       "op": "swizzle",
+       "in": [
+        "s79"
+       ],
+       "mask": "z"
+      },
+      "s7e": {
+       "op": "mul",
+       "in": [
+        "s7c",
+        "s7d"
+       ]
+      },
+      "s7f": {
+       "op": "fract",
+       "in": [
+        "s7e"
+       ]
+      },
+      "s7g": {
+       "op": "mix",
+       "in": [
+        "s6z",
+        "s7f",
+        "s5n"
+       ]
+      },
+      "s7h": {
+       "op": "swizzle",
+       "in": [
+        "s5m"
+       ],
+       "mask": "y"
+      },
+      "s7i": {
+       "op": "mix",
+       "in": [
+        "s6j",
+        "s7g",
+        "s7h"
+       ]
+      },
+      "s7j": {
+       "op": "mul",
+       "in": [
+        "s7i",
+        0.4
+       ]
+      },
+      "s7k": {
+       "op": "add",
+       "in": [
+        "s5e",
+        "s7j"
+       ]
+      },
+      "s7l": {
+       "op": "smoothstep",
+       "in": [
+        0.28,
+        0.72,
+        "s7k"
+       ]
+      },
+      "s7m": {
+       "op": "mul",
+       "in": [
+        "s1j",
+        "s37"
+       ]
+      },
+      "s7n": {
+       "op": "smoothstep",
+       "in": [
+        50,
+        160,
+        "s7m"
+       ]
+      },
+      "s7o": {
+       "op": "mix",
+       "in": [
+        "s7l",
+        0.5,
+        "s7n"
+       ]
+      },
+      "s7p": {
+       "op": "swizzle",
+       "in": [
+        "sh"
+       ],
+       "mask": "y"
+      },
+      "s7q": {
+       "op": "pow",
+       "in": [
+        "s7o",
+        "s7p"
+       ]
+      },
+      "s7r": {
+       "op": "mul",
+       "in": [
+        "s7q",
+        2.8
+       ]
+      },
+      "s7s": {
+       "op": "add",
+       "in": [
+        0.03,
+        "s7r"
+       ]
+      },
+      "s7t": {
+       "op": "swizzle",
+       "in": [
+        "sh"
+       ],
+       "mask": "x"
+      },
+      "s7u": {
+       "op": "mul",
+       "in": [
+        "s7s",
+        "s7t"
+       ]
+      },
+      "s7v": {
+       "op": "mul",
+       "in": [
+        "s7o",
+        1.3
+       ]
+      },
+      "s7w": {
+       "op": "add",
+       "in": [
+        0.35,
+        "s7v"
+       ]
+      },
+      "s7x": {
+       "op": "swizzle",
+       "in": [
+        "s1q"
+       ],
+       "mask": "w"
+      },
+      "s7y": {
+       "op": "mix",
+       "in": [
+        "s7w",
+        "s7u",
+        "s7x"
+       ]
+      },
+      "s7z": {
+       "op": "mul",
+       "in": [
+        "s34",
+        "s7y"
+       ]
+      },
+      "s80": {
+       "op": "mul",
+       "in": [
+        "s7z",
+        "s6"
+       ]
+      },
+      "s81": {
+       "op": "mul",
+       "in": [
+        "s80",
+        "s1e"
+       ]
+      },
+      "s82": {
+       "op": "negate",
+       "in": [
+        "s81"
+       ]
+      },
+      "s83": {
+       "op": "exp",
+       "in": [
+        "s82"
+       ]
+      },
+      "s84": {
+       "op": "oneMinus",
+       "in": [
+        "s83"
+       ]
+      },
+      "s85": {
+       "op": "swizzle",
+       "in": [
+        "s1m"
+       ],
+       "mask": "w"
+      },
+      "s86": {
+       "op": "smoothstep",
+       "in": [
+        0.4,
+        1,
+        "s7o"
+       ]
+      },
+      "s87": {
+       "op": "mul",
+       "in": [
+        "s86",
+        0.34
+       ]
+      },
+      "s88": {
+       "op": "sub",
+       "in": [
+        1.1,
+        "s87"
+       ]
+      },
+      "s89": {
+       "op": "mul",
+       "in": [
+        "s1r",
+        "s88"
+       ]
+      },
+      "s8a": {
+       "op": "swizzle",
+       "in": [
+        "s1m"
+       ],
+       "mask": "xyz"
+      },
+      "s8b": {
+       "op": "mul",
+       "in": [
+        "s85",
+        "s84"
+       ]
+      },
+      "s8c": {
+       "op": "mul",
+       "in": [
+        "s8b",
+        "s89"
+       ]
+      },
+      "s8d": {
+       "op": "add",
+       "in": [
+        "s8a",
+        "s8c"
+       ]
+      },
+      "s8e": {
+       "op": "oneMinus",
+       "in": [
+        "s84"
+       ]
+      },
+      "s8f": {
+       "op": "mul",
+       "in": [
+        "s85",
+        "s8e"
+       ]
+      },
+      "s8g": {
+       "op": "combine",
+       "in": [
+        "s8d",
+        "s8f"
+       ]
+      },
+      "s8h": {
+       "op": "select",
+       "in": [
+        "s23",
+        "s1m",
+        "s8g"
+       ]
+      }
+     },
+     "out": "s8h"
+    }
+   },
+   "s8j": {
+    "op": "swizzle",
+    "in": [
+     "s8i"
+    ],
+    "mask": "xyz"
+   },
+   "s8k": {
+    "op": "swizzle",
+    "in": [
+     "s8i"
+    ],
+    "mask": "w"
+   },
+   "s8l": {
+    "op": "gt",
+    "in": [
+     "s16",
+     0
+    ]
+   },
+   "s8m": {
+    "op": "mix",
+    "in": [
+     "s1b",
+     "s1d",
+     0.8
+    ]
+   },
+   "s8n": {
+    "op": "select",
+    "in": [
+     "s8l",
+     "s8m",
+     "s1b"
+    ]
+   },
+   "s8o": {
+    "op": "lt",
+    "in": [
+     "s8n",
+     "s7"
+    ]
+   },
+   "s8p": {
+    "op": "sub",
+    "in": [
+     "s7",
+     "s8n"
+    ]
+   },
+   "s8q": {
+    "op": "swizzle",
+    "in": [
+     "se"
+    ],
+    "mask": "y"
+   },
+   "s8r": {
+    "op": "div",
+    "in": [
+     "s8p",
+     "s8q"
+    ]
+   },
+   "s8s": {
+    "op": "exp",
+    "in": [
+     "s8r"
+    ]
+   },
+   "s8t": {
+    "op": "swizzle",
+    "in": [
+     "se"
+    ],
+    "mask": "x"
+   },
+   "s8u": {
+    "op": "min",
+    "in": [
+     "s8s",
+     "s8t"
+    ]
+   },
+   "s8v": {
+    "op": "sub",
+    "in": [
+     "s8n",
+     "s7"
+    ]
+   },
+   "s8w": {
+    "op": "swizzle",
+    "in": [
+     "se"
+    ],
+    "mask": "z"
+   },
+   "s8x": {
+    "op": "div",
+    "in": [
+     "s8v",
+     "s8w"
+    ]
+   },
+   "s8y": {
+    "op": "negate",
+    "in": [
+     "s8x"
+    ]
+   },
+   "s8z": {
+    "op": "exp",
+    "in": [
+     "s8y"
+    ]
+   },
+   "s90": {
+    "op": "swizzle",
+    "in": [
+     "se"
+    ],
+    "mask": "w"
+   },
+   "s91": {
+    "op": "max",
+    "in": [
+     "s8z",
+     "s90"
+    ]
+   },
+   "s92": {
+    "op": "select",
+    "in": [
+     "s8o",
+     "s8u",
+     "s91"
+    ]
+   },
+   "s93": {
+    "op": "mul",
+    "in": [
+     "s8",
+     "s92"
+    ]
+   },
+   "s94": {
+    "op": "sub",
+    "in": [
+     "s15",
+     "s9"
+    ]
+   },
+   "s95": {
+    "op": "max",
+    "in": [
+     "s94",
+     0
+    ]
+   },
+   "s96": {
+    "op": "mul",
+    "in": [
+     "s93",
+     "s95"
+    ]
+   },
+   "s97": {
+    "op": "mul",
+    "in": [
+     "s96",
+     "s6"
+    ]
+   },
+   "s98": {
+    "op": "negate",
+    "in": [
+     "s97"
+    ]
+   },
+   "s99": {
+    "op": "exp",
+    "in": [
+     "s98"
+    ]
+   },
+   "s9a": {
+    "op": "oneMinus",
+    "in": [
+     "s99"
+    ]
+   },
+   "s9b": {
+    "op": "swizzle",
+    "in": [
+     "sq"
+    ],
+    "mask": "x"
+   },
+   "s9c": {
+    "op": "swizzle",
+    "in": [
+     "sr"
+    ],
+    "mask": "x"
+   },
+   "s9d": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "s9b"
+    ]
+   },
+   "s9e": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "s9c"
+    ]
+   },
+   "s9f": {
+    "op": "and",
+    "in": [
+     "s9d",
+     "s9e"
+    ]
+   },
+   "s9g": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "s9c"
+    ]
+   },
+   "s9h": {
+    "op": "sub",
+    "in": [
+     "s9b",
+     "s9c"
+    ]
+   },
+   "s9i": {
+    "op": "max",
+    "in": [
+     "s9h",
+     1
+    ]
+   },
+   "s9j": {
+    "op": "div",
+    "in": [
+     "s9g",
+     "s9i"
+    ]
+   },
+   "s9k": {
+    "op": "mix",
+    "in": [
+     "s12",
+     "s11",
+     "s9j"
+    ]
+   },
+   "s9l": {
+    "op": "select",
+    "in": [
+     "s9f",
+     "s9k",
+     "st"
+    ]
+   },
+   "s9m": {
+    "op": "swizzle",
+    "in": [
+     "sp"
+    ],
+    "mask": "x"
+   },
+   "s9n": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "s9m"
+    ]
+   },
+   "s9o": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "s9b"
+    ]
+   },
+   "s9p": {
+    "op": "and",
+    "in": [
+     "s9n",
+     "s9o"
+    ]
+   },
+   "s9q": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "s9b"
+    ]
+   },
+   "s9r": {
+    "op": "sub",
+    "in": [
+     "s9m",
+     "s9b"
+    ]
+   },
+   "s9s": {
+    "op": "max",
+    "in": [
+     "s9r",
+     1
+    ]
+   },
+   "s9t": {
+    "op": "div",
+    "in": [
+     "s9q",
+     "s9s"
+    ]
+   },
+   "s9u": {
+    "op": "mix",
+    "in": [
+     "s11",
+     "s10",
+     "s9t"
+    ]
+   },
+   "s9v": {
+    "op": "select",
+    "in": [
+     "s9p",
+     "s9u",
+     "s9l"
+    ]
+   },
+   "s9w": {
+    "op": "swizzle",
+    "in": [
+     "so"
+    ],
+    "mask": "x"
+   },
+   "s9x": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "s9w"
+    ]
+   },
+   "s9y": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "s9m"
+    ]
+   },
+   "s9z": {
+    "op": "and",
+    "in": [
+     "s9x",
+     "s9y"
+    ]
+   },
+   "sa0": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "s9m"
+    ]
+   },
+   "sa1": {
+    "op": "sub",
+    "in": [
+     "s9w",
+     "s9m"
+    ]
+   },
+   "sa2": {
+    "op": "max",
+    "in": [
+     "sa1",
+     1
+    ]
+   },
+   "sa3": {
+    "op": "div",
+    "in": [
+     "sa0",
+     "sa2"
+    ]
+   },
+   "sa4": {
+    "op": "mix",
+    "in": [
+     "s10",
+     "sz",
+     "sa3"
+    ]
+   },
+   "sa5": {
+    "op": "select",
+    "in": [
+     "s9z",
+     "sa4",
+     "s9v"
+    ]
+   },
+   "sa6": {
+    "op": "swizzle",
+    "in": [
+     "sn"
+    ],
+    "mask": "x"
+   },
+   "sa7": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "sa6"
+    ]
+   },
+   "sa8": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "s9w"
+    ]
+   },
+   "sa9": {
+    "op": "and",
+    "in": [
+     "sa7",
+     "sa8"
+    ]
+   },
+   "saa": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "s9w"
+    ]
+   },
+   "sab": {
+    "op": "sub",
+    "in": [
+     "sa6",
+     "s9w"
+    ]
+   },
+   "sac": {
+    "op": "max",
+    "in": [
+     "sab",
+     1
+    ]
+   },
+   "sad": {
+    "op": "div",
+    "in": [
+     "saa",
+     "sac"
+    ]
+   },
+   "sae": {
+    "op": "mix",
+    "in": [
+     "sz",
+     "sy",
+     "sad"
+    ]
+   },
+   "saf": {
+    "op": "select",
+    "in": [
+     "sa9",
+     "sae",
+     "sa5"
+    ]
+   },
+   "sag": {
+    "op": "swizzle",
+    "in": [
+     "sm"
+    ],
+    "mask": "x"
+   },
+   "sah": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "sag"
+    ]
+   },
+   "sai": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "sa6"
+    ]
+   },
+   "saj": {
+    "op": "and",
+    "in": [
+     "sah",
+     "sai"
+    ]
+   },
+   "sak": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "sa6"
+    ]
+   },
+   "sal": {
+    "op": "sub",
+    "in": [
+     "sag",
+     "sa6"
+    ]
+   },
+   "sam": {
+    "op": "max",
+    "in": [
+     "sal",
+     1
+    ]
+   },
+   "san": {
+    "op": "div",
+    "in": [
+     "sak",
+     "sam"
+    ]
+   },
+   "sao": {
+    "op": "mix",
+    "in": [
+     "sy",
+     "sx",
+     "san"
+    ]
+   },
+   "sap": {
+    "op": "select",
+    "in": [
+     "saj",
+     "sao",
+     "saf"
+    ]
+   },
+   "saq": {
+    "op": "swizzle",
+    "in": [
+     "sl"
+    ],
+    "mask": "x"
+   },
+   "sar": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "saq"
+    ]
+   },
+   "sas": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "sag"
+    ]
+   },
+   "sat": {
+    "op": "and",
+    "in": [
+     "sar",
+     "sas"
+    ]
+   },
+   "sau": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "sag"
+    ]
+   },
+   "sav": {
+    "op": "sub",
+    "in": [
+     "saq",
+     "sag"
+    ]
+   },
+   "saw": {
+    "op": "max",
+    "in": [
+     "sav",
+     1
+    ]
+   },
+   "sax": {
+    "op": "div",
+    "in": [
+     "sau",
+     "saw"
+    ]
+   },
+   "say": {
+    "op": "mix",
+    "in": [
+     "sx",
+     "sw",
+     "sax"
+    ]
+   },
+   "saz": {
+    "op": "select",
+    "in": [
+     "sat",
+     "say",
+     "sap"
+    ]
+   },
+   "sb0": {
+    "op": "swizzle",
+    "in": [
+     "sk"
+    ],
+    "mask": "x"
+   },
+   "sb1": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "sb0"
+    ]
+   },
+   "sb2": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "saq"
+    ]
+   },
+   "sb3": {
+    "op": "and",
+    "in": [
+     "sb1",
+     "sb2"
+    ]
+   },
+   "sb4": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "saq"
+    ]
+   },
+   "sb5": {
+    "op": "sub",
+    "in": [
+     "sb0",
+     "saq"
+    ]
+   },
+   "sb6": {
+    "op": "max",
+    "in": [
+     "sb5",
+     1
+    ]
+   },
+   "sb7": {
+    "op": "div",
+    "in": [
+     "sb4",
+     "sb6"
+    ]
+   },
+   "sb8": {
+    "op": "mix",
+    "in": [
+     "sw",
+     "sv",
+     "sb7"
+    ]
+   },
+   "sb9": {
+    "op": "select",
+    "in": [
+     "sb3",
+     "sb8",
+     "saz"
+    ]
+   },
+   "sba": {
+    "op": "swizzle",
+    "in": [
+     "sj"
+    ],
+    "mask": "x"
+   },
+   "sbb": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "sba"
+    ]
+   },
+   "sbc": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "sb0"
+    ]
+   },
+   "sbd": {
+    "op": "and",
+    "in": [
+     "sbb",
+     "sbc"
+    ]
+   },
+   "sbe": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "sb0"
+    ]
+   },
+   "sbf": {
+    "op": "sub",
+    "in": [
+     "sba",
+     "sb0"
+    ]
+   },
+   "sbg": {
+    "op": "max",
+    "in": [
+     "sbf",
+     1
+    ]
+   },
+   "sbh": {
+    "op": "div",
+    "in": [
+     "sbe",
+     "sbg"
+    ]
+   },
+   "sbi": {
+    "op": "mix",
+    "in": [
+     "sv",
+     "su",
+     "sbh"
+    ]
+   },
+   "sbj": {
+    "op": "select",
+    "in": [
+     "sbd",
+     "sbi",
+     "sb9"
+    ]
+   },
+   "sbk": {
+    "op": "swizzle",
+    "in": [
+     "si"
+    ],
+    "mask": "x"
+   },
+   "sbl": {
+    "op": "lte",
+    "in": [
+     "s19",
+     "sbk"
+    ]
+   },
+   "sbm": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "sba"
+    ]
+   },
+   "sbn": {
+    "op": "and",
+    "in": [
+     "sbl",
+     "sbm"
+    ]
+   },
+   "sbo": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "sba"
+    ]
+   },
+   "sbp": {
+    "op": "sub",
+    "in": [
+     "sbk",
+     "sba"
+    ]
+   },
+   "sbq": {
+    "op": "max",
+    "in": [
+     "sbp",
+     1
+    ]
+   },
+   "sbr": {
+    "op": "div",
+    "in": [
+     "sbo",
+     "sbq"
+    ]
+   },
+   "sbs": {
+    "op": "mix",
+    "in": [
+     "su",
+     "st",
+     "sbr"
+    ]
+   },
+   "sbt": {
+    "op": "select",
+    "in": [
+     "sbn",
+     "sbs",
+     "sbj"
+    ]
+   },
+   "sbu": {
+    "op": "lt",
+    "in": [
+     "s19",
+     "s9c"
+    ]
+   },
+   "sbv": {
+    "op": "select",
+    "in": [
+     "sbu",
+     "s12",
+     "sbt"
+    ]
+   },
+   "sbw": {
+    "op": "sub",
+    "in": [
+     "s18",
+     "s19"
+    ]
+   },
+   "sbx": {
+    "op": "div",
+    "in": [
+     "sbw",
+     150
+    ]
+   },
+   "sby": {
+    "op": "saturate",
+    "in": [
+     "sbx"
+    ]
+   },
+   "sbz": {
+    "op": "mix",
+    "in": [
+     "sa",
+     "sbv",
+     "sby"
+    ]
+   },
+   "sc0": {
+    "op": "swizzle",
+    "in": [
+     "sf"
+    ],
+    "mask": "xyz"
+   },
+   "sc1": {
+    "op": "swizzle",
+    "in": [
+     "sf"
+    ],
+    "mask": "w"
+   },
+   "sc2": {
+    "op": "sub",
+    "in": [
+     "s7",
+     "s1c"
+    ]
+   },
+   "sc3": {
+    "op": "div",
+    "in": [
+     "sc2",
+     60
+    ]
+   },
+   "sc4": {
+    "op": "saturate",
+    "in": [
+     "sc3"
+    ]
+   },
+   "sc5": {
+    "op": "mul",
+    "in": [
+     "sc1",
+     "sc4"
+    ]
+   },
+   "sc6": {
+    "op": "mix",
+    "in": [
+     "sbz",
+     "sc0",
+     "sc5"
+    ]
+   },
+   "sc7": {
+    "op": "mul",
+    "in": [
+     "s8k",
+     "s9a"
+    ]
+   },
+   "sc8": {
+    "op": "mul",
+    "in": [
+     "sc7",
+     "sc6"
+    ]
+   },
+   "sc9": {
+    "op": "add",
+    "in": [
+     "s8j",
+     "sc8"
+    ]
+   },
+   "sca": {
+    "op": "oneMinus",
+    "in": [
+     "s9a"
+    ]
+   },
+   "scb": {
+    "op": "mul",
+    "in": [
+     "s8k",
+     "sca"
+    ]
+   },
+   "scc": {
+    "op": "swizzle",
+    "in": [
+     "sg"
+    ],
+    "mask": "y"
+   },
+   "scd": {
+    "op": "sub",
+    "in": [
+     "s7",
+     "scc"
+    ]
+   },
+   "sce": {
+    "op": "lt",
+    "in": [
+     "s18",
+     "scd"
+    ]
+   },
+   "scf": {
+    "op": "lt",
+    "in": [
+     "s19",
+     "scd"
+    ]
+   },
+   "scg": {
+    "op": "and",
+    "in": [
+     "sce",
+     "scf"
+    ]
+   },
+   "sch": {
+    "op": "gte",
+    "in": [
+     "s18",
+     "scd"
+    ]
+   },
+   "sci": {
+    "op": "gte",
+    "in": [
+     "s19",
+     "scd"
+    ]
+   },
+   "scj": {
+    "op": "and",
+    "in": [
+     "sch",
+     "sci"
+    ]
+   },
+   "sck": {
+    "op": "sub",
+    "in": [
+     "scd",
+     "s1c"
+    ]
+   },
+   "scl": {
+    "op": "sub",
+    "in": [
+     "s19",
+     "s18"
+    ]
+   },
+   "scm": {
+    "op": "abs",
+    "in": [
+     "scl"
+    ]
+   },
+   "scn": {
+    "op": "max",
+    "in": [
+     "scm",
+     0.001
+    ]
+   },
+   "sco": {
+    "op": "div",
+    "in": [
+     "sck",
+     "scn"
+    ]
+   },
+   "scp": {
+    "op": "select",
+    "in": [
+     "scj",
+     0,
+     "sco"
+    ]
+   },
+   "scq": {
+    "op": "select",
+    "in": [
+     "scg",
+     1,
+     "scp"
+    ]
+   },
+   "scr": {
+    "op": "min",
+    "in": [
+     "s1c",
+     "scd"
+    ]
+   },
+   "scs": {
+    "op": "min",
+    "in": [
+     "s1d",
+     "scd"
+    ]
+   },
+   "sct": {
+    "op": "add",
+    "in": [
+     "scr",
+     "scs"
+    ]
+   },
+   "scu": {
+    "op": "mul",
+    "in": [
+     "sct",
+     0.5
+    ]
+   },
+   "scv": {
+    "op": "sub",
+    "in": [
+     "scd",
+     "scu"
+    ]
+   },
+   "scw": {
+    "op": "swizzle",
+    "in": [
+     "sg"
+    ],
+    "mask": "x"
+   },
+   "scx": {
+    "op": "swizzle",
+    "in": [
+     "sg"
+    ],
+    "mask": "z"
+   },
+   "scy": {
+    "op": "div",
+    "in": [
+     "scv",
+     "scx"
+    ]
+   },
+   "scz": {
+    "op": "saturate",
+    "in": [
+     "scy"
+    ]
+   },
+   "sd0": {
+    "op": "mul",
+    "in": [
+     "scw",
+     "scz"
+    ]
+   },
+   "sd1": {
+    "op": "mul",
+    "in": [
+     "sd0",
+     "scq"
+    ]
+   },
+   "sd2": {
+    "op": "mul",
+    "in": [
+     "sd1",
+     "s15"
+    ]
+   },
+   "sd3": {
+    "op": "mul",
+    "in": [
+     "sd2",
+     "s6"
+    ]
+   },
+   "sd4": {
+    "op": "mul",
+    "in": [
+     "sd3",
+     "s1e"
+    ]
+   },
+   "sd5": {
+    "op": "gt",
+    "in": [
+     "scw",
+     0
+    ]
+   },
+   "sd6": {
+    "op": "negate",
+    "in": [
+     "sd4"
+    ]
+   },
+   "sd7": {
+    "op": "exp",
+    "in": [
+     "sd6"
+    ]
+   },
+   "sd8": {
+    "op": "oneMinus",
+    "in": [
+     "sd7"
+    ]
+   },
+   "sd9": {
+    "op": "select",
+    "in": [
+     "sd5",
+     "sd8",
+     0
+    ]
+   },
+   "sda": {
+    "op": "mul",
+    "in": [
+     "scb",
+     "sd9"
+    ]
+   },
+   "sdb": {
+    "op": "mul",
+    "in": [
+     "sda",
+     "sc0"
+    ]
+   },
+   "sdc": {
+    "op": "add",
+    "in": [
+     "sc9",
+     "sdb"
+    ]
+   },
+   "sdd": {
+    "op": "oneMinus",
+    "in": [
+     "sd9"
+    ]
+   },
+   "sde": {
+    "op": "mul",
+    "in": [
+     "scb",
+     "sdd"
+    ]
+   },
+   "sdf": {
+    "op": "max",
+    "in": [
+     "s15",
+     0.000001
+    ]
+   },
+   "sdg": {
+    "op": "div",
+    "in": [
+     "s14",
+     "sdf"
+    ]
+   },
+   "sdh": {
+    "op": "swizzle",
+    "in": [
+     "sdg"
+    ],
+    "mask": "x"
+   },
+   "sdi": {
+    "op": "abs",
+    "in": [
+     "sdh"
+    ]
+   },
+   "sdj": {
+    "op": "gt",
+    "in": [
+     "sdi",
+     0.00001
+    ]
+   },
+   "sdk": {
+    "op": "div",
+    "in": [
+     1,
+     "sdh"
+    ]
+   },
+   "sdl": {
+    "op": "select",
+    "in": [
+     "sdj",
+     "sdk",
+     100000
+    ]
+   },
+   "sdm": {
+    "op": "swizzle",
+    "in": [
+     "sdg"
+    ],
+    "mask": "y"
+   },
+   "sdn": {
+    "op": "abs",
+    "in": [
+     "sdm"
+    ]
+   },
+   "sdo": {
+    "op": "gt",
+    "in": [
+     "sdn",
+     0.00001
+    ]
+   },
+   "sdp": {
+    "op": "div",
+    "in": [
+     1,
+     "sdm"
+    ]
+   },
+   "sdq": {
+    "op": "select",
+    "in": [
+     "sdo",
+     "sdp",
+     100000
+    ]
+   },
+   "sdr": {
+    "op": "swizzle",
+    "in": [
+     "sdg"
+    ],
+    "mask": "z"
+   },
+   "sds": {
+    "op": "abs",
+    "in": [
+     "sdr"
+    ]
+   },
+   "sdt": {
+    "op": "gt",
+    "in": [
+     "sds",
+     0.00001
+    ]
+   },
+   "sdu": {
+    "op": "div",
+    "in": [
+     1,
+     "sdr"
+    ]
+   },
+   "sdv": {
+    "op": "select",
+    "in": [
+     "sdt",
+     "sdu",
+     100000
+    ]
+   },
+   "sdw": {
+    "op": "combine",
+    "in": [
+     "sdl",
+     "sdq",
+     "sdv"
+    ]
+   },
+   "sdx": {
+    "op": "swizzle",
+    "in": [
+     "sb"
+    ],
+    "mask": "x"
+   },
+   "sdy": {
+    "op": "swizzle",
+    "in": [
+     "sb"
+    ],
+    "mask": "y"
+   },
+   "sdz": {
+    "op": "combine",
+    "in": [
+     "sdx",
+     -260,
+     "sdy"
+    ]
+   },
+   "se0": {
+    "op": "sub",
+    "in": [
+     "sdz",
+     "s4"
+    ]
+   },
+   "se1": {
+    "op": "mul",
+    "in": [
+     "se0",
+     "sdw"
+    ]
+   },
+   "se2": {
+    "op": "swizzle",
+    "in": [
+     "sb"
+    ],
+    "mask": "z"
+   },
+   "se3": {
+    "op": "swizzle",
+    "in": [
+     "sc"
+    ],
+    "mask": "y"
+   },
+   "se4": {
+    "op": "swizzle",
+    "in": [
+     "sc"
+    ],
+    "mask": "w"
+   },
+   "se5": {
+    "op": "add",
+    "in": [
+     "se3",
+     "se4"
+    ]
+   },
+   "se6": {
+    "op": "swizzle",
+    "in": [
+     "sb"
+    ],
+    "mask": "w"
+   },
+   "se7": {
+    "op": "combine",
+    "in": [
+     "se2",
+     "se5",
+     "se6"
+    ]
+   },
+   "se8": {
+    "op": "sub",
+    "in": [
+     "se7",
+     "s4"
+    ]
+   },
+   "se9": {
+    "op": "mul",
+    "in": [
+     "se8",
+     "sdw"
+    ]
+   },
+   "sea": {
+    "op": "min",
+    "in": [
+     "se1",
+     "se9"
+    ]
+   },
+   "seb": {
+    "op": "max",
+    "in": [
+     "se1",
+     "se9"
+    ]
+   },
+   "sec": {
+    "op": "swizzle",
+    "in": [
+     "sea"
+    ],
+    "mask": "x"
+   },
+   "sed": {
+    "op": "swizzle",
+    "in": [
+     "sea"
+    ],
+    "mask": "y"
+   },
+   "see": {
+    "op": "max",
+    "in": [
+     "sec",
+     "sed"
+    ]
+   },
+   "sef": {
+    "op": "swizzle",
+    "in": [
+     "sea"
+    ],
+    "mask": "z"
+   },
+   "seg": {
+    "op": "max",
+    "in": [
+     "sef",
+     0
+    ]
+   },
+   "seh": {
+    "op": "max",
+    "in": [
+     "see",
+     "seg"
+    ]
+   },
+   "sei": {
+    "op": "swizzle",
+    "in": [
+     "seb"
+    ],
+    "mask": "x"
+   },
+   "sej": {
+    "op": "swizzle",
+    "in": [
+     "seb"
+    ],
+    "mask": "y"
+   },
+   "sek": {
+    "op": "min",
+    "in": [
+     "sei",
+     "sej"
+    ]
+   },
+   "sel": {
+    "op": "swizzle",
+    "in": [
+     "seb"
+    ],
+    "mask": "z"
+   },
+   "sem": {
+    "op": "min",
+    "in": [
+     "sel",
+     "s15"
+    ]
+   },
+   "sen": {
+    "op": "min",
+    "in": [
+     "sek",
+     "sem"
+    ]
+   },
+   "seo": {
+    "op": "sub",
+    "in": [
+     "se3",
+     "s18"
+    ]
+   },
+   "sep": {
+    "op": "select",
+    "in": [
+     "sdo",
+     "sdm",
+     1
+    ]
+   },
+   "seq": {
+    "op": "div",
+    "in": [
+     "seo",
+     "sep"
+    ]
+   },
+   "ser": {
+    "op": "lt",
+    "in": [
+     "s18",
+     "se3"
+    ]
+   },
+   "ses": {
+    "op": "select",
+    "in": [
+     "ser",
+     1000000000,
+     -1000000000
+    ]
+   },
+   "set": {
+    "op": "select",
+    "in": [
+     "sdo",
+     "seq",
+     "ses"
+    ]
+   },
+   "seu": {
+    "op": "lt",
+    "in": [
+     "sdm",
+     0
+    ]
+   },
+   "sev": {
+    "op": "max",
+    "in": [
+     "seh",
+     "set"
+    ]
+   },
+   "sew": {
+    "op": "select",
+    "in": [
+     "seu",
+     "sev",
+     "seh"
+    ]
+   },
+   "sex": {
+    "op": "min",
+    "in": [
+     "sen",
+     "set"
+    ]
+   },
+   "sey": {
+    "op": "select",
+    "in": [
+     "seu",
+     "sen",
+     "sex"
+    ]
+   },
+   "sez": {
+    "op": "min",
+    "in": [
+     "se3",
+     "s18"
+    ]
+   },
+   "sf0": {
+    "op": "mul",
+    "in": [
+     "sdm",
+     "sew"
+    ]
+   },
+   "sf1": {
+    "op": "add",
+    "in": [
+     "s18",
+     "sf0"
+    ]
+   },
+   "sf2": {
+    "op": "sub",
+    "in": [
+     "sez",
+     "sf1"
+    ]
+   },
+   "sf3": {
+    "op": "max",
+    "in": [
+     "sf2",
+     0
+    ]
+   },
+   "sf4": {
+    "op": "mul",
+    "in": [
+     "sdm",
+     "sey"
+    ]
+   },
+   "sf5": {
+    "op": "add",
+    "in": [
+     "s18",
+     "sf4"
+    ]
+   },
+   "sf6": {
+    "op": "sub",
+    "in": [
+     "sez",
+     "sf5"
+    ]
+   },
+   "sf7": {
+    "op": "max",
+    "in": [
+     "sf6",
+     0
+    ]
+   },
+   "sf8": {
+    "op": "swizzle",
+    "in": [
+     "sc"
+    ],
+    "mask": "x"
+   },
+   "sf9": {
+    "op": "div",
+    "in": [
+     "sf8",
+     0.085
+    ]
+   },
+   "sfa": {
+    "op": "sub",
+    "in": [
+     "sey",
+     "sew"
+    ]
+   },
+   "sfb": {
+    "op": "mul",
+    "in": [
+     "sf9",
+     "sfa"
+    ]
+   },
+   "sfc": {
+    "op": "add",
+    "in": [
+     "sf3",
+     "sf7"
+    ]
+   },
+   "sfd": {
+    "op": "mul",
+    "in": [
+     "sfc",
+     0.0000935
+    ]
+   },
+   "sfe": {
+    "op": "mul",
+    "in": [
+     "sf3",
+     "sf3"
+    ]
+   },
+   "sff": {
+    "op": "mul",
+    "in": [
+     "sf3",
+     "sf7"
+    ]
+   },
+   "sfg": {
+    "op": "add",
+    "in": [
+     "sfe",
+     "sff"
+    ]
+   },
+   "sfh": {
+    "op": "mul",
+    "in": [
+     "sf7",
+     "sf7"
+    ]
+   },
+   "sfi": {
+    "op": "add",
+    "in": [
+     "sfg",
+     "sfh"
+    ]
+   },
+   "sfj": {
+    "op": "mul",
+    "in": [
+     "sfi",
+     8e-7
+    ]
+   },
+   "sfk": {
+    "op": "div",
+    "in": [
+     "sfj",
+     3
+    ]
+   },
+   "sfl": {
+    "op": "add",
+    "in": [
+     "sfd",
+     "sfk"
+    ]
+   },
+   "sfm": {
+    "op": "mul",
+    "in": [
+     "sfb",
+     "sfl"
+    ]
+   },
+   "sfn": {
+    "op": "oneMinus",
+    "in": [
+     "sdn"
+    ]
+   },
+   "sfo": {
+    "op": "swizzle",
+    "in": [
+     "sc"
+    ],
+    "mask": "z"
+   },
+   "sfp": {
+    "op": "max",
+    "in": [
+     "seh",
+     "s9"
+    ]
+   },
+   "sfq": {
+    "op": "sub",
+    "in": [
+     "sen",
+     "sfp"
+    ]
+   },
+   "sfr": {
+    "op": "max",
+    "in": [
+     "sfq",
+     0
+    ]
+   },
+   "sfs": {
+    "op": "mul",
+    "in": [
+     "sfo",
+     "sfr"
+    ]
+   },
+   "sft": {
+    "op": "mul",
+    "in": [
+     "sfs",
+     "sfn"
+    ]
+   },
+   "sfu": {
+    "op": "mul",
+    "in": [
+     "sft",
+     "sfn"
+    ]
+   },
+   "sfv": {
+    "op": "gt",
+    "in": [
+     "sey",
+     "sew"
+    ]
+   },
+   "sfw": {
+    "op": "select",
+    "in": [
+     "sfv",
+     "sfm",
+     0
+    ]
+   },
+   "sfx": {
+    "op": "add",
+    "in": [
+     "sfw",
+     "sfu"
+    ]
+   },
+   "sfy": {
+    "op": "mul",
+    "in": [
+     "sfx",
+     "s6"
+    ]
+   },
+   "sfz": {
+    "op": "mul",
+    "in": [
+     "sfy",
+     "s1e"
+    ]
+   },
+   "sg0": {
+    "op": "gt",
+    "in": [
+     "sen",
+     "seh"
+    ]
+   },
+   "sg1": {
+    "op": "gt",
+    "in": [
+     "s15",
+     0.001
+    ]
+   },
+   "sg2": {
+    "op": "and",
+    "in": [
+     "sg0",
+     "sg1"
+    ]
+   },
+   "sg3": {
+    "op": "gt",
+    "in": [
+     "sf8",
+     0
+    ]
+   },
+   "sg4": {
+    "op": "gt",
+    "in": [
+     "sfo",
+     0
+    ]
+   },
+   "sg5": {
+    "op": "or",
+    "in": [
+     "sg3",
+     "sg4"
+    ]
+   },
+   "sg6": {
+    "op": "and",
+    "in": [
+     "sg2",
+     "sg5"
+    ]
+   },
+   "sg7": {
+    "op": "negate",
+    "in": [
+     "sfz"
+    ]
+   },
+   "sg8": {
+    "op": "exp",
+    "in": [
+     "sg7"
+    ]
+   },
+   "sg9": {
+    "op": "oneMinus",
+    "in": [
+     "sg8"
+    ]
+   },
+   "sga": {
+    "op": "select",
+    "in": [
+     "sg6",
+     "sg9",
+     0
+    ]
+   },
+   "sgb": {
+    "op": "add",
+    "in": [
+     "seh",
+     "sen"
+    ]
+   },
+   "sgc": {
+    "op": "mul",
+    "in": [
+     "sgb",
+     0.5
+    ]
+   },
+   "sgd": {
+    "op": "mul",
+    "in": [
+     "sdm",
+     "sgc"
+    ]
+   },
+   "sge": {
+    "op": "add",
+    "in": [
+     "s18",
+     "sgd"
+    ]
+   },
+   "sgf": {
+    "op": "min",
+    "in": [
+     "sge",
+     "se3"
+    ]
+   },
+   "sgg": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "s9b"
+    ]
+   },
+   "sgh": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "s9c"
+    ]
+   },
+   "sgi": {
+    "op": "and",
+    "in": [
+     "sgg",
+     "sgh"
+    ]
+   },
+   "sgj": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "s9c"
+    ]
+   },
+   "sgk": {
+    "op": "div",
+    "in": [
+     "sgj",
+     "s9i"
+    ]
+   },
+   "sgl": {
+    "op": "mix",
+    "in": [
+     "s12",
+     "s11",
+     "sgk"
+    ]
+   },
+   "sgm": {
+    "op": "select",
+    "in": [
+     "sgi",
+     "sgl",
+     "st"
+    ]
+   },
+   "sgn": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "s9m"
+    ]
+   },
+   "sgo": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "s9b"
+    ]
+   },
+   "sgp": {
+    "op": "and",
+    "in": [
+     "sgn",
+     "sgo"
+    ]
+   },
+   "sgq": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "s9b"
+    ]
+   },
+   "sgr": {
+    "op": "div",
+    "in": [
+     "sgq",
+     "s9s"
+    ]
+   },
+   "sgs": {
+    "op": "mix",
+    "in": [
+     "s11",
+     "s10",
+     "sgr"
+    ]
+   },
+   "sgt": {
+    "op": "select",
+    "in": [
+     "sgp",
+     "sgs",
+     "sgm"
+    ]
+   },
+   "sgu": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "s9w"
+    ]
+   },
+   "sgv": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "s9m"
+    ]
+   },
+   "sgw": {
+    "op": "and",
+    "in": [
+     "sgu",
+     "sgv"
+    ]
+   },
+   "sgx": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "s9m"
+    ]
+   },
+   "sgy": {
+    "op": "div",
+    "in": [
+     "sgx",
+     "sa2"
+    ]
+   },
+   "sgz": {
+    "op": "mix",
+    "in": [
+     "s10",
+     "sz",
+     "sgy"
+    ]
+   },
+   "sh0": {
+    "op": "select",
+    "in": [
+     "sgw",
+     "sgz",
+     "sgt"
+    ]
+   },
+   "sh1": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "sa6"
+    ]
+   },
+   "sh2": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "s9w"
+    ]
+   },
+   "sh3": {
+    "op": "and",
+    "in": [
+     "sh1",
+     "sh2"
+    ]
+   },
+   "sh4": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "s9w"
+    ]
+   },
+   "sh5": {
+    "op": "div",
+    "in": [
+     "sh4",
+     "sac"
+    ]
+   },
+   "sh6": {
+    "op": "mix",
+    "in": [
+     "sz",
+     "sy",
+     "sh5"
+    ]
+   },
+   "sh7": {
+    "op": "select",
+    "in": [
+     "sh3",
+     "sh6",
+     "sh0"
+    ]
+   },
+   "sh8": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "sag"
+    ]
+   },
+   "sh9": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "sa6"
+    ]
+   },
+   "sha": {
+    "op": "and",
+    "in": [
+     "sh8",
+     "sh9"
+    ]
+   },
+   "shb": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "sa6"
+    ]
+   },
+   "shc": {
+    "op": "div",
+    "in": [
+     "shb",
+     "sam"
+    ]
+   },
+   "shd": {
+    "op": "mix",
+    "in": [
+     "sy",
+     "sx",
+     "shc"
+    ]
+   },
+   "she": {
+    "op": "select",
+    "in": [
+     "sha",
+     "shd",
+     "sh7"
+    ]
+   },
+   "shf": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "saq"
+    ]
+   },
+   "shg": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "sag"
+    ]
+   },
+   "shh": {
+    "op": "and",
+    "in": [
+     "shf",
+     "shg"
+    ]
+   },
+   "shi": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "sag"
+    ]
+   },
+   "shj": {
+    "op": "div",
+    "in": [
+     "shi",
+     "saw"
+    ]
+   },
+   "shk": {
+    "op": "mix",
+    "in": [
+     "sx",
+     "sw",
+     "shj"
+    ]
+   },
+   "shl": {
+    "op": "select",
+    "in": [
+     "shh",
+     "shk",
+     "she"
+    ]
+   },
+   "shm": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "sb0"
+    ]
+   },
+   "shn": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "saq"
+    ]
+   },
+   "sho": {
+    "op": "and",
+    "in": [
+     "shm",
+     "shn"
+    ]
+   },
+   "shp": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "saq"
+    ]
+   },
+   "shq": {
+    "op": "div",
+    "in": [
+     "shp",
+     "sb6"
+    ]
+   },
+   "shr": {
+    "op": "mix",
+    "in": [
+     "sw",
+     "sv",
+     "shq"
+    ]
+   },
+   "shs": {
+    "op": "select",
+    "in": [
+     "sho",
+     "shr",
+     "shl"
+    ]
+   },
+   "sht": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "sba"
+    ]
+   },
+   "shu": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "sb0"
+    ]
+   },
+   "shv": {
+    "op": "and",
+    "in": [
+     "sht",
+     "shu"
+    ]
+   },
+   "shw": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "sb0"
+    ]
+   },
+   "shx": {
+    "op": "div",
+    "in": [
+     "shw",
+     "sbg"
+    ]
+   },
+   "shy": {
+    "op": "mix",
+    "in": [
+     "sv",
+     "su",
+     "shx"
+    ]
+   },
+   "shz": {
+    "op": "select",
+    "in": [
+     "shv",
+     "shy",
+     "shs"
+    ]
+   },
+   "si0": {
+    "op": "lte",
+    "in": [
+     "sgf",
+     "sbk"
+    ]
+   },
+   "si1": {
+    "op": "gte",
+    "in": [
+     "sgf",
+     "sba"
+    ]
+   },
+   "si2": {
+    "op": "and",
+    "in": [
+     "si0",
+     "si1"
+    ]
+   },
+   "si3": {
+    "op": "sub",
+    "in": [
+     "sgf",
+     "sba"
+    ]
+   },
+   "si4": {
+    "op": "div",
+    "in": [
+     "si3",
+     "sbq"
+    ]
+   },
+   "si5": {
+    "op": "mix",
+    "in": [
+     "su",
+     "st",
+     "si4"
+    ]
+   },
+   "si6": {
+    "op": "select",
+    "in": [
+     "si2",
+     "si5",
+     "shz"
+    ]
+   },
+   "si7": {
+    "op": "lt",
+    "in": [
+     "sgf",
+     "s9c"
+    ]
+   },
+   "si8": {
+    "op": "select",
+    "in": [
+     "si7",
+     "s12",
+     "si6"
+    ]
+   },
+   "si9": {
+    "op": "mul",
+    "in": [
+     "sa",
+     1.12
+    ]
+   },
+   "sia": {
+    "op": "mix",
+    "in": [
+     "si9",
+     "si8",
+     0.45
+    ]
+   },
+   "sib": {
+    "op": "mul",
+    "in": [
+     "si8",
+     1.08
+    ]
+   },
+   "sic": {
+    "op": "mix",
+    "in": [
+     "sia",
+     "sib",
+     "sd"
+    ]
+   },
+   "sid": {
+    "op": "min",
+    "in": [
+     "sge",
+     "s18"
+    ]
+   },
+   "sie": {
+    "op": "sub",
+    "in": [
+     "se3",
+     "sid"
+    ]
+   },
+   "sif": {
+    "op": "div",
+    "in": [
+     "sie",
+     60
+    ]
+   },
+   "sig": {
+    "op": "saturate",
+    "in": [
+     "sif"
+    ]
+   },
+   "sih": {
+    "op": "mul",
+    "in": [
+     "sc1",
+     "sig"
+    ]
+   },
+   "sii": {
+    "op": "mix",
+    "in": [
+     "sic",
+     "sc0",
+     "sih"
+    ]
+   },
+   "sij": {
+    "op": "mul",
+    "in": [
+     "sde",
+     "sga"
+    ]
+   },
+   "sik": {
+    "op": "mul",
+    "in": [
+     "sij",
+     "sii"
+    ]
+   },
+   "sil": {
+    "op": "add",
+    "in": [
+     "sdc",
+     "sik"
+    ]
+   },
+   "sim": {
+    "op": "oneMinus",
+    "in": [
+     "sga"
+    ]
+   },
+   "sin": {
+    "op": "mul",
+    "in": [
+     "sde",
+     "sim"
+    ]
+   },
+   "sio": {
+    "op": "mul",
+    "in": [
+     "s5",
+     "sin"
+    ]
+   },
+   "sip": {
+    "op": "add",
+    "in": [
+     "sio",
+     "sil"
+    ]
+   }
+  },
+  "stages": {
+   "fog": {
+    "colour": "sip"
    }
   }
  }

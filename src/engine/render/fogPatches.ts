@@ -30,9 +30,18 @@ export interface NodeFogColourRamp {
 /** A trusted callback or the engine's distance/height colour ramp; both replace classic fog in the same slot. */
 export type NodeFogPatch = ((out: Node<'vec4'>, context: NodeFogContext) => Node<'vec4'>) | { readonly colourRamp: NodeFogColourRamp };
 export interface FogPatchEntry { id: string; order: number; readonly node?: NodeFogPatch }
-/** A region's replacement (absent node: retain engine fog) and its borrowed origin. */
-export interface MaterialNodeFog { readonly id: string; readonly node?: NodeFogPatch; readonly origin: { readonly value: Vector3 } }
+/** A region's replacement (absent node: retain engine fog) and its borrowed origin (absent: the layer frame's, else none). */
+export interface MaterialNodeFog { readonly id: string; readonly node?: NodeFogPatch; readonly origin?: { readonly value: Vector3 } }
 const materialFog = new WeakMap<Material, MaterialNodeFog>();
+/**
+ * A material's own fog for its whole life (O11: a graph material that selects a shard's declared fog graph,
+ * `effectState.fog: '<id>'`). Set before the material's first build; a region binding still overrides it while bound
+ * and restores it on release. The program key carries the fog's id (one program per fog, not per material).
+ */
+export function ownMaterialNodeFog(material: Material, fog: MaterialNodeFog): void {
+  if (materialFog.has(material)) throw new Error(`Material already has a node fog (${fog.id})`);
+  materialFog.set(material, fog);
+}
 /** Scope a region's fog to its own materials; imports no TSL runtime and does not alter classic shaders. */
 export function bindMaterialNodeFog(material: Material, fog: MaterialNodeFog, scope: Scope): void {
   if (scope.disposed) throw new Error('Node fog needs a live scope');

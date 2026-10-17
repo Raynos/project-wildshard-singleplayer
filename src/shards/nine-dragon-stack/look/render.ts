@@ -27,6 +27,34 @@ import { meshesWithUniform } from '../runtime/looks/uniformScan';
 import { AO_TUNING } from '../data/aoLook';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
+import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { BANDS } from '../runtime/looks/look';
+
+/**
+ * The silk fog for the look graphs (O11): data/lookGraphs.json 'nine-silk-fog' is FOG_GLSL's silkFog as a `kind: 'fog'`
+ * graph, and the graph looks that select it (`effectState.fog`: the Well's mist sheets) are fogged by it in the engine's
+ * fog epilogue. Every eye write its params take the live shared rows the programs read (the band lists are the graph's
+ * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
+ */
+const SILK_FOG = 'nine-silk-fog';
+const silkOut = { v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
+function syncSilkFog(shared: Shared): void {
+  if (!hasLentLook(SILK_FOG)) return;
+  const u = shared.u, o = silkOut;
+  setLentParam(SILK_FOG, 'rootAt', u.uRootAt.value.toArray(o.v3));
+  setLentParam(SILK_FOG, 'datum', Y0);
+  setLentParam(SILK_FOG, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / (BANDS[0]?.d ?? 1));
+  setLentParam(SILK_FOG, 'fogBase', u.uFogBase.value);
+  setLentParam(SILK_FOG, 'fogStart', u.uFogStart.value);
+  setLentParam(SILK_FOG, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
+  setLentParam(SILK_FOG, 'shaft', u.uShaft.value.toArray(o.shaft));
+  setLentParam(SILK_FOG, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
+  setLentParam(SILK_FOG, 'shaftLit', u.uShaftLit.value);
+  setLentParam(SILK_FOG, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
+  setLentParam(SILK_FOG, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
+  setLentParam(SILK_FOG, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
+  setLentParam(SILK_FOG, 'puff', u.uPuff.value.toArray(o.puff));
+}
 
 export interface NdRenderHandle {
   reflect: RowRenderPassView | null;
@@ -142,6 +170,7 @@ export function shardRender(): LookStrategy {
   const onEye = (root: Object3D, shared: Shared): void => {
     if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
     skyMesh?.position.copy(shared.u.uCam.value);
+    syncSilkFog(shared);
   };
   const glow = glowUniforms();
   const grade = gradeUniforms();

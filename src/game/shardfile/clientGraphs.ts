@@ -15,6 +15,9 @@
  *   vertex-coloured PBR family, an unlit one → the plain emissive family) instead of compiling. So does every graph while the
  *   default-off Debug row (Look ▸ "Graph materials") is off: the first graph-compiled look waits for a physical-iPhone
  *   reading (RENDERING.md; sf59-tsl-spike.md §5's cost flag).
+ * - **Declared fog (O11):** a `kind: 'fog'` entry is the shard's own fog, compiled once (an inert carrier material keeps
+ *   its `setParam` / `setTexture` by catalogue id and its bound params on the feeds); a material graph whose
+ *   `effectState.fog` names it is fogged by it instead of the engine fog (the engine epilogue runs the fog graph's stage).
  * - **Outlines:** a compiled graph that declares `stages.outline` also has its hull material (`outline(material)`); the
  *   views attach it to every mesh they bind that material to as its second draw (`graphOutlineHook`, the engine's
  *   `attachOutline`: a child mesh over the same buffers, an instanced mesh's own matrices). A fallback preset has none, so a
@@ -186,6 +189,10 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
   const outlines = new WeakMap<Material, GraphOutline>();
   const setters = new WeakMap<Material, (name: string, value: GraphLiteral) => void>();
   const lenders = new WeakMap<Material, (name: string, texture: Texture) => void>();
+  type NodeFogPatch = NonNullable<ReturnType<GraphCompiler['compileGraph']>['fog']>;
+  /** the shard's declared fogs (O11): each `kind: 'fog'` entry compiles once (its carrier, by entry) and lends its patch */
+  const fogCarriers = new WeakMap<GraphMaterialEntry, Material>();
+  const fogPatches = new WeakMap<Material, NodeFogPatch>();
 
   const looks = presetLooks(source.look.familyLooks);
   /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
@@ -210,6 +217,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     return material;
   };
   const compile = (entry: GraphMaterialEntry): Material => {
+    const carried = fogCarriers.get(entry); if (carried !== undefined) return carried;
     const resolved = resolve(entry), graph = resolved.graph, budget = resolved.budget;
     // a preset reference while the row is off draws its own family: the preset is held to parity with it
     if (resolved.family !== null && options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(resolved.family); }
@@ -231,7 +239,8 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
       readout.fallback++; readout.reasons.push('graph materials row off');
       return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
     }
-    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures });
+    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures, fog: fogFor });
+    if (compiled.fog !== null) { fogPatches.set(compiled.material, compiled.fog); fogCarriers.set(entry, compiled.material); }
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     setters.set(compiled.material, compiled.setParam);
     lenders.set(compiled.material, compiled.setTexture);
@@ -241,6 +250,13 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     readout.compiled++;
     return compiled.material;
   };
+  function fogFor(id: string): NodeFogPatch {
+    const entry: unknown = source.look.materials[id];
+    if (!isGraphEntry(entry)) throw new Error(`material graph: fog ${id} is not a graph of this look catalogue`);
+    const patch = fogPatches.get(compile(entry));
+    if (patch === undefined) throw new Error(`material graph: ${id} is not a compiled fog graph`);
+    return patch;
+  }
   return {
     setParam: (material, name, value) => {
       const set = setters.get(graphMeshMapBase(material));

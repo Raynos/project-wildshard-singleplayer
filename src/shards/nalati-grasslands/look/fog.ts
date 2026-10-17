@@ -20,6 +20,8 @@ import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { FOG_GLSL } from '../runtime/looks/fogGlsl';
+import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { hasLentLook, lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 
 /** the GLSL below is trusted custom code (runtime/looks/fogGlsl.ts); `@{name}` splices the fragments this module passes */
 const FOG_GLSL_FAMILY = new ShaderFamily(FOG_GLSL, {});
@@ -49,4 +51,31 @@ export function installLookV2Fog(): void {
   Object.assign(paintedAir, { fogLutV2: { value: fogLut }, fogV2, fogEdgeV2 }, tintUniforms);
   THREE.ShaderChunk.fog_pars_fragment = THREE.ShaderChunk.fog_pars_fragment.replace('#endif', FOG_GLSL_FAMILY.glsl(FOG_GLSL.fog_pars_tail, { V2_TINT_GLSL }));
   THREE.ShaderChunk.fog_fragment = FOG_GLSL_FAMILY.glsl(FOG_GLSL.fog_fragment);
+}
+
+/**
+ * The same painted fog for the look graphs (O11): data/lookGraphs.json 'nalati-fog' is this module's fog as a `kind: 'fog'`
+ * graph, and every graph look that selects it (`effectState.fog`: the grass, the water, the puddles) is fogged by it in the
+ * engine's fog epilogue instead of the engine fog. Once a frame, after `updateTint`, its params take the live values the
+ * chunk reads (the air, the tint, fogV2 / fogEdgeV2) and its LUT is lent once. Uniform writes only: no program changes.
+ */
+export const PAINTED_FOG = 'nalati-fog';
+const air = [0, 0, 0, 0], v2 = [0, 0, 0, 0], edge = [0, 0, 0, 0], key = [0, 0, 0], light = [0, 0, 0], veil = [0, 0, 0];
+/** the compiled fog the LUT was last lent to (a re-entered shard compiles a fresh one) */
+let lutLent: THREE.Material | null = null;
+export function syncPaintedFog(): void {
+  if (!hasLentLook(PAINTED_FOG)) return;
+  const carrier = lentLook(PAINTED_FOG);
+  if (lutLent !== carrier) { setLentTexture(PAINTED_FOG, 'lut', fogLut); lutLent = carrier; }
+  const f = fogUniforms, t = tintUniforms;
+  air[0] = f.fogDistDensity.value; air[1] = f.fogHeightFalloff.value; air[2] = f.fogHeight.value; air[3] = f.fogHeightDensity.value;
+  setLentParam(PAINTED_FOG, 'air', air);
+  setLentParam(PAINTED_FOG, 'fogV2', fogV2.value.toArray(v2));
+  setLentParam(PAINTED_FOG, 'fogEdge', fogEdgeV2.value.toArray(edge));
+  setLentParam(PAINTED_FOG, 'keyTint', t.uV2KeyTint.value.toArray(key));
+  setLentParam(PAINTED_FOG, 'light', t.uV2Light.value.toArray(light));
+  setLentParam(PAINTED_FOG, 'veilColour', t.uV2VeilCol.value.toArray(veil));
+  setLentParam(PAINTED_FOG, 'moon', t.uV2Moon.value);
+  setLentParam(PAINTED_FOG, 'veil', t.uV2Veil.value);
+  setLentParam(PAINTED_FOG, 'flash', t.uV2Flash.value);
 }

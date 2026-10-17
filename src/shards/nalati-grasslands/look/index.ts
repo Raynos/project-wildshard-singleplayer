@@ -21,7 +21,7 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../world/installWeather';
 import { SkyDomeV2 } from './sky';
-import { fogLut } from './fog';
+import { fogLut, syncPaintedFog } from './fog';
 import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
@@ -73,6 +73,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
     const look = weather.look, w = weather.weather;
     updateTint(look, w);
+    syncPaintedFog(); // the look graphs' painted fog (data/lookGraphs.json 'nalati-fog') takes the same air and tint
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     u.uSunNow.value.copy(look.sunDir);

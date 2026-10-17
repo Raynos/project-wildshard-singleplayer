@@ -12,7 +12,8 @@ const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }):
   if (!isJsonData(dataset.value)) { addIssue({ message: 'material graph is plain JSON data' }); return NEVER; }
   const checked = validateGraph(dataset.value, { trustedBudget: true });
   if (!checked.ok) { addIssue({ message: checked.errors.join('; ') }); return NEVER; }
-  if (checked.graph.kind !== 'material') { addIssue({ message: 'material slot requires a material graph, not a post pass' }); return NEVER; }
+  // a catalogue slot holds a material or the shard's declared fog (O11: a material selects it by id), never a post pass
+  if (checked.graph.kind === 'post') { addIssue({ message: 'material slot requires a material or fog graph, not a post pass' }); return NEVER; }
   return checked.graph;
 }));
 const graphMaterial = v.strictObject({ family: v.literal('graph'), graph });
@@ -151,6 +152,11 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
     const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
     errors.push(...bindingTypeErrors(materialId, checked.graph, dayChannels));
+    const fog = checked.graph.effectState?.fog;
+    if (typeof fog === 'string') {
+      const target = source.look.materials[fog];
+      if (target?.family !== 'graph' || !('graph' in target) || target.graph.kind !== 'fog') errors.push(`material ${materialId}: effectState.fog ${fog} names no inline fog graph of this catalogue`);
+    }
   }
   return errors;
 }

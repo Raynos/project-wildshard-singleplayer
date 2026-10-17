@@ -54,12 +54,16 @@ import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
 import { instanceTransformNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
-import { fogPatches, materialNodeFogOf } from '../fogPatches';
+import { fogPatches, materialNodeFogOf, ownMaterialNodeFog, type NodeFogPatch } from '../fogPatches';
 import { fogUniforms } from '../../world/Atmosphere';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
 } from '@wildshard/format/materialGraph';
+
+/** each compiled fog graph's program-key id: one compile, one key (a re-entered shard's fresh params never share a program) */
+const fogKeys = new WeakMap<NodeFogPatch, string>();
+let fogSerial = 0;
 
 /** a select side costing at most this many estimated instructions is evaluated unconditionally (branch-free) */
 export const BRANCH_LIGHT_COST = 16;
@@ -84,6 +88,11 @@ export interface CompileGraphOptions extends GraphValidationOptions {
   readonly depth?: { readonly texture: THREE.Texture; readonly near: number; readonly far: number };
   /** a post graph's scene normal (SF59 (2b)): the normal pre-pass target, view-space normals packed as `n × 0.5 + 0.5` */
   readonly normal?: THREE.Texture;
+  /**
+   * resolves a material's `effectState.fog` catalogue id to that compiled `kind: 'fog'` graph (O11): its `fog` patch
+   * then replaces the engine fog in this material's epilogue (and its outline's); required when the graph selects one
+   */
+  readonly fog?: (id: string) => NodeFogPatch;
 }
 
 /** a compiled graph */
@@ -103,6 +112,11 @@ export interface CompiledGraph {
   readonly selects: { readonly light: number; readonly branch: number };
   /** the outline stage's second draw (null without one): attach it with `attachOutline` */
   readonly outline: NodeMaterial | null;
+  /**
+   * a fog graph's epilogue patch (null for any other kind): built into each selecting material's program, sharing this
+   * graph's params (its `material` is an inert carrier that keeps `setParam` / `setTexture` by catalogue id; never drawn)
+   */
+  readonly fog: NodeFogPatch | null;
   /** move the scene camera's clip range `sceneDepth` linearises with (a post graph compiled with `depth`; else a no-op) */
   readonly setDepthRange: (near: number, far: number) => void;
   /** swap a post graph's scene inputs to other textures (the composer's input buffer each frame): no program change */
@@ -523,6 +537,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st.points?.size);
   for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'normal'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
+  countRef(st.fog?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
   /** the instructions only this side of a select would run */
   const ownCost = (r: GraphRef | undefined, seen = new Set<string>()): number => {
@@ -572,6 +587,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   let irradianceIn: Node<'vec3'> | null = null;
   let environmentIn: { readonly radiance: Node<'vec3'>; readonly irradiance: Node<'vec3'> } | null = null;
   let litIn: Node<'vec3'> | null = null;
+  // a fog graph's inputs, live only while its stage builds inside a selecting material's epilogue
+  let fogIn: { readonly colour: Node<'vec3'>; readonly engine: Node<'vec3'>; readonly position: Node<'vec3'>; readonly camera: Node<'vec3'>; readonly scale: Node<'float'> } | null = null;
   const perLight = lightDependents(ir);
   let lightMemo = new Map<string, Val>();
 
@@ -619,10 +636,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
       case 'instanceTransform': return { t: 'vec4', n: instanceTransformNode(new ConvertNode<'vec4'>(one().n, 'vec4')) };
       case 'objectOrigin': return { t: 'vec3', n: objectOriginNode() };
-      case 'positionWorld': return { t: 'vec3', n: positionWorld };
+      case 'positionWorld': return { t: 'vec3', n: fogIn?.position ?? positionWorld };
+      case 'fogInput': case 'engineFogged': case 'fogScale': {
+        if (fogIn === null) throw new Error(`material graph: ${n.op} outside a fog stage`);
+        return n.op === 'fogScale' ? { t: 'float', n: fogIn.scale } : { t: 'vec3', n: n.op === 'fogInput' ? fogIn.colour : fogIn.engine };
+      }
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
-      case 'cameraPosition': return { t: 'vec3', n: frameCameraPosition() };
+      case 'cameraPosition': return { t: 'vec3', n: fogIn?.camera ?? frameCameraPosition() };
       case 'time': return { t: 'float', n: time };
       case 'fogZenithColour': return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
         const bound = materialNodeFogOf(builder.material), patch = bound === undefined ? fogPatches().at(-1)?.node : bound.node;
@@ -996,7 +1017,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     if (ir.flipBackfaceNormals === false) m.normalNode = new UnflippedNormalNode();
     if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading ?? ir.model === 'toon';
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
-    m.fog = ir.effectState?.fog ?? true;
+    m.fog = ir.effectState?.fog !== false;
     if (fogScale !== undefined && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphFogScale = fogScale;
     const effect = ir.effectState;
     if (effect?.blend !== undefined) {
@@ -1032,18 +1053,39 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     m.name = 'graph:outline';
     return m;
   };
-  const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
+  /**
+   * a fog graph's patch (O11): each selecting material's epilogue calls it with its own colour; the stage builds afresh for
+   * that program (its memo cleared), over this graph's one set of params, in the fog's frame (`positionWorld`, `cameraPosition`)
+   */
+  const fogStage = st.fog;
+  const fog: NodeFogPatch | null = ir.kind !== 'fog' || fogStage === undefined ? null : (outColour, context) => {
+    fogIn = { colour: outColour.xyz, engine: context.engine.xyz, position: context.position, camera: context.camera, scale: context.scale ?? float(1) };
+    root.memo.clear();
+    try {
+      return vec4(new ConvertNode<'vec3'>(widen(ref(fogStage.colour, root), 'vec3'), 'vec3'), outColour.w);
+    } finally { fogIn = null; root.memo.clear(); }
+  };
+  if (fog !== null) fogKeys.set(fog, `${++fogSerial}`);
+  const fogCarrier = (): NodeMaterial => { const m = new MeshBasicNodeMaterial(); m.visible = false; m.userData['graphFog'] = true; return m; };
+  const material = ir.kind === 'post' ? postMaterial() : ir.kind === 'fog' ? fogCarrier() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
   if (Object.keys(attributeDefaults).length > 0) material.userData['graphAttributeDefaults'] = attributeDefaults;
   if (meshMapUsed) material.userData['graphMeshMap'] = true;
   // A boolean survives Material.clone(); the handler caches each clone's own depth variant.
   if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
-  const outline = ir.kind === 'post' ? null : outlineMaterial();
+  const outline = ir.kind !== 'material' ? null : outlineMaterial();
   if (outline !== null && Object.keys(attributeDefaults).length > 0) outline.userData['graphAttributeDefaults'] = attributeDefaults;
+  // a selected shard fog (O11) replaces the engine fog for this material and its hull
+  const selected = ir.effectState?.fog;
+  if (typeof selected === 'string') {
+    if (opts.fog === undefined) throw new Error(`material graph: fog ${selected} needs a fog resolver`);
+    const node = opts.fog(selected);
+    for (const m of outline === null ? [material] : [material, outline]) ownMaterialNodeFog(m, { id: `graph-fog:${selected}:${fogKeys.get(node) ?? 'lent'}`, node });
+  }
 
   return {
-    material, cost: checked.cost, bindings, selects, outline,
+    material, cost: checked.cost, bindings, selects, outline, fog,
     setDepthRange(near, far) { depthNear.value = near; depthFar.value = far; },
     setTargets(targets) {
       for (const slot of ['scene', 'depth', 'normal'] as const) { const next = targets[slot]; if (next !== undefined) for (const retarget of taps[slot]) retarget(next); }

@@ -1048,6 +1048,9 @@
     "max": 1
    }
   },
+  "effectState": {
+   "fog": "nalati-fog"
+  },
   "nodes": {
    "w0": {
     "op": "attribute",
@@ -2430,6 +2433,9 @@
    "instructions": 3000
   },
   "kind": "material",
+  "effectState": {
+   "fog": "nalati-fog"
+  },
   "nodes": {
    "n0": {
     "op": "attribute",
@@ -7267,6 +7273,9 @@
    "instructions": 3000
   },
   "kind": "material",
+  "effectState": {
+   "fog": "nalati-fog"
+  },
   "nodes": {
    "n0": {
     "op": "attribute",
@@ -10717,6 +10726,9 @@
    "instructions": 3000
   },
   "kind": "material",
+  "effectState": {
+   "fog": "nalati-fog"
+  },
   "nodes": {
    "n0": {
     "op": "param",
@@ -18404,7 +18416,8 @@
    "depthBias": {
     "factor": -2,
     "units": -2
-   }
+   },
+   "fog": "nalati-fog"
   },
   "params": {
    "puddle": {
@@ -19041,6 +19054,760 @@
     "colour": "p81",
     "alpha": "p85",
     "discard": "p86"
+   }
+  }
+ },
+ "nalati-fog": {
+  "version": 1,
+  "kind": "fog",
+  "params": {
+   "fogV2": {
+    "type": "vec4",
+    "value": [
+     0.0032,
+     30,
+     -10,
+     0.002
+    ]
+   },
+   "fogEdge": {
+    "type": "vec4",
+    "value": [
+     0.95,
+     251,
+     270,
+     20
+    ]
+   },
+   "air": {
+    "type": "vec4",
+    "value": [
+     0.002,
+     0.12,
+     -14,
+     0.005
+    ]
+   },
+   "keyTint": {
+    "type": "vec3",
+    "value": [
+     1,
+     1,
+     1
+    ],
+    "min": 0,
+    "max": 4
+   },
+   "moon": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "light": {
+    "type": "vec3",
+    "value": [
+     1,
+     1,
+     1
+    ],
+    "min": 0,
+    "max": 8
+   },
+   "veil": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "veilColour": {
+    "type": "vec3",
+    "value": [
+     0.2,
+     0.21,
+     0.26
+    ],
+    "min": 0,
+    "max": 8
+   },
+   "flash": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 16
+   },
+   "lut": {
+    "type": "texture",
+    "role": "lent",
+    "value": "nalati-fog-lut"
+   }
+  },
+  "nodes": {
+   "f0": {
+    "op": "positionWorld"
+   },
+   "f1": {
+    "op": "cameraPosition"
+   },
+   "f2": {
+    "op": "fogInput"
+   },
+   "f3": {
+    "op": "param",
+    "param": "fogV2"
+   },
+   "f4": {
+    "op": "param",
+    "param": "fogEdge"
+   },
+   "f5": {
+    "op": "param",
+    "param": "air"
+   },
+   "f6": {
+    "op": "sub",
+    "in": [
+     "f0",
+     "f1"
+    ]
+   },
+   "f7": {
+    "op": "length",
+    "in": [
+     "f6"
+    ]
+   },
+   "f8": {
+    "op": "max",
+    "in": [
+     "f7",
+     0.001
+    ]
+   },
+   "f9": {
+    "op": "div",
+    "in": [
+     "f6",
+     "f8"
+    ]
+   },
+   "f10": {
+    "op": "swizzle",
+    "in": [
+     "f0"
+    ],
+    "mask": "y"
+   },
+   "f11": {
+    "op": "swizzle",
+    "in": [
+     "f1"
+    ],
+    "mask": "y"
+   },
+   "f12": {
+    "op": "swizzle",
+    "in": [
+     "f3"
+    ],
+    "mask": "x"
+   },
+   "f13": {
+    "op": "swizzle",
+    "in": [
+     "f5"
+    ],
+    "mask": "x"
+   },
+   "f14": {
+    "op": "swizzle",
+    "in": [
+     "f3"
+    ],
+    "mask": "w"
+   },
+   "f15": {
+    "op": "sub",
+    "in": [
+     "f13",
+     "f14"
+    ]
+   },
+   "f16": {
+    "op": "max",
+    "in": [
+     "f15",
+     0
+    ]
+   },
+   "f17": {
+    "op": "add",
+    "in": [
+     "f12",
+     "f16"
+    ]
+   },
+   "f18": {
+    "op": "swizzle",
+    "in": [
+     "f3"
+    ],
+    "mask": "y"
+   },
+   "f19": {
+    "op": "sub",
+    "in": [
+     "f7",
+     "f18"
+    ]
+   },
+   "f20": {
+    "op": "max",
+    "in": [
+     "f19",
+     0
+    ]
+   },
+   "f21": {
+    "op": "mul",
+    "in": [
+     "f20",
+     "f17"
+    ]
+   },
+   "f22": {
+    "op": "add",
+    "in": [
+     "f10",
+     "f11"
+    ]
+   },
+   "f23": {
+    "op": "mul",
+    "in": [
+     "f22",
+     0.5
+    ]
+   },
+   "f24": {
+    "op": "swizzle",
+    "in": [
+     "f3"
+    ],
+    "mask": "z"
+   },
+   "f25": {
+    "op": "sub",
+    "in": [
+     "f23",
+     "f24"
+    ]
+   },
+   "f26": {
+    "op": "max",
+    "in": [
+     "f25",
+     0
+    ]
+   },
+   "f27": {
+    "op": "mul",
+    "in": [
+     "f26",
+     -0.035
+    ]
+   },
+   "f28": {
+    "op": "exp",
+    "in": [
+     "f27"
+    ]
+   },
+   "f29": {
+    "op": "mul",
+    "in": [
+     "f21",
+     "f28"
+    ]
+   },
+   "f30": {
+    "op": "swizzle",
+    "in": [
+     "f5"
+    ],
+    "mask": "y"
+   },
+   "f31": {
+    "op": "sub",
+    "in": [
+     "f10",
+     "f11"
+    ]
+   },
+   "f32": {
+    "op": "swizzle",
+    "in": [
+     "f5"
+    ],
+    "mask": "z"
+   },
+   "f33": {
+    "op": "sub",
+    "in": [
+     "f11",
+     "f32"
+    ]
+   },
+   "f34": {
+    "op": "mul",
+    "in": [
+     "f30",
+     "f33"
+    ]
+   },
+   "f35": {
+    "op": "negate",
+    "in": [
+     "f34"
+    ]
+   },
+   "f36": {
+    "op": "exp",
+    "in": [
+     "f35"
+    ]
+   },
+   "f37": {
+    "op": "mul",
+    "in": [
+     "f30",
+     "f31"
+    ]
+   },
+   "f38": {
+    "op": "abs",
+    "in": [
+     "f37"
+    ]
+   },
+   "f39": {
+    "op": "gt",
+    "in": [
+     "f38",
+     0.001
+    ]
+   },
+   "f40": {
+    "op": "select",
+    "in": [
+     "f39",
+     "f37",
+     0.001
+    ]
+   },
+   "f41": {
+    "op": "abs",
+    "in": [
+     "f37"
+    ]
+   },
+   "f42": {
+    "op": "gt",
+    "in": [
+     "f41",
+     0.001
+    ]
+   },
+   "f43": {
+    "op": "negate",
+    "in": [
+     "f40"
+    ]
+   },
+   "f44": {
+    "op": "exp",
+    "in": [
+     "f43"
+    ]
+   },
+   "f45": {
+    "op": "oneMinus",
+    "in": [
+     "f44"
+    ]
+   },
+   "f46": {
+    "op": "div",
+    "in": [
+     "f45",
+     "f40"
+    ]
+   },
+   "f47": {
+    "op": "select",
+    "in": [
+     "f42",
+     "f46",
+     1
+    ]
+   },
+   "f48": {
+    "op": "swizzle",
+    "in": [
+     "f5"
+    ],
+    "mask": "w"
+   },
+   "f49": {
+    "op": "mul",
+    "in": [
+     "f48",
+     "f36"
+    ]
+   },
+   "f50": {
+    "op": "mul",
+    "in": [
+     "f49",
+     "f47"
+    ]
+   },
+   "f51": {
+    "op": "mul",
+    "in": [
+     "f50",
+     "f7"
+    ]
+   },
+   "f52": {
+    "op": "add",
+    "in": [
+     "f29",
+     "f51"
+    ]
+   },
+   "f53": {
+    "op": "negate",
+    "in": [
+     "f52"
+    ]
+   },
+   "f54": {
+    "op": "exp",
+    "in": [
+     "f53"
+    ]
+   },
+   "f55": {
+    "op": "oneMinus",
+    "in": [
+     "f54"
+    ]
+   },
+   "f56": {
+    "op": "saturate",
+    "in": [
+     "f55"
+    ]
+   },
+   "f57": {
+    "op": "swizzle",
+    "in": [
+     "f0"
+    ],
+    "mask": "x"
+   },
+   "f58": {
+    "op": "abs",
+    "in": [
+     "f57"
+    ]
+   },
+   "f59": {
+    "op": "swizzle",
+    "in": [
+     "f0"
+    ],
+    "mask": "z"
+   },
+   "f60": {
+    "op": "abs",
+    "in": [
+     "f59"
+    ]
+   },
+   "f61": {
+    "op": "max",
+    "in": [
+     "f58",
+     "f60"
+    ]
+   },
+   "f62": {
+    "op": "swizzle",
+    "in": [
+     "f4"
+    ],
+    "mask": "w"
+   },
+   "f63": {
+    "op": "swizzle",
+    "in": [
+     "f4"
+    ],
+    "mask": "x"
+   },
+   "f64": {
+    "op": "swizzle",
+    "in": [
+     "f4"
+    ],
+    "mask": "y"
+   },
+   "f65": {
+    "op": "swizzle",
+    "in": [
+     "f4"
+    ],
+    "mask": "z"
+   },
+   "f66": {
+    "op": "smoothstep",
+    "in": [
+     "f64",
+     "f65",
+     "f61"
+    ]
+   },
+   "f67": {
+    "op": "mul",
+    "in": [
+     "f63",
+     "f66"
+    ]
+   },
+   "f68": {
+    "op": "mul",
+    "in": [
+     "f62",
+     3
+    ]
+   },
+   "f69": {
+    "op": "smoothstep",
+    "in": [
+     "f62",
+     "f68",
+     "f7"
+    ]
+   },
+   "f70": {
+    "op": "mul",
+    "in": [
+     "f67",
+     "f69"
+    ]
+   },
+   "f71": {
+    "op": "oneMinus",
+    "in": [
+     "f56"
+    ]
+   },
+   "f72": {
+    "op": "oneMinus",
+    "in": [
+     "f70"
+    ]
+   },
+   "f73": {
+    "op": "mul",
+    "in": [
+     "f71",
+     "f72"
+    ]
+   },
+   "f74": {
+    "op": "oneMinus",
+    "in": [
+     "f73"
+    ]
+   },
+   "f75": {
+    "op": "swizzle",
+    "in": [
+     "f9"
+    ],
+    "mask": "x"
+   },
+   "f76": {
+    "op": "negate",
+    "in": [
+     "f75"
+    ]
+   },
+   "f77": {
+    "op": "swizzle",
+    "in": [
+     "f9"
+    ],
+    "mask": "z"
+   },
+   "f78": {
+    "op": "atan",
+    "in": [
+     "f76",
+     "f77"
+    ]
+   },
+   "f79": {
+    "op": "mul",
+    "in": [
+     "f78",
+     0.15915494
+    ]
+   },
+   "f80": {
+    "op": "combine",
+    "in": [
+     "f79",
+     0.5
+    ]
+   },
+   "f81": {
+    "op": "texture",
+    "in": [
+     "f80"
+    ],
+    "param": "lut"
+   },
+   "f82": {
+    "op": "swizzle",
+    "in": [
+     "f81"
+    ],
+    "mask": "xyz"
+   },
+   "f83": {
+    "op": "param",
+    "param": "keyTint"
+   },
+   "f84": {
+    "op": "mul",
+    "in": [
+     "f82",
+     "f83"
+    ]
+   },
+   "f85": {
+    "op": "dot",
+    "in": [
+     "f84",
+     [
+      0.2126,
+      0.7152,
+      0.0722
+     ]
+    ]
+   },
+   "f86": {
+    "op": "mul",
+    "in": [
+     "f85",
+     [
+      0.5,
+      0.62,
+      1
+     ]
+    ]
+   },
+   "f87": {
+    "op": "param",
+    "param": "moon"
+   },
+   "f88": {
+    "op": "mul",
+    "in": [
+     "f87",
+     0.8
+    ]
+   },
+   "f89": {
+    "op": "mix",
+    "in": [
+     "f84",
+     "f86",
+     "f88"
+    ]
+   },
+   "f90": {
+    "op": "param",
+    "param": "light"
+   },
+   "f91": {
+    "op": "mul",
+    "in": [
+     "f89",
+     "f90"
+    ]
+   },
+   "f92": {
+    "op": "param",
+    "param": "veilColour"
+   },
+   "f93": {
+    "op": "param",
+    "param": "veil"
+   },
+   "f94": {
+    "op": "mix",
+    "in": [
+     "f91",
+     "f92",
+     "f93"
+    ]
+   },
+   "f95": {
+    "op": "param",
+    "param": "flash"
+   },
+   "f96": {
+    "op": "mul",
+    "in": [
+     "f95",
+     "f85"
+    ]
+   },
+   "f97": {
+    "op": "mul",
+    "in": [
+     "f96",
+     [
+      0.8,
+      0.85,
+      1
+     ]
+    ]
+   },
+   "f98": {
+    "op": "add",
+    "in": [
+     "f94",
+     "f97"
+    ]
+   },
+   "f99": {
+    "op": "mix",
+    "in": [
+     "f2",
+     "f98",
+     "f74"
+    ]
+   }
+  },
+  "stages": {
+   "fog": {
+    "colour": "f99"
    }
   }
  }
