@@ -106,8 +106,8 @@ const taskClock = args.includes('--task-clock');
 if (taskClock && gridScenario === 'baseline') throw new Error('--task-clock attributes grid drives only');
 const TASK_CLOCK = taskClock ? TASK_CLOCK_SCRIPT : '';
 if (glTime && gridScenario === 'baseline') throw new Error('--gl-time attributes grid drive long frames only');
-const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'getBufferSubData', 'getError', 'getParameter', 'checkFramebufferStatus', 'finish', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
-const GL_TIME_SCRIPT = !glTime ? '' : `${PROGRAM_NAMES_SCRIPT}(()=>{const W=window;if(typeof W.__frameFloorGlTake==='function')return;const acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const up=/^tex(Sub)?Image[23]D$/.test(n);const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);if(d>=3&&/^getProgram/.test(n)){const k='slow '+n+' '+W.__frameFloorProgramName(a[0]),g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}if(up&&d>=3){const s=a[a.length-1],x=s&&typeof s==='object'?(s.naturalWidth||s.width||s.byteLength||0)+'x'+(s.naturalHeight||s.height||0):'null',k='slow '+n+' '+(s&&s.constructor?s.constructor.name:'?')+' '+x,g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}}};w.__ffTimed=true;p[n]=w;}}})();`;
+const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getUniformBlockIndex', 'uniformBlockBinding', 'bindBufferBase', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'getBufferSubData', 'getError', 'getParameter', 'checkFramebufferStatus', 'finish', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
+const GL_TIME_SCRIPT = !glTime ? '' : `${PROGRAM_NAMES_SCRIPT}(()=>{const W=window;if(typeof W.__frameFloorGlTake==='function')return;const acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const up=/^tex(Sub)?Image[23]D$/.test(n);const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);if(d>=3&&/^(?:getProgram|getUniformBlockIndex)/.test(n)){const k='slow '+n+' '+W.__frameFloorProgramName(a[0]),g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}if(up&&d>=3){const s=a[a.length-1],x=s&&typeof s==='object'?(s.naturalWidth||s.width||s.byteLength||0)+'x'+(s.naturalHeight||s.height||0):'null',k='slow '+n+' '+(s&&s.constructor?s.constructor.name:'?')+' '+x,g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}}};w.__ffTimed=true;p[n]=w;}}})();`;
 // op-hitch47: opt-in desktop Chrome trace of each grid drive (`--gpu-trace=<existing scratch dir>`): the GPU process's
 // own events (command buffer, shader compile / link, texture uploads, swap), so a long frame with an idle main thread says
 // what the GPU process was doing. Writes <plan>-<time>.json (Chrome trace) and <plan>-<time>.frames.json (the drive's long
@@ -468,7 +468,13 @@ async function measureShard(driver, shard, deadline) {
         const profileStart = driver.profile ? await driver.profile.start() : null;
         const traceAnchor = driver.trace ? await driver.trace.start(plan.name) : null;
         const stopScriptProfile = driver.scriptProfile ? await driver.scriptProfile.start() : undefined;
-        const stopTimeline = driver.timeline ? await driver.timeline.start() : undefined;
+        // Some Simulator Inspector targets time out on Timeline.start. Keep the
+        // independent GL/task clocks, and mark the missing partition explicitly.
+        let stopTimeline, timelineFailure;
+        if (driver.timeline) {
+          try { stopTimeline = await driver.timeline.start(); }
+          catch (error) { timelineFailure = { valid: false, invalid: [errorText(error)], frames: [] }; }
+        }
         await driver.evaluate('(window.__frameFloorDriveDone = false, true)');
         if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
@@ -500,14 +506,14 @@ async function measureShard(driver, shard, deadline) {
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         scenarios.push(witness);
         // --gl-time on Safari: WebKit's own main-thread split of each long frame (idle / rendering update after rAF / tasks)
-        const travelTimeline = timeline === undefined ? undefined : timelineLongFrames(timeline, motion.longFrames.at);
+        const travelTimeline = timeline === undefined ? timelineFailure : timelineLongFrames(timeline, motion.longFrames.at);
         rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(travelTimeline === undefined ? {} : { webkitTimeline: travelTimeline }) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
         const { glFrames, ...wholeValue } = whole.value;
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }),
           ...(glTime && frameTimeline && glFrames !== undefined ? { glFrames } : {}),
-          ...(timeline === undefined ? {} : { webkitTimeline: timelineLongFrames(timeline, whole.value.longFrames.at) }),
+          ...(timeline === undefined ? (timelineFailure === undefined ? {} : { webkitTimeline: timelineFailure }) : { webkitTimeline: timelineLongFrames(timeline, whole.value.longFrames.at) }),
           ...(glTime ? { entryPreparation: await driver.evaluate('window.__wildshard.world.game.entryPreparation') } : {}),
           ...(taskClock ? { tasks: await driver.evaluate('window.__frameFloorTaskTake?.() ?? []') } : {}) };
         rows.push(Object.assign(driveRow, assess(driveRow, surface)));

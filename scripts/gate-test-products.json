@@ -1,4 +1,5 @@
 {
+  "test/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": ["far-reach", "sunscar-dunes"],
   "test/elite-encounters.test.ts": ["pine-hollow", "nalati-grasslands"],
   "test/ground-borrowed-body.test.ts": ["driftwood-isle", "pine-hollow"],

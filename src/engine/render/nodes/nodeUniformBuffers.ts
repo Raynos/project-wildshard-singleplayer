@@ -122,6 +122,14 @@ export class NodeUniformBuffers {
     this.top = typeof max === 'number' && max > 0 ? max - 1 : 23;
   }
 
+  /** Resolve linked block indices during a paced warm-up. No buffer, value,
+   * binding point or live draw state is created or changed. */
+  prepare(program: WebGLProgram, groups: readonly BlockGroup[]): void {
+    let known = this.programs.get(program);
+    if (known === undefined) { known = { index: new Map(), point: new Map() }; this.programs.set(program, known); }
+    for (const group of groups) if (!known.index.has(group.name)) known.index.set(group.name, this.gl.getUniformBlockIndex(program, group.name));
+  }
+
   /** upload what changed in `groups` and bind them, in order, to the top binding points for `program` (a linked GL program) */
   bind(program: WebGLProgram, groups: readonly BlockGroup[]): void {
     const gl = this.gl;

@@ -64,6 +64,7 @@ import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
+import type { ProgramLike } from '../../boot/perflog';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
@@ -698,6 +699,21 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.bindBlocks(material, program);
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
+  }
+
+  /** Resolve this linked program's block indices before its first visible draw.
+   * Pending variants keep their own groups; pairing and uploads remain owned by
+   * onUpdateProgram. This reads GL metadata without selecting a material variant. */
+  prepareProgram(material: THREE.Material, program: Pick<ProgramLike, 'program'>): void {
+    const blocks = this.blocks;
+    if (blocks === null) return;
+    const paired = internals(this).programCache.get(material)?.get(program);
+    if (paired !== undefined) blocks.prepare(program.program, paired.uniformsGroups.filter(isBlockGroup));
+    for (const build of this.pendingBuilds.get(material) ?? []) {
+      if (build.programs instanceof Map && [...build.programs.values()][build.slot] === program) {
+        blocks.prepare(program.program, build.uniformsGroups.filter(isBlockGroup));
+      }
+    }
   }
 
   /**

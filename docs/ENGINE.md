@@ -872,6 +872,9 @@ Live WebKit shader preparation separates drawable compile jobs and settles one p
 Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
+The same linked-program slice calls `EngineNodesHandler.prepareProgram` for its node materials.
+`NodeUniformBuffers.prepare` resolves their block indices without allocating buffers, uploading values,
+selecting a material variant or changing bindings; the first draw retains ordinary pairing and uploads.
 A two-sided material can still issue two variants; one native query can still overshoot. Paced live world
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
@@ -4083,7 +4086,10 @@ an application accessor, while portable glTF NORMAL remains vec3.
 `assembleWholeGeometryViews` and `readWholeGeometry(scope, source, refs?)`.
 The reader uses the admitted product, decodes one bounded file at a time,
 frees transient GLB geometries/materials immediately, and scopes each
-reconstructed source geometry. Default refs are every declared props tile
+reconstructed source geometry. Final completeness validation and exact sphere scans use
+32,768-element steps on the shared work-slice budget. An explicit `pause` also fences each
+finalization step; a closed owner disposes the unpublished draws. The synchronous assembler
+exhausts those same steps without yielding. Default refs are every declared props tile
 file; explicit refs select a declared library subset. It returns a map of
 source ids to `{ geometry, matrix }`, restoring the original typed bytes,
 index and double-precision transform without adding render objects.

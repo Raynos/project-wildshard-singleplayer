@@ -67,7 +67,7 @@ test('a shared material pairs its precompiled composer program after an environm
   const geometry = new THREE.PlaneGeometry(), camera = new THREE.PerspectiveCamera();
   const env = new THREE.Scene(), main = new THREE.Scene(), envMesh = new THREE.Mesh(geometry, material), mainMesh = new THREE.Mesh(geometry, material);
   env.add(envMesh); main.add(mainMesh);
-  function compile(scene: THREE.Scene, mesh: THREE.Mesh, name: string): { readonly program: object; readonly linked: WebGLProgram; readonly uniforms: object } {
+  function compile(scene: THREE.Scene, mesh: THREE.Mesh, name: string): { readonly program: { readonly program: WebGLProgram }; readonly linked: WebGLProgram; readonly uniforms: object } {
     handler.renderStart(scene, camera); handler.updateLights(scene === env ? [] : [new THREE.DirectionalLight()]); handler.setObject(mesh, material);
     const parameters: object = {};
     const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
@@ -96,7 +96,17 @@ test('a shared material pairs its precompiled composer program after an environm
   const after = compile(main, mainMesh, 'composer');
   // renderer.compile has selected the program but does not issue onUpdateProgram.
   expect(gl.ready(after.linked)).toBe(false);
+  const queries = vi.spyOn(gl, 'getUniformBlockIndex'), writes = gl.writes, live = gl.live.size, bindings = [...gl.bound];
+  handler.prepareProgram(material, after.program);
+  expect(queries.mock.calls.length).toBeGreaterThan(0);
+  const prepared = queries.mock.calls.length;
+  handler.prepareProgram(material, after.program);
+  expect(queries).toHaveBeenCalledTimes(prepared);
+  expect(gl.writes).toBe(writes); expect(gl.live.size).toBe(live); expect([...gl.bound]).toEqual(bindings);
+  expect(properties.currentProgram).toBe(after.program); expect(properties.uniforms).toBe(after.uniforms);
+  expect(gl.ready(after.linked)).toBe(false);
   material.onBeforeRender(renderer, main, camera, geometry, mainMesh, new THREE.Group()); handler.renderEnd();
+  expect(queries).toHaveBeenCalledTimes(prepared); queries.mockRestore();
   expect(gl.ready(after.linked)).toBe(true); expect(Reflect.get(material, '_latestBuilder')).toBeUndefined();
   for (let i = 0; i < 3; i++) {
     handler.renderStart(env, camera); handler.setObject(envMesh, material); properties.currentProgram = before.program;

@@ -1,4 +1,6 @@
 import { unzlibSync } from 'fflate';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
 import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
@@ -1784,13 +1786,24 @@ class WholeGeometryAssembler {
       }
     } finally { input.dispose(); }
   }
-  finish(): Map<string, WholeGeometryView> {
+  *finishSteps(): Generator<void, Map<string, WholeGeometryView>> {
     const result = new Map<string, WholeGeometryView>();
     for (const [id, group] of this.groups) {
-      if (group.seen.some(flag => flag === 0) || group.triangles.some(flag => flag === 0)) throw new Error(`Whole source ${id} is incomplete`);
-      group.output.computeBoundingSphere(); result.set(id, { geometry: group.output, matrix: group.matrix });
+      for (const flags of [group.seen, group.triangles]) {
+        for (let i = 0; i < flags.length; i++) {
+          if (flags[i] === 0) throw new Error(`Whole source ${id} is incomplete`);
+          if ((i & 32767) === 32767) yield;
+        }
+      }
+      yield* geometryBoundsSteps(group.output, 'sphere');
+      result.set(id, { geometry: group.output, matrix: group.matrix });
+      yield;
     }
     return result;
+  }
+  finish(): Map<string, WholeGeometryView> {
+    const steps = this.finishSteps();
+    for (;;) { const step = steps.next(); if (step.done) return step.value; }
   }
   dispose(): void { for (const group of this.groups.values()) group.output.dispose(); }
 }
@@ -1802,7 +1815,8 @@ export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, 
 }
 /**
  * Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file.
- * `pause` (optional) runs after each assembled mesh, so a runtime building in play can end its frame between them.
+ * Completeness checks and exact bounds scan in bounded steps on the shared frame budget.
+ * `pause` (optional) runs after each assembled mesh and finalization step; otherwise the engine's work slice yields.
  * A slug reads its already admitted/declared product's tiles and whole library by default; unknown slugs refuse.
  * Source-object callers keep their existing tile-only default.
  */
@@ -1814,6 +1828,18 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const hashes = refs ?? [...props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [],
     ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js'), assembler = new WholeGeometryAssembler();
+  const slice = workSlice(undefined, scope);
+  const assertLive = (): void => { if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); };
+  const check = async (): Promise<void> => {
+    assertLive();
+    const wait = pause ?? (slice.due() ? slice.yield : undefined);
+    if (wait !== undefined) {
+      let release = (): void => undefined;
+      const stopped = new Promise<void>(resolve => { release = scope.capture('disposers', resolve); });
+      try { await Promise.race([wait(), stopped]); } finally { release(); }
+    }
+    assertLive();
+  };
   try {
     for (const hash of hashes) {
       const bytes = await product.assets.read(hash), gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
@@ -1828,13 +1854,16 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
         });
         for (const mesh of meshes) {
           assembler.add(mesh);
-          if (pause !== undefined) { await pause(); if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); }
+          await check();
         }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
       } finally { for (const dispose of cleanup) dispose(); }
       await product.releaseTransport([hash]);
     }
-    const result = assembler.finish();
+    const steps = assembler.finishSteps();
+    let finished = steps.next();
+    while (!finished.done) { await check(); finished = steps.next(); }
+    const result = finished.value;
     for (const [id, view] of result) {
       const release = scope.capture('geometries', () => view.geometry.dispose());
       result.set(id, { ...view, release });

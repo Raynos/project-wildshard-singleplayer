@@ -22,7 +22,8 @@
 export function installTaskClock(minMs = 4, cap = 20000) {
   const W = window;
   if (typeof W.__frameFloorTaskTake === 'function') return;
-  let tasks = [], sites = [], siteIds = new Map(), calls = [], open = null, current = '', serial = 0, dropped = 0;
+  let tasks = [], sites = [], siteIds = new Map(), calls = [], groups = [], open = null, current = '', serial = 0, dropped = 0;
+  const activeGroups = [];
   const now = () => performance.now();
   const round = (ms) => Math.round(ms * 10) / 10;
   const frames = (stack) => String(stack ?? '').split('\n').map((line) => line.trim())
@@ -40,7 +41,7 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   // Native/data work often resumes in an unwrapped promise continuation. Its exact
   // synchronous span distinguishes a slow unit from a task's queueing upper bound.
   const measured = new WeakMap();
-  const measure = (target, name, label) => {
+  const measure = (target, name, label, before) => {
     if (!target || measured.get(target)?.has(name)) return;
     const fn = Reflect.get(target, name);
     if (typeof fn !== 'function') return;
@@ -48,22 +49,47 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     if (names === undefined) { names = new Set(); measured.set(target, names); }
     names.add(name);
     Reflect.set(target, name, function measuredCall(...args) {
+      before?.(...args);
       const start = now();
+      const grouped = ['Game.runPhase', 'Composer.render', 'Renderer.render'].includes(label);
+      const children = grouped ? new Map() : null;
+      if (children !== null) activeGroups.push(children);
       try { return Reflect.apply(fn, this, args); }
       finally {
         const ms = now() - start;
-        if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), label === 'Game.runPhase' && typeof args[0] === 'string' ? `${label}:${args[0]}` : label, new Error('frame-floor native call').stack ?? '']);
+        const operation = ['Game.runPhase', 'BuildStages.build'].includes(label) && typeof args[0] === 'string' ? `${label}:${args[0]}`
+          : label === 'Nodes.build' ? `${label}:${args[0]?.name ?? ''}` : label;
+        if (ms >= minMs && calls.length < cap) calls.push([round(start), round(ms), operation, new Error('frame-floor native call').stack ?? '']);
+        if (children !== null) {
+          activeGroups.pop();
+          if (ms >= minMs && groups.length < cap) groups.push([round(start), round(ms), operation,
+            [...children].map(([operationName, value]) => [operationName, value[0], round(value[1]), round(value[2])])]);
+        }
+        for (const group of activeGroups) {
+          const value = group.get(operation) ?? [0, 0, 0];
+          value[0]++; value[1] += ms; value[2] = Math.max(value[2], ms); group.set(operation, value);
+        }
       }
     });
   };
   measure(JSON, 'parse', 'JSON.parse');
   measure(TextDecoder.prototype, 'decode', 'TextDecoder.decode');
   const moduleCalls = new Set();
+  const phaseLists = new WeakSet();
   const prepareWorldCalls = () => {
     const world = W.__wildshard?.world, game = world?.game, physics = game?.app?.physics;
-    for (const name of ['runPhase', 'runFixed', 'flushEvents']) measure(game, name, `Game.${name}`);
+    measure(game, 'runPhase', 'Game.runPhase', phase => {
+      const systems = game.app.systemsByPhase()[phase];
+      if (!systems || phaseLists.has(systems)) return;
+      phaseLists.add(systems);
+      for (const system of systems) measure(system, 'run', `System.${system.id}`);
+    });
+    for (const name of ['runFixed', 'flushEvents']) measure(game, name, `Game.${name}`);
     measure(game?.composer, 'render', 'Composer.render');
     measure(game?.renderer, 'render', 'Renderer.render');
+    measure(game?.renderer, 'compile', 'Renderer.compile');
+    measure(game?.renderer, 'initTexture', 'Renderer.initTexture');
+    measure(game?.renderer?.shadowMap, 'render', 'ShadowMap.render');
     measure(game?.scene, 'updateMatrixWorld', 'Scene.updateMatrixWorld');
     measure(physics, 'step', 'Physics.step');
     measure(physics?.R?.ColliderDesc, 'convexHull', 'Rapier.convexHull');
@@ -79,9 +105,11 @@ export function installTaskClock(minMs = 4, cap = 20000) {
       measure(target, name, `BufferGeometry.${name}`);
     }
     for (const resource of performance.getEntriesByType('resource')) {
-      if (!/\/assets\/(?:place|weld)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
+      if (!/\/assets\/(?:place|weld|plan|engineNodesHandler)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
       moduleCalls.add(resource.name);
       void import(resource.name).then(exports => {
+        const nodes = exports.EngineNodesHandler?.prototype;
+        if (nodes) for (const name of ['build', 'setObject', 'beforeDraw', 'bindBlocks', 'bindDraw', 'onUpdateProgram', 'renderStart', 'updateLights']) measure(nodes, name, `Nodes.${name}`);
         for (const value of Object.values(exports)) {
           if (typeof value !== 'function' || !value.prototype) continue;
           const prototype = value.prototype;
@@ -89,6 +117,10 @@ export function installTaskClock(minMs = 4, cap = 20000) {
             measure(prototype, 'finish', 'Weld.finish'); measure(prototype, 'join', 'Weld.join');
           } else if (typeof prototype.draw === 'function' && typeof prototype.add === 'function') {
             measure(prototype, 'draw', 'UnitParts.draw'); measure(prototype, 'add', 'UnitParts.add');
+          } else if (typeof prototype.onUpdateProgram === 'function' && typeof prototype.setObject === 'function') {
+            for (const name of ['build', 'setObject', 'beforeDraw', 'bindBlocks', 'bindDraw', 'onUpdateProgram', 'renderStart', 'updateLights']) measure(prototype, name, `Nodes.${name}`);
+          } else if (typeof prototype.build === 'function' && typeof prototype.next === 'function') {
+            measure(prototype, 'build', 'BuildStages.build');
           }
         }
         return undefined;
@@ -96,6 +128,14 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     }
   };
   W.addEventListener('ws:ready', prepareWorldCalls);
+  // A road entry can load the node backend after the home world's ready event.
+  // Observe only relevant module completions, so its first compile/draw is traced.
+  if (typeof PerformanceObserver === 'function') {
+    const observer = new PerformanceObserver(list => {
+      if (list.getEntries().some(resource => /\/assets\/(?:place|weld|plan|engineNodesHandler)-[^/]+\.js$/u.test(resource.name))) prepareWorldCalls();
+    });
+    observer.observe({ entryTypes: ['resource'] });
+  }
   const close = (at, end) => {
     if (open === null) return;
     const total = at - open.start;
@@ -141,8 +181,9 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     prepareWorldCalls();
     close(now(), 'e');
     const out = { minMs, columns: ['startMs', 'syncMs', 'totalMs', 'end', 'kind', 'site'], dropped, tasks, sites,
-      callColumns: ['startMs', 'syncMs', 'operation', 'stack'], calls };
-    tasks = []; sites = []; siteIds = new Map(); calls = []; dropped = 0;
+      callColumns: ['startMs', 'syncMs', 'operation', 'stack'], calls,
+      groupColumns: ['startMs', 'syncMs', 'operation', 'children: [operation, calls, syncMs, maxMs]'], groups };
+    tasks = []; sites = []; siteIds = new Map(); calls = []; groups = []; dropped = 0;
     return out;
   };
 }

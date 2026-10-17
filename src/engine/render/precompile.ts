@@ -21,6 +21,7 @@ import { prepareSceneResources } from './scenePreparation';
 import { readbackPreparation } from './readbackPreparation';
 import { postTriangle } from './postPreparation';
 import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
+import { installedGraphBackend } from './graphBackend';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -725,6 +726,12 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // offscreen factory such as PMREM issues its own in `_compileMaterial` during capture). Without them the replayed
   // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
   const jobPrograms = new Set<unknown>();
+  const nodeMaterials = new Map<unknown, Set<THREE.Material>>();
+  const prepareBlocks = (program: ProgramLike): void => {
+    const handler = installedGraphBackend(renderer);
+    if (handler === null) return;
+    for (const material of nodeMaterials.get(program) ?? []) handler.prepareProgram(material, program);
+  };
   // Keep issue and first use on one painted slice when the driver has already finished linking.
   // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
   const queued: ProgramLike[] = [], enqueued = new Set<ProgramLike>();
@@ -735,7 +742,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const settleOne = (): void => {
     const program = queued[settled];
     if (program === undefined || parallel && !program.isReady()) return;
-    program.getUniforms(); resolvedPrograms.add(program); settled++;
+    program.getUniforms(); prepareBlocks(program); resolvedPrograms.add(program); settled++;
   };
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
@@ -757,7 +764,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       job.lights?.prepare();
       job.prepare?.();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
-      job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
+      job.root.traverse(object => { for (const material of materialsOf(object)) {
+        const program = currentProgram(renderer, material); jobPrograms.add(program);
+        if (Reflect.get(material, 'isNodeMaterial') === true) {
+          let variants = nodeMaterials.get(program);
+          if (variants === undefined) { variants = new Set(); nodeMaterials.set(program, variants); }
+          variants.add(material);
+        }
+      } });
     } finally {
       restoreDrawn?.();
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
@@ -819,7 +833,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (parallel && isolateImageUploads) {
       while (!p.isReady()) { await pause(); checkCurrent(); }
     }
-    p.getUniforms(); resolvedPrograms.add(p); resolvedInSlice++;
+    p.getUniforms(); prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > sliceMs || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
