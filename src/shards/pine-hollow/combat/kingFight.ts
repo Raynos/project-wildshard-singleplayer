@@ -54,7 +54,18 @@ export function kingFight<B extends KingBody>(env: KingCoreEnv<B>, host: KingHos
       hit(spec.damage); return true;
     },
     hurt: (a, damage, through) => { env.hurt(a, damage, through); }, trauma: amount => { env.trauma(amount); }, shot: (sound, at) => { env.shot(sound, at); } });
-  const restore=fight.restore.bind(fight);fight.restore=(saved,bodies)=>{const actor=saved.body===null?undefined:bodies.get(saved.body);if(actor!==undefined)bind(actor);restore(saved,bodies);};
+  const restore = fight.restore.bind(fight);
+  fight.restore = (saved, bodies) => {
+    const actor = saved.body === null ? undefined : bodies.get(saved.body);
+    if (actor !== undefined && !bound.has(actor)) {
+      // Binding initializes the guest's physical pose; the existing body owner
+      // has already restored its attack and motion before this adapter runs.
+      const state = actor.snapshot();
+      bind(actor);
+      actor.restore(state);
+    }
+    restore(saved, bodies);
+  };
   return fight;
 }
 

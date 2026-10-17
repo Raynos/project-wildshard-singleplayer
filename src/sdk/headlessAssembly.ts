@@ -163,7 +163,8 @@ const primitives = {
 export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePreparation, modules: HeadlessAssemblyModules): Promise<HeadlessRuntimePlan> {
   const data: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await preparation.product.file('sim/headless-assembly.json')));
   const declaration = checkedHeadlessAssembly(data, modules);
-  const values = new Map<string, unknown>([['shard', preparation.shard], ['assets', preparation.assets], ['rapier', preparation.rapier], ['product', preparation.product], ['assembly', primitives]]);
+  const shard = preparation.product.shardfile;
+  const values = new Map<string, unknown>([['shard', shard], ['assets', preparation.assets], ['rapier', preparation.rapier], ['product', preparation.product], ['assembly', primitives]]);
   // Expose precisely the declared exports, never a module namespace's remainder.
   for (const [name, exports] of Object.entries(declaration.modules)) values.set(name, Object.fromEntries(exports.map(key => [key, member(modules[name], key)])));
   const env: Environment = { values };
@@ -173,8 +174,8 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   if (!record(settings) || !record(settings['ground']) || !record(ports) || ports['ground'] !== false || !callable(ports['heightAt'])) throw new Error('Invalid assembled native world');
   const numeric = (value: unknown): number => { if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Nonfinite assembly coordinate'); return value; };
   const query = ports['heightAt'], heightAt = (x: number, z: number): number => numeric(query(x, z));
-  const spawn = preparation.shard.spawn;
-  const level = trustedLevel(preparation.shard, { at: { x: spawn.x, y: Math.max(spawn.y, heightAt(spawn.x, spawn.z) + numeric(settings['lift'])), z: spawn.z },
+  const spawn = shard.spawn;
+  const level = trustedLevel(shard, { at: { x: spawn.x, y: Math.max(spawn.y, heightAt(spawn.x, spawn.z) + numeric(settings['lift'])), z: spawn.z },
     yaw: spawn.yaw, speed: numeric(settings['speed']) }, { size: numeric(settings['ground']['size']), height: numeric(settings['ground']['height']) });
   values.set('level', level); values.set('ports', { ground: false, heightAt });
   const entries = evaluate(declaration.entries, env);

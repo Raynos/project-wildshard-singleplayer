@@ -15,30 +15,31 @@ let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 
 test('retains static receivers, late owners, call order and independent restore bindings', async () => {
-  const order: string[] = [], readers: (() => number)[] = [];
+  const order: string[] = [], readers: (() => number)[] = [], sources: object[] = [];
   class Owner {
     readonly lanes = 2;
     static identity = 'first';
-    static create(read: () => number): void { order.push(this.identity); readers.push(read); }
+    static create(read: () => number, source: object): void { order.push(this.identity); readers.push(read); sources.push(source); }
   }
   const module = { Owner, later: (): { value: number } => { order.push('later'); return { value: readers.length }; } };
   const declaration = { ...base, modules: { 'src/game/assemblyFixture': ['Owner', 'later'] },
     prepare: [{ name: 'constructed', value: { $new: [ref('src/game/assemblyFixture', 'Owner')] } }],
     entries: { $fn: { lanes: ref('constructed', 'lanes'), steps: 3 } }, install: [
-    { name: 'first', value: { $call: [ref('src/game/assemblyFixture', 'Owner', 'create'), { $fn: ref('later', 'value') }] } },
+    { name: 'first', value: { $call: [ref('src/game/assemblyFixture', 'Owner', 'create'), { $fn: ref('later', 'value') }, ref('shard')] } },
     { name: 'later', value: { $call: [ref('src/game/assemblyFixture', 'later')] } },
   ] };
   const shard = emptyShardfile({ slug: 'assembly', name: 'Assembly', author: 'Test', revision: 1, seed: 1 });
   const product = createShardProduct({ slug: 'assembly', revision: 1, shardfile: shard, sections: new Map(),
     files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
     read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
-  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, { 'src/game/assemblyFixture': module });
+  const plan = await prepareHeadlessAssembly({ shard: structuredClone(shard), product, assets: new Map(), rapier }, { 'src/game/assemblyFixture': module });
   const first = createSimHost(plan.level, { ...plan.ports, rapier }), restored = createSimHost(plan.level, { ...plan.ports, rapier });
   try {
     plan.install(first, { restoring: false, commands: () => [], emit: () => undefined });
     plan.install(restored, { restoring: true, commands: () => [], emit: () => undefined });
     expect(order).toEqual(['first', 'later', 'first', 'later']);
     expect(readers.map(read => read())).toEqual([1, 2]);
+    for (const source of sources) expect(source).toBe(shard);
     expect(plan.proveEntries?.(first)).toEqual({ lanes: 2, steps: 3 });
   } finally { first.dispose(); restored.dispose(); }
 });

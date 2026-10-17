@@ -52,6 +52,11 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
         expect(host.entities.get(body.entityId)).toBe(body);
         expect(v.parse(logical,JSON.parse(policy().decision)).decision.bindings[0]?.failures,policy().decision).toBe(0);
       }
+      body.startAttack(1.4);
+      const attacking = await createTrustedHeadlessResident(preparation, entry, snapshotSimHost(host));
+      try {
+        expect(attacking.host.entities.get(body.entityId)?.snapshot()).toEqual(body.snapshot());
+      } finally { attacking.dispose(); }
       body.stagger(new Vector3(1, 0, 0), 1);
       expect(body.stunned).toBe(true);
       const saved=snapshotSimHost(host),before=control.snapshot();

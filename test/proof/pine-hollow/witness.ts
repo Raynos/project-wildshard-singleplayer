@@ -1,3 +1,4 @@
+import { simMismatchError } from '../../fake/simMismatch';
 import { installCableModes } from '../../../src/engine/player/modes';
 import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
 import { createNativeCombatFrame, readItemInventory, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
@@ -396,7 +397,10 @@ function playUntil(session: Session, tape: PineTape, until: (host: SimHost) => b
 }
 function resume(plan: HeadlessRuntimePlan, rapier: Rapier, name: CheckpointName): { session: Session; tape: PineTape; tick: number; snapshot: SimSnapshot } {
   const checkpoint = readCheckpoint(name), session = restore(plan, rapier, checkpoint.snapshot);
-  if (digest(session.host) !== canonicalSimDigest(checkpoint.snapshot)) { session.host.dispose(); throw new Error(`Inexact ${name} restore`); }
+  if (digest(session.host) !== canonicalSimDigest(checkpoint.snapshot)) {
+    const error = simMismatchError(`Inexact ${name} restore`, checkpoint.snapshot, snapshotSimHost(session.host));
+    session.host.dispose(); throw error;
+  }
   return { session, tape: pineTape(plan, checkpoint.tape), tick: checkpoint.tick, snapshot: checkpoint.snapshot };
 }
 /** Bake outputs of one uninterrupted gameplay tape, with the exact loaded-module and native-asset inputs hash. */
