@@ -11,7 +11,11 @@
  *    working (linear) space inside a target. The stock handler always applies the renderer's tone mapping and sRGB
  *    output, so a node material drawn into the engine's half-float target was sRGB-encoded twice (the spike's `tsl-raw`:
  *    24.8 dB against the family). The program cache key follows the same rule, so one material drawn both into a
- *    target and to the screen keeps one program for each.
+ *    target and to the screen keeps one program for each. An **unlit graph** (`userData.graphRawOutput`, set by the
+ *    compiler) has no output transform at all, the way a `ShaderMaterial` without `colorspace_fragment` has none: every
+ *    unlit graph stands for such a GLSL program, so on screen (a plain capture, the map bake) it wrote sRGB-encoded,
+ *    paler colour than the program it replaced (G477 OE: Nine's lanterns, Nalati's river on the baked map). Inside a
+ *    target both are linear, so the game's composed frame is unchanged; lit graphs keep the classic built-in transform.
  * 2. **Render-target samples are upright.** three's GLSL node builder flips every render-target sample for
  *    WebGPURenderer's WebGL backend, which stores targets upside down; the classic renderer stores them upright. A graph
  *    reads a target only through `targetTexture()`, which cancels the flip (§2.10). three's own shadow lookups keep theirs:
@@ -407,9 +411,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const material = builder.material;
       // Shadow targets store native depth, never display colour/fog/layer fades.
       if (material.userData['graphDepthVariant'] === true) return outputNode;
-      let mapped: Node = outputNode;
-      if (material.toneMapped && toneMapping !== THREE.NoToneMapping) mapped = outputNode.toneMapping(toneMapping);
-      let out = asVec4(workingToColorSpace(mapped, colorSpace));
+      // an unlit graph writes its colour as the GLSL program it stands for did (module comment, 1): no output transform
+      let out: Node<'vec4'> = outputNode;
+      if (material.userData['graphRawOutput'] !== true) {
+        let mapped: Node = outputNode;
+        if (material.toneMapped && toneMapping !== THREE.NoToneMapping) mapped = outputNode.toneMapping(toneMapping);
+        out = asVec4(workingToColorSpace(mapped, colorSpace));
+      }
       const ctx: EpilogueContext = { builder, material, fog: fogOf(builder), renderer };
       for (const stage of this.epilogue) out = stage(out, ctx);
       return out;
@@ -440,7 +448,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         stock = receive ? memo.receive : memo.plain;
         if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       }
-      return `${stock}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+      return `${stock}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}${this.userData['graphRawOutput'] === true ? '|out:raw' : ''}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);

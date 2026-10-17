@@ -1078,6 +1078,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   // A boolean survives Material.clone(); the handler caches each clone's own depth variant.
   if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
+  // an unlit graph writes raw colour, as the GLSL program it stands for did: no output transform (engineNodesHandler, 1)
+  if (ir.kind === 'material' && ir.model === 'unlit') material.userData['graphRawOutput'] = true;
   const outline = ir.kind !== 'material' ? null : outlineMaterial();
   if (outline !== null && Object.keys(attributeDefaults).length > 0) outline.userData['graphAttributeDefaults'] = attributeDefaults;
   // a selected shard fog (O11) replaces the engine fog for this material and its hull
