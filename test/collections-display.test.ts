@@ -2,7 +2,7 @@
 import { zlibSync } from 'fflate';
 import { Scope } from '../src/engine/app/scope';
 import { readGeometrySource } from '../src/engine/models/geometrySources';
-import { registerPackedGeometrySource } from '../src/sdk/runtime/geometryPack';
+import { registerPackedGeometrySource } from '../src/sdk/models/geometrySources';
 import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, MeshStandardMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';

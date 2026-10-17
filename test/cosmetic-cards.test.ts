@@ -1,19 +1,24 @@
+import { Scope } from '../src/engine/app/scope';
+import { installGeometrySource } from '../src/engine/models/geometrySources';
 import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
-import { loadPineFinishes, pineSkinRows, pineSkins } from '../src/shards/pine-hollow/runtime/loadout/skins';
+import { HeldFinishes } from '../src/game/loadout/finishes';
+import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { BufferGeometry } from 'three';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 
 test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', async () => {
-  const file = output.namedFiles.find(row => row.name === 'loadout/finishes.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-  if (file === undefined || bytes === undefined) throw new Error('Missing named finish JSON');
   const shardfile = emptyShardfile({ slug: 'pine-hollow', name: 'Pine', author: 'Wildshard', revision: 1, seed: 1 });
-  await loadPineFinishes(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile, sections: new Map(),
-    files: new Map([['loadout/finishes.json', { hash: file.hash, url: file.path }]]), read: () => Promise.resolve(bytes) }));
-  const PINE_FINISHES = pineSkinRows(), SKINS = pineSkins();
+  const rows = outputPlatformPayloads(output.platform, ['held/finishes']).get('held/finishes');
+  const scope = new Scope('cosmetic-cards');
+  installGeometrySource(scope, 'fixture-pack', { geometries: indices => Promise.resolve(indices.map(() => new BufferGeometry())) });
+  const finishes = await HeldFinishes.prepare(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile,
+    sections: new Map([['held/finishes', rows]]), files: new Map(), read: () => Promise.reject(new Error('No finish files')), check: true }),
+    scope, 'fixture-pack');
+  const PINE_FINISHES = finishes.list();
   const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
   const ids = ['hollow-ash', 'ghost-stag', 'blackpaw', 'imperial', 'warden', 'ironhide', 'scarback-furnace'];
   expect(locker.cardRows(FINISH_CARDS).map(card => card.id)).toEqual(ids);
@@ -33,7 +38,7 @@ test('Pine finish cards retain authored order, ownership and slot-exclusive wear
   locker.wear('crossbow', 'ghost-stag');
   locker.wear('rifle', 'ironhide');
   expect(locker.cardRows(FINISH_CARDS).filter(card => card.worn).map(card => card.id)).toEqual(['ghost-stag', 'ironhide']);
-  expect(locker.pick('ghost-stag')?.skin).toBe(SKINS['ghost-stag']);
+  expect(locker.pick('ghost-stag')?.skin).toBe(finishes.get('ghost-stag'));
 });
 
 test('cosmetic card reads are silent and toggles retain auto-wear and save behavior', () => {

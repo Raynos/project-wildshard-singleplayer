@@ -20,7 +20,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { lineOfSight } from '@wildshard/engine/physics/query';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import type { Player } from '@wildshard/engine/player/Player';
-import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
+import { applySkin, type SkinDef, type SkinId } from '@wildshard/engine/player/Skins';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -30,7 +30,7 @@ import * as THREE from 'three';
 
 
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
-import { pineSkins, type SkinId } from '../runtime/loadout/skins';
+import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
@@ -102,7 +102,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // the drop orbs' skinned weapons, built now and parked (hidden) in the scene so the boot's precompile covers their
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {
-    const s = pineSkins()[id];
+    const s = HeldFinishes.current(source.identity.slug).get(id);
     const m = s.weapon === 'rifle' ? h.rifle.displayModel() : h.crossbow instanceof HeldLauncher ? h.crossbow.displayModel() : new THREE.Group();
     applySkin(m, s, sky);
     return m;
@@ -128,7 +128,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     shot: (name, at) => { sfx?.shot(name, { at }); },
     toast: (s) => { h.hud.toast(s); }, feed: (s) => { h.hud.killFeed(s); },
     addItem: (id, n) => { h.inventory.add(id, n); },
-    ownSkin: (id) => { const s = pineSkins()[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
+    ownSkin: (id) => { const s = HeldFinishes.current(source.identity.slug).get(id); h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
     dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     longbow: h.longbow ? {
@@ -150,7 +150,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     toast: ctx.toast,
     sting: (e) => { if (e === 'kill') h.music.sting('chunk'); else h.music.combat(e === 'phase2' ? 1 : 0.8); },
     pickupHum: (on) => { h.audio.pickupHum(on); },
-    ownSkin: (id) => { if (id in pineSkins()) ctx.ownSkin(id as SkinId); },
+    ownSkin: (id) => { if (HeldFinishes.current(source.identity.slug).has(id)) ctx.ownSkin(id); },
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
   };

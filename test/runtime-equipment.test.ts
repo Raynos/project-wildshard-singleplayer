@@ -20,7 +20,7 @@ import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { NativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/shard.config';
-import { readItemEquipment } from '../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, installNativeItems, readItemEquipment } from '../src/game/plugin/nativeItems';
 import { parseItems } from '../src/format/items';
 
 class NativeWeapon extends Weapon {
@@ -127,10 +127,17 @@ test('native multi-item binding restores old held/swap and ammunition envelopes 
     expect(loadout.held()).toBe(1); expect(loadout.live(1)).toBe(true);
     locked = true; expect(loadout.live(1)).toBe(false); locked = false;
     pick = 31; host.step(); expect(loadout.held()).toBe(1); expect(loadout.swapping()).toBe(false);
-    const crossbow = { state: { quiver: 30, loaded: true, reloading: false }, addBolts: (n: number) => { crossbow.state.quiver += n; } };
-    const weapons = { crossbow, lever: { act: { rounds: 4 }, store: { reserve: 17 } }, longbow: { state: { arrows: 8 } } };
-    const ammunition = new NativeHeldAmmunition(weapons, loadoutRows, BOW_PROFILE.quiver); ammunition.add('pitch', 7); ammunition.loadKind('pitch');
-    const pouch = ammunition.snapshot(), restored = new NativeHeldAmmunition(weapons, loadoutRows, BOW_PROFILE.quiver);
+    const frame = createNativeCombatFrame();
+    for (const item of source.items.rows) {
+      if (item.kind !== 'weapon' || item.ranged === undefined) continue;
+      if (item.profile?.family === 'bow') {
+        const bow = installNativeItems(host, frame, { kind: 'bow', policy: item.ranged, profile: item.profile }); bow.state.arrows = 8;
+      } else if (item.profile?.family === 'firearm' && item.profile.action === 'lever') {
+        const lever = installNativeItems(host, frame, { kind: 'cycle', policy: item.ranged, profile: item.profile }); lever.store.reserve = 14;
+      } else installNativeItems(host, frame, { kind: 'bolt', policy: item.ranged, profile: item.profile });
+    }
+    const ammunition = new NativeHeldAmmunition(host, loadoutRows, source.items); ammunition.add('pitch', 7); ammunition.loadKind('pitch');
+    const pouch = ammunition.snapshot(), restored = new NativeHeldAmmunition(host, loadoutRows, source.items);
     const commit = restored.prepareRestore(pouch); expect(restored.selected).toBe('iron'); commit();
     expect(restored.snapshot()).toEqual(pouch); expect(restored.count('cartridge')).toBe(21); expect(restored.count('arrow')).toBe(8);
     expect(() => restored.prepareRestore({ ...pouch, pitch: 6 })).toThrow(); expect(restored.snapshot()).toEqual(pouch);

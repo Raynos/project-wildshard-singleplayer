@@ -2,9 +2,7 @@ import * as THREE from 'three';
 import { cacheUntilDisposed, retainCachedResources, ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { viewmodelRowMaterial, type RangedWorld, type TexSet, type ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
-import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import type { Game } from '@wildshard/engine/core/Game';
-import { installRangedFeel, prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
+import { prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
 import type { ShardContext } from './context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
@@ -17,16 +15,19 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 import { createModelLibrary, type ModelLibrary } from './geometry';
 import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRow } from './heldFirearm';
 import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from './heldLauncher';
+import { HeldTool, heldToolRows, type HeldToolBeat } from './heldTool';
+import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from './headless';
+import { readItemEquipment } from './nativeItems';
+import { Bow } from '../weapons/Bow';
 
 /** Install row-selected ranged feel alongside the held families, retaining entered-cell lifetime. */
-export function installHeldRangedFeel(game: Game, weapons: EquipmentService, context?: ShardContext): void {
+export function installHeldRangedFeel(context: ShardContext): void {
+  const runtime = context.game.runtime, game = runtime?.world?.game, weapons = runtime?.play?.weapons;
+  if (game === undefined || weapons === undefined) throw new Error('Ranged feel needs its player stage');
   const events = weapons.events, rows = weapons.list.map(weapon => weapon.row);
   if (events === undefined) return;
-  if (context === undefined) installRangedFeel(game, events, game.levelScope, id => rows.find(row => row.id === id));
-  else {
-    const bind = prepareRangedFeel(game);
-    installEnteredRuntimeService(context, scope => { bind(events, scope, id => rows.find(row => row.id === id)); });
-  }
+  const bind = prepareRangedFeel(game);
+  installEnteredRuntimeService(context, scope => { bind(events, scope, id => rows.find(row => row.id === id)); });
 }
 
 /** Native bolt profile plus row-authored page feel. Native clocks and ballistics have one source, combat/items. */
@@ -82,6 +83,28 @@ export class HeldEquipment {
   }
   /** Refuse an unprepared catalogue, rather than inventing a default weapon. */
   static current(slug: string): HeldEquipment { const host = catalogues.get(slug); if (host === undefined) throw new Error(`Held equipment not admitted: ${slug}`); return host; }
+  /** Install the admitted native families by item ids. The platform resolves its world and targets itself. */
+  install(context: ShardContext): void {
+    const runtime = context.game.runtime, world = runtime?.world;
+    if (runtime === undefined || world === undefined || world === null) throw new Error('Held equipment needs its world stage');
+    const items = context.product.section('combat/items').items;
+    const factories = new Map<string, RuntimeEquipmentFactory>();
+    for (const item of items.rows) {
+      if (item.kind !== 'weapon') continue;
+      const row = readItemEquipment(items, item.id), profile = item.profile;
+      if (profile?.family === 'firearm' && profile.action === 'bolt') factories.set(item.id, {
+        prepare: this.prepareHands,
+        create: (native, targets, allowUnlocked) => this.launcher(world, targets, { row, allowUnlocked, profile: native.profile }),
+      });
+      else if (profile?.family === 'firearm' && profile.action === 'lever') factories.set(item.id, {
+        create: (native, targets, allowUnlocked) => this.firearm(world, targets, { row, allowUnlocked, profile: native.profile }),
+      });
+      else if (profile?.family === 'bow') factories.set(item.id, {
+        create: (_native, targets, allowUnlocked) => new Bow(world, targets, { row, profile: this.bow().profile, allowUnlocked }),
+      });
+    }
+    runtime.buildEquipment = bindRuntimeEquipment(context, context.product.shardfile, { factories });
+  }
   /** Borrow a baked hand and sleeve by its semantic part. */
   hand(part: string): { geometry: THREE.BufferGeometry; sleeve: THREE.BufferGeometry | null; wrist: THREE.Vector3; dir: THREE.Vector3 } {
     const row = Object.values(this.rows.hands.hands).find(hand => hand.geometry === `hand-${part}`);
@@ -90,7 +113,7 @@ export class HeldEquipment {
     return { geometry: geometry(row.geometry), sleeve: row.sleeve === null ? null : geometry(row.sleeve), wrist: new THREE.Vector3().fromArray(row.wrist), dir: new THREE.Vector3().fromArray(row.dir) };
   }
   /** Load the coat maps before constructing sleeves; keep the existing cooperative boot yield. */
-  readonly prepareHands = async (due: () => Promise<void> | null): Promise<void> => {
+  private readonly prepareHands = async (due: () => Promise<void> | null): Promise<void> => {
     await Promise.all(Object.values(this.rows.coatTextures).map(row => this.textures.load(row.url, () => loadTexture(this.product.url(row.url), row.srgb, 1, undefined, texture => { if (!row.repeat) texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; }))));
     const wait = due(); if (wait !== null) await wait;
   };
@@ -116,7 +139,7 @@ export class HeldEquipment {
     })) };
   }
   /** Construct the native single-bolt family from the item's profile and platform rows. */
-  launcher(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; profile: unknown }): CatalogueLauncher {
+  private launcher(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; profile: unknown }): CatalogueLauncher {
     const { hands, view } = this.rows.launcher.rows, looks = this.rows.hands.presentation, names = this.rows.handNames;
     const hand = ({ part, ...hold }: typeof hands.left): HeldHandRow => ({ ...hold, ...this.hand(part) });
     return new HeldLauncher(world, targets, { ...opts, allowUnlocked: opts.allowUnlocked ?? false, profile: heldLauncherProfile(opts.profile, this.rows.launcherTuning), view,
@@ -143,7 +166,7 @@ export class HeldEquipment {
   /** Static world/Explorer copy on its own materials. */
   firearmSpecimen(sky: SkyRig, model: FirearmModel): THREE.Group { return heldFirearmDisplay(sky, model.rows.model, this.firearmModel(model)); }
   /** The same item-native lever action, with the rows' viewmodel and channel bindings. */
-  firearm(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; profile: unknown }): CatalogueFirearm {
+  private firearm(world: RangedWorld, targets: Targets | undefined, opts: { row: EquipmentRow; allowUnlocked?: boolean; profile: unknown }): CatalogueFirearm {
     const model = this.firearmReady; if (model === null) throw new Error('Held firearm not loaded');
     const { playback, inputs, action } = this.rows, frame = inputs.frames.lever;
     const rows = action.bindings.slice(0, 5), { hands, presentation } = model.rows;
@@ -160,4 +183,8 @@ export class HeldEquipment {
   }
   /** Bow and its baked arrow share the same admitted hand library. */
   bow(): ReturnType<typeof bindHeldBow> { return bindHeldBow(this.rows.hands.heldBow, this.library); }
+  /** Construct the row's timed tool, including its delayed admitted model load. */
+  tool(context: ShardContext, beat: HeldToolBeat): HeldTool {
+    return new HeldTool(context, heldToolRows(this.rows.tool), beat);
+  }
 }

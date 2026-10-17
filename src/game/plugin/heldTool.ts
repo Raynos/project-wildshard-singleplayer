@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { viewmodelMaterial, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { ModelContext } from '@wildshard/engine/models/model';
-import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { ShardContext } from '@wildshard/game/plugin/context';
-import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
-import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from '@wildshard/game/plugin/geometry';
+import type { ShardContext } from './context';
+import { HeldPlayback } from './weaponFamily';
+import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from './geometry';
+import * as v from 'valibot';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 
 /**
- * A first-person tool held through a timed beat (SHARD-PLATFORM M3, the kit system): a gloved hand holding a knife, a
+ * Client-only presentation: a first-person tool held through a timed beat (SHARD-PLATFORM M3, the kit system): a gloved hand holding a knife, a
  * brush, a trowel, at the lower right of the view on the viewmodels' shared lit program (no program of its own). Its look
  * is one GLB (one mesh, one baked atlas: albedo / normal / ARM), fetched once the level has loaded, with a vertex-coloured
  * stand-in of primitive rows until it lands (or when it fails). Through the beat it rises into view as the beat starts,
@@ -30,6 +31,9 @@ export interface HeldToolRow {
   readonly envMapIntensity: number;
   readonly anisotropy: number;
   readonly loadDelayMs: number;
+  /** Event identity and system owner declared by the held-tool row. */
+  readonly loadedLevel: string;
+  readonly loadSystemId: `shard.${string}`;
   readonly renderOrder: number;
   /** Admitted, read-only held transform programme; its phase reads the existing harvest clock. */
   readonly playback: readonly unknown[];
@@ -39,6 +43,12 @@ export interface HeldToolRow {
 
 /** A held tool's file: its one mesh as plain float geometry and its atlas (albedo, normal, ARM). */
 export interface HeldToolFile { geo: THREE.BufferGeometry; tex: { map: THREE.Texture; normalMap: THREE.Texture; arm: THREE.Texture } }
+
+/** Admit the catalogue's tool look, motion and delayed-load ownership as one native tool row. */
+export function heldToolRows(input: unknown): HeldToolRow {
+  const row = v.parse(HeldEquipmentSchema.entries.tool, input);
+  return { ...row.look, url: row.url, playback: row.pose, loadedLevel: row.loadedLevel, loadSystemId: row.loadSystemId };
+}
 
 /** The existing model library owns one immutable decoded primitive and its original atlas. */
 export async function loadHeldToolFile(row: Pick<HeldToolRow, 'name' | 'url' | 'anisotropy'>): Promise<HeldToolFile> {
@@ -71,9 +81,11 @@ export class HeldTool {
   private readonly playback: HeldPlayback;
   private readonly observations: Record<string, number>;
 
-  /** `row` its look and motion, `beat` the clock `update` reads; `schedule` is handed the file's fetch to start when the
-   *  shard is ready (after its boot, off the load's requests and bytes) */
-  constructor(game: Game, sky: SkyRig, ctx: ShardContext, row: HeldToolRow, beat: HeldToolBeat, schedule: (fetch: () => void) => void) {
+  /** `row` its look and motion, `beat` the clock `update` reads; the row owns its delayed file fetch in game time. */
+  constructor(ctx: ShardContext, row: HeldToolRow, beat: HeldToolBeat) {
+    const world = ctx.game.runtime?.world;
+    if (world === undefined || world === null) throw new Error('Held tool needs its world stage');
+    const { game, sky } = world;
     this.game = game; this.ctx = ctx; this.row = row;
     this.playback = new HeldPlayback({ pose: row.playback }, new Map([['root', this.group], ['pivot', this.pivot]]));
     this.observations = { beatTime: -1, aspect: 1, length: beat.len, kneelIn: beat.kneelIn, rise: beat.rise, ...Object.fromEntries(beat.cuts.map((cut, at) => [`cut.${at}`, cut])) };
@@ -85,7 +97,9 @@ export class HeldTool {
     game.camera.add(this.group);
     this.use(paintedPrimitives(row.parts), null);
     // the stand-in holds until the file lands
-    schedule(() => { void this.load(); });
+    let left = -1;
+    ctx.on('level.loaded', ({ id }) => { if (id === row.loadedLevel && left === -1) left = Math.max(row.loadDelayMs / 1000, 1e-6); });
+    ctx.system({ id: row.loadSystemId, phase: 'update', run: dt => { if (left <= 0) return; left = Math.max(0, left - dt); if (left === 0) void this.load(); } });
     ctx.scope.onDispose(() => { this.group.removeFromParent(); if (this.ownsGeometry) this.mesh?.geometry.dispose(); this.mat.dispose(); });
   }
 
@@ -126,7 +140,7 @@ export class HeldTool {
  * The Model Explorer's specimen: the stand-in at once, then the file from its own load (parsed once per shard under
  * `onceKey`), each on its own copy of the viewmodel material dressed as the held one but opaque, in the normal queue.
  */
-export function heldToolSpecimen(ctx: ModelContext, id: string, row: HeldToolRow, onceKey: string): THREE.Group {
+export function heldToolSpecimen(ctx: ModelContext, id: string, row: Omit<HeldToolRow, 'loadedLevel' | 'loadSystemId'>, onceKey: string): THREE.Group {
   const holder = new THREE.Group();
   const show = (geo: THREE.BufferGeometry, tex: HeldToolFile['tex'] | null): void => {
     whiteColors(geo);

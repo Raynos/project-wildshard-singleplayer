@@ -11,17 +11,14 @@ import { SECTIONS } from '../sections';
  * The day / night clock turns `dayLight` (look/backdrop.ts); the graph toon looks follow it once a frame (`followToon`). Its
  * starting values are data in data/toonLook.ts.
  */
-import * as THREE from 'three';
+import { ToonArms } from '@wildshard/game/systems/viewmodel/toonArms';
 import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
 import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
 /** Day uniforms and fog are constructed by the product's render setup, never by importing this module. */
 function createToon(product: ShardProduct) {
-  const { DAY_LIGHT: row, RAMP_FOG: fog } = product.section('custom/fixedLayouts', SECTIONS).nativeView;
-  return { dayLight: {
-    uToonLift: { value: new THREE.Color(...row.uToonLift) }, uToonRim: { value: new THREE.Color(...row.uToonRim) },
-    uCloudShadow: { value: row.uCloudShadow }, uToonNight: { value: row.uToonNight }, uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime },
-  }, rampFog: new ColourRampFog(fog) };
+  const { FP_ARMS_LOOK: look, RAMP_FOG: fog } = product.section('custom/fixedLayouts', SECTIONS).nativeView;
+  return { dayLight: ToonArms.lighting(look), rampFog: new ColourRampFog(fog) };
 }
 let current: ReturnType<typeof createToon> | null = null;
 /** Session-called: initialize admitted toon state before building any view. */

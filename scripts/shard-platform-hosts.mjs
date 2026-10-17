@@ -28,6 +28,8 @@ const hosts = {
   'actors/species-programs': [], // Metadata lent to existing page/native species and hunt owners.
   'held/equipment': ['game/plugin/heldEquipment#HeldEquipment'],
   'held/loadout': ['game/loadout/held#installHeldLoadout', 'game/loadout/nativeAmmunition#NativeHeldAmmunition'],
+  'held/finishes': ['game/loadout/finishes#HeldFinishes'],
+  'held/gear': ['game/models/heldGear#heldGear'],
   'combat/items': ['game/shardfile/items#installDeclaredItems'],
   'combat/encounters': ['game/plugin/simulation#createShardfileSim'],
   'combat/strikes': ['game/plugin/simulation#createShardfileSim'],

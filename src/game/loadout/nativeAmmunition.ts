@@ -1,26 +1,35 @@
 import * as v from 'valibot';
 import { LoadoutSchema, type LoadoutRows } from '@wildshard/format/loadout';
-import type { NativeCombatFrame } from '../plugin/nativeItems';
+import { readNativeRangedItem, type NativeCombatFrame, type NativeBoltItem, type NativeCycleItem, type NativeBowItem } from '../plugin/nativeItems';
+import type { SimHost } from '@wildshard/engine/sim';
+import { parseItems } from '@wildshard/format/items';
 import { AmmoPouch } from './pouch';
 
 const stack = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 /** The outer continuation admits a named selection and integer stacks; the owner's rows enforce exact keys/caps. */
 export const NativeAmmunitionSavedSchema = v.pipe(v.record(v.string(), v.union([v.string(), stack])),
   v.check(saved => typeof saved['selected'] === 'string' && Object.entries(saved).every(([key, value]) => key === 'selected' || typeof value === 'number')));
-/** Native family ports expose only their live stacks and existing ammunition methods. */
-export interface NativeAmmunitionPorts {
-  readonly crossbow: { readonly state: { quiver: number; loaded: boolean; reloading: boolean }; readonly addBolts: (n: number) => void };
-  readonly lever: { readonly act: { readonly rounds: number }; readonly store: { reserve: number } };
-  readonly longbow: { readonly state: { arrows: number } };
-}
 
 /** Native continuation over the same row-driven pouch used by the page. Native fire/reload owners remain unchanged. */
 export class NativeHeldAmmunition {
   private readonly quiver: AmmoPouch<string>;
   private readonly rows: LoadoutRows;
-  constructor(private readonly ports: NativeAmmunitionPorts, input: unknown, private readonly bowCapacity: number, private readonly frame?: NativeCombatFrame) {
+  private readonly ports: { readonly crossbow: NativeBoltItem; readonly lever: NativeCycleItem; readonly longbow: NativeBowItem };
+  private readonly bowCapacity: number;
+  private readonly frame: NativeCombatFrame;
+  constructor(host: SimHost, input: unknown, itemRows: unknown) {
     this.rows = v.parse(LoadoutSchema, input); this.quiver = new AmmoPouch(this.rows.pouch);
-    if (!Number.isSafeInteger(bowCapacity) || bowCapacity < 0) throw new Error('Invalid native bow capacity');
+    const items = parseItems(itemRows).rows;
+    const launcher = items.find(item => item.id === this.rows.launcher.item);
+    const firearm = items.find(item => item.kind === 'weapon' && item.equipment?.legacySlot === this.rows.firearm.slot);
+    const bow = items.find(item => item.kind === 'weapon' && item.equipment?.legacySlot === this.rows.bow.slot);
+    if (launcher?.kind !== 'weapon' || firearm?.kind !== 'weapon' || bow?.kind !== 'weapon'
+      || launcher.ranged === undefined || firearm.ranged === undefined || bow.ranged === undefined || bow.profile?.family !== 'bow')
+      throw new Error('Native loadout identities need admitted ranged items');
+    const bolt = readNativeRangedItem(host, launcher.ranged.slot), cycle = readNativeRangedItem(host, firearm.ranged.slot), arrow = readNativeRangedItem(host, bow.ranged.slot);
+    if (bolt.kind !== 'bolt' || cycle.kind !== 'cycle' || arrow.kind !== 'bow') throw new Error('Native loadout has incompatible families');
+    this.ports = { crossbow: bolt.item, lever: cycle.item, longbow: arrow.item };
+    this.bowCapacity = bow.profile.quiver; this.frame = bolt.frame;
   }
   get selected(): string { return this.quiver.selected; }
   count(kind: string): number {
@@ -38,7 +47,7 @@ export class NativeHeldAmmunition {
     const state = this.ports.crossbow.state, n = this.quiver.select(kind, state.quiver);
     if (n === null) return;
     state.quiver = n; state.loaded = n > 0 && state.loaded;
-    if (this.frame !== undefined) this.frame.ammo = kind;
+    this.frame.ammo = kind;
   }
   cycle(): void { this.loadKind(this.quiver.next()); }
   /** Stash/fall back after the native weapon update, at the same point as the page. */
@@ -59,7 +68,7 @@ export class NativeHeldAmmunition {
     const selected = v.parse(v.picklist(this.rows.pouch.kinds), saved['selected']);
     const counts = Object.fromEntries(this.rows.pouch.kinds.map(kind => { const count = saved[kind]; if (typeof count !== 'number') throw new Error('Missing ammunition stack'); return [kind, count]; }));
     if (counts[selected] !== this.ports.crossbow.state.quiver) throw new RangeError('Selected ammunition disagrees with its weapon');
-    return () => { this.quiver.selected = selected; Object.assign(this.quiver.counts, counts); if (this.frame !== undefined) this.frame.ammo = selected; };
+    return () => { this.quiver.selected = selected; Object.assign(this.quiver.counts, counts); this.frame.ammo = selected; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }

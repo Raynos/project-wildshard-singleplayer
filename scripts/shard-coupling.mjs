@@ -48,7 +48,6 @@ export const WEAPON_TRANSFER_LIST = 'lint/weapon-subclasses.json';
 // Reviewed bootstrap for the two classes relocated by f6d18f088, not a wildcard or a new inheritance budget.
 export const WEAPON_TRANSFER_BOOTSTRAP = {
   'src/shards/nalati-grasslands/weapons/Rifle.ts': { class: 'Rifle', from: 'src/kit/weapons/firearm/Rifle.ts', runtime: 'src/shards/nalati-grasslands/runtime/weapons/Rifle.ts', base: 'Weapon', owner: 'SF36' },
-  'src/shards/pine-hollow/weapons/crossbow/Crossbow.ts': { class: 'Crossbow', from: 'src/kit/weapons/crossbow/Crossbow.ts', runtime: 'src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts', base: 'Weapon', owner: 'SF36' },
 };
 /** Entries may disappear; a site, class, source, destination, base or removal owner may never grow/change. */
 export function compareWeaponTransfers(before, after) {

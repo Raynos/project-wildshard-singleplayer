@@ -1,3 +1,4 @@
+import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
@@ -90,7 +91,7 @@ export const SECTIONS = {
     DAY_LIGHT: v.strictObject({"uToonLift": v.tuple([number, number, number]), "uToonRim": v.tuple([number, number, number]), "uCloudShadow": number, "uToonNight": number, "uSeaLevel": number, "uCloudTime": number}),
     FINALE_REWARD: v.strictObject({"x": number, "y": number, "z": number, "yaw": number, "pitch": number, "phase": number}),
     FIREFLY_LOOK: text,
-    FP_ARMS_LOOK: v.strictObject({"url": text, "skeleton": text, "sockets": v.tuple([text, text]), "joints": v.strictObject({"sides": v.tuple([text, text]), "arm": v.tuple([text, text, text, text, text, text, text]), "fingers": v.tuple([text, text, text, text, text]), "phalanges": number}), "offset": v.tuple([number, number, number]), "frame": v.strictObject({"size": number, "pitch": number, "yaw": number, "roll": number}), "sunward": number, "bladeBase": number, "swim": v.strictObject({"tilt": number, "handsZ": number, "waterY": number, "startD": number}), "materials": v.strictObject({"arms": text, "wood": text, "iron": text, "swim": text, "pickupBlade": text, "pickupFittings": text})}),
+    FP_ARMS_LOOK: ToonArmsLookSchema,
     FP_ARMS_MATERIALS: v.strictObject({"arms": text, "wood": text, "iron": text, "swim": text, "pickupBlade": text, "pickupFittings": text}),
     GROUND_LOOK: v.strictObject({"materials": v.strictObject({"ground": text, "slab": text}), "band": number, "lip": v.strictObject({"steep": number, "reach": number, "from": number, "to": number}), "slab": v.strictObject({"segs": number, "rock": text, "deep": text, "top": number, "bulge": v.tuple([number, number]), "foot": number, "mid": number, "shade": v.tuple([number, number])})}),
     GULL_GRAPH_LOOK: text,

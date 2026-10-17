@@ -187,9 +187,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/loot/presentation.ts', 'C6'],
   ['src/shards/pine-hollow/combat/chargeTells.ts', 'C6'],
   ['src/shards/pine-hollow/combat/install.ts', 'C4'],
-  ['src/shards/pine-hollow/runtime/loadout/skins.ts', 'C6'],
   ['src/shards/pine-hollow/runtime/kingLifetime.ts', 'C4'],
-  ['src/shards/pine-hollow/runtime/kit/heldTool.ts', 'C6'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/core/assets.ts#gltfLoader', 'C9'],
   ['src/engine/core/assets.ts#loadGLTF', 'C9'],

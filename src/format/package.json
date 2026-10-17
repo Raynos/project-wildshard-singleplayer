@@ -160,7 +160,10 @@
     "./questSteps": "./questSteps.ts",
     "./heldEquipment": "./heldEquipment.ts",
     "./loadout": "./loadout.ts",
-    "./collectionDisplay": "./collectionDisplay.ts"
+    "./collectionDisplay": "./collectionDisplay.ts",
+    "./heldFinishes": "./heldFinishes.ts",
+    "./heldGear": "./heldGear.ts",
+    "./geometryPack": "./geometryPack.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

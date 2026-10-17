@@ -1782,17 +1782,18 @@ defines `ToonArms`, the game host for sword arms, sockets, material binding and 
 loading anything: rig URL/skeleton/joint names, sockets, offset/frame, blade base,
 shadow lookup distance, swim plane and graph material identities. The rig uses
 `RigArms`'s semantic `arms`, `sword_wood`, `sword_iron` meshes and arm/swim clips.
-`lend({ materials, setParam }, { source: dayLight, target: toon.uniforms })` borrows the compiled look catalogue and
-returns its release; nested loans release independently, newest live loan wins.
+`prepare(context)` resolves graph material identities under the platform scope
+and obtains shared day uniforms from the row's lighting id. The backdrop reads
+those uniforms with `ToonArms.lighting(row)`. Each scope releases its prepared
+catalogue independently; the newest live preparation wins.
 `load()` returns the manifest's wooden/iron sword arms and swimming hands;
 `specimen(sky, kind)` creates an independent Explorer skeleton with shared geometry.
 The host preserves blade quantization/glow, per-vertex metalness, shadow following
-and the camera-space swim plane. A shard supplies only rows and its existing look
-loan. No rig or material catalogue is installed by importing the module.
-The optional constructor rig-loader port defaults to `RigArms`; fixtures supply
-structural rigs without replacing modules. The fixture `test/held-arms-platform.test.ts`
-drives another shard's invented
-rig/material rows through the host, including release, glow and swim behaviour.
+and the camera-space swim plane. A shard supplies rows and the platform context.
+No rig or material catalogue is installed by importing the module. The host uses
+the native `RigArms` loader, without an injected loader port. The fixture
+`test/held-arms-platform.test.ts` drives invented harbour material/lighting rows
+on the native rig file path, including release, glow and swim behaviour.
 
 **Held equipment catalogue (G474 / G477).** `@wildshard/game/plugin/heldEquipment`
 reads the platform `held/equipment` section, defined by
@@ -1800,7 +1801,7 @@ reads the platform `held/equipment` section, defined by
 input, sights, action, firearm-detail, launcher-pool, hand-pool and tool envelopes.
 `HeldEquipment.prepare(product)` explicitly admits and prepares its immutable
 geometry libraries; `current(slug)` refuses access before preparation.
-`launcher`, `firearm` and `bow` construct the existing native weapon families;
+`install(context)` resolves item ids and constructs the native held families;
 `launcherRows`, `launcherModel`, `preloadFirearm` and `firearmSpecimen` let the
 world pickup and Explorer use those same parts on their own materials.
 The section owns camera/hand/material/channel rows and extra feel values.
@@ -1813,27 +1814,45 @@ sleeves are created. The fictional harbour fixture in
 channels and tuning through this same host.
 
 **Held loadout (G474 / G477).** `@wildshard/game/loadout/held` installs
-`installHeldLoadout(host, rows)` from the platform `held/loadout` section
+`installHeldLoadout(context, rows)` from the platform `held/loadout` section
 (`@wildshard/format/loadout`). Rows declare ordered ammunition kinds, fallback,
 stack capacity, ownership identities, save fields, input, cues and presentation.
 `AmmoPouch` in `@wildshard/game/loadout/pouch` stashes the selected live stack,
 skips empty special stacks and preserves the fallback refill rule. Native weapon
 families retain their fire/reload clocks and live ammunition.
 `NativeHeldAmmunition` in `@wildshard/game/loadout/nativeAmmunition` adapts the
-same pouch to native continuations. Its constructor takes family ports, loadout
-rows, the native bow's capacity and an optional combat frame. The outer saved
+same pouch to native continuations. Its constructor takes the native `SimHost`,
+loadout rows and item rows. `readNativeRangedItem` in `game/plugin/nativeItems`
+resolves platform-installed owners by declared slot. Bow capacity and the combat
+frame come from those native declarations. The held host resolves its declared
+sound bank internally. The outer saved
 schema admits named stacks; `prepareRestore` validates the exact declared keys,
 caps and agreement with the live weapon before returning a mutation.
 `loadoutLegacySlot` in `@wildshard/game/loadout/persistence` explicitly registers the row's original shard-scoped v1 save
 ABI once per store; matching existing documents continue without a rename or
-reset. `restoreHeldOwnership` migrates a legacy pack flag before unlocking owned
-equipment. `Inventory.had` accepts legacy row identities even when absent from
+reset. `restoreHeldOwnership` takes legacy/owned identity arrays and returns
+plain grant rows before unlocking equipment. `Inventory.had` accepts legacy row identities even when absent from
 the current pack catalogue; `Owned.has` accepts row identities, while grants
-refuse unregistered identities. `bindLoadoutDeath` in `@wildshard/game/loadout/events` runs the pouch reset before
+refuse unregistered identities. The loadout host resets the pouch before
 respawn refill, and `heldFinishEffect` in `@wildshard/game/loadout/effects` produces the shared permanent cosmetic
 grant. Input and cue timers follow the existing entered-cell lifetime. Importing
 these modules installs no service. `test/held-loadout-platform.test.ts` drives a
 fictional harbour pouch and ownership rows, and resumes an existing Pine v1 save.
+
+**Held skins and gear (G474 / G477).** `game/loadout/finishes` admits
+`held/finishes` through `format/heldFinishes`; `HeldFinishes.prepare(product,
+scope, geometrySourceId)` resolves owned copies through the engine's scoped
+geometry source registry. Shards register pack rows through
+`@wildshard/sdk/models/geometrySources`. Finish order, card order, material overrides,
+drop identities and optional named extras are rows. The existing SkinLocker owns
+v1 ownership/worn continuation. `game/models/heldGear` reads `format/heldGear`
+rows for cold Explorer cards, variants and native ammunition counts. Its builders
+borrow the admitted catalogue and preserve original materials, buffers, loading
+bounds and live counts. `game/plugin/heldTool` reads tool rows and beat values
+under the standard platform context; it owns delayed loading and timed motion.
+No family, geometry or beat callback comes from a shard. Fictional harbour rows
+and existing Pine saves/buffers are covered by
+`test/held-finishes-platform.test.ts` and `test/pine-finish-product.test.ts`.
 
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
@@ -9017,7 +9036,7 @@ texture capabilities. Pine uses its original baked mounts and atlas;
 Driftwood uses its original chime, trophies and keepsake placements. A
 made-up gallery fixture exercises different slot names and saved entries.
 
-`sdk/runtime/geometryPack.registerPackedGeometrySource(scope, id, rows)`
+`sdk/models/geometrySources.registerPackedGeometrySource(scope, id, rows)`
 registers a URL, pack rows and label under an owner-local id. The SDK alone
 constructs the decoder. `engine/models/geometrySources.readGeometrySource`
 borrows fresh owned copies using that id and geometry indices; disposal

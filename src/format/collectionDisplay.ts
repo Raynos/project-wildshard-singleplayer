@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { PackedGeometryRowsSchema } from './geometryPack';
 import { AdventureContentSchema } from './questStory';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -27,10 +28,7 @@ export function parseCollectionCard(value: unknown): v.InferOutput<typeof Collec
 
 /** Shared pack and chalk declarations; their named bytes remain in the owning shard product. */
 export const CollectionMountPackSchema = v.strictObject({ notice: text, url: text, sha256: text,
-  rows: v.strictObject({ bytes: natural, geometries: v.pipe(v.array(v.strictObject({
-    attrs: v.array(v.tuple([text, natural])), count: natural, unique: natural,
-    own: v.nullable(v.picklist(['u16', 'u32'])), indexCount: natural,
-  })), v.maxLength(128)) }), slots: v.record(text, natural),
+  rows: PackedGeometryRowsSchema, slots: v.record(text, natural),
 });
 export const CollectionChalkSchema = v.strictObject({ size: v.tuple([natural, natural]), outlines: v.record(text, rect), labels: v.record(text, rect) });
 export type CollectionMountPack = v.InferOutput<typeof CollectionMountPackSchema>;

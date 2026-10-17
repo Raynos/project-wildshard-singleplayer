@@ -1,52 +1,31 @@
-/**
- * Toon first-person arms as a viewmodel system (G475 / G477): a skinned arms rig (a GLB the shared arm player
- * `RigArms` plays) dressed in the shard's graph toon materials, lit like the world (the toon look, its shadows and fog),
- * held with two swords (wood and iron, each blade's edges lit by a glow level) and the same arms swimming with a water
- * line. Nothing here knows a shard: the shard passes its look row (the rig's file and skeleton, the framing, the blade's
- * base, the swim water line, the look.materials ids) and lends the compiled graphs (`lend`) before anything is dressed.
- *
- *   const arms = new ToonArms(look);
- *   scope.onDispose(arms.lend(await runtimeLookMaterials(ctx, source, true, ids), { source: dayLight, target: toon.uniforms }));   // the kit hook
- *   sword: async () => arms.load()           // ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands
- *   arms.specimen(sky, 'iron')               // the Model Explorer's card: the arms at rest holding a sword
- *
- * The graphs' params this system moves:
- * - **held** (arms, wood, iron): `sunward`, the cast-shadow lookup shifted `look.sunward` m toward the light (the day /
- *   night clock's sun or moon) so the invisible body never shades the arms; a sword's `bladeDq` (its mesh's node scale and
- *   y: the GLB's positions are quantized) and `bladeBase` (the rig's meta), and `rim`, its held glow level. The iron
- *   sword reads the GLB's per-vertex metalness, bound as `aMetal`.
- * - **swim**: the view-space water plane `waterN` / `waterD` (the world's up turned a third into the camera, through the
- *   hands, tipped `tilt` toward the eye).
+/** Client-only toon held arms. Rows identify the rig, sockets, materials and shared day-light state.
+ * Preparation resolves graphs under the platform context; the host owns its day uniforms and native rig loader.
+ * The day backdrop and held meshes resolve the same lighting identity.
  */
 import type { RigBake, RigContract } from '@wildshard/engine/anim/rig';
 import type { SwimArms } from '@wildshard/engine/player/Hands';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ToonLookUniforms } from '@wildshard/engine/render/families/toon';
-import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import { runtimeLookMaterials } from '../../shardfile/runtimeProduct';
+import type { ShardContext } from '../../plugin/context';
 import { parseToonArmsLook, type ToonArmsLook } from '@wildshard/format/heldArms';
-import { type Color, type BufferGeometry, type Material, type Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
+import { Color, type BufferGeometry, type Material, type Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
 import type { ShardSword } from '../../shard/manifest';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 import { RigArms, swordArmsOf, vmScale } from './rigArms';
 
 type Sword = 'wood' | 'iron';
 
-/** what a compiled look catalogue lends (`runtimeLookMaterials`) */
-export interface ToonArmsLooks {
-  readonly materials: ReadonlyMap<string, Material>;
-  readonly setParam: (id: string, name: string, value: GraphLiteral) => void;
+type ToonArmsRig = Pick<RigArms, 'root' | 'nodes' | 'meta' | 'weapon' | 'meshes' | 'update' | 'swim' | 'play' | 'blade'>;
+type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
+function createLighting(row: ToonArmsLook['lighting']['initial']) {
+  return { uToonLift: { value: new Color(...row.uToonLift) }, uToonRim: { value: new Color(...row.uToonRim) },
+    uCloudShadow: { value: row.uCloudShadow }, uToonNight: { value: row.uToonNight },
+    uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime } };
 }
-/** Live uniform bindings: the day clock owns source values, the compiled toon look owns target uniforms. */
-export interface ToonArmsLight {
-  readonly source: { readonly uToonLift: { value: Color }; readonly uToonRim: { value: Color };
-    readonly uCloudShadow: { value: number }; readonly uSeaLevel: { value: number }; readonly uCloudTime: { value: number } };
-  readonly target: Pick<ToonLookUniforms, 'famToonLift' | 'famToonRim' | 'famToonCloud' | 'famToonWater' | 'famToonTime'>;
-}
-/** Structural rig port also permits renderer-free fixtures of another shard's rows. */
-export type ToonArmsRig = Pick<RigArms, 'root' | 'nodes' | 'meta' | 'weapon' | 'meshes' | 'update' | 'swim' | 'play' | 'blade'>;
-/** The default loader uses cached RigArms parses and independent skeleton clones. */
-export interface ToonArmsRigs { load: (url: string, contract: RigContract, bake: RigBake, swimming?: boolean) => Promise<ToonArmsRig> }
-interface Loan { readonly looks: ToonArmsLooks; readonly light: ToonArmsLight }
+const lighting = new Map<string, ReturnType<typeof createLighting>>();
+interface Loan { readonly looks: Looks; readonly light: { readonly source: ReturnType<typeof createLighting>;
+  readonly target: Pick<ToonLookUniforms, 'famToonLift' | 'famToonRim' | 'famToonCloud' | 'famToonWater' | 'famToonTime'> } }
 function followLight(loan: Loan): void {
   const u = loan.light.source, t = loan.light.target;
   t.famToonLift.value.copy(u.uToonLift.value); t.famToonRim.value.copy(u.uToonRim.value);
@@ -65,7 +44,7 @@ export class ToonArms {
 
   private readonly look: ToonArmsLook;
 
-  constructor(input: unknown, private readonly rigs: ToonArmsRigs = RigArms) {
+  constructor(input: unknown) {
     const look = parseToonArmsLook(input);
     this.look = look;
     const j = look.joints;
@@ -79,19 +58,30 @@ export class ToonArms {
     this.offset = new Vector3(look.offset[0], look.offset[1], look.offset[2]);
   }
 
-  /** Lend the compiled graphs (the look row's ids) and their toon look's follow; the returned release ends the loan. */
-  lend(looks: ToonArmsLooks, light: ToonArmsLight): () => void {
+  /** The day clock and held meshes resolve the same lighting identity, initialized only from rows. */
+  static lighting(input: unknown): ReturnType<typeof createLighting> {
+    const row = parseToonArmsLook(input).lighting;
+    let state = lighting.get(row.id);
+    if (state === undefined) { state = createLighting(row.initial); lighting.set(row.id, state); }
+    return state;
+  }
+
+  /** Client-only preparation: resolve material ids and day lighting inside the host's platform scope. */
+  async prepare(context: ShardContext): Promise<ReadonlyMap<string, Material>> {
+    const looks = await runtimeLookMaterials(context, context.product.shardfile, true, Object.values(this.look.materials));
+    if (context.scope.disposed) throw new Error('Toon arm scope unloaded during preparation');
     const ids = this.look.materials;
     const missing = [ids.arms, ids.wood, ids.iron, ids.swim].filter((id) => !looks.materials.has(id));
     if (missing.length > 0) throw new Error(`Toon arms: look.materials lacks ${missing.join(', ')}`);
-    const loan: Loan = { looks, light };
+    const loan: Loan = { looks, light: { source: ToonArms.lighting(this.look), target: looks.toon.uniforms } };
     this.loans.push(loan);
-    return () => { const at = this.loans.indexOf(loan); if (at !== -1) this.loans.splice(at, 1); };
+    context.scope.onDispose(() => { const at = this.loans.indexOf(loan); if (at !== -1) this.loans.splice(at, 1); });
+    return looks.materials;
   }
 
   private loan(): Loan {
     const loan = this.loans.at(-1);
-    if (loan === undefined) throw new Error('Toon arms: no graph materials lent (the kit hook lends them before the arms are dressed)');
+    if (loan === undefined) throw new Error('Toon arms: no graph materials prepared (prepare the context before dressing arms)');
     return loan;
   }
 
@@ -136,7 +126,7 @@ export class ToonArms {
     const n = new Vector3(0, 1, 0), plane = [0, 1, 0];
     const waterY = rig.meta.water?.y ?? S.waterY;
     const q = new Quaternion(), up = new Vector3();
-    let set: ToonArmsLooks['setParam'] | null = null;
+    let set: Looks['setParam'] | null = null;
     rig.weapon(null);
     return {
       root: rig.root,
@@ -174,7 +164,7 @@ export class ToonArms {
   /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
   async load(): Promise<ShardSword> {
     const L = this.look;
-    const [wood, iron, swim] = await Promise.all([this.rigs.load(L.url, this.contract, this.bake), this.rigs.load(L.url, this.contract, this.bake), this.rigs.load(L.url, this.contract, this.bake, true)]);
+    const [wood, iron, swim] = await Promise.all([RigArms.load(L.url, this.contract, this.bake), RigArms.load(L.url, this.contract, this.bake), RigArms.load(L.url, this.contract, this.bake, true)]);
     wood.weapon('wood');
     iron.weapon('iron');
     const setup = (rig: ToonArmsRig) => (sky: Sky): void => { this.dressHeld(sky, rig); };
@@ -190,7 +180,7 @@ export class ToonArms {
   /** a Model Explorer card: the arms at rest holding `kind`, on their own skeleton clone, in camera space as held */
   async specimen(sky: Sky, kind: Sword): Promise<Object3D> {
     const L = this.look;
-    const rig = await this.rigs.load(L.url, this.contract, this.bake);
+    const rig = await RigArms.load(L.url, this.contract, this.bake);
     rig.weapon(kind);
     this.dressHeld(sky, rig);
     rig.update(0.4, { speed: 0, lookVel: new Vector2() });

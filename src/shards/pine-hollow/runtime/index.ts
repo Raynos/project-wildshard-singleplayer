@@ -1,4 +1,4 @@
-import { registerPackedGeometrySource } from '@wildshard/sdk/runtime/geometryPack';
+import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 import { readAdventurePersistence } from '@wildshard/game/quest/persistence';
 import { floorAtRects } from '@wildshard/engine/physics/box';
@@ -8,7 +8,6 @@ import { SECTIONS, CabinAmbienceSchema } from './sections';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
-import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks, preparePineGrazers } from '../species/looks';
@@ -47,7 +46,8 @@ import { installPineCombat } from '../combat/install';
 import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
 import { installAmbientLife } from './life/ambientLife';
-import { SkinKnife } from './models/skinningKnife';
+import { HeldFinishes } from '@wildshard/game/loadout/finishes';
+
 import { pineMemoryTrim } from './debug/options';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import * as v from 'valibot';
@@ -58,7 +58,7 @@ import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { heldFinishEffect } from '@wildshard/game/loadout/effects';
-import { pineSkins, pineSkinRows, pineFinishCards, loadPineFinishes, type SkinId } from './loadout/skins';
+import type { SkinId } from '@wildshard/engine/player/Skins';
 import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
@@ -82,13 +82,16 @@ export class PineHollow extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     admitPaintedTextures(ctx.product);
-    await Promise.all([loadPineFinishes(ctx.product), admitPineView(ctx.product)]);
+    const finishPack = ctx.product.section('held/finishes').source;
+    if (finishPack === undefined) throw new Error('Held finishes require their declared geometry source');
+    registerPackedGeometrySource(ctx.scope, 'held-finishes', { ...finishPack, label: 'held finishes' });
+    await Promise.all([HeldFinishes.prepare(ctx.product, ctx.scope, 'held-finishes'), admitPineView(ctx.product)]);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
     const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trades.json'))));
     const packKinds = readItemInventory(ctx.product.section('combat/items').items).kinds;
-    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(pineFinishCards()) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? trades.lines[id] ?? 'Mott has no use for it' : null } };
+    rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(HeldFinishes.current(ctx.manifest.slug).cards) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? trades.lines[id] ?? 'Mott has no use for it' : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
     const { Particles: ParticleField } = await import('@wildshard/game/systems/looks/particles');
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
@@ -167,16 +170,12 @@ export class PineHollow extends ShardPlugin {
     await preloadKingKit();
     const items = ctx.product.section('combat/items').items;
     const CROSSBOW = readItemEquipment(items, 'weapon.crossbow'), LEVER = readItemEquipment(items, 'weapon.lever'), LONGBOW = readItemEquipment(items, 'weapon.longbow');
-    rt.buildEquipment = bindRuntimeEquipment(ctx, ctx.product.shardfile, { factories: new Map([
-      ['weapon.crossbow', { prepare: held.prepareHands, create: (item, targets, nolock) => held.launcher(world, targets, { row: CROSSBOW, allowUnlocked: nolock, profile: item.profile }) }],
-      ['weapon.lever', { create: (item, targets, nolock) => held.firearm(world, targets, { row: LEVER, allowUnlocked: nolock, profile: item.profile }) }],
-      ['weapon.longbow', { create: (_item, targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: held.bow().profile, allowUnlocked: nolock }) }],
-    ]) });
+    held.install(ctx);
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo([...readItemAmmunition(ctx.product.shardfile.items, 'weapon.crossbow').values()].map(ammo => ammo.row));
-    ctx.rows.effect([...pineFinishCards().map(({ id }) => heldFinishEffect(id, pineSkins()[id].weapon)), ...STARTER_EFFECTS]);
-    ctx.rows.skin(pineSkinRows());
+    ctx.rows.effect([...HeldFinishes.current(ctx.manifest.slug).cards.map(({ id }) => heldFinishEffect(id, HeldFinishes.current(ctx.manifest.slug).get(id).weapon)), ...STARTER_EFFECTS]);
+    ctx.rows.skin(HeldFinishes.current(ctx.manifest.slug).list());
   }
 
   override async play(ctx: ShardContext): Promise<void> {
@@ -190,7 +189,7 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
-    const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
+    const { animals, weapons, inventory, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
     const cabinAudio = v.parse(CabinAmbienceSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/ambience.json'))));
@@ -200,7 +199,7 @@ export class PineHollow extends ShardPlugin {
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {
-      if (!Object.hasOwn(pineSkins(), id)) return;
+      if (!HeldFinishes.current(ctx.manifest.slug).has(id)) return;
       const pick = skins.pick(id); if (!pick) return;
       if (pick.act === 'wear') { wearSkin(pick.skin); return; }
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
@@ -210,9 +209,9 @@ export class PineHollow extends ShardPlugin {
     if (pickupRows === undefined) throw new Error('Pine requires its admitted skin pickups');
     const skinDrops = new ClaimedPickupRoster<SkinId>(pickupRows, {
       scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
-      model: id => { const skin = pineSkins()[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow.displayModel(); applySkin(item, skin, sky); return item; },
+      model: id => { const skin = HeldFinishes.current(ctx.manifest.slug).get(id), item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow.displayModel(); applySkin(item, skin, sky); return item; },
       enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
-      take: id => { const skin = pineSkins()[id], label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
+      take: id => { const skin = HeldFinishes.current(ctx.manifest.slug).get(id), label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
     });
     ctx.on('actor.died', ({ actor }) => {
       const animal = animals.animals.find((a) => a.combatActor() === actor);
@@ -222,7 +221,7 @@ export class PineHollow extends ShardPlugin {
       drop.at.y = Math.max(drop.at.y, heightAt(drop.at.x, drop.at.z));
       skinDrops.spawn(drop.id, drop.at, true);
     });
-    const loadout = installHeldLoadout({ source: ctx.product.shardfile, scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx }, ctx.product.section('held/loadout'));
+    const loadout = installHeldLoadout(ctx, ctx.product.section('held/loadout'));
     const rifleDrop = (() => {
       const position = pineRifleFloor(cabins === null ? null : { floorHeightAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') });
       if (position === null) return null;
@@ -261,7 +260,7 @@ export class PineHollow extends ShardPlugin {
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
-    fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
+    fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx);
     await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, doors: cabins, owners: { sky, animals, elites: fights.elites } });
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
@@ -270,7 +269,7 @@ export class PineHollow extends ShardPlugin {
     await wildlifeLibrary.preload();
     const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
     const wildlife=wildlifeLibrary.draw(lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
-    const life = installAmbientLife(lifeRows,{view:wildlife,knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
+    const life = installAmbientLife(lifeRows,{view:wildlife,knife:()=>HeldEquipment.current(ctx.manifest.slug).tool(ctx,lifeRows.harvest),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });

@@ -1008,21 +1008,9 @@
             ]
           },
           {
-            "crossbow": {
-              "$ref": [
-                "crossbow"
-              ]
-            },
-            "lever": {
-              "$ref": [
-                "lever"
-              ]
-            },
-            "longbow": {
-              "$ref": [
-                "longbow"
-              ]
-            }
+            "$ref": [
+              "host"
+            ]
           },
           {
             "$call": [
@@ -1037,14 +1025,8 @@
           },
           {
             "$ref": [
-              "longbowRow",
-              "profile",
-              "quiver"
-            ]
-          },
-          {
-            "$ref": [
-              "combat"
+              "shard",
+              "items"
             ]
           }
         ]

@@ -59,7 +59,7 @@ import source from '../shard.config';
 import * as THREE from 'three';
 import type { Cabins } from '../runtime/world/homestead';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
-import { pineSkins } from '../runtime/loadout/skins';
+import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { PINE_PHASES } from '../look/dayKeys';
 import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
@@ -259,7 +259,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
       ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
-      ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(pineSkins()[id]); } }]))]]) });
+      ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(HeldFinishes.current(h.ctx.manifest.slug).get(id)); } }]))]]) });
   const boardUi = ui.view('board', (scope) => {
     const onClaim = (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
@@ -289,7 +289,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   h.interactables.push(boardPrompt);
 
   // ── the trader's slate ──
-  const owns = (s: string): boolean => s in pineSkins() && h.skins.has(s);
+  const owns = (s: string): boolean => HeldFinishes.current(h.ctx.manifest.slug).has(s) && h.skins.has(s);
   const room = (k: AmmoKind, n: number) => h.crossbow.room?.(k, n) ?? true;
   const exchange = new Exchange(exchangeRows, new Map<string, unknown>([['pack', inventory], ['skins', { owns, own: h.skins.own.bind(h.skins) }],
     ['ammo', { capacity: room, addBolts: h.crossbow.addBolts.bind(h.crossbow), grant: (kind: Exclude<AmmoKind, 'iron'>, n: number) => h.crossbow.addAmmo?.(kind, n) }]]));

@@ -17,14 +17,14 @@ import { createClientScene } from '@wildshard/game/plugin/ui';
 import { fixedDraw } from './boot/blobAssets';
 import { driftwoodRows } from './boot/rows';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ToonArms, type ToonArmsLooks, type ToonArmsLight } from '@wildshard/game/systems/viewmodel/toonArms';
+import { ToonArms } from '@wildshard/game/systems/viewmodel/toonArms';
+import type { ShardContext } from '@wildshard/game/plugin/context';
 
 let rig: ToonArms | null = null;
 const arms = (): ToonArms => { rig ??= new ToonArms(driftwoodRows('custom/fixedLayouts').nativeView.FP_ARMS_LOOK); return rig; };
 
-/** lend the compiled arm graphs (FP_ARMS_MATERIALS) and their toon look's follow, before any arms are dressed; returns
- *  the release */
-export function lendCastawayArms(looks: ToonArmsLooks, light: ToonArmsLight): () => void { return arms().lend(looks, light); }
+/** Resolve arm materials and day lighting inside the platform host before dressing the rigs. */
+export function prepareCastawayArms(context: ShardContext): Promise<ReadonlyMap<string, Material>> { return arms().prepare(context); }
 
 /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
 export function castawayArms(): ReturnType<InstanceType<typeof ToonArms>['load']> { return arms().load(); }

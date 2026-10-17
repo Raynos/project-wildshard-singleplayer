@@ -6,7 +6,7 @@ import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { GroundTell, type Elites, type EliteScript } from '@wildshard/game/Elite';
-import type { SkinId } from '../runtime/loadout/skins';
+import type { SkinId } from '@wildshard/engine/player/Skins';
 import { Puffs } from '../runtime/combat/fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { swapRolledElites as swapRolled, pineEliteScripts, type PineEliteScript, type PineEliteWorld } from './eliteScripts';

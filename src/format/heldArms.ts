@@ -11,6 +11,8 @@ const vector = v.tuple([finite, finite, finite]);
  * Pickup materials may accompany the held look for the same asset's world display. No services or callbacks. */
 export const ToonArmsLookSchema = v.strictObject({
   url: name, skeleton: name, sockets: names,
+  lighting: v.strictObject({ id: name, initial: v.strictObject({ uToonLift: vector, uToonRim: vector,
+    uCloudShadow: finite, uToonNight: finite, uSeaLevel: finite, uCloudTime: finite }) }),
   joints: v.strictObject({ sides: names, arm: names, fingers: names,
     phalanges: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)) }),
   offset: vector,

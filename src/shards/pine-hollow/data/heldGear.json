@@ -1,0 +1,15 @@
+{
+  "slug": "pine-hollow",
+  "models": [
+    { "role": "launcher", "id": "pine-hollow/crossbow", "name": "Hunting crossbow", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:crossbow", "pipeline": "code", "copies": 1 },
+    { "role": "bolt", "id": "pine-hollow/crossbow-bolt", "name": "Crossbow bolt", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:crossbow-bolt", "pipeline": "code", "surface": "wood", "yaw": 1.5707963267948966, "drawnAs": "single" },
+    { "role": "firearm", "id": "pine-hollow/lever-action", "name": "Lever-action rifle", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:lever-action", "pipeline": ["blender", "code"], "placeholder": [0.05, 0.16, 1.02], "copies": 1 },
+    { "role": "bow", "id": "pine-hollow/wardens-longbow", "name": "Warden's longbow", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:wardens-longbow", "pipeline": "code", "copies": 1 },
+    { "role": "arrow", "id": "pine-hollow/longbow-arrow", "name": "Longbow arrow", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:longbow-arrow-part", "pipeline": "code", "surface": "wood", "yaw": 1.5707963267948966, "drawnAs": "instanced" },
+    { "role": "tool", "id": "pine-hollow/skinning-knife", "name": "Skinning knife", "file": "src/shards/pine-hollow/data/heldGear.json", "onceKey": "gear:skinning-knife", "pipeline": ["blender", "code"], "copies": 1 }
+  ],
+  "extras": {
+    "ghost-stag": [{ "name": "skin-antlers", "geometry": "ghost-stag-tines", "materials": ["xbow-prod", "xbow-iron"] }]
+  },
+  "tool": { "loadedLevel": "pine-hollow", "loadSystemId": "shard.pine.knife.load" }
+}

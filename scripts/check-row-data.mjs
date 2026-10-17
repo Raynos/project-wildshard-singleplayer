@@ -25,7 +25,6 @@ export const ROW_TYPES = {
   ],
   'src/game/package.json': ['AchievementDef', 'BowProfile', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'NpcRigProfile', 'NpcRow', 'PresentedQuestDef', 'QuestRewardSpec', 'RainCurtainSpec', 'ShardManifest'],
   'src/sdk/package.json': ['FirearmProfile'],
-  'src/shards/pine-hollow/weapons/crossbow/profiles.ts': ['CrossbowProfile'],
 };
 const DEPTH = 5;
 

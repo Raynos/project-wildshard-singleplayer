@@ -2270,7 +2270,7 @@
     "src/shards/pine-hollow/plugin.ts": 5,
     "src/shards/pine-hollow/combat/chargeTells.ts": 5,
     "src/shards/pine-hollow/combat/eliteScripts.ts": 10,
-    "src/shards/pine-hollow/combat/elites.ts": 116,
+    "src/shards/pine-hollow/combat/elites.ts": 118,
     "src/shards/pine-hollow/combat/install.ts": 37,
     "src/shards/pine-hollow/combat/kingFight.ts": 7,
     "src/shards/pine-hollow/combat/lane.ts": 3,

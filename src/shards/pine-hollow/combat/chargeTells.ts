@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import { installHeldRangedFeel } from '@wildshard/game/plugin/heldEquipment';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -23,8 +22,7 @@ const TELL_R = 45, LANES = 3;
 export interface PinePresentation { update: (dt: number, t: number) => void }
 
 export function installPinePresentation(o: { game: Game; weapons: EquipmentService; animals: AnimalManager; context?: ShardContext; makeTell: (color: THREE.Color) => ChargeTell }): PinePresentation {
-  const { game, weapons, animals } = o;
-  installHeldRangedFeel(game, weapons, o.context);
+  const { game, animals } = o;
   // ── the charge lanes of the wild bears and boars ──
   const tells = Array.from({ length: LANES }, () => o.makeTell(TELL));
   if (o.context !== undefined) installEnteredRuntimeService(o.context, (scope) => { scope.onDispose(() => { for (const tell of tells) tell.hide(); }); });

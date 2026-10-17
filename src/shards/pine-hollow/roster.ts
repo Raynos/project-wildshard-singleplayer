@@ -1,3 +1,5 @@
+import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 /**
  * Pine Hollow's live models (E306 / E315 M5, `ShardManifest.roster`): every creature the Hollow can spawn — its fauna's deer,
@@ -18,14 +20,15 @@ import { preparePineGrazers, pineGrazer } from './species/looks';
 import { antlerKing } from './runtime/models/antlerKing';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
-import { GEAR } from './runtime/models/gear';
-import { prepareKnifeRows } from './runtime/models/skinningKnife';
+import { heldGear } from '@wildshard/game/models/heldGear';
+import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
 
-function roster(wildlife: readonly RosterEntry[]): readonly RosterEntry[] {
+
+function roster(wildlife: readonly RosterEntry[], gear: readonly RosterEntry[]): readonly RosterEntry[] {
   const deer = defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts', pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: pineGrazer('deer') }) });
   const elk = defineModel({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true, species: pineGrazer('elk') }) });
 
@@ -42,7 +45,7 @@ function roster(wildlife: readonly RosterEntry[]): readonly RosterEntry[] {
     live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
     // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
     // skinning knife) and the gloved hands in the pond and the creek (E348)
-    ...GEAR,
+    ...gear,
     live(swimHands, { copies: 1 }),
   ];
 }
@@ -50,6 +53,10 @@ function roster(wildlife: readonly RosterEntry[]): readonly RosterEntry[] {
 /** Admit the knife recipe before the Explorer can synchronously build its card. */
 export async function preparedRoster(product?: ShardProduct): Promise<readonly RosterEntry[]> {
   const source = product ?? await loadFirstPartyProduct('pine-hollow');
-  await Promise.all([prepareKnifeRows(source), preparePineGrazers(source), HeldEquipment.prepare(source)]);
-  return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models);
+  const scope = resourceScope().child('held-finish-roster');
+  const pack = source.section('held/finishes').source;
+  if (pack === undefined) throw new Error('Held finishes require their declared geometry source');
+  registerPackedGeometrySource(scope, 'held-finishes', { ...pack, label: 'held finishes' });
+  await Promise.all([HeldFinishes.prepare(source, scope, 'held-finishes'), preparePineGrazers(source), HeldEquipment.prepare(source)]);
+  return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models, heldGear(source.section('held/gear')));
 }

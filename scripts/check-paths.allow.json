@@ -775,16 +775,6 @@
     "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Rifle transfer; its current destination is src/shards/nalati-grasslands/runtime/weapons/Rifle.ts. Historical keys cannot change or grow under the shrink-only comparator."
   },
   {
-    "path": "src/kit/weapons/crossbow/Crossbow.ts",
-    "file": "scripts/shard-coupling.mjs",
-    "why": "E435 SF54 / G140 immutable transfer provenance: the deleted kit source must remain absent; the coupling guard refuses a surviving copy and checks the relocated runtime/weapons/crossbow/Crossbow.ts class. This is a historical identifier, never a module or asset read."
-  },
-  {
-    "path": "src/shards/pine-hollow/weapons/crossbow/Crossbow.ts",
-    "file": "scripts/shard-coupling.mjs",
-    "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Crossbow transfer; its current destination is src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts. Historical keys cannot change or grow under the shrink-only comparator."
-  },
-  {
     "path": "src/shards/_template/.wildshard/product",
     "file": "src/shards/_template/generators/build-product.mjs",
     "why": "SDK writeAuthoredProduct output destination, created by this registered report-only producer. The catalogue validates its entry and source inputs; explicit comparison qualification verifies every emitted pin. This directory is not a source or consumer input."

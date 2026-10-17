@@ -307,6 +307,17 @@ function ammoDamage(row: Policy, id: string, kind: string): number {
 export type NativeBoltItem = ReturnType<typeof boltItem>;
 export interface NativeCycleItem { readonly act: InstanceType<typeof RangedAction.Cycle>; readonly store: { reserve: number } }
 export type NativeBowItem = ReturnType<typeof bowItem>;
+type NativeRangedItem = { readonly frame: NativeCombatFrame } & (
+  { readonly kind: 'bolt'; readonly item: NativeBoltItem } |
+  { readonly kind: 'cycle'; readonly item: NativeCycleItem } |
+  { readonly kind: 'bow'; readonly item: NativeBowItem });
+const nativeRangedItems = new WeakMap<SimHost, Map<number, NativeRangedItem>>();
+/** Resolve a native family by its admitted numeric slot. Only the native installer publishes owners. */
+export function readNativeRangedItem(host: SimHost, slot: number): NativeRangedItem {
+  const item = nativeRangedItems.get(host)?.get(slot);
+  if (item === undefined || host.scope.disposed) throw new Error(`Native ranged slot is not installed: ${slot}`);
+  return item;
+}
 /** Data-only installation onto the existing native host. Ranged policies retain the legacy independent save owners;
  * swept policies consume the same frame and synchronously ask the world's existing reaction owner. */
 export function installNativeItems(host: SimHost, frame: NativeCombatFrame, row: { readonly kind: 'bolt'; readonly policy: unknown; readonly profile: unknown }): NativeBoltItem;
@@ -322,9 +333,14 @@ export function installNativeItems(host: SimHost, frame: NativeCombatFrame, inpu
     staggered: (actor, strength, running) => { host.events.ask('item.reaction', { kind: 'stagger', actor, strength, running }); },
   });
   const row = v.parse(NativeRangedRowSchema, input.policy);
-  if (input.kind === 'bow') return bowItem(host, frame, row, input.profile);
-  if (input.kind === 'cycle') return cycleItem(host, frame, row, input.profile);
-  return boltItem(host, frame, row, input.profile);
+  let entries = nativeRangedItems.get(host);
+  if (entries === undefined) { entries = new Map(); nativeRangedItems.set(host, entries); host.scope.onDispose(() => { nativeRangedItems.delete(host); }); }
+  if (entries.has(row.slot)) throw new Error(`Native ranged slot is already installed: ${row.slot}`);
+  const installed: NativeRangedItem = input.kind === 'bow' ? { kind: 'bow', item: bowItem(host, frame, row, input.profile), frame }
+    : input.kind === 'cycle' ? { kind: 'cycle', item: cycleItem(host, frame, row, input.profile), frame }
+    : { kind: 'bolt', item: boltItem(host, frame, row, input.profile), frame };
+  entries.set(row.slot, installed);
+  return installed.item;
 }
 
 /** Resolve admitted equipment metadata without factories, callbacks or a second state owner.

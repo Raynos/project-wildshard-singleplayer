@@ -1,11 +1,17 @@
-import { expect, expectTypeOf, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the installed native families on shipped Rapier bytes.
+import { readFileSync } from 'node:fs';
+import { createSimHost } from '../src/engine/sim';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { HOST_PROBE } from '../src/game/plugin/simulation';
+import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
+import { parseItems } from '../src/format/items';
+import itemRows from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { AmmoPouch } from '../src/game/loadout/pouch';
 import { NativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
 import { loadoutLegacySlot } from '../src/game/loadout/persistence';
-import { restoreHeldOwnership, type HeldOwnership, type HeldInventory } from '../src/game/loadout/held';
-import type { Owned } from '../src/game/loot/Owned';
-import type { Inventory } from '../src/game/Inventory';
+import { restoreHeldOwnership } from '../src/game/loadout/held';
 import { SaveStore } from '../src/engine/saves/store';
 import { LoadoutSchema } from '../src/format/loadout';
 import pineRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
@@ -23,8 +29,6 @@ test('harbour rows cycle unrelated ammunition and retain the selected live stack
 });
 
 test('existing v1 Pine loadout saves continue with the exact ABI and owned flags', () => {
-  expectTypeOf<Owned>().toExtend<HeldOwnership>();
-  expectTypeOf<Inventory>().toExtend<HeldInventory>();
   const rows = v.parse(LoadoutSchema, pineRows), documents = new Map<string, string>();
   const local = { get length() { return documents.size; }, key: (index: number) => [...documents.keys()][index] ?? null,
     getItem: (key: string) => documents.get(key) ?? null, setItem: (key: string, value: string) => { documents.set(key, value); },
@@ -41,11 +45,8 @@ test('existing v1 Pine loadout saves continue with the exact ABI and owned flags
   expect(loadoutLegacySlot(rows, resumed)).toBe(slot);
   slot.write({ ...legacy, pitch: 8, rounds: 39 }, 'pine-hollow');
   expect(slot.read('pine-hollow')).toEqual({ ...legacy, pitch: 8, rounds: 39 });
-  const owned = new Set(['lever-rifle']);
-  expect(restoreHeldOwnership({ had: id => id === 'warden-longbow' }, {
-    grant: id => { owned.add(id); }, has: id => owned.has(id),
-  }, rows)).toEqual({ bow: true, rifle: true });
-  expect(owned.has('warden-longbow')).toBe(true);
+  expect(restoreHeldOwnership(['warden-longbow'], ['lever-rifle'], rows))
+    .toEqual({ bow: true, rifle: true, grants: ['warden-longbow'] });
 });
 
 test('another shard declares independent save fields and ownership identities', () => {
@@ -58,22 +59,41 @@ test('another shard declares independent save fields and ownership identities', 
   const slot = loadoutLegacySlot(rows, new SaveStore({ local: null, session: null }));
   slot.write({ flare: 5, canisters: 9, lines: 2 }, 'fixture-harbour');
   expect(slot.read('fixture-harbour')).toEqual({ flare: 5, canisters: 9, lines: 2 });
-  const owned = new Set(['deck-gun']);
-  expect(restoreHeldOwnership({ had: id => id === 'old-sea-bow' }, {
-    grant: id => { owned.add(id); }, has: id => owned.has(id),
-  }, rows)).toEqual({ bow: true, rifle: true });
+  expect(restoreHeldOwnership(['old-sea-bow'], ['deck-gun'], rows))
+    .toEqual({ bow: true, rifle: true, grants: ['sea-bow'] });
 });
 
-test('harbour native ammunition keeps swaps, caps, fallback and atomic continuation', () => {
+test('harbour native ammunition keeps swaps, caps, fallback and atomic continuation', async () => {
   const rows = { ...pineRows, pouch: { kinds: ['harpoon', 'flare'], fallback: 'harpoon', capacity: 12 },
     firearm: { ...pineRows.firearm, ammo: 'canister' }, bow: { ...pineRows.bow, ammo: 'line' } };
-  const crossbow = { state: { quiver: 12, loaded: true, reloading: false }, addBolts: (n: number) => { crossbow.state.quiver = Math.min(12, crossbow.state.quiver + n); } };
-  const ports = { crossbow, lever: { act: { rounds: 1 }, store: { reserve: 3 } }, longbow: { state: { arrows: 2 } } };
-  const ammunition = new NativeHeldAmmunition(ports, rows, 6);
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const host = createSimHost({ version: 1, id: 'harbour-ammunition', seed: 7, ground: { size: 20, height: 0 },
+    player: { at: { x: 0, y: 1, z: 0 }, yaw: 0, speed: 5 }, weapon: HOST_PROBE, entities: [], quests: [] }, { rapier });
+  const frame = createNativeCombatFrame(), items = parseItems(itemRows);
+  let crossbowState: { quiver: number; loaded: boolean; reloading: boolean } | undefined;
+  for (const item of items.rows) {
+    if (item.kind !== 'weapon' || item.ranged === undefined) continue;
+    item.ranged.defaultAmmo = 'harpoon';
+    item.ranged.ammunition = item.ranged.ammunition.slice(0, 2).map((ammo, index) => Object.assign(ammo, { id: index === 0 ? 'harpoon' : 'flare' }));
+    if (item.profile?.family === 'bow') {
+      item.profile.quiver = 6;
+      const bow = installNativeItems(host, frame, { kind: 'bow', policy: item.ranged, profile: item.profile }); bow.state.arrows = 2;
+    } else if (item.profile?.family === 'firearm' && item.profile.action === 'lever') {
+      item.profile.magazine = 1; item.profile.reserve = 3;
+      installNativeItems(host, frame, { kind: 'cycle', policy: item.ranged, profile: item.profile });
+    } else {
+      const bolt = installNativeItems(host, frame, { kind: 'bolt', policy: item.ranged, profile: item.profile }); crossbowState = bolt.state;
+      bolt.state.quiver = 12;
+    }
+  }
+  if (crossbowState === undefined) throw new Error('Missing native harbour launcher');
+  const crossbow = { state: crossbowState };
+  const ammunition = new NativeHeldAmmunition(host, rows, items);
+  try {
   ammunition.add('flare', 5); ammunition.loadKind('flare'); expect(crossbow.state.quiver).toBe(5);
   expect(crossbow.state.loaded).toBe(true); expect(ammunition.changed).toBe(true);
   const saved = ammunition.snapshot();
-  const resumed = new NativeHeldAmmunition(ports, rows, 6), commit = resumed.prepareRestore(saved);
+  const resumed = new NativeHeldAmmunition(host, rows, items), commit = resumed.prepareRestore(saved);
   expect(resumed.selected).toBe('harpoon'); commit(); expect(resumed.snapshot()).toEqual(saved);
   expect(() => resumed.prepareRestore({ ...saved, flare: 4 })).toThrow(); expect(resumed.snapshot()).toEqual(saved);
   expect(() => resumed.prepareRestore({ ...saved, harpoon: 13 })).toThrow(); expect(resumed.snapshot()).toEqual(saved);
@@ -82,4 +102,5 @@ test('harbour native ammunition keeps swaps, caps, fallback and atomic continuat
   crossbow.state.quiver = 0; crossbow.state.loaded = false; resumed.update();
   expect(resumed.selected).toBe('harpoon'); expect(crossbow.state.quiver).toBe(12);
   expect(crossbow.state.loaded).toBe(false);
+  } finally { host.dispose(); }
 });

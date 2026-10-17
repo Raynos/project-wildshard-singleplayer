@@ -1,3 +1,4 @@
+import { DAY_LIGHT } from './toonLook';
 // SHARD-PLATFORM M3 (look-family rows): Driftwood's castaway arms (E334, Jake's picks 2026-09-30: board 2 A "castaway",
 // board 3 A "breaststroke") as a toon-arms row (game/systems/viewmodel/toonArms.ts); fpArms.ts passes it. The arms wear the
 // graph toon look (FP_ARMS_GRAPHS, the shardfile's look.materials, compiled by the kit hook: runtime/index.ts).
@@ -6,9 +7,11 @@
 /** the look.materials ids the arms, the two swords and the swimming arms wear */
 export const FP_ARMS_MATERIALS = { arms: 'driftwood-fp-arms', wood: 'driftwood-fp-wood', iron: 'driftwood-fp-iron', swim: 'driftwood-fp-swim', pickupBlade: 'driftwood-pickup-blade', pickupFittings: 'driftwood-pickup-fittings' } as const;
 
+
 export const FP_ARMS_LOOK = {
   url: '/assets/models/driftwood-fp/fp-arms.glb',
   skeleton: 'driftwood-fp',
+  lighting: { id: 'driftwood.day-light', initial: DAY_LIGHT },
   sockets: ['R_weapon', 'L_hand'],
   // bake.mjs keeps Nine Dragon's round-13 skeleton and adds 15 finger bones a hand
   joints: { sides: ['R', 'L'], arm: ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'], fingers: ['thumb', 'index', 'middle', 'ring', 'pinky'], phalanges: 3 },

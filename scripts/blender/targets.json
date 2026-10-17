@@ -124,7 +124,7 @@
    "build": ["hi/lever-rifle.glb", "lo/lever-rifle.glb"],
    "meshopt": [["hi/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.glb"], ["lo/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"]],
    "outputs": ["public/assets/pine-hollow/weapons/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"],
-   "feeds": ["src/shards/pine-hollow/runtime/weapons/LeverRifle.ts"]
+   "feeds": ["src/shards/pine-hollow/data/heldGear.json"]
   },
   "pine-hollow/skinning-knife": {
    "about": "The first-person skinning knife in a gloved hand, hi + lo, one mesh, one material, plus its sidecar points",
@@ -138,7 +138,7 @@
    "meshopt": [["hi/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.glb"], ["lo/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb"]],
    "post": "src/shards/pine-hollow/blender/weapons/knife-post.sh",
    "outputs": ["public/assets/pine-hollow/weapons/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb", "public/assets/pine-hollow/weapons/skinning-knife.json"],
-   "feeds": ["src/shards/pine-hollow/runtime/models/skinningKnife.ts"]
+   "feeds": ["src/shards/pine-hollow/data/heldGear.json"]
   },
   "nine-dragon-stack/fp-rig": {
    "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169); its rig-bake step ran in the deleted dev lab (E357 F7); a rebuild needs a new bake path",
