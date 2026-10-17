@@ -10,6 +10,24 @@ import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle' | 'collie' | 'ghost-horse' | 'golden-king';
 export const CREATURE_RIGS: readonly CreatureRigName[] = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
 
+/** which rigged hull each `kind:variant` wears; every coat wears its hull, recoloured (generators/coats.ts) */
+export const CREATURE_HULLS: Readonly<Record<string, CreatureRigName>> = {
+  'horse:bay': 'horse-wild', 'horse:chestnut': 'horse-wild', 'horse:dun': 'horse-wild', 'horse:grey': 'horse-wild',
+  'horse:black': 'horse-wild', 'horse:foal-bay': 'horse-wild', 'horse:foal-chestnut': 'horse-wild', 'horse:stallion': 'horse-wild',
+  'argymaq:stallion': 'horse-wild',
+  'horse:camp-bay': 'horse-saddled', 'horse:camp-black': 'horse-saddled', 'horse:tulpar': 'horse-saddled',
+  'wolf:grey': 'wolf', 'wolf:tawny': 'wolf', 'wolf:dark': 'wolf', 'wolf:scout': 'wolf', 'wolf:alpha': 'wolf',
+  'kokbori:kokbori': 'wolf',
+  'leopard:aqbars': 'snow-leopard',
+  'eagle:qyran': 'eagle',
+  // NALATI-MERGE D1 (N12's leftovers, each made both ways and the better kept: art/nalati-grasslands/round-10-models-merge/):
+  // the collie its own hull (on the wolf's it read as a wolf circling the flock), the night riders' spectral war horse
+  // (ghostRiders.ts puts its ghost material over it), the Golden King on his humanoid rig (humanoidRigBake.ts)
+  'sheepdog:collie': 'collie',
+  'ghost-rider:rider': 'ghost-horse', 'ghost-rider:captain': 'ghost-horse',
+  'golden-king:king': 'golden-king',
+};
+
 /** the file `loadCreatureRig(name)` fetches on this tier: `<hull>[.phone].rigged.glb` */
 export function creatureRigUrl(name: CreatureRigName): string {
   return `/assets/nalati/models/${name}${TIER === 'phone' ? '.phone' : ''}.rigged.glb`;

@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { SabreWeapon } from '../runtime/weapons/mountedSword';
 import { horseBones } from '../species/horse';
-import { skyMarkedAtlas } from '../species/coats';
 
 import { nalatiSkinsSave as savedSlot } from './saves';
 
@@ -197,4 +196,107 @@ function skyMarked(g: THREE.BufferGeometry, head: number): boolean {
   }
   col.needsUpdate = true;
   return n > 0;
+}
+
+// ── the Sky-Marked Saddle on a rigged hull: its atlas repainted ──
+const LUT_N = 4096;
+const toSrgb = new Uint8ClampedArray(LUT_N + 1).map((_, i) => { const c = i / LUT_N; return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)); });
+const hueOf = (r: number, g: number, b: number): number => {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (d <= 1e-6) return 0;
+  const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return ((h * 60) + 360) % 360;
+};
+
+/** per source atlas, its sky-marked repaint */
+const skyCache = new WeakMap<THREE.Texture, THREE.Texture>();
+
+/** an atlas's pixels on a canvas (null when the image can't be read) */
+function readAtlas(map: THREE.Texture): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; data: ImageData } | null {
+  const img = map.image as CanvasImageSource & { width: number; height: number } | null;
+  if (!img || typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width; canvas.height = img.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.drawImage(img, 0, 0);
+  return { canvas, ctx, data: ctx.getImageData(0, 0, img.width, img.height) };
+}
+
+/**
+ * The Sky-Marked Saddle on a rigged hull: the red felt of the saddle cloth repainted from deep blue to white by its
+ * brightness, as the painter does to the procedural blanket's vertex colours. Cached per source atlas.
+ *
+ * By hue alone only the cloth's brightest trim changed (NALATI-FINISH B2, E302: "the saddle skin repaints only the
+ * trim"): the generated atlas paints the cloth a brick red (≈ 5–16°) that runs into the bay coat's orange-brown (≈ 16–25°).
+ * With the hull's `geometry` the texels of the triangles under the saddle (the middle of the back, down the flanks to the
+ * girth — `SADDLE_ZONE`, in the bind pose's box) are masked in uv space, and inside that mask every red-to-rust texel is
+ * felt and the cream ornament goes white; outside it only the saturated brick red (the tassels) is.
+ */
+function skyMarkedAtlas(map: THREE.Texture, blue: THREE.Color, white: THREE.Color, geometry?: THREE.BufferGeometry): THREE.Texture {
+  const hit = skyCache.get(map);
+  if (hit) return hit;
+  const a = readAtlas(map);
+  if (!a) return map;
+  const W = a.canvas.width, H = a.canvas.height;
+  const zone = geometry ? saddleMask(geometry, W, H, map.flipY) : null;
+  const px = a.data.data;
+  const c = new THREE.Color();
+  for (let o = 0; o < px.length; o += 4) {
+    const R = (px[o] ?? 0) / 255, G = (px[o + 1] ?? 0) / 255, B = (px[o + 2] ?? 0) / 255;
+    const mx = Math.max(R, G, B), mn = Math.min(R, G, B), sat = mx > 0 ? 1 - mn / mx : 0;
+    const inZone = zone !== null && (zone[o >> 2] ?? 0) > 0;
+    let w: number, k: number;
+    if (inZone && sat < 0.32 && mx > 0.62) { w = 0.9; k = 1; }                       // the cream ornament → white felt
+    else {
+      if (mx - mn < 0.05) continue;
+      let dh = hueOf(R, G, B); if (dh > 180) dh -= 360;                              // −180 … 180, red at 0
+      w = inZone
+        ? (1 - THREE.MathUtils.smoothstep(dh, 15, 19)) * THREE.MathUtils.smoothstep(dh, -30, -20) * THREE.MathUtils.smoothstep(sat, 0.36, 0.46) * THREE.MathUtils.smoothstep(mx, 0.14, 0.24)
+        : (1 - THREE.MathUtils.smoothstep(Math.abs(dh - 4), 9, 13)) * THREE.MathUtils.smoothstep(sat, 0.5, 0.6) * THREE.MathUtils.smoothstep(mx, 0.3, 0.45);
+      if (w <= 0) continue;
+      // the felt: deep blue in the cloth's body, white only in its highlights (the ornament above is white) — inside the
+      // saddle zone the whole cloth changes, so it may lean blue; the tassels outside keep the old ramp
+      k = inZone ? Math.min(1, Math.max(0, (mx - 0.34) / 0.5)) : Math.min(1, Math.max(0, (mx - 0.2) / 0.5));
+    }
+    c.copy(blue).lerp(white, k * k * (3 - 2 * k));
+    const tr = toSrgb[Math.round(Math.min(1, c.r) * LUT_N)] ?? 0, tg = toSrgb[Math.round(Math.min(1, c.g) * LUT_N)] ?? 0, tb = toSrgb[Math.round(Math.min(1, c.b) * LUT_N)] ?? 0;
+    px[o] = (px[o] ?? 0) + (tr - (px[o] ?? 0)) * w; px[o + 1] = (px[o + 1] ?? 0) + (tg - (px[o + 1] ?? 0)) * w; px[o + 2] = (px[o + 2] ?? 0) + (tb - (px[o + 2] ?? 0)) * w;
+  }
+  a.ctx.putImageData(a.data, 0, 0);
+  const tex = new THREE.CanvasTexture(a.canvas);
+  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
+  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT; tex.name = `${map.name}:sky-marked`;
+  skyCache.set(map, tex);
+  return tex;
+}
+
+/** where the saddle cloth sits, as fractions of the hull's bind-pose box (the horse faces +z): the middle of the back
+ *  and the flanks down to the girth, clear of the neck and the quarters */
+const SADDLE_ZONE = { y0: 0.4, y1: 0.86, z0: 0.3, z1: 0.62 };
+/** a uv-space mask (one byte per texel, > 0 inside) of the triangles whose centroid lies in SADDLE_ZONE */
+function saddleMask(g: THREE.BufferGeometry, W: number, H: number, flipY: boolean): Uint8ClampedArray | null {
+  const pos = g.getAttribute('position'), uv = g.getAttribute('uv');   // (a GLB's are often interleaved)
+  if (!(pos instanceof THREE.BufferAttribute || pos instanceof THREE.InterleavedBufferAttribute) || !(uv instanceof THREE.BufferAttribute || uv instanceof THREE.InterleavedBufferAttribute)) return null;
+  if (!g.boundingBox) g.computeBoundingBox();
+  const bb = g.boundingBox;
+  if (!bb) return null;
+  const sy = bb.max.y - bb.min.y, sz = bb.max.z - bb.min.z;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;   // (the stroke closes the gutters between the fills)
+  const idx = g.getIndex(), n = idx ? idx.count : pos.count;
+  const at = (i: number): number => (idx ? idx.getX(i) : i);
+  const U = (i: number): number => uv.getX(i) * W, V = (i: number): number => (flipY ? 1 - uv.getY(i) : uv.getY(i)) * H;
+  for (let t = 0; t + 2 < n; t += 3) {
+    const a = at(t), b = at(t + 1), c = at(t + 2);
+    const fy = ((pos.getY(a) + pos.getY(b) + pos.getY(c)) / 3 - bb.min.y) / sy, fz = ((pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3 - bb.min.z) / sz;
+    if (fy < SADDLE_ZONE.y0 || fy > SADDLE_ZONE.y1 || fz < SADDLE_ZONE.z0 || fz > SADDLE_ZONE.z1) continue;
+    ctx.beginPath(); ctx.moveTo(U(a), V(a)); ctx.lineTo(U(b), V(b)); ctx.lineTo(U(c), V(c)); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  const d = ctx.getImageData(0, 0, W, H).data, out = new Uint8ClampedArray(W * H);
+  for (let i = 0; i < out.length; i++) out[i] = d[i * 4] ?? 0;
+  return out;
 }

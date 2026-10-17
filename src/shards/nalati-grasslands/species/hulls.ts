@@ -3,8 +3,7 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { fetchImage, tierUrl } from '@wildshard/engine/boot/bytes';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
-import { TIER } from '@wildshard/engine/core/tier';
-import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
@@ -23,41 +22,19 @@ import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/ent
  * The hull's coat comes from the atlas; vertex colours are white (the per-animal tint still multiplies via `color`).
  * Which variants swap: only those whose coat the hull shows (the dun wild horse, the camp bay, the grey / tawny /
  * young wolves) — a hull can't be recoloured into a chestnut or a black horse.
- * The recoloured coats come baked (scripts/bake-coats.mjs --shard=nalati-grasslands: coats.ts paintCoat's own canvas per
- * tier, lossless, with a KTX2 stand-in): each rig adopts its coats as it loads, so entry paints none (SHARD-PLATFORM
- * G226). A coat with no bake is painted on first use, as before.
+ * The recoloured coats are painted offline (generators/coats.ts through scripts/bake-coats.mjs, per tier, lossless, with
+ * a KTX2 stand-in): each rig adopts its coats as it loads, so entry paints none (SHARD-PLATFORM G226). A variant with no
+ * coat file wears the hull's own atlas.
  */
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { creatureRigUrl, nalatiCoatUrl, type CreatureRigName } from './rigs';
+import { CREATURE_HULLS, creatureRigUrl, nalatiCoatUrl, type CreatureRigName } from './rigs';
 import { modelsOn } from '../world/modelView';
-
-import { adoptCoat, coatAtlas, HULL_COATS, isOwnCoat, paintCoat } from './coats';
-
-/** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
-
-const HULL: Readonly<Record<string, CreatureRigName>> = {
-  // every coat wears its hull, recoloured (creatureCoats.ts)
-  'horse:bay': 'horse-wild', 'horse:chestnut': 'horse-wild', 'horse:dun': 'horse-wild', 'horse:grey': 'horse-wild',
-  'horse:black': 'horse-wild', 'horse:foal-bay': 'horse-wild', 'horse:foal-chestnut': 'horse-wild', 'horse:stallion': 'horse-wild',
-  'argymaq:stallion': 'horse-wild',
-  'horse:camp-bay': 'horse-saddled', 'horse:camp-black': 'horse-saddled', 'horse:tulpar': 'horse-saddled',
-  'wolf:grey': 'wolf', 'wolf:tawny': 'wolf', 'wolf:dark': 'wolf', 'wolf:scout': 'wolf', 'wolf:alpha': 'wolf',
-  'kokbori:kokbori': 'wolf',
-  'leopard:aqbars': 'snow-leopard',
-  'eagle:qyran': 'eagle',
-  // NALATI-MERGE D1 (N12's leftovers, each made both ways and the better kept: art/nalati-grasslands/round-10-models-merge/):
-  // the collie its own hull (on the wolf's it read as a wolf circling the flock), the night riders' spectral war horse
-  // (ghostRiders.ts puts its ghost material over it), the Golden King on his humanoid rig (humanoidRigBake.ts)
-  'sheepdog:collie': 'collie',
-  'ghost-rider:rider': 'ghost-horse', 'ghost-rider:captain': 'ghost-horse',
-  'golden-king:king': 'golden-king',
-};
 
 /** the rig for (kind, variant) when the creature models are on, else null */
 export function creatureHull(kind: string, variant: string): CreatureRigName | null {
   if (!modelsOn('creatures')) return null;
-  return HULL[`${kind}:${variant}`] ?? null;
+  return CREATURE_HULLS[`${kind}:${variant}`] ?? null;
 }
 
 export interface SkinnedHull {
@@ -85,15 +62,9 @@ function jointsMatch(rig: RigAsset, bones: readonly BoneDef[]): boolean {
   return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
 }
 
-/** the (kind, variant) pairs that wear rig `name` when it has coats (coats.ts HULL_COATS); the bake holds those whose coat repaints the atlas */
+/** the (kind, variant) pairs that wear rig `name`; the bake holds those whose coat repaints the atlas */
 function coatVariants(name: CreatureRigName): [string, string][] {
-  if (HULL_COATS[name] === undefined) return [];
-  return Object.entries(HULL).filter(([, hull]) => hull === name).map(([kv]): [string, string] => { const [kind = '', variant = ''] = kv.split(':'); return [kind, variant]; });
-}
-
-/** the variant when its kind is registered (an elite kind is derived later), else null */
-function knownVariant(kind: string, variant: string): VariantDef | null {
-  try { return variantDef(kind, variant); } catch { return null; }
+  return Object.entries(CREATURE_HULLS).filter(([, hull]) => hull === name).map(([kv]): [string, string] => { const [kind = '', variant = ''] = kv.split(':'); return [kind, variant]; });
 }
 
 /**
@@ -114,6 +85,8 @@ export async function loadBakedCoat(url: string): Promise<THREE.Texture | null> 
 export class CreatureRigs {
   private readonly loading = new Map<CreatureRigName, Promise<RigAsset>>();
   private readonly ready = new Map<CreatureRigName, RigAsset>();
+  /** the adopted coats, by `<hull>:<kind>:<variant>` */
+  private readonly coats = new Map<string, THREE.Texture>();
   private preloaded: Promise<void> | null = null;
   private readonly loadFile: (url: string) => Promise<GLTF>;
   private readonly loadCoat: (url: string) => Promise<THREE.Texture | null>;
@@ -170,8 +143,8 @@ export class CreatureRigs {
 }
 
   /**
-   * The baked coats of rig `name` (scripts/bake-coats.mjs), adopted under `coatAtlas`'s keys with the hull map's sampling.
-   * A coat with no file (its hull's own coat, or not baked) or whose load fails stays as before (painted on first use).
+   * The baked coats of rig `name` (scripts/bake-coats.mjs), adopted with the hull map's sampling. A coat with no file (its
+   * hull's own coat) or whose load fails wears the hull's own atlas.
    */
   private async adoptCoats(name: CreatureRigName, rig: RigAsset): Promise<void> {
     const map = rig.map;
@@ -182,37 +155,19 @@ export class CreatureRigs {
       tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
       tex.wrapS = map.wrapS; tex.wrapT = map.wrapT; tex.name = `${map.name}:${name}:${kind}:${variant}`;
       tex.needsUpdate = true;
+      const key = `${name}:${kind}:${variant}`;
       cacheUntilDisposed(tex, () => {
+        if (this.coats.get(key) === tex) this.coats.delete(key);
         if (this.ready.get(name) === rig) { this.ready.delete(name); this.loading.delete(name); this.preloaded = null; }
       });
-      adoptCoat(`${name}:${kind}:${variant}`, retainCachedResources(tex));
+      this.coats.set(key, retainCachedResources(tex));
     }));
-  }
-
-  /**
-   * The bake's source (scripts/bake-coats.mjs, through the `harness.shard.nalati-grasslands` capture handle's `coats`):
-   * every coat that repaints a loaded hull, painted fresh by `paintCoat` (never the adopted bake), as a lossless PNG data
-   * URL keyed by its coat file for this tier. A kind not registered yet (an elite derived later) is not baked.
-   */
-  coatSources(): { url: string; png: string }[] {
-    const out: { url: string; png: string }[] = [];
-    for (const [name, rig] of this.ready) {
-      const spec = HULL_COATS[name];
-      if (spec === undefined || rig.map === null) continue;
-      for (const [kind, variant] of coatVariants(name)) {
-        const v = knownVariant(kind, variant);
-        if (v === null || isOwnCoat(spec, v.tint)) continue;
-        const canvas = paintCoat(spec, rig.geometry, rig.map, v.tint);
-        if (canvas !== null) out.push({ url: TIER === 'phone' ? nalatiCoatUrl(name, kind, variant).replace(/\.webp$/u, '.phone.webp') : nalatiCoatUrl(name, kind, variant), png: canvas.toDataURL('image/png') });
-      }
-    }
-    return out;
   }
 
   /** every rig, behind the loading screen (a failed one warns; its creatures stay procedural) */
   preload(): Promise<void> {
   if (!modelsOn('creatures')) return Promise.resolve();
-  this.preloaded ??= Promise.all([...new Set(Object.values(HULL))].map((n) => this.load(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); }))).then(() => undefined);
+  this.preloaded ??= Promise.all([...new Set(Object.values(CREATURE_HULLS))].map((n) => this.load(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); }))).then(() => undefined);
   return this.preloaded;
   }
 
@@ -227,8 +182,7 @@ export class CreatureRigs {
   if (!rig) return null;
   if (!jointsMatch(rig, bones)) { console.warn(`[nalati] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-run scripts/nalati-rig-bake.mjs`); return null; }
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
-  const coat = HULL_COATS[name];
-  const map = coat && rig.map ? coatAtlas(`${name}:${kind}:${variant}`, coat, rig.geometry, rig.map, variantDef(kind, variant).tint) : rig.map;
+  const map = this.coats.get(`${name}:${kind}:${variant}`) ?? rig.map;
   return { geometry: rig.geometry, map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
 }
 }
