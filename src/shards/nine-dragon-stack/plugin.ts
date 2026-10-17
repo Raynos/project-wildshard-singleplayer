@@ -16,7 +16,7 @@ import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { bindNineItems } from './runtime/items';
 import { bindNineFacts } from './runtime/facts';
-import { STRINGS } from './strings';
+import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { playerRider, type PortalRide } from './world/portalRide';
 import { installPortals } from './world/portalVeil';
 import { entryCapsFor } from './world/entries';
@@ -105,7 +105,7 @@ export class NdPlugin extends ShardPlugin {
   }
   override async world(ctx: ShardContext): Promise<void> {
     const scope = ctx.scope; installNineGeometry(scope);
-    ctx.strings(STRINGS);
+    ctx.strings(bootMetadata.strings);
     ctx.playground(GRAPPLE_PLAYGROUND);
     this.shell = ctx.game.runtime;
     // the player stands on the road-height decks at the cell's edges as well as on the fragment: the whole cell is in

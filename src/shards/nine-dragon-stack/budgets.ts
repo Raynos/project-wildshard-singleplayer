@@ -1,4 +1,4 @@
-import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
+import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 
 /** E357 S1.6 allocation inputs; all count targets rederive after a stable M5 calibration. */

@@ -1,5 +1,6 @@
 import { bootSources } from './bootFiles.ts';
 import manifest from '../data/manifest.json' with { type: 'json' };
+import strings from '../data/strings.json' with { type: 'json' };
 import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
 import samples from '../data/audioSamples.json' with { type: 'json' };
@@ -37,5 +38,5 @@ const sources = { modes: {
   desktop: { img: resolveMode('desktop', 'img'), ktx2: resolveMode('desktop', 'ktx2') },
 } };
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
-writer.put(resolve(root, 'src/shards/nine-dragon-stack/bootMetadata.generated.json'), jsonBytes({ sources, manifest, ceilings, runtimeCost, samples }));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest, ceilings, runtimeCost, samples, strings }));
 writer.finish();

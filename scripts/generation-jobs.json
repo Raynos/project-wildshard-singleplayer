@@ -16306,13 +16306,14 @@
         "public/assets/baked/nine-dragon-stack",
         "src/shards/nine-dragon-stack/data/budgetCeilings.json",
         "src/shards/nine-dragon-stack/data/runtimeCost.json",
-        "src/shards/nine-dragon-stack/data/audioSamples.json"
+        "src/shards/nine-dragon-stack/data/audioSamples.json",
+        "src/shards/nine-dragon-stack/data/strings.json"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/bootMetadata.generated.json"
+        "src/shards/nine-dragon-stack/boot/metadata.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/bootMetadata.generated.json"
+        "src/shards/nine-dragon-stack/boot/metadata.generated.json"
       ],
       "platform": "portable"
     },

@@ -1,5 +1,5 @@
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import bootMetadata from './bootMetadata.generated.json' with { type: 'json' };
+import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import exploreGrapple from './explore/playground-grapple.webp';
 import { JIAN_ROW } from './vm/jianRow';
 import exploreWorld from './explore/world-nine-dragon-stack.webp';
