@@ -6,7 +6,10 @@ import { TIER } from '@wildshard/engine/core/tier';
  * a towering giant of DARK cumulus with lightning veins crawling over him and a glowing spiral heart, and the phase-3
  * grass fire as rolling flame fronts under columns of smoke. Visuals only — stormTitan.ts keeps every rule of the fight.
  *
- *   patchTitanCloud(shader)   the body's cloud program (on its MeshBasic puffs, chained after Atmosphere's hook): the unit
+ * Both draw on look.materials graphs (data/lookGraphs.json `nalati-titan-cloud`, `-flame`, `-smoke`, authored as data;
+ * the noise is the old tH3 value noise and its 3-octave fbm, node for node):
+ *
+ *   titanCloudMaterial()      the body's cloud (on its instanced puffs, each puff's albedo in `aAlbedo`): the unit
  *                             puff is displaced into cauliflower lumps by 3D noise, its normal bumped by world noise, lit
  *                             as a storm cloud (near-black crevices, slate body, silver crowns), the heart's spiral glow
  *                             in the cloud round it, and lightning veins — ridged world noise, flickering in patches,
@@ -19,72 +22,65 @@ import { TIER } from '@wildshard/engine/core/tier';
  * No billboards: the tongues and the smoke are 3D meshes seen from any side (the user's look rule 1).
  */
 import * as THREE from 'three';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { STORM_TITAN_GLSL } from '../runtime/looks/stormTitanGlsl';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 
-/** the GLSL below is trusted custom code (runtime/looks/stormTitanGlsl.ts); `@{name}` splices the fragments this module passes */
-const STORM_TITAN_GLSL_FAMILY = new ShaderFamily(STORM_TITAN_GLSL, {});
-
+/** the look.materials graphs (data/lookGraphs.json, lent by runtime/index.ts): the body's cloud, the flames, the smoke */
+const CLOUD = 'nalati-titan-cloud', FLAME = 'nalati-titan-flame', SMOKE = 'nalati-titan-smoke';
 
 const PHONE = TIER === 'phone';
 
-/** GLSL (every pow() base here is clamped: a base a hair below 0 is NaN, and the desktop bloom smears one NaN over the whole frame): 3D value noise + a 3-octave fbm (the cloud, the veins, the flames, the smoke share it) */
-export const TITAN_NOISE_GLSL = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.TITAN_NOISE_GLSL);
+/** the cloud's live inputs (the fight writes them; `syncTitanCloud` hands them to the graph once a frame) */
+export interface TitanCloudUniforms {
+  uT: { value: number }; uHeart: { value: THREE.Vector3 }; uGlow: { value: number }; uFlash: { value: number };
+  uAlpha: { value: number }; uFogC: { value: THREE.Color }; uFog: { value: number };
+}
 
-/** the body's cloud program: call inside the puff material's onBeforeCompile, after the chained base hook */
-export function patchTitanCloud(sh: { vertexShader: string; fragmentShader: string }): void {
-  sh.vertexShader = sh.vertexShader
-    .replace('#include <common>', `#include <common>\nuniform float uT;\nvarying vec3 vGW;\nvarying vec3 vGN;\n${TITAN_NOISE_GLSL}`)
-    .replace('#include <begin_vertex>', STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.beginVertex))
-    .replace('#include <project_vertex>', STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.projectVertex));
-  sh.fragmentShader = sh.fragmentShader
-    .replace('#include <common>', STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.fragmentCommon))
-    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-      // a dithered fade (his pale kneel, his dissolve into rain): opaque and depth-correct, no sorting
-      if (uAlpha < 0.995 && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) > uAlpha) discard;`)
-    .replace('#include <dithering_fragment>', STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.ditheringFragment));
+/** the body's cloud look; each puff's albedo (how exposed it is: the core of him is dark) rides the `aAlbedo` instance attribute */
+export function titanCloudMaterial(): THREE.Material { return lentLook(CLOUD); }
+
+/** the puffs' albedo attribute (per instance, linear) on `geo` */
+export function setTitanAlbedo(geo: THREE.BufferGeometry, colours: readonly (readonly [number, number, number])[]): void {
+  geo.setAttribute('aAlbedo', new THREE.InstancedBufferAttribute(new Float32Array(colours.flat()), 3));
+}
+
+/** the cloud's params from the fight's live values */
+export function syncTitanCloud(u: TitanCloudUniforms): void {
+  const h = u.uHeart.value, c = u.uFogC.value;
+  setLentParam(CLOUD, 't', u.uT.value); setLentParam(CLOUD, 'heart', [h.x, h.y, h.z]); setLentParam(CLOUD, 'glow', u.uGlow.value);
+  setLentParam(CLOUD, 'flash', u.uFlash.value); setLentParam(CLOUD, 'alpha', u.uAlpha.value);
+  setLentParam(CLOUD, 'fogC', [c.r, c.g, c.b]); setLentParam(CLOUD, 'fog', u.uFog.value);
 }
 
 // ── the grass fire ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-const FLAME_VS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.FLAME_VS);
-
-const FLAME_FS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.FLAME_FS);
-
-const SMOKE_VS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.SMOKE_VS);
-
-const SMOKE_FS = STORM_TITAN_GLSL_FAMILY.glsl(STORM_TITAN_GLSL.SMOKE_FS);
-
 interface SmokeP { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; r0: number; r1: number; glow: number; seed: number; on: boolean }
 
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color(), _y = new THREE.Vector3(0, 1, 0);
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 
 /** the phase-3 fire's flames and smoke; the fight feeds it the burning cells each frame */
 export class GrassFireFx {
   readonly flames: THREE.InstancedMesh;
   readonly smoke: THREE.InstancedMesh;
-  private readonly flameUni = { uT: { value: 0 }, uWind: { value: new THREE.Vector2() } };
-  private readonly smokeUni: { uT: { value: number }; uFogC: { value: THREE.Color }; uFlash: { value: number } };
+  private readonly flameData: THREE.InstancedBufferAttribute;
+  private readonly smokeData: THREE.InstancedBufferAttribute;
+  private readonly wind = new THREE.Vector2();
   private readonly pool: SmokeP[] = [];
   private n = 0;
   private next = 0;
 
-  constructor(scene: THREE.Scene, maxFlames: number, fogC: { value: THREE.Color }, flash: { value: number }, flames: unknown) {
-    const fm = new THREE.ShaderMaterial({
-      uniforms: this.flameUni, vertexShader: FLAME_VS, fragmentShader: FLAME_FS,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
-    });
-    fm.name = 'titan-flame';
-    this.flames = new THREE.InstancedMesh(new THREE.BufferGeometryLoader().parse(flames), fm, maxFlames);
-    this.flames.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(maxFlames * 3), 3);
+  constructor(scene: THREE.Scene, maxFlames: number, private readonly fogC: { value: THREE.Color }, private readonly flash: { value: number }, flames: unknown) {
+    // per instance (aInst): the flames' heat 0..1, front (1 = the downwind edge) and seed; the smoke's age, fire glow and seed
+    const flameGeo = new THREE.BufferGeometryLoader().parse(flames);
+    this.flameData = new THREE.InstancedBufferAttribute(new Float32Array(maxFlames * 3), 3);
+    flameGeo.setAttribute('aInst', this.flameData);
+    this.flames = new THREE.InstancedMesh(flameGeo, lentLook(FLAME), maxFlames);
     this.flames.frustumCulled = false; this.flames.count = 0; this.flames.renderOrder = 14; this.flames.name = 'titan-flames';
     scene.add(this.flames);
     const nSmoke = PHONE ? 90 : 200;
-    this.smokeUni = { uT: { value: 0 }, uFogC: fogC, uFlash: flash };
-    const sm = new THREE.ShaderMaterial({ uniforms: this.smokeUni, vertexShader: SMOKE_VS, fragmentShader: SMOKE_FS, transparent: true, depthWrite: false });
-    sm.name = 'titan-smoke';
-    this.smoke = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, PHONE ? 1 : 2), sm, nSmoke);
-    this.smoke.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nSmoke * 3), 3);
+    const smokeGeo = new THREE.IcosahedronGeometry(1, PHONE ? 1 : 2);
+    this.smokeData = new THREE.InstancedBufferAttribute(new Float32Array(nSmoke * 3), 3);
+    smokeGeo.setAttribute('aInst', this.smokeData);
+    this.smoke = new THREE.InstancedMesh(smokeGeo, lentLook(SMOKE), nSmoke);
     this.smoke.frustumCulled = false; this.smoke.count = 0; this.smoke.name = 'titan-smoke';
     scene.add(this.smoke);
     for (let i = 0; i < nSmoke; i++) this.pool.push({ x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, life: 1, r0: 1, r1: 1, glow: 0, seed: 0, on: false });
@@ -100,14 +96,14 @@ export class GrassFireFx {
     _q.setFromAxisAngle(_y, cell * 0.7);
     _m.compose(_p.set(x, y, z), _q, _s.set(k * 1.25, k, k * 1.25));
     this.flames.setMatrixAt(this.n, _m);
-    this.flames.setColorAt(this.n, _c.setRGB(heat, front, (cell * 0.618) % 1));
+    this.flameData.setXYZ(this.n, heat, front, (cell * 0.618) % 1);
     this.n++;
   }
 
   end(): void {
     this.flames.count = this.n;
     this.flames.instanceMatrix.needsUpdate = true;
-    if (this.flames.instanceColor) this.flames.instanceColor.needsUpdate = true;
+    this.flameData.needsUpdate = true;
   }
 
   /** a smoke puff leaves a burning cell */
@@ -122,8 +118,10 @@ export class GrassFireFx {
   }
 
   update(dt: number, t: number, windX: number, windZ: number, windSpeed: number): void {
-    this.flameUni.uT.value = t; this.smokeUni.uT.value = t;
-    this.flameUni.uWind.value.set(windX, windZ).multiplyScalar(Math.min(0.5, 0.12 + 0.025 * windSpeed));
+    this.wind.set(windX, windZ).multiplyScalar(Math.min(0.5, 0.12 + 0.025 * windSpeed));
+    const c = this.fogC.value;
+    setLentParam(FLAME, 't', t); setLentParam(FLAME, 'wind', [this.wind.x, this.wind.y]);
+    setLentParam(SMOKE, 't', t); setLentParam(SMOKE, 'fogC', [c.r, c.g, c.b]); setLentParam(SMOKE, 'flash', this.flash.value);
     let n = 0;
     for (const p of this.pool) {
       if (!p.on) continue;
@@ -136,12 +134,12 @@ export class GrassFireFx {
       _q.setFromAxisAngle(_y, p.seed * 6.28 + t * 0.2);
       _m.compose(_p.set(p.x, p.y, p.z), _q, _s.set(r, r * 0.85, r));
       this.smoke.setMatrixAt(n, _m);
-      this.smoke.setColorAt(n, _c.setRGB(p.age, p.glow, p.seed));
+      this.smokeData.setXYZ(n, p.age, p.glow, p.seed);
       n++;
     }
     this.smoke.count = n;
     this.smoke.instanceMatrix.needsUpdate = true;
-    if (this.smoke.instanceColor) this.smoke.instanceColor.needsUpdate = true;
+    this.smokeData.needsUpdate = true;
   }
 
   /** the fire is out (the smoke already aloft keeps rising and thins) */

@@ -9,7 +9,6 @@ import { setEliteDamage } from '../runtime/eliteBrain';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Player } from '@wildshard/engine/player/Player';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -38,7 +37,7 @@ import { wildEnv } from '../creatures/env';
 
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
-import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
+import { titanCloudMaterial, setTitanAlbedo, syncTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -200,20 +199,12 @@ export class TitanBody {
     }
 
     const geo = new THREE.IcosahedronGeometry(1, 2);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
-    mat.name = 'nalati-titan-cloud';
-    const uni = this.uni;
-    patchShader(mat, 'nalati.titan-cloud', PATCH_ORDER.decorate, (sh) => {
-      // the prototype hook (Atmosphere's uniforms) — never replace it (see ghostRiders.ts)
-      Object.assign(sh.uniforms, uni);
-      patchTitanCloud(sh);   // dark cumulus, lightning veins, the heart's spiral (stormTitanLook.ts)
-    }, { key: 'nalati-titan-cloud' });
-    this.puffs = new THREE.InstancedMesh(geo, mat, this.list.length);
+    // colour: the albedo the cloud lights — the exposed outer puffs full, his core, the skirt and the cloak darker
+    setTitanAlbedo(geo, rows.map((row) => row.colour));
+    // dark cumulus, lightning veins, the heart's spiral (stormTitanLook.ts)
+    this.puffs = new THREE.InstancedMesh(geo, titanCloudMaterial(), this.list.length);
     this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false;
     this.puffs.name = 'titan-cloud';
-    // colour: the albedo the cloud program lights — the exposed outer puffs full, his core, the skirt and the cloak darker
-    const c = new THREE.Color();
-    rows.forEach((row, i) => { this.puffs.setColorAt(i, c.fromArray(row.colour)); });
     scene.add(this.puffs);
 
     // ── the heart: a white-blue core, a fresnel glow shell, the gold target ring when it is open ──
@@ -298,6 +289,7 @@ export class TitanBody {
       this.ringMat.opacity = open * (0.7 + 0.3 * Math.sin(t * 9));
     }
     this.domeMat.uniforms.uTime.value = t;
+    syncTitanCloud(this.uni);
   }
 }
 
