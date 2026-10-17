@@ -8,7 +8,8 @@ import type { NalatiGroups } from './groups';
 import type { NalatiHostCreatures } from './headlessCreatures';
 import type { NalatiMountedPlayer } from './headlessMounted';
 import { NalatiTamingLaw } from './tamingLaw';
-import { NalatiTamingHorsePose } from './tamingHorsePose';
+import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { HITCHING_RAIL } from '../world/layout';
 import type { WildEnv } from '../creatures/env';
 
@@ -27,17 +28,21 @@ export function nalatiTamingOf(host: SimHost): NalatiTamingLaw<AnimalSim, Nalati
  */
 export function installNalatiTaming(host: SimHost, ports: {
   readonly groups: NalatiGroups; readonly creatures: NalatiHostCreatures; readonly mounted: NalatiMountedPlayer;
+  readonly animate: (context: AnimalRigContext) => void;
+  readonly poses: readonly { readonly kind: string; readonly variant: string; readonly pose: NativeCreaturePoseRecipe }[];
   readonly environment: WildEnv; readonly context: HeadlessRuntimeInstallation;
   readonly rest: { x: number; z: number; face: { x: number; z: number } };
 }): NalatiTamingLaw<AnimalSim, NalatiGroups['herds'][number]> {
   if (installed.has(host)) throw new Error('Nalati taming already installed');
   let bond: '1' | 'argymaq' | null = null, pitch = 0, offer = false, lean = 0, shake = 0, roll = 0;
   const camera = new Vector3(), eye = new Vector3(), hurtDir = new Vector3();
-  const poses = new Map<string, NalatiTamingHorsePose>(), poseRows: { actor: AnimalSim; pose: NalatiTamingHorsePose }[] = [];
+  const poses = new Map<string, NativeCreaturePose>(), poseRows: { actor: AnimalSim; pose: NativeCreaturePose }[] = [];
   const addPose = (a: AnimalSim): void => {
     if (poses.size >= 64 || poses.has(a.entityId) || (a.kind !== 'horse' && a.kind !== 'argymaq')) throw new Error('Invalid Nalati taming pose roster');
-    const pose = new NalatiTamingHorsePose(a, () => ports.environment.wind); poses.set(a.entityId, pose); poseRows.push({ actor: a, pose });
-    a.headWorld = out => pose.headWorld(out);
+    const recipe = ports.poses.find(row => row.kind === a.kind && row.variant === a.variant)?.pose;
+    if (recipe === undefined) throw new Error('Missing admitted taming pose recipe');
+    const pose = new NativeCreaturePose(a, recipe); pose.publish(); poses.set(a.entityId, pose); poseRows.push({ actor: a, pose });
+    a.headWorld = out => { pose.headWorld(out); return out; };
     // Manager samples pose terrain before its own decision, never at a second independent clock.
     const managed = ports.creatures.bodies.find(body => body === a); if (managed === undefined) throw new Error('Foreign Nalati taming body');
     managed.sampleTerrain = () => { pose.sampleTerrain(); };
@@ -124,7 +129,8 @@ export function installNalatiTaming(host: SimHost, ports: {
     for (let i = 0; i < 64; i++) {
       const row = poseRows[i]; if (row === undefined) break;
       const bodyDt = host.bodyDt(row.actor.entityId); if (bodyDt <= 0) continue;
-      row.pose.advance(bodyDt, host.clock.now, row.actor.position.distanceToSquared(host.player.position) < 140 * 140);
+      const near = row.actor.position.distanceToSquared(host.player.position) < 140 * 140;
+      row.pose.advance(bodyDt, host.clock.now, near); if (near) ports.animate(row.pose.context); row.pose.publish();
     }
   }, {
     snapshot: (): SimValue => ({ version: 1, law: law.snapshot(), bond, pitch, shake, roll, poses: [...poses].map(([id, pose]) => [id, pose.snapshot()]) }),

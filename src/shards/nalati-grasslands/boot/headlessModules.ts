@@ -1,3 +1,4 @@
+import { poseNalatiHorse } from '../species/horse';
 import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
 import { parseWeatherProgram as m0parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { prepareNalatiRaidDirector as m1prepareNalatiRaidDirector } from '../runtime/raidDirector';
@@ -18,6 +19,7 @@ import { proveTerrainEntries as m15proveTerrainEntries } from '@wildshard/game/p
 
 /** Trusted static imports; every capability matches the admitted assembly. */
 export const headlessModules = {
+  'src/shards/nalati-grasslands/species/horse': { poseNalatiHorse },
   '@wildshard/format/weatherProgram': { parseWeatherProgram: m0parseWeatherProgram },
   'src/shards/nalati-grasslands/runtime/raidDirector': { prepareNalatiRaidDirector: m1prepareNalatiRaidDirector },
   'src/shards/nalati-grasslands/runtime/baked': { nalatiBake: m2nalatiBake, NALATI_GROUND_RES: m2NALATI_GROUND_RES, NALATI_GROUND_SIZE: m2NALATI_GROUND_SIZE },

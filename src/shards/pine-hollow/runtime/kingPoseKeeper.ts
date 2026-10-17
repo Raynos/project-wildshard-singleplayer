@@ -28,8 +28,6 @@ interface Hits { readonly head: Vector3; readonly rear: Vector3; readonly front:
 interface Entry { body: Body; pose: NativeCreaturePose; hits: Hits; near: boolean }
 const wire = ({ head, rear, front, left, right }: Hits): number[] => [...head, ...rear, ...front, ...left, ...right];
 export const KING_POSE_STEP = 'pine.king.pose';
-const STAGED = ['rootY', 'rootZ', 'rootPitch', 'rootRoll', 'rootYaw', 'chestPitch', 'chestYaw', 'chestRoll',
-  'neckPitch', 'neckYaw', 'headPitch', 'headYaw', 'headRoll'] as const;
 
 /** Write the scalar pose onto the four collision joints (rest translation plus the root's lift, YXZ angles). */
 function placeJoints(bones: NativeCreaturePose['bones'], rest: readonly [number, number, number], p: KingPose): void {
@@ -72,9 +70,8 @@ export function installKingPoseKeeper(host: SimHost): {
         continue;
       }
       const legacy = saved.bodies[i]?.pose; if (legacy === undefined) break;
-      const staged = newPose();
-      for (let k = 0; k < 13; k++) { const key = STAGED[k]; if (key !== undefined) staged[key] = legacy.query.staged[key] ?? 0; }
-      placeJoints(entry.pose.bones, rootRest, staged); entry.pose.adopt(legacy.timers);
+      placeJoints(entry.pose.bones, rootRest, Object.assign(newPose(), legacy.query.staged));
+      entry.pose.adopt({ pose: legacy.timers });
       const was = legacy.hits.published, hits = entry.hits;
       hits.head.fromArray(was.head); hits.rear.fromArray(was.rear); hits.front.fromArray(was.front);
       hits.left.fromArray(was.left); hits.right.fromArray(was.right);

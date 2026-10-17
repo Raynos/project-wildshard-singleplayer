@@ -1,11 +1,12 @@
+// Frozen pre-migration oracle for saved transforms and horse-head observations.
 import { Bone, Group, type Vector3 } from 'three';
 import * as v from 'valibot';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { QuadrupedRigPose, applyAnimalRoot, type AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import { HORSE_SPECIES, poseNalatiHorse } from '../species/horse';
-import { bodyKey } from '../species/bodyKey';
-import rows from '../data/bodies.json' with { type: 'json' };
+import { HORSE_SPECIES, poseNalatiHorse } from '../../src/shards/nalati-grasslands/species/horse';
+import { bodyKey } from '../../src/shards/nalati-grasslands/species/bodyKey';
+import rows from '../../src/shards/nalati-grasslands/data/bodies.json' with { type: 'json' };
 
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);

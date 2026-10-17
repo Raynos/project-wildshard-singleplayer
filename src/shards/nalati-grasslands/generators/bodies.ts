@@ -1,3 +1,5 @@
+import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
+import bodyRows from '../data/bodies.json' with { type: 'json' };
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
@@ -97,3 +99,23 @@ export function bakeNalatiBodies(): { rows: Omit<BodyRows, 'bin' | 'bytes'>; bin
   for (const b of blocks) { bin.set(b, at); at += b.length; }
   return { rows: { bodies }, bin };
 }
+
+/** Native taming joints derived offline through the existing body/variant bake owner. */
+export const tamingPoses = HORSE_SPECIES.variants.flatMap(variant => {
+  const body = bodyRows.bodies.find(row => row.key === bodyKey('horse', variant));
+  if (body === undefined || body.bones.length > 32) throw new Error('Missing taming horse hierarchy');
+  const pose: NativeCreaturePoseRecipe = { custom: false, deathSplay: false,
+    ...(HORSE_SPECIES.gait === undefined ? {} : { gait: HORSE_SPECIES.gait }),
+    ...(HORSE_SPECIES.pose === undefined ? {} : { pose: HORSE_SPECIES.pose }),
+    joints: body.bones.map((bone, index) => {
+      const parent = bone.parent === null ? -1 : body.bones.findIndex(row => row.name === bone.parent);
+      if (bone.parent !== null && (parent < 0 || parent >= index)) throw new Error('Taming joints must follow parent order');
+      const at = body.bones[parent]?.pos;
+      return { name: bone.name, parent,
+        position: [(bone.pos[0] ?? 0) - (at?.[0] ?? 0), (bone.pos[1] ?? 0) - (at?.[1] ?? 0), (bone.pos[2] ?? 0) - (at?.[2] ?? 0)],
+        order: 'XYZ', scale: [1, 1, 1] };
+    }) };
+  const entries = [{ kind: 'horse', variant: variant.id, pose }];
+  if (variant.id === 'stallion') entries.push({ kind: 'argymaq', variant: variant.id, pose });
+  return entries;
+});

@@ -487,6 +487,8 @@ export interface NativeCreaturePoseRecipe {
   readonly custom: boolean;
   readonly gait?: AnimalPoseRecipe['gait'];
   readonly pose?: AnimalPoseRecipe['pose'];
+  /** Disable death-leg splay for an authored quadruped overlay. */
+  readonly deathSplay?: boolean;
 }
 /** Renderer-free numeric pose with separate current locals and previous rendered contact publication. */
 export class NativeCreaturePose {
@@ -495,6 +497,14 @@ export class NativeCreaturePose {
   private static readonly bits = poseSchema.pipe(poseSchema.array(NativeCreaturePose.u32), poseSchema.maxLength(704));
   private static readonly Saved = poseSchema.strictObject({ version: poseSchema.literal(1), recipe: poseSchema.string(), scalar: poseSchema.string(), breath: poseSchema.pipe(poseSchema.number(), poseSchema.finite(), poseSchema.minValue(0)),
     local: NativeCreaturePose.bits, published: NativeCreaturePose.bits, frame: NativeCreaturePose.bits, leg: NativeCreaturePose.bits, wasAlive: poseSchema.boolean() });
+  private static readonly finite = poseSchema.pipe(poseSchema.number(), poseSchema.finite());
+  private static readonly triple = poseSchema.tuple([NativeCreaturePose.finite, NativeCreaturePose.finite, NativeCreaturePose.finite]);
+  private static readonly transform = poseSchema.strictObject({ p: NativeCreaturePose.triple, r: NativeCreaturePose.triple,
+    order: poseSchema.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), s: NativeCreaturePose.triple });
+  private static readonly Legacy = poseSchema.strictObject({ pose: poseSchema.string(),
+    breath: poseSchema.exactOptional(poseSchema.pipe(NativeCreaturePose.finite, poseSchema.minValue(0))),
+    root: poseSchema.exactOptional(NativeCreaturePose.transform),
+    bones: poseSchema.exactOptional(poseSchema.pipe(poseSchema.array(poseSchema.tuple([poseSchema.string(), NativeCreaturePose.transform])), poseSchema.maxLength(32))) });
   private static readonly ORDERS: readonly EulerOrder[] = ['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY'];
   private static encoded(scalars: readonly number[]): number[] {
     const out: number[] = [], data = new DataView(new ArrayBuffer(8));
@@ -535,7 +545,8 @@ export class NativeCreaturePose {
   private readonly fore: number;
   private readonly legAbd = new Float32Array(4);
   private readonly quad: QuadrupedRigPose | null;
-  private readonly context: AnimalRigContext;
+  /** Borrowed numeric frame for overlays inside the existing body-step callback. */
+  readonly context: AnimalRigContext;
   private wasAlive = true;
   private readonly identity: string;
   private readonly quadClock;
@@ -570,19 +581,21 @@ export class NativeCreaturePose {
   advance(dt: number, t: number, near: boolean): void {
     const a = this.actor; a.advancePose(this.law, dt, t, near);
     const i = this.law.input;
-    if (this.wasAlive && !a.alive) for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (i.deathSide < 0)) ? .35 : .25;
+    if (this.recipe.deathSplay !== false && this.wasAlive && !a.alive) for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (i.deathSide < 0)) ? .35 : .25;
     this.wasAlive = a.alive;
     if (near) {
-      if (this.animate === undefined) {
+      if (this.quad !== null) {
         const c = this.quadClock; c.alive = a.alive; c.deathT = i.deathT; c.deathSide = i.deathSide; c.speed = a.speed;
-        this.quad?.apply(this.law.pose, dt, c);
-      } else {
+        this.quad.apply(this.law.pose, dt, c);
+      }
+      {
         const c = this.context; c.dt = dt; c.t = t; c.speed = a.speed; c.strafe = a.strafe; c.phase = this.law.phase; c.state = a.state; c.alive = a.alive;
         c.deathT = i.deathT; c.flinch = i.flinch; c.brace = i.brace * i.brace * (3 - 2 * i.brace); c.attack = a.attackPhase; c.lookWeight = this.law.lookAmt; c.yaw = a.yaw; c.mem = a.mem;
-        this.animate(c);
+        this.animate?.(c);
       }
     }
     applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll);
+    this.root.scale.setScalar(a.scale);
   }
   /** The native decision owner chooses the same terrain cadence as the page; no publication. */
   sampleTerrain(): void { this.actor.samplePoseTerrain(this.law); }
@@ -619,19 +632,32 @@ export class NativeCreaturePose {
     return JSON.stringify({ version: 1, recipe: this.identity, scalar: this.law.snapshot(), breath: this.quad?.snapshot() ?? 0,
       local: NativeCreaturePose.encoded([...this.joints.flatMap(NativeCreaturePose.values), ...NativeCreaturePose.values(this.root)]), published: NativeCreaturePose.encoded(Array.from(this.published)), frame: NativeCreaturePose.encoded(Array.from(this.publishedFrame)), leg: NativeCreaturePose.encoded(Array.from(this.legAbd)), wasAlive: this.wasAlive });
   }
-  /** Approximate continuation from an older owner's saved scalar clock: the caller has written the current locals; the
-   * root follows the actor with the restored tilt and recoil, and everything publishes once. Validates before mutating. */
-  adopt(scalar: string): void {
-    new AnimalPoseLaw(this.law.recipe).restore(scalar);
-    this.law.restore(scalar); this.wasAlive = this.actor.alive;
-    const a = this.actor, i = this.law.input;
-    applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll);
+  /** Convert a scalar-only legacy clock or its complete named joint/root envelope. Preflight is quiet;
+   * complete transforms retain frozen far-LOD joints exactly, while scalar-only callers republish from the actor. */
+  adopt(input: unknown): void {
+    const state = poseSchema.parse(NativeCreaturePose.Legacy, typeof input === 'string' ? { pose: input } : input);
+    if (state.bones !== undefined && (state.bones.length !== this.joints.length
+      || state.bones.some(([name], index) => name !== this.recipe.joints[index]?.name))
+      || (this.quad === null && (state.breath ?? 0) !== 0)) throw new Error('Incompatible legacy native pose');
+    new AnimalPoseLaw(this.law.recipe).restore(state.pose);
+    this.law.restore(state.pose); this.wasAlive = this.actor.alive; this.quad?.restore(state.breath ?? 0);
+    const apply = (joint: AnimalRigJoint, row: poseSchema.InferOutput<typeof NativeCreaturePose.transform>): void => {
+      joint.position.fromArray(row.p); joint.rotation.set(...row.r, row.order); joint.scale.fromArray(row.s);
+    };
+    state.bones?.forEach(([, row], index) => { const joint = this.joints[index]; if (joint !== undefined) apply(joint, row); });
+    if (state.root !== undefined) apply(this.root, state.root);
+    else {
+      const a = this.actor, i = this.law.input;
+      applyAnimalRoot(this.root, a.position, a.yaw, this.law.tiltPitch, this.law.tiltRoll, this.recipe.custom, a.alive, i.flinch, i.flinchPitch, i.flinchRoll);
+    }
     this.publish();
   }
   /** Strict bounded atomic restore. No posing, terrain, body, contact, RNG or publications of current locals. */
   restore(value: string): void {
     if (value.length > 65536) throw new Error('Invalid native creature pose continuation');
-    const state = poseSchema.parse(NativeCreaturePose.Saved, JSON.parse(value)); if (state.recipe !== this.identity) throw new Error('Incompatible native creature pose continuation');
+    const parsed: unknown = JSON.parse(value);
+    if (typeof parsed === 'object' && parsed !== null && !Object.hasOwn(parsed, 'version')) { this.adopt(parsed); return; }
+    const state = poseSchema.parse(NativeCreaturePose.Saved, parsed); if (state.recipe !== this.identity) throw new Error('Incompatible native creature pose continuation');
     const local = NativeCreaturePose.decoded(state.local, (this.joints.length + 1) * 10), published = NativeCreaturePose.decoded(state.published, this.published.length), frame = NativeCreaturePose.decoded(state.frame, 16), leg = NativeCreaturePose.decoded(state.leg, 4);
     const orders = [...local.filter((_n, i) => i % 10 === 6), ...published.filter((_n, i) => i % 10 === 6)];
     if (orders.some(order => !Number.isInteger(order) || NativeCreaturePose.ORDERS[order] === undefined) || (this.quad === null && state.breath !== 0)) throw new Error('Invalid native creature pose continuation');

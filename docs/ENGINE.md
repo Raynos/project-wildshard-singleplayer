@@ -6400,7 +6400,11 @@ its Y axis, instancing, contact and recovery law remain its own.
 
 `game/plugin/animation.NativeCreaturePose` runs the existing scalar animal
 pose law, quadruped joints or a borrowed custom animation callback over a
-numeric `NativeCreaturePoseRecipe`. It owns no renderer, geometry, body,
+numeric `NativeCreaturePoseRecipe`. The borrowed numeric `context` allows
+caller-owned overlays after the quadruped base pose inside the existing
+body-step callback; `deathSplay: false` preserves an overlay's
+authored death stance. Actor scale follows each advance.
+It owns no renderer, geometry, body,
 scheduler or random stream. `advance` changes current locals; `publish`
 alone updates the cached contact frame read by `headWorld`, `bodyCapsule`
 and `foreCapsule`. The bounded saved wire keeps both sets independently.
@@ -6413,7 +6417,12 @@ the caller's actual native actor and lends its terrain-sampling callback.
 `jointPoint(joint, at, out)` reads an extra contact point (a weak point) on
 any recipe joint; `adopt(scalar)` resumes approximately from an older
 owner's saved scalar clock after the caller writes the current locals.
-Pine's Antler King (`runtime/kingPoseKeeper.ts`) uses all three.
+`adopt` also accepts a legacy object with `pose`, optional `breath`, and
+optional complete `root` and ordered named `bones` local transforms
+(`p`, `r`, `order`, `s`). Complete transforms retain frozen far-LOD joints;
+every identity validates before mutation. `restore` recognizes that old
+unversioned envelope. Pine's Antler King and Nalati's taming horses use
+the same converter.
 
 `game/plugin/animation.createNativeCreaturePoses` lends a bounded pose
 roster over admitted kind/variant recipe rows. Its `binding` supplies the
@@ -6422,16 +6431,10 @@ recipe rows retain last-match order. `get` lends the same numeric pose
 for caller-owned advance and quiet snapshot/restore; `delete` retires
 only its pose. `publish(at)` visits the caller's roster slots in order,
 so retired bodies and sparse slots do not publish. It adds no clock,
-save envelope, animation or publication phase. The G441 pending user is
-Nalati `runtime/headlessTaming.ts`'s addPose/retire/snapshot/restore roster
-with `runtime/tamingHorsePose.ts`; wind, mounted ownership, old transform
-envelopes and the manager's sampling cadence remain caller-owned.
-
-G441 pending second user: Nalati's `runtime/tamingHorsePose.ts` will adopt
-the numeric joint/scalar/root lifecycle and continuation. Nalati retains
-its wind overlay, body cadence, dynamic scale and old saved transform
-envelope through its adapter. These export-scoped allowances are reviewed
-at the end of W3; no Nalati runtime adoption is claimed yet.
+save envelope, animation or publication phase. Nalati's taming owner
+uses `NativeCreaturePose` directly with offline joint rows from
+`generators/bodies.ts` (`sim/taming-poses.json`). It retains its wind
+overlay, body cadence, adoption, legacy transforms and publication phase.
 
 `src/engine/boot/plan.ts#BuildStages<T>` sequences up to 512 world-build completions on a borrowed `Slice`.
 `build(detail, work, {objects?, values?})` returns the original constructor result, attaches selected objects

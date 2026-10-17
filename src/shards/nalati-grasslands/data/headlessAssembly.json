@@ -61,10 +61,32 @@
     ],
     "@wildshard/game/plugin/mover": [
       "proveTerrainEntries"
+    ],
+    "src/shards/nalati-grasslands/species/horse": [
+      "poseNalatiHorse"
     ]
   },
   "constants": {},
   "prepare": [
+    {
+      "name": "tamingPoses",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "assembly",
+              "json"
+            ]
+          },
+          {
+            "$ref": [
+              "product"
+            ]
+          },
+          "sim/taming-poses.json"
+        ]
+      }
+    },
     {
       "name": "weatherJson",
       "value": {
@@ -1264,6 +1286,35 @@
                 "boot",
                 "rest"
               ]
+            },
+            "poses": {
+              "$ref": [
+                "tamingPoses"
+              ]
+            },
+            "animate": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$ref": [
+                      "src/shards/nalati-grasslands/species/horse",
+                      "poseNalatiHorse"
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "args",
+                      0
+                    ]
+                  },
+                  {
+                    "$ref": [
+                      "env",
+                      "wind"
+                    ]
+                  }
+                ]
+              }
             }
           }
         ]
