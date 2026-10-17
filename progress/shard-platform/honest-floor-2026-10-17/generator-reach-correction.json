@@ -1,0 +1,412 @@
+{
+  "schema": "generator-reach-correction/1",
+  "legacyBasis": "1258254a368566f52dac078512cf96095356a174",
+  "mustGo": 80173.3,
+  "audit": {
+    "beforeRevision": "230be1ccc",
+    "afterRevision": "a5df1f8c5",
+    "method": "Run both exact ruler versions in the parent mirror; the commit changes only the ruler and its test, so shard and section inputs are identical.",
+    "totalsBefore": {
+      "_template": 1003,
+      "blender-template": 106,
+      "driftwood-isle": 6661,
+      "far-reach": 1308,
+      "ink-cel-valley": 1108,
+      "nalati-grasslands": 20948,
+      "nine-dragon-stack": 12553,
+      "pastel-plain": 736,
+      "pine-hollow": 10584,
+      "sunscar-dunes": 1368
+    },
+    "totalsAfter": {
+      "_template": 1003,
+      "blender-template": 107,
+      "driftwood-isle": 6771,
+      "far-reach": 1308,
+      "ink-cel-valley": 771,
+      "nalati-grasslands": 20971,
+      "nine-dragon-stack": 12555,
+      "pastel-plain": 735,
+      "pine-hollow": 10642,
+      "sunscar-dunes": 1380
+    },
+    "delta": {
+      "_template": 0,
+      "blender-template": 1,
+      "driftwood-isle": 110,
+      "far-reach": 0,
+      "ink-cel-valley": -337,
+      "nalati-grasslands": 23,
+      "nine-dragon-stack": 2,
+      "pastel-plain": -1,
+      "pine-hollow": 58,
+      "sunscar-dunes": 12
+    },
+    "changes": [
+      {
+        "shard": "blender-template",
+        "path": "src/sdk/assets.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/entities/species/loft.ts",
+        "before": 4,
+        "after": 0,
+        "removed": 4
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/physics/box.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/world/geometryKit.ts",
+        "before": 52,
+        "after": 0,
+        "removed": 52
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/plugin/geometry.ts",
+        "before": 68,
+        "after": 86,
+        "removed": -18
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/sdk/questGraph.ts",
+        "before": 0,
+        "after": 13,
+        "removed": -13
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/sdk/weapons/meleeProfile.ts",
+        "before": 0,
+        "after": 3,
+        "removed": -3
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/engine/world/geometryBake.ts",
+        "before": 0,
+        "after": 120,
+        "removed": -120
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/plugin/quests.ts",
+        "before": 0,
+        "after": 13,
+        "removed": -13
+      },
+      {
+        "shard": "driftwood-isle",
+        "path": "src/game/quest/interactionRows.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "far-reach",
+        "path": "src/sdk/looks/modelLibrary.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "far-reach",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/behaviourSource.ts",
+        "before": 46,
+        "after": 0,
+        "removed": 46
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/configBoundary.ts",
+        "before": 5,
+        "after": 0,
+        "removed": 5
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/newProject.ts",
+        "before": 32,
+        "after": 0,
+        "removed": 32
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/outputRuntime.ts",
+        "before": 105,
+        "after": 0,
+        "removed": 105
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/performancePolicy.ts",
+        "before": 13,
+        "after": 0,
+        "removed": 13
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectManifest.ts",
+        "before": 71,
+        "after": 0,
+        "removed": 71
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectPolicy.ts",
+        "before": 12,
+        "after": 0,
+        "removed": 12
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/projectSections.ts",
+        "before": 25,
+        "after": 0,
+        "removed": 25
+      },
+      {
+        "shard": "ink-cel-valley",
+        "path": "src/sdk/runtimePerformance.ts",
+        "before": 28,
+        "after": 0,
+        "removed": 28
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/entities/species/loft.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/player/nalatiArms.ts",
+        "before": 16,
+        "after": 0,
+        "removed": 16
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/forest/treeSpec.ts",
+        "before": 6,
+        "after": 0,
+        "removed": 6
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/geometryKit.ts",
+        "before": 101,
+        "after": 36,
+        "removed": 65
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/assets.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/buildBehaviour.ts",
+        "before": 4,
+        "after": 0,
+        "removed": 4
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/compileScript.ts",
+        "before": 97,
+        "after": 0,
+        "removed": 97
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/kit/bakedGeometry.ts",
+        "before": 3,
+        "after": 8,
+        "removed": -5
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/phasedBoss.ts",
+        "before": 2,
+        "after": 19,
+        "removed": -17
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/engine/world/voxelAO.ts",
+        "before": 0,
+        "after": 180,
+        "removed": -180
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/game/weapons/starter.generated.ts",
+        "before": 0,
+        "after": 1,
+        "removed": -1
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/game/weapons/starterBowProfile.ts",
+        "before": 0,
+        "after": 4,
+        "removed": -4
+      },
+      {
+        "shard": "nalati-grasslands",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 6,
+        "removed": -6
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/entries.ts",
+        "before": 9,
+        "after": 0,
+        "removed": 9
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/kit/bakedGeometry.ts",
+        "before": 3,
+        "after": 0,
+        "removed": 3
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/looks/canvasAtlas.ts",
+        "before": 1,
+        "after": 9,
+        "removed": -8
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "path": "src/sdk/modes.ts",
+        "before": 0,
+        "after": 6,
+        "removed": -6
+      },
+      {
+        "shard": "pastel-plain",
+        "path": "src/sdk/materials.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/interactions.ts",
+        "before": 8,
+        "after": 0,
+        "removed": 8
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/kit/mergedPrimitives.ts",
+        "before": 12,
+        "after": 0,
+        "removed": 12
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/engine/world/yawFrame.ts",
+        "before": 4,
+        "after": 9,
+        "removed": -5
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/game/plugin/brain.ts",
+        "before": 55,
+        "after": 57,
+        "removed": -2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/blobs.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/looks/canvasAtlas.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/phasedBoss.ts",
+        "before": 1,
+        "after": 0,
+        "removed": 1
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/questGraph.ts",
+        "before": 2,
+        "after": 0,
+        "removed": 2
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/sdk/weapons/firearmProfile.ts",
+        "before": 0,
+        "after": 8,
+        "removed": -8
+      },
+      {
+        "shard": "pine-hollow",
+        "path": "src/engine/boot/filePolicy.ts",
+        "before": 0,
+        "after": 69,
+        "removed": -69
+      },
+      {
+        "shard": "sunscar-dunes",
+        "path": "src/sdk/species/clips.ts",
+        "before": 0,
+        "after": 12,
+        "removed": -12
+      }
+    ],
+    "forwardFix": "Restore the previous sharing law. Retain all compiler consumers and relocate its defining module into the existing SDK bake host, keeping the public API. No ruler allowance is added. Production module graph importers and P4 charges are independently checked as zero.",
+    "rollbackDeltaAtLanding": {
+      "_template": 0,
+      "blender-template": -1,
+      "driftwood-isle": -110,
+      "far-reach": 0,
+      "ink-cel-valley": 337,
+      "nalati-grasslands": -23,
+      "nine-dragon-stack": -2,
+      "pastel-plain": 1,
+      "pine-hollow": -58,
+      "sunscar-dunes": -12
+    }
+  },
+  "note": "Classification restoration only. Report separately from proof and compiler source deletions."
+}

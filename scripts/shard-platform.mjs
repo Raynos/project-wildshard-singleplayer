@@ -677,13 +677,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     texts.set(path, sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')); probes.set(path, true);
     hostFiles.set(slug, path);
   }
-  // G467: generators are build roots only. Keep following any generator a real
-  // runtime imports: removing its independent root must never hide live reach
-  // or manufacture a second runtime user of a platform export.
-  const consumers = [...Object.entries(shardFiles).map(([slug, files]) => {
-    const roots = sourceProgress ? files.filter(path => !path.startsWith(`${prefixOf(slug)}generators/`)) : files;
-    return [slug, hostFiles.has(slug) ? [...roots, hostFiles.get(slug)] : roots];
-  }), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
+  const consumers = [...Object.entries(shardFiles).map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
   const moduleUsers = new Map();
   for (const [slug, files] of consumers) {
     // G312: templates are authoring fixtures, never an independent consumer of a platform system.
