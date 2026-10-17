@@ -7,7 +7,7 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { productResidentBytes, runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';
@@ -157,6 +157,22 @@ test('declared neighbour inputs and their transitive dependencies survive runtim
 test('independent platform sections keep their file-path inputs for synchronous hosts', async () => {
   const f = fixture(true), source = await readProductDescriptor(f.options);
   expect(runtimeOnlyProductFiles(source)).toEqual([]);
+});
+
+test('bound props stream tiles and whole geometry while retaining neighbour panel dependencies', () => {
+  const f = fixture(), panel = 'b'.repeat(64), texture = 'c'.repeat(64);
+  const file = f.source.files[0]; if (file === undefined) throw new Error('Missing fixture file');
+  f.source.files.push({ ...file, hash: panel, dependencies: [texture] }, { ...file, hash: texture, dependencies: [] });
+  f.source.runtime = { entry: 'runtime/index.ts', binds: ['props'] };
+  f.source.props = { version: 1, family: 'toon', tiles: [{ lod: 0, x: 0, z: 0, file: f.ref }],
+    wholeLibrary: [f.ref], models: [], panels: [{ id: 'door', file: panel, visible: true }], far: null, colliders: [], textures: [] };
+  f.source.tiles.push({ lod: 0, x: 0, z: 0, files: [f.ref], compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0,
+    bounds: { min: [-1, -1, -1], max: [1, 1, 1] }, geometricError: 0 });
+  expect(runtimeOnlyProductFiles(f.source)).toEqual([]);
+  expect(neighbourProductFiles(f.source)).toEqual([f.ref]);
+  f.source.sim.scripts.push(f.ref); expect(neighbourProductFiles(f.source)).toEqual([]);
+  f.source.sim.scripts.length = 0; f.source.runtime = null;
+  expect(neighbourProductFiles(f.source)).toEqual([]);
 });
 
 test('failed durable writes retain runtime bytes instead of shrinking admission', async () => {

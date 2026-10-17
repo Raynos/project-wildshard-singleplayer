@@ -13,7 +13,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { runtimeOnlyProductFiles } from './productCost';
+import { neighbourProductFiles, runtimeOnlyProductFiles } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -63,7 +63,7 @@ export interface AdmittedProduct {
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
 function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): (refs: Iterable<string>) => Promise<readonly string[]> {
-  const bound = new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source)]), files = new Map(source.files.map(file => [file.hash, file]));
+  const bound = new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source), ...neighbourProductFiles(source)]), files = new Map(source.files.map(file => [file.hash, file]));
   const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
   return async refs => {
     const requested = [...new Set(refs)];

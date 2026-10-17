@@ -2,6 +2,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
+import { isPlatformDataSection } from '@wildshard/format/outputIndex';
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {
@@ -34,7 +35,7 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
   const files = new Map(source.files.map(file => [file.hash, file])), keep = new Set<string>();
   const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
   const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
-    ...[...descriptor?.sections ?? []].flatMap(([name, value]) => name.startsWith('custom/') ? [] : [value])];
+    ...[...descriptor?.sections ?? []].flatMap(([name, value]) => isPlatformDataSection(name) ? [value] : [])];
   while (pending.length > 0) {
     const value = pending.pop();
     if (typeof value === 'string') { const ref = paths.get(value) ?? value; if (files.has(ref)) keep.add(ref); }
@@ -51,4 +52,17 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
     }
   }
   return source.files.filter(file => !keep.has(file.hash)).map(file => file.hash);
+}
+
+/** Neighbours stream bound props tiles through ClientAssets.read; whole geometry belongs to the entered runtime.
+ * Keep every synchronous panel, material, physics and simulation reference, including dependencies shared with a tile. */
+export function neighbourProductFiles(source: Shardfile): readonly string[] {
+  if (source.runtime === null) return [];
+  const props = source.props;
+  if (props === null || !source.runtime.binds?.includes('props')) return runtimeOnlyProductFiles(source);
+  const streamed = new Set([...props.tiles.flatMap(tile => [tile.file, ...tile.additionalFiles ?? []]),
+    ...props.models.map(model => model.file), ...props.wholeLibrary ?? [], ...(props.far === null ? [] : [props.far])]);
+  const { wholeLibrary: _wholeLibrary, ...drawn } = props;
+  return runtimeOnlyProductFiles({ ...source, props: { ...drawn, tiles: [], models: [], far: null },
+    tiles: source.tiles.map(tile => ({ ...tile, files: tile.files.filter(ref => !streamed.has(ref)) })) });
 }

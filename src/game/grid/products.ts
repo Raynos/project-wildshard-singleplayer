@@ -11,7 +11,7 @@ import { ProductLeases } from './productLeases';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
-import { runtimeOnlyProductFiles } from '../shardfile/productCost';
+import { neighbourProductFiles } from '../shardfile/productCost';
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
 export interface GridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions; release: () => void }
@@ -58,7 +58,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     accountTransportRelease(admitted, releaseBytes);
     // Drop runtime-only wires before neighbours can copy their map. Entered product.file() reads the
     // same immutable bytes from disk; host-declared tiles/materials/skins/sim inputs stay available.
-    const refs = admitted.source.runtime === null ? [] : runtimeOnlyProductFiles(admitted.source), unpin = options.cache?.pin?.(refs);
+    const refs = neighbourProductFiles(admitted.source), unpin = options.cache?.pin?.(refs);
     owner.scope.onDispose(() => { unpin?.(); });
     await admitted.releaseTransport?.(refs);
     return { admitted, options };
