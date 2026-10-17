@@ -1,4 +1,6 @@
 import { Matrix4 } from 'three';
+import { PLACE_SETS } from './placeSets';
+import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
@@ -14,18 +16,22 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'mesh', id: 'water', geometry: 'water', material: 'water', missing: 'empty', name: WATER_SURFACES.creek.name, receiveShadow: true, renderOrder: WATER_SURFACES.creek.renderOrder },
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count, matrices },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
-export const SCENE_BLOBS = [nameBlob('scenes/streams.json', 'json', encode(recipe))];
+export const SCENE_BLOBS = [nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('world/place-sets.json', 'json', encode(PLACE_SETS)),
+  nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
+  ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
 export const SCENE_MODEL_BLOBS = [
   { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
   { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
+  ...MODEL_BLOBS,
 ];
-/** Two shared material slots, one ordered scene and exactly the original two draws. */
+/** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {
-  version: 1, libraries: [{ id: 'streams', kind: 'owned', models: [
+  version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements,
+  libraries: [...MODEL_SCENES.libraries, { id: 'streams', kind: 'owned', models: [
     { id: 'water', file: 'models/stream-water.glb', attributes: { _awater: 'aWater' } },
     { id: 'quad', file: 'models/stream-quad.glb', attributes: {} },
   ] }],
-  materials: [{ id: 'water', kind: 'look', look: WATER_SURFACES.creek.look }, { id: 'spray', kind: 'look', look: SPRAY_LOOK }],
+  materials: [...MODEL_SCENES.materials, { id: 'water', kind: 'look', look: WATER_SURFACES.creek.look }, { id: 'spray', kind: 'look', look: SPRAY_LOOK }],
   steps: [{ id: 'streams', scene: 'scenes/streams.json',
     geometry: { water: { library: 'streams', model: 'water' }, quad: { library: 'streams', model: 'quad' } },
     materials: { water: 'water', spray: 'spray' }, registry: [], bounds: [],

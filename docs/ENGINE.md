@@ -4282,8 +4282,9 @@ Partitioned whole shapes are batched into bounded GLBs; no parser bound
 is raised. Their native metadata also supports a vec4 shader normal as
 an application accessor, while portable glTF NORMAL remains vec3.
 
-`@wildshard/game/plugin/geometry` defines `nativeWholeGeometry`,
-`assembleWholeGeometryViews` and `readWholeGeometry(scope, source, refs?)`.
+`@wildshard/engine/models/nativeGeometry` defines `nativeWholeGeometry`.
+`@wildshard/game/plugin/geometry` defines `assembleWholeGeometryViews` and
+`readWholeGeometry(scope, source, refs?)`.
 The reader uses the admitted product, decodes one bounded file at a time,
 frees transient GLB geometries/materials immediately, and scopes each
 reconstructed source geometry. Final completeness validation and exact sphere scans use
@@ -9258,6 +9259,38 @@ No animation, gameplay or geometry builder runs in this host. Both shards
 drive the host; the G483 platform approval is also recorded in the
 pending-user table. `residentWorldScope(context)` resolves a transitional
 world hook to its resident owner. Instance attributes remain bounded static data.
+
+The optional `catalogue` names a verified `WorldSceneModels` JSON blob.
+Models can retain raw authored parts (`assembly: 'parts'`) and ordered LOD
+bands, including per-part shadow flags, bounds spheres and distance limits.
+Every choice shares the same increasing LOD distances. Owned GLB intake
+restores `nativeAttributes` with the same decoder as whole-geometry libraries;
+no source geometry is fitted or transformed at load.
+
+`game/shardfile/worldSceneMaterials` owns source PBR slots (`kind: 'source'`).
+They declare a source URL, asset-manager aliases,
+material ordinal, sampler anisotropy and environment intensity. The existing
+GLB decoder retains the original material and embedded maps; source mesh
+geometry is retired immediately. Aliases preserve tier and compressed-texture
+routing. Their owning resident retires the maps and materials. A source slot's
+`load: 'placement'` defers decoding until its first named placement, preserving
+ordered construction and native opaque-material ordering; static recipe slots
+use the default resident load.
+
+`game/shardfile/worldScenePlacement` executes deferred `placements`: named
+model draws, exact matrices, culling
+policy and optional preplaced native collider rows. Large rows are verified
+named JSON blobs (`{ id, file }`), admitted independently before construction.
+`handles.place(id)` runs
+the named row once, in the caller's world-build order, through the existing
+model placement host. It publishes `<id>.root` and `<id>.colliders` into the
+same SceneHandles registry. The `forest` cull view, numeric or per-tier distance and angular-size
+policies, and split-registration pacing are explicit row choices.
+Preplaced contacts replace model-contact calculation for that world placement;
+the model's original local contacts remain available to Explorer specimens.
+No shard callback, private owner path, geometry builder or gameplay rule enters
+the host. Ordinary decoration still belongs in props tiles unless it requires
+a named handle, a distinct look or a collision registration.
 
 
 `@wildshard/game/models/worldSceneCatalogue.defineWorldSceneCatalogue(rows)`

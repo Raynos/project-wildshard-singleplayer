@@ -299,11 +299,6 @@ export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
   return loadRigFile(`/assets/models/${id}/${id}_lod.glb`, authored.propMaterials);
 }
 
-/** A model library's LOD file's node tree alone (for `prepModel`): what a scan model's loader reads. */
-export async function loadLodNodes(id: string): Promise<THREE.Object3D> {
-  return rigRoot(await loadLod(id));
-}
-
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
 const isPropMesh = (node: THREE.Object3D): node is THREE.Mesh => 'isMesh' in node;
 export function prepModel(root: THREE.Object3D, sky: Sky): PropPart[] {

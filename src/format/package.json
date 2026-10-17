@@ -179,7 +179,8 @@
     "./dayLook": "./dayLook.ts",
     "./streamedCover": "./streamedCover.ts",
     "./toonLighting": "./toonLighting.ts",
-    "./toonLook": "./toonLook.ts"
+    "./toonLook": "./toonLook.ts",
+    "./worldScenePlacement": "./worldScenePlacement.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

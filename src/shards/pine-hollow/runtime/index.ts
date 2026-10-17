@@ -34,12 +34,12 @@ import { loadUnderShapes } from './world/undergrowthKit';
 import { loadUnderPlacements } from './world/timberSites';
 import { pineModels, admitPineView } from './world/context';
 import { Undergrowth } from '../world/undergrowth';
-import { placePineProps } from './world/props';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
 import { placeCabins } from './world/cabins';
 import { placeDrawnModels } from './world/drawnModels';
-import { placePineHollowSets } from '../world/places';
+import { registerPlaceSets } from '@wildshard/engine/models/sets';
+import { placedGroups } from '@wildshard/engine/models/place';
 import { installHeldLoadout } from '@wildshard/game/loadout/held';
 import { installPineCombat } from '../combat/install';
 import { eliteStream } from '@wildshard/game/quest/eliteStreams';
@@ -123,14 +123,17 @@ export class PineHollow extends ShardPlugin {
       await placeCabins({ cabins, sky, registry, scope: ctx.scope });
       cabins.life.persist(ctx.app.saves, residentWorldScope(ctx), { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: 'cabins' });
       cabins.life.registerDoors(registry, player.position);
-      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: retainsRuntimeServices(ctx)
+      const landmarks = await installPineLandmarks({ sky, registry, cabins, scenes: sceneHandles, onUpdate: retainsRuntimeServices(ctx)
         ? fn => { installEnteredRuntimeUpdate(ctx, { id: 'pine.landmarks', phase: 'update', run: fn }); } : fn => { game.onUpdate(fn, 'pine.landmarks'); } });
       const cave = landmarks.crags?.cave;
       if (cave) { cutTerrain(world.physics, cave.terrainCuts()); await world.terrain.punchSliced(cave.holeTest(), slicer(30).due); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
     });
-    const props = await step('props', () => placePineProps(sky, forest, game, registry, macrotask));
+    const props = await step('props', async () => {
+      const rocks = await sceneHandles.place('props.rocks'), stumps = await sceneHandles.place('props.stumps'), logs = await sceneHandles.place('props.log');
+      return { colliderDescs: () => [...rocks.colliders, ...stumps.colliders, ...logs.colliders] };
+    });
     await placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry }, slicer(30).due);
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
     rt.hooks.worldUpdate = (dt, t) => {
@@ -249,7 +252,9 @@ export class PineHollow extends ShardPlugin {
     const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
-    placePineHollowSets(registry);
+    const placeSets = v.parse(v.array(v.strictObject({ id: v.string(), place: v.string(), name: v.string(), x: v.number(), z: v.number(), r: v.number() })),
+      JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/place-sets.json'))));
+    registerPlaceSets(placeSets, { file: 'generators/placeSets.ts', registry, centres: { placed: placedGroups(), point: row => row } });
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx);
     await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, ...(cabins === null ? {} : { doorChanges: cabins.life.doorChanges }), owners: { sky, animals, elites: fights.elites } });

@@ -1,6 +1,10 @@
 import { type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
-import { bindWorldSceneModelSources } from '../models/worldSceneCatalogue';
+import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import { worldSceneSourceMaterial } from './worldSceneMaterials';
+import { WorldScenePlacement } from './worldScenePlacement';
+import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
+import type { Placed } from '@wildshard/engine/models/place';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -19,6 +23,7 @@ import { runtimeLookMaterials } from './runtimeProduct';
 
 /** Named resident presentation parts. Accessors refuse missing or incorrectly typed handles. */
 export interface SceneHandles {
+  readonly place: (id: string) => Promise<Placed>;
   readonly has: (id: string) => boolean;
   readonly object: (id: string) => Object3D;
   readonly group: (id: string) => Group;
@@ -32,6 +37,13 @@ export interface SceneHandles {
 class InstalledSceneHandles implements SceneHandles {
   private readonly values = new Map<string, unknown>();
   private readonly shapes = new Map<string, readonly ColliderDesc[]>();
+  async place(id: string): Promise<Placed> {
+    const value = this.value(id);
+    if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
+    const placed = await value.load();
+    if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
+    return placed;
+  }
   has(id: string): boolean { return this.values.has(id) || this.shapes.has(id); }
   /** Host publication is atomic per installation; duplicate handles are never overwritten. */
   publish(id: string, value: unknown): void {
@@ -102,12 +114,27 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     requireFile(section.catalogue);
     catalogue = parseWorldSceneModels(JSON.parse(decoder.decode(await product.file(section.catalogue))));
     if (!Object.is(catalogue.product, product.shardfile.identity.slug)) throw new Error('Scene catalogue product identity differs');
-    for (const model of catalogue.models) for (const choice of model.choices) for (const draw of choice.draws) {
+    for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) {
       reference(draw);
       if (libraryRows.get(draw.library)?.kind !== 'owned' || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
   }
+  const immediate = new Set(section.steps.flatMap(step => Object.values(step.materials)));
+  if (section.materials.some(row => row.kind === 'source' && row.load === 'placement' && immediate.has(row.id))) throw new Error('Deferred source material requires a named model placement');
   const published = new Set<string>();
+  const placements: WorldScenePlacementRow[] = [];
+  for (const declared of section.placements ?? []) {
+    if ('file' in declared) requireFile(declared.file);
+    const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(await product.file(declared.file)))) : declared;
+    if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
+    placements.push(row);
+    if (catalogue?.models.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
+    for (const id of [row.id, `${row.id}.root`, `${row.id}.colliders`]) {
+      if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`);
+      published.add(id);
+    }
+    await buildYield(resident);
+  }
   for (const step of section.steps) {
     const files = step.variants === undefined ? [step.scene] : [step.variants.standalone, step.variants.cell];
     for (const file of files) {
@@ -168,15 +195,23 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     const missing = section.materials.flatMap(row => row.kind === 'look' && !hasLentLook(row.look) ? [row.look] : []);
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
     for (const row of section.materials) {
+      if (row.kind === 'source' && row.load === 'placement') continue;
       const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
       if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
       let material: Material;
-      if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
+      if (row.kind === 'source') {
+        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
+        material = await worldSceneSourceMaterial(row, sky, owner);
+      } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
       else if (row.kind === 'lowpoly') {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
         material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
       } else material = model === undefined || model === null ? lentLook(row.look) : lentMappedLook(row.look, model.map);
+      if (row.kind === 'standard' && row.sky === true) {
+        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
+        sky.setupMaterial(material);
+      }
       materials.set(row.id, material);
       if (row.kind === 'standard' || row.kind === 'basic') owner.onDispose(() => { material.dispose(); });
       await buildYield(owner);
@@ -184,7 +219,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     const sky = ctx.game.runtime?.world?.sky;
     if (sky !== undefined && catalogue !== undefined) {
       const geometries = new Map<string, BufferGeometry>();
-      for (const draw of catalogue.models.flatMap(model => model.choices.flatMap(choice => choice.draws))) {
+      for (const draw of catalogue.models.flatMap(model => model.choices.flatMap(choice => [...choice.draws, ...choice.lods.flatMap(level => level.draws)]))) {
         const key = JSON.stringify([draw.library, draw.model]);
         if (geometries.has(key)) continue;
         const geometry = libraries.get(draw.library)?.geometry(draw.model);
@@ -192,6 +227,13 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); });
       }
       bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials }, owner);
+      const definitions = defineWorldSceneCatalogue(catalogue);
+      for (const row of placements) {
+        const model = catalogue.models.find(entry => entry.key === row.model);
+        const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
+        const sources = section.materials.filter((source): source is Extract<typeof source, { kind: 'source' }> => source.kind === 'source' && source.load === 'placement' && needed.has(source.id));
+        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources));
+      }
     }
     for (const step of section.steps) for (const instance of step.repeat ?? [{ id: '' }]) {
       const file = step.variants === undefined ? step.scene : ctx.cube === null ? step.variants.standalone : step.variants.cell;

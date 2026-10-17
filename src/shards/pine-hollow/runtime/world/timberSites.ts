@@ -81,14 +81,6 @@ export function siteCopy(name: string, site: TimberSite): TimberCopy {
   return { identity: site === 'world' ? name : `${name}-turntable`, row: copies[site] };
 }
 
-/** Borrow one authored rest shape, retaining the original native culling sphere. */
-export function propShapeGeometry(views: ReadonlyMap<string, WholeGeometryView>, name: string, sphere: readonly number[]): THREE.BufferGeometry {
-  const view = views.get(name); if (view === undefined) throw new Error(`[props] missing authored shape ${name}`);
-  const [x, y, z, radius] = v.parse(v.tuple([num, num, num, v.pipe(num, v.minValue(0))]), sphere);
-  const geometry = view.geometry.clone(); geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(x, y, z), radius);
-  return geometry;
-}
-
 const floorKinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
 const floorPlace = v.strictObject({ x: num, y: num, z: num, nx: num, ny: num, nz: num, rot: num, scale: num, r: num, g: num, b: num, matrix: v.pipe(v.array(num), v.length(16)) });
 const floorList = v.pipe(v.array(floorPlace), v.maxLength(40_000)), count = v.pipe(v.number(), v.integer(), v.minValue(0));

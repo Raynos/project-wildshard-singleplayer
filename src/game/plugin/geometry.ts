@@ -1,4 +1,5 @@
 import { unzlibSync } from 'fflate';
+import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { workSlice } from '@wildshard/engine/core/workSlice';
@@ -1685,8 +1686,6 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
   return npc;
 }
 
-const WholeAttribute = wholeV.strictObject({ semantic: wholeV.string(), storage: wholeV.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: wholeV.boolean(), itemSize: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1), wholeV.maxValue(4)) });
-const WholeNative = wholeV.record(wholeV.string(), WholeAttribute);
 /** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
 const WHOLE_ORDINALS_MAX = 1 << 24;
 const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
@@ -1697,26 +1696,6 @@ const WholeOrdinals = wholeV.union([wholeV.array(WholeOrdinal), wholeV.pipe(whol
   wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return list; }))]);
 const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']) });
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
-const WHOLE_SEMANTICS: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
-
-/** Original typed channels from a portable GLB node, including half-float bits and vec4 shader normals. */
-export function nativeWholeGeometry(node: Mesh): BufferGeometry {
-  const metadata: unknown = node.userData['nativeAttributes'], input: unknown = node.geometry;
-  if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
-  const result = new BufferGeometry();
-  for (const [name, row] of Object.entries(wholeV.parse(WholeNative, metadata))) {
-    const channel = WHOLE_SEMANTICS[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = input.getAttribute(channel);
-    if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
-    if (row.storage === 'Float16Array') {
-      if (!(attribute.array instanceof Uint16Array)) throw new Error('Whole half-float channel needs uint16 bits');
-      result.setAttribute(name, new Float16BufferAttribute(attribute.array.slice(), row.itemSize, row.normalized));
-    } else {
-      if (attribute.array.constructor.name !== row.storage) throw new Error('Whole channel storage mismatch');
-      result.setAttribute(name, attribute.clone());
-    }
-  }
-  result.setIndex(input.getIndex()?.clone() ?? null); return result;
-}
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
   if (row.storage === 'Float16Array') return new Float16BufferAttribute(new Uint16Array(n), row.itemSize, row.normalized);

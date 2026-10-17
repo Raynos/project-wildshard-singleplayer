@@ -1,0 +1,13 @@
+{
+  "directory": "/assets/models/pine-hollow-hero",
+  "sources": ["stone-a", "stone-b", "stone-c", "waystone", "contract-board", "cave-arch", "beaver-dam", "canoe"],
+  "front": {"stone-a": 3.141592653589793, "stone-b": 0, "stone-c": 0, "waystone": 0, "beaver-dam": 0, "canoe": 0, "contract-board": 0, "cave-arch": 0},
+  "models": [
+    {"key": "waystone", "name": "Waystone lantern", "category": "props", "surface": "stone", "sources": ["waystone"], "far": 45},
+    {"key": "beaver-dam", "name": "Beaver dam", "category": "nature", "surface": "wood", "sources": ["beaver-dam"], "far": 50},
+    {"key": "canoe", "name": "Canoe", "category": "props", "surface": "wood", "sources": ["canoe"], "far": 40},
+    {"key": "contract-board", "name": "Contract board", "category": "props", "surface": "wood", "sources": ["contract-board"], "far": 40},
+    {"key": "standing-stone", "name": "Standing stone", "category": "nature", "surface": "stone", "sources": ["stone-a", "stone-b", "stone-c"], "far": 60},
+    {"key": "cave-arch", "name": "Cave arch", "category": "nature", "surface": "rock", "sources": ["cave-arch"], "far": 70}
+  ]
+}

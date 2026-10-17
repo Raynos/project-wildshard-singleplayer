@@ -1,6 +1,7 @@
 import { expect, it, vi } from 'vitest';
-import { BoxGeometry } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Float16BufferAttribute, MeshStandardMaterial } from 'three';
 import { createOwnedGeometry, createOwnedGeometryBatch } from '../src/engine/models/ownedGeometry';
+import { staticGlb } from '../src/sdk/bake/glb';
 
 it('copies borrowed input and transfers adopted geometry without retaining it', async () => {
   const source = new BoxGeometry(), intake = createOwnedGeometry('/owned.glb');
@@ -40,4 +41,25 @@ it('loads the declared batch while retaining each handle ownership and retry', a
     for (let i = 0; i < 128; i++) bounded.geometry(String(i));
     expect(() => bounded.geometry('overflow')).toThrow('declaration');
   } finally { fetch.mockRestore(); source.dispose(); }
+});
+
+it('restores native half-float bits, packed vec4 normals and explicit identity indices', async () => {
+  const geometry = new BufferGeometry(), material = new MeshStandardMaterial();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
+  geometry.setAttribute('normal', new BufferAttribute(new Int16Array([0, 0, 32767, 1, 0, 0, 32767, 2, 0, 0, 32767, 3]), 4, true));
+  geometry.setAttribute('uv', new Float16BufferAttribute(new Uint16Array([0, 0, 15360, 0, 0, 15360]), 2));
+  geometry.setIndex(new BufferAttribute(new Uint16Array([0, 1, 2]), 1));
+  const intake = createOwnedGeometry('/typed-shape.glb');
+  try {
+    await intake.load(staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true }]));
+    const restored = intake.take();
+    try {
+      expect(restored.getAttribute('normal').itemSize).toBe(4);
+      expect(restored.getAttribute('normal').normalized).toBe(true);
+      expect(restored.getAttribute('normal').array).toEqual(geometry.getAttribute('normal').array);
+      expect(restored.getAttribute('uv')).toBeInstanceOf(Float16BufferAttribute);
+      expect(restored.getAttribute('uv').array).toEqual(geometry.getAttribute('uv').array);
+      expect(restored.getIndex()?.array).toEqual(new Uint16Array([0, 1, 2]));
+    } finally { restored.dispose(); }
+  } finally { geometry.dispose(); material.dispose(); }
 });

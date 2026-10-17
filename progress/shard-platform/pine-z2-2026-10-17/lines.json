@@ -1,0 +1,132 @@
+{
+  "basis": "source",
+  "parent": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+  "parentMeasurementRevision": "3bd0eca856fbaf8f635353802f87d1707b92b7ef",
+  "candidate": "d94df1ecc928ba7cdb00d643086f68b7e1379ce7",
+  "shards": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "net": 0,
+      "assemblyScriptLines": 119
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "net": 0,
+      "assemblyScriptLines": 23
+    },
+    "driftwood-isle": {
+      "before": 4751,
+      "after": 4720,
+      "net": -31,
+      "assemblyScriptLines": 96
+    },
+    "far-reach": {
+      "before": 528,
+      "after": 528,
+      "net": 0,
+      "assemblyScriptLines": 53
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "net": 0,
+      "assemblyScriptLines": 94
+    },
+    "nalati-grasslands": {
+      "before": 20339,
+      "after": 20339,
+      "net": 0,
+      "assemblyScriptLines": 162
+    },
+    "nine-dragon-stack": {
+      "before": 11889,
+      "after": 11889,
+      "net": 0,
+      "assemblyScriptLines": 0
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "net": 0,
+      "assemblyScriptLines": 94
+    },
+    "pine-hollow": {
+      "before": 6626,
+      "after": 6294,
+      "net": -332,
+      "assemblyScriptLines": 433
+    },
+    "sunscar-dunes": {
+      "before": 392,
+      "after": 392,
+      "net": 0,
+      "assemblyScriptLines": 96
+    }
+  },
+  "components": {
+    "pine-hollow": {
+      "before": {
+        "C1": 2358,
+        "C2": 611,
+        "C3": 345,
+        "C4": 796,
+        "C5": 1276,
+        "C6": 398,
+        "C7": 7,
+        "C8": 33,
+        "C9": 802
+      },
+      "after": {
+        "C1": 2034,
+        "C2": 604,
+        "C3": 345,
+        "C4": 796,
+        "C5": 1273,
+        "C6": 398,
+        "C7": 7,
+        "C8": 33,
+        "C9": 804
+      }
+    },
+    "driftwood-isle": {
+      "before": {
+        "C1": 2011,
+        "C2": 249,
+        "C3": 0,
+        "C4": 762,
+        "C5": 772,
+        "C6": 260,
+        "C7": 0,
+        "C8": 17,
+        "C9": 680
+      },
+      "after": {
+        "C1": 1980,
+        "C2": 249,
+        "C3": 0,
+        "C4": 762,
+        "C5": 772,
+        "C6": 260,
+        "C7": 0,
+        "C8": 17,
+        "C9": 680
+      }
+    }
+  },
+  "netPlatformLines": 194,
+  "platform": {
+    "src/engine/models/nativeGeometry.ts": 23,
+    "src/engine/models/ownedGeometry.ts": 1,
+    "src/format/worldSceneModels.ts": 4,
+    "src/format/worldScenePlacement.ts": 18,
+    "src/format/worldScenes.ts": 5,
+    "src/game/models/worldSceneCatalogue.ts": 16,
+    "src/game/plugin/geometry.ts": -19,
+    "src/game/shardfile/worldSceneMaterials.ts": 50,
+    "src/game/shardfile/worldScenePlacement.ts": 54,
+    "src/game/shardfile/worldScenes.ts": 42
+  },
+  "sourceEquivalentParent": "37e814b28745c7074eef3bfeb7086648276625d4"
+}

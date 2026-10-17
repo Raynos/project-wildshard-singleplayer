@@ -295,7 +295,7 @@ export const NAMED_PLACES = {
   ...Object.fromEntries(primaryFolders().map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
   'driftwood-isle': [{ file: 'src/shards/driftwood-isle/generators/discovery.ts', list: 'DRIFTWOOD_PLACES', legacyFile: 'quest/Places.ts' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/generators/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/data/questStory.ts)
-  'pine-hollow': [{ file: 'src/shards/pine-hollow/generators/layout.ts', list: 'PINE_HOLLOW_POIS', legacyFile: 'layout.ts' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
+  'pine-hollow': [{ file: 'src/shards/pine-hollow/generators/layout.ts', list: 'PINE_HOLLOW_POIS', legacyFile: 'layout.ts' }, { file: 'src/shards/pine-hollow/generators/placeSets.ts', list: 'PINE_HOLLOW_QUEST_PLACES', legacyFile: 'world/places.ts', optional: true }],
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/generators/places.ts', list: 'NINE_DRAGON_PLACES', legacyFile: 'places.ts' }],
 };
 /** the shards whose every named place must have its set (the rest are reported) */

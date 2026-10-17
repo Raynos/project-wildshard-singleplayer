@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Group, Mesh, MeshStandardMaterial } from 'three';
+import { Group, Mesh, MeshStandardMaterial, Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
@@ -185,4 +185,107 @@ test('resident catalogue loans reach later world placements through the shared s
     expect(built.children[0]).toBeInstanceOf(Mesh); // No loading placeholder group.
     expect(catalogue.material('paint', sharedModelContext(sky))).toBe(built.children[0] instanceof Mesh ? built.children[0].material : null);
   } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});
+
+test('authored raw LODs and deferred named placements retain their native model contract', async () => {
+  const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }, { parseWorldSceneModels }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'), import('../src/format/worldSceneModels'),
+  ]);
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const context = fixture(), rows = section();
+  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game } } });
+  const draw = { id: 'face', library: 'shapes', model: 'stone', material: 'paint', castShadow: true, sphere: [0, 0, 0, 3] };
+  const data = { product: 'fixture-harbour', models: [{ key: 'marker', id: 'fixture-harbour/marker', name: 'Marker', category: 'props', pipeline: 'blender', file: 'markers.json', defaults: {}, assembly: 'parts',
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [draw], lods: [{ from: 20, draws: [{ ...draw, castShadow: false }] }] }] }] };
+  const placement = { id: 'markers.placed', model: 'marker', draw: 'single', cull: { far: { phone: 25, desktop: 35 }, minAngular: { phone: 0.004, desktop: 0.0012 } },
+    poses: [{ x: 7, y: 0, z: 9, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 7, 0, 9, 1] }], piece: { id: 'marker-copy' },
+    colliders: [{ kind: 'box', hx: 1, hy: 1, hz: 1, x: 7, y: 1, z: 9 }],
+  };
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => ['models/catalogue.json', 'scenes/placement.json'].includes(name) || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' || name === 'scenes/placement.json'
+    ? Promise.resolve(new TextEncoder().encode(JSON.stringify(name === 'models/catalogue.json' ? data : placement))) : file(name));
+  try {
+    const handles = await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [{ id: 'markers.placed', file: 'scenes/placement.json' }] }));
+    expect(handles.has('markers.placed')).toBe(true);
+    expect(handles.has('markers.placed.root')).toBe(false);
+    const catalogue = defineWorldSceneCatalogue(data), model = catalogue.model('marker'), ctx = sharedModelContext(sky);
+    const near = model.build(ctx, {}, new Rng(1)), far = model.lods?.[0]?.build(ctx, {}, new Rng(1));
+    if (near instanceof Object3D) throw new Error('Expected native raw parts');
+    expect(near[0]?.geometry.boundingSphere?.radius).toBe(3);
+    expect(near[0]?.castShadow).toBe(true); expect(far?.[0]?.castShadow).toBe(false);
+    expect(far?.[0]?.geometry).toBe(near[0]?.geometry);
+    expect(model.lods?.[0]?.from).toBe(20);
+    const placed = await handles.place('markers.placed');
+    expect(await handles.place('markers.placed')).toBe(placed);
+    expect(handles.object('markers.placed.root')).toBe(placed.object);
+    expect(handles.colliders('markers.placed.colliders')).toEqual([{ kind: 'box', x: 7, y: 1, z: 9, hx: 1, hy: 1, hz: 1 }]);
+    expect(Object.keys(placed.colliders[0] ?? {})).toEqual(['kind', 'hx', 'hy', 'hz', 'x', 'y', 'z']);
+    expect(context.app.registry.pieces.filter(piece => piece.id === 'marker-copy')).toHaveLength(1);
+    expect(() => parseWorldSceneModels({ ...data, models: [{ ...data.models[0], choices: [{ ...data.models[0]?.choices[0], lods: [{ from: 20, draws: [] }, { from: 10, draws: [] }] }] }] })).toThrow();
+    expect(() => parseWorldScenes({ ...rows, placements: [{ id: 'bad', model: 'marker', draw: 'single', poses: [{ x: 0, y: 0, z: 0, matrix: [1] }] }] })).toThrow();
+    const { parseWorldScenePlacement } = await import('../src/format/worldScenePlacement');
+    expect(() => parseWorldScenePlacement({ ...placement, poses: [{ ...placement.poses[0], params: { callback: () => 1 } }] })).toThrow('plain JSON');
+    expect(() => parseWorldScenePlacement({ ...placement, colliders: [{ callback: () => 1 }] })).toThrow('plain JSON');
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});
+
+test('source PBR slots preserve original maps and own material retirement', async () => {
+  const [{ worldSceneSourceMaterial }, rig, { SkyRig }, { Texture, BufferGeometry }, { GLTFLoader }] = await Promise.all([
+    import('../src/game/shardfile/worldSceneMaterials'), import('../src/engine/anim/rig'), import('../src/engine/world/skyRig'), import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'),
+  ]);
+  const owner = new Scope('pbr-source-fixture'), sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const setup = vi.fn(); Object.defineProperty(sky, 'setupMaterial', { value: setup });
+  const texture = new Texture(), material = new MeshStandardMaterial({ map: texture, normalMap: texture, roughnessMap: texture, aoMap: texture });
+  const geometry = new BufferGeometry(), scene = new Group(); scene.add(new Mesh(geometry, material));
+  const disposed = vi.fn(), released = vi.fn(); material.addEventListener('dispose', () => { disposed(); }); geometry.addEventListener('dispose', () => { released(); });
+  const file = await new GLTFLoader().parseAsync(Uint8Array.from(triangle()).buffer, '');
+  file.scene.clear(); file.scene.add(...scene.children);
+  const loader = vi.spyOn(rig, 'loadRigFile').mockResolvedValue(file);
+  const rows = parseWorldScenes({ version: 1, libraries: [], materials: [{ id: 'pbr', kind: 'source', url: '/fixture.glb', aliases: { '/fixture.glb': '/material-only.glb' }, anisotropy: 4, envMapIntensity: 0.8 }], steps: [] });
+  const row = rows.materials[0]; if (row?.kind !== 'source') throw new Error('Missing material fixture');
+  try {
+    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
+    expect(loader).toHaveBeenCalledTimes(1); expect(loader).toHaveBeenCalledWith('/fixture.glb', row.aliases);
+    expect(setup).toHaveBeenCalledWith(material); expect(texture.anisotropy).toBe(4); expect(material.envMapIntensity).toBe(0.8);
+    expect(released).toHaveBeenCalledOnce(); owner.dispose(); expect(disposed).toHaveBeenCalledOnce();
+  } finally { loader.mockRestore(); owner.dispose(); }
+});
+
+test('deferred source slots decode at their named placement', async () => {
+  const [sources, { SkyRig }] = await Promise.all([import('../src/game/shardfile/worldSceneMaterials'), import('../src/engine/world/skyRig')]);
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const context = fixture(), rejected = fixture(), retired = fixture(), material = new MeshStandardMaterial(), rows = section();
+  Object.assign(context.game, { renderer: null, runtime: { world: { sky, game: context.game } } });
+  const data = { product: 'fixture-harbour', models: [{ key: 'marker', id: 'fixture-harbour/deferred', name: 'Marker', category: 'props', pipeline: 'blender', file: 'markers.json', defaults: {}, assembly: 'parts',
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'face', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  const source = { id: 'paint', kind: 'source', load: 'placement', url: '/fixture.glb' };
+  const declaration = { ...rows, catalogue: 'models/catalogue.json', materials: [source], placements: [{ id: 'markers.placed', model: 'marker', draw: 'single', poses: [{ x: 0, y: 0, z: 0, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] }], steps: [] };
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(data))) : file(name));
+  const load = vi.spyOn(sources, 'worldSceneSourceMaterial').mockResolvedValue(material);
+  try {
+    const handles = await installWorldScenes(context, parseWorldScenes(declaration));
+    expect(load).not.toHaveBeenCalled();
+    await handles.place('markers.placed'); await handles.place('markers.placed');
+    expect(load).toHaveBeenCalledOnce();
+    await expect(installWorldScenes(rejected, parseWorldScenes({ ...rows, materials: [source] }))).rejects.toThrow('Deferred source material');
+    Object.assign(retired.game, { renderer: null, runtime: { world: { sky, game: retired.game } } });
+    const retiredFile = retired.product.file.bind(retired.product), retiredHas = retired.product.hasFile.bind(retired.product);
+    vi.spyOn(retired.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || retiredHas(name));
+    vi.spyOn(retired.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(data))) : retiredFile(name));
+    const stale = await installWorldScenes(retired, parseWorldScenes(declaration));
+    let complete: (value: MeshStandardMaterial) => void = () => { throw new Error('Missing deferred source initializer'); };
+    const decode = new Promise<MeshStandardMaterial>(resolve => { complete = resolve; });
+    load.mockReturnValueOnce(decode);
+    const placing = stale.place('markers.placed');
+    retired.scope.dispose(); complete(material);
+    await expect(placing).rejects.toThrow('Scene placement owner is disposed');
+    expect(retired.app.registry.pieces).toHaveLength(0);
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); rejected.scope.dispose(); retired.scope.dispose(); material.dispose(); }
 });
