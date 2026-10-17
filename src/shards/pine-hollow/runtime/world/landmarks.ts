@@ -47,7 +47,6 @@ import { timberLandmark } from '../models/fireLookout';
 import { zipCable } from '../models/zipCable';
 import { loadCodeParts } from './codeParts';
 import { PineCrags } from './crags';
-import { CRAG_ROWS } from './cragBake';
 
 
 
@@ -126,8 +125,7 @@ export class PineLandmarks {
     await macrotask();
     if (this.crags) {
       // PH-B2: the kit over the Ridge, and the cave behind the arch
-      await this.crags.prepareSkin(macrotask);
-      await this.crags.build(CRAG_ROWS.places, registry, macrotask); // the modules are models: they register themselves
+      await this.crags.build(registry, macrotask); // the modules are models: they register themselves
       this.group.add(this.crags.group);
     }
     return this;

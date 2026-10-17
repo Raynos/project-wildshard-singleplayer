@@ -5,16 +5,17 @@
  * Blender (src/shards/pine-hollow/blender/crags/build_crags.py → public/assets/models/pine-hollow-crags/crags.glb: cliff bands, a
  * buttress, an exfoliation slab, two tors, three boulders, two scree patches, each a LOD0 + LOD1 with Cycles vertex AO)
  * is placed over it at build time (G285: ../generators/crags.ts `placeCrags`, baked to ../data/crags.json with the face
- * skin's tiles, read through ./cragBake.ts): cliff modules on every steep face of the Ridge, the pass and the Den's walls,
+ * skin's tiles): cliff modules on every steep face of the Ridge, the pass and the Den's walls,
  * fronts turned down the slope and sunk into it; tors along the crest; talus below each cliff where the slope eases —
  * boulders and scree fans. The cave (build_cave.py → cave.glb) is one
  * merged interior behind the hero arch at the Den's mouth: an antechamber, a squeeze, the bear's room with its bedding
  * and bones, drips, and a crack in the roof whose shaft of light falls on the floor; its hood is the rock over its first
  * metres where the passage runs shallower than the slope.
  *
- * The modules are models (E315 M2, src/shards/pine-hollow/runtime/models/): `pine-hollow/crag-cliff` (the cliff bands, the
- * buttress, the slab, the tors), `pine-hollow/crag-boulder` and `pine-hollow/scree`, placed with `place()`; the face skin
- * and the cave are the world (welded to the ground: the terrain is punched for the cave).
+ * The modules are models (E315 M2, ../models/cragCliff.ts): `pine-hollow/crag-cliff` (the cliff bands, the buttress, the
+ * slab, the tors, the hero crag), `pine-hollow/crag-boulder` and `pine-hollow/scree`, drawn from the loaded kit and placed
+ * with `place()`; the face skin (the admitted site-timber views `<tier>-skin-<i>-near|far`) and the cave are the world (welded
+ * to the ground: the terrain is punched for the cave).
  *
  * Draws: ONE BatchedMesh (WEBGL_multi_draw) for everything — every module's two LODs (the models, `place`'s `batch`),
  * the face skin, the cave, its far hood — so the crags cost one draw + one per shadow cascade; per instance, the LOD is a
@@ -26,23 +27,23 @@
  * lantern and the lamps stay), wet, rock / tint.
  *
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
- *   await crags.prepareSkin(macrotask);                             // the baked face skin's tiles
- *   await crags.build(CRAG_ROWS.places, registry, macrotask);  scene.add(crags.group);  // the modules register themselves
+ *   await crags.build(registry, macrotask);  scene.add(crags.group);  // the modules register themselves
  *   cutTerrain(physics, crags.cave?.terrainCuts() ?? []); if (crags.cave) terrain.punch(crags.cave.holeTest());  game.onUpdate(() => crags.frame(t))
  */
 import * as THREE from 'three';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
+import cragRows from '../../data/crags.json' with { type: 'json' };
 import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
-import { useCragKit } from './cragKit';
-import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
-import { CRAG_MODELS } from '../models/cragCliff';
-import { CAVE_LOOK, CRAG_LOOK } from '../const';
+import { loadSiteTimbers } from './timberSites';
+import { cragModels } from '../models/cragCliff';
+import { BEAR_CAVE, CAVE_LOOK, CRAG_LOOK } from '../const';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import type { WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { BatchedCull } from '@wildshard/engine/models/cull';
@@ -54,6 +55,15 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the boot file rows list the kit alongside the landmarks' props
+/** the cave's frame: its mouth at BEAR_CAVE, local +Z into the rock (the mouth faces local −Z), y is world height */
+const CAVE_FRAME = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, yaw: BEAR_CAVE.rot };
+/** one placed module (../data/crags.json): its base centre, a turn about +Y (its front, local +Z, faces (sin yaw, cos yaw)), a tilt */
+type CragPlace = (typeof cragRows.places)[number];
+
+/** LOD / range per kind (m, camera to the module less half its radius): the cliffs' full model near, their LOD1 to the slab's edge */
+const CRAG_LOD = TIER === 'phone'
+  ? { big: 95, bigFar: 900, small: 38, smallFar: 170, scree: 30, screeFar: 110 }
+  : { big: 170, bigFar: 900, small: 70, smallFar: 320, scree: 55, screeFar: 200 };
 
 /*
  * E322 F-L2 (Jake picked B): the face skin is textured by its facets, not its smoothed normals (the old projection laid
@@ -83,6 +93,8 @@ function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): TH
 
 // ─────────────────────────────────────────────────────── the set ───────────────────────────────────────────────────
 
+/** most site-timber views the other tier's skin holds (throws past it) */
+const MAX_SOURCE_VIEWS = 4096;
 /** most of the world's own batch instances (the face skin's tiles, the cave, its hood; throws past it) */
 const MAX_OWN = 64;
 
@@ -105,15 +117,14 @@ export class PineCrags {
   readonly cave: CaveInteriorView | null;
   private caveLive = false;
   private tmp = new THREE.Vector3();
-  private skin: [THREE.BufferGeometry, THREE.BufferGeometry][] = [];
   private readonly sky: Sky | null;
   private readonly kit: Map<string, THREE.BufferGeometry>;
   private readonly caveGeo: Map<string, THREE.BufferGeometry>;
   private readonly mat: THREE.Material | null;
-  private readonly skinBake: CragSkin | null;
+  private readonly skin: Map<string, WholeGeometryView> | null;
 
-  private constructor(sky: Sky | null, kit: Map<string, THREE.BufferGeometry>, caveGeo: Map<string, THREE.BufferGeometry>, caveMeta: CaveMeta | null, mat: THREE.Material | null, skinBake: CragSkin | null) {
-    this.sky = sky; this.kit = kit; this.caveGeo = caveGeo; this.mat = mat; this.skinBake = skinBake;
+  private constructor(sky: Sky | null, kit: Map<string, THREE.BufferGeometry>, caveGeo: Map<string, THREE.BufferGeometry>, caveMeta: CaveMeta | null, mat: THREE.Material | null, skin: Map<string, WholeGeometryView> | null) {
+    this.sky = sky; this.kit = kit; this.caveGeo = caveGeo; this.mat = mat; this.skin = skin;
     this.cave = caveMeta ? new CaveInterior(caveMeta, CAVE_FRAME, CAVE_LOOK, CAVE_FILL) : null;
     this.group.name = 'pine-crags';
   }
@@ -130,7 +141,7 @@ export class PineCrags {
         fetchBakeJson(`${CRAG_DIR}/cave.json`).then((meta) => meta as CaveMeta).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), Promise.all([loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))])
           .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
-        sky ? loadCragSkin(TIER, pineModels(sky)) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
+        sky ? loadSkin(pineModels(sky)) : Promise.resolve(null), // only drawn builds need the skin
       ]);
       const mat = sky && tex ? cragMaterial(tex[0], tex[1]) : null;
       return new PineCrags(sky, new Map([...kit, ...kitB]), caveGeo, caveMeta, mat, skin);
@@ -140,27 +151,23 @@ export class PineCrags {
     }
   }
 
-  /** the face skin's tiles (both resolutions) from this tier's bake, a tile per task; only drawn builds need it */
-  async prepareSkin(yieldTask: () => Promise<void>): Promise<void> {
-    if (!this.mat || !this.skinBake) return;
-    this.skin = await this.skinBake.tiles(yieldTask);
-  }
-
   /**
    * Draw (when a material exists) and collide the placements and the cave. The modules are placed as models into the ONE
    * batch, registered on `registry` 90 hulls a `yieldTask` apart (the phone's per-task collider budget); `registry`
    * null: built only (the navmesh bake reads `colliders`). The face skin and the cave are this world's own instances
    * (@wildshard/engine/models/cull).
    */
-  async build(places: CragPlace[], registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
-    this.places = places;
-    // the world's own geometry: the face skin (one geometry per tile per resolution, identity matrix: its vertices are
-    // world positions) and the cave (its interior + hood near, the hood alone (simplified) far)
-    const assembly=authored.cragAssembly.tiers[TIER], skin=this.skin.flat();
+  async build(registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
+    const places = this.places = cragRows.places;
+    // the world's own geometry: the face skin (tile i's near and far are slots 2i and 2i + 1, identity matrix: its
+    // vertices are world positions) and the cave (its interior + hood near, the hood alone (simplified) far)
+    const assembly=authored.cragAssembly.tiers[TIER], skin = this.skin;
     const geos: THREE.BufferGeometry[] = this.mat ? assembly.slots.map(slot => {
-      const geometry=slot.skin>=0?skin[slot.skin]:this.caveGeo.get(slot.cave);
+      const view = slot.skin >= 0 ? skin?.get(`${TIER}-skin-${String(slot.skin >> 1)}-${slot.skin % 2 === 1 ? 'far' : 'near'}`) : undefined;
+      const geometry = view ? graphNamed(view.geometry) : slot.skin >= 0 ? undefined : this.caveGeo.get(slot.cave);
       if(geometry===undefined)throw new Error('[crags] authored batch geometry missing');return geometry;
     }) : [];
+    await yieldTask();
     const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x,0,CAVE_FRAME.z);
     const plan = this.mat ? assembly.plans.map(({cave,...row})=>({...row,matrix:cave?caveM.clone():new THREE.Matrix4()})) : [];
     const caveG=this.caveGeo.get('cave');
@@ -172,7 +179,8 @@ export class PineCrags {
 
     // the modules, as models: every place call adds its (variant, level) geometries and its copies to the one batch
     const of = (ids: readonly string[]): CragPlace[] => places.filter((p) => ids.includes(p.id) && this.kit.has(p.id));
-    const byKind = CRAG_MODELS.map((row) => of(row.modules));
+    const kinds = cragModels({ kit: this.kit, mat: this.mat ?? new THREE.MeshBasicMaterial(), lod: CRAG_LOD, hulls: authored.cragAssembly.hulls });
+    const byKind = kinds.map((row) => of(row.modules));
     if (this.mat && (plan.length > 0 || byKind.some((l) => l.length > 0))) {
       const capacity=assembly.reserve;
       const bm = this.batch = new THREE.BatchedMesh(capacity.instances,capacity.vertices,capacity.indices,this.mat);
@@ -183,7 +191,6 @@ export class PineCrags {
     const sky = this.sky;
     if (sky) {
       const ctx = pineModels(sky);
-      useCragKit(ctx, { kit: this.kit, mat: this.mat });
       const placeKind = async <P extends object>(model: ModelDef<P>, list: readonly CragPlace[], far: number): Promise<void> => {
         if (list.length === 0) return;
         const pls = list.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: modelPoseMatrix({ ...p, pitch: p.tiltX, roll: p.tiltZ }), variant: p.id }));
@@ -197,7 +204,7 @@ export class PineCrags {
         await placed.registered;
         if (placed.colliders.length > 0) await yieldTask();
       };
-      for (let k = 0; k < 3; k++) { const row = CRAG_MODELS[k]; if (row) await placeKind(row.model, byKind[k] ?? [], row.far); } // the three crag rows
+      for (let k = 0; k < 3; k++) { const row = kinds[k]; if (row) await placeKind(row.model, byKind[k] ?? [], row.far); } // the three crag rows
     }
     const bm = this.batch;
     if (bm) {
@@ -232,5 +239,25 @@ export class PineCrags {
     for (let i = 0; i < Math.min(own.length, MAX_OWN); i++) own[i]?.update(cam);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
     if (this.mat) setLentParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
+  }
+}
+
+/** the kit's vertex colour and tint, named as the granite's graph reads them (`aCdata` / `aCtint`, ../data/cragLook.ts) */
+function graphNamed(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  const rename = (from: string, to: string): void => { if (g.hasAttribute(from)) { const a = g.getAttribute(from); g.deleteAttribute(from); g.setAttribute(to, a); } };
+  rename('cdata', 'aCdata'); rename('ctint', 'aCtint'); g.computeBoundingBox(); g.computeBoundingSphere(); return g;
+}
+
+/** this tier's face skin, as the admitted site-timber views (the other tier's released); null: they did not load */
+async function loadSkin(ctx: Parameters<typeof loadSiteTimbers>[0]): Promise<Map<string, WholeGeometryView> | null> {
+  try {
+    const views = await loadSiteTimbers(ctx), unused = `${TIER === 'phone' ? 'desktop' : 'phone'}-skin-`;
+    const keys = [...views.keys()].filter((key) => key.startsWith(unused));
+    if (keys.length > MAX_SOURCE_VIEWS) throw new Error(`[crags] ${String(keys.length)} unused skin views, over ${String(MAX_SOURCE_VIEWS)}`);
+    for (let i = 0; i < Math.min(keys.length, MAX_SOURCE_VIEWS); i++) { const key = keys[i] ?? ''; views.get(key)?.release?.(); views.delete(key); }
+    return views;
+  } catch (error: unknown) {
+    console.error('[pine-hollow] the baked crag skin did not load:', error);
+    return null;
   }
 }
