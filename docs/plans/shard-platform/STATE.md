@@ -10,7 +10,8 @@
 - sp-x6 feature #4 rest: held gear/skins, toon 6/6 fix, DW IronSword claim.
 - sp-x4 G484 (a): skitterer to ABI v1 with a generic spawn-group binding.
 - sp-x1 Sim road part six (native traces: zlib decode + microtasks; shared inflate pacing).
-- sp-x7 pusher. Next free lane: G484 (b) SCRIPT-ABI.md rewrite, then #5 living buildings; Z1 after Z2.
+- sp-x7 (G485): ONLY CI/deploy until live == recent main (red since this morning; live a399c36f3 from 10-13). Root cause so far: Nalati spear pool bake hash differs Linux 7fbead3b vs Mac af347349 and its GLB was git-ignored (8f5e76376); plus Nalati empty-URL model 404s. The G480 ruler task is already landed (49ac0b23a), so nothing to move.
+- sp-x8 G484 (b) SCRIPT-ABI.md rewrite. Next free lane: spawn director Script ABI spawn/retire + Pine night waves to AS (wins back the +603 charge-back), then #5 living buildings; Z1 after Z2.
 
 **Perf (standing goal 60 fps desktop / 30 fps Sim):** Sim crash FIXED (0e9f5d4c9, OM: ANGLE RGB8 ETC2 overread, only under the G386 probe-skip pin). Quiet Sim road p95 at e5aba0e01 (travel/drive): Pine 55/55, Nalati 53/46, DW 68/53, Sky 36/44 ms; staged node builds gave no win (removed). sp-x1 attributes Pine's long world-build frames.
 - Desktop standalone 7/7 at 60 fps; Sim milestone 8/8 with no crash after 0e9f5d4c9. Landed: 7afedf243 posed-atlas re-entry, 2c956f4d9 + ea3164e39 live collider splits (Nalati 172 → 47 ms), 230be1ccc/e0799b920 Sky pacing.
