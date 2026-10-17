@@ -113,3 +113,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-16 19:06 · wT:p1 · `O6=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/o6; cd /Users/raynos/projects/games/wildshard-singleplayer && BASE=$(git `
 - 2026-10-16 19:11 · wT:p1 · `GIT_INDEX_FILE=/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/6d7cc37d-520a-4aff-8f13-01fdf23ba36d/scratchpad/o5/idx SKIP_SWEEPGUARD=1 timeout 900 git commit -q -F /privat`
 - 2026-10-16 19:11 · wT:p1 · `B=$(git rev-parse HEAD) && export WS_COMMIT_INTENT="{\"base\":\"$B\",\"paths\":[\"src/shards/driftwood-isle/world/Seabed.ts\",\"src/shards/driftwood-isle/data/seabedLook.ts\",\"src/shards/driftwood-is`
+- 2026-10-16 20:02 · wT:p6 · `GIT_INDEX_FILE="$PWD/tmp/c6-sim/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit > tmp/c6-sim/precommit.log 2>&1`
