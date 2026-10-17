@@ -144,6 +144,13 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `.git/push-gate-steps.jsonl`; a passed SHA is stamped in `.git/build-gate-g416/`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
+- **Disk-reading tests declare their products** in `scripts/gate-test-products.json`.
+  The related-test walk retains their author-source edges; before Vitest, the
+  gate verifies/rebuilds only the selected products with `--reuse --shard=…`.
+  Cold runtime fixtures read those complete outputs rather than hand-listing
+  boot dependencies. Unregistered disk scenarios refuse the gate. Mirror sync
+  retains admitted producer groups, invalidates incomplete groups for the next
+  generation pass, and removes retired outputs, including ignored metadata.
 - **Pushes never regenerate outputs** (G367, replacing hourly batching).
   Generated outputs belong to the commit that changes their inputs. The
   regeneration bot no longer runs in `push-main.sh`; green-prefix remains on.

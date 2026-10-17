@@ -69,6 +69,15 @@ export function scriptScenarioTests(changed, tests) {
   return [...selected].sort((a, b) => a.localeCompare(b));
 }
 
+/** Disk readers have no import edge to the author modules that publish their bytes.
+ * @param {string[]} changed @param {Record<string, string[]>} registry @returns {string[]} */
+export function productReaderTests(changed, registry) {
+  const shared = changed.some(file => /^(?:src\/(?:sdk|format)\/|scripts\/(?:build-shardfiles\.mjs|shardfile-cache\.mjs|gate-test-products\.json)$)/u.test(file));
+  return Object.entries(registry).filter(([, slugs]) => shared || changed.some(file => slugs.some(slug =>
+    file.startsWith(`src/shards/${slug}/`) || file.startsWith(`public/assets/${slug}/`))))
+    .map(([test]) => test).sort((a, b) => a.localeCompare(b));
+}
+
 /**
  * Pick the related test files to run within `seconds` of estimated wall time on `workers` workers.
  * @param {string[]} related every related test file (relative paths)
@@ -120,10 +129,13 @@ if (isMain) {
   }
   const scenarioDir = resolve(ROOT, 'test/scripts');
   const scenarios = existsSync(scenarioDir) ? readdirSync(scenarioDir).filter(file => file.endsWith('.test.ts')).map(file => `test/scripts/${file}`) : [];
-  const required = scriptScenarioTests(changed, scenarios);
+  const registryPath = existsSync(resolve(ROOT, 'scripts/gate-test-products.json')) ? resolve(ROOT, 'scripts/gate-test-products.json') : resolve(import.meta.dirname, 'gate-test-products.json');
+  /** @type {Record<string, string[]>} */
+  const products = JSON.parse(readFileSync(registryPath, 'utf8'));
+  const required = [...new Set([...scriptScenarioTests(changed, scenarios), ...productReaderTests(changed, products).filter(test => existsSync(resolve(ROOT, test)))])];
   const { run, left } = capRelated(related, sources, knownDurations(), seconds, workers, required);
   const walk = ((performance.now() - started) / 1000).toFixed(1);
   const over = left.length > 0 ? `; ${left.length} over the ${seconds}s budget run in CI only: ${left.join(' ')}` : '';
-  console.error(`gate-related-tests: ${related.length} related + ${required.length} required scenario test files for ${sources.length} changed sources (${walk}s)${over}`);
+  console.error(`gate-related-tests: ${related.length} related + ${required.length} required product test files for ${sources.length} changed sources (${walk}s)${over}`);
   console.info(JSON.stringify(run));
 }

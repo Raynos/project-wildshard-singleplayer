@@ -85,3 +85,41 @@ it('links workspace packages to the mirror sources, takes over a dead lock and q
   expect(existsSync(lock)).toBe(false);
   expect(() => openMirror(sha, { repo, env, slot: '../escape' })).toThrow(/invalid slot/u);
 });
+
+it('keeps whole generated jobs, invalidates partial jobs and prunes retired outputs', () => {
+  const { repo, commit, env } = fixture();
+  const catalog = (outputs: string[]): string => JSON.stringify({ jobs: [{ buildTimeOutputs: outputs }] });
+  const paths = ['dist/rows.json', 'assets/creature', 'assets/retained'];
+  const first = commit({ 'scripts/generation-jobs.json': catalog(paths), 'assets/retained': 'authored' });
+  const one = openMirror(first, { repo, env });
+  mkdirSync(join(one.dir, 'assets'), { recursive: true });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'metadata');
+  writeFileSync(join(one.dir, 'assets/creature'), 'blob');
+  one.release();
+  const two = openMirror(first, { repo, env });
+  expect(readFileSync(join(two.dir, 'assets/creature'), 'utf8')).toBe('blob');
+  expect(readFileSync(join(two.dir, 'dist/rows.json'), 'utf8')).toBe('metadata');
+  rmSync(join(two.dir, 'assets/creature'));
+  two.release();
+  const partial = openMirror(first, { repo, env });
+  expect(existsSync(join(partial.dir, 'dist/rows.json'))).toBe(false);
+  expect(readFileSync(join(partial.dir, 'assets/retained'), 'utf8')).toBe('authored');
+  writeFileSync(join(partial.dir, 'dist/rows.json'), 'metadata');
+  writeFileSync(join(partial.dir, 'assets/creature'), 'blob');
+  partial.release();
+  const second = commit({ 'scripts/generation-jobs.json': catalog(['assets/retained']) });
+  const retired = openMirror(second, { repo, env });
+  expect(existsSync(join(retired.dir, 'dist/rows.json'))).toBe(false);
+  expect(existsSync(join(retired.dir, 'assets/creature'))).toBe(false);
+  expect(readFileSync(join(retired.dir, 'assets/retained'), 'utf8')).toBe('authored');
+  retired.release();
+  // Git removes a formerly tracked blob when it becomes a generated output.
+  // Its remaining ignored metadata must not survive as a seemingly ready job.
+  const third = commit({ 'scripts/generation-jobs.json': catalog(['dist/rows.json', 'assets/retained']), 'assets/retained': null });
+  writeFileSync(join(retired.dir, 'dist/rows.json'), 'stale metadata');
+  const migrated = openMirror(third, { repo, env });
+  expect(existsSync(join(migrated.dir, 'dist/rows.json'))).toBe(false);
+  expect(existsSync(join(migrated.dir, 'assets/retained'))).toBe(false);
+  migrated.release();
+});

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { capRelated, scriptScenarioTests } from '../scripts/gate-related-tests.mjs';
+import { capRelated, productReaderTests, scriptScenarioTests } from '../scripts/gate-related-tests.mjs';
 
 const durations = new Map([['test/slow.test.ts', 40], ['test/cheap.test.ts', 1], ['test/mid.test.ts', 8], ['test/cover-grid.test.ts', 30]]);
 const related = [...durations.keys()];
@@ -36,4 +36,13 @@ it('keeps required scenarios once even when the related-test budget is exhausted
   const scenario = 'test/scripts/far-reach-roc.test.ts';
   expect(capRelated([scenario, 'test/slow.test.ts'], [], new Map([[scenario, 3]]), 0, 1, [scenario, scenario]))
     .toEqual({ run: [scenario], left: ['test/slow.test.ts'] });
+});
+
+it('preserves author-source edges for tests consuming complete disk products', () => {
+  const registry = { 'test/npc.test.ts': ['pine-hollow'], 'test/scripts/captain.test.ts': ['driftwood-isle', 'pine-hollow'] };
+  expect(productReaderTests(['src/shards/pine-hollow/generators/output.ts'], registry)).toEqual(Object.keys(registry));
+  expect(productReaderTests(['src/shards/driftwood-isle/assets/removed'], registry)).toEqual(['test/scripts/captain.test.ts']);
+  expect(productReaderTests(['src/sdk/project.ts'], registry)).toEqual(Object.keys(registry));
+  expect(productReaderTests(['scripts/gate-test-products.json'], registry)).toEqual(Object.keys(registry));
+  expect(productReaderTests(['src/shards/far-reach/data/rows.json', 'docs/ENGINE.md'], registry)).toEqual([]);
 });

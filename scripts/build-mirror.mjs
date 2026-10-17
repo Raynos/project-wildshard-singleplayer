@@ -80,6 +80,20 @@ function buildTree(repo, sha, full) {
   return execFileSync('git', ['mktree', '-z'], { cwd: repo, input: `${entries.join('\0')}\0`, encoding: 'utf8' }).trim();
 }
 
+// Admitted outputs may mix ignored JSON with unignored content-addressed blobs.
+// Treat each producer's outputs as a unit across syncs, including interrupted
+// generation and tracked-to-generated migrations. Never remove authored files.
+function generatedGroups(dir) {
+  const catalog = join(dir, 'scripts/generation-jobs.json');
+  if (!existsSync(catalog)) return [];
+  /** @type {{jobs: {buildTimeOutputs?: string[], buildOutputs?: Record<string, string>}[]}} */
+  const { jobs } = JSON.parse(readFileSync(catalog, 'utf8'));
+  return jobs.map(job => [...(job.buildTimeOutputs ?? []), ...Object.keys(job.buildOutputs ?? {})].map(file => {
+    if (typeof file !== 'string' || file.startsWith('/') || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error(`build-mirror: invalid generated path ${file}`);
+    return file;
+  }));
+}
+
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
 /** The slot when none is named: `WILDSHARD_MIRROR_SLOT` (a lane's assigned check2 / check3 while W2 runs, G435), else `check`. */
 export function defaultSlot(env = process.env) {
@@ -105,12 +119,20 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
       : execFileSync('git', ['rev-parse', '--verify', `${rev}^{tree}`], { cwd: repo, encoding: 'utf8' }).trim();
     const gitEnv = { ...env, GIT_INDEX_FILE: join(root, 'index') };
     const git = (args, options = {}) => execFileSync('git', ['--work-tree', dir, ...args], { cwd: repo, env: gitEnv, maxBuffer: 1 << 28, ...options });
+    const previous = generatedGroups(dir).flat();
     git(['read-tree', '--reset', '-u', buildTree(repo, sha, full)]);
     spawnSync('git', ['--work-tree', dir, 'update-index', '-q', '--refresh'], { cwd: repo, env: gitEnv });
     const drifted = git(['diff-files', '--name-only', '-z']);
     if (drifted.length > 0) git(['checkout-index', '-f', '-z', '--stdin'], { input: drifted });
+    const groups = generatedGroups(dir);
+    const generated = new Set(groups.flat());
+    const tracked = new Set(git(['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean));
+    for (const file of previous) if (!generated.has(file) && !tracked.has(file)) rmSync(join(dir, file), { force: true });
     const strays = git(['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
-    for (const stray of strays) if (!stray.split('/').includes('node_modules')) unlinkSync(join(dir, stray));
+    for (const stray of strays) if (!generated.has(stray) && !stray.split('/').includes('node_modules')) unlinkSync(join(dir, stray));
+    for (const outputs of groups) if (outputs.some(file => !existsSync(join(dir, file)))) {
+      for (const file of outputs) if (!tracked.has(file)) rmSync(join(dir, file), { force: true });
+    }
     if (linkModules) linkNodeModules(repo, dir);
     writeFileSync(join(root, 'HEAD'), `${sha}${full ? ' full' : ''}\n`);
     // git run inside the mirror must not find the checkout's .git above it (it would report the checkout's HEAD

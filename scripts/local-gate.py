@@ -15,9 +15,14 @@ import sys
 import time
 
 
-def needs_script_products(tests):
-    """Disk scenarios consume published products, never author/compiler fallbacks."""
-    return any(re.fullmatch(r'test/scripts/[^/]+\.test\.ts', path) for path in tests)
+def required_test_products(tests, registry):
+    """Explicit disk-product edges, including tests whose imports cannot name them."""
+    products = set()
+    for test in tests:
+        if re.fullmatch(r'test/scripts/[^/]+\.test\.ts', test) and test not in registry:
+            raise ValueError('Register disk scenario products before gating: ' + test)
+        products.update(registry.get(test, []))
+    return sorted(products)
 
 
 def main():
@@ -63,7 +68,7 @@ def main():
         source_list.write_text(json.dumps(present))
         # Every changed file (JSON data and GLSL are imported too) seeds the related-test walk.
         related_list = tree / '.local-gate-related.json'
-        related_list.write_text(json.dumps(existing))
+        related_list.write_text(json.dumps(changed))
         run('gen', ['pnpm', 'gen'])
         run('check-graph', ['node', 'scripts/check-graph.mjs', '--source-only'])
         # The root project's full `tsc --noEmit` runs inside `pnpm build` below; the changed roots of the other projects
@@ -85,8 +90,13 @@ def main():
                        stdout=subprocess.PIPE, text=True)
         tests = json.loads(selected.stdout.strip().splitlines()[-1])
         if tests:
-            if needs_script_products(tests):
-                run('scenario-products', ['node', 'scripts/build-shardfiles.mjs', '--reuse'])
+            registry_path = tree / 'scripts/gate-test-products.json'
+            if not registry_path.exists():
+                registry_path = root / 'scripts/gate-test-products.json'
+            registry = json.loads(registry_path.read_text())
+            products = required_test_products(tests, registry)
+            if products:
+                run('test-products', ['node', 'scripts/build-shardfiles.mjs', '--reuse', '--shard=' + ','.join(products)])
                 env['WS_TEST_PRODUCTS_SHA'] = sha
             run('vitest', ['pnpm', 'exec', 'vitest', 'run', *tests])
         # Vercel's `pnpm build`, under the gate's own lease (heavy-lane.py RESOURCES) so it never queues behind a lane's

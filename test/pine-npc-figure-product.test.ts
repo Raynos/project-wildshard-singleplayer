@@ -1,35 +1,39 @@
-import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { beforeAll, expect, test, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone cold fixtures use the gate's official product producer.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Reuse only the gate's exact-SHA product prerequisite.
+import { env, execPath } from 'node:process';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
-import { output } from '../src/shards/pine-hollow/generators/output';
 import { loadNpcFigureRows, npcFigureRows } from '../src/shards/pine-hollow/runtime/npc/standInPerson';
 import { rangerHale, millerBrandt, traderMott } from '../src/shards/pine-hollow/runtime/models/people';
 import * as codeParts from '../src/shards/pine-hollow/runtime/world/codeParts';
 
-const shardfile = emptyShardfile({ slug: 'pine-figure-test', name: 'Figure', author: 'Wildshard', revision: 1, seed: 1 });
-function product(value: unknown) {
-  const view = output.namedFiles.find(row => row.name === 'look/native-view.json');
-  const viewBytes = view === undefined ? undefined : output.assets.get(view.hash);
-  if (view === undefined || viewBytes === undefined) throw new Error('Missing named NPC view');
-  return createShardProduct({ slug: shardfile.identity.slug, revision: 1, shardfile, sections: new Map(),
-    files: new Map([['people/figure.json', { hash: 'figure', url: 'figure.json' }], ['look/native-view.json', { hash:view.hash, url:view.path }]]),
-    read: hash => Promise.resolve(hash === view.hash ? viewBytes : new TextEncoder().encode(JSON.stringify(value))) });
+beforeAll(() => {
+  const built = env['WS_TEST_PRODUCTS_SHA'];
+  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
+    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=pine-hollow'], { stdio: 'inherit' });
+  }
+}, 120_000);
+
+// Malformed rows replace only the value under test. Every boot dependency comes
+// from the complete generated product, so a new named file needs no fixture edit.
+function product(base: ShardProduct, value: unknown): ShardProduct {
+  return { ...base, file: name => name === 'people/figure.json'
+    ? Promise.resolve(new TextEncoder().encode(JSON.stringify(value))) : base.file(name) };
 }
 
 test('NPC figure admission keeps every authored number, refuses malformed rows atomically and prepares cold cards', async () => {
   expect(npcFigureRows).toThrow('not admitted');
-  const file = output.namedFiles.find(row => row.name === 'people/figure.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-  if (bytes === undefined) throw new Error('Missing named NPC figure');
-  const admitted = product(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  const admitted = await loadHeadlessProduct('out/pine-hollow');
   await loadNpcFigureRows(admitted);
   const previous = npcFigureRows();
   expect(previous).toEqual(NPC_FIGURE);
-  await expect(loadNpcFigureRows(product({ ...NPC_FIGURE, extra: true }))).rejects.toThrow();
-  await expect(loadNpcFigureRows(product({ ...NPC_FIGURE, flame: { ...NPC_FIGURE.flame, color: [1, 2] } }))).rejects.toThrow();
-  await expect(loadNpcFigureRows(product({ ...NPC_FIGURE, walk: { speed: 'bad', cycle: 1 } }))).rejects.toThrow();
+  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, extra: true }))).rejects.toThrow();
+  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, flame: { ...NPC_FIGURE.flame, color: [1, 2] } }))).rejects.toThrow();
+  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, walk: { speed: 'bad', cycle: 1 } }))).rejects.toThrow();
   expect(npcFigureRows()).toBe(previous);
   const fetch = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(admitted);
   const parts = vi.spyOn(codeParts, 'loadCodeParts').mockResolvedValue();

@@ -1,0 +1,7 @@
+{
+  "test/pine-npc-figure-product.test.ts": ["pine-hollow"],
+  "test/scripts/_template-boss.test.ts": ["_template"],
+  "test/scripts/far-reach-roc.test.ts": ["far-reach"],
+  "test/scripts/ground-encounters.test.ts": ["driftwood-isle", "pine-hollow"],
+  "test/scripts/sunscar-matriarch.test.ts": ["sunscar-dunes"]
+}
