@@ -7,7 +7,7 @@ import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema 
 import * as v from 'valibot';
 import pine from '../src/shards/pine-hollow/data/physics.generated.json';
 import driftwood from '../src/shards/driftwood-isle/data/physics.generated.json';
-import { STRINGS as PINE_STRINGS } from '../src/shards/pine-hollow/strings';
+import PINE_STRINGS from '../src/shards/pine-hollow/data/strings.json' with { type: 'json' };
 import DRIFTWOOD_STRINGS from '../src/shards/driftwood-isle/data/strings.json' with { type: 'json' };
 
 test('player-facing strings retain authored labels and refuse unsafe or executable entries', () => {

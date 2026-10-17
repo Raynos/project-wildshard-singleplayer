@@ -4,7 +4,7 @@ import { DecisionModule } from './decisionModule';
 /** Resolved ids are produced from admitted rows, never looked up through a shard runtime module. */
 export type DecisionIdKind = 'actors' | 'moves' | 'strikes' | 'timers' | 'cues' | 'fields' | 'flags' | 'zones' | 'spots' | 'targets' | 'spawns' | 'signals' | 'facts' | 'rewards' | 'channels' | 'impulses' | 'weather';
 /** Durable numeric slots; JSON boolean values occupy f64 0/1 in the IO block. */
-export interface DecisionStateSlot { name: string; type: 'bool' | 'i32' | 'f64'; default: number | boolean; scope: 'binding' | 'actor' | 'player'; min?: number; max?: number }
+export interface DecisionStateSlot { name: string; type: 'bool' | 'i32' | 'f64'; default: number | boolean; scope: 'binding' | 'actor' | 'player' | 'local'; min?: number; max?: number }
 /** Renderer-free, resolved script declaration. Wire-schema admission remains the format's responsibility. */
 export interface DecisionScript {
   id: string; module: string; side: 'sim' | 'view'; on: readonly ScriptV1EventName[]; tick: number | null;
@@ -135,7 +135,7 @@ export class DecisionHost {
     const scripts = new Map<string, DecisionScript>();
     const scopedOwners = new Set<string>();
     for (const input of options.scripts) {
-      check(!scripts.has(input.id) && input.id.length > 0 && input.side === 'sim', 'duplicate script or unsupported side');
+      check(!scripts.has(input.id) && input.id.length > 0 && ['sim', 'view'].includes(input.side), 'duplicate script or unsupported side');
       const script = structuredClone(input);
       check(integer(script.stateVersion, 1) && script.state.length <= 16 && Object.keys(script.params).length <= 32, 'declaration limits');
       check(script.tick === null || [1, 2, 5, 10].includes(script.tick), 'tick subscription');
@@ -144,7 +144,7 @@ export class DecisionHost {
       const seen = new Set<string>();
       for (const slot of script.state) {
         check(name(slot.name) && !seen.has(slot.name) && ['bool', 'i32', 'f64'].includes(slot.type)
-          && ['binding', 'actor', 'player'].includes(slot.scope), 'state declaration');
+          && (script.side === 'view' ? slot.scope === 'local' : ['binding', 'actor', 'player'].includes(slot.scope)), 'state declaration');
         check((slot.min === undefined || Number.isFinite(slot.min)) && (slot.max === undefined || Number.isFinite(slot.max))
           && (slot.min === undefined || slot.max === undefined || slot.min <= slot.max), 'state bounds');
         seen.add(slot.name); slotNumber(slot, slot.default);
@@ -154,17 +154,17 @@ export class DecisionHost {
         check(idKinds.includes(kind as DecisionIdKind), 'id kind');
         for (const [key, value] of Object.entries(ids)) check(name(key) && integer(value, 1), 'declared id');
       }
-      for (const event of script.on) check(Object.hasOwn(SCRIPT_V1_EVENTS, event) && SCRIPT_V1_EVENTS[event] < 30, 'event capability');
+      for (const event of script.on) check(Object.hasOwn(SCRIPT_V1_EVENTS, event) && (script.side === 'sim' ? SCRIPT_V1_EVENTS[event] < 30 : ['start', 'tick', 'stop', 'flag', 'field', 'cue', 'channel'].includes(event)), 'event capability');
       for (const read of script.reads) check(Object.hasOwn(SCRIPT_V1_READS, read), 'read capability');
       for (const list of script.lists) check(Object.hasOwn(SCRIPT_V1_LISTS, list), 'list capability');
-      for (const command of script.commands) check(Object.hasOwn(SCRIPT_V1_COMMANDS, command) && SCRIPT_V1_COMMANDS[command] < 100, 'command capability');
+      for (const command of script.commands) check(Object.hasOwn(SCRIPT_V1_COMMANDS, command) && (script.side === 'sim' ? SCRIPT_V1_COMMANDS[command] < 100 : command === 'view.field'), 'command capability');
       scripts.set(script.id, script);
     }
     for (const input of options.bindings) {
       check(integer(input.id, 1) && !this.bindings.has(input.id) && integer(input.instance) && integer(input.self), 'binding identity');
       const binding = structuredClone(input), script = scripts.get(binding.script);
       check(script !== undefined, 'binding script missing');
-      if (script.state.some(slot => slot.scope !== 'binding')) {
+      if (script.state.some(slot => slot.scope === 'actor' || slot.scope === 'player')) {
         const owner = `${script.id}:${binding.self}`;
         check(binding.self > 0 && !scopedOwners.has(owner), 'actor/player state needs one binding per owner');
         scopedOwners.add(owner);
@@ -367,8 +367,9 @@ export class DecisionHost {
   }
   private validateCommand(row: BindingState, command: ScriptV1Command): void {
     const [op, target, a, b] = command, capability = commandNames.get(op);
-    check(capability !== undefined && op < 100 && row.script.commands.includes(capability), 'command capability');
+    check(capability !== undefined && (row.script.side === 'sim' ? op < 100 : op === SCRIPT_V1_COMMANDS['view.field']) && row.script.commands.includes(capability), 'command capability');
     check(integer(target), 'command target');
+    if (op === SCRIPT_V1_COMMANDS['view.field']) { check(target === 0 && command[4] === 0, 'client field target'); this.id(row, 'fields', a); return; }
     if (ownedCommands.has(op)) check(row.owners.has(target), 'command ownership');
     else if (target !== 0) { this.actor(row, target); check(playerCommands.has(op) || row.players.has(target) || row.owners.has(target), 'command ownership'); }
     if (op === 1 || op === 2) { this.id(row, op === 1 ? 'moves' : 'strikes', a); if (b !== 0) this.actor(row, b); }

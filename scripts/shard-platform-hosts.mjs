@@ -2,6 +2,7 @@
 // This is a census table, not a runtime installer. No authoring import supplies
 // a runtime user. Metadata-only sections have no independent executable host.
 const hosts = {
+  'client/plan': ['game/shardfile/clientPlan#installClientPhase', 'game/shard/declaredEntry#declaredRuntimeEntry'],
   'world/tiles': ['game/shardfile/clientViews#clientTileViews'],
   'world/terrain': ['game/shardfile/clientGround#clientGround'],
   'world/edge': ['game/shardfile/portalTraversal#createPortalTraversal'],

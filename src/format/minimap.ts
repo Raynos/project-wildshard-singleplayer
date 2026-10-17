@@ -203,6 +203,7 @@ const bindings = v.strictObject({
   forestQueries: v.exactOptional(binding), treeFactory: v.exactOptional(binding), tierPolicy: v.exactOptional(binding),
   pondClip: v.exactOptional(binding), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
+  entry: v.exactOptional(v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']) })),
   ground: v.exactOptional(binding), render: v.exactOptional(binding), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
 });

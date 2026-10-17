@@ -36,7 +36,6 @@ export class DriftwoodPlugin extends ShardPlugin {
   }
 
   override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(ctx.product.section('ui/strings'));
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;
@@ -53,7 +52,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);
     if (gulls !== null) shell.overhead.push(gulls.group);
     if (built.cover !== null) shell.overhead.push(built.cover.group);
-    ctx.debug.expose('driftwood', shell);
     // the probe's `shard` handles (E405 AG25: the shard names its own; the engine's probe keeps no shard table), read
     // when the probe installs, so `enemies` (creatures hook) is there too
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(PROBE_KEYS.map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));

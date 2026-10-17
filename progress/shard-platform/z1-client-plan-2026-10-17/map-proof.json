@@ -1,0 +1,19 @@
+{
+  "servedSource": "3f56b11d28390bd6133cdf0028aef9310f7535d5",
+  "stampSource": "3fc59b8de11dfe9f872ca6a4a09602b833308eb7",
+  "method": "Official bake-maps.mjs; identical declared map inputs across these source candidates",
+  "rows": [
+    {
+      "slug": "driftwood-isle",
+      "input": "5c4293018304c37a3b094802f31c04a96a71755ed655443e3fc916ca0a1df0f8",
+      "pixels": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+      "bytes": 97604
+    },
+    {
+      "slug": "pine-hollow",
+      "input": "6d4cba89fb6c036f9d6f1683a5a54c9fc2ffd3a53a88761f1f51e89ca510d0a8",
+      "pixels": "5ff27135406a6b9ff2258922aa2d0eba7cf65fbaa01470a18e2368f2f4fc93d1",
+      "bytes": 95090
+    }
+  ]
+}

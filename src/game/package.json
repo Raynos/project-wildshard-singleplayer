@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./grid/pageMode": "./grid/pageMode.ts",
+    "./shard/declaredEntry": "./shard/declaredEntry.ts",
+    "./shardfile/clientPlan": "./shardfile/clientPlan.ts",
     "./population/spawnScript": "./population/spawnScript.ts",
     "./quest/contracts": "./quest/contracts.ts",
     "./quest/contractBoard": "./quest/contractBoard.ts",

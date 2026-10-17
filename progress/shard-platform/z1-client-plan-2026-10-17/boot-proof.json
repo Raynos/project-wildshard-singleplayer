@@ -1,0 +1,27 @@
+{
+  "source": "9993cad0e5ee8459bc5c3a9bd8c655a89f271618",
+  "mode": "production, Developer off, phone viewport 390x844/DPR2, muted",
+  "method": "Real title/entry controls with advancing rendered frames; parity bootCase",
+  "rows": [
+    {
+      "elapsedMs": 8842,
+      "ready": true,
+      "frame": 12,
+      "shard": "driftwood-isle",
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 176,
+      "faults": []
+    },
+    {
+      "elapsedMs": 12688,
+      "ready": true,
+      "frame": 14,
+      "shard": "pine-hollow",
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 239,
+      "faults": []
+    }
+  ]
+}

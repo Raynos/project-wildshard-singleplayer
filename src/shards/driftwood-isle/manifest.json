@@ -337,9 +337,6 @@
       "module": "./runtime/look/render",
       "export": "shardRender"
     },
-    "load": {
-      "module": "./plugin"
-    },
     "roster": {
       "module": "./roster",
       "export": "roster",
@@ -372,6 +369,11 @@
     "poses": {
       "module": "./data/boot-poses.generated.json",
       "export": "default"
+    },
+    "entry": {
+      "legacy": "./runtime/index",
+      "retainHomeRuntime": false,
+      "stagesOwner": "declared"
     }
   },
   "captureProbes": [

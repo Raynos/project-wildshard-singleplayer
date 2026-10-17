@@ -1,3 +1,5 @@
+import strings from '../data/strings.json' with { type: 'json' };
+import clientPlan from '../data/clientPlan.json' with { type: 'json' };
 import buildingLook from '../data/buildingLook.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS } from './worldScenes';
 import { HELD_GEAR, HELD_FINISHES, HELD_TOOL_LIFETIME } from './heldGear';
@@ -109,7 +111,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['actors/spawn-scripts', [{ ...nightModule, bytes: '' }]], ['sim/scripts', KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS].map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['client/plan', clientPlan], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['actors/spawn-scripts', [{ ...nightModule, bytes: '' }]], ['sim/scripts', KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

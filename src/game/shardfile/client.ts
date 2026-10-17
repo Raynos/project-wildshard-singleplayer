@@ -1,3 +1,4 @@
+import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
 import { installCompletion } from '../complete/declared';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
@@ -90,6 +91,10 @@ export interface ShardfileClientBindings {
   scriptBrains?: ShardfileSimPorts['scriptBrains'];
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
   trustedRuntime?: boolean;
+  /** Transitional entry owns its stages, while client/plan still installs platform features. */
+  runtimeStagesOnly?: boolean;
+  /** Hybrid runtimes install entered features on their actual entered context. */
+  planLifetime?: 'resident';
   /** Declared audio is the default. A trusted first-party transition may let its runtime consume the same audio declaration exactly once. */
   audioOwner?: 'declared' | 'runtime';
   /** Declared water rows and collider-only props are installed by the data client by default. A trusted first-party transition may
@@ -159,6 +164,7 @@ const FOLLOW = 5;
 
 /** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
 export class ShardfileClient {
+  private plan: AdmittedClientPlan | undefined;
   private readonly source: Shardfile;
   private readonly assets: ClientAssets;
   private readonly bindings: ShardfileClientBindings;
@@ -184,12 +190,24 @@ export class ShardfileClient {
     const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
     if (bindings.trustedRuntime === true) assets.releaseTransport(runtimeBoundWorldFiles(source));
     this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
-    this.mode = bindings.trustedRuntime !== true ? 'full' : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
+    this.mode = bindings.runtimeStagesOnly === true ? 'empty' : bindings.trustedRuntime !== true ? 'full' : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
     if (this.mode === 'full') bindings.onSimulationExpected?.();
   }
 
+  private async phase(ctx: ShardContext, phase: ClientPhase): Promise<void> {
+    this.plan ??= admitClientPlan(ctx.product.has('client/plan') ? ctx.product.section('client/plan') : { version: 1, features: [] }, ctx.product);
+    await installClientPhase(ctx, this.plan, phase, ctx.scope, this.bindings.planLifetime);
+  }
+
   async world(ctx: ShardContext): Promise<void> {
+    // Admission is complete before either the base client or a feature allocates resources.
+    this.plan = admitClientPlan(ctx.product.has('client/plan') ? ctx.product.section('client/plan') : { version: 1, features: [] }, ctx.product);
+    await this.worldData(ctx);
+    await this.phase(ctx, 'world');
+  }
+
+  private async worldData(ctx: ShardContext): Promise<void> {
     if (this.mode === 'empty') return;
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
@@ -268,7 +286,12 @@ export class ShardfileClient {
     ctx.debug.expose('shardfileResidency', { tiles, allocator: this.bindings.allocator, mode: 'presentation', workers: false });
   }
 
-  kit(ctx: ShardContext): void {
+  async kit(ctx: ShardContext): Promise<void> {
+    this.kitData(ctx);
+    await this.phase(ctx, 'kit');
+  }
+
+  private kitData(ctx: ShardContext): void {
     if (this.mode !== 'full') return;
     const runtime = ctx.game.runtime, world = runtime?.world, presentation = this.presentation;
     if (runtime === undefined || world === null || world === undefined || presentation === undefined) throw new Error('Shardfile requires the normal kit stage');
@@ -311,10 +334,11 @@ export class ShardfileClient {
   async play(ctx: ShardContext): Promise<void> {
     const own = enteredOwner(), steps = this.playSteps(ctx);
     for (;;) {
-      if ((own === null ? steps.next() : withOwner(own, () => steps.next())).done === true) return;
+      if ((own === null ? steps.next() : withOwner(own, () => steps.next())).done === true) break;
       await macrotask();
       if (ctx.scope.disposed) throw new Error('Shardfile left during play installation');
     }
+    await this.phase(ctx, 'play');
   }
 
   private *playSteps(ctx: ShardContext): Generator<void, void> {

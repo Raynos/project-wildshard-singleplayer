@@ -1,3 +1,4 @@
+import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { installDeclaredMovers, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -21,6 +22,12 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 import type { AudioData } from '@wildshard/format/audio';
+
+async function runtimeClientPhase(ctx: ShardContext, phase: ClientPhase, resident: Scope, lifetime?: 'entered'): Promise<void> {
+  if (!ctx.product.has('client/plan')) return;
+  const plan = admitClientPlan(ctx.product.section('client/plan'), ctx.product);
+  await installClientPhase(ctx, plan, phase, resident, lifetime);
+}
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
 export interface HybridResident {
@@ -195,6 +202,9 @@ export class HybridShardPlugin extends ShardPlugin {
     custom.active = false; this.binding?.readiness?.(false);
     try { custom.retained.hooks.deactivate(); } finally { custom.retained.slots.deactivate(); }
   }
+  private async enteredPlan(ctx: ShardContext, phase: ClientPhase): Promise<void> {
+    await runtimeClientPhase(ctx, phase, residentWorldScope(ctx), 'entered');
+  }
   private async runtimeWorld(ctx: ShardContext): Promise<void> {
     if (this.binding !== undefined && this.binding.cells.cell?.instance !== this.binding.instance) throw new Error('Trusted hooks require the entered cell interior');
     this.generation++;
@@ -222,6 +232,7 @@ export class HybridShardPlugin extends ShardPlugin {
         if (this.custom === custom) { this.custom = undefined; this.binding?.readiness?.(false); }
       });
       this.binding?.readiness?.(false);
+      await this.enteredPlan(installation.context, 'world');
       await withOwner(scope, () => plugin.world?.(installation.context));
       if (scope.disposed) throw new Error('Hybrid runtime left during world installation');
     } catch (error) {
@@ -238,7 +249,7 @@ export class HybridShardPlugin extends ShardPlugin {
     const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime world is not installed');
     if (custom.retained !== undefined && custom.ready) return;
     custom.installation.openKit();
-    try { await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); }
+    try { await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); await this.enteredPlan(custom.installation.context, 'kit'); }
     finally { custom.installation.closeKit(); }
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during kit installation');
   }
@@ -269,6 +280,7 @@ export class HybridShardPlugin extends ShardPlugin {
     const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime kit is not installed');
     if (custom.retained !== undefined && custom.ready) { this.binding?.readiness?.(true); return; }
     await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
+    await this.enteredPlan(custom.installation.context, 'play');
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
     custom.ready = true; this.binding?.readiness?.(true);
   }
@@ -327,10 +339,10 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
     });
   };
   const declaration = source.runtime;
-  const { load, mapImage } = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) })
+  const { load, mapImage } = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, runtimeStagesOnly: stagesOwner === 'runtime', planLifetime: 'resident', audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) })
     .then(data => ({ load: data.load, mapImage: data.minimap?.image }));
   if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
-  const [installed, Runtime] = await Promise.all([stagesOwner === 'runtime' ? Promise.resolve(new class extends ShardPlugin {}) : load().then(({ default: Data }) => new Data()),
+  const [installed, Runtime] = await Promise.all([load().then(({ default: Data }) => new Data()),
     prepareTrustedRuntime(declaration, source.identity.slug, productOptions.firstParty, entries)]);
   const mapped: ShardPlugin = source.map === undefined ? installed : {
     async world(ctx) {
@@ -472,13 +484,19 @@ export class HybridRuntimeSession {
       await this.stage(scope, cell.instance, 'beforeWorld', () => ownerTask(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
       const plugin = await this.stage(scope, cell.instance, 'constructor', () => withOwner(scope, () => new Plugin()));
       if (!live()) return false;
-      await this.stage(scope, cell.instance, 'world', () => ownerTask(scope, () => plugin.world?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'world', () => ownerTask(scope, async () => {
+        await runtimeClientPhase(context, 'world', resident.scope); await plugin.world?.(context);
+      })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
       installation.openKit();
-      try { await this.stage(scope, cell.instance, 'kit', () => ownerTask(scope, () => plugin.kit?.(context))); } finally { installation.closeKit(); }
+      try { await this.stage(scope, cell.instance, 'kit', () => ownerTask(scope, async () => {
+        await plugin.kit?.(context); await runtimeClientPhase(context, 'kit', resident.scope);
+      })); } finally { installation.closeKit(); }
       if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterKit', () => ownerTask(scope, () => installation.afterKit?.(context))); if (!live()) return false;
-      await this.stage(scope, cell.instance, 'play', () => ownerTask(scope, () => plugin.play?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'play', () => ownerTask(scope, async () => {
+        await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
+      })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterPlay', () => ownerTask(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
       active.ready = true;
       if (active.retained !== undefined) this.retained.set(cell.instance, active);

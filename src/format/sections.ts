@@ -1,4 +1,5 @@
 import type { SpawnScriptRows } from './spawnScripts';
+import type { ClientPlan } from './clientPlan';
 import type { WorldScenesSection } from './worldScenes';
 import type { HeldArmsRows } from './heldArms';
 import type { HeldGearRows } from './heldGear';
@@ -30,6 +31,8 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  /** Client-only compiled feature declarations; ignored by the authoritative simulation. */
+  'client/plan': ClientPlan;
   'held/arms': HeldArmsRows;
   'held/gear': HeldGearRows;
   'held/finishes': HeldFinishesRows;

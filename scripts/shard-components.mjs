@@ -195,7 +195,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/dev/perfLap.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/baked.ts', 'C9'],
-  ['src/shards/pine-hollow/strings.ts', 'C9'],
 ]);
 function namedRole(name,path='') {
   const reviewed = reviewedW2Owners.get(`${path}#${name}`); if (reviewed !== undefined) return reviewed;

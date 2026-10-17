@@ -59,7 +59,7 @@ describe('authored JSON discovery', () => {
     }
     expect(manifest.card.thumb).toBeTruthy(); expect(manifest.card.portrait).toBeTruthy(); expect(manifest.card.landscape).toBeTruthy();
     expect(existsSync(resolve(root, 'public', row.minimap.image.slice(1)))).toBe(true);
-    expect(manifest.load === undefined).toBe(row.bindings.load === undefined);
+    expect(manifest.load === undefined).toBe(row.bindings.load === undefined && row.bindings.entry === undefined);
   });
   test('refuses malformed authored data and unresolved source assets', () => {
     const row = parseManifestMetadata(metadata('far-reach'));
@@ -75,4 +75,14 @@ describe('authored JSON discovery', () => {
     expect(v.parse(ShardfileSchema, {...file, manifest: row}).manifest).toEqual(row);
     expect(() => v.parse(ShardfileSchema, {...file, manifest: {...row, name: ''}})).toThrow();
   });
+});
+
+test('declared entries compile literal runtime links without shard plugin wrappers', () => {
+  for (const slug of ['pine-hollow', 'driftwood-isle']) {
+    const source = authoredManifestSource(root, slug);
+    expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
+    expect(source).toContain('declaredRuntimeEntry(Runtime, Native,');
+    expect(source).not.toContain('import("./plugin")');
+    expect(source).toContain('import("./runtime/index")');
+  }
 });

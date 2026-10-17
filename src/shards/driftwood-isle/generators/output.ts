@@ -1,3 +1,4 @@
+import clientPlan from '../data/clientPlan.json' with { type: 'json' };
 import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes';
@@ -70,7 +71,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['client/plan', clientPlan], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

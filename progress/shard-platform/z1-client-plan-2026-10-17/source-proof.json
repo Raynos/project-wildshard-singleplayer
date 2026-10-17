@@ -1,0 +1,56 @@
+{
+  "sourceBase": "203417d3deda97a855f7d355c0d8bf5e3135c02b (source-equivalent to 56f8b161f)",
+  "sourceCandidate": "3fc59b8de11dfe9f872ca6a4a09602b833308eb7",
+  "platform": {
+    "tooling": 109,
+    "engine": 43,
+    "format": 21,
+    "game": 120,
+    "shards": -41,
+    "tests": 228
+  },
+  "shards": {
+    "driftwood-isle": {
+      "before": 5523,
+      "after": 5509,
+      "net": -14,
+      "assemblyScriptLines": 96,
+      "assemblyScriptCeiling": 1716,
+      "componentsAfter": {
+        "C1": 2244,
+        "C2": 633,
+        "C3": 0,
+        "C4": 760,
+        "C5": 772,
+        "C6": 276,
+        "C7": 0,
+        "C8": 17,
+        "C9": 807
+      }
+    },
+    "pine-hollow": {
+      "before": 8438,
+      "after": 8408,
+      "net": -30,
+      "assemblyScriptLines": 351,
+      "assemblyScriptCeiling": 2130,
+      "componentsAfter": {
+        "C1": 2433,
+        "C2": 899,
+        "C3": 657,
+        "C4": 1779,
+        "C5": 1289,
+        "C6": 408,
+        "C7": 7,
+        "C8": 34,
+        "C9": 902
+      }
+    }
+  },
+  "platformTotals": {
+    "engine": 75324,
+    "game": 54510,
+    "sdk": 11045
+  },
+  "landingParent": "9f201b82fc4e4f0930fbd3d5e11f9fbe6861830f"
+}

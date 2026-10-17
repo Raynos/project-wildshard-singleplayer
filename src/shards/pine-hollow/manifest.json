@@ -747,9 +747,6 @@
       "module": "./look/render",
       "export": "shardRender"
     },
-    "load": {
-      "module": "./plugin"
-    },
     "roster": {
       "module": "./roster",
       "export": "preparedRoster",
@@ -792,6 +789,11 @@
     "ktx2": {
       "module": "./runtime/boot/gpuTable",
       "export": "pineKtx2"
+    },
+    "entry": {
+      "legacy": "./runtime/index",
+      "retainHomeRuntime": true,
+      "stagesOwner": "runtime"
     }
   },
   "captureProbes": [

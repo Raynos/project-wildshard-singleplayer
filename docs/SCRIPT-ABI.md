@@ -4,14 +4,16 @@ Reviewed against local `main` at `74cc3361d`, 2026-10-17, for G484(b).
 This is the executable contract, including its gaps. The design and future
 feature ownership are recorded in [G484](plans/shard-platform/decisions.md).
 Source links give the defining file and line at this revision; concurrent
-uncommitted work is excluded.
+uncommitted work is excluded. Z1 adds the client-private field fallback below.
 
 ## Authoring, compilation and admission
 
 A v1 row in `sim/scripts` declares `abi: "1.0"`, `side`, an authored
 `behaviour/*.as` source, a `blobs/wasm/<sha256>.wasm` module, binding, capabilities,
 state, parameters, pages and fallback. Only `side: "sim"` reaches `ShardDecisions`;
-the engine decision host rejects view bindings. [format/decisionScripts.ts:18](../src/format/decisionScripts.ts#L18) [game/shardfile/decisions.ts:103](../src/game/shardfile/decisions.ts#L103) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138)
+the simulation owner rejects view bindings. Z1 adds an isolated client-only
+`ViewFieldHost` for the optional `view.field` fallback; it receives no simulation
+world. [ViewFieldHost](../src/engine/script/viewFields.ts)
 
 Use `buildDecisionScripts(project, rows, registries, options)` (or
 `compileDecisionScripts` with in-memory sources). It inspects all authored AS,
@@ -199,12 +201,23 @@ this does not promise validation of every unused slot.
 | 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
 | 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
 | 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:32](../src/sdk/decisionScriptBindings.ts#L32) |
+| 105 | `view.field`: `[0, fieldId, value, 0]` | Client-only `ViewFieldHost`; writes declared numeric host-private shared presentation fields. Simulation bindings refuse it. | [ViewFieldHost](../src/engine/script/viewFields.ts) |
 
 These four refused sim commands fail even if never executed: listing the
 capability is sufficient to refuse `ShardDecisions` construction. There is no
 `mover` command. G484 keeps winch/well behavior in interaction rows; `view.field`
-105 is only a fallback proposal and is absent from the numeric table.
+105 is the optional isolated client fallback. G484 keeps Signal dusk on an
+eased-field row by preference.
 [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+
+The explicit client host accepts at most 24 fields, each with an integer id,
+name, `privacy: "host"`, bool/i32/f64 type, default and optional numeric bounds.
+It accepts only view scripts, local state, random reads and `view.field`
+commands. It has no simulation reads, lists, save or replication port. A
+validated call stages all writes together for the next step; one invalid
+write discards the whole call. Presentation code reads `value(name)`.
+The data client does not automatically start these view scripts.
+[ViewFieldHost](../src/engine/script/viewFields.ts)
 
 ## Bindings: bodies, lifetimes and IDs
 
@@ -275,8 +288,8 @@ timers and RNG; ordinary stop/start does not reset healthy slots/RNG.
 Only declared bool/i32/f64 slots are durable guest state, stored by name per
 logical binding. Bounds and types are checked after the call and on restore.
 Scope (`binding`/`actor`/`player`) imposes ownership checks; the host does not
-create a separate player-indexed storage bank. `local` is schema-only view state
-and never accepted by the sim owner. [format/decisionScripts.ts:13](../src/format/decisionScripts.ts#L13) [format/decisionScripts.ts:60](../src/format/decisionScripts.ts#L60) [engine/script/decision.ts:72](../src/engine/script/decision.ts#L72) [engine/script/decision.ts:167](../src/engine/script/decision.ts#L167) [engine/script/decision.ts:379](../src/engine/script/decision.ts#L379) [game/shardfile/decisions.ts:142](../src/game/shardfile/decisions.ts#L142)
+create a separate player-indexed storage bank. `local` is accepted only by the
+isolated client view host, and never by the simulation owner. [format/decisionScripts.ts:13](../src/format/decisionScripts.ts#L13) [format/decisionScripts.ts:60](../src/format/decisionScripts.ts#L60) [engine/script/decision.ts:72](../src/engine/script/decision.ts#L72) [engine/script/decision.ts:167](../src/engine/script/decision.ts#L167) [engine/script/decision.ts:379](../src/engine/script/decision.ts#L379) [game/shardfile/decisions.ts:142](../src/game/shardfile/decisions.ts#L142)
 
 The engine snapshot includes tick, binding/script/stateVersion identities,
 named slots, remaining timers, RNG counters, failures/disabled/enabled state,
@@ -342,8 +355,8 @@ These are findings, not additional API promises or code changes:
   [format/decisionScripts.ts:23](../src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](../src/format/decisionScripts.ts#L98) [format/decisionBindings.ts:50](../src/format/decisionBindings.ts#L50) [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200)
 - **Refused operations:** spawn/despawn, impulse and weather remain install-time
   refusals until their owning feature commits. No mover command exists. View
-  ids are declarations without a v1 runner; `view.field` 105 has no numeric id
-  in the built ABI. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+  ids 100–104 lack adapters; `view.field` 105 has an isolated client host
+  through its explicit engine API. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
 - **Saves:** migration chains are checked by format admission, but decision
   restore requires exact stateVersion; it does not run those migrations.
   Player-scoped state is per binding with owner validation, not a multiplayer
@@ -352,3 +365,21 @@ These are findings, not additional API promises or code changes:
   events. `hold` does not freeze an already-running move; `skip` does not
   advance story state. These are the actual implementations, not guarantees
   of queue boundedness or story recovery. [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) [game/shardfile/decisions.ts:149](../src/game/shardfile/decisions.ts#L149)
+
+### Owned elite programs (G473, G484)
+
+Named encounters use the same concrete native/page `SpawnScript` owner as
+population directors. A `spawnGroup` catalogue assigns one actor-scoped v1
+binding to each declared slot. Guest spawn commands may create only their own
+slot through its recipe, species and site rows. Group liveness counts the
+currently bound living bodies; detached rivals leave the group.
+
+Declared strike rows bind the existing fixed-step StrikeRunner. A guest starts
+an attack with `strike`; `strikeState` observes its phase, and `stop` cancels
+contact and movement. Finite observed fields expose encounter phase, engagement,
+leash and day weights. Data field steering remains bounded by the admitted
+move's speed and turn limits. Native/page authorities retain all identity,
+physics, damage and retirement operations; no shard TypeScript port is accepted.
+See [spawn owner](../src/game/population/spawnScript.ts),
+[strike owner](../src/game/population/scriptStrikes.ts), and
+[elite admission](../src/format/eliteFeature.ts).

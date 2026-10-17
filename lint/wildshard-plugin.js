@@ -1,3 +1,4 @@
+import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 // Wildshard's own oxlint rules (loaded by `jsPlugins` in .oxlintrc.json; oxlint's ESLint-compatible JS plugin API).
 //
 // wildshard/no-url-switch — Jake, 2026-09-25: "NO URL SWITCHES EVER, ALL VARIANTS IN THE DEBUG MENUS".
@@ -1076,9 +1077,15 @@ const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (
   };
 });
 
+const clientPlanReflection = rule('Client features cannot reflect into shard TS owners (G483)', context => {
+  if (pathOf(context) !== 'src/format/clientPlan.ts') return {};
+  return { Program(node) { for (const failure of clientPlanSchemaViolations(REPO)) report(context, node, failure); } };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
+    'no-client-plan-reflection': clientPlanReflection,
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,

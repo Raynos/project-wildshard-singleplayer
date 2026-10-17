@@ -84,6 +84,16 @@ export function authoredManifestSource(root, slug) {
     // a called look or roster factory gets the shard's product (toLevelSpec binds it; product-in-look-o272)
     native.push(key === 'render' || b[key].call === true ? `${key}: async (product) => callWithProduct(${lazy(b[key], false)}, product)` : `${key}: async () => ${lazy(b[key], false)}`);
   }
+  if (b.entry) {
+    if (b.load) throw new Error(`${file}: entry and load are mutually exclusive`);
+    const entry = data.runtimeEntry;
+    if (!['runtime/index.ts', 'runtime/hybrid.ts'].includes(entry)) throw new Error(`${file}: missing declared runtime entry`);
+    const runtime = modulePath(`./${entry.slice(0, -3)}`), legacy = modulePath(b.entry.legacy);
+    if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
+    if (typeof b.entry.retainHomeRuntime !== 'boolean' || !['declared', 'runtime'].includes(b.entry.stagesOwner)) throw new Error(`${file}: invalid entry ownership`);
+    const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
+    native.push(`load: async () => { const [{ default: Runtime }, { default: Native }, { declaredRuntimeEntry }] = await Promise.all([import(${JSON.stringify(runtime)}), import(${JSON.stringify(legacy)}), import('@wildshard/game/shard/declaredEntry')]); return declaredRuntimeEntry(Runtime, Native, ${policy}); }`);
+  }
   for (const key of ['load', 'ktx2']) if (b[key]) native.push(b[key].export ? `${key}: async () => ${lazy(b[key], true)}` : `${key}: () => import(${JSON.stringify(modulePath(b[key].module))})`);
   if (b.posesLoader) native.push(`dev: {poses: async () => ${lazy(b.posesLoader, true)}}`);
   // The helper lives in the generated file behind a type-only import, so a build of an older revision that meets this file

@@ -143,9 +143,9 @@ export function manifestContract(root, closure, fields = false) {
     const source = readFileSync(resolve(root, json ? `src/shards/${slug}/manifest.json` : `src/shards/${slug}/manifest.ts`), 'utf8');
     const descriptor = json ? null : descriptorContract(root, slug, source);
     const authored = json ? JSON.parse(source) : null;
-    const dataOnly = json && authored.shardfile === `/shardfiles/${slug}/shard.json` && authored.bindings?.load === undefined && existsSync(resolve(root, `src/shards/${slug}/shard.config.ts`));
+    const dataOnly = json && authored.shardfile === `/shardfiles/${slug}/shard.json` && authored.bindings?.load === undefined && authored.bindings?.entry === undefined && existsSync(resolve(root, `src/shards/${slug}/shard.config.ts`));
     if (descriptor !== null) failures.push(...descriptor.map((message) => `src/shards/${slug}/manifest.ts: ${message}`));
-    else if (!dataOnly && (json ? authored.bindings?.load?.module !== './plugin' : !LOAD.test(source))) failures.push(`src/shards/${slug}/manifest.ts: load must be \`() => import('./plugin')\` (a lazy plugin, never a static import)`);
+    else if (!dataOnly && (json ? authored.bindings?.entry === undefined && authored.bindings?.load?.module !== './plugin' : !LOAD.test(source))) failures.push(`src/shards/${slug}/manifest.ts: load must be \`() => import('./plugin')\` (a lazy plugin, never a static import)`);
     if (/^import\s[^;]*['"]\.\.?\/plugin(?:\.ts)?['"]/mu.test(source)) failures.push(`src/shards/${slug}/manifest.ts imports ./plugin statically: it would ride in cold boot`);
     const budget = budgets[legacyPrimary(root, slug) ?? slug] ?? budgets.default, size = closure[slug]?.length ?? 0;
     if (typeof budget === 'number' && size > budget) failures.push(`src/shards/${slug}/manifest.ts: its static closure is ${size} files, over its budget ${budget} (${BUDGET_FILE}); move the new imports behind load / a lazy thunk`);

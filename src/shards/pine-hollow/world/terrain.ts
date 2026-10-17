@@ -1,3 +1,4 @@
+import { currentPageMode } from '@wildshard/game/grid/pageMode';
 import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterReflect } from './water';
 import { smoothstep, lerp } from '@wildshard/engine/core/noise';
@@ -123,15 +124,10 @@ const VIEW_B = {
   shadowFar: 45, pickupOrbDist: 90,
 } as const;
 
-let trimmed: () => boolean = () => false;
-/** Bind the memory trim (debug/options.ts `pineMemoryTrim`). The plugin binds it when it is constructed, before its
- *  level boots, so the manifest's cold closure stays free of the save slots; unbound keeps today's reach */
-export function bindPineViewTrim(read: () => boolean): void { trimmed = read; }
-
 /** Pine's tier rows with view distance B laid over the phone's while the trim is on (read when the level applies its row) */
 export function pineTiers<P extends object, D extends object>(rows: { phone: P; desktop: D }): { readonly phone: P; desktop: D } {
   return {
-    get phone(): P { return trimmed() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
+    get phone(): P { return currentPageMode() === 'grid' ? { ...rows.phone, ...VIEW_B } : rows.phone; },
     desktop: rows.desktop,
   };
 }

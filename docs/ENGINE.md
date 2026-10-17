@@ -9270,3 +9270,61 @@ Nalati's SF48 buildings adopt them; the declaration lives in
 Driftwood's castaway camp drives the same smoke-cloud and resource context;
 its shrine drives living material pulse rows and graph dusk parameters.
 A made-up second building tests different door motion, prompts and lights.
+
+
+## Declared client plans (Z1, G480/G483)
+
+`client/plan` (`wildshard:client/plan@1`) is a client-only plain-value section:
+`{version:1, features:[...]}`. `src/format/clientPlan.ts` refuses unknown kinds,
+duplicates, executable values, reflected owners and caller-selected order.
+`admitClientPlan(input, product)` refuses any missing required section with
+`ProductError` before any feature runs. Headless simulation ignores this plan.
+
+The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
+
+| Kind | Phase / rank | Lifetime | Required section |
+|---|---|---|---|
+| `strings.register` | world / 0 | entered | `ui/strings` |
+| `world.scenes` | world / 20 | resident | `world/scenes` |
+| `debug.expose` (`name`) | play / 100 | entered | none |
+
+`installClientPhase(ctx, plan, phase, resident)` uses the shared frame budget.
+`clientSceneHandles(product, resident)` reads Z2's typed resident results.
+Debug exposes the platform runtime diagnostic object; rows cannot traverse
+or invoke it.
+There is no dynamic loader, condition, loop or TS hook in a plan.
+`wildshard/no-client-plan-reflection` walks imported section schemas and refuses
+`BorrowedOwnerPath` and `{owner,path}` reflection.
+
+`ShardfileClient` runs all phases even when trusted runtime stages are otherwise
+empty. Templates without a plan keep their existing data path. Pine and
+Driftwood declare strings; Driftwood declares its existing debug alias. Their
+scene calls keep their current construction order for this entry landing.
+Regional trusted entry runs the same phases around its raw runtime hooks;
+retained strings and debug exposure unpublish on leave and replay on entry.
+
+First-party `bindings.entry` declares `legacy`, `retainHomeRuntime` and
+`stagesOwner`. The discovery generator verifies `runtimeEntry` and emits
+literal lazy imports for those exact constructors. `declaredRuntimeEntry`
+composes the existing standalone/hybrid entry, running the plan on the native
+path too. These constructor links remain trusted migration scaffolding,
+separate from the data-only feature API. Runtime saves keep their owners.
+Deleting outer `plugin.ts` glue does not close remaining runtime dependency
+escapes or remove the runtime block. Sky and Signal retire in a later lockstep
+landing. No module path in a client plan selects JavaScript.
+
+`currentPageMode()` (`@wildshard/game/grid/pageMode`) reads the existing leaf
+page mode for cold tier rows without a constructor callback. Only page boot
+sets this mode through the internal `setPageMode` function.
+
+`ViewFieldHost` (`@wildshard/engine/script/viewFields`) is the isolated client-only
+ABI-v1 fallback for `view.field` 105: `[0, fieldId, value, 0]`. Numeric
+host-private shared presentation fields have their own storage, defaults and
+bounds. Every command validates before publication on the next fixed step.
+Public/player fields, authoritative commands, simulation reads and lists are
+refused. Local slots remain view-local; guest memory rewinds every call. No
+save, physics, replication or authoritative world port enters this host.
+`value(name)` reads a presentation number. Simulation scripts still refuse all
+view commands. The data client does not automatically execute view rows, and
+other v1 view commands still lack adapters. Signal dusk remains G484's row-first
+case; this API is its optional fallback.

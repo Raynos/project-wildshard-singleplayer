@@ -47,3 +47,13 @@ test('G473 contracts and elites keep their approved credit across waves', () => 
   expect(partitionPendingPlatformUsers('pine-hollow', [], rows, [allowance]).pending).toHaveLength(1);
   expect(partitionPendingPlatformUsers('pine-hollow', [], rows, []).exports).toEqual(rows);
 });
+
+test('G483 declared runtime entry retains its explicit approved feature credit', () => {
+  const module = 'src/game/shardfile/clientPlan.ts';
+  const allowance: PendingPlatformUser = { module, shard: 'nalati-grasslands',
+    plan: { path: 'docs/plans/shard-platform/decisions.md', row: 'G483' },
+    documentation: 'docs/ENGINE.md', 'rechecked-by': 'end of W3',
+    approvedFeature: { name: 'declared runtime entry', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G483' } } };
+  const rows = [{ path: module, name: 'installClientPhase', exported: true, lines: 8 }];
+  expect(partitionPendingPlatformUsers('pine-hollow', [], rows, [allowance]).exports).toEqual([]);
+});

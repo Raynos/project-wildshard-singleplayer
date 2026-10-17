@@ -9,7 +9,6 @@ import { SECTIONS, CabinAmbienceSchema } from './sections';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
-import { STRINGS } from '../strings';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks, preparePineGrazers } from '../species/looks';
 import { declaredProductCompendium } from '@wildshard/game/shard/declaredRows';
@@ -80,7 +79,6 @@ export class PineHollow extends ShardPlugin {
   private particles: Particles | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(STRINGS);
     admitPaintedTextures(ctx.product);
     const finishPack = ctx.product.section('held/finishes').source;
     if (finishPack === undefined) throw new Error('Held finishes require their declared geometry source');
