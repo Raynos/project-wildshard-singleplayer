@@ -1,4 +1,6 @@
-import type { HookCourseRow, HookCoursePad } from "../../data/grappleCourse";
+import type course from '../../data/grappleCourse.json';
+import * as v from 'valibot';
+
 // hookCourse — a grapple tool's practice course as a playground (SHARD-PLATFORM M3, ex Nine Dragon's
 // playground/GrapplePlayground.ts). Nothing here knows a shard: the course (the room, the pads, the hooks on their lips, the
 // run, its words and colours) is a data row (`HookCourseRow`), and the tool that bites the hooks is the caller's.
@@ -22,6 +24,9 @@ import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/e
 import type { PlaygroundId } from '@wildshard/engine/practice/playground/catalog';
 import type { RoomMap, RoomShape } from '@wildshard/engine/ui/roomMap';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+
+type HookCourseRow = typeof course;
+type HookCoursePad = HookCourseRow['pads'][number];
 
 /** A pad of the course, in the room's own frame (x east, y up from the pit floor, z south). */
 
@@ -135,7 +140,7 @@ export class HookCoursePlayground implements Playground {
     const { root, colliders } = this.build(o);
     this.root = root;
     root.visible = false;
-    host.registry.add({ id: row.piece.id, name: row.piece.name, category: 'ground', file: row.piece.file, object: root, colliders, surface: row.piece.surface, solidFloor: true });
+    host.registry.add({ id: row.piece.id, name: row.piece.name, category: 'ground', file: row.piece.file, object: root, colliders, surface: v.parse(v.literal('metal'), row.piece.surface), solidFloor: true });
     this.hooks = hookCourseHooks(row).map((h) => new THREE.Vector3(o.x + h.x, o.y + h.y, o.z + h.z));
     this.course = { name: this.title, hooks: this.hooks };
     this.map = courseMap(row, o);

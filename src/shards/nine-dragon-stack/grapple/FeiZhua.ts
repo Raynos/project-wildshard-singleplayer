@@ -6,7 +6,7 @@ import { type GrappleCourse, type GrapplePorts, DEFAULT_GRAPPLE_MODE, GrappleSim
  * say so): every hook in reach (2.5–38 m, in sight, with a floor to land on) wears a small ◇ marker wherever it is on
  * screen; the one nearest the centre wears the "◇ DRAGON HOOK" chip and turns the touch LOCK disc into GRAPPLE (gold,
  * pulsing), a locked one makes it LOCKED and JUMP reads ZIP (the grapple input context). The aim, the line and the zip
- * view are the SDK's grapple view (@wildshard/sdk/tools/grappleAim) on data/grapple.ts's row; this file hands it the law
+ * view are the SDK's grapple view (@wildshard/sdk/tools/grappleAim) on data/grapple.json's row; this file hands it the law
  * (grapple/sim.ts), the Well's course, the crossing's fact and the cues.
  *
  * E307: the hooks and the Well's rules are a course (course.ts). The fragment's is sim.ts's `wellCourse`; a playground
@@ -23,7 +23,7 @@ import { RIM } from '../world/wellBounds';
 import { wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
 import { traverseFeats, type NineFacts } from '../world/feats';
-import { FEI_ZHUA_AIM } from '../data/grapple';
+import FEI_ZHUA_AIM from '../data/grapple.json' with { type: 'json' };
 
 export class FeiZhua extends Tool {
   readonly id = 'tool.fei-zhua' as const;

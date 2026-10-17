@@ -17,7 +17,7 @@ import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
 import { PORTAL_STEP } from '../../../src/shards/nine-dragon-stack/runtime/portals';
 import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
-import { DECK_PORTALS, SQUARE_ROUTE } from '../../../src/shards/nine-dragon-stack/world/portalPlan';
+import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
 
 /**
  * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`,
@@ -60,13 +60,13 @@ const ROOT = new URL('../../../', import.meta.url);
 const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/nine-dragon-stack/assets/${file.hash}`, ROOT)))]));
 const MODULE = new URL(`src/shards/nine-dragon-stack/${ENTRY}`, ROOT).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
-const STEP = 5 / 60, NORTH = DECK_PORTALS[0];
+const STEP = 5 / 60, NORTH = portalPlan.decks[0];
 if (NORTH === undefined) throw new Error('Nine Dragon declares its north deck portal');
 /** The walk as [ticks, world move x, world move z] legs: each route leg at full speed, a still second for the ride, then
  *  2.5 m out of the deck's ring (re-arming it), back in (the ride home) and a still second. */
 const LEGS: readonly (readonly [number, number, number])[] = [
-  ...SQUARE_ROUTE.slice(1).map((to, i): [number, number, number] => {
-    const from = SQUARE_ROUTE[i]; if (from === undefined) throw new Error('route leg');
+  ...portalPlan.route.slice(1).map((to, i): [number, number, number] => {
+    const from = portalPlan.route[i]; if (from?.[0] === undefined || from[2] === undefined || to[0] === undefined || to[2] === undefined) throw new Error('route leg');
     const dx = to[0] - from[0], dz = to[2] - from[2], d = Math.hypot(dx, dz);
     return [Math.round(d / STEP), dx / d, dz / d];
   }),

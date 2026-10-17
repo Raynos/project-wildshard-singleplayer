@@ -1,4 +1,6 @@
-import type { GrappleAimRow } from "../../data/grapple";
+import type aim from '../../data/grapple.json';
+import * as v from 'valibot';
+
 // grappleAim — a grapple tool's aim, line and zip view (SHARD-PLATFORM M3, ex Nine Dragon's grapple/FeiZhua.ts). Nothing
 // here knows a shard: the law (where a hook may be seen, where a zip lands, how the capsule moves) is the caller's, handed
 // in as `GrappleAimRules`; the words, icons, colours, styles, system ids and mesh names are a data row (`GrappleAimRow`).
@@ -26,6 +28,10 @@ import type { DiscSpot, TouchRelabel } from '@wildshard/engine/ui/hudSlots';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { Filament, Rope } from '../looks/ropeFilament';
 import { Flash, Sparks } from '../looks/burstFx';
+
+type GrappleAimRow = typeof aim;
+const hintRow = v.object({ label: v.string(), icon: v.exactOptional(v.string()), tone: v.exactOptional(v.picklist(['rest', 'ready', 'active'])), accent: v.exactOptional(v.string()) });
+const hints = v.object({ rest: hintRow, ready: hintRow, locked: hintRow, zip: hintRow, armed: hintRow, fire: hintRow });
 
 /** A grapple tool's presentation as data: its hints, chip, markers, toasts, line, FX, system ids and mesh names. */
 
@@ -165,7 +171,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   const fragment = rules.fragment;
   const { min: MIN_RANGE, max: MAX_RANGE, winX: WIN_X, winY: WIN_Y } = rules.reach;
   const { fire: FIRE_TIME, reel: REEL_TIME } = rules.timing;
-  const MARKS = row.marks, H = row.hints;
+  const MARKS = row.marks, H = v.parse(hints, row.hints);
   let hooks = fragment.hooks;
   // the camera as the aim (read live, as the Tool always did)
   const view: GrappleAimView = {
@@ -239,7 +245,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   // the course's hooks and the grapple's phase, for captures and native bakes
   shard.debug.expose(row.debug, { hooks: () => sim.course.hooks.map(({ x, y, z }) => ({ x, y, z })), phase: () => sim.phase });
   const tipAt = (): void => {
-    muzzle.set(row.muzzle[0], row.muzzle[1], row.muzzle[2]).applyQuaternion(ctx.game.camera.quaternion).add(ctx.game.camera.position);
+    muzzle.fromArray(row.muzzle).applyQuaternion(ctx.game.camera.quaternion).add(ctx.game.camera.position);
     const goal = sim.target?.hook ?? sim.missEnd;
     if (sim.phase === 'fire') tip.copy(muzzle).lerp(goal, Math.min(1, sim.clock / FIRE_TIME) ** 0.8);
     else if (sim.phase === 'reel') {

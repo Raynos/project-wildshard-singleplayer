@@ -14,7 +14,16 @@ import { DirectorStageLane } from '@wildshard/game/plugin/director';
 import portalStages from '../../data/portalStages.json' with { type: 'json' };
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
-import { type RingPortal, type RingTrigger, type ShardEdge, inRingPortal } from './ringPortals';
+
+type ShardEdge = PortalLinkEntry['edge'];
+interface RingPortal { readonly id: string; readonly x: number; readonly y: number; readonly z: number; readonly nx: number; readonly nz: number }
+interface RingTrigger { readonly front: number; readonly back: number; readonly half: number; readonly feet: number }
+
+/** Test the authored ring's walk-in volume in its own cardinal frame. */
+function inRingPortal(p: RingPortal, t: RingTrigger, x: number, y: number, z: number): boolean {
+  const dx = x - p.x, dz = z - p.z, along = dx * p.nx + dz * p.nz, across = -dx * p.nz + dz * p.nx;
+  return along >= -t.front && along <= t.back && Math.abs(across) <= t.half && Math.abs(y - p.y) <= t.feet;
+}
 
 /** s: the fade to dark, the hold in the dark (the move happens as it starts), the fade back */
 export interface RideFade { readonly out: number; readonly hold: number; readonly in: number }

@@ -1,0 +1,424 @@
+{
+  "aim": {
+    "scanPerFrame": 2,
+    "landingStale": 1.2,
+    "marks": 8,
+    "hints": {
+      "rest": {
+        "label": "Lock",
+        "tone": "rest"
+      },
+      "ready": {
+        "label": "Grapple",
+        "icon": "<path d=\"M12 2.2v9.3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"3.4\" r=\"1.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M12 11.5c-3.9 0-6.6 2.5-6.9 6.6l1.9-1.3M12 11.5c3.9 0 6.6 2.5 6.9 6.6l-1.9-1.3M12 11.5v10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+        "tone": "ready",
+        "accent": "#ffcf70"
+      },
+      "locked": {
+        "label": "Locked",
+        "icon": "<path d=\"M12 2.2v9.3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"3.4\" r=\"1.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M12 11.5c-3.9 0-6.6 2.5-6.9 6.6l1.9-1.3M12 11.5c3.9 0 6.6 2.5 6.9 6.6l-1.9-1.3M12 11.5v10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+        "tone": "active",
+        "accent": "#ffcf70"
+      },
+      "zip": {
+        "label": "Zip",
+        "icon": "<path d=\"M3.5 20.5 18.5 5.5M11 5h8v8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M3 14.5l4-4M9.5 21l4-4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" opacity=\"0.7\"/>",
+        "tone": "active",
+        "accent": "#ffcf70"
+      },
+      "armed": {
+        "label": "Armed",
+        "icon": "<path d=\"M12 2.2v9.3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"3.4\" r=\"1.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M12 11.5c-3.9 0-6.6 2.5-6.9 6.6l1.9-1.3M12 11.5c3.9 0 6.6 2.5 6.9 6.6l-1.9-1.3M12 11.5v10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+        "tone": "ready",
+        "accent": "#ffcf70"
+      },
+      "fire": {
+        "label": "Fire",
+        "icon": "<path d=\"M3.5 20.5 18.5 5.5M11 5h8v8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M3 14.5l4-4M9.5 21l4-4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" opacity=\"0.7\"/>",
+        "tone": "ready",
+        "accent": "#ffcf70"
+      }
+    },
+    "chip": {
+      "className": "ws-dragon-hook",
+      "style": {
+        "zIndex": "25",
+        "padding": "6px 9px",
+        "border": "1px solid #8fe3ff",
+        "background": "#0d1b26dd",
+        "color": "#8fe3ff",
+        "font": "700 10px monospace",
+        "letterSpacing": "1.5px",
+        "whiteSpace": "nowrap"
+      },
+      "candidate": "\u25c7 DRAGON HOOK",
+      "lockedTouch": "\u25c6 LOCKED \u00b7 ZIP",
+      "lockedDesk": "\u25c6 LOCKED \u00b7 JUMP",
+      "color": "#8fe3ff",
+      "lockedColor": "#d7a546"
+    },
+    "mark": {
+      "className": "ws-dragon-mark",
+      "style": {
+        "zIndex": "24",
+        "font": "700 15px monospace",
+        "lineHeight": "1",
+        "color": "#8fe3ff",
+        "textShadow": "0 0 3px #0d1b26, 0 0 3px #0d1b26, 0 0 9px rgba(143, 227, 255, 0.75)"
+      },
+      "glyph": "\u25c7",
+      "color": "#8fe3ff"
+    },
+    "toasts": {
+      "miss": "FEI ZHUA MISSED \u00b7 REELING",
+      "armedTouch": "FEI ZHUA READY \u00b7 FIRE TO SHOOT",
+      "armedDesk": "FEI ZHUA READY \u00b7 JUMP TO FIRE",
+      "lockedTouch": "DRAGON HOOK LOCKED \u00b7 ZIP TO FLY",
+      "lockedDesk": "DRAGON HOOK LOCKED \u00b7 JUMP TO ZIP"
+    },
+    "muzzle": [
+      -0.2,
+      -0.23,
+      -0.55
+    ],
+    "slack": {
+      "fire": 1.14,
+      "reel": 1.2,
+      "hold": 1.005
+    },
+    "ropePoints": 24,
+    "claw": 14132550,
+    "halo": 16764002,
+    "flashes": {
+      "muzzle": 11073023,
+      "bite": 16762730,
+      "dock": 16767121
+    },
+    "sparks": 24,
+    "name": "fei-zhua",
+    "systems": {
+      "input": "shard.nd.feizhua.input",
+      "rope": "fei-zhua.rope",
+      "update": "fei-zhua"
+    },
+    "debug": "nd.grapple"
+  },
+  "course": {
+    "id": "grapple",
+    "title": "Grapple playground",
+    "chip": "Grapple",
+    "piece": {
+      "id": "playground-grapple",
+      "name": "Grapple playground",
+      "file": "src/shards/nine-dragon-stack/playground/GrapplePlayground.ts",
+      "surface": "metal"
+    },
+    "room": {
+      "x0": -62,
+      "x1": 42,
+      "z0": -68,
+      "z1": 80,
+      "height": 64
+    },
+    "ringUp": 1.9,
+    "ringOut": 0.3,
+    "fallY": 8,
+    "slab": 1,
+    "pads": [
+      {
+        "id": "start",
+        "label": "START",
+        "x": 0,
+        "z": 62,
+        "w": 14,
+        "d": 12,
+        "top": 20,
+        "kind": "start",
+        "next": "p1"
+      },
+      {
+        "id": "p1",
+        "label": "P1",
+        "x": 0,
+        "z": 38,
+        "w": 8,
+        "d": 8,
+        "top": 20,
+        "kind": "pad",
+        "next": "p2"
+      },
+      {
+        "id": "p2",
+        "label": "P2",
+        "x": 16,
+        "z": 16,
+        "w": 8,
+        "d": 8,
+        "top": 26,
+        "kind": "pad",
+        "next": "base"
+      },
+      {
+        "id": "base",
+        "label": "BASE",
+        "x": -6,
+        "z": -16,
+        "w": 10,
+        "d": 10,
+        "top": 22,
+        "kind": "target",
+        "next": "l1"
+      },
+      {
+        "id": "l1",
+        "label": "L1",
+        "x": 7,
+        "z": -34,
+        "w": 5,
+        "d": 5,
+        "top": 30,
+        "kind": "ledge",
+        "next": "l2"
+      },
+      {
+        "id": "l2",
+        "label": "L2",
+        "x": -6,
+        "z": -50,
+        "w": 5,
+        "d": 5,
+        "top": 38,
+        "kind": "ledge",
+        "next": "top"
+      },
+      {
+        "id": "top",
+        "label": "FINISH",
+        "x": -6,
+        "z": -34,
+        "w": 10,
+        "d": 10,
+        "top": 46,
+        "kind": "finish"
+      },
+      {
+        "id": "r6",
+        "label": "6 M",
+        "x": -15,
+        "z": 66,
+        "w": 4,
+        "d": 4,
+        "top": 20,
+        "kind": "range",
+        "next": "start"
+      },
+      {
+        "id": "r14",
+        "label": "14 M",
+        "x": -23,
+        "z": 62,
+        "w": 4,
+        "d": 4,
+        "top": 20,
+        "kind": "range",
+        "next": "start"
+      },
+      {
+        "id": "r24",
+        "label": "24 M",
+        "x": -33,
+        "z": 58,
+        "w": 4,
+        "d": 4,
+        "top": 20,
+        "kind": "range",
+        "next": "start"
+      },
+      {
+        "id": "r34",
+        "label": "34 M",
+        "x": -43,
+        "z": 54,
+        "w": 4,
+        "d": 4,
+        "top": 20,
+        "kind": "range",
+        "next": "start"
+      }
+    ],
+    "column": {
+      "x": -6,
+      "z": -34,
+      "w": 6,
+      "d": 6
+    },
+    "hooks": [
+      {
+        "pad": "p1",
+        "edge": "s"
+      },
+      {
+        "pad": "p2",
+        "edge": "s",
+        "along": -2
+      },
+      {
+        "pad": "base",
+        "edge": "s",
+        "along": 3
+      },
+      {
+        "pad": "l1",
+        "edge": "s",
+        "along": -1
+      },
+      {
+        "pad": "l2",
+        "edge": "e",
+        "along": 1
+      },
+      {
+        "pad": "top",
+        "edge": "n"
+      },
+      {
+        "pad": "start",
+        "edge": "w",
+        "along": 0
+      },
+      {
+        "pad": "r6",
+        "edge": "e"
+      },
+      {
+        "pad": "r14",
+        "edge": "e"
+      },
+      {
+        "pad": "r24",
+        "edge": "e"
+      },
+      {
+        "pad": "r34",
+        "edge": "e"
+      }
+    ],
+    "run": {
+      "from": "start",
+      "to": "top",
+      "goals": 5
+    },
+    "words": {
+      "ready": "READY \u00b7 ZIP TO P1",
+      "finish": "FINISH \u00b7 {time}",
+      "running": "RUNNING \u00b7 {pad}",
+      "between": "RUNNING \u00b7 {reached} / {goals}",
+      "done": "GRAPPLE COURSE \u00b7 {time}{best} \u00b7 \u21ba TO RUN AGAIN",
+      "best": " \u00b7 BEST",
+      "fell": "FELL \u00b7 BACK ON {pad}"
+    },
+    "look": {
+      "ceiling": 2303788,
+      "ring": 16761418,
+      "mast": 2830133,
+      "paint": 14844986,
+      "label": "#e8f4fa",
+      "startLabel": "#2a2f35",
+      "finishLabel": "#b0591b",
+      "map": {
+        "floor": "#15191e",
+        "grid": "rgba(117, 217, 255, 0.12)",
+        "wall": "#75d9ff",
+        "column": "#b0591b",
+        "lit": "#d7dde2",
+        "pad": "#6c737b",
+        "finish": "#e2843a",
+        "hook": "#ffc24a",
+        "label": "#e8f4fa"
+      }
+    }
+  },
+  "plan": {
+    "decks": [
+      {
+        "id": "portal.north",
+        "edge": "north",
+        "mx": 0,
+        "mz": 250,
+        "x": 0,
+        "y": 0,
+        "z": 236,
+        "nx": 0,
+        "nz": -1
+      },
+      {
+        "id": "portal.east",
+        "edge": "east",
+        "mx": 250,
+        "mz": 0,
+        "x": 236,
+        "y": 0,
+        "z": 0,
+        "nx": -1,
+        "nz": 0
+      },
+      {
+        "id": "portal.south",
+        "edge": "south",
+        "mx": 0,
+        "mz": -250,
+        "x": 0,
+        "y": 0,
+        "z": -236,
+        "nx": 0,
+        "nz": 1
+      },
+      {
+        "id": "portal.west",
+        "edge": "west",
+        "mx": -250,
+        "mz": 0,
+        "x": -236,
+        "y": 0,
+        "z": 0,
+        "nx": 1,
+        "nz": 0
+      }
+    ],
+    "square": {
+      "id": "portal.square",
+      "x": 12,
+      "y": 125,
+      "z": -20,
+      "nx": 0,
+      "nz": -1
+    },
+    "route": [
+      [
+        0.95,
+        125,
+        7.5
+      ],
+      [
+        5.5,
+        125,
+        2
+      ],
+      [
+        6,
+        125,
+        -14
+      ],
+      [
+        12,
+        125,
+        -17
+      ],
+      [
+        12,
+        125,
+        -20
+      ]
+    ]
+  }
+}

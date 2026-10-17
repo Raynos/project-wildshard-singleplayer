@@ -78,7 +78,6 @@
       "src/shards/nine-dragon-stack/runtime/jian.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/portals.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/portals/hostRide.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
-      "src/shards/nine-dragon-stack/runtime/portals/ringPortals.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/portals/walkInRide.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/props/bakedColliders.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/nine-dragon-stack/runtime/props/edgeDecks.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -125,7 +124,7 @@
     "sim-in-runtime/far-reach": 0,
     "sim-in-runtime/ink-cel-valley": 0,
     "sim-in-runtime/nalati-grasslands": 19,
-    "sim-in-runtime/nine-dragon-stack": 9,
+    "sim-in-runtime/nine-dragon-stack": 8,
     "sim-in-runtime/pastel-plain": 0,
     "sim-in-runtime/pine-hollow": 14,
     "sim-in-runtime/sunscar-dunes": 0

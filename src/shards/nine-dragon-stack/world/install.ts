@@ -5,7 +5,7 @@ import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './wellBounds';
 import { entryCapColliders, entryDeckFloor, portalFloorRows } from './floorRows';
-import { SQUARE_FLOOR } from './portalPlan';
+import portalPlan from './portalPlan.generated.json' with { type: 'json' };
 import { NdRuntime, ownNdRuntime } from '../runtime/state';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
@@ -30,7 +30,7 @@ export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system
       id: 'nds-floors', name: 'Lantern Square', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/build.ts',
       object: world.root, surface: 'stone', colliders: [...c.floors.filter((d) => d !== c.square), ...entryCapColliders(world.entryCaps === true)],
       floor: withDecks, solidFloor: true,
-    }, ...portalFloorRows().map((row): Piece => ({ id: `nds-${row.id}`, name: row.id === SQUARE_FLOOR ? 'Lantern Square slab' : `Landing deck (${row.id})`,
+    }, ...portalFloorRows().map((row): Piece => ({ id: `nds-${row.id}`, name: row.id === portalPlan.floors.square ? 'Lantern Square slab' : `Landing deck (${row.id})`,
       category: 'buildings', file: 'src/shards/nine-dragon-stack/world/entries.ts', surface: 'stone', colliders: row.shapes, colliderOwner: row.id }))];
     for (const piece of floors) ctx.piece(piece);
     ctx.piece({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });

@@ -11,9 +11,9 @@
 import { deckCapBoxes, portalFloorBoxes } from './boxRows';
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, inFrame as sdkInFrame, spanCollider } from '../runtime/props/edgeDecks';
+import { type DeckEdge, type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, inFrame as sdkInFrame, spanCollider } from '../runtime/props/edgeDecks';
 import { DECK, DECK_CAP } from '../data/decks';
-import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';
+import portalPlan from './portalPlan.generated.json' with { type: 'json' };
 
 /** half the deck's opening: the canonical ENTRY_WIDTH (8 m) entry, centred on the edge's midpoint */
 export const OPENING_HALF = ENTRY_WIDTH / 2;
@@ -28,7 +28,7 @@ const SIZES = { half: OPENING_HALF, ...DECK };
 export const span: typeof spanCollider = spanCollider;
 /** SF8c (G224): the square's slab, the floor the portal nodes in Lantern Square stand on (shard.config.ts declares it) */
 export function squareFloor(): ColliderDesc {
-  const square = portalFloorBoxes(SQUARE_FLOOR)[0];
+  const square = portalFloorBoxes(portalPlan.floors.square)[0];
   if (square === undefined) throw new Error('Missing declared square slab');
   return square;
 }
@@ -74,13 +74,13 @@ export function entryCapColliders(caps: boolean): ColliderDesc[] {
  * y = 0 (the format's portal-floor proof), its two parapets and its end wall. These are the very boxes the world installs
  * (world/install.ts registers each deck as its own piece answering to this id), never a second copy.
  */
-export function portalDeckColliders(edge: ShardEdge): ColliderDesc[] {
-  return portalFloorBoxes(deckFloorId(edge));
+export function portalDeckColliders(edge: DeckEdge): ColliderDesc[] {
+  return portalFloorBoxes(`${portalPlan.floors.deckPrefix}${edge}`);
 }
 /** SF8c (G224): the floors the portal nodes stand on as shardfile collider rows: the four decks' and the square's */
 export function portalFloorRows(): { id: string; panel: null; initialActive: true; shapes: ColliderDesc[] }[] {
-  return [...DECK_PORTALS.map((p) => ({ id: deckFloorId(p.edge), panel: null, initialActive: true as const, shapes: portalDeckColliders(p.edge) })),
-    { id: SQUARE_FLOOR, panel: null, initialActive: true, shapes: [squareFloor()] }];
+  return [...portalPlan.decks.map(p => ({ id: `${portalPlan.floors.deckPrefix}${p.edge}`, panel: null, initialActive: true as const, shapes: portalFloorBoxes(`${portalPlan.floors.deckPrefix}${p.edge}`) })),
+    { id: portalPlan.floors.square, panel: null, initialActive: true, shapes: [squareFloor()] }];
 }
 
 /** the floor on a deck (placement, footsteps), else undefined */

@@ -2,7 +2,7 @@ import { Group } from 'three';
 import { Portal } from '@wildshard/sdk/entries';
 import { readScene } from '@wildshard/sdk/scene';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { DECK_RING_SHORT, SQUARE_ARRIVAL_AT, SQUARE_RING, SQUARE_ROUTE_TURNS } from '../data/portals';
+import { RING, DECK_RING_SHORT, SQUARE_ARRIVAL_AT, SQUARE_RING, SQUARE_ROUTE_TURNS } from '../data/portals';
 
 // The fixed 15 m socket is the format's entry contract; the ring stands one authored metre short of its end.
 const SOCKET_LENGTH = 15;
@@ -31,3 +31,24 @@ export function portalEntryScene(): Group {
 
 /** Compile these real Portal objects into the existing admitted rows; no authoring object reaches the client. */
 export function portalEntryRows(): ReturnType<typeof readScene>['entries'] { return readScene(portalEntryScene()).entries; }
+
+/** Client ring frames and the walked witness route, baked from the same authored portal nodes. */
+export function portalPlanRows(): {
+  decks: { id: string; edge: typeof EDGES[number]['edge']; mx: number; mz: number; x: number; y: number; z: number; nx: number; nz: number }[];
+  square: { id: string; x: number; y: number; z: number; nx: number; nz: number };
+  route: [number, number, number][];
+  floors: { square: string; deckPrefix: string };
+  ring: typeof RING;
+} {
+  const entries = portalEntryRows();
+  const decks = EDGES.map(({ edge, ix, iz }) => {
+    const portal = entries.find(row => row.edge === edge)?.portal;
+    if (portal === undefined) throw new Error(`Missing authored portal ${edge}`);
+    const [x, y, z] = portal.road.at;
+    return { id: portal.road.id, edge, mx: -ix * NINE_FLOOR_PLAN.cellHalf + 0, mz: -iz * NINE_FLOOR_PLAN.cellHalf + 0, x, y, z, nx: ix, nz: iz };
+  });
+  const first = entries[0]?.portal;
+  if (first === undefined) throw new Error('Missing authored square portal');
+  const [x, y, z] = first.exit.at;
+  return { decks, square: { id: SQUARE_RING.id, x, y, z, nx: SQUARE_RING.nx, nz: SQUARE_RING.nz }, route: first.route, floors: NINE_FLOOR_PLAN.ids, ring: RING };
+}
