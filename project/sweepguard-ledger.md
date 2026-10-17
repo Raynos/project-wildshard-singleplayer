@@ -202,3 +202,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 08:18 · wT:pK · `SKIP_SWEEPGUARD=1 python3 tmp/sp-x8-painted/isolate.py`
 - 2026-10-17 08:21 · wT:pK · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x8-painted/isolate.py');s=p.read_text();s=s.replace("put(path,json.dumps(rows,indent=2)+'\\n')", "put(path,head(path).rstrip()[:-1].rstrip() + `
 - 2026-10-17 08:22 · wT:p3 · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x1-sim-road2/prepare-index.py');p.write_text('''import subprocess,json,os from pathlib import Path p=Path(__file__).parent/'candidate.json';d=j`
+- 2026-10-17 08:23 · wT:pK · `kill -TERM 34817 SKIP_SWEEPGUARD=1 python3 tmp/sp-x8-painted/isolate.py node scripts/build-mirror.mjs run $(cat tmp/sp-x8-painted/tree) --slot check3 -- bash /Users/raynos/projects/games/wildshard-sin`
