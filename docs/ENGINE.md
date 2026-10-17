@@ -8952,6 +8952,36 @@ The existing native owner commits effects synchronously in order at its
 original event phase. Evaluation itself never calls shard code, opens a
 panel, grants an item or installs another scheduler or save slot.
 
+`game/quest/effects.commitQuestEffects(ctx, questId, effects)` commits
+flag, item and take rows against the original bound quest and play pack.
+Its framework lookup borrows the `QuestState` already created by
+`bindRuntimeQuest`; it creates no flags, listener or continuation.
+`commitQuestEffects(host, inventoryId, effects)` applies the same
+ordered effects to the native host's flags and registered pack. Both run
+at the caller's existing event phase. Commands and notices still require
+an admitted lane and refuse here. Pine's page/native payment and follow
+signals and Driftwood's native kill flags use this data-only dispatch.
+
+Client-only `toast` and `sting` effects use the actual play HUD and music.
+A toast may count its original flags by an admitted prefix and goal; it
+creates no counter. Native dispatch refuses these presentation effects.
+`readQuestServiceActions(ctx, questId, file)` admits a named product's
+bounded action rows and returns `run(actionId)`. Rows accept only these
+closed services, with no owner map, callback, method path, delayed job or
+new continuation. Binding is silent; each run borrows the bound quest.
+Pine's payment/stag notices and Driftwood's glass/pickup feedback use it.
+Errand wheel synchronization retains its counted legacy adapter until
+C1 publishes its actual handle.
+
+`game/inventoryLaw.creditNativeInventory(host, id, row)` and
+`debitNativeInventory(host, id, row)` borrow an existing native pack.
+Credit retains its authored admission/capacity result; a debit accepts a
+positive safe quantity and returns false without changing counts or
+order when stock is insufficient. Restore replaces the pack's state,
+while id-based calls continue using that same pack. Neither call creates
+inventory, emits rewards or installs a save adapter. Boss grants retain
+their existing rejection policy through `grantNativeInventory`.
+
 The former `call` effect is refused. A `command` names an admitted script
 and its numeric Script ABI event `type`, `target` and `value`. No TS
 callback fallback exists. Delivery rows contain their item and quantity;

@@ -1,5 +1,10 @@
 import { QuestStepRunner } from '../src/game/quest/steps';
-import { commitQuestStep } from '../src/shards/pine-hollow/quest/stepEffects';
+import { commitQuestEffects, readQuestServiceActions } from '../src/game/quest/effects';
+import { publishBoundQuest } from '../src/game/quest/boundState';
+import { QuestState } from '../src/engine/quest/core';
+import { Scope } from '../src/engine/app/scope';
+import { createShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
+import type { ShardContext } from '../src/game/plugin/context';
 import steps from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
@@ -13,6 +18,7 @@ import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/q
 import { Exchange } from '../src/game/loot/exchange';
 import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
 
+const serviceProducts = new Map<string, ShardProduct>();
 const admitted = new Map<string, QuestPageInteractionsData>();
 // Frozen from the original play-read tables before moving their assembly to build time.
 const originals = {
@@ -22,6 +28,16 @@ const originals = {
 };
 beforeAll(async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
+  for (const slug of ['pine-hollow', 'driftwood-isle']) {
+    const project = slug === 'pine-hollow' ? loaded : await readProjectAssets(`src/shards/${slug}`);
+    const file = project.output.namedFiles?.find(row => row.name === 'quests/services.json');
+    if (file === undefined) throw new Error('Missing admitted quest service rows');
+    serviceProducts.set(slug, createShardProduct({ slug, revision: 1, shardfile: project.shard, sections: new Map(),
+      files: new Map([['quests/services.json', { hash: file.hash, url: '/services.json' }]]), read: hash => {
+        const bytes = project.assets.get(hash); if (bytes === undefined) throw new Error('Missing quest service bytes'); return Promise.resolve(bytes);
+      } }));
+  }
+
   for (const [name, hash] of Object.entries(originals)) {
     const file = loaded.output.namedFiles?.find(row => row.name === `quests/${name}.json`);
     if (file?.kind !== 'json') throw new Error(`Missing admitted quest actions: ${name}`);
@@ -37,7 +53,7 @@ function rows(name: string): QuestPageInteractionsData {
   return value;
 }
 
-test('Miller completion keeps the paid flag before rewards; binding a paid save is silent', () => {
+test('Miller completion keeps the paid flag before rewards; binding a paid save is silent', async () => {
   const flags = new Flags('published-consequences', false), events: string[] = [];
   const inventory = { add(id: string, n = 1) { expect(flags.has('errand:paid')).toBe(true); events.push(`${id}:${String(n)}`); return true; }, take: () => false };
   const ports = { flags, toast: (text: string) => { events.push(text); }, owners: new Map<string, unknown>([
@@ -50,8 +66,20 @@ test('Miller completion keeps the paid flag before rewards; binding a paid save 
   flags.set('errand:thanked');
   flags.onChange((flag, on) => { if (flag === 'errand:paid' && on) events.push(flag); });
   const runner = new QuestStepRunner(steps);
-  commitQuestStep(runner.signal({ kind: 'talk', target: 'miller' }, { flags: flags.all, inventory: {} }), flags, inventory);
-  page.action('miller.pay')();
+  const product = serviceProducts.get('pine-hollow'), scope = new Scope('payment');
+  if (product === undefined) throw new Error('Missing admitted Pine services');
+  const quest = product.shardfile.quests.quests[0]; if (quest === undefined) throw new Error('Missing declared quest');
+  const context = { scope, product } as Pick<ShardContext, 'scope' | 'game' | 'product'>;
+  Object.defineProperty(context, 'game', { value: { runtime: { play: { inventory,
+    hud: { toast: (text: string) => { events.push(text); } }, music: { sting: (name: string) => { events.push(name); } } } } } });
+  publishBoundQuest(scope, new QuestState({ id: quest.id, title: 'Payment', completeFlag: 'payment:complete',
+    steps: [{ id: 'wait', objective: 'Wait', done: { all: ['payment:never'] } }] }, flags, undefined, scope));
+  try {
+    const services = await readQuestServiceActions(context, quest.id, 'quests/services.json');
+    expect(events).toEqual([]);
+    commitQuestEffects(context, quest.id, runner.signal({ kind: 'talk', target: 'miller' }, { flags: flags.all, inventory: {} }));
+    services.run('miller.pay');
+  } finally { scope.dispose(); }
   expect(events).toEqual(['errand:paid', 'lodge-ribbon:3', 'amber-resin:4', 'Brandt pays · 3 lodge ribbons · 4 amber resin', 'pickup']);
   const saved = flags.all.slice(); events.length = 0;
   flags.restore(saved); bindQuestPageInteractions(rows('consequences'), ports);
@@ -118,4 +146,25 @@ test('night and dawn keep durations, lantern order and completion payout; restor
     "Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep", 'seen:dawn']);
   const saved = flags.all.slice(); events.length = 0; flags.restore(saved);
   bindQuestPageInteractions(rows('clock'), ports); expect(events).toEqual([]); expect(flags.all).toEqual(saved);
+});
+
+
+test('DW named service rows borrow its original quest flags and keep pickup/glass feedback exact', async () => {
+  const product = serviceProducts.get('driftwood-isle'), scope = new Scope('glass services'), flags = new Flags('glass services', false), events: string[] = [];
+  if (product === undefined) throw new Error('Missing admitted DW services');
+  const quest = product.shardfile.quests.quests[0]; if (quest === undefined) throw new Error('Missing declared DW quest');
+  const context = { scope, product } as Pick<ShardContext, 'scope' | 'game' | 'product'>;
+  Object.defineProperty(context, 'game', { value: { runtime: { play: { inventory: { add: () => true, take: () => false },
+    hud: { toast: (text: string) => { events.push(text); } }, music: { sting: (name: string) => { events.push(name); } } } } } });
+  publishBoundQuest(scope, new QuestState({ id: quest.id, title: 'Glass', completeFlag: 'fixture:complete',
+    steps: [{ id: 'wait', objective: 'Wait', done: { all: ['fixture:never'] } }] }, flags, undefined, scope));
+  try {
+    const services = await readQuestServiceActions(context, quest.id, 'quests/services.json');
+    expect(events).toEqual([]); flags.set('glass:one'); flags.set('glass:two'); flags.set('seen:unrelated');
+    services.run('pickup'); services.run('glass');
+    expect(events).toEqual(['pickup', 'Sea glass · 2 / 15']);
+    expect(() => services.run('missing')).toThrow('Unknown quest service action');
+    await expect(readQuestServiceActions(context, 'undeclared', 'quests/services.json')).rejects.toThrow('declared quest');
+    scope.dispose(); expect(() => services.run('glass')).toThrow('not bound');
+  } finally { scope.dispose(); }
 });

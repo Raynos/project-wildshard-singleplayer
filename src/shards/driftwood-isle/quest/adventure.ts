@@ -1,3 +1,4 @@
+import { readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import * as THREE from 'three';
@@ -18,7 +19,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { OCEAN } from '../world/sites';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' };
-import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import { installAdventureInteractables } from './interactLifetime';
 import { installPlaces } from './Places';
 import { installQuestChapter, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
@@ -36,7 +36,6 @@ import { installEcology } from './Ecology';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import { Zipline } from '../world/Zipline';
 
-const { SEA_GLASS_COUNT, SEA_GLASS_FLAG } = interactables;
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -122,6 +121,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const story = await readQuestStory(ctx);
+  const services = await readQuestServiceActions(ctx, story.quest.id, 'quests/services.json');
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
@@ -139,8 +139,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   kit.onEvent = sfx.bindEvents(DRIFTWOOD_KIT_EVENTS, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map<string, (e: InteractEvent) => void>([
-      ['glass', () => { w.hud.toast(`Sea glass · ${flags.count(SEA_GLASS_FLAG)} / ${SEA_GLASS_COUNT}`); }],
-      ['pickup', () => { w.music.sting('pickup'); }],
+      ['glass', () => { services.run('glass'); }],
+      ['pickup', () => { services.run('pickup'); }],
     ]) });
 
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };

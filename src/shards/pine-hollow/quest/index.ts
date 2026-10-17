@@ -1,5 +1,5 @@
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
-import { commitQuestStep } from './stepEffects';
+import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
@@ -150,6 +150,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const beatParam = h.params.get('quest');
   const beat = beatParam === null ? undefined : native.beats[beatParam];
   if (beat) { flags.reset(); for (const f of beat.flags) flags.set(f); }
+  const serviceActions = await readQuestServiceActions(ctx, story.quest.id, 'quests/services.json');
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
@@ -308,9 +309,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const steps = new QuestStepRunner(native.steps);
   const payMiller = (): void => {
     const paid = flags.has('errand:paid');
-    commitQuestStep(steps.signal({ kind: 'talk', target: 'miller' }, { flags: flags.all,
-      inventory: Object.fromEntries(inventory.items.map(item => [item.id, item.count])) }), flags, inventory);
-    if (!paid && flags.has('errand:paid')) consequences.run('miller.pay');
+    commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'talk', target: 'miller' }, { flags: flags.all,
+      inventory: Object.fromEntries(inventory.items.map(item => [item.id, item.count])) }));
+    if (!paid && flags.has('errand:paid')) serviceActions.run('miller.pay');
   };
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
@@ -406,8 +407,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the stag ──
   const stag = new StagLead(game.scene, animals, native.lead);
-  stag.onAppear = (first) => { if (first) consequences.run('stag.appear'); };
-  stag.onDone = () => { commitQuestStep(steps.signal({ kind: 'follow', target: 'stag' }, { flags: flags.all }), flags, inventory); consequences.run('stag.complete'); };
+  stag.onAppear = (first) => { if (first) serviceActions.run('stag.appear'); };
+  stag.onDone = () => { commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'follow', target: 'stag' }, { flags: flags.all })); serviceActions.run('stag.complete'); };
 
   // ── the map (C9's hook): the places with discovery, the live quest markers ──
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));

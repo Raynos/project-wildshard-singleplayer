@@ -1,3 +1,4 @@
+import { parseQuestServiceActions } from '@wildshard/format/questSteps';
 import keyedSky from '../data/keyedSky.generated.json' with { type: 'json' };
 import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json' };
 import elites from '../behaviour/elites.generated.json' with {type:'json'};
@@ -42,7 +43,7 @@ import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
-import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES, PINE_MILL_DOOR } from './questConsequences';
+import { PINE_QUEST_CONSEQUENCES, PINE_QUEST_SERVICES, PINE_CLOCK_CONSEQUENCES, PINE_MILL_DOOR } from './questConsequences';
 import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
@@ -88,6 +89,7 @@ const clientJson=emitNamedBlobs([nameBlob('actors/elites.json', 'json', new Text
   nameBlob('look/creature-clips.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ pose: THRALL_CLIPS, ...thrallLook }))),
   nameBlob('quests/native.json', 'json', new TextEncoder().encode(JSON.stringify(PINE_QUEST_RUNTIME))),
   nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),
+  nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES)))),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),
   nameBlob('quests/exchange.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tradeExchange()))),

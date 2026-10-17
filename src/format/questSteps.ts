@@ -4,7 +4,11 @@ const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const names = v.pipe(v.array(name), v.maxLength(128));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
+const toast = v.strictObject({ kind: v.literal('toast'), text: v.pipe(v.string(), v.maxLength(4096)),
+  counter: v.exactOptional(v.strictObject({ prefix: name, of: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(8192)) })) });
+const sting = v.strictObject({ kind: v.literal('sting'), name: v.picklist(['pickup', 'death', 'chunk', 'dawn']) });
 const effect = v.variant('kind', [
+  toast, sting,
   v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('item'), item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
   v.strictObject({ kind: v.literal('command'), script: name, type: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)),
@@ -36,6 +40,7 @@ const killRows = v.strictObject({ step: name, prefix: v.pipe(v.string(), v.maxLe
 export function parseQuestKillRows(input: unknown): v.InferOutput<typeof killRows> {
   const rows = v.parse(killRows, input);
   if (rows.runner.guards.length > 0 || rows.runner.steps.some(row => row.kind !== 'kill')) throw new Error('Kill observer accepts only kill steps');
+  if (rows.runner.steps.some(row => row.effects.some(entry => entry.kind !== 'flag'))) throw new Error('Kill observer accepts only flag effects');
   return rows;
 }
 
@@ -59,5 +64,15 @@ export type QuestHintRows = v.InferOutput<typeof hintRows>;
 export function parseQuestHintRows(input: unknown): QuestHintRows {
   const rows = v.parse(hintRows, input);
   if (new Set(rows.hints.map(row => row.control)).size !== rows.hints.length) throw new Error('Duplicate quest hint control');
+  return rows;
+}
+
+/** Client-only service rows share the quest effect vocabulary and retain their authored order. */
+const serviceActions = v.strictObject({ version: v.literal(1), actions: v.pipe(v.array(v.strictObject({ id: name,
+  effects: v.pipe(v.array(v.union([toast, sting])), v.minLength(1), v.maxLength(32)) })), v.maxLength(128)) });
+/** Admit only existing page services, never reflected methods or unbound script commands. */
+export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof serviceActions> {
+  const rows = v.parse(serviceActions, input);
+  if (new Set(rows.actions.map(row => row.id)).size !== rows.actions.length) throw new Error('Quest service action ids must be unique');
   return rows;
 }

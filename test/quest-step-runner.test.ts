@@ -3,7 +3,7 @@ import { QuestStepRunner } from '../src/game/quest/steps';
 import { QuestHintFeed } from '../src/game/quest/hints';
 import type { Actor } from '../src/engine/combat/pipeline';
 import type { HintTrigger, HintControl } from '../src/engine/ui/FirstHints';
-import { parseQuestStepRows } from '../src/format/questSteps';
+import { parseQuestStepRows, parseQuestKillRows, parseQuestServiceActions } from '../src/format/questSteps';
 import pine from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/data/questSteps.json' with { type: 'json' };
 
@@ -74,6 +74,9 @@ test('legacy callback effects, duplicate rows, missing facts and malformed Scrip
   expect(() => parseQuestStepRows({ version: 1, guards: [], steps: [fixture.steps[0], fixture.steps[0]] })).toThrow();
   for (const effect of [{ kind: 'call', owner: 'missing' }, { kind: 'command', script: 'town.logic', type: 0, target: 1, value: 0 }])
     expect(() => new QuestStepRunner({ version: 1, guards: [], steps: [{ id: 'bad', kind: 'talk', effects: [effect] }] })).toThrow();
+  for (const effect of [{ kind: 'item', item: 'ore', count: 1 }, { kind: 'notice', text: 'Hello' }])
+    expect(() => parseQuestKillRows({ step: 'fixture.kills', prefix: 'fixture.', runner: { version: 1, guards: [],
+      steps: [{ id: 'kill', kind: 'kill', target: 'bandit', effects: [effect] }] } })).toThrow('only flag effects');
 });
 
 test('made-up onboarding rows keep priority, live actor scans and existing learned controls', () => {
@@ -101,4 +104,15 @@ test('made-up onboarding rows keep priority, live actor scans and existing learn
   body.hidden = true; learned.add('move'); feed.update(0.1);
   expect(shown()).toContain('jump'); expect(shown()).not.toContain('attack');
   expect([...learned]).toEqual(['attack', 'move']);
+});
+
+
+test('closed quest services refuse reflected calls, unknown stings and duplicate action ids', () => {
+  const action = { id: 'notice', effects: [{ kind: 'toast', text: 'Found', counter: { prefix: 'found:', of: 3 } }, { kind: 'sting', name: 'pickup' }] };
+  expect(parseQuestServiceActions({ version: 1, actions: [action] }).actions).toEqual([action]);
+  expect(() => parseQuestServiceActions({ version: 1, actions: [action, action] })).toThrow('unique');
+  for (const effect of [{ kind: 'call', owner: 'music', path: ['sting'] }, { kind: 'sting', name: 'invented' },
+    { kind: 'toast', text: 'Found', counter: { prefix: 'found:', of: 0 } }, { kind: 'command', script: 'missing', type: 1, target: 1, value: 0 }]) {
+    expect(() => parseQuestServiceActions({ version: 1, actions: [{ id: 'invalid', effects: [effect] }] })).toThrow();
+  }
 });

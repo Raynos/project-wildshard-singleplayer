@@ -59,11 +59,25 @@ export function nativeInventorySchema<K extends string>(profile: NativeInventory
     v.check(state => new Set(state.order).size === state.order.length && Object.keys(state.counts).every(id => state.order.some(item => item === id))
       && (!profile.counts.complete || state.order.every(id => state.counts[id] !== undefined)), profile.restoreError));
 }
-const nativePacks = new WeakMap<SimHost, Map<string, (item: string, count: number) => boolean>>();
+interface NativePackBinding {
+  readonly grant: (item: string, count: number) => boolean;
+  readonly debit: (item: string, count: number) => boolean;
+}
+const nativePacks = new WeakMap<SimHost, Map<string, NativePackBinding>>();
+/** Credit the existing pack through its authored admission law; full packs return false. */
+export function creditNativeInventory(host: SimHost, id: string, row: { readonly item: string; readonly count: number }): boolean {
+  const pack = nativePacks.get(host)?.get(id); if (pack === undefined) throw new Error('Missing native inventory');
+  return pack.grant(row.item, row.count);
+}
 /** Apply row grants to an existing native pack, through its own admission law. */
 export function grantNativeInventory(host: SimHost, id: string, grants: readonly { readonly item: string; readonly count: number }[]): void {
-  const grant = nativePacks.get(host)?.get(id); if (grant === undefined) throw new Error('Missing native inventory');
-  for (const row of grants) if (!grant(row.item, row.count)) throw new Error('Boss reward rejected by native inventory');
+  if (nativePacks.get(host)?.has(id) !== true) throw new Error('Missing native inventory');
+  for (const row of grants) if (!creditNativeInventory(host, id, row)) throw new Error('Boss reward rejected by native inventory');
+}
+/** Debit the already registered pack by id; insufficient stock leaves its order and counts intact. */
+export function debitNativeInventory(host: SimHost, id: string, row: { readonly item: string; readonly count: number }): boolean {
+  const pack = nativePacks.get(host)?.get(id); if (pack === undefined) throw new Error('Missing native inventory');
+  return pack.debit(row.item, v.parse(positiveQuantity, row.count));
 }
 
 /** Native inventory over existing add/trade laws, retaining the saved roster and ordering policy. */
@@ -75,9 +89,13 @@ export class NativeInventory<K extends string> {
     this.saved = nativeInventorySchema(profile); const kinds = new Set(profile.kinds);
     this.policy = { has: id => kinds.has(id), keeps: id => kinds.has(id), slots: () => profile.slots };
     if (host !== undefined) {
-      const packs = nativePacks.get(host) ?? new Map<string, (item: string, count: number) => boolean>();
+      const packs = nativePacks.get(host) ?? new Map<string, NativePackBinding>();
       if (packs.has(inventoryId)) throw new Error('Duplicate native inventory');
-      packs.set(inventoryId, (item: string, count: number) => this.add(v.parse(v.picklist(profile.kinds), item), count));
+      const kind = v.picklist(profile.kinds);
+      packs.set(inventoryId, {
+        grant: (item, count) => this.add(v.parse(kind, item), count),
+        debit: (item, count) => this.take(v.parse(kind, item), count),
+      });
       nativePacks.set(host, packs);
     }
   }

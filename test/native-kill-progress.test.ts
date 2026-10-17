@@ -8,6 +8,9 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installQuestKillSteps } from '../src/game/quest/killSteps';
 import rows from '../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
+import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/inventoryLaw';
+import { QuestStepRunner } from '../src/game/quest/steps';
+import { commitQuestEffects } from '../src/game/quest/effects';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -39,5 +42,37 @@ test('native kill counters resume old progress, keep flag/emission order and ref
     expect(kills.count('crab10')).toBe(progress);
     expect(() => saved.restore({ sailor: 1, crab10: 10, monkey6: 0, extra: 1 })).toThrow();
     host.step(); expect([host.player.position.x, host.player.position.y, host.player.position.z].every(Number.isFinite)).toBe(true);
+  } finally { host.dispose(); }
+});
+
+test('delivery rows debit the registered native pack before flags and grants across restore', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  const profile = { kinds: ['ore', 'token'], slots: 2, counts: { min: 1, max: 1000, integer: true, complete: true },
+    quantity: 'positive-safe-integer', snapshot: 'order', restoreError: 'Invalid fixture pack' } satisfies NativeInventoryProfile<string>;
+  try {
+    const pack = new NativeInventory(profile, host, 'satchel'), stash = new NativeInventory(profile, host, 'stash');
+    expect(creditNativeInventory(host, 'satchel', { item: 'ore', count: 4 })).toBe(true);
+    expect(creditNativeInventory(host, 'stash', { item: 'ore', count: 9 })).toBe(true);
+    const before = pack.snapshot();
+    expect(debitNativeInventory(host, 'satchel', { item: 'ore', count: 5 })).toBe(false);
+    expect(pack.snapshot()).toEqual(before);
+    for (const count of [0, -1, Number.NaN]) expect(() => debitNativeInventory(host, 'satchel', { item: 'ore', count })).toThrow();
+    expect(() => debitNativeInventory(host, 'missing', { item: 'ore', count: 1 })).toThrow('Missing native inventory');
+    expect(() => debitNativeInventory(host, 'satchel', { item: 'unknown', count: 1 })).toThrow();
+    expect(pack.snapshot()).toEqual(before);
+    pack.restore({ counts: { ore: 5 }, order: ['ore'] });
+    const steps = new QuestStepRunner({ version: 1, guards: [], steps: [{ id: 'deliver', kind: 'deliver', target: 'smith',
+      item: 'ore', count: 3, once: 'paid', effects: [{ kind: 'item', item: 'token', count: 2 }] }] });
+    const order: string[] = [];
+    host.scope.onDispose(host.flags.onChange((flag, on) => {
+      if (flag !== 'paid' || !on) return;
+      expect(pack.count('ore')).toBe(2); expect(pack.count('token')).toBe(0); order.push(flag);
+    }));
+    const deliver = (): void => { commitQuestEffects(host, 'satchel', steps.signal({ kind: 'deliver', target: 'smith' },
+      { flags: host.flags.all, inventory: pack.snapshot().counts })); };
+    deliver(); deliver();
+    expect(order).toEqual(['paid']); expect(pack.snapshot()).toEqual({ counts: { ore: 2, token: 2 }, order: ['ore', 'token'] });
+    expect(stash.snapshot()).toEqual({ counts: { ore: 9 }, order: ['ore'] });
   } finally { host.dispose(); }
 });

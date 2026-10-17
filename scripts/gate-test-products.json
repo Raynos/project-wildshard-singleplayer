@@ -111,5 +111,9 @@
   "test/elites-platform.test.ts": [],
   "test/keyed-sky-platform.test.ts": [],
   "test/streamed-cover-platform.test.ts": [],
-  "test/toon-look-platform.test.ts": []
+  "test/toon-look-platform.test.ts": [],
+  "test/pine-quest-actions-product.test.ts": [
+    "pine-hollow",
+    "driftwood-isle"
+  ]
 }

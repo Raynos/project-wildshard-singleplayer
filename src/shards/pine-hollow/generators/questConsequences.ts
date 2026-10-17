@@ -1,27 +1,26 @@
 import PINE_SKY from '../data/sky.json' with { type: 'json' };
 
+/** Fixed page services commit through the original bound quest, HUD and music host. */
+export const PINE_QUEST_SERVICES = { version: 1, actions: [
+  { id: 'miller.pay', effects: [
+    { kind: 'toast', text: 'Brandt pays · 3 lodge ribbons · 4 amber resin' },
+    { kind: 'sting', name: 'pickup' },
+  ] },
+  { id: 'stag.appear', effects: [{ kind: 'toast', text: 'On the west road, something pale is standing very still' }] },
+  { id: 'stag.complete', effects: [{ kind: 'toast', text: 'The stag is gone. Ahead, the standing stones, and the fog between them' }] },
+] } as const;
+
 /** Ordered page consequences; native NPC, encounter and clock owners decide when these run. */
 export const PINE_QUEST_CONSEQUENCES = {
   actions: [
-    { id: 'miller.pay', after: [
-      { kind: 'toast', text: 'Brandt pays · 3 lodge ribbons · 4 amber resin' },
-      { kind: 'call', target: 'pickup' },
-    ] },
     { id: 'errand.complete', after: [
       { kind: 'call', target: 'errand.flag' },
       { kind: 'call', target: 'wheel.sync' },
       { kind: 'toast', text: 'The last of them goes down in the race. Behind you the mill wheel shudders, and turns' },
       { kind: 'call', target: 'chunk' },
     ] },
-    { id: 'stag.appear', after: [
-      { kind: 'toast', text: 'On the west road, something pale is standing very still' },
-    ] },
-    { id: 'stag.complete', after: [
-      { kind: 'toast', text: 'The stag is gone. Ahead, the standing stones, and the fog between them' },
-    ] },
   ],
   bindings: { calls: [
-    { target: 'pickup', owner: 'music', path: ['sting'], args: ['pickup'] },
     { target: 'errand.flag', owner: 'flags', path: ['set'], args: ['errand:done'] },
     { target: 'wheel.sync', owner: 'native', path: ['syncWheel'] },
     { target: 'chunk', owner: 'music', path: ['sting'], args: ['chunk'] },

@@ -1,3 +1,4 @@
+import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
 import { siteCatalogue } from './siteCatalogue';
 import wreckScene from '../data/wreckScene.json' with { type: 'json' };
@@ -11,7 +12,7 @@ import { HELD_ARMS } from './heldArms';
 import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
 import questSteps from '../data/questSteps.json' with { type: 'json' };
 import questHints from '../data/questHints.json' with { type: 'json' };
-import { parseQuestStepRows, parseQuestHintRows } from '@wildshard/format/questSteps';
+import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
 import { ENTRY_WALK } from './entryWalk';
 import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
@@ -74,6 +75,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),
   nameBlob('quests/steps.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestStepRows(questSteps)))),
   nameBlob('quests/hints.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestHintRows(questHints)))),
+  nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(QUEST_SERVICES)))),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),

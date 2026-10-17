@@ -187,7 +187,8 @@
     "./looks/keyedSkyClock": "./looks/keyedSkyClock.ts",
     "./looks/streamedCover": "./looks/streamedCover.ts",
     "./looks/toonLighting": "./looks/toonLighting.ts",
-    "./looks/toonLook": "./looks/toonLook.ts"
+    "./looks/toonLook": "./looks/toonLook.ts",
+    "./quest/effects": "./quest/effects.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

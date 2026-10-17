@@ -1,0 +1,156 @@
+{
+  "parent": "f3a4c3a1a658968dfdcfaf5773499e40adf14b66",
+  "sourceTree": "3bd0eca856fbaf8f635353802f87d1707b92b7ef",
+  "verificationTree": "3bd0eca856fbaf8f635353802f87d1707b92b7ef",
+  "basis": "source",
+  "deltas": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": -16,
+    "sunscar-dunes": 0
+  },
+  "platform": {
+    "engine": 0,
+    "game": 79,
+    "sdk": 0,
+    "format": 12
+  },
+  "sourceRuler": {
+    "baseline": "f3a4c3a1a658968dfdcfaf5773499e40adf14b66",
+    "method": "x4 d9b after + independent C4 delta measured versus b902; x4 confirms every other shard unchanged",
+    "shards": {
+      "_template": {
+        "before": 1000,
+        "after": 1000,
+        "delta": 0
+      },
+      "blender-template": {
+        "before": 106,
+        "after": 106,
+        "delta": 0
+      },
+      "driftwood-isle": {
+        "before": 4751,
+        "after": 4751,
+        "delta": 0
+      },
+      "far-reach": {
+        "before": 528,
+        "after": 528,
+        "delta": 0
+      },
+      "ink-cel-valley": {
+        "before": 1105,
+        "after": 1105,
+        "delta": 0
+      },
+      "nalati-grasslands": {
+        "before": 20339,
+        "after": 20339,
+        "delta": 0
+      },
+      "nine-dragon-stack": {
+        "before": 11889,
+        "after": 11889,
+        "delta": 0
+      },
+      "pastel-plain": {
+        "before": 733,
+        "after": 733,
+        "delta": 0
+      },
+      "pine-hollow": {
+        "before": 6642,
+        "after": 6626,
+        "delta": -16
+      },
+      "sunscar-dunes": {
+        "before": 392,
+        "after": 392,
+        "delta": 0
+      }
+    },
+    "inventoryPath": "tmp/quest-effects/checked.json"
+  },
+  "assemblyScript": {
+    "pine-hollow": {
+      "lines": 433,
+      "budget": {
+        "ceiling": 2130,
+        "share": 0.020323867636705,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    },
+    "driftwood-isle": {
+      "lines": 96,
+      "budget": {
+        "ceiling": 1716,
+        "share": 0.005592124424768451,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    }
+  },
+  "deleted": [
+    "src/shards/pine-hollow/quest/stepEffects.ts",
+    "src/shards/pine-hollow/data/quests.ts"
+  ],
+  "hostBar": {
+    "score": "6/6",
+    "evidence": {
+      "twoUsers": [
+        "src/shards/pine-hollow/quest/index.ts:153",
+        "src/shards/driftwood-isle/quest/adventure.ts:124",
+        "src/game/quest/killSteps.ts:29"
+      ],
+      "noShardNouns": [
+        "src/game/quest/effects.ts:27",
+        "src/game/inventoryLaw.ts:68"
+      ],
+      "dataDriven": [
+        "src/format/questSteps.ts:71",
+        "src/game/quest/effects.ts:51"
+      ],
+      "serverSafeOrClientLabel": [
+        "src/game/quest/effects.ts:26",
+        "src/game/quest/effects.ts:46"
+      ],
+      "deletionTest": [
+        "src/shards/driftwood-isle/quest/adventure.ts:142",
+        "src/game/quest/killSteps.ts:29"
+      ],
+      "dataOnlyAPI": [
+        "src/game/quest/effects.ts:27",
+        "src/game/quest/effects.ts:47",
+        "src/game/inventoryLaw.ts:78"
+      ]
+    },
+    "legacy": "Quest binder and kill observer remain 5/6, failing callback API test 6; no new shard callback is added."
+  },
+  "checks": {
+    "generation": true,
+    "products": 10,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "focused": 43,
+    "shardHeadlessCases": 17
+  },
+  "invariants": [
+    "original scoped QuestState and flags",
+    "same registered native pack across restore",
+    "delivery debit before once flag and grants",
+    "full pack credit return policy unchanged",
+    "boss grant rejection unchanged",
+    "no scheduler, listener, flag owner or continuation added"
+  ],
+  "importCheck": "questServiceEffects.ts has one importer: generators/output.ts; zero runtime importers",
+  "maps": "G490 source-only; central map owner sp-x10 refreshes generator map inputs; no geometry, placements, colliders or look changed"
+}

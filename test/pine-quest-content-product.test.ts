@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { PINE_QUESTS } from '../src/shards/pine-hollow/data/quests';
+import { parseQuestData } from '../src/sdk/quests';
+import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { parsePineQuestRows } from '../src/shards/pine-hollow/quest/rows';
 
 // Frozen canonical hashes of the original play-read authored declarations.
@@ -16,8 +17,9 @@ const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().en
 
 test('the retained producer preserves the entire quest and NPC declarations in the admitted product', async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
+  const quests = parseQuestData(pinePeople.quests);
   expect(hash(loaded.shard.quests)).toBe(originals.quests);
-  expect(hash(PINE_QUESTS)).toBe(originals.quests);
+  expect(hash(quests)).toBe(originals.quests);
   const named = loaded.output.namedFiles?.find(file => file.name === 'quests/native.json');
   const bytes = named === undefined ? undefined : loaded.assets.get(named.hash);
   if (bytes === undefined) throw new Error('The product must publish its fixed quest rows');
@@ -39,5 +41,5 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   }
   expect([hash(RANGER), hash(MILLER), hash(TRADER)]).toEqual([originals.ranger, originals.miller, originals.trader]);
   expect(loaded.shard.questNpcs?.map(row => row.npc.id)).toEqual(['ranger', 'miller', 'trader']);
-  expect(PINE_QUESTS.quests[0]?.steps.map(row => row.id)).toEqual(['pond', 'ridge', 'zip', 'den', 'stag', 'king', 'dawn']);
+  expect(quests.quests[0]?.steps.map(row => row.id)).toEqual(['pond', 'ridge', 'zip', 'den', 'stag', 'king', 'dawn']);
 }, 30_000);

@@ -4,6 +4,7 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { bindRuntimeQuest } from '../src/game/plugin/headless';
+import { boundQuestState } from '../src/game/quest/boundState';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
@@ -33,4 +34,30 @@ test('page quests bind admitted cable rows when authoring config has no modes', 
         legacy, 'cross', { flags: new Flags('legacy-quest', false) })).not.toThrow();
     } finally { legacyScope.dispose(); }
   } finally { scope.dispose(); }
+});
+
+test('quest id reads borrow the original scoped state without replaying effects', () => {
+  const source = emptyShardfile({ slug: 'quest-state', name: 'Quest state', author: 'Test', revision: 1, seed: 1 });
+  source.runtime = { entry: 'runtime/index.ts', binds: ['quests'] };
+  source.quests = { flags: ['done', 'arrived'], quests: [{ id: 'cross', title: 'Cross', completeFlag: 'done',
+    steps: [{ id: 'arrive', objective: 'Arrive', done: { all: ['arrived'] } }] }], triggers: [], dialogue: [] };
+  const a = new Scope('first entry'), b = new Scope('second entry'), empty = new Scope('unbound entry');
+  const flags = new Flags('first entry', false), other = new Flags('second entry', false);
+  try {
+    const bound = bindRuntimeQuest({ app: new App(), scope: a }, source, 'cross', { flags });
+    const second = bindRuntimeQuest({ app: new App(), scope: b }, source, 'cross', { flags: other });
+    let completions = 0;
+    bound.state.observe({ complete: () => { completions++; } });
+    expect(boundQuestState(a, 'cross')).toBe(bound.state);
+    expect(boundQuestState(a, 'cross').flags).toBe(flags);
+    expect(boundQuestState(b, 'cross')).toBe(second.state);
+    expect(() => boundQuestState(empty, 'cross')).toThrow('not bound');
+    expect(() => boundQuestState(a, 'missing')).toThrow('not bound');
+    expect(completions).toBe(0);
+    boundQuestState(a, 'cross').flags.set('arrived');
+    expect(completions).toBe(1);
+    expect(other.has('arrived')).toBe(false);
+    a.dispose();
+    expect(() => boundQuestState(a, 'cross')).toThrow('not bound');
+  } finally { a.dispose(); b.dispose(); empty.dispose(); }
 });

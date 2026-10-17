@@ -1,4 +1,4 @@
-import { commitQuestStep } from '../quest/stepEffects';
+import { commitQuestEffects } from '@wildshard/game/quest/effects';
 import type { PineQuestRows, PineTradeSkin } from '../quest/rows';
 import { moversRiding } from '@wildshard/game/plugin/mover';
 import { cableModes } from '@wildshard/engine/player/modes';
@@ -189,7 +189,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const initialTrader = trader.snapshot();
   const steps = new QuestStepRunner(content.steps);
   const dialogue = createReadingRoster(content.readings, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
-    commitQuestStep(steps.signal({ kind: 'talk', target: kind }, { flags: flags.all, inventory: pack.snapshot().counts }), flags, pack);
+    commitQuestEffects(host, 'pack', steps.signal({ kind: 'talk', target: kind }, { flags: flags.all, inventory: pack.snapshot().counts }));
     if (kind === 'trader' && ports.ammunition !== undefined) trader.open();
   });
   const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
@@ -326,7 +326,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (chapter.current?.id === 'dawn') clock.request('dawn.request');
     clock.update(dt);
     const lead = stag.step(dt, chapter.current?.id === 'stag' && ports.night() > 0.5, host.player.position);
-    if (lead?.kind === 'vanish' && lead.done) { followedFrame.flags = flags.all; commitQuestStep(steps.signal(followed, followedFrame), flags, pack); }
+    if (lead?.kind === 'vanish' && lead.done) { followedFrame.flags = flags.all; commitQuestEffects(host, 'pack', steps.signal(followed, followedFrame)); }
   }, {
     snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),

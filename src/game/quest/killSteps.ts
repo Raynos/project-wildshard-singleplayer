@@ -3,6 +3,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { parseQuestKillRows } from '@wildshard/format/questSteps';
 import { createAchievementCounters, type AchievementDef } from '../achievements';
 import { QuestStepRunner } from './steps';
+import { commitQuestEffects } from './effects';
 
 /** Actor identity is borrowed; this observer never spawns, retires or saves actors. */
 export interface QuestKilledBody {
@@ -25,10 +26,7 @@ export function installQuestKillSteps(host: SimHost, input: unknown, feats: read
   host.events.on('actor.died', ({ actor }) => {
     const body = roster().find(candidate => candidate.actor?.combatActor() === actor);
     if (body === undefined) return;
-    for (const effect of runner.signal({ kind: 'kill', target: body.kind }, { flags: host.flags.all })) {
-      if (effect.kind !== 'flag') throw new Error('Kill rows require flag effects');
-      if (effect.value === false) host.flags.clear(effect.flag); else host.flags.set(effect.flag);
-    }
+    commitQuestEffects(host, 'pack', runner.signal({ kind: 'kill', target: body.kind }, { flags: host.flags.all }));
     counter.kill(body.kind);
   }, host.scope);
   host.onStep(rows.step, () => undefined, { snapshot: () => ({ ...counts }), restore: value => { counts = v.parse(saved, value); } });

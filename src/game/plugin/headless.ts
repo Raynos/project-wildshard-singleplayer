@@ -1,3 +1,4 @@
+import { publishBoundQuest } from '../quest/boundState';
 import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { installCableModes } from '@wildshard/engine/player/modes';
@@ -236,7 +237,9 @@ export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'> & Part
     ctx.scope.onDispose(state.observe({ complete: witness }));
   }
   const modes = modeSource === null ? source.modes : modeSource.shardfile.modes;
-  return { state, declared, cables: installCableModes(ctx.scope, modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
+  const bound = { state, declared, cables: installCableModes(ctx.scope, modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
+  publishBoundQuest(ctx.scope, state);
+  return bound;
 }
 
 /** What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. */
