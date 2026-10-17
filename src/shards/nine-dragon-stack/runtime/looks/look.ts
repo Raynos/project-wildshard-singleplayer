@@ -1,5 +1,4 @@
-// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, sky-screen, fog-sheet, steam and filament
-// programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
+// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, fog-sheet and steam programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
 //  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
 //    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
 //  - one fade per job: 焦墨 until ~110 m, clear air for the first 16 m, lines gone 120–330 m, fog dissolves lines first
@@ -178,7 +177,6 @@ float vnoise(vec2 p) {
   f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h12(i), h12(i + vec2(1.0, 0.0)), f.x), mix(h12(i + vec2(0.0, 1.0)), h12(i + vec2(1.0, 1.0)), f.x), f.y);
 }
-float vnoise1(float x) { float i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(h11(i), h11(i + 1.0), f); }
 // antialiased ruled line: d = distance to the line (m), fw = metres per pixel, w = width (px); below 1 px it fades, never aliases
 float lineAt(float d, float fw, float w) { float px = d / max(fw, 1e-6); float wc = max(w, 1.0); return clamp(wc * 0.5 + 0.5 - px, 0.0, 1.0) * min(w, 1.0); }
 float cover1(float x, float a, float b, float fw) { float w = max(fw, 1e-5); return clamp((min(x + 0.5 * w, b) - max(x - 0.5 * w, a)) / w, 0.0, 1.0); }
@@ -1120,104 +1118,6 @@ void main() {
 }
 `;
 
-// ── LED sky screens: a pixelated 青绿 landscape (千里江山图) at a visible dot pitch, scan roll and dead pixels ──
-export const VS_SCREEN = /* glsl */ `
-varying vec2 vUv;
-varying vec3 vWorld;
-varying float vViewZ;
-uniform vec3 uRootAt;
-void main() {
-  vec4 wp = modelMatrix * vec4(position, 1.0);
-  wp.xyz -= uRootAt;
-  vWorld = wp.xyz;
-  vUv = uv;
-  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
-  vViewZ = -vp.z;
-  gl_Position = projectionMatrix * vp;
-}
-`;
-
-export const FS_SCREEN = /* glsl */ `
-uniform float uTime;
-uniform float uSutra;
-uniform vec2 uSize;
-uniform float uPitch;
-uniform float uSeed;
-uniform float uFogScale;
-uniform float uLinePx;
-uniform float uNear;
-varying vec2 vUv;
-varying vec3 vWorld;
-varying float vViewZ;
-${NOISE_GLSL}
-${FOG_GLSL}
-float ridge(float x, float s) {
-  float v = 0.0, a = 0.5, f = 1.0;
-  for (int i = 0; i < 5; i++) { v += a * vnoise1(x * f + s); f *= 2.07; a *= 0.5; }
-  return v;
-}
-void main() {
-  vec2 m = vUv * uSize;
-  vec2 cell = floor(m / uPitch);
-  vec2 P = (cell + 0.5) * uPitch / uSize;
-  P = vec2(P.x * 1.1 + uSeed * 0.1, fract(P.y * 1.3 + 0.1));
-  // 千里江山: five layers of blue-green ridges, each with an ink contour on its crest, ochre feet dissolving into a
-  // band of pale mist, dotted trees on the near ridges, flat cloud bands, water at the bottom
-  float px = fract(P.x);
-  vec3 sky = mix(vec3(0.74, 0.83, 0.86), vec3(0.34, 0.54, 0.8), smoothstep(0.4, 1.0, P.y));
-  vec3 c = sky;
-  for (int i = 0; i < 5; i++) {
-    float fi = float(i);
-    float far = 1.0 - fi / 4.0;               // 1 = the farthest, pale layer; 0 = the nearest
-    float base = 0.62 - fi * 0.12;
-    float amp = 0.18 + 0.1 * (1.0 - far);
-    float h = base;
-    for (int k = 0; k < 3; k++) {
-      float fk = float(k);
-      float cx = fract(h11(fk * 3.1 + fi * 7.7 + uSeed) + fk * 0.31);
-      float w = 0.05 + 0.07 * h11(fk * 5.3 + fi + uSeed);
-      float dx = (px - cx) / w;
-      h = max(h, base + amp * (0.5 + 0.5 * h11(fk * 9.1 + fi)) * exp(-dx * dx));
-    }
-    h += 0.05 * (ridge(px * (6.0 + fi * 3.0) + fi * 2.3, fi) - 0.5) + 0.015 * (vnoise(vec2(px * 90.0, fi)) - 0.5);
-    if (P.y < h) {
-      float t = clamp((h - P.y) / 0.16, 0.0, 1.0);
-      vec3 top = mix(vec3(0.03, 0.44, 0.34), vec3(0.05, 0.28, 0.62), step(0.5, fract(fi * 0.5 + uSeed * 0.13)));
-      vec3 foot = vec3(0.70, 0.56, 0.36);
-      vec3 cc = mix(top, foot, smoothstep(0.3, 1.0, t));
-      cc = mix(cc, vec3(0.86, 0.9, 0.9), smoothstep(0.6, 1.0, t) * 0.6);   // the mist at its foot
-      cc = mix(cc, sky, far * 0.4);
-      float crest = 1.0 - smoothstep(0.0, 0.012, h - P.y);
-      cc = mix(cc, vec3(0.08, 0.12, 0.14), crest * (0.7 - far * 0.5));
-      float trees = step(0.8, vnoise(vec2(px * 160.0, P.y * 240.0))) * (1.0 - far) * (1.0 - t);
-      cc = mix(cc, vec3(0.06, 0.2, 0.14), trees * 0.8);
-      c = cc;
-    }
-  }
-  float cl = smoothstep(0.55, 0.72, vnoise(vec2(px * 7.0 + uTime * 0.01, P.y * 16.0)) * 0.75 + vnoise(vec2(px * 21.0, P.y * 40.0)) * 0.25);
-  float band = (1.0 - smoothstep(0.0, 0.07, abs(P.y - 0.74))) + (1.0 - smoothstep(0.0, 0.05, abs(P.y - 0.9))) * 0.8;
-  c = mix(c, vec3(0.96, 0.96, 0.93), cl * clamp(band, 0.0, 1.0));
-  float water = 1.0 - smoothstep(0.08, 0.12, P.y);
-  c = mix(c, vec3(0.44, 0.64, 0.66) + 0.1 * step(0.62, vnoise(vec2(px * 60.0, P.y * 120.0))), water);
-  vec2 g = m / uPitch;
-  vec2 f = fract(g);
-  vec2 fw = max(fwidth(g), vec2(1e-5));
-  float dotm = cover1(f.x, 0.1, 0.9, fw.x) * cover1(f.y, 0.1, 0.9, fw.y);
-  float far = smoothstep(0.3, 0.7, max(fw.x, fw.y));
-  float led = mix(mix(0.74, 1.0, dotm), 0.95, far);
-  float scan = 1.0 + 0.18 * (1.0 - smoothstep(0.0, 0.03, abs(fract(vUv.y * 0.6 - uTime * 0.07) - 0.5)));
-  float dead = step(0.998, h12(cell + uSeed));
-  vec2 panel = abs(fract(m / 8.0 + 0.5) - 0.5) * 8.0;
-  vec2 fm = max(fwidth(m), vec2(1e-5));
-  float seam = max(lineAt(panel.x, fm.x, uLinePx), lineAt(panel.y, fm.y, uLinePx)) * (1.0 - smoothstep(60.0, 180.0, length(vWorld - uCam)));
-  c *= led * scan * (1.0 - dead * 0.55);
-  c = mix(c, c * vec3(0.55, 0.62, 0.95) * 0.75, uSutra);
-  c = mix(c, vec3(0.06, 0.07, 0.09), seam * 0.55);
-  vec4 fg = silkFog(vWorld, uFogScale);
-  gl_FragColor = vec4(c * 1.25 * sqrt(max(fg.a, 1e-4)) + fg.rgb, uNear / max(vViewZ, uNear));
-}
-`;
-
 // ── silk fog sheets: soft cloud layers across the Well at each stratum gap (留白) ──
 export const VS_SHEET = /* glsl */ `
 attribute float aBand;
@@ -1300,42 +1200,6 @@ void main() {
 }
 `;
 
-// ── the Fei Zhua's mono-filament: a glowing ribbon of constant pixel width, sagging a little ──
-export const VS_LINE = /* glsl */ `
-attribute vec2 aT;
-uniform vec3 uA;
-uniform vec3 uB;
-uniform float uSag;
-uniform vec2 uRes;
-uniform float uWidth;
-varying float vT;
-varying float vSide;
-vec3 at(float t) { return mix(uA, uB, t) - vec3(0.0, uSag * 4.0 * t * (1.0 - t), 0.0); }
-void main() {
-  float t = aT.x;
-  vec4 c0 = projectionMatrix * viewMatrix * vec4(at(t), 1.0);
-  vec4 c1 = projectionMatrix * viewMatrix * vec4(at(t + 0.01), 1.0);
-  vec2 s0 = c0.xy / c0.w, s1 = c1.xy / c1.w;
-  vec2 dir = normalize((s1 - s0) * uRes + 1e-5);
-  vec2 nrm = vec2(-dir.y, dir.x) / uRes * uWidth;
-  c0.xy += nrm * aT.y * c0.w;
-  vT = t;
-  vSide = aT.y;
-  gl_Position = c0;
-}
-`;
-
-export const FS_LINE = /* glsl */ `
-uniform vec3 uColor;
-uniform float uGain;
-varying float vT;
-varying float vSide;
-void main() {
-  float core = 1.0 - smoothstep(0.0, 1.0, abs(vSide));
-  gl_FragColor = vec4(uColor * uGain * (0.35 + core * core), 1.0);
-}
-`;
-
 /** every program's row */
 export const PROGRAMS = {
   jiehua: { vertex: VS_JIEHUA, fragment: FS_JIEHUA, vertexColors: true, uniforms: { uFogScale: 1 } },
@@ -1346,11 +1210,6 @@ export const PROGRAMS = {
     vertex: VS_SKY, fragment: FS_SKY, shared: ['uCam', 'uRootAt', 'uSutra', 'uSilk', 'uSkyTop', 'uSkyHorizon', 'uSkyline', 'uFogBaseCol'],
     uniforms: { uSkyCloud: { v2: [0.45, 1.4] } }, side: 'back', depthWrite: false, depthTest: true,
   },
-  screen: { vertex: VS_SCREEN, fragment: FS_SCREEN, uniforms: { uPitch: 0.14, uFogScale: 0.12 }, side: 'double' },
   sheet: { vertex: VS_SHEET, fragment: FS_SHEET, transparent: true, depthWrite: false, side: 'double', blend: 'keepAlpha' },
   steam: { vertex: VS_STEAM, fragment: FS_STEAM, shared: ['uTime', 'uSutra', 'uRootAt'], transparent: true, depthWrite: false, blend: 'keepAlpha' },
-  line: {
-    vertex: VS_LINE, fragment: FS_LINE, shared: ['uRes'], uniforms: { uWidth: 2.5, uColor: { rgb: 0x7ff3ff }, uGain: 5 },
-    transparent: true, blend: 'addKeepAlpha', depthWrite: false, side: 'double',
-  },
 } as const satisfies Readonly<Record<string, ShaderProgramRow>>;

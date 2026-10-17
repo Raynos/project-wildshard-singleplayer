@@ -1,5 +1,4 @@
-// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, sky-screen, fog-sheet, steam and filament
-// programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
+// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, fog-sheet and steam programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
 //  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
 //    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
 //  - one fade per job: 焦墨 until ~110 m, clear air for the first 16 m, lines gone 120–330 m, fog dissolves lines first
@@ -123,19 +122,8 @@ export function neonMaterial(shared: Shared, tex: { mono: Texture; colour: Textu
 // ── the silk sky (only the Crown's strip of it shows) ──
 export function skyMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('sky', shared.u); }
 
-// ── LED sky screens: a pixelated 青绿 landscape (千里江山图) at a visible dot pitch, scan roll and dead pixels ──
-export function screenMaterial(shared: Shared, w: number, h: number, seed: number): ShaderMaterial {
-  return LOOK_FAMILY.material('screen', shared.u, { uniforms: { uSize: { value: new Vector2(w, h) }, uSeed: { value: seed } } });
-}
-
 // ── silk fog sheets: soft cloud layers across the Well at each stratum gap (留白) ──
 export function sheetMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('sheet', shared.u); }
 
 // ── steam from the noodle pots: soft rising puffs ──
 export function steamMaterial(shared: Shared): ShaderMaterial { return LOOK_FAMILY.material('steam', shared.u); }
-
-// ── the Fei Zhua's mono-filament: a glowing ribbon of constant pixel width, sagging a little ──
-export function lineMaterial(shared: Shared): { mat: ShaderMaterial; u: { uA: { value: Vector3 }; uB: { value: Vector3 }; uSag: { value: number } } } {
-  const u = { uA: { value: new Vector3() }, uB: { value: new Vector3() }, uSag: { value: 0 } };
-  return { mat: LOOK_FAMILY.material('line', shared.u, { uniforms: u }), u };
-}
