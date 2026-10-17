@@ -1,3 +1,4 @@
+import {parseSpawnScript} from '../src/format/spawnScripts';
 import {HeldEquipmentSchema} from '../src/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
@@ -25,9 +26,11 @@ test('Pine emits every client section with checked schemas and named immutable a
  expect(names).toEqual(expect.arrayContaining(['models/held/crossbow-pool.glb','models/held/lever-details.glb','models/king/kit.glb','behaviour/night.wasm','behaviour/director.wasm']));
  for(const stem of ['ironhide','ghostStag','blackpaw','imperialBull','night','director']){
   const original:unknown=JSON.parse(readFileSync(`src/shards/pine-hollow/behaviour/${stem==='night'?'night.generated':stem}.json`,'utf8'));
-  if(typeof original!=='object'||original===null||!('module'in original)||typeof original.module!=='string')throw new Error('Missing original script module');
+  const module=stem==='night'
+   ?parseSpawnScript(original).script.module.slice('blobs/wasm/'.length,-'.wasm'.length)
+   :v.parse(v.object({module:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),original).module;
   const file=loaded.output.namedFiles?.find(row=>row.name===`behaviour/${stem}.wasm`);
-  expect(file?.hash).toBe(original.module);
+  expect(file?.hash).toBe(module);
  }
  expect(()=>v.parse(ClaimedPickupSchema,{bad:{}})).toThrow();
  expect(()=>v.parse(HeldEquipmentSchema.entries.launcher,{pool:{url:'missing',parts:[]},hierarchy:{}})).toThrow();
