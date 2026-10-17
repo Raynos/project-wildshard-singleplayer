@@ -1803,6 +1803,27 @@ the native `RigArms` loader, without an injected loader port. The fixture
 `test/held-arms-platform.test.ts` drives invented harbour material/lighting rows
 on the native rig file path, including release, glow and swim behaviour.
 
+**Held melee claims (G475).** `game/loadout/claims` defines the client-only
+`HeldClaims` host. The platform `held/arms` section (`format/heldArms`) contains
+one rig/look identity, native item ids and blade families, cold Explorer cards,
+and world claim rows. A claim names its site, owned/save key, prompt/toast,
+original geometry files, scene recipe and material ids; its guard is a quest
+condition row over flags and live actor facts. Halo, light, seed and fade
+values are data. `HeldClaims.prepare(context)` loads verified geometry through
+engine `createOwnedGeometry`, preserving every attribute and the authored
+indexed or triangle-soup draw. It resolves its own graph materials and native
+rig; `install()` binds the existing melee and EquipmentService owners internally.
+No shard-created factory, guard or material loan crosses the public API.
+`claim(id).bindGuardFlags(flags)` accepts plain save facts; the host reads live
+native actors when the prompt is queried. Ownership and take/save behaviour
+stays with EquipmentService. `HeldClaims.gear(rows)` defines cold Explorer
+cards; `ToonArms.admit(look)` explicitly admits a shared rig identity.
+A manifest's `bindings.sword: { rows: "./data/heldArms.json" }` generates the
+standard lazy provider, so the shard supplies no TS wrapper. No service is
+installed on import. `test/driftwood-sword-scene.test.ts` drives an invented
+harbour catalogue through the real geometry intake and existing guard
+save/death semantics.
+
 **Held equipment catalogue (G474 / G477).** `@wildshard/game/plugin/heldEquipment`
 reads the platform `held/equipment` section, defined by
 `@wildshard/format/heldEquipment`. It replaces the separate private held-playback,

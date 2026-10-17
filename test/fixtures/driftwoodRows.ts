@@ -1,3 +1,4 @@
+import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
 import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -14,6 +15,7 @@ export function admitDriftwoodFixtureRows(): void { admitDriftwoodFixtureAliases
 export function admitDriftwoodFixtureAliases(byUrl: Readonly<Record<string, string>>): void {
   const sections = new Map<string, unknown>();
   for (const row of DRIFTWOOD_CLIENT_SECTIONS) { const value: unknown = JSON.parse(JSON.stringify(row.value)); sections.set(row.name, value); }
+  sections.set('held/arms', HELD_ARMS);
   sections.set('custom/assets', { byUrl });
   const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 1 };
   const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups)), hash = hashImmutableBytes(bytes);

@@ -175,7 +175,7 @@
    "build": ["fp-arms.raw.glb", "gate.json"],
    "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
    "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
-   "feeds": ["src/shards/driftwood-isle/runtime/fpArms.ts", "src/game/systems/viewmodel/rigArms.ts"]
+   "feeds": ["src/shards/driftwood-isle/data/heldArms.json", "src/game/systems/viewmodel/rigArms.ts"]
   },
   "far-reach/roc": {
    "about": "Sky Reach's Storm Roc repair (E392/E399 council round 13): Hunyuan3D-2's eagle (art/far-reach/round-27-roc) with its loose second-head lump deleted, its open edges filled, the claw shapes painted on its tail fan painted out and its beak and toes pushed to gold; then meshopt + a 1024 WebP map (art/far-reach/round-31-roc-fix)",

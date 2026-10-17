@@ -13,7 +13,7 @@ import { driftwoodRows } from '../runtime/boot/rows';
 import { bindDriftwoodEffects } from '../loot/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
 import { installQuestHints } from '@wildshard/game/quest/hints';
-import { ironSwordDrop } from '../loadout/rows';
+import { HeldClaims } from '@wildshard/game/loadout/claims';
 import { loadZiplineGeometry } from '../runtime/models/zipline';
 import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadSailorHead } from '../species/sailor';
@@ -30,7 +30,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   const d = driftwoodWorld(shell);
   const adventure = await (deps.install ?? installAdventure)(ctx, { game, sky, player, registry, params, chunk: ctx.manifest,
     prompts: shell.interactables, hud: h.hud, audio: h.audio, music: h.music, inventory: h.inventory, progress: h.progress, fullMap: h.fullMap, animals: h.animals,
-    ironDrop: ironSwordDrop(shell), setViewmodel: (on) => { h.weapons.visible = on; }, stowWeapon: (on) => { h.weapons.stowed = on; },
+    ironDrop: HeldClaims.current(ctx.manifest.slug).claim('iron-sword'), setViewmodel: (on) => { h.weapons.visible = on; }, stowWeapon: (on) => { h.weapons.stowed = on; },
     bridgeFloor: d.bridge === null ? undefined : (x, z) => d.bridge?.floorHeightAt(x, z),
     pois: { hut: d.hut, lookout: d.lookout, wreck: d.wreck, shrine: d.shrine, cave: d.cove }, gulls: d.gulls });
   shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();

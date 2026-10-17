@@ -1,0 +1,196 @@
+{
+  "slug": "driftwood-isle",
+  "look": {
+    "id": "driftwood.held-arms",
+    "url": "/assets/models/driftwood-fp/fp-arms.glb",
+    "skeleton": "driftwood-fp",
+    "lighting": {
+      "id": "driftwood.day-light",
+      "initial": {
+        "uToonLift": [
+          0.07,
+          0.035,
+          0.2
+        ],
+        "uToonRim": [
+          1.3,
+          0.95,
+          0.6
+        ],
+        "uCloudShadow": 0.6,
+        "uToonNight": 0,
+        "uSeaLevel": -10000,
+        "uCloudTime": 0
+      }
+    },
+    "sockets": [
+      "R_weapon",
+      "L_hand"
+    ],
+    "joints": {
+      "sides": [
+        "R",
+        "L"
+      ],
+      "arm": [
+        "shoulder",
+        "upperarm",
+        "forearm",
+        "twist1",
+        "twist2",
+        "twist3",
+        "hand"
+      ],
+      "fingers": [
+        "thumb",
+        "index",
+        "middle",
+        "ring",
+        "pinky"
+      ],
+      "phalanges": 3
+    },
+    "offset": [
+      -0.03,
+      -0.012,
+      0
+    ],
+    "frame": {
+      "size": 0.6,
+      "pitch": -0.2,
+      "yaw": 0,
+      "roll": 0
+    },
+    "sunward": 1.2,
+    "bladeBase": 0.012,
+    "swim": {
+      "tilt": 1.1,
+      "handsZ": -0.5,
+      "waterY": -0.16,
+      "startD": -0.16
+    },
+    "materials": {
+      "arms": "driftwood-fp-arms",
+      "wood": "driftwood-fp-wood",
+      "iron": "driftwood-fp-iron",
+      "swim": "driftwood-fp-swim",
+      "pickupBlade": "driftwood-pickup-blade",
+      "pickupFittings": "driftwood-pickup-fittings"
+    }
+  },
+  "weapons": [
+    {
+      "item": "weapon.driftwood-isle.wood",
+      "blade": "wood"
+    },
+    {
+      "item": "weapon.driftwood-isle.iron",
+      "blade": "iron"
+    }
+  ],
+  "cards": [
+    {
+      "id": "driftwood-isle/wooden-sword",
+      "name": "Arms: wooden sword",
+      "file": "src/shards/driftwood-isle/data/heldArms.json",
+      "kind": "wood",
+      "size": [
+        0.7,
+        0.5,
+        0.8
+      ],
+      "copies": 1
+    },
+    {
+      "id": "driftwood-isle/iron-sword",
+      "name": "Arms: iron sword",
+      "file": "src/shards/driftwood-isle/data/heldArms.json",
+      "kind": "iron",
+      "size": [
+        0.7,
+        0.5,
+        0.8
+      ],
+      "copies": 1
+    }
+  ],
+  "claims": [
+    {
+      "id": "iron-sword",
+      "item": "weapon.driftwood-isle.iron",
+      "at": "wreck.deck",
+      "site": {
+        "anchor": "swordRack",
+        "reach": 0.55
+      },
+      "owned": "iron-sword",
+      "prompt": "Take iron sword",
+      "toast": "Iron sword acquired \u00b7 1/2 to switch, Q to swap",
+      "group": "pickup",
+      "geometries": {
+        "blade": "ironSwordBlade",
+        "fittings": "ironSwordFittings"
+      },
+      "materials": {
+        "blade": "driftwood-pickup-blade",
+        "fittings": "driftwood-pickup-fittings"
+      },
+      "seedXor": 4613,
+      "lift": 0.22,
+      "scale": 1.3,
+      "tilt": 0.6981317007977318,
+      "radius": 2.6,
+      "guard": {
+        "radius": 1.4,
+        "toast": "{reason} \u2014 beat him first",
+        "id": "iron-sword"
+      },
+      "light": {
+        "colour": 16757335,
+        "intensity": 18,
+        "distance": 11,
+        "decay": 1.6,
+        "height": 1.3
+      },
+      "halo": {
+        "size": 128,
+        "colour": 16757335,
+        "opacity": 0.55,
+        "flickerOpacity": 0.5,
+        "height": 0.75,
+        "scale": 3.2,
+        "order": 19,
+        "stops": [
+          [
+            0,
+            0.55
+          ],
+          [
+            0.3,
+            0.18
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "phase": 7,
+      "waves": [
+        [
+          2.2,
+          0.1
+        ],
+        [
+          7.3,
+          0.05
+        ]
+      ],
+      "fade": {
+        "light": 120,
+        "opacity": 2.5,
+        "scale": 6
+      }
+    }
+  ]
+}

@@ -14,9 +14,7 @@ import { SECTIONS } from './sections';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
-import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
-import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
-import { Sword } from '@wildshard/game/weapons/Sword';
+import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 
@@ -64,24 +62,9 @@ export class DriftwoodPlugin extends ShardPlugin {
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood kit requires its world host');
     if (shell.world === null) throw new Error('Driftwood kit requires its world host');
-    const arms = await (await import('./fpArms')).prepareCastawayArms(ctx);
+    const held = await HeldClaims.prepare(ctx);
     await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
-    const rows = driftwoodLoadoutRows(shell.world, shell, arms, ctx.product.shardfile);
-    ctx.rows.weapon(rows);
-    const world = shell.world;
-    shell.buildEquipment = bindRuntimeEquipment(ctx, ctx.product.shardfile, { factories: new Map([
-      ['weapon.driftwood-isle.wood', { create: (_item, targets, nolock, viewmodel) => {
-        if (viewmodel?.arms === undefined || viewmodel.ironArms === undefined) throw new Error('Driftwood requires both sword arms');
-        const { ironArms: _iron, swim: _swim, ...woodArms } = viewmodel;
-        return new Sword(world, targets, { row: rows[0], profile: rows[0], allowUnlocked: nolock, ...woodArms,
-          ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
-      } }],
-      ['weapon.driftwood-isle.iron', { create: (_item, targets, nolock, viewmodel) => {
-        if (viewmodel?.ironArms === undefined) throw new Error('Driftwood requires iron sword arms');
-        return new Sword(world, targets, { row: rows[1], profile: rows[1], allowUnlocked: nolock, blade: 'iron', arms: viewmodel.ironArms });
-      } }],
-    ]) });
-    ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
+    held.install();
     const quest = ctx.product.section('custom/questRows', SECTIONS); // the kit's rows from the product (W2b)
     ctx.rows.item(quest.items); ctx.rows.feat(quest.feats);
     const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);

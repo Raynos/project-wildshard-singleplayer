@@ -1002,7 +1002,8 @@
         "src/shards/pine-hollow/generators/equipment.ts",
         "src/shards/pine-hollow/generators/leverProfile.ts",
         "src/shards/pine-hollow/generators/crossbowProfile.ts",
-        "src/shards/pine-hollow/data/bowProfile.ts"
+        "src/shards/pine-hollow/data/bowProfile.json",
+        "src/shards/pine-hollow/generators/bowProfile.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/items.generated.json"

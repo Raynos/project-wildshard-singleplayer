@@ -45,7 +45,6 @@ const REVIEWED_PLACEMENTS = new Map([
   ["src/game/quest/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/quest/questLine.ts", why: "E357 F6m: Driftwood's quest data (02 rule 4); renamed: a driftwood.ts inside the Driftwood folder names nothing" }],
   ["src/game/quest/guards.ts", { rule: "N", destination: "shards/driftwood-isle/quest/guards.ts", why: "E357 F6m: the iron sword's guard" }],
   ["src/game/quest/gullGuide.ts", { rule: "N", destination: "shards/driftwood-isle/quest/gullGuide.ts", why: "E357 F6m: the gull guide (DRIFTWOOD-TOP10)" }],
-  ["src/player/IronSword.ts", { rule: "G", destination: "shards/driftwood-isle/weapons/IronSword.ts", why: "E357 F6m: the iron-sword pickup, Driftwood only (02 rule 3; 09 §1.5)" }],
   ["src/player/LeverRifle.ts", { rule: "G", destination: "shards/pine-hollow/weapons/LeverRifle.ts", why: "E357 F6m: Pine only: LeverRifle extends Firearm there (09 §1.5; 06 §1.3 says kit: Q3)" }],
   ["src/ui/ShopPanel.ts", { rule: "I", destination: "shards/driftwood-isle/loot/ShopPanel.ts", why: "E357 F6m: the Driftwood trader's panel (its only importer: loot/install.ts, Driftwood's shop)" }],
   ["src/ui/compendium/shards/pine-hollow.ts", { rule: "N", destination: "shards/pine-hollow/compendium.ts", why: "E357 F6m: Pine's compendium, ctx.rows.compendium at S2.1 (06 §1.3)" }],

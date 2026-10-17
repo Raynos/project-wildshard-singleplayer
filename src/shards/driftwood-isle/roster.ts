@@ -8,7 +8,8 @@ import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
 import { castaway } from './runtime/models/people';
-import { GEAR } from './runtime/models/gear';
+import { HeldClaims } from '@wildshard/game/loadout/claims';
+import { driftwoodProduct } from './runtime/boot/rows';
 import { COLLECTIONS } from './runtime/boot/blobAssets';
 import { captainHat, sailclothCape } from './runtime/models/captainHat';
 
@@ -25,7 +26,7 @@ export async function roster(): Promise<readonly RosterEntry[]> {
   // people
   live(castaway, { copies: 1, drawnAs: 'single' }),
   // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck)
-  ...GEAR,
+  ...HeldClaims.gear(driftwoodProduct().section('held/arms')),
   // the loot (E314, DRIFTWOOD-LOOT): the hut's chime and trophy plaques, the captain's hat and the sailcloth cape — built
   // for review, not placed or worn yet (stage 2 / 3 wires them)
   live(seaGlassChime, { copies: 0, drawnAs: 'single' }), live(trophyPlaques, { copies: 0, drawnAs: 'single' }),

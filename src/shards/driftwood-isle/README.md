@@ -38,7 +38,7 @@ Everything here is used by Driftwood alone, so it stays in the shard (the rule o
 | `onboarding/` | the first minutes | the first shard a player meets |
 
 Layout debt (grandfathered in `lint/shard-layout.json`): `tiers.ts` (the island's tier knobs, B44), `loot/`,
-`onboarding/`. Client-only play code moves into `runtime/` (W2b, G453): `runtime/fpArms.ts`.
+`onboarding/`. Client-only play code moves into `runtime/` (W2b, G453); held arms and claims use `held/arms` rows.
 
 ## Budgets
 

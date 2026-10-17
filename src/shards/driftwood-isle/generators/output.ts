@@ -1,3 +1,4 @@
+import { HELD_ARMS } from './heldArms';
 import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
 import questSteps from '../data/questSteps.json' with { type: 'json' };
 import questHints from '../data/questHints.json' with { type: 'json' };
@@ -62,7 +63,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

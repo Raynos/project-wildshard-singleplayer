@@ -1,5 +1,5 @@
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
-import { BOW_PROFILE } from '../data/bowProfile';
+import { BOW_PROFILE } from './bowProfile';
 import hands from '../data/handsPool.generated.json' with { type: 'json' };
 import { LONGBOW_MATERIAL, ARROW_MATERIAL, LONGBOW_POSES } from './longbowPresentation';
 

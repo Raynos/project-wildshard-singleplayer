@@ -181,8 +181,6 @@ const reviewedW2Owners = new Map([
   ['src/game/systems/viewmodel/rigArms.ts#swordArmsOf', 'C6'],
   ['src/sdk/runtime/effects.ts', 'C6'],
   ['src/shards/driftwood-isle/combat/strikes.ts', 'C6'],
-  ['src/shards/driftwood-isle/runtime/fpArms.ts', 'C6'],
-  ['src/shards/driftwood-isle/loadout/rows.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/effects.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/presentation.ts', 'C6'],
   ['src/shards/pine-hollow/combat/chargeTells.ts', 'C6'],

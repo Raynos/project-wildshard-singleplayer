@@ -234,7 +234,6 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/creatures.ts', 'creatures.ts'],
   ['driftwood-isle', 'runtime/models/entryDeck.ts', 'entryDeck.ts'],
   ['driftwood-isle', 'runtime/models/fixedSites.ts', 'fixedSites.ts'],
-  ['driftwood-isle', 'runtime/models/gear.ts', 'gear.ts'],
   ['driftwood-isle', 'runtime/models/hibiscusBush.ts', 'hibiscusBush.ts'],
   ['driftwood-isle', 'runtime/models/palm.ts', 'palm.ts'],
   ['driftwood-isle', 'runtime/models/people.ts', 'people.ts'],

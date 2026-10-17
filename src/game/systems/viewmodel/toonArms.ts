@@ -8,6 +8,10 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ToonLookUniforms } from '@wildshard/engine/render/families/toon';
 import { runtimeLookMaterials } from '../../shardfile/runtimeProduct';
 import type { ShardContext } from '../../plugin/context';
+import type { ModelContext } from '@wildshard/engine/models/model';
+import type { ShardProduct } from '../../shardfile/shardProduct';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { parseToonArmsLook, type ToonArmsLook } from '@wildshard/format/heldArms';
 import { Color, type BufferGeometry, type Material, type Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
 import type { ShardSword } from '../../shard/manifest';
@@ -24,6 +28,7 @@ function createLighting(row: ToonArmsLook['lighting']['initial']) {
     uSeaLevel: { value: row.uSeaLevel }, uCloudTime: { value: row.uCloudTime } };
 }
 const lighting = new Map<string, ReturnType<typeof createLighting>>();
+const catalogues = new Map<string, ToonArms>();
 interface Loan { readonly looks: Looks; readonly light: { readonly source: ReturnType<typeof createLighting>;
   readonly target: Pick<ToonLookUniforms, 'famToonLift' | 'famToonRim' | 'famToonCloud' | 'famToonWater' | 'famToonTime'> } }
 function followLight(loan: Loan): void {
@@ -58,6 +63,16 @@ export class ToonArms {
     this.offset = new Vector3(look.offset[0], look.offset[1], look.offset[2]);
   }
 
+  /** Explicit row admission also serves a manifest's lazy sword provider before the kit stage. */
+  static admit(input: unknown): ToonArms {
+    const row = parseToonArmsLook(input), ready = catalogues.get(row.id);
+    if (ready !== undefined) return ready;
+    const host = new ToonArms(row); catalogues.set(row.id, host); return host;
+  }
+
+  /** A material by declared identity, resolved only after the host's scoped preparation. */
+  materialById(id: string): Material { return this.material(this.loan(), id); }
+
   /** The day clock and held meshes resolve the same lighting identity, initialized only from rows. */
   static lighting(input: unknown): ReturnType<typeof createLighting> {
     const row = parseToonArmsLook(input).lighting;
@@ -69,13 +84,26 @@ export class ToonArms {
   /** Client-only preparation: resolve material ids and day lighting inside the host's platform scope. */
   async prepare(context: ShardContext): Promise<ReadonlyMap<string, Material>> {
     const looks = await runtimeLookMaterials(context, context.product.shardfile, true, Object.values(this.look.materials));
-    if (context.scope.disposed) throw new Error('Toon arm scope unloaded during preparation');
+    return this.keepLooks(context.scope, looks);
+  }
+
+  /** Cold Explorer preparation uses its standard platform context and the same admitted look ids. */
+  async prepareExplorer(context: ModelContext, product: ShardProduct): Promise<void> {
+    if (this.loans.length > 0) return;
+    if (context.renderer === null) throw new Error('Held arms Explorer needs its renderer');
+    const scope = resourceScope().child('held-arm-explorer');
+    const looks = await runtimeLookMaterials({ scope, renderer: context.renderer }, product.shardfile, true, Object.values(this.look.materials));
+    this.keepLooks(scope, looks);
+  }
+
+  private keepLooks(scope: Scope, looks: Looks): ReadonlyMap<string, Material> {
+    if (scope.disposed) throw new Error('Toon arm scope unloaded during preparation');
     const ids = this.look.materials;
     const missing = [ids.arms, ids.wood, ids.iron, ids.swim].filter((id) => !looks.materials.has(id));
     if (missing.length > 0) throw new Error(`Toon arms: look.materials lacks ${missing.join(', ')}`);
     const loan: Loan = { looks, light: { source: ToonArms.lighting(this.look), target: looks.toon.uniforms } };
     this.loans.push(loan);
-    context.scope.onDispose(() => { const at = this.loans.indexOf(loan); if (at !== -1) this.loans.splice(at, 1); });
+    scope.onDispose(() => { const at = this.loans.indexOf(loan); if (at !== -1) this.loans.splice(at, 1); });
     return looks.materials;
   }
 

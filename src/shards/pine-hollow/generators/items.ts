@@ -3,7 +3,7 @@ import { pinePickups } from './pickups';
 import { PINE_NATIVE_PACK } from './nativeInventory';
 import { LEVER_WEAPON_PROFILE } from './leverProfile';
 import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
-import { BOW_PROFILE } from '../data/bowProfile';
+import { BOW_PROFILE } from './bowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from './equipment';
 
 /** These contacts are bounded placeholders: the trusted native projectile families own flight, damage and reload. */

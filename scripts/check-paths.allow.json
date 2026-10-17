@@ -595,11 +595,6 @@
     "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
   },
   {
-    "path": "src/player/IronSword.ts",
-    "file": "scripts/normalize/classify.mjs",
-    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
-  },
-  {
     "path": "src/player/LeverRifle.ts",
     "file": "scripts/normalize/classify.mjs",
     "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."

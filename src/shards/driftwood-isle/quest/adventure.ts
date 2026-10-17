@@ -35,7 +35,6 @@ import { installCompletion, type Completion as Complete, type CompletionProgress
 import { installEcology } from './Ecology';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import { Zipline } from '../world/Zipline';
-import { QuestStepRunner } from '@wildshard/game/quest/steps';
 
 const { SEA_GLASS_COUNT, SEA_GLASS_FLAG } = interactables;
 
@@ -70,7 +69,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   fullMap?: { setPois: (source: () => MapPoi[], opts?: { tally?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
   /** the island's gulls: three fly you toward the nearest unfound place when you wander or idle (E309 B, gullGuide.ts) */
   gulls?: { guide: (player: THREE.Vector3, tx: number, tz: number) => boolean } | null;
-  /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
+  /** the held claim in the wreck's hold — guarded until the drowned sailor is beaten (B4 / D6) */
   /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
   bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
   /** the world registry (PHYSICS P4): registered pieces' floors for placement; a piece added here collides */
@@ -79,7 +78,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   setViewmodel?: (on: boolean) => void;
   /** lower the held weapon out of the frame and turn its input off while a dialogue is open (E129); false raises it */
   stowWeapon?: (on: boolean) => void;
-  ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
+  ironDrop?: { bindGuardFlags: (flags: readonly string[]) => void } | null;
 }
 
 export interface Adventure {
@@ -123,7 +122,6 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const story = await readQuestStory(ctx);
-  const stepRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/steps.json')));
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
@@ -145,7 +143,6 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       ['pickup', () => { w.music.sting('pickup'); }],
     ]) });
 
-  const steps = new QuestStepRunner(stepRows);
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
@@ -163,11 +160,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const storyOwners = new Map<string, unknown>([['counters', grants], ['hud', w.hud], ['placement', { floorAt }]]);
   observeStoryFlags(story, scope, flags, storyOwners);
   bindStoryBench(story, kit, w.player, storyOwners);
-  if (w.ironDrop) {
-    w.ironDrop.guard = () => steps.guard('iron-sword', { flags: flags.all,
-      ...(w.animals.animals === undefined ? {} : { actors: w.animals.animals.map(({ kind, alive }) => ({ kind, alive })) }) });
-    w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
-  }
+  w.ironDrop?.bindGuardFlags(flags.all);
   // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,
   // down to the cove beach west of the cave mouth (the headland's 34 m shelf rules out a cable straight off the platform) ──
   {
@@ -197,14 +190,16 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
+  let guide: PlaceGuide<Places['points'][number]> | null = null;
   if (w.gulls) {
-    const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
+    const gulls = w.gulls; guide = new PlaceGuide<Places['points'][number]>({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
       { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
         fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, target.x, target.z) });
-    flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:')) guide.progressed(); });
+    const liveGuide = guide;
     w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
-      guide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
+      liveGuide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
   }
+  flags.onChange((flag, on) => { w.ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); });
   adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
   adventure.finale = await installDirectorFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);

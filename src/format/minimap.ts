@@ -201,7 +201,7 @@ const bindings = v.strictObject({
   mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
   boot: v.exactOptional(v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding)})),
   forestQueries: v.exactOptional(binding), treeFactory: v.exactOptional(binding), tierPolicy: v.exactOptional(binding),
-  pondClip: v.exactOptional(binding), sword: v.exactOptional(binding), audioPreload: v.exactOptional(binding),
+  pondClip: v.exactOptional(binding), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
   ground: v.exactOptional(binding), render: v.exactOptional(binding), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),

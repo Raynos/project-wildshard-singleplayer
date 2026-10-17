@@ -1,4 +1,3 @@
-import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
@@ -88,11 +87,8 @@ export const SECTIONS = {
     COUNTER_TOP: v.strictObject({"w": number, "d": number, "y": number}),
     COVER_LOOKS: v.tuple([text, text, text, text, text, text, text, text, text, text, text, text, text]),
     CREATURE_LOOKS: v.strictObject({"body": text, "glowing": text, "captain": text}),
-    DAY_LIGHT: v.strictObject({"uToonLift": v.tuple([number, number, number]), "uToonRim": v.tuple([number, number, number]), "uCloudShadow": number, "uToonNight": number, "uSeaLevel": number, "uCloudTime": number}),
     FINALE_REWARD: v.strictObject({"x": number, "y": number, "z": number, "yaw": number, "pitch": number, "phase": number}),
     FIREFLY_LOOK: text,
-    FP_ARMS_LOOK: ToonArmsLookSchema,
-    FP_ARMS_MATERIALS: v.strictObject({"arms": text, "wood": text, "iron": text, "swim": text, "pickupBlade": text, "pickupFittings": text}),
     GROUND_LOOK: v.strictObject({"materials": v.strictObject({"ground": text, "slab": text}), "band": number, "lip": v.strictObject({"steep": number, "reach": number, "from": number, "to": number}), "slab": v.strictObject({"segs": number, "rock": text, "deep": text, "top": number, "bulge": v.tuple([number, number]), "foot": number, "mid": number, "shade": v.tuple([number, number])})}),
     GULL_GRAPH_LOOK: text,
     ISLAND_LOOK: v.strictObject({"lod": number, "far": v.strictObject({"ratio": number, "error": number}), "coverDepth": number, "names": v.strictObject({"casterKinds": v.tuple([text, text, text]), "skip": text, "apart": text, "big": text}), "protoPrefix": text, "meshPrefix": text, "palmCell": number}),
@@ -122,7 +118,6 @@ export const SECTIONS = {
     }),
     fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(86)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
-    ironSword: PrivateSceneSchema,
     entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }) }),
     /** All seven authored pier collider sets, keyed to the exact primitive parameters. */

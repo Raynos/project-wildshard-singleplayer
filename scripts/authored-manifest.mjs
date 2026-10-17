@@ -72,7 +72,10 @@ export function authoredManifestSource(root, slug) {
   if (b.navigation) { const id = value(b.navigation);rows.push(`navigation: { row: ${id}.navigation, url: ${id}.url }`); }
   if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues)}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
   if (b.treeFactory) rows.push(`treeFactory: async () => ${lazy(b.treeFactory, false)}`);
-  if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
+  if (b.sword?.rows) {
+    const heldRows = value({ module: b.sword.rows, export: 'default' });
+    rows.push(`sword: async () => (await import('@wildshard/game/systems/viewmodel/toonArms')).ToonArms.admit(${heldRows}.look).load()`);
+  } else if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
   if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
   const native = [];
   if (b.ground) native.push(`ground: ${value(b.ground)}`);

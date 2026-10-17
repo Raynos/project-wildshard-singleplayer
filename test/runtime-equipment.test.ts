@@ -10,7 +10,7 @@ import manifest from '../src/shards/pine-hollow/discovery.generated';
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
 import { CROSSBOW_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/crossbowProfile';
 import { LEVER_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/leverProfile';
-import { BOW_PROFILE } from '../src/shards/pine-hollow/data/bowProfile';
+import { BOW_PROFILE } from '../src/shards/pine-hollow/generators/bowProfile';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native owner uses the shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { loadRapier } from '../src/engine/physics/rapier';

@@ -3,7 +3,6 @@ import { BOAT_LAYOUT } from './boatLayout';
 import captain from '../data/bossEncounter.json' with { type: 'json' };
 import { COUNTER_TOP } from './counterLayout';
 import { CREATURE_LOOKS } from './creatureLook';
-import { FP_ARMS_LOOK, FP_ARMS_MATERIALS } from './fpArmsLook';
 import { GROUND_LOOK } from './groundLook';
 import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
@@ -26,7 +25,7 @@ import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from './skyLook';
 import { MIDDAY_SKY_ROWS } from '../data/skyPalette';
 import { CASTAWAY_SMOKE, SMOKE_LOOK } from './smokeLook';
-import { DAY_LIGHT, RAMP_FOG } from './toonLook';
+import { RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 
@@ -45,11 +44,8 @@ export const NATIVE_VIEW = {
   COUNTER_TOP,
   COVER_LOOKS,
   CREATURE_LOOKS,
-  DAY_LIGHT,
   FINALE_REWARD: spots.reward,
   FIREFLY_LOOK,
-  FP_ARMS_LOOK,
-  FP_ARMS_MATERIALS,
   GROUND_LOOK,
   GULL_GRAPH_LOOK,
   ISLAND_LOOK,

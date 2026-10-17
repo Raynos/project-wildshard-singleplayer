@@ -1,3 +1,4 @@
+import { HeldArmsSchema, type HeldArmsRows } from './heldArms';
 import { HeldGearSchema, type HeldGearRows } from './heldGear';
 import { HeldFinishesSchema, type HeldFinishesRows } from './heldFinishes';
 import { LoadoutSchema, type LoadoutRows } from './loadout';
@@ -15,6 +16,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'held/arms': HeldArmsRows;
   'held/gear': HeldGearRows;
   'held/finishes': HeldFinishesRows;
   'held/loadout': LoadoutRows;
@@ -32,6 +34,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'held/arms': { schema: HeldArmsSchema },
   'held/gear': { schema: HeldGearSchema },
   'held/finishes': { schema: HeldFinishesSchema },
   'held/loadout': { schema: LoadoutSchema },
@@ -53,6 +56,7 @@ export type PlatformDataSectionName = keyof PlatformDataSections;
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
 export function parsePlatformDataSection(name: 'held/finishes', value: unknown): HeldFinishesRows;
 export function parsePlatformDataSection(name: 'held/gear', value: unknown): HeldGearRows;
+export function parsePlatformDataSection(name: 'held/arms', value: unknown): HeldArmsRows;
 export function parsePlatformDataSection(name: 'held/loadout', value: unknown): LoadoutRows;
 export function parsePlatformDataSection(name: 'held/equipment', value: unknown): HeldEquipmentRows;
 export function parsePlatformDataSection(name: 'actors/species-programs', value: unknown): SpeciesPrograms;

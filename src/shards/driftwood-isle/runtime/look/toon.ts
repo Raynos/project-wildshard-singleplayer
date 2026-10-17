@@ -17,8 +17,8 @@ import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProd
 
 /** Day uniforms and fog are constructed by the product's render setup, never by importing this module. */
 function createToon(product: ShardProduct) {
-  const { FP_ARMS_LOOK: look, RAMP_FOG: fog } = product.section('custom/fixedLayouts', SECTIONS).nativeView;
-  return { dayLight: ToonArms.lighting(look), rampFog: new ColourRampFog(fog) };
+  const { RAMP_FOG: fog } = product.section('custom/fixedLayouts', SECTIONS).nativeView;
+  return { dayLight: ToonArms.lighting(product.section('held/arms').look), rampFog: new ColourRampFog(fog) };
 }
 let current: ReturnType<typeof createToon> | null = null;
 /** Session-called: initialize admitted toon state before building any view. */

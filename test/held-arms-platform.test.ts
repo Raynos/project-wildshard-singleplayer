@@ -19,6 +19,7 @@ function context(): ShardContext { return { scope: new Scope('held-fixture'), pr
 
 
 const row = {
+  id: 'harbour.held-arms',
   lighting: { id: 'fixture-harbour.day', initial: { uToonLift: [.1, .2, .3], uToonRim: [.3, .2, .1], uCloudShadow: .6, uToonNight: 0, uSeaLevel: 2, uCloudTime: 3 } },
   url: '/assets/fixture-harbour/arms.glb', skeleton: 'harbour-rig', sockets: ['R_weapon', 'L_hand'],
   joints: { sides: ['R', 'L'], arm: ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'], fingers: ['thumb', 'index', 'middle', 'ring', 'pinky'], phalanges: 3 },

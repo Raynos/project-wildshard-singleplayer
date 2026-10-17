@@ -1688,6 +1688,23 @@
           "row": "G474"
         }
       }
+    },
+    {
+      "module": "src/game/loadout/claims.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G477"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "loadout",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     }
   ]
 }

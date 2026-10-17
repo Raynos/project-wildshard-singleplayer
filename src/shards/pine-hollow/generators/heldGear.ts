@@ -1,6 +1,6 @@
 import authored from '../data/heldGear.json' with { type: 'json' };
 import packed from '../data/codeParts.json' with { type: 'json' };
-import { BOW_PROFILE } from '../data/bowProfile';
+import { BOW_PROFILE } from './bowProfile';
 import { CROSSBOW_WEAPON_PROFILE } from './crossbowProfile';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { FINISH_CARDS } from './finishCards';
