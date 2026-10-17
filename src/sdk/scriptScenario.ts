@@ -8,6 +8,7 @@ export interface ScenarioActor {
 }
 export interface ScenarioWorldInput {
   actors?: readonly ScenarioActor[]; players?: readonly ScenarioActor[];
+  spawnGroups?: readonly { id: number; members: readonly number[] }[];
   flags?: Readonly<Record<number, boolean>>; playerFlags?: Readonly<Record<number, Readonly<Record<number, boolean>>>>;
   zones?: readonly { id: number; min: readonly [number, number, number]; max: readonly [number, number, number] }[];
   /** Explicit answers for physics/navigation queries; missing fixtures refuse instead of inventing terrain. */
@@ -17,6 +18,7 @@ export interface ScenarioWorldInput {
 export type ScenarioHostConstructor = new(options: DecisionHostOptions) => DecisionHost;
 export interface ScriptScenarioInput extends ScenarioWorldInput {
   script: DecisionScript; binding: DecisionBinding; bytes: Uint8Array; seed: number;
+  bindings?: readonly DecisionBinding[];
 }
 export interface ScenarioSnapshot { host: DecisionSnapshot; world: ScenarioWorldInput }
 export type ScenarioCommand = readonly (string | number)[];
@@ -71,7 +73,11 @@ export class ScenarioWorld implements DecisionWorld {
     if (op === reads.playerFlag) { if (!this.players.has(a)) throw new Error('Unknown scenario player'); return this.input.playerFlags?.[a]?.[b] === true ? 1 : 0; }
     if (op === reads.nearestPlayer) return this.nearby(a, Number.POSITIVE_INFINITY)[0]?.id ?? 0;
     if (op === reads.playersInZone) return [...this.players].filter(id => this.actor(id).alive !== false && this.inside(this.actor(id), a)).length;
-    if (op === reads.spawnGroupAlive) return [...this.actors.values()].filter(actor => actor.spawn === a && actor.alive !== false).length;
+    if (op === reads.spawnGroupAlive) {
+      const group = this.input.spawnGroups?.find(value => value.id === a);
+      return group === undefined ? [...this.actors.values()].filter(actor => actor.spawn === a && actor.alive !== false).length
+        : group.members.filter(id => { const actor = this.actors.get(id); return actor !== undefined && actor.alive !== false; }).length;
+    }
     if (op === reads.distance || op === reads.bearing) {
       const from = this.actor(a).at, to = this.actor(b).at;
       return op === reads.distance ? Math.hypot(to[0] - from[0], to[2] - from[2]) : Math.atan2(to[0] - from[0], to[2] - from[2]);
@@ -142,7 +148,7 @@ export class ScenarioWorld implements DecisionWorld {
     return structuredClone({ ...this.input, actors: [...this.actors.values()].filter(actor => !this.players.has(actor.id)), players: [...this.players].map(id => this.actor(id)) });
   }
   restore(input: ScenarioWorldInput): void {
-    const copy = structuredClone({ actors: input.actors ?? [], players: input.players ?? [], flags: input.flags ?? {}, playerFlags: input.playerFlags ?? {}, zones: input.zones ?? [], lists: input.lists ?? [] }), actors = new Map<number, ScenarioActor>();
+    const copy = structuredClone({ actors: input.actors ?? [], players: input.players ?? [], spawnGroups: input.spawnGroups ?? [], flags: input.flags ?? {}, playerFlags: input.playerFlags ?? {}, zones: input.zones ?? [], lists: input.lists ?? [] }), actors = new Map<number, ScenarioActor>();
     for (const actor of [...copy.actors, ...copy.players]) {
       if (!Number.isSafeInteger(actor.id) || actor.id <= 0 || actors.has(actor.id)) throw new Error('Invalid or duplicate scenario actor');
       finite([...actor.at, actor.yaw ?? 0, actor.hpShare ?? 1, ...Object.values(actor.fields ?? {})]); actors.set(actor.id, actorCopy(actor));
@@ -183,11 +189,13 @@ export class ScriptScenario {
   private tick = 0;
   private cursor = 0;
   private saved: ScenarioSnapshot | undefined;
-  constructor(readonly host: DecisionHost, readonly world: ScenarioWorld, private readonly script: DecisionScript, private readonly binding: number, private readonly entries: DecisionTrace[]) {}
+  constructor(readonly host: DecisionHost, readonly world: ScenarioWorld, private readonly script: DecisionScript, private readonly binding: number, private readonly entries: DecisionTrace[],
+    private readonly bindings: readonly number[] = [binding]) {}
   private advanceTicks(count: number): void { for (let index = 0; index < count; index++) this.host.step(++this.tick); }
   /** Queue a raw ABI event, then reach its decision and following atomic commit step. */
   sendRaw(event: ScriptV1Event): void {
-    this.cursor = this.entries.length; this.host.enqueue(this.binding, event);
+    this.cursor = this.entries.length;
+    for (const binding of event[0] === events.start || event[0] === events.stop ? this.bindings : [this.binding]) this.host.enqueue(binding, event);
     this.advanceTicks(layout.decisionDivisor - this.tick % layout.decisionDivisor + 1);
   }
   /** Named event arguments follow the ABI: subject first, then a/b/c/d. */
@@ -232,7 +240,7 @@ export class ScriptScenario {
 export function createScriptScenario(Host: ScenarioHostConstructor, input: ScriptScenarioInput): ScriptScenario {
   if (!Number.isSafeInteger(input.seed) || input.seed < 0 || input.seed > 0xffffffff) throw new Error('Invalid scenario seed');
   const world = new ScenarioWorld(input), entries: DecisionTrace[] = [];
-  const host = new Host({ scripts: [input.script], bindings: [input.binding], modules: new Map([[input.script.module, input.bytes]]), seed: [input.seed, 0], world,
+  const host = new Host({ scripts: [input.script], bindings: input.bindings ?? [input.binding], modules: new Map([[input.script.module, input.bytes]]), seed: [input.seed, 0], world,
     trace: entry => { entries.push(structuredClone(entry)); } });
-  return new ScriptScenario(host, world, input.script, input.binding.id, entries);
+  return new ScriptScenario(host, world, input.script, input.binding.id, entries, input.bindings?.map(binding => binding.id));
 }

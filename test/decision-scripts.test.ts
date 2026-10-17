@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, it } from 'vitest';
-import { decisionScriptRules, parseDecisionScripts, scriptV1Identifier, type DecisionScriptReferences } from '@wildshard/format/decisionScripts';
+import { actorDecisionRows, decisionScriptRules, parseDecisionScripts, scriptV1Identifier, type DecisionScriptReferences } from '@wildshard/format/decisionScripts';
 import { validateOutputSection, type OutputPlatformSectionName } from '@wildshard/format/outputIndex';
 import type { PlatformSectionName } from '@wildshard/format/sections';
 import { formatJsonSchemas } from '@wildshard/sdk/formatJsonSchema';
@@ -88,4 +88,15 @@ it('refuses non-JSON direct input before any accessor runs', () => {
   let reads = 0;
   const input = Object.defineProperty({}, 'id', { enumerable: true, get: () => { reads++; return 'test'; } });
   expect(() => parseDecisionScripts([input])).toThrow('plain JSON'); expect(reads).toBe(0);
+});
+
+it('resolves one group row to stable actor owners and refuses ambiguous state scope', () => {
+  const group = { ...raw, binding: { spawnGroup: 'test.pack' }, actors: { second: 'test.b', first: 'test.a' }, state: [{ ...slot, scope: 'actor' }] };
+  const admitted = parseDecisionScripts([group])[0]; if (admitted === undefined) throw new Error('Missing group');
+  expect(actorDecisionRows(admitted).map(member => [member.id, member.actors])).toEqual([
+    ['test.boss.actor.first', { first: 'test.a' }], ['test.boss.actor.second', { second: 'test.b' }],
+  ]);
+  expect(() => parseDecisionScripts([{ ...group, state: [slot] }])).toThrow();
+  expect(() => parseDecisionScripts([{ ...group, actors: {} }])).toThrow();
+  expect(() => parseDecisionScripts([{ ...group, actors: Object.fromEntries(Array.from({ length: 65 }, (_, index) => [`body${index}`, `test.body${index}`])) }])).toThrow();
 });

@@ -151,8 +151,9 @@ export class ActorMoveRunner {
       }
       case 'ring-run': {
         if (target === undefined) throw new Error('Missing ring center');
-        return { steering: { yaw: yawTo(body, { x: target.x + Math.cos(row.angle) * row.radius, z: target.z + Math.sin(row.angle) * row.radius }),
-          speed: row.speed, altitude: body.position.y, turn: row.turn, ground: row.ground } };
+        const angle = row.angle + row.angularSpeed * this.elapsed, d = distance(body, target);
+        return { steering: { yaw: yawTo(body, d < row.closeRadius ? target : { x: target.x + Math.cos(angle) * row.radius, z: target.z + Math.sin(angle) * row.radius }),
+          speed: d < row.stopDistance ? 0 : row.speed, altitude: body.position.y, turn: row.turn, ground: row.ground } };
       }
       case 'burrow': case 'surface': {
         const from = observation.field; if (from === undefined) throw new Error('Missing move field');

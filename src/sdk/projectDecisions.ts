@@ -34,7 +34,7 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (strikeEntry !== undefined && strikeBytes === undefined) throw new Error('Missing declared native strike section bytes');
   if (strikeEntry !== undefined && strikeBytes !== undefined && (strikeBytes.length !== strikeEntry.bytes || hashImmutableBytes(strikeBytes) !== strikeEntry.hash)) throw new Error('Native strike section hash or size mismatch');
   const strikes = strikeBytes === undefined ? [] : readCreatureStrikes(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(strikeBytes)));
-  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes), authored, options);
+  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes, rows), authored, options);
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);
   for (const row of platform?.sections ?? []) if (row.name === 'sim/scripts') files.delete(row.path);

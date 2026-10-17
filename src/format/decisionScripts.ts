@@ -20,7 +20,7 @@ const row = v.strictObject({
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)),
   source: v.pipe(v.string(), v.maxLength(256), v.regex(/^behaviour\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.as$/u),
     v.check(value => !value.split('/').includes('generated'), 'authored script source, not generated glue')),
-  binding: v.union([v.strictObject({ encounter: id }), v.strictObject({ quest: id }), v.strictObject({ zone: id }), v.strictObject({ shard: v.literal(true) })]),
+  binding: v.union([v.strictObject({ encounter: id }), v.strictObject({ quest: id }), v.strictObject({ zone: id }), v.strictObject({ shard: v.literal(true) }), v.strictObject({ spawnGroup: id })]),
   pages: v.optional(v.pipe(positive, v.maxValue(4)), 1), onFail: v.picklist(['hold', 'reset', 'skip']),
   on: v.pipe(v.array(v.picklist(keys(SCRIPT_V1_EVENTS))), v.minLength(1), v.maxLength(23), v.check(values => unique(values), 'unique subscribed events')),
   tick: v.optional(v.nullable(v.picklist([1, 2, 5, 10])), null),
@@ -48,6 +48,8 @@ function validNames(names: readonly string[]): boolean {
 /** Row-local checks, independent of any renderer, module execution or source-code evaluator. */
 export function decisionScriptRowRules(script: DecisionScriptRow): string[] {
   const errors: string[] = [];
+  if ('spawnGroup' in script.binding && (script.side !== 'sim' || Object.keys(script.actors).length === 0 || script.state.some(slot => slot.scope !== 'actor')))
+    errors.push('spawn groups declare members and actor-scoped simulation state');
   if ((script.tick !== null) !== script.on.includes('tick')) errors.push('tick subscription has a declared 1/2/5/10 Hz rate');
   if (script.side === 'sim' && (script.on.some(name => SCRIPT_V1_EVENTS[name] >= 30) || script.commands.some(name => SCRIPT_V1_COMMANDS[name] >= 100))) errors.push('simulation script uses only simulation ops');
   const viewEvents = new Set(['start', 'tick', 'timer', 'stop', 'flag', 'field', 'cue', 'channel']);
@@ -81,12 +83,24 @@ function safeInput(value: unknown): boolean {
 /** Plain platform section: v1 script rows. Existing v0 bindings remain a separate format during the W1 migration. */
 export const DecisionScriptsSchema = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
   v.maxLength(64), v.check(rows => unique(rows.map(value => value.id)), 'unique script ids'),
+  v.check(rows => rows.reduce((count, value) => count + ('spawnGroup' in value.binding ? Object.keys(value.actors).length : 1), 0) <= 64, 'at most 64 logical decision bindings'),
   v.check(rows => new Set(rows.map(value => value.module)).size <= 8, 'at most eight decision modules'));
 export type DecisionScripts = v.InferOutput<typeof DecisionScriptsSchema>;
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */
 export function parseDecisionScripts(input: unknown): DecisionScripts {
   if (!isJsonData(input)) throw new Error('Decision scripts must be plain JSON');
   return v.parse(DecisionScriptsSchema, input);
+}
+/** One authored group row resolves to one logical invocation/state owner per member.
+ * Every invocation still shares the admitted module image. Alias order never changes identities.
+ */
+export function actorDecisionRows(script: DecisionScriptRow): readonly DecisionScriptRow[] {
+  if (!('spawnGroup' in script.binding)) return [script];
+  const members: DecisionScriptRow[] = [];
+  for (const [alias, actor] of Object.entries(script.actors).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+    members.push({ ...script, id: `${script.id}.actor.${alias}`, actors: { [alias]: actor } });
+  }
+  return members;
 }
 /** Cross-section facts come from admitted platform registries, never from aliases in the script row itself. */
 export interface DecisionScriptReferences {
@@ -120,11 +134,11 @@ export function decisionScriptRules(scripts: readonly DecisionScriptRow[], refer
 /** A live species lends its existing body/encounter to one admitted decision script.
  * Presentation fields and contact impulses are names/numbers, never shard callbacks.
  */
-export const BorrowedDecisionSchema = v.strictObject({ script: id, actor: id, perch: v.exactOptional(id),
+export const BorrowedDecisionSchema = v.pipe(v.strictObject({ script: id, actor: v.exactOptional(id), group: v.exactOptional(id), perch: v.exactOptional(id),
   leanField: v.exactOptional(local), bankField: v.exactOptional(local),
   marks: v.exactOptional(v.strictObject({ fight: local, phase: local })),
   idle: v.exactOptional(v.strictObject({ move: id, progress: local })),
   strikeEffects: v.pipe(v.array(v.strictObject({ strike: id, aimHeight: finite, speed: v.pipe(finite, v.minValue(0), v.maxValue(40)),
     lift: v.pipe(finite, v.minValue(0), v.maxValue(40)) })), v.maxLength(32)),
-});
+}), v.check(value => (value.actor === undefined) !== (value.group === undefined), 'one actor or spawn group owner'));
 export type BorrowedDecision = v.InferOutput<typeof BorrowedDecisionSchema>;

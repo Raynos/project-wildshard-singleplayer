@@ -8234,6 +8234,34 @@ it suspends at each effect boundary, so an observer can inspect or interrupt
 the exact intermediate state before the next transition. Each reload step
 feeds at most 1,024 rounds. Snapshots and restore versions remain with the
 caller; constructing or restoring fields never emits a phase event.
+### Spawn-group decision bindings (G484)
+
+A `sim/scripts` row may bind `{spawnGroup: id}` and name the group's
+members in `actors`. All slots must have `scope: 'actor'`. The defining
+`actorDecisionRows` resolver gives each member a stable logical binding;
+`Clock.self` identifies that member. One admitted module image serves the
+whole group, while slots, timers, random counters and staged commands stay
+independent. Members cannot command other members' bodies.
+
+A species brain names `{script, group, strikeEffects}` instead of `actor`.
+The game lends existing ground bodies to one group owner, using their
+keeper's fixed steps, contact authority and save slots. All declared group
+bodies bind before stepping or saving. A home replacement resets only its
+own continuation with `ShardDecisions.restartActor`; fresh-host restore
+reconstructs logical state and moves without running decision handlers.
+The keeper retains spawn, retirement, attack tokens and rewards.
+
+`buildDecisionRegistries` accepts decision rows as its fifth argument to
+register group ids beside individual spawn ids. `spawnGroupAlive` counts
+living declared group members; dead or unmaterialized members count zero.
+An individual spawn id still returns 0 or 1. Compiler, game and disk
+scenarios share the same group membership resolver.
+
+`ring-run` optionally declares `angularSpeed`, `closeRadius` (approach the
+target directly inside this radius) and `stopDistance`. All default to zero,
+preserving existing rows. Motion, burial and emergence stay at 60 Hz;
+script decisions remain at most 10 Hz.
+
 ### Borrowed spawned decision bodies (KS4)
 
 `format/decisionScripts.BorrowedDecisionSchema` optionally names existing

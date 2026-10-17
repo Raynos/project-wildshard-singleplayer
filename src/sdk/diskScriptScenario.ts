@@ -3,7 +3,7 @@ import { existsSync, realpathSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- A validated output folder stays inside the explicit product root.
 import { resolve } from 'node:path';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
-import { buildDecisionRegistries, decisionBindingMap } from '@wildshard/format/decisionBindings';
+import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups } from '@wildshard/format/decisionBindings';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
@@ -26,7 +26,7 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
   const row = rows.find(value => value.id === id), ordinal = rows.findIndex(value => value.id === id);
   if (row === undefined) throw new Error(`Missing simulation scenario script ${id}`);
   const moves = parseActorMoves(sections.get('actors/moves') ?? []), targets = sections.get('world/targets');
-  const registries = buildDecisionRegistries(shard, moves, targets === undefined ? undefined : parseWorldTargets(targets), readCreatureStrikes(sections.get('actors/strikes') ?? []));
+  const registries = buildDecisionRegistries(shard, moves, targets === undefined ? undefined : parseWorldTargets(targets), readCreatureStrikes(sections.get('actors/strikes') ?? []), rows);
   const map = decisionBindingMap(row, registries), handles = Object.values(map.ids.actors ?? {});
   const script: DecisionScript = { ...row, ids: map.ids, state: row.state.map(slot => {
     if (slot.scope === 'local') throw new Error('Simulation scenario cannot use local-only slots');
@@ -42,7 +42,7 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
   if ('encounter' in binding && encounter === undefined) throw new Error('Missing scenario encounter binding');
   if ('quest' in binding && !shard.quests.quests.some(quest => quest.id === binding.quest)) throw new Error('Missing scenario quest binding');
   if ('zone' in binding && registries.zones?.has(binding.zone) !== true) throw new Error('Missing scenario zone binding');
-  const self = encounter === undefined ? 0 : registries.actors?.get(encounter.entity);
+  const self = encounter === undefined ? ('spawnGroup' in binding ? handles[0] : 0) : registries.actors?.get(encounter.entity);
   if (self === undefined || self > 0 && !handles.includes(self)) throw new Error('Scenario encounter actor is not owned');
   const fields = shard.state.shared.filter(field => field.privacy === 'public' && field.type !== 'string');
   const fieldValues = Object.fromEntries(fields.map(field => [field.id, Number(field.default)]));
@@ -69,8 +69,15 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
     actors.push({ ...override, id: handle, at, yaw: override?.yaw ?? authored?.yaw ?? retained?.yaw ?? 0,
       fields: { ...fieldValues, ...override?.fields }, fieldBounds: bounds });
   }
-  const made = createScriptScenario(DecisionHost, { ...options, actors, seed: options.seed, script, bytes,
-    binding: { id: ordinal + 1, script: row.id, self, actors: handles, instance: 0 } });
+  const groups = decisionSpawnGroups(shard, rows);
+  const spawnGroups = [...registries.spawns ?? []].map(([name, groupId]) => {
+    const members = groups.get(name) ?? [name];
+    return { id: groupId, members: members.map(member => { const actor = registries.actors?.get(member); if (actor === undefined) throw new Error('Missing scenario group member'); return actor; }) };
+  });
+  const bindings = 'spawnGroup' in binding ? handles.map((actor, ordinalIndex) => ({ id: ordinalIndex + 1, script: row.id, self: actor, actors: [actor], instance: 0 }))
+    : [{ id: ordinal + 1, script: row.id, self, actors: handles, instance: 0 }];
+  const primary = bindings[0]; if (primary === undefined) throw new Error('Empty scenario binding');
+  const made = createScriptScenario(DecisionHost, { ...options, actors, spawnGroups, seed: options.seed, script, bytes, binding: primary, bindings });
   const entry = index.sections.find(value => value.name === 'sim/scripts'); if (entry === undefined) throw new Error('Missing scenario section');
   return Object.assign(made, { product: Object.freeze({ slug, script: row.id, sectionHash: entry.hash,
     indexHash: descriptor.indexHash }) });

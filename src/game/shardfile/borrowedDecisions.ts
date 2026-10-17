@@ -16,6 +16,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
+import { spawnGroupDecisionAuthority } from './groupDecisions';
 
 /** Existing world services and fixed-step registration, lent by the page/native owner.
  * No body, physics world, encounter, interval or simulation is allocated here.
@@ -81,10 +82,16 @@ const savedControl = v.strictObject({ version: v.literal(1), actor: v.string(), 
 export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
   ports: BorrowedDecisionPorts): SpeciesDecisionAuthority {
   const bodies = new Map<string, DecisionRuntime['scope']>();
+  const groups = spawnGroupDecisionAuthority(source, assets, sections, ports);
   ports.scope.onDispose(() => { bodies.clear(); });
   return { bind: (actor, input, bodyInput) => {
-    const row: BorrowedDecision = v.parse(BorrowedDecisionSchema, input);
+    const parsed: BorrowedDecision = v.parse(BorrowedDecisionSchema, input);
     const body = bodyInput === undefined ? undefined : v.parse(CreatureBodyRecipeSchema, bodyInput);
+    if (parsed.group !== undefined) {
+      const control = groups.bind(actor, parsed, body); controls.set(actor, control); return control;
+    }
+    if (parsed.actor === undefined) throw new Error('Missing borrowed actor');
+    const row = { ...parsed, actor: parsed.actor };
     const states = body?.actions === undefined ? undefined : v.parse(v.array(v.picklist(ANIMAL_STATES)), body.actions.states);
     if (body !== undefined && (body.motion === 'flight') !== actor.flying) throw new Error('Decision pose requires its existing declared motor');
     if (body?.actions !== undefined && body.actions.actions.length > 0)

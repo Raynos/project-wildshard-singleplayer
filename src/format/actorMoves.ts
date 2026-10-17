@@ -35,7 +35,8 @@ export const ActorMoveSchema = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('perch'), ...motion, perch: id, arrival: v.optional(positive, 0.6) }),
   v.strictObject({ id, kind: v.literal('rise'), ...motion, from: at, to: at, rate: positive, yawLead: angle }),
   v.strictObject({ id, kind: v.literal('lie'), ...motion, from: at, to: at, rate: positive, yawLead: angle }),
-  v.strictObject({ id, kind: v.literal('ring-run'), ...motion, radius: positive, angle }),
+  v.strictObject({ id, kind: v.literal('ring-run'), ...motion, radius: positive, angle,
+    angularSpeed: v.optional(v.pipe(finite, v.minValue(-30), v.maxValue(30)), 0), closeRadius: v.optional(radius, 0), stopDistance: v.optional(radius, 0) }),
   v.strictObject({ id, kind: v.literal('burrow'), field: id, rate: positive }),
   v.strictObject({ id, kind: v.literal('surface'), field: id, rate: positive }),
 ]);

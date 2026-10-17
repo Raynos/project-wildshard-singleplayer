@@ -3,8 +3,7 @@ import type { StrikeData } from '@wildshard/sdk/species';
 import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
 import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';
-import { SKITTERER_DATA, BITE_DATA, SKITTER } from './species/skitterer';
-import skitterer from '../../behaviour/skitterer.json' with { type: 'json' };
+import { SKITTERER_DATA, BITE_DATA } from './species/skitterer';
 import { MATRIARCH_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from './species/matriarch';
 
 /** Shipping strider challenge and exact charge/close utility, including native pose memory fields; six circling slots. */
@@ -18,20 +17,15 @@ export const RAY_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 'div
   glideAltitude: 14, glideSpeed: 9, circleRadius: 20, patrolRadius: 34, patrolAltitude: 22,
   noticeRadius: 55, diveFrom: 38, diveSpeed: 15, climbAltitude: 17, climbSeconds: 2.6, diveMaxSeconds: 4.5,
   restSeconds: 3, targetHeight: 1.2, diveSlope: 0.35, climbSpeedBonus: 3, orbitLead: 0.55, heldField: 'held' } };
-/**
- * The skitterer's burrow hunt as an admitted species script (behaviour/skitterer.as, compiled to behaviour/skitterer.json by
- * scripts/bake/species-scripts.mjs): its slots are its state (0 buried, 1 burst, 2 hunt, 3 retreat), clock and far time;
- * it writes its `burrow` pose memory and asks for its bite.
- */
-export const SKITTERER_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 'script', data: { id: 'sunscar.brain.skitterer', kind: 'script', module: skitterer.module,
-  parameters: [SKITTER.wake, SKITTER.sleep, SKITTER.burst, SKITTER.run, SKITTER.ring, SKITTER.retreat, SKITTER.rebury, BITE_DATA.range ?? 0],
-  slots: [0, 0, 0], memory: [{ field: 'burrow', initial: 1 }], maxSpeed: SKITTER.run, maxTurnRate: 8, strikes: [{ event: 1, strike: BITE_DATA.id }] } };
+/** One admitted group row owns every skitterer body with independent actor state. */
+export const SKITTERER_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 'decision', data: { script: 'sunscar.skitterer.decision', group: 'sunscar.skitterers',
+  strikeEffects: [{ strike: BITE_DATA.id, aimHeight: 0, speed: 0, lift: 0 }] } };
 /** Decisions run on the existing spawned body; its encounter owns these marks. */
 export const MATRIARCH_BRAIN: NonNullable<BrainedSpecies['brain']> = { archetype: 'decision', data: { script: 'sunscar.matriarch.decision', actor: 'sunscar.matriarch',
   marks: { fight: 'fight', phase: 'phase' }, idle: { move: 'sunscar.matriarch.rise', progress: 'rise' },
   strikeEffects: [{ strike: MAW_DATA.id, aimHeight: 1.2, speed: 0, lift: 0 }] } };
 /** The admitted species script modules: each module's SHA-256 → the base64 its bake wrote (a plain JSON row). */
-export const SIGNAL_MODULES: Readonly<Record<string, string>> = { [skitterer.module]: skitterer.bytes };
+export const SIGNAL_MODULES: Readonly<Record<string, string>> = {};
 
 /** The page's existing native motor/contact recipes; the home keeper retains attack tokens, RNG and all clocks. */
 export const SIGNAL_BODY_ROWS = {

@@ -874,7 +874,9 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null } = {}, pause?: () => Promise<void>): void | Promise<void> {
     const row = this.runtimeRows.population; if (row === undefined) throw new Error('Missing declared population installation');
     const installation: RuntimeHomePorts = { system: row.system,
-      ...(row.held === undefined ? {} : { held: row.held }), ...(ports.spawned === undefined ? {} : { spawned: ports.spawned }),
+      ...(row.held === undefined ? {} : { held: row.held }), spawned: animal => {
+        ports.spawned?.(animal); this.populationCatalogue?.prepareHeld(animal.kind, animal);
+      },
       ...(row.bodyHomes === undefined ? {} : { bodyHomes: { rows: row.bodyHomes, authority: this.populationBrains } }),
       ...(row.holds === undefined ? {} : { holds: { ...row.holds, flags: ports.flags ?? null } }) };
     if (pause === undefined) { this.populationHomes = bindRuntimeHomes(ctx, source, installation); return; }

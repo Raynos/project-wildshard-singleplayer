@@ -5,12 +5,14 @@ import { emptyShardfile } from '../src/sdk/author';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { buildDecisionRegistries } from '../src/format/decisionBindings';
 import { parseActorMoves } from '../src/format/actorMoves';
 import { scriptV1Layout } from '../src/format/scriptAbiV1';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '../src/game/plugin/simulation';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { DecisionModule } from '../src/engine/script/decisionModule';
+import { createSimHost, type SimSpawn } from '../src/engine/sim';
 import { borrowedDecisionAuthority } from '../src/game/shardfile/borrowedDecisions';
 import { ShardDecisions, type DecisionRuntime } from '../src/game/shardfile/decisions';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -58,6 +60,51 @@ test('two actors execute rows on the real fixed-step move, strike, field and fla
     expect(sim.host.entities.get('actor.b')?.hp).toBe(93);
     expect(sim.host.entities.get('actor.a')?.position.z).toBeGreaterThan(5);
     expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
+  } finally { sim.dispose(); }
+});
+
+test('spawnGroupAlive counts the whole declared pack across death and return', async () => {
+  const f = fixture(), row = f.scripts[0]; if (row === undefined) throw new Error('Missing group fixture');
+  row.binding = { spawnGroup: 'test.pack' }; row.on = ['start', 'tick']; row.tick = 10; row.commands = []; row.reads = ['spawnGroupAlive'];
+  row.spawns = { pack: 'test.pack' }; row.state = [{ name: 'calls', type: 'i32', default: 0, scope: 'actor' }];
+  const group = buildDecisionRegistries(f.source, [], undefined, [], f.scripts).spawns?.get('test.pack');
+  if (group === undefined) throw new Error('Missing declared group handle');
+  const wasm = await compileScript(`@external("env","ws_read") declare function read(op:i32,a:f64,b:f64):f64;
+    export function ws_abi():i32{return 1;} export function ws_init(lo:i32,hi:i32):void{}
+    export function ws_io():i32{return 16384;} export function ws_handle():i32{store<f64>(${state},read(18,${group},0));return 0;}`, { abi: 1 });
+  const hash = hashImmutableBytes(wasm); row.module = `blobs/wasm/${hash}.wasm`; f.assets.clear(); f.assets.set(hash, wasm);
+  const native = SIM_LEVEL.entities[0]; if (native === undefined) throw new Error('Missing native body');
+  const recipes: SimSpawn[] = [];
+  for (const [index, id] of ['actor.a', 'actor.b'].entries()) recipes.push({ ...native, id, at: { x: 0, y: 0, z: 5 + index * 2 } });
+  f.source.creatures.spawns = []; f.source.encounters = [];
+  f.source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { bosses: [], homes: recipes.map(recipe => ({
+    id: recipe.id, kind: native.spec.kind, look: 'boar', at: [recipe.at.x, recipe.at.z], yaw: recipe.yaw, respawn: 1,
+  })) } };
+  const owner = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier: await rapier });
+  for (const recipe of recipes) owner.spawn(recipe);
+  const runtime: DecisionRuntime = { scope: owner.scope, events: owner.events, flags: owner.flags, get physics() { return owner.physics; },
+    player: owner.player, state: owner.state, slots: owner.slots, entities: owner.entities, strikes: owner.strikes,
+    borrowedActors: new Set(recipes.map(recipe => recipe.id)), groundHeightAt: (x, z) => owner.groundHeightAt(x, z),
+    registerStrikeCatalogue: (id, strikes) => { owner.registerStrikeCatalogue(id, strikes); },
+    startDeclaredStrike: (actor, target, strike) => owner.startDeclaredStrike(actor, target, strike),
+    onStep: (id, run, adapter, phase) => owner.onStep(id, run, adapter, phase),
+  };
+  const sim = { host: owner, decisions: new ShardDecisions(runtime, f.source, f.assets, f.sections, new Map(), undefined), dispose: () => { owner.dispose(); } };
+  try {
+    const member = sim.host.entities.get('actor.b'); if (member === undefined) throw new Error('Missing member');
+    for (let i = 0; i < 7; i++) sim.host.step();
+    expect(sim.decisions.host.state(1)).toEqual({ calls: 2 }); expect(sim.decisions.host.state(2)).toEqual({ calls: 2 });
+    member.applyFinalDamage(1_000_000, member.position, member.position);
+    for (let i = 0; i < 6; i++) sim.host.step();
+    expect(sim.decisions.host.state(1)).toEqual({ calls: 1 });
+    const recipe = recipes.find(actor => actor.id === 'actor.b'); if (recipe === undefined) throw new Error('Missing spawn recipe');
+    expect(sim.host.retire('actor.b')).toBe(true);
+    for (let i = 0; i < 6; i++) sim.host.step();
+    expect(sim.decisions.host.state(1)).toEqual({ calls: 1 });
+    sim.host.spawn(recipe);
+    for (let i = 0; i < 6; i++) sim.host.step();
+    expect(sim.decisions.host.state(1)).toEqual({ calls: 2 });
+    expect(sim.decisions.host.metrics().every(metric => metric.refusals === 0)).toBe(true);
   } finally { sim.dispose(); }
 });
 

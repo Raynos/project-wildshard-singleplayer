@@ -15,7 +15,7 @@ import { SAILOR_LOOK } from '../src/shards/driftwood-isle/species/sailor';
 import { MONKEY_LOOK } from '../src/shards/driftwood-isle/species/monkey';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
 import { DRIFTWOOD_STRIKE_ROWS } from '../src/shards/driftwood-isle/data/strikes';
-import { SKITTERER_DATA, BITE_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
+import { SKITTERER_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
 import { DUNE_RAY } from '../src/shards/sunscar-dunes/generators/rows/species/duneRay';
 
 function body(row: SpeciesRow, look: SpeciesLook, scale = 1): { actor: Animal; dispose: () => void } {
@@ -151,22 +151,7 @@ test('contact rows refuse an unresolved strike before a body or decision exists'
   expect(() => speciesBrains([invalid], Object.values(DRIFTWOOD_STRIKE_ROWS))).toThrow('undeclared strike strike.missing');
 });
 
-test('the existing script species borrows the same live contact authority', () => {
-  for (const clear of [false, true]) {
-    const made = body(SKITTERER_DATA, CRAB_LOOK), ctx = context(), hits: number[] = [];
-    const bound = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES).bind(SKITTERER_DATA.kind);
-    let checks = 0;
-    ctx.player.set(0, 0, .5); ctx.reach = () => { checks++; return clear; };
-    ctx.hurt = damage => { hits.push(damage); };
-    try {
-      for (let tick = 0; tick < 180; tick++) {
-        ctx.t = tick / 60; ctx.dt = 1 / 60;
-        if (tick % 6 === 0) bound.think(made.actor, ctx);
-        bound.act(made.actor, ctx); made.actor.step(ctx.dt);
-      }
-      expect(checks).toBeGreaterThan(0);
-      if (clear) { expect(hits.length).toBeGreaterThan(0); expect(hits.every(damage => damage === BITE_DATA.damage)).toBe(true); }
-      else expect(hits).toEqual([]);
-    } finally { made.dispose(); }
-  }
+test('a pack decision requires the existing body and contact authority', () => {
+  const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
+  expect(() => brains.bind(SKITTERER_DATA.kind)).toThrow('Decision species requires its existing body authority');
 });

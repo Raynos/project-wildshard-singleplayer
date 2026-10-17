@@ -1,7 +1,7 @@
 import type { DecisionPublication } from '@wildshard/format/decisionPublication';
 import * as v from 'valibot';
-import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
-import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
+import { actorDecisionRows, parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
+import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { parseWorldTargets, worldTargetSpots } from '@wildshard/format/worldTargets';
@@ -40,7 +40,7 @@ export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'phy
    */
   readonly borrowedActors?: ReadonlySet<string>;
   /** Existing encounter state of borrowed bodies, read without creating an encounter. */
-  readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly leanField?: string }>;
+  readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly calm?: boolean; readonly leanField?: string }>;
   onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
 }
 /** Existing encounter authority; a retained encounter can lend its real BossBrain without a replacement encounter. */
@@ -74,6 +74,7 @@ export class ShardDecisions {
   private readonly sim: DecisionRuntime;
   private readonly source: Shardfile;
   private readonly rows: readonly DecisionScriptRow[];
+  private readonly spawnGroups: ReadonlyMap<string, readonly string[]>;
   private readonly moves: readonly ActorMove[];
   private readonly spots: ReturnType<typeof worldTargetSpots>;
   private readonly actors: ReadonlyMap<number, string>;
@@ -100,18 +101,20 @@ export class ShardDecisions {
     encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests | undefined, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
     navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled']) {
     this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
-    this.rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
+    const declared = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
+    this.rows = declared.flatMap(actorDecisionRows); this.spawnGroups = decisionSpawnGroups(source, declared);
     this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
     const nativeStrikes = readCreatureStrikes(sections.get('actors/strikes') ?? []);
     const targets = sections.has('world/targets') ? parseWorldTargets(sections.get('world/targets')) : undefined;
     this.spots = targets === undefined ? new Map() : worldTargetSpots(targets);
-    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes);
+    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared);
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
     this.strikes = new Map(simStrikes(source.rows));
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
     this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
+      ...(this.spawnGroups.size === 0 ? {} : { spawnGroups: [...this.spawnGroups] }),
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, ...(nativeStrikes.length === 0 ? {} : { nativeStrikes }), quests: source.quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });
     const modules = new Map<string, Uint8Array>(), scripts: DecisionScript[] = [], owners = new Set<string>(), bodies = new Set<AnimalSim>();
@@ -135,7 +138,7 @@ export class ShardDecisions {
       const encounter = 'encounter' in binding ? requireValue(source.encounters.find(value => value.id === binding.encounter), 'encounter binding') : undefined;
       if ('quest' in binding && !quest?.quests.some(value => value.def.id === binding.quest)) throw new Error('Decision quest binding missing');
       if ('zone' in binding && !this.registries.zones?.has(binding.zone)) throw new Error('Decision zone binding missing');
-      const self = encounter === undefined ? 0 : requireValue(this.names.get(encounter.entity), 'encounter actor');
+      const self = encounter === undefined ? ('spawnGroup' in binding ? actorIds[0] ?? 0 : 0) : requireValue(this.names.get(encounter.entity), 'encounter actor');
       if (self > 0 && !actorIds.includes(self)) throw new Error('Decision encounter does not own its actor');
       const bytes = requireValue(assets.get(row.module.slice('blobs/wasm/'.length, -'.wasm'.length)), 'module bytes');
       admitScriptContract(bytes, { abi: 1, pages: row.pages }); modules.set(row.module, bytes);
@@ -194,9 +197,13 @@ export class ShardDecisions {
     if (op === 10) return Number(this.sim.flags.has(this.name('flags', a)));
     if (op === 17) { if (a !== DECISION_PLAYER_HANDLE) throw new Error('Decision player kind'); this.name('flags', b); return Number(this.playerFlags.has(b)); }
     if (op === 14) return Number(this.inside(this.name('zones', a), DECISION_PLAYER_HANDLE));
-    if (op === 18) return Number(this.actor(a)?.alive ?? this.sim.player.health.alive);
+    if (op === 18) {
+      const name = this.name('spawns', a), members = this.spawnGroups.get(name) ?? [name];
+      return members.reduce((count, id) => count + Number(this.sim.entities.get(id)?.alive === true), 0);
+    }
     if (op === 9) {
       this.position(a); const binding = this.rows.find(row => row.id === _context?.script.id)?.binding;
+      if (_context !== undefined && this.sim.borrowedControls?.get(_context.script.id)?.calm === true) return 0;
       if (binding !== undefined && 'encounter' in binding) {
         const arena = requireValue(this.source.encounters.find(row => row.id === binding.encounter), 'encounter').arena;
         const player = this.sim.player.position;
@@ -337,7 +344,7 @@ export class ShardDecisions {
     for (const [index, row] of this.rows.entries()) {
       const binding = row.binding;
       const control = this.sim.borrowedControls?.get(row.id);
-      const active = control === undefined ? 'shard' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
+      const active = control === undefined ? 'shard' in binding || 'spawnGroup' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
         : 'quest' in binding ? (this.quest?.quests.some(value => value.def.id === binding.quest && value.isStarted && !value.isComplete) ?? false)
         : this.inside(binding.zone, DECISION_PLAYER_HANDLE)) : control.fighting;
       const id = index + 1;
@@ -406,7 +413,22 @@ export class ShardDecisions {
     for (const event of this.movers?.drainEndEvents() ?? []) { const signal = this.registries.signals?.get(event.mover); if (signal !== undefined) this.publish([13, signal, Number(event.atEnd), 0, 0, 0]); }
   }
   /** Existing combat/interactions feed this queue; events never execute Wasm synchronously. */
-  publish(event: ScriptV1Event): void { for (const [id, active] of this.enabled) if (active) this.host.enqueue(id, event); }
+  publish(event: ScriptV1Event): void {
+    for (const [id, active] of this.enabled) {
+      const row = this.rows[id - 1];
+      if (row !== undefined && 'spawnGroup' in row.binding && [7, 8, 9].includes(event[0])
+        && !Object.values(decisionBindingMap(row, this.registries).ids.actors ?? {}).includes(event[1])) continue;
+      if (active) this.host.enqueue(id, event);
+    }
+  }
+  /** A home replacement starts only its own logical stream; pack mates continue unchanged. */
+  restartActor(actor: string): void {
+    const handle = requireValue(this.names.get(actor), 'replacement actor');
+    const index = this.rows.findIndex(row => 'spawnGroup' in row.binding && Object.values(row.actors).includes(actor));
+    if (index === -1) throw new Error('Actor has no spawn-group binding');
+    this.stop(handle, true); this.host.restart(index + 1); this.enabled.set(index + 1, false);
+    for (const field of this.source.state.shared.filter(row => row.privacy === 'public' && row.type !== 'string')) this.writeField(handle, field.id, Number(field.default));
+  }
   /** Borrowed views observe the same runner the fixed-step combat owner updates. A view cannot start/cancel a strike. */
   strikeObservation(actor: string): DecisionStrikeObservation {
     const handle = requireValue(this.names.get(actor), 'strike observation actor');

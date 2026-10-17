@@ -208,6 +208,15 @@ export class DecisionHost {
     row.enabled = enabled;
     if (!enabled) { row.staged = null; row.timers.fill(0); }
   }
+  /** Reset a replaced actor's durable slots and stream without executing or resetting its module. */
+  restart(binding: number): void {
+    check(!this.busy, 'reentrant restart');
+    const row = this.row(binding);
+    row.enabled = false; row.staged = null; row.queue.clear(); row.timers.fill(0); row.nextTimers.fill(0);
+    row.rng = 0; row.nextRng = 0; row.lastCall = null; row.failures = 0; row.disabled = false;
+    for (const [index, slot] of row.script.state.entries()) row.values[index] = slotNumber(slot, slot.default);
+    row.next.set(row.values); row.commands.length = 0; row.observed.clear(); row.players.clear();
+  }
   enqueue(binding: number, event: ScriptV1Event): void {
     check(!this.busy || this.committing, 'reentrant enqueue');
     const row = this.row(binding), eventName = eventNames.get(event[0]);
