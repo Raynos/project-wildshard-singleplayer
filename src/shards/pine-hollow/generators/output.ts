@@ -29,7 +29,7 @@ import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES, PINE_MILL_DOOR } from
 import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,WIRE_SCHEMAS} from './sectionSchemas.generated';
+import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema} from './sectionSchemas.generated';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -59,7 +59,7 @@ const clientJson=emitNamedBlobs([
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(NATIVE_VIEW))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
   nameBlob('actors/grazers.json', 'json', new TextEncoder().encode(encodeCanonicalJson(grazers))),
-  nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cabinAmbienceRows()))),
+  nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows())))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS))),
   nameBlob('look/creature-clips.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ pose: THRALL_CLIPS, ...thrallLook }))),

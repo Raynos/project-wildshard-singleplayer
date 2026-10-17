@@ -5,6 +5,8 @@ import { HeldModelRowsSchema, HeldPresentationSchema, HeldBowDefinitionSchema } 
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
+const finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
+const point = { x:finite, y:finite, z:finite };
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const strings = v.pipe(v.array(text), v.maxLength(8192));
 const rect = v.tuple([number, number, number, number]);
@@ -62,6 +64,9 @@ const knifePart = v.strictObject({kind:v.picklist(['extrude','box','cylinder','s
   extrude:opt(v.strictObject({depth:number,bevelEnabled:flag,bevelThickness:number,bevelSize:number,bevelSegments:natural,curveSegments:natural}))});
 const knifeLook = v.strictObject({name:text,standIn:v.strictObject({roughness:number,metalness:number}),envMapIntensity:number,anisotropy:natural,
   loadDelayMs:natural,renderOrder:number,parts:v.pipe(v.array(knifePart),v.minLength(1),v.maxLength(32))});
+
+/** Cabin spatial facts are checked at emission and when the play hook reads the named product. */
+export const CabinAmbienceSchema = v.strictObject({ floors:v.pipe(v.array(v.strictObject({ ...point, rot:finite, hw:finite, hd:finite })),v.maxLength(128)), firePits:v.pipe(v.array(v.strictObject(point)),v.maxLength(16)) });
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
 export const SECTIONS = {

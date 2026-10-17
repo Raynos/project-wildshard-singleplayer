@@ -1,11 +1,11 @@
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
-import { SECTIONS } from './sections';
+import { SECTIONS, CabinAmbienceSchema } from './sections';
 import { preloadHeldGeometry, bakedHandRows, heldGeometry } from './boot/crossbowGeometry';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { runtimeAudio, installRuntimeAudioEntry } from '@wildshard/game/plugin/audio';
+import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { STRINGS } from '../strings';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
@@ -50,7 +50,6 @@ import { SkinKnife } from './models/skinningKnife';
 import { pineMemoryTrim } from './debug/options';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import * as v from 'valibot';
-import { installPineAudio, parseCabinAmbienceRows } from './audio/wiring';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { installWeather, loadPineRain } from '../world/weather';
@@ -196,7 +195,7 @@ export class PineHollow extends ShardPlugin {
     const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
-    const cabinAudio = parseCabinAmbienceRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/ambience.json'))));
+    const cabinAudio = v.parse(CabinAmbienceSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/ambience.json'))));
     if (cabins?.kit === null || cabins === null) { cabinAudio.floors = []; cabinAudio.firePits = []; }
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
@@ -262,7 +261,7 @@ export class PineHollow extends ShardPlugin {
     placePineHollowSets(registry);
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
-    await installPineAudio({context:ctx,game,audio,sky,music,ambience,animals,cabins,elites:fights.elites});
+    await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, doors: cabins, owners: { sky, animals, elites: fights.elites } });
     landmarks?.crags?.cave?.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave?.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
