@@ -6,13 +6,9 @@
 
 **Push discipline (for every session):** sp-x7 is the only pusher (G485). During its 14:36–15:10 safety hold (a Safari crash at DW Props, fixed in 87c717f31), origin still advanced 14:59–15:02 (c82dd929c, 016f28241, 538918559), carrying held lane commits. Please don't run push-main.sh from other sessions; land locally and sp-x7 carries it.
 
-**Lanes (G489: 7 building Codex + sp-x7 pusher while Opus is capped at 1; back to 5 after Monday's reset):**
-- sp-x4 elites + v0-prewarm director-only fix (deploy-critical: cold Pine GRID ABI admission).
-- sp-x5 DW Z2 adoption (host core e4666bfd5 landed; DW map slice next in the chain).
-- sp-x8 #11 keyed sky + weather. sp-x1 Sim road (part seven after-measure).
-- sp-x6 C1 static world: DW rocks, Pine props/hero/timber/cabin shells. sp-x10 C1: Pine crags/forest drawer + geography rasters.
-- sp-x9 Pine Z2 adoption (G488).
-- sp-x7 deploy only (G485). Pine map chain: x4 → x5 → x8 → x6 (clean-bake rule).
+**Lanes by component (G490; 7 building Codex + sp-x7 deploy; Opus cap 1 for C2/C3 boards):**
+- C1-DW sp-x5 · C1-Pine scenes sp-x9 · C1-Pine bakes sp-x10 (also the single map owner: one clean bake per batch window, no per-commit chain) · C2 looks sp-x4 · C4 creatures sp-x1 (after the Sim-road part eight) · C5 quests sp-x6 (after DW batch 2) · C9 glue sp-x8 (Z3, after keyed sky) · sp-x7 deploy only (G485).
+- Each lane owns its component's files in both shards; cross-component needs go to the owner. C3/C6/C7/C8 leftovers go to the first free lane.
 
 **Perf:** Sim floor p95 ≤ 35 ms: Sky passes; Pine, Nalati, DW travel 36–46 ms across runs (sp-x1 part six: zlib decode + microtasks, inflate pacing).
 
