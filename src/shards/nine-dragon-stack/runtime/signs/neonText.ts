@@ -1,8 +1,8 @@
-import type { NeonTextLook } from "../../data/signs";
 import {
-  BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, DataUtils, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType, Float16BufferAttribute, Float32BufferAttribute, Mesh, type IUniform, ShaderMaterial,
-  type ShaderMaterialParameters, Uint32BufferAttribute, Vector3,
+  BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, DataUtils, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType, Float16BufferAttribute, Float32BufferAttribute, type Material, Mesh,
+  Uint32BufferAttribute, Vector3,
 } from 'three';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import * as val from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { SignCalligraphy, SignLight } from './signAtlas';
@@ -46,25 +46,10 @@ export async function loadGlyphField(tier: 'phone' | 'desktop', files?: { readon
  *   boards: opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,
  *           four rivets; board sides;
  *   tubes:  additive: one quad per character sampling the glyph field's distance fields.
- * The look is a row (`NeonTextLook`); the shard supplies its shared uniforms (`uTime`, `uNear`), its noise and fog GLSL
- * and its additive blending.
+ * The look is data/lookGraphs.json's 'nine-neon-board' and 'nine-neon-tube' graphs (both fogged by the silk,
+ * 'nine-silk-fog'); this lends the tubes the glyph field and its spreads.
  * `emitters` feeds a shard's reflection cards and baked spill.
  */
-
-/** The neon's look, as data. */
-
-
-/** The shard's GLSL the programs splice in: `noise` defines `h11` and `vnoise`, `fog` defines `vec4 signFog(vec3 world)`
- *  (rgb: the fog's colour × its amount, a: what stays of the surface), `emitFog` the emissive fog exponent (a float). */
-export interface NeonTextGlsl { readonly noise: string; readonly fog: string; readonly emitFog: string }
-
-export interface NeonTextOptions {
-  readonly uniforms: Record<string, IUniform>;
-  readonly glsl: NeonTextGlsl;
-  /** the tubes' additive blending */
-  readonly blending: Partial<ShaderMaterialParameters>;
-  readonly look: NeonTextLook;
-}
 
 export interface NeonTextDef {
   text: string;
@@ -86,17 +71,6 @@ export interface NeonTextDef {
 }
 
 const MODE = { face: 0, side: 1 } as const;
-
-const FLICKER = /* glsl */ `
-uniform float uTime;
-float flick(float seed) {
-  if (seed <= 0.0) return 1.0;
-  float t = uTime * (0.9 + seed * 2.0) + seed * 57.0;
-  float n = h11(floor(t) + seed * 13.0);
-  float m = h11(floor(t * 14.0) + seed * 7.0);
-  return n < 0.3 ? (m < 0.5 ? 0.08 : 1.0) : 1.0;
-}
-`;
 
 class Batch {
   readonly pos: number[] = [];
@@ -154,168 +128,19 @@ class Batch {
   }
 }
 
-const VS_BOARD = /* glsl */ `
-attribute vec2 aUv;
-attribute vec2 aSize;
-attribute vec3 aTint;
-attribute vec4 aP;
-varying vec2 vUv;
-varying vec2 vSize;
-varying vec3 vTint;
-varying vec4 vP;
-varying vec3 vWorld;
-varying float vViewZ;
-void main() {
-  vUv = aUv; vSize = aSize; vTint = aTint; vP = aP;
-  vec4 wp = modelMatrix * vec4(position, 1.0);
-  vWorld = wp.xyz;
-  vec4 vp = viewMatrix * wp;
-  vViewZ = -vp.z;
-  gl_Position = projectionMatrix * vp;
-}
-`;
-const fsBoard = (g: NeonTextGlsl): string => /* glsl */ `
-${g.noise}
-${g.fog}
-${FLICKER}
-uniform vec4 uFrame;   // x: inset m, y: tube radius m, z: corner radius m, w: board lift (own-light tint)
-uniform vec3 uBoard;
-uniform float uNear;
-varying float vViewZ;
-varying vec2 vUv;
-varying vec2 vSize;
-varying vec3 vTint;
-varying vec4 vP;
-varying vec3 vWorld;
-float rrect(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
-void main() {
-  float mode = floor(vP.z + 0.5);
-  vec2 m = vUv * vSize;
-  vec3 D = uBoard;
-  vec3 E = vec3(0.0);
-  float fl = flick(vP.y);
-  vec2 e2 = min(vUv, 1.0 - vUv) * vSize;
-  float edge = min(e2.x, e2.y);
-  float few = max(fwidth(edge), 1e-5);
-  float inkEdge = 0.0;
-  if (mode < 0.5) {
-    float pk = abs(fract(m.x / 0.19) - 0.5) * 0.19;
-    float fpk = max(fwidth(m.x), 1e-5);
-    float plank = 1.0 - smoothstep(0.003, 0.003 + fpk * 1.5, pk);
-    float grime = vnoise(m * vec2(4.0, 28.0)) * 0.5 + vnoise(m * 1.7) * 0.5;
-    D = uBoard * (0.7 + 0.6 * grime) * (1.0 - 0.6 * plank * (1.0 - smoothstep(0.006, 0.02, fpk)));
-    D += vTint * uFrame.w * fl * (0.6 + 0.4 * grime);
-    vec2 c = m - vSize * 0.5;
-    float sd = rrect(c, vSize * 0.5 - uFrame.x, uFrame.z);
-    float ad = abs(sd);
-    float fw = max(fwidth(sd), 1e-5);
-    float tw = uFrame.y;
-    float tube = 1.0 - smoothstep(tw - fw, tw + fw, ad);
-    float rim = smoothstep(tw * 0.25, tw, ad);
-    vec3 core = mix(vTint, vec3(1.0), 0.5);
-    E = mix(core, vTint * 0.85, rim) * tube * vP.x * fl;
-    float glow = exp(-max(ad - tw, 0.0) / 0.04) * (1.0 - tube);
-    E += vTint * glow * 0.07 * vP.x * fl;
-    vec2 rv = abs(c) - (vSize * 0.5 - uFrame.x - 0.07);
-    float rivet = 1.0 - smoothstep(0.012, 0.012 + fw, length(rv));
-    D = mix(D, uBoard * 0.35, rivet);
-    inkEdge = 1.0 - smoothstep(0.012, 0.012 + few * 1.5, edge);
-  } else {
-    D = uBoard * 0.7 + vTint * uFrame.w * 0.3 * fl;
-  }
-  D = mix(D, uBoard * 0.25, inkEdge);
-  vec4 fg = signFog(vWorld);
-  // (a sign that cuts the fog keeps its dark board too, so its neon reads saturated against it, not pastel on mist)
-  float cl = vP.w * 0.6;
-  vec3 col = D * mix(fg.a, 1.0, cl) + fg.rgb * (1.0 - cl) + E * pow(max(fg.a, 1e-4), ${g.emitFog} * (1.0 - vP.w));
-  gl_FragColor = vec4(col, uNear / max(vViewZ, uNear));
-}
-`;
-
-const VS_TUBE = /* glsl */ `
-attribute vec2 aAtlas;
-attribute vec2 aQ;
-attribute vec3 aTint;
-attribute vec4 aP;
-varying vec2 vUv;
-varying vec2 vQ;
-varying vec3 vTint;
-varying vec4 vP;
-varying vec3 vWorld;
-void main() {
-  vUv = aAtlas; vQ = aQ; vTint = aTint; vP = aP;
-  vec4 wp = modelMatrix * vec4(position, 1.0);
-  vWorld = wp.xyz;
-  gl_Position = projectionMatrix * viewMatrix * wp;
-}
-`;
-const fsTube = (g: NeonTextGlsl): string => /* glsl */ `
-${g.noise}
-${g.fog}
-${FLICKER}
-uniform sampler2D uSdf;
-uniform vec4 uAtlas;  // x: font px, y: fill spread px, z: skeleton spread px, w: cell px
-uniform vec4 uTube;   // x: 0 brush fill … 1 monoline tube, y: tube radius (em), z: rim width (em), w: fill thicken (em)
-uniform vec4 uTube2;  // x: seam darkness, y: seam width (em), z: halo reach (em), w: halo gain
-varying vec2 vUv;
-varying vec2 vQ;
-varying vec3 vTint;
-varying vec4 vP;
-varying vec3 vWorld;
-void main() {
-  vec2 s = texture(uSdf, vUv).rg;
-  float dFill = (s.r - 0.5) * 2.0 * uAtlas.y / uAtlas.x + uTube.w;
-  float dSk = s.g * uAtlas.z / uAtlas.x;
-  float d = mix(dFill, uTube.y - dSk, uTube.x);
-  float w = max(fwidth(d), 1e-4) * 0.75;
-  float fill = smoothstep(-w, w, d);
-  float fk = pow(max(signFog(vWorld).a, 1e-4), 0.5 * (1.0 - vP.z));
-  float fl = flick(vP.y);
-  float rim = fill * (1.0 - smoothstep(uTube.z - w, uTube.z + w, d));
-  vec3 core = mix(vTint, vec3(1.0), 0.5);
-  vec3 tube = mix(core, vTint * 0.62, rim);
-  float seam = (1.0 - smoothstep(uTube2.y - w, uTube2.y + w, dSk)) * fill * (1.0 - rim);
-  tube *= 1.0 - seam * uTube2.x;
-  float out_ = max(-d, 0.0);
-  float reach = min(uTube2.z, uAtlas.y / uAtlas.x * 0.9);
-  float halo = exp(-out_ / (reach * 0.35)) * (1.0 - smoothstep(reach * 0.5, reach, out_)) * (1.0 - fill);
-  halo *= 1.0 - smoothstep(0.82, 1.0, max(abs(vQ.x), abs(vQ.y)));
-  vec3 E = (tube * fill + vTint * halo * uTube2.w) * vP.x * fl * fk;
-  gl_FragColor = vec4(E, 0.0);
-}
-`;
-
-
 export class NeonText implements SignCalligraphy {
   private readonly boards = new Batch();
   private readonly tubes = new Batch();
   readonly emitters: SignLight[] = [];
-  readonly boardMat: ShaderMaterial;
-  readonly tubeMat: ShaderMaterial;
+  /** the boards' look ('nine-neon-board') and the tubes' ('nine-neon-tube', additive) */
+  readonly boardMat: Material = lentLook('nine-neon-board');
+  readonly tubeMat: Material = lentLook('nine-neon-tube');
 
-  constructor(private readonly opts: NeonTextOptions, private readonly atlas: GlyphField) {
-    const u = opts.uniforms;
-    const L = opts.look;
-    this.boardMat = new ShaderMaterial({
-      uniforms: {
-        ...u,
-        uFrame: { value: [L.frameInset, L.frameRadius, L.frameCorner, L.boardLift] },
-        uBoard: { value: new Color(L.board) },
-      },
-      vertexShader: VS_BOARD, fragmentShader: fsBoard(opts.glsl),
-    });
-    this.tubeMat = new ShaderMaterial({
-      uniforms: {
-        ...u,
-        uSdf: { value: atlas.texture },
-        uAtlas: { value: [this.atlas.layout.fontPx, this.atlas.layout.spread, this.atlas.layout.skeletonSpread, this.atlas.layout.cell] },
-        uTube: { value: [L.mono, L.tubeRadius, L.rim, L.thicken] },
-        uTube2: { value: [L.seam, L.seamWidth, L.haloReach, L.haloGain] },
-      },
-      vertexShader: VS_TUBE, fragmentShader: fsTube(opts.glsl),
-      transparent: true, depthWrite: false,
-      ...opts.blending,
-    });
+  /** `fullGain`: the look's full glow gain */
+  constructor(private readonly fullGain: number, private readonly atlas: GlyphField) {
+    setLentTexture('nine-neon-tube', 'sdf', atlas.texture);
+    const { fontPx, spread, skeletonSpread } = atlas.layout;
+    setLentParam('nine-neon-tube', 'spread', [spread / fontPx, skeletonSpread / fontPx]);
   }
 
   /** the board's outer size for a sign (so callers can hang brackets) */
@@ -325,11 +150,11 @@ export class NeonText implements SignCalligraphy {
   }
 
   /** the look's full glow gain */
-  get gain(): number { return this.opts.look.gain; }
+  get gain(): number { return this.fullGain; }
 
   add(def: NeonTextDef): { w: number; h: number } {
     const { w, h, at, f, tint, gain } = this.draw(def, this.boards, this.tubes);
-    const k = (1.4 * gain) / this.opts.look.gain;
+    const k = (1.4 * gain) / this.fullGain;
     this.emitters.push({ at: at.clone().addScaledVector(f, 0.09 / 2), color: tint.clone(), w, h, power: k, spill: 0.3 * k });
     return { w, h };
   }
@@ -354,7 +179,7 @@ export class NeonText implements SignCalligraphy {
     const depth = 0.09;
     const at = def.at.clone();
     const tint = new Color(def.color);
-    const gain = def.gain ?? this.opts.look.gain;
+    const gain = def.gain ?? this.fullGain;
     const seed = def.flicker ?? 0;
     const two = def.twoSided === true;
     const clear = Math.min(1, Math.max(0, def.clear ?? 0));

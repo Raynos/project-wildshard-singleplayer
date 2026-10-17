@@ -44,8 +44,8 @@ import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../runtime/signs/signAtlas';
 import { KitSigns } from '../look/signs';
-import { NEON_LOOK, SIGN_COLOUR, SIGN_STYLES, type SignStyle } from '../data/signs';
-import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, Shared, jiehuaMaterial, neonMaterial } from '../look/style';
+import { SIGN_COLOUR, SIGN_MODEL, SIGN_STYLES, type SignStyle } from '../data/signs';
+import { Shared, jiehuaMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { signLayout, type NdTier } from '../tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
@@ -150,9 +150,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // ── the layout: the square, the towers, the Well ──
   const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...signLayout(tier), ...SIGN_COLOUR[tier] }, 'Nine Dragon sign atlas (GPU only)');
   const signs = new SignBuilder(atlas);
-  // the neon is fogged by the clean room's banded silk (FOG_GLSL), emissive at half strength
-  // the signs' programs place them with modelMatrix (page space); the fog reads the world's own frame (data/look.ts uRootAt)
-  const neonSigns = new NeonText({ uniforms: shared.u, glsl: { noise: NOISE_GLSL, fog: `${FOG_GLSL}\nuniform vec3 uRootAt;\n#define signFog(w) silkFog((w) - uRootAt, 1.0)\n`, emitFog: EMIT_FOG }, blending: ADD_KEEP_ALPHA, look: NEON_LOOK }, glyphs);
+  // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
+  const neonSigns = new NeonText(SIGN_MODEL.tubeGain, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
@@ -309,7 +308,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
-  const neon = neonMaterial(shared, atlas.textures);
+  // the sign atlas's lightboxes, lights and beacons: the 'nine-neon' look (data/lookGraphs.json), fogged by the silk
+  const neon = lentLook('nine-neon');
+  setLentTexture('nine-neon', 'mono', atlas.textures.mono);
+  setLentTexture('nine-neon', 'colour', atlas.textures.colour);
   nd.look.neon = { mat: neon, atlas };
   const movers = (model: ModelDef<object>, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(model, programs, { ctx: nd.ctx, parent: root, id, name: 'movers' });
   const running = [

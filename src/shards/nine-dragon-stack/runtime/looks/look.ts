@@ -1,4 +1,4 @@
-// 界画霓虹 Jiehua Neon: one program for all architecture plus the neon program. The
+// 界画霓虹 Jiehua Neon: one program for all architecture (the neon signs are the 'nine-neon' graph). The
 // architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
 //  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
 //    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
@@ -324,9 +324,6 @@ vec4 silkFog(vec3 wp, float scale) {
   }
   return vec4(acc, T);
 }
-// the neon lab's fog interface (their programs mix toward fogCol by fogAmt)
-float fogAmt(vec3 wp) { return 1.0 - silkFog(wp, 1.0).a; }
-vec3 fogCol(vec3 wp) { vec4 f = silkFog(wp, 1.0); return f.rgb / max(1.0 - f.a, 1e-3); }
 `;
 
 /** the silk ground under the fog and the sky: weave + slow blotches in screen space (they have no surface) */
@@ -901,84 +898,7 @@ void main() {
 }
 `;
 
-// ── neon signs: an SDF-free canvas atlas of hand-bent calligraphy; the board shows through where the tubes are not ──
-export const VS_NEON = /* glsl */ `
-attribute vec4 aNeon;
-attribute vec3 aTint;
-varying vec2 vUv;
-varying vec3 vWorld;
-varying vec3 vColor;
-varying vec3 vTint;
-flat varying vec4 vNeon;
-varying float vViewZ;
-uniform vec3 uRootAt;
-void main() {
-  vec4 wp = modelMatrix * vec4(position, 1.0);
-  wp.xyz -= uRootAt;
-  vWorld = wp.xyz;
-  vUv = uv;
-  vColor = color;
-  vTint = aTint;
-  vNeon = aNeon;
-  vec4 vp = viewMatrix * vec4(wp.xyz + uRootAt, 1.0);
-  vViewZ = -vp.z;
-  gl_Position = projectionMatrix * vp;
-}
-`;
-
-export const FS_NEON = /* glsl */ `
-uniform sampler2D uMono;
-uniform sampler2D uColour;
-uniform float uTime;
-uniform float uFogScale;
-uniform float uNeonGain;
-uniform float uNear;
-varying vec2 vUv;
-varying vec3 vWorld;
-varying vec3 vColor;
-varying vec3 vTint;
-flat varying vec4 vNeon;
-varying float vViewZ;
-${NOISE_GLSL}
-${FOG_GLSL}
-void main() {
-  float mode = floor(vNeon.w + 0.5);
-  float fl = 1.0;
-  if (vNeon.y > 0.0) {
-    float t = uTime * (1.3 + vNeon.y * 2.5) + vNeon.y * 91.7;
-    float nn = fract(sin(floor(t) * 12.9898 + vNeon.y * 78.233) * 43758.5453);
-    float mm = fract(sin(floor(t * 11.0) * 4.1 + vNeon.y * 3.0) * 31718.13);
-    fl = nn < 0.22 ? (mm < 0.55 ? 0.12 : 1.0) : 1.0;
-  }
-  vec3 E;
-  vec3 D;
-  if (mode < 0.5) {
-    float L = texture(uMono, vUv).r;
-    // the tube core carries the full HDR gain; the halo only a little (bloom paints the glow), so strokes stay legible
-    float core = smoothstep(0.62, 0.95, L);
-    float halo = L * (1.0 - core);
-    E = vTint * (core + halo * 0.16) * vNeon.x * fl * uNeonGain;
-    D = vColor * (1.0 - L) + vTint * halo * 0.25;
-  } else if (mode < 1.5) {
-    E = vTint * vNeon.x * fl * uNeonGain;
-    D = vec3(0.0);
-  } else if (mode < 2.5) {
-    float b = step(0.6, fract(uTime * 0.75 + vNeon.y));
-    E = vTint * vNeon.x * b;
-    D = vTint * 0.05;
-  } else {
-    vec4 t = texture(uColour, vUv);
-    D = mix(vColor, t.rgb, t.a);
-    E = t.rgb * t.a * max(vNeon.x - 1.0, 0.0);
-  }
-  vec4 fg = silkFog(vWorld, uFogScale);
-  vec3 outc = D * fg.a + fg.rgb + E * pow(max(fg.a, 1e-4), vNeon.z);
-  gl_FragColor = vec4(outc, uNear / max(vViewZ, uNear));
-}
-`;
-
 /** every program's row */
 export const PROGRAMS = {
   jiehua: { vertex: VS_JIEHUA, fragment: FS_JIEHUA, vertexColors: true, uniforms: { uFogScale: 1 } },
-  neon: { vertex: VS_NEON, fragment: FS_NEON, vertexColors: true, uniforms: { uFogScale: 1, uNeonGain: 1 } },
 } as const satisfies Readonly<Record<string, ShaderProgramRow>>;

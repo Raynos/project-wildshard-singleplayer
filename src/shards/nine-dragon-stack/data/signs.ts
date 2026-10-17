@@ -89,24 +89,10 @@ export interface SignAtlasLayout {
   readonly colourScale: number;
 }
 // Nine Dragon authoring row shapes; these declarations have no runtime dependency.
-/** Nine Dragon’s authored NeonTextLook row shape. */
-export interface NeonTextLook {
-  /** 0 brush fill ... 1 monoline tube */
-  readonly mono: number;
-  /** tube radius, rim width, fill thicken, seam darkness and width, halo reach (all em) and halo gain */
-  readonly tubeRadius: number; readonly rim: number; readonly thicken: number; readonly seam: number; readonly seamWidth: number;
-  readonly haloReach: number; readonly haloGain: number;
-  /** the board's frame tube: inset, tube radius, corner radius (m); the board's lift by its own light */
-  readonly frameInset: number; readonly frameRadius: number; readonly frameCorner: number; readonly boardLift: number;
-  /** the board's colour (sRGB hex) */
-  readonly board: number;
-  /** the full glow gain */
-  readonly gain: number;
-}
 // Nine Dragon's signs as rows on the SDK sign system (@wildshard/sdk/looks/signs): hand-bent neon calligraphy and
 // lightboxes in the mono atlas, gold-lettered plaques, paper strips, banners, the talisman and the blade's etch in the
-// colour atlas; the SDF neon's look; the atlases' sizes per tier. Real words (麵 牙科 火鍋 茶 藥房 旅館 …) in a Kai /
-// Song regular script.
+// colour atlas; the atlases' sizes per tier (the SDF neon's look: data/lookGraphs.json 'nine-neon-board' / '-tube').
+// Real words (麵 牙科 火鍋 茶 藥房 旅館 …) in a Kai / Song regular script.
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';
@@ -186,12 +172,6 @@ export const SIGN_STYLES: Readonly<Record<SignStyle, SignStyleRow>> = {
 export const SIGN_COLOUR: Readonly<Record<'phone' | 'desktop', Pick<SignAtlasLayout, 'colourUnit' | 'colourScale'>>> = {
   phone: { colourUnit: 36, colourScale: 0.5 },
   desktop: { colourUnit: 72, colourScale: 1 },
-};
-
-/** the SDF neon calligraphy's look */
-export const NEON_LOOK: NeonTextLook = {
-  mono: 0, tubeRadius: 0.05, rim: 0.024, thicken: 0.022, seam: 0.0, seamWidth: 0.008, haloReach: 0.12, haloGain: 0.22,
-  frameInset: 0.075, frameRadius: 0.016, frameCorner: 0.04, boardLift: 0.035, board: 0x34333a, gain: 4.2,
 };
 
 /** the sign model (models/signs.ts, @wildshard/sdk/looks/signModel): the calligraphy styles and their gain scale (a tube's

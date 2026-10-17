@@ -10466,5 +10466,3536 @@
     "colour": "sip"
    }
   }
+ },
+ "nine-neon": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 100,
+   "samplers": 2,
+   "instructions": 180
+  },
+  "effectState": {
+   "fog": "nine-silk-fog"
+  },
+  "params": {
+   "mono": {
+    "type": "texture",
+    "value": "nine-sign-mono",
+    "role": "lent"
+   },
+   "colour": {
+    "type": "texture",
+    "value": "nine-sign-colour",
+    "role": "lent"
+   }
+  },
+  "nodes": {
+   "n0": {
+    "op": "attribute",
+    "name": "aNeon",
+    "type": "vec4"
+   },
+   "n1": {
+    "op": "swizzle",
+    "in": [
+     "n0"
+    ],
+    "mask": "z"
+   },
+   "n2": {
+    "op": "uv"
+   },
+   "n3": {
+    "op": "attribute",
+    "name": "aNeon",
+    "type": "vec4"
+   },
+   "n4": {
+    "op": "attribute",
+    "name": "aTint",
+    "type": "vec3"
+   },
+   "n5": {
+    "op": "vertexColour"
+   },
+   "n6": {
+    "op": "swizzle",
+    "in": [
+     "n3"
+    ],
+    "mask": "x"
+   },
+   "n7": {
+    "op": "swizzle",
+    "in": [
+     "n3"
+    ],
+    "mask": "y"
+   },
+   "n8": {
+    "op": "swizzle",
+    "in": [
+     "n3"
+    ],
+    "mask": "w"
+   },
+   "n9": {
+    "op": "add",
+    "in": [
+     "n8",
+     0.5
+    ]
+   },
+   "na": {
+    "op": "floor",
+    "in": [
+     "n9"
+    ]
+   },
+   "nb": {
+    "op": "time"
+   },
+   "nc": {
+    "op": "mul",
+    "in": [
+     "n7",
+     2.5
+    ]
+   },
+   "nd": {
+    "op": "add",
+    "in": [
+     1.3,
+     "nc"
+    ]
+   },
+   "ne": {
+    "op": "mul",
+    "in": [
+     "nb",
+     "nd"
+    ]
+   },
+   "nf": {
+    "op": "mul",
+    "in": [
+     "n7",
+     91.7
+    ]
+   },
+   "ng": {
+    "op": "add",
+    "in": [
+     "ne",
+     "nf"
+    ]
+   },
+   "nh": {
+    "op": "floor",
+    "in": [
+     "ng"
+    ]
+   },
+   "ni": {
+    "op": "mul",
+    "in": [
+     "nh",
+     12.9898
+    ]
+   },
+   "nj": {
+    "op": "mul",
+    "in": [
+     "n7",
+     78.233
+    ]
+   },
+   "nk": {
+    "op": "add",
+    "in": [
+     "ni",
+     "nj"
+    ]
+   },
+   "nl": {
+    "op": "sin",
+    "in": [
+     "nk"
+    ]
+   },
+   "nm": {
+    "op": "mul",
+    "in": [
+     "nl",
+     43758.5453
+    ]
+   },
+   "nn": {
+    "op": "fract",
+    "in": [
+     "nm"
+    ]
+   },
+   "no": {
+    "op": "mul",
+    "in": [
+     "ng",
+     11
+    ]
+   },
+   "np": {
+    "op": "floor",
+    "in": [
+     "no"
+    ]
+   },
+   "nq": {
+    "op": "mul",
+    "in": [
+     "np",
+     4.1
+    ]
+   },
+   "nr": {
+    "op": "mul",
+    "in": [
+     "n7",
+     3
+    ]
+   },
+   "ns": {
+    "op": "add",
+    "in": [
+     "nq",
+     "nr"
+    ]
+   },
+   "nt": {
+    "op": "sin",
+    "in": [
+     "ns"
+    ]
+   },
+   "nu": {
+    "op": "mul",
+    "in": [
+     "nt",
+     31718.13
+    ]
+   },
+   "nv": {
+    "op": "fract",
+    "in": [
+     "nu"
+    ]
+   },
+   "nw": {
+    "op": "gt",
+    "in": [
+     "n7",
+     0
+    ]
+   },
+   "nx": {
+    "op": "lt",
+    "in": [
+     "nn",
+     0.22
+    ]
+   },
+   "ny": {
+    "op": "lt",
+    "in": [
+     "nv",
+     0.55
+    ]
+   },
+   "nz": {
+    "op": "select",
+    "in": [
+     "ny",
+     0.12,
+     1
+    ]
+   },
+   "n10": {
+    "op": "select",
+    "in": [
+     "nx",
+     "nz",
+     1
+    ]
+   },
+   "n11": {
+    "op": "select",
+    "in": [
+     "nw",
+     "n10",
+     1
+    ]
+   },
+   "n12": {
+    "op": "texture",
+    "in": [
+     "n2"
+    ],
+    "param": "mono"
+   },
+   "n13": {
+    "op": "swizzle",
+    "in": [
+     "n12"
+    ],
+    "mask": "x"
+   },
+   "n14": {
+    "op": "smoothstep",
+    "in": [
+     0.62,
+     0.95,
+     "n13"
+    ]
+   },
+   "n15": {
+    "op": "oneMinus",
+    "in": [
+     "n14"
+    ]
+   },
+   "n16": {
+    "op": "mul",
+    "in": [
+     "n13",
+     "n15"
+    ]
+   },
+   "n17": {
+    "op": "mul",
+    "in": [
+     "n16",
+     0.16
+    ]
+   },
+   "n18": {
+    "op": "add",
+    "in": [
+     "n14",
+     "n17"
+    ]
+   },
+   "n19": {
+    "op": "mul",
+    "in": [
+     "n4",
+     "n18"
+    ]
+   },
+   "n1a": {
+    "op": "mul",
+    "in": [
+     "n6",
+     "n11"
+    ]
+   },
+   "n1b": {
+    "op": "mul",
+    "in": [
+     "n19",
+     "n1a"
+    ]
+   },
+   "n1c": {
+    "op": "oneMinus",
+    "in": [
+     "n13"
+    ]
+   },
+   "n1d": {
+    "op": "mul",
+    "in": [
+     "n5",
+     "n1c"
+    ]
+   },
+   "n1e": {
+    "op": "mul",
+    "in": [
+     "n16",
+     0.25
+    ]
+   },
+   "n1f": {
+    "op": "mul",
+    "in": [
+     "n4",
+     "n1e"
+    ]
+   },
+   "n1g": {
+    "op": "add",
+    "in": [
+     "n1d",
+     "n1f"
+    ]
+   },
+   "n1h": {
+    "op": "add",
+    "in": [
+     "n1g",
+     "n1b"
+    ]
+   },
+   "n1i": {
+    "op": "mul",
+    "in": [
+     "n6",
+     "n11"
+    ]
+   },
+   "n1j": {
+    "op": "mul",
+    "in": [
+     "n4",
+     "n1i"
+    ]
+   },
+   "n1k": {
+    "op": "mul",
+    "in": [
+     "nb",
+     0.75
+    ]
+   },
+   "n1l": {
+    "op": "add",
+    "in": [
+     "n1k",
+     "n7"
+    ]
+   },
+   "n1m": {
+    "op": "fract",
+    "in": [
+     "n1l"
+    ]
+   },
+   "n1n": {
+    "op": "step",
+    "in": [
+     0.6,
+     "n1m"
+    ]
+   },
+   "n1o": {
+    "op": "mul",
+    "in": [
+     "n6",
+     "n1n"
+    ]
+   },
+   "n1p": {
+    "op": "mul",
+    "in": [
+     "n4",
+     "n1o"
+    ]
+   },
+   "n1q": {
+    "op": "mul",
+    "in": [
+     "n4",
+     0.05
+    ]
+   },
+   "n1r": {
+    "op": "add",
+    "in": [
+     "n1p",
+     "n1q"
+    ]
+   },
+   "n1s": {
+    "op": "texture",
+    "in": [
+     "n2"
+    ],
+    "param": "colour"
+   },
+   "n1t": {
+    "op": "swizzle",
+    "in": [
+     "n1s"
+    ],
+    "mask": "xyz"
+   },
+   "n1u": {
+    "op": "swizzle",
+    "in": [
+     "n1s"
+    ],
+    "mask": "w"
+   },
+   "n1v": {
+    "op": "mix",
+    "in": [
+     "n5",
+     "n1t",
+     "n1u"
+    ]
+   },
+   "n1w": {
+    "op": "mul",
+    "in": [
+     "n1t",
+     "n1u"
+    ]
+   },
+   "n1x": {
+    "op": "sub",
+    "in": [
+     "n6",
+     1
+    ]
+   },
+   "n1y": {
+    "op": "max",
+    "in": [
+     "n1x",
+     0
+    ]
+   },
+   "n1z": {
+    "op": "mul",
+    "in": [
+     "n1w",
+     "n1y"
+    ]
+   },
+   "n20": {
+    "op": "add",
+    "in": [
+     "n1v",
+     "n1z"
+    ]
+   },
+   "n21": {
+    "op": "lt",
+    "in": [
+     "na",
+     0.5
+    ]
+   },
+   "n22": {
+    "op": "lt",
+    "in": [
+     "na",
+     1.5
+    ]
+   },
+   "n23": {
+    "op": "lt",
+    "in": [
+     "na",
+     2.5
+    ]
+   },
+   "n24": {
+    "op": "select",
+    "in": [
+     "n23",
+     "n1r",
+     "n20"
+    ]
+   },
+   "n25": {
+    "op": "select",
+    "in": [
+     "n22",
+     "n1j",
+     "n24"
+    ]
+   },
+   "n26": {
+    "op": "select",
+    "in": [
+     "n21",
+     "n1h",
+     "n25"
+    ]
+   }
+  },
+  "stages": {
+   "vertex.scale": {
+    "fog": "n1"
+   },
+   "surface": {
+    "colour": "n26"
+   }
+  }
+ },
+ "nine-neon-board": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 320,
+   "samplers": 1,
+   "instructions": 520
+  },
+  "effectState": {
+   "fog": "nine-silk-fog"
+  },
+  "params": {
+   "frame": {
+    "type": "vec4",
+    "value": [
+     0.075,
+     0.016,
+     0.04,
+     0.035
+    ],
+    "min": 0,
+    "max": 1
+   },
+   "board": {
+    "type": "colour",
+    "value": [
+     0.203922,
+     0.2,
+     0.227451
+    ]
+   }
+  },
+  "nodes": {
+   "b0": {
+    "op": "attribute",
+    "name": "aP",
+    "type": "vec4"
+   },
+   "b1": {
+    "op": "swizzle",
+    "in": [
+     "b0"
+    ],
+    "mask": "w"
+   },
+   "b2": {
+    "op": "mul",
+    "in": [
+     "b1",
+     0.6
+    ]
+   },
+   "b3": {
+    "op": "sub",
+    "in": [
+     1,
+     "b2"
+    ]
+   },
+   "b4": {
+    "op": "attribute",
+    "name": "aUv",
+    "type": "vec2"
+   },
+   "b5": {
+    "op": "attribute",
+    "name": "aSize",
+    "type": "vec2"
+   },
+   "b6": {
+    "op": "attribute",
+    "name": "aTint",
+    "type": "vec3"
+   },
+   "b7": {
+    "op": "attribute",
+    "name": "aP",
+    "type": "vec4"
+   },
+   "b8": {
+    "op": "param",
+    "param": "frame"
+   },
+   "b9": {
+    "op": "param",
+    "param": "board"
+   },
+   "ba": {
+    "op": "swizzle",
+    "in": [
+     "b8"
+    ],
+    "mask": "x"
+   },
+   "bb": {
+    "op": "swizzle",
+    "in": [
+     "b8"
+    ],
+    "mask": "y"
+   },
+   "bc": {
+    "op": "swizzle",
+    "in": [
+     "b8"
+    ],
+    "mask": "z"
+   },
+   "bd": {
+    "op": "swizzle",
+    "in": [
+     "b8"
+    ],
+    "mask": "w"
+   },
+   "be": {
+    "op": "time"
+   },
+   "bf": {
+    "op": "swizzle",
+    "in": [
+     "b7"
+    ],
+    "mask": "z"
+   },
+   "bg": {
+    "op": "add",
+    "in": [
+     "bf",
+     0.5
+    ]
+   },
+   "bh": {
+    "op": "floor",
+    "in": [
+     "bg"
+    ]
+   },
+   "bi": {
+    "op": "mul",
+    "in": [
+     "b4",
+     "b5"
+    ]
+   },
+   "bj": {
+    "op": "swizzle",
+    "in": [
+     "b7"
+    ],
+    "mask": "y"
+   },
+   "bk": {
+    "op": "mul",
+    "in": [
+     "bj",
+     2
+    ]
+   },
+   "bl": {
+    "op": "add",
+    "in": [
+     0.9,
+     "bk"
+    ]
+   },
+   "bm": {
+    "op": "mul",
+    "in": [
+     "be",
+     "bl"
+    ]
+   },
+   "bn": {
+    "op": "mul",
+    "in": [
+     "bj",
+     57
+    ]
+   },
+   "bo": {
+    "op": "add",
+    "in": [
+     "bm",
+     "bn"
+    ]
+   },
+   "bp": {
+    "op": "floor",
+    "in": [
+     "bo"
+    ]
+   },
+   "bq": {
+    "op": "mul",
+    "in": [
+     "bj",
+     13
+    ]
+   },
+   "br": {
+    "op": "add",
+    "in": [
+     "bp",
+     "bq"
+    ]
+   },
+   "bs": {
+    "op": "mul",
+    "in": [
+     "br",
+     0.1031
+    ]
+   },
+   "bt": {
+    "op": "fract",
+    "in": [
+     "bs"
+    ]
+   },
+   "bu": {
+    "op": "add",
+    "in": [
+     "bt",
+     33.33
+    ]
+   },
+   "bv": {
+    "op": "mul",
+    "in": [
+     "bt",
+     "bu"
+    ]
+   },
+   "bw": {
+    "op": "add",
+    "in": [
+     "bv",
+     "bv"
+    ]
+   },
+   "bx": {
+    "op": "mul",
+    "in": [
+     "bv",
+     "bw"
+    ]
+   },
+   "by": {
+    "op": "fract",
+    "in": [
+     "bx"
+    ]
+   },
+   "bz": {
+    "op": "mul",
+    "in": [
+     "bo",
+     14
+    ]
+   },
+   "b10": {
+    "op": "floor",
+    "in": [
+     "bz"
+    ]
+   },
+   "b11": {
+    "op": "mul",
+    "in": [
+     "bj",
+     7
+    ]
+   },
+   "b12": {
+    "op": "add",
+    "in": [
+     "b10",
+     "b11"
+    ]
+   },
+   "b13": {
+    "op": "mul",
+    "in": [
+     "b12",
+     0.1031
+    ]
+   },
+   "b14": {
+    "op": "fract",
+    "in": [
+     "b13"
+    ]
+   },
+   "b15": {
+    "op": "add",
+    "in": [
+     "b14",
+     33.33
+    ]
+   },
+   "b16": {
+    "op": "mul",
+    "in": [
+     "b14",
+     "b15"
+    ]
+   },
+   "b17": {
+    "op": "add",
+    "in": [
+     "b16",
+     "b16"
+    ]
+   },
+   "b18": {
+    "op": "mul",
+    "in": [
+     "b16",
+     "b17"
+    ]
+   },
+   "b19": {
+    "op": "fract",
+    "in": [
+     "b18"
+    ]
+   },
+   "b1a": {
+    "op": "lte",
+    "in": [
+     "bj",
+     0
+    ]
+   },
+   "b1b": {
+    "op": "lt",
+    "in": [
+     "by",
+     0.3
+    ]
+   },
+   "b1c": {
+    "op": "lt",
+    "in": [
+     "b19",
+     0.5
+    ]
+   },
+   "b1d": {
+    "op": "select",
+    "in": [
+     "b1c",
+     0.08,
+     1
+    ]
+   },
+   "b1e": {
+    "op": "select",
+    "in": [
+     "b1b",
+     "b1d",
+     1
+    ]
+   },
+   "b1f": {
+    "op": "select",
+    "in": [
+     "b1a",
+     1,
+     "b1e"
+    ]
+   },
+   "b1g": {
+    "op": "oneMinus",
+    "in": [
+     "b4"
+    ]
+   },
+   "b1h": {
+    "op": "min",
+    "in": [
+     "b4",
+     "b1g"
+    ]
+   },
+   "b1i": {
+    "op": "mul",
+    "in": [
+     "b1h",
+     "b5"
+    ]
+   },
+   "b1j": {
+    "op": "swizzle",
+    "in": [
+     "b1i"
+    ],
+    "mask": "x"
+   },
+   "b1k": {
+    "op": "swizzle",
+    "in": [
+     "b1i"
+    ],
+    "mask": "y"
+   },
+   "b1l": {
+    "op": "min",
+    "in": [
+     "b1j",
+     "b1k"
+    ]
+   },
+   "b1m": {
+    "op": "fwidth",
+    "in": [
+     "b1l"
+    ]
+   },
+   "b1n": {
+    "op": "max",
+    "in": [
+     "b1m",
+     0.00001
+    ]
+   },
+   "b1o": {
+    "op": "swizzle",
+    "in": [
+     "bi"
+    ],
+    "mask": "x"
+   },
+   "b1p": {
+    "op": "div",
+    "in": [
+     "b1o",
+     0.19
+    ]
+   },
+   "b1q": {
+    "op": "fract",
+    "in": [
+     "b1p"
+    ]
+   },
+   "b1r": {
+    "op": "sub",
+    "in": [
+     "b1q",
+     0.5
+    ]
+   },
+   "b1s": {
+    "op": "abs",
+    "in": [
+     "b1r"
+    ]
+   },
+   "b1t": {
+    "op": "mul",
+    "in": [
+     "b1s",
+     0.19
+    ]
+   },
+   "b1u": {
+    "op": "fwidth",
+    "in": [
+     "b1o"
+    ]
+   },
+   "b1v": {
+    "op": "max",
+    "in": [
+     "b1u",
+     0.00001
+    ]
+   },
+   "b1w": {
+    "op": "mul",
+    "in": [
+     "b1v",
+     1.5
+    ]
+   },
+   "b1x": {
+    "op": "add",
+    "in": [
+     0.003,
+     "b1w"
+    ]
+   },
+   "b1y": {
+    "op": "smoothstep",
+    "in": [
+     0.003,
+     "b1x",
+     "b1t"
+    ]
+   },
+   "b1z": {
+    "op": "oneMinus",
+    "in": [
+     "b1y"
+    ]
+   },
+   "b20": {
+    "op": "mul",
+    "in": [
+     "bi",
+     [
+      4,
+      28
+     ]
+    ]
+   },
+   "b21": {
+    "op": "floor",
+    "in": [
+     "b20"
+    ]
+   },
+   "b22": {
+    "op": "fract",
+    "in": [
+     "b20"
+    ]
+   },
+   "b23": {
+    "op": "mul",
+    "in": [
+     "b22",
+     "b22"
+    ]
+   },
+   "b24": {
+    "op": "mul",
+    "in": [
+     2,
+     "b22"
+    ]
+   },
+   "b25": {
+    "op": "sub",
+    "in": [
+     3,
+     "b24"
+    ]
+   },
+   "b26": {
+    "op": "mul",
+    "in": [
+     "b23",
+     "b25"
+    ]
+   },
+   "b27": {
+    "op": "swizzle",
+    "in": [
+     "b26"
+    ],
+    "mask": "x"
+   },
+   "b28": {
+    "op": "swizzle",
+    "in": [
+     "b26"
+    ],
+    "mask": "y"
+   },
+   "b29": {
+    "op": "swizzle",
+    "in": [
+     "b21"
+    ],
+    "mask": "xyx"
+   },
+   "b2a": {
+    "op": "mul",
+    "in": [
+     "b29",
+     0.1031
+    ]
+   },
+   "b2b": {
+    "op": "fract",
+    "in": [
+     "b2a"
+    ]
+   },
+   "b2c": {
+    "op": "swizzle",
+    "in": [
+     "b2b"
+    ],
+    "mask": "yzx"
+   },
+   "b2d": {
+    "op": "add",
+    "in": [
+     "b2c",
+     33.33
+    ]
+   },
+   "b2e": {
+    "op": "dot",
+    "in": [
+     "b2b",
+     "b2d"
+    ]
+   },
+   "b2f": {
+    "op": "add",
+    "in": [
+     "b2b",
+     "b2e"
+    ]
+   },
+   "b2g": {
+    "op": "swizzle",
+    "in": [
+     "b2f"
+    ],
+    "mask": "x"
+   },
+   "b2h": {
+    "op": "swizzle",
+    "in": [
+     "b2f"
+    ],
+    "mask": "y"
+   },
+   "b2i": {
+    "op": "add",
+    "in": [
+     "b2g",
+     "b2h"
+    ]
+   },
+   "b2j": {
+    "op": "swizzle",
+    "in": [
+     "b2f"
+    ],
+    "mask": "z"
+   },
+   "b2k": {
+    "op": "mul",
+    "in": [
+     "b2i",
+     "b2j"
+    ]
+   },
+   "b2l": {
+    "op": "fract",
+    "in": [
+     "b2k"
+    ]
+   },
+   "b2m": {
+    "op": "add",
+    "in": [
+     "b21",
+     [
+      1,
+      0
+     ]
+    ]
+   },
+   "b2n": {
+    "op": "swizzle",
+    "in": [
+     "b2m"
+    ],
+    "mask": "xyx"
+   },
+   "b2o": {
+    "op": "mul",
+    "in": [
+     "b2n",
+     0.1031
+    ]
+   },
+   "b2p": {
+    "op": "fract",
+    "in": [
+     "b2o"
+    ]
+   },
+   "b2q": {
+    "op": "swizzle",
+    "in": [
+     "b2p"
+    ],
+    "mask": "yzx"
+   },
+   "b2r": {
+    "op": "add",
+    "in": [
+     "b2q",
+     33.33
+    ]
+   },
+   "b2s": {
+    "op": "dot",
+    "in": [
+     "b2p",
+     "b2r"
+    ]
+   },
+   "b2t": {
+    "op": "add",
+    "in": [
+     "b2p",
+     "b2s"
+    ]
+   },
+   "b2u": {
+    "op": "swizzle",
+    "in": [
+     "b2t"
+    ],
+    "mask": "x"
+   },
+   "b2v": {
+    "op": "swizzle",
+    "in": [
+     "b2t"
+    ],
+    "mask": "y"
+   },
+   "b2w": {
+    "op": "add",
+    "in": [
+     "b2u",
+     "b2v"
+    ]
+   },
+   "b2x": {
+    "op": "swizzle",
+    "in": [
+     "b2t"
+    ],
+    "mask": "z"
+   },
+   "b2y": {
+    "op": "mul",
+    "in": [
+     "b2w",
+     "b2x"
+    ]
+   },
+   "b2z": {
+    "op": "fract",
+    "in": [
+     "b2y"
+    ]
+   },
+   "b30": {
+    "op": "add",
+    "in": [
+     "b21",
+     [
+      0,
+      1
+     ]
+    ]
+   },
+   "b31": {
+    "op": "swizzle",
+    "in": [
+     "b30"
+    ],
+    "mask": "xyx"
+   },
+   "b32": {
+    "op": "mul",
+    "in": [
+     "b31",
+     0.1031
+    ]
+   },
+   "b33": {
+    "op": "fract",
+    "in": [
+     "b32"
+    ]
+   },
+   "b34": {
+    "op": "swizzle",
+    "in": [
+     "b33"
+    ],
+    "mask": "yzx"
+   },
+   "b35": {
+    "op": "add",
+    "in": [
+     "b34",
+     33.33
+    ]
+   },
+   "b36": {
+    "op": "dot",
+    "in": [
+     "b33",
+     "b35"
+    ]
+   },
+   "b37": {
+    "op": "add",
+    "in": [
+     "b33",
+     "b36"
+    ]
+   },
+   "b38": {
+    "op": "swizzle",
+    "in": [
+     "b37"
+    ],
+    "mask": "x"
+   },
+   "b39": {
+    "op": "swizzle",
+    "in": [
+     "b37"
+    ],
+    "mask": "y"
+   },
+   "b3a": {
+    "op": "add",
+    "in": [
+     "b38",
+     "b39"
+    ]
+   },
+   "b3b": {
+    "op": "swizzle",
+    "in": [
+     "b37"
+    ],
+    "mask": "z"
+   },
+   "b3c": {
+    "op": "mul",
+    "in": [
+     "b3a",
+     "b3b"
+    ]
+   },
+   "b3d": {
+    "op": "fract",
+    "in": [
+     "b3c"
+    ]
+   },
+   "b3e": {
+    "op": "add",
+    "in": [
+     "b21",
+     [
+      1,
+      1
+     ]
+    ]
+   },
+   "b3f": {
+    "op": "swizzle",
+    "in": [
+     "b3e"
+    ],
+    "mask": "xyx"
+   },
+   "b3g": {
+    "op": "mul",
+    "in": [
+     "b3f",
+     0.1031
+    ]
+   },
+   "b3h": {
+    "op": "fract",
+    "in": [
+     "b3g"
+    ]
+   },
+   "b3i": {
+    "op": "swizzle",
+    "in": [
+     "b3h"
+    ],
+    "mask": "yzx"
+   },
+   "b3j": {
+    "op": "add",
+    "in": [
+     "b3i",
+     33.33
+    ]
+   },
+   "b3k": {
+    "op": "dot",
+    "in": [
+     "b3h",
+     "b3j"
+    ]
+   },
+   "b3l": {
+    "op": "add",
+    "in": [
+     "b3h",
+     "b3k"
+    ]
+   },
+   "b3m": {
+    "op": "swizzle",
+    "in": [
+     "b3l"
+    ],
+    "mask": "x"
+   },
+   "b3n": {
+    "op": "swizzle",
+    "in": [
+     "b3l"
+    ],
+    "mask": "y"
+   },
+   "b3o": {
+    "op": "add",
+    "in": [
+     "b3m",
+     "b3n"
+    ]
+   },
+   "b3p": {
+    "op": "swizzle",
+    "in": [
+     "b3l"
+    ],
+    "mask": "z"
+   },
+   "b3q": {
+    "op": "mul",
+    "in": [
+     "b3o",
+     "b3p"
+    ]
+   },
+   "b3r": {
+    "op": "fract",
+    "in": [
+     "b3q"
+    ]
+   },
+   "b3s": {
+    "op": "mix",
+    "in": [
+     "b2l",
+     "b2z",
+     "b27"
+    ]
+   },
+   "b3t": {
+    "op": "mix",
+    "in": [
+     "b3d",
+     "b3r",
+     "b27"
+    ]
+   },
+   "b3u": {
+    "op": "mix",
+    "in": [
+     "b3s",
+     "b3t",
+     "b28"
+    ]
+   },
+   "b3v": {
+    "op": "mul",
+    "in": [
+     "b3u",
+     0.5
+    ]
+   },
+   "b3w": {
+    "op": "mul",
+    "in": [
+     "bi",
+     1.7
+    ]
+   },
+   "b3x": {
+    "op": "floor",
+    "in": [
+     "b3w"
+    ]
+   },
+   "b3y": {
+    "op": "fract",
+    "in": [
+     "b3w"
+    ]
+   },
+   "b3z": {
+    "op": "mul",
+    "in": [
+     "b3y",
+     "b3y"
+    ]
+   },
+   "b40": {
+    "op": "mul",
+    "in": [
+     2,
+     "b3y"
+    ]
+   },
+   "b41": {
+    "op": "sub",
+    "in": [
+     3,
+     "b40"
+    ]
+   },
+   "b42": {
+    "op": "mul",
+    "in": [
+     "b3z",
+     "b41"
+    ]
+   },
+   "b43": {
+    "op": "swizzle",
+    "in": [
+     "b42"
+    ],
+    "mask": "x"
+   },
+   "b44": {
+    "op": "swizzle",
+    "in": [
+     "b42"
+    ],
+    "mask": "y"
+   },
+   "b45": {
+    "op": "swizzle",
+    "in": [
+     "b3x"
+    ],
+    "mask": "xyx"
+   },
+   "b46": {
+    "op": "mul",
+    "in": [
+     "b45",
+     0.1031
+    ]
+   },
+   "b47": {
+    "op": "fract",
+    "in": [
+     "b46"
+    ]
+   },
+   "b48": {
+    "op": "swizzle",
+    "in": [
+     "b47"
+    ],
+    "mask": "yzx"
+   },
+   "b49": {
+    "op": "add",
+    "in": [
+     "b48",
+     33.33
+    ]
+   },
+   "b4a": {
+    "op": "dot",
+    "in": [
+     "b47",
+     "b49"
+    ]
+   },
+   "b4b": {
+    "op": "add",
+    "in": [
+     "b47",
+     "b4a"
+    ]
+   },
+   "b4c": {
+    "op": "swizzle",
+    "in": [
+     "b4b"
+    ],
+    "mask": "x"
+   },
+   "b4d": {
+    "op": "swizzle",
+    "in": [
+     "b4b"
+    ],
+    "mask": "y"
+   },
+   "b4e": {
+    "op": "add",
+    "in": [
+     "b4c",
+     "b4d"
+    ]
+   },
+   "b4f": {
+    "op": "swizzle",
+    "in": [
+     "b4b"
+    ],
+    "mask": "z"
+   },
+   "b4g": {
+    "op": "mul",
+    "in": [
+     "b4e",
+     "b4f"
+    ]
+   },
+   "b4h": {
+    "op": "fract",
+    "in": [
+     "b4g"
+    ]
+   },
+   "b4i": {
+    "op": "add",
+    "in": [
+     "b3x",
+     [
+      1,
+      0
+     ]
+    ]
+   },
+   "b4j": {
+    "op": "swizzle",
+    "in": [
+     "b4i"
+    ],
+    "mask": "xyx"
+   },
+   "b4k": {
+    "op": "mul",
+    "in": [
+     "b4j",
+     0.1031
+    ]
+   },
+   "b4l": {
+    "op": "fract",
+    "in": [
+     "b4k"
+    ]
+   },
+   "b4m": {
+    "op": "swizzle",
+    "in": [
+     "b4l"
+    ],
+    "mask": "yzx"
+   },
+   "b4n": {
+    "op": "add",
+    "in": [
+     "b4m",
+     33.33
+    ]
+   },
+   "b4o": {
+    "op": "dot",
+    "in": [
+     "b4l",
+     "b4n"
+    ]
+   },
+   "b4p": {
+    "op": "add",
+    "in": [
+     "b4l",
+     "b4o"
+    ]
+   },
+   "b4q": {
+    "op": "swizzle",
+    "in": [
+     "b4p"
+    ],
+    "mask": "x"
+   },
+   "b4r": {
+    "op": "swizzle",
+    "in": [
+     "b4p"
+    ],
+    "mask": "y"
+   },
+   "b4s": {
+    "op": "add",
+    "in": [
+     "b4q",
+     "b4r"
+    ]
+   },
+   "b4t": {
+    "op": "swizzle",
+    "in": [
+     "b4p"
+    ],
+    "mask": "z"
+   },
+   "b4u": {
+    "op": "mul",
+    "in": [
+     "b4s",
+     "b4t"
+    ]
+   },
+   "b4v": {
+    "op": "fract",
+    "in": [
+     "b4u"
+    ]
+   },
+   "b4w": {
+    "op": "add",
+    "in": [
+     "b3x",
+     [
+      0,
+      1
+     ]
+    ]
+   },
+   "b4x": {
+    "op": "swizzle",
+    "in": [
+     "b4w"
+    ],
+    "mask": "xyx"
+   },
+   "b4y": {
+    "op": "mul",
+    "in": [
+     "b4x",
+     0.1031
+    ]
+   },
+   "b4z": {
+    "op": "fract",
+    "in": [
+     "b4y"
+    ]
+   },
+   "b50": {
+    "op": "swizzle",
+    "in": [
+     "b4z"
+    ],
+    "mask": "yzx"
+   },
+   "b51": {
+    "op": "add",
+    "in": [
+     "b50",
+     33.33
+    ]
+   },
+   "b52": {
+    "op": "dot",
+    "in": [
+     "b4z",
+     "b51"
+    ]
+   },
+   "b53": {
+    "op": "add",
+    "in": [
+     "b4z",
+     "b52"
+    ]
+   },
+   "b54": {
+    "op": "swizzle",
+    "in": [
+     "b53"
+    ],
+    "mask": "x"
+   },
+   "b55": {
+    "op": "swizzle",
+    "in": [
+     "b53"
+    ],
+    "mask": "y"
+   },
+   "b56": {
+    "op": "add",
+    "in": [
+     "b54",
+     "b55"
+    ]
+   },
+   "b57": {
+    "op": "swizzle",
+    "in": [
+     "b53"
+    ],
+    "mask": "z"
+   },
+   "b58": {
+    "op": "mul",
+    "in": [
+     "b56",
+     "b57"
+    ]
+   },
+   "b59": {
+    "op": "fract",
+    "in": [
+     "b58"
+    ]
+   },
+   "b5a": {
+    "op": "add",
+    "in": [
+     "b3x",
+     [
+      1,
+      1
+     ]
+    ]
+   },
+   "b5b": {
+    "op": "swizzle",
+    "in": [
+     "b5a"
+    ],
+    "mask": "xyx"
+   },
+   "b5c": {
+    "op": "mul",
+    "in": [
+     "b5b",
+     0.1031
+    ]
+   },
+   "b5d": {
+    "op": "fract",
+    "in": [
+     "b5c"
+    ]
+   },
+   "b5e": {
+    "op": "swizzle",
+    "in": [
+     "b5d"
+    ],
+    "mask": "yzx"
+   },
+   "b5f": {
+    "op": "add",
+    "in": [
+     "b5e",
+     33.33
+    ]
+   },
+   "b5g": {
+    "op": "dot",
+    "in": [
+     "b5d",
+     "b5f"
+    ]
+   },
+   "b5h": {
+    "op": "add",
+    "in": [
+     "b5d",
+     "b5g"
+    ]
+   },
+   "b5i": {
+    "op": "swizzle",
+    "in": [
+     "b5h"
+    ],
+    "mask": "x"
+   },
+   "b5j": {
+    "op": "swizzle",
+    "in": [
+     "b5h"
+    ],
+    "mask": "y"
+   },
+   "b5k": {
+    "op": "add",
+    "in": [
+     "b5i",
+     "b5j"
+    ]
+   },
+   "b5l": {
+    "op": "swizzle",
+    "in": [
+     "b5h"
+    ],
+    "mask": "z"
+   },
+   "b5m": {
+    "op": "mul",
+    "in": [
+     "b5k",
+     "b5l"
+    ]
+   },
+   "b5n": {
+    "op": "fract",
+    "in": [
+     "b5m"
+    ]
+   },
+   "b5o": {
+    "op": "mix",
+    "in": [
+     "b4h",
+     "b4v",
+     "b43"
+    ]
+   },
+   "b5p": {
+    "op": "mix",
+    "in": [
+     "b59",
+     "b5n",
+     "b43"
+    ]
+   },
+   "b5q": {
+    "op": "mix",
+    "in": [
+     "b5o",
+     "b5p",
+     "b44"
+    ]
+   },
+   "b5r": {
+    "op": "mul",
+    "in": [
+     "b5q",
+     0.5
+    ]
+   },
+   "b5s": {
+    "op": "add",
+    "in": [
+     "b3v",
+     "b5r"
+    ]
+   },
+   "b5t": {
+    "op": "mul",
+    "in": [
+     0.6,
+     "b5s"
+    ]
+   },
+   "b5u": {
+    "op": "add",
+    "in": [
+     0.7,
+     "b5t"
+    ]
+   },
+   "b5v": {
+    "op": "mul",
+    "in": [
+     "b9",
+     "b5u"
+    ]
+   },
+   "b5w": {
+    "op": "mul",
+    "in": [
+     0.6,
+     "b1z"
+    ]
+   },
+   "b5x": {
+    "op": "smoothstep",
+    "in": [
+     0.006,
+     0.02,
+     "b1v"
+    ]
+   },
+   "b5y": {
+    "op": "oneMinus",
+    "in": [
+     "b5x"
+    ]
+   },
+   "b5z": {
+    "op": "mul",
+    "in": [
+     "b5w",
+     "b5y"
+    ]
+   },
+   "b60": {
+    "op": "sub",
+    "in": [
+     1,
+     "b5z"
+    ]
+   },
+   "b61": {
+    "op": "mul",
+    "in": [
+     "b5v",
+     "b60"
+    ]
+   },
+   "b62": {
+    "op": "mul",
+    "in": [
+     "bd",
+     "b1f"
+    ]
+   },
+   "b63": {
+    "op": "mul",
+    "in": [
+     "b6",
+     "b62"
+    ]
+   },
+   "b64": {
+    "op": "mul",
+    "in": [
+     0.4,
+     "b5s"
+    ]
+   },
+   "b65": {
+    "op": "add",
+    "in": [
+     0.6,
+     "b64"
+    ]
+   },
+   "b66": {
+    "op": "mul",
+    "in": [
+     "b63",
+     "b65"
+    ]
+   },
+   "b67": {
+    "op": "add",
+    "in": [
+     "b61",
+     "b66"
+    ]
+   },
+   "b68": {
+    "op": "mul",
+    "in": [
+     "b5",
+     0.5
+    ]
+   },
+   "b69": {
+    "op": "sub",
+    "in": [
+     "bi",
+     "b68"
+    ]
+   },
+   "b6a": {
+    "op": "abs",
+    "in": [
+     "b69"
+    ]
+   },
+   "b6b": {
+    "op": "mul",
+    "in": [
+     "b5",
+     0.5
+    ]
+   },
+   "b6c": {
+    "op": "sub",
+    "in": [
+     "b6b",
+     "ba"
+    ]
+   },
+   "b6d": {
+    "op": "sub",
+    "in": [
+     "b6a",
+     "b6c"
+    ]
+   },
+   "b6e": {
+    "op": "add",
+    "in": [
+     "b6d",
+     "bc"
+    ]
+   },
+   "b6f": {
+    "op": "max",
+    "in": [
+     "b6e",
+     0
+    ]
+   },
+   "b6g": {
+    "op": "length",
+    "in": [
+     "b6f"
+    ]
+   },
+   "b6h": {
+    "op": "swizzle",
+    "in": [
+     "b6e"
+    ],
+    "mask": "x"
+   },
+   "b6i": {
+    "op": "swizzle",
+    "in": [
+     "b6e"
+    ],
+    "mask": "y"
+   },
+   "b6j": {
+    "op": "max",
+    "in": [
+     "b6h",
+     "b6i"
+    ]
+   },
+   "b6k": {
+    "op": "min",
+    "in": [
+     "b6j",
+     0
+    ]
+   },
+   "b6l": {
+    "op": "add",
+    "in": [
+     "b6g",
+     "b6k"
+    ]
+   },
+   "b6m": {
+    "op": "sub",
+    "in": [
+     "b6l",
+     "bc"
+    ]
+   },
+   "b6n": {
+    "op": "abs",
+    "in": [
+     "b6m"
+    ]
+   },
+   "b6o": {
+    "op": "fwidth",
+    "in": [
+     "b6m"
+    ]
+   },
+   "b6p": {
+    "op": "max",
+    "in": [
+     "b6o",
+     0.00001
+    ]
+   },
+   "b6q": {
+    "op": "sub",
+    "in": [
+     "bb",
+     "b6p"
+    ]
+   },
+   "b6r": {
+    "op": "add",
+    "in": [
+     "bb",
+     "b6p"
+    ]
+   },
+   "b6s": {
+    "op": "smoothstep",
+    "in": [
+     "b6q",
+     "b6r",
+     "b6n"
+    ]
+   },
+   "b6t": {
+    "op": "oneMinus",
+    "in": [
+     "b6s"
+    ]
+   },
+   "b6u": {
+    "op": "mul",
+    "in": [
+     "bb",
+     0.25
+    ]
+   },
+   "b6v": {
+    "op": "smoothstep",
+    "in": [
+     "b6u",
+     "bb",
+     "b6n"
+    ]
+   },
+   "b6w": {
+    "op": "mix",
+    "in": [
+     "b6",
+     [
+      1,
+      1,
+      1
+     ],
+     0.5
+    ]
+   },
+   "b6x": {
+    "op": "swizzle",
+    "in": [
+     "b7"
+    ],
+    "mask": "x"
+   },
+   "b6y": {
+    "op": "mul",
+    "in": [
+     "b6x",
+     "b1f"
+    ]
+   },
+   "b6z": {
+    "op": "mul",
+    "in": [
+     "b6",
+     0.85
+    ]
+   },
+   "b70": {
+    "op": "mix",
+    "in": [
+     "b6w",
+     "b6z",
+     "b6v"
+    ]
+   },
+   "b71": {
+    "op": "mul",
+    "in": [
+     "b70",
+     "b6t"
+    ]
+   },
+   "b72": {
+    "op": "mul",
+    "in": [
+     "b71",
+     "b6y"
+    ]
+   },
+   "b73": {
+    "op": "sub",
+    "in": [
+     "b6n",
+     "bb"
+    ]
+   },
+   "b74": {
+    "op": "max",
+    "in": [
+     "b73",
+     0
+    ]
+   },
+   "b75": {
+    "op": "div",
+    "in": [
+     "b74",
+     0.04
+    ]
+   },
+   "b76": {
+    "op": "negate",
+    "in": [
+     "b75"
+    ]
+   },
+   "b77": {
+    "op": "exp",
+    "in": [
+     "b76"
+    ]
+   },
+   "b78": {
+    "op": "oneMinus",
+    "in": [
+     "b6t"
+    ]
+   },
+   "b79": {
+    "op": "mul",
+    "in": [
+     "b77",
+     "b78"
+    ]
+   },
+   "b7a": {
+    "op": "mul",
+    "in": [
+     "b79",
+     0.07
+    ]
+   },
+   "b7b": {
+    "op": "mul",
+    "in": [
+     "b6",
+     "b7a"
+    ]
+   },
+   "b7c": {
+    "op": "mul",
+    "in": [
+     "b7b",
+     "b6y"
+    ]
+   },
+   "b7d": {
+    "op": "add",
+    "in": [
+     "b72",
+     "b7c"
+    ]
+   },
+   "b7e": {
+    "op": "abs",
+    "in": [
+     "b69"
+    ]
+   },
+   "b7f": {
+    "op": "mul",
+    "in": [
+     "b5",
+     0.5
+    ]
+   },
+   "b7g": {
+    "op": "sub",
+    "in": [
+     "b7f",
+     "ba"
+    ]
+   },
+   "b7h": {
+    "op": "sub",
+    "in": [
+     "b7g",
+     0.07
+    ]
+   },
+   "b7i": {
+    "op": "sub",
+    "in": [
+     "b7e",
+     "b7h"
+    ]
+   },
+   "b7j": {
+    "op": "add",
+    "in": [
+     0.012,
+     "b6p"
+    ]
+   },
+   "b7k": {
+    "op": "length",
+    "in": [
+     "b7i"
+    ]
+   },
+   "b7l": {
+    "op": "smoothstep",
+    "in": [
+     0.012,
+     "b7j",
+     "b7k"
+    ]
+   },
+   "b7m": {
+    "op": "oneMinus",
+    "in": [
+     "b7l"
+    ]
+   },
+   "b7n": {
+    "op": "mul",
+    "in": [
+     "b9",
+     0.35
+    ]
+   },
+   "b7o": {
+    "op": "mix",
+    "in": [
+     "b67",
+     "b7n",
+     "b7m"
+    ]
+   },
+   "b7p": {
+    "op": "mul",
+    "in": [
+     "b1n",
+     1.5
+    ]
+   },
+   "b7q": {
+    "op": "add",
+    "in": [
+     0.012,
+     "b7p"
+    ]
+   },
+   "b7r": {
+    "op": "smoothstep",
+    "in": [
+     0.012,
+     "b7q",
+     "b1l"
+    ]
+   },
+   "b7s": {
+    "op": "oneMinus",
+    "in": [
+     "b7r"
+    ]
+   },
+   "b7t": {
+    "op": "mul",
+    "in": [
+     "b9",
+     0.25
+    ]
+   },
+   "b7u": {
+    "op": "mix",
+    "in": [
+     "b7o",
+     "b7t",
+     "b7s"
+    ]
+   },
+   "b7v": {
+    "op": "add",
+    "in": [
+     "b7u",
+     "b7d"
+    ]
+   },
+   "b7w": {
+    "op": "mul",
+    "in": [
+     "b9",
+     0.7
+    ]
+   },
+   "b7x": {
+    "op": "mul",
+    "in": [
+     "bd",
+     0.3
+    ]
+   },
+   "b7y": {
+    "op": "mul",
+    "in": [
+     "b7x",
+     "b1f"
+    ]
+   },
+   "b7z": {
+    "op": "mul",
+    "in": [
+     "b6",
+     "b7y"
+    ]
+   },
+   "b80": {
+    "op": "add",
+    "in": [
+     "b7w",
+     "b7z"
+    ]
+   },
+   "b81": {
+    "op": "lt",
+    "in": [
+     "bh",
+     0.5
+    ]
+   },
+   "b82": {
+    "op": "select",
+    "in": [
+     "b81",
+     "b7v",
+     "b80"
+    ]
+   }
+  },
+  "stages": {
+   "vertex.scale": {
+    "fog": "b3"
+   },
+   "surface": {
+    "colour": "b82"
+   }
+  }
+ },
+ "nine-neon-tube": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 150,
+   "samplers": 1,
+   "instructions": 240
+  },
+  "effectState": {
+   "blend": "additive",
+   "depthWrite": false,
+   "fog": "nine-silk-fog"
+  },
+  "params": {
+   "sdf": {
+    "type": "texture",
+    "value": "nine-glyph-field",
+    "role": "lent"
+   },
+   "spread": {
+    "type": "vec2",
+    "value": [
+     0.195652,
+     0.282609
+    ],
+    "min": 0,
+    "max": 4
+   },
+   "tube": {
+    "type": "vec4",
+    "value": [
+     0,
+     0.05,
+     0.024,
+     0.022
+    ],
+    "min": 0,
+    "max": 1
+   },
+   "tube2": {
+    "type": "vec4",
+    "value": [
+     0,
+     0.008,
+     0.12,
+     0.22
+    ],
+    "min": 0,
+    "max": 1
+   }
+  },
+  "nodes": {
+   "c0": {
+    "op": "attribute",
+    "name": "aP",
+    "type": "vec4"
+   },
+   "c1": {
+    "op": "swizzle",
+    "in": [
+     "c0"
+    ],
+    "mask": "z"
+   },
+   "c2": {
+    "op": "oneMinus",
+    "in": [
+     "c1"
+    ]
+   },
+   "c3": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "c2"
+    ]
+   },
+   "c4": {
+    "op": "attribute",
+    "name": "aAtlas",
+    "type": "vec2"
+   },
+   "c5": {
+    "op": "attribute",
+    "name": "aQ",
+    "type": "vec2"
+   },
+   "c6": {
+    "op": "attribute",
+    "name": "aTint",
+    "type": "vec3"
+   },
+   "c7": {
+    "op": "attribute",
+    "name": "aP",
+    "type": "vec4"
+   },
+   "c8": {
+    "op": "param",
+    "param": "spread"
+   },
+   "c9": {
+    "op": "param",
+    "param": "tube"
+   },
+   "ca": {
+    "op": "param",
+    "param": "tube2"
+   },
+   "cb": {
+    "op": "time"
+   },
+   "cc": {
+    "op": "texture",
+    "in": [
+     "c4"
+    ],
+    "param": "sdf"
+   },
+   "cd": {
+    "op": "swizzle",
+    "in": [
+     "c8"
+    ],
+    "mask": "x"
+   },
+   "ce": {
+    "op": "swizzle",
+    "in": [
+     "c8"
+    ],
+    "mask": "y"
+   },
+   "cf": {
+    "op": "swizzle",
+    "in": [
+     "cc"
+    ],
+    "mask": "x"
+   },
+   "cg": {
+    "op": "sub",
+    "in": [
+     "cf",
+     0.5
+    ]
+   },
+   "ch": {
+    "op": "mul",
+    "in": [
+     "cg",
+     2
+    ]
+   },
+   "ci": {
+    "op": "mul",
+    "in": [
+     "ch",
+     "cd"
+    ]
+   },
+   "cj": {
+    "op": "swizzle",
+    "in": [
+     "c9"
+    ],
+    "mask": "w"
+   },
+   "ck": {
+    "op": "add",
+    "in": [
+     "ci",
+     "cj"
+    ]
+   },
+   "cl": {
+    "op": "swizzle",
+    "in": [
+     "cc"
+    ],
+    "mask": "y"
+   },
+   "cm": {
+    "op": "mul",
+    "in": [
+     "cl",
+     "ce"
+    ]
+   },
+   "cn": {
+    "op": "swizzle",
+    "in": [
+     "c9"
+    ],
+    "mask": "y"
+   },
+   "co": {
+    "op": "sub",
+    "in": [
+     "cn",
+     "cm"
+    ]
+   },
+   "cp": {
+    "op": "swizzle",
+    "in": [
+     "c9"
+    ],
+    "mask": "x"
+   },
+   "cq": {
+    "op": "mix",
+    "in": [
+     "ck",
+     "co",
+     "cp"
+    ]
+   },
+   "cr": {
+    "op": "fwidth",
+    "in": [
+     "cq"
+    ]
+   },
+   "cs": {
+    "op": "max",
+    "in": [
+     "cr",
+     0.0001
+    ]
+   },
+   "ct": {
+    "op": "mul",
+    "in": [
+     "cs",
+     0.75
+    ]
+   },
+   "cu": {
+    "op": "negate",
+    "in": [
+     "ct"
+    ]
+   },
+   "cv": {
+    "op": "smoothstep",
+    "in": [
+     "cu",
+     "ct",
+     "cq"
+    ]
+   },
+   "cw": {
+    "op": "swizzle",
+    "in": [
+     "c7"
+    ],
+    "mask": "y"
+   },
+   "cx": {
+    "op": "mul",
+    "in": [
+     "cw",
+     2
+    ]
+   },
+   "cy": {
+    "op": "add",
+    "in": [
+     0.9,
+     "cx"
+    ]
+   },
+   "cz": {
+    "op": "mul",
+    "in": [
+     "cb",
+     "cy"
+    ]
+   },
+   "c10": {
+    "op": "mul",
+    "in": [
+     "cw",
+     57
+    ]
+   },
+   "c11": {
+    "op": "add",
+    "in": [
+     "cz",
+     "c10"
+    ]
+   },
+   "c12": {
+    "op": "floor",
+    "in": [
+     "c11"
+    ]
+   },
+   "c13": {
+    "op": "mul",
+    "in": [
+     "cw",
+     13
+    ]
+   },
+   "c14": {
+    "op": "add",
+    "in": [
+     "c12",
+     "c13"
+    ]
+   },
+   "c15": {
+    "op": "mul",
+    "in": [
+     "c14",
+     0.1031
+    ]
+   },
+   "c16": {
+    "op": "fract",
+    "in": [
+     "c15"
+    ]
+   },
+   "c17": {
+    "op": "add",
+    "in": [
+     "c16",
+     33.33
+    ]
+   },
+   "c18": {
+    "op": "mul",
+    "in": [
+     "c16",
+     "c17"
+    ]
+   },
+   "c19": {
+    "op": "add",
+    "in": [
+     "c18",
+     "c18"
+    ]
+   },
+   "c1a": {
+    "op": "mul",
+    "in": [
+     "c18",
+     "c19"
+    ]
+   },
+   "c1b": {
+    "op": "fract",
+    "in": [
+     "c1a"
+    ]
+   },
+   "c1c": {
+    "op": "mul",
+    "in": [
+     "c11",
+     14
+    ]
+   },
+   "c1d": {
+    "op": "floor",
+    "in": [
+     "c1c"
+    ]
+   },
+   "c1e": {
+    "op": "mul",
+    "in": [
+     "cw",
+     7
+    ]
+   },
+   "c1f": {
+    "op": "add",
+    "in": [
+     "c1d",
+     "c1e"
+    ]
+   },
+   "c1g": {
+    "op": "mul",
+    "in": [
+     "c1f",
+     0.1031
+    ]
+   },
+   "c1h": {
+    "op": "fract",
+    "in": [
+     "c1g"
+    ]
+   },
+   "c1i": {
+    "op": "add",
+    "in": [
+     "c1h",
+     33.33
+    ]
+   },
+   "c1j": {
+    "op": "mul",
+    "in": [
+     "c1h",
+     "c1i"
+    ]
+   },
+   "c1k": {
+    "op": "add",
+    "in": [
+     "c1j",
+     "c1j"
+    ]
+   },
+   "c1l": {
+    "op": "mul",
+    "in": [
+     "c1j",
+     "c1k"
+    ]
+   },
+   "c1m": {
+    "op": "fract",
+    "in": [
+     "c1l"
+    ]
+   },
+   "c1n": {
+    "op": "lte",
+    "in": [
+     "cw",
+     0
+    ]
+   },
+   "c1o": {
+    "op": "lt",
+    "in": [
+     "c1b",
+     0.3
+    ]
+   },
+   "c1p": {
+    "op": "lt",
+    "in": [
+     "c1m",
+     0.5
+    ]
+   },
+   "c1q": {
+    "op": "select",
+    "in": [
+     "c1p",
+     0.08,
+     1
+    ]
+   },
+   "c1r": {
+    "op": "select",
+    "in": [
+     "c1o",
+     "c1q",
+     1
+    ]
+   },
+   "c1s": {
+    "op": "select",
+    "in": [
+     "c1n",
+     1,
+     "c1r"
+    ]
+   },
+   "c1t": {
+    "op": "swizzle",
+    "in": [
+     "c9"
+    ],
+    "mask": "z"
+   },
+   "c1u": {
+    "op": "sub",
+    "in": [
+     "c1t",
+     "ct"
+    ]
+   },
+   "c1v": {
+    "op": "add",
+    "in": [
+     "c1t",
+     "ct"
+    ]
+   },
+   "c1w": {
+    "op": "smoothstep",
+    "in": [
+     "c1u",
+     "c1v",
+     "cq"
+    ]
+   },
+   "c1x": {
+    "op": "oneMinus",
+    "in": [
+     "c1w"
+    ]
+   },
+   "c1y": {
+    "op": "mul",
+    "in": [
+     "cv",
+     "c1x"
+    ]
+   },
+   "c1z": {
+    "op": "mix",
+    "in": [
+     "c6",
+     [
+      1,
+      1,
+      1
+     ],
+     0.5
+    ]
+   },
+   "c20": {
+    "op": "swizzle",
+    "in": [
+     "ca"
+    ],
+    "mask": "y"
+   },
+   "c21": {
+    "op": "sub",
+    "in": [
+     "c20",
+     "ct"
+    ]
+   },
+   "c22": {
+    "op": "add",
+    "in": [
+     "c20",
+     "ct"
+    ]
+   },
+   "c23": {
+    "op": "smoothstep",
+    "in": [
+     "c21",
+     "c22",
+     "cm"
+    ]
+   },
+   "c24": {
+    "op": "oneMinus",
+    "in": [
+     "c23"
+    ]
+   },
+   "c25": {
+    "op": "mul",
+    "in": [
+     "c24",
+     "cv"
+    ]
+   },
+   "c26": {
+    "op": "oneMinus",
+    "in": [
+     "c1y"
+    ]
+   },
+   "c27": {
+    "op": "mul",
+    "in": [
+     "c25",
+     "c26"
+    ]
+   },
+   "c28": {
+    "op": "mul",
+    "in": [
+     "c6",
+     0.62
+    ]
+   },
+   "c29": {
+    "op": "mix",
+    "in": [
+     "c1z",
+     "c28",
+     "c1y"
+    ]
+   },
+   "c2a": {
+    "op": "swizzle",
+    "in": [
+     "ca"
+    ],
+    "mask": "x"
+   },
+   "c2b": {
+    "op": "mul",
+    "in": [
+     "c27",
+     "c2a"
+    ]
+   },
+   "c2c": {
+    "op": "oneMinus",
+    "in": [
+     "c2b"
+    ]
+   },
+   "c2d": {
+    "op": "mul",
+    "in": [
+     "c29",
+     "c2c"
+    ]
+   },
+   "c2e": {
+    "op": "negate",
+    "in": [
+     "cq"
+    ]
+   },
+   "c2f": {
+    "op": "max",
+    "in": [
+     "c2e",
+     0
+    ]
+   },
+   "c2g": {
+    "op": "swizzle",
+    "in": [
+     "ca"
+    ],
+    "mask": "z"
+   },
+   "c2h": {
+    "op": "mul",
+    "in": [
+     "cd",
+     0.9
+    ]
+   },
+   "c2i": {
+    "op": "min",
+    "in": [
+     "c2g",
+     "c2h"
+    ]
+   },
+   "c2j": {
+    "op": "mul",
+    "in": [
+     "c2i",
+     0.35
+    ]
+   },
+   "c2k": {
+    "op": "div",
+    "in": [
+     "c2f",
+     "c2j"
+    ]
+   },
+   "c2l": {
+    "op": "negate",
+    "in": [
+     "c2k"
+    ]
+   },
+   "c2m": {
+    "op": "exp",
+    "in": [
+     "c2l"
+    ]
+   },
+   "c2n": {
+    "op": "mul",
+    "in": [
+     "c2i",
+     0.5
+    ]
+   },
+   "c2o": {
+    "op": "smoothstep",
+    "in": [
+     "c2n",
+     "c2i",
+     "c2f"
+    ]
+   },
+   "c2p": {
+    "op": "oneMinus",
+    "in": [
+     "c2o"
+    ]
+   },
+   "c2q": {
+    "op": "mul",
+    "in": [
+     "c2m",
+     "c2p"
+    ]
+   },
+   "c2r": {
+    "op": "oneMinus",
+    "in": [
+     "cv"
+    ]
+   },
+   "c2s": {
+    "op": "mul",
+    "in": [
+     "c2q",
+     "c2r"
+    ]
+   },
+   "c2t": {
+    "op": "abs",
+    "in": [
+     "c5"
+    ]
+   },
+   "c2u": {
+    "op": "swizzle",
+    "in": [
+     "c2t"
+    ],
+    "mask": "x"
+   },
+   "c2v": {
+    "op": "swizzle",
+    "in": [
+     "c2t"
+    ],
+    "mask": "y"
+   },
+   "c2w": {
+    "op": "max",
+    "in": [
+     "c2u",
+     "c2v"
+    ]
+   },
+   "c2x": {
+    "op": "smoothstep",
+    "in": [
+     0.82,
+     1,
+     "c2w"
+    ]
+   },
+   "c2y": {
+    "op": "oneMinus",
+    "in": [
+     "c2x"
+    ]
+   },
+   "c2z": {
+    "op": "mul",
+    "in": [
+     "c2s",
+     "c2y"
+    ]
+   },
+   "c30": {
+    "op": "mul",
+    "in": [
+     "c2d",
+     "cv"
+    ]
+   },
+   "c31": {
+    "op": "swizzle",
+    "in": [
+     "ca"
+    ],
+    "mask": "w"
+   },
+   "c32": {
+    "op": "mul",
+    "in": [
+     "c2z",
+     "c31"
+    ]
+   },
+   "c33": {
+    "op": "mul",
+    "in": [
+     "c6",
+     "c32"
+    ]
+   },
+   "c34": {
+    "op": "add",
+    "in": [
+     "c30",
+     "c33"
+    ]
+   },
+   "c35": {
+    "op": "swizzle",
+    "in": [
+     "c7"
+    ],
+    "mask": "x"
+   },
+   "c36": {
+    "op": "mul",
+    "in": [
+     "c35",
+     "c1s"
+    ]
+   },
+   "c37": {
+    "op": "mul",
+    "in": [
+     "c34",
+     "c36"
+    ]
+   },
+   "c38": {
+    "op": "swizzle",
+    "in": [
+     "c37"
+    ],
+    "mask": "x"
+   },
+   "c39": {
+    "op": "swizzle",
+    "in": [
+     "c37"
+    ],
+    "mask": "y"
+   },
+   "c3a": {
+    "op": "max",
+    "in": [
+     "c38",
+     "c39"
+    ]
+   },
+   "c3b": {
+    "op": "swizzle",
+    "in": [
+     "c37"
+    ],
+    "mask": "z"
+   },
+   "c3c": {
+    "op": "max",
+    "in": [
+     "c3a",
+     "c3b"
+    ]
+   },
+   "c3d": {
+    "op": "saturate",
+    "in": [
+     "c3c"
+    ]
+   },
+   "c3e": {
+    "op": "max",
+    "in": [
+     "c3d",
+     0.0001
+    ]
+   },
+   "c3f": {
+    "op": "div",
+    "in": [
+     "c37",
+     "c3e"
+    ]
+   }
+  },
+  "stages": {
+   "vertex.scale": {
+    "fog": "c3"
+   },
+   "surface": {
+    "colour": "c3f",
+    "alpha": "c3d"
+   }
+  }
  }
 }

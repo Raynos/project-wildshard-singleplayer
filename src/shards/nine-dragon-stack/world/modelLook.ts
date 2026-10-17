@@ -19,8 +19,8 @@ export interface NdLook {
   facade: { readonly mat: ShaderMaterial; readonly small: ShaderMaterial } | null;
   /** the paper lanterns' program (look/lanterns.ts) */
   lantern: ShaderMaterial | null;
-  /** the neon program over the sign atlas (the drones' lights) and the atlas */
-  neon: { readonly mat: ShaderMaterial; readonly atlas: SignAtlasView<SignStyle> } | null;
+  /** the 'nine-neon' look over the sign atlas (the drones' lights) and the atlas */
+  neon: { readonly mat: Material; readonly atlas: SignAtlasView<SignStyle> } | null;
   /** meshoptimizer is ready (../runtime/cull/meshLod `lodReady`): the sculpts' distance LODs are simplified copies; else a sculpt's
    *  LOD is its own full geometry, which the fragment's culler leaves out */
   canLod: boolean;
@@ -32,7 +32,7 @@ export interface NdLook {
   /** the banyan's painted canopy programs (world/canopy.ts `buildCanopy`: its core, its cards, the cards' depth pass;
    *  null while unbuilt, or when the leaf atlas failed and the tree stands bare) */
   canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
-  /** the neon calligraphy (@wildshard/sdk/looks/neonText over data/signs.ts NEON_LOOK: its glyph field and its board / tube programs), the neon sign's specimen */
+  /** the neon calligraphy (runtime/signs/neonText: its glyph field and its board / tube looks), the neon sign's specimen */
   calligraphy: NeonTextView | null;
   /** G285: the code-built models' baked geometry (world/specimens.ts): what the page builds at load, loaded with the layout */
   specimens: SpecimenBake | null;

@@ -5436,8 +5436,11 @@ costed under its own budget and adds to each selecting program.
 `materialGraphRules` refuses a selection that names no inline fog graph.
 Users: Nalati's painted fog `nalati-fog` (the grass, water and puddles;
 `look/fog.ts syncPaintedFog` writes the air and tint each frame) and Nine
-Dragon's silk fog `nine-silk-fog` (the Well's mist sheets; `look/render.ts`
-writes the shared rows at every eye write).
+Dragon's silk fog `nine-silk-fog` (the Well's mist sheets and the neon:
+the sign atlas's `nine-neon`, the calligraphy's `nine-neon-board` and
+additive `nine-neon-tube`, each passing its emitters' fog share as
+`vertex.scale.fog`; `look/render.ts` writes the shared rows at every eye
+write).
 
 `engine/audio/interactSfx.InteractSfx.bindEvents(rows, ports)` preflights
 bounded first-match kit-event presentation. Selectors match event types,
