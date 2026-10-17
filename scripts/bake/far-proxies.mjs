@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM SF23: deterministically regenerate every grid shard's far proxy (public/assets/baked/<slug>/far.glb +
 // far.json) from its height grid and its own far look; prints each proxy's resident MB, wire KB and triangles.
-// G348: the shards are the ones that declare a far row in their own `data/placeholder.ts` (look, and a grid or model
+// G348: the shards are the ones that declare a far row in their own `data/placeholder.json` (look, and a grid or model
 // parts when their land is not a height field); the baker is the SDK's (`@wildshard/sdk/bake/placeholders`), the same
 // one `wildshard build` runs for any shardfile. No shard table lives here.
 // SF49: a shard whose land is models (floating islands) merges them in decimated; this runner hands it the SDK's model

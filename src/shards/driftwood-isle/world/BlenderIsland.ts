@@ -41,7 +41,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
 import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
-import { WORLD_DROP } from './sea';
+import sea from '../boot/sea.generated.json' with { type: 'json' };
 import { smallRock } from '../runtime/models/shoreBoulder';
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { driftwoodRows } from '../runtime/boot/rows';
@@ -58,6 +58,8 @@ import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+
+const { WORLD_DROP } = sea;
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** the tier's cover share and reaches (data/islandRows.ts) */

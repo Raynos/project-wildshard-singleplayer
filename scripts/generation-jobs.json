@@ -3,6 +3,38 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "driftwood-interactables",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-interactables.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-interactables.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-interactables.mjs",
+        "src/shards/driftwood-isle/generators/interactables.ts",
+        "scripts/bake-output.mjs",
+        "src/shards/driftwood-isle/generators/sea.ts",
+        "src/shards/driftwood-isle/data/entryRows.ts",
+        "src/sdk/bake/source-loader.mjs"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/interactables.generated.json",
+        "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
+        "src/shards/driftwood-isle/boot/sea.generated.json",
+        "src/shards/driftwood-isle/boot/sea.generated.d.json.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/interactables.generated.json",
+        "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
+        "src/shards/driftwood-isle/boot/sea.generated.json",
+        "src/shards/driftwood-isle/boot/sea.generated.d.json.ts"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "nalati-layout",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-layout.mjs",
@@ -66,7 +98,7 @@
         "src/engine",
         "src/game",
         "src/format",
-        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/shards/driftwood-isle/generators/interactables.ts",
         "src/shards/driftwood-isle-legacy/quest/interactables.ts",
         "src/shards/pine-hollow/generators/questTable.ts",
         "src/shards/pine-hollow/generators/interactions.ts",
@@ -112,7 +144,7 @@
         "src/shards/driftwood-isle/generators/bake-specimens.mjs",
         "scripts/bake-output.mjs",
         "src/shards/driftwood-isle/data/trailCatalogue.json",
-        "src/shards/driftwood-isle/data/trailParams.ts"
+        "src/shards/driftwood-isle/generators/trailParams.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/specimens.generated.json",
@@ -671,7 +703,7 @@
         "src/shards/driftwood-isle/generators/economy.ts",
         "src/shards/driftwood-isle/generators/finds.ts",
         "src/shards/driftwood-isle/generators/discovery.ts",
-        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/shards/driftwood-isle/generators/interactables.ts",
         "src/shards/driftwood-isle/data/keepsakes.json"
       ],
       "outputs": [
@@ -865,7 +897,7 @@
         "src/shards/driftwood-isle/generators/groundField.ts",
         "src/shards/driftwood-isle/generators/landscape.ts",
         "src/shards/driftwood-isle/generators/landscapeNoise.ts",
-        "src/shards/driftwood-isle/data/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
         "src/shards/driftwood-isle/manifest.json",
         "src/format/contentBounds.ts",
         "src/format/bakedTerrainBytes.ts",
@@ -1000,8 +1032,8 @@
         "src/shards/driftwood-isle/generators/items.ts",
         "src/shards/driftwood-isle/generators/nativeInventory.ts",
         "src/shards/driftwood-isle/generators/questInventory.ts",
-        "src/shards/driftwood-isle/data/interactables.ts",
-        "src/shards/driftwood-isle/data/questStory.ts",
+        "src/shards/driftwood-isle/generators/interactables.ts",
+        "src/shards/driftwood-isle/generators/questConstants.ts",
         "src/shards/driftwood-isle/generators/meleeProfile.ts"
       ],
       "outputs": [
@@ -4835,7 +4867,7 @@
         "src/sdk/bake/terrain.ts",
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
         "src/shards/driftwood-isle/data/physicsRows.json",
         "src/shards/driftwood-isle/generators/groundField.ts",
         "src/shards/driftwood-isle/generators/groundRows.ts",
@@ -11035,7 +11067,7 @@
         "src/sdk/bake/terrain.ts",
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
         "src/shards/driftwood-isle/generators/bake-driftwood-ground.mjs",
         "src/shards/driftwood-isle/generators/groundField.ts",
         "src/shards/driftwood-isle/generators/groundRows.ts",
@@ -11297,7 +11329,7 @@
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
         "src/shards/driftwood-isle/data/entryRows.ts",
-        "src/shards/driftwood-isle/data/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
         "src/shards/driftwood-isle/generators/entryDeck.ts",
         "src/shards/driftwood-isle/generators/groundField.ts",
         "src/shards/driftwood-isle/generators/groundRows.ts",
@@ -16272,8 +16304,8 @@
         "src/shards/driftwood-isle/generators/questNpcs.ts",
         "src/shards/driftwood-isle/generators/questHost.ts",
         "src/shards/driftwood-isle/generators/questGraph.ts",
-        "src/shards/driftwood-isle/data/questStory.ts",
-        "src/shards/driftwood-isle/data/interactables.ts",
+        "src/shards/driftwood-isle/generators/questConstants.ts",
+        "src/shards/driftwood-isle/generators/interactables.ts",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/quests.ts",

@@ -18,7 +18,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { OCEAN } from '../world/sites';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_KIT_EVENTS } from '../data/questEvents';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
+import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import { installAdventureInteractables } from './interactLifetime';
 import { installPlaces } from './Places';
 import { installSpine, ownEnteredTree, type Spine } from './Spine';
@@ -34,6 +34,8 @@ import { installEcology } from './Ecology';
 import type { RespawnQueue } from '../runtime/ecology';
 import { Zipline } from '../world/Zipline';
 import { ironSwordGuard, SWORD_GUARDED } from './guards';
+
+const { SEA_GLASS_COUNT, SEA_GLASS_FLAG } = interactables;
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }

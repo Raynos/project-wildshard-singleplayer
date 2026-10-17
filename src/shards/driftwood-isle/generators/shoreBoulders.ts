@@ -1,8 +1,8 @@
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { SEED, WORLD_DROP, SHORE_LEVEL } from '../data/landscapeRows';
-import { WRECK_SITES } from '../data/wreckSites';
+import { SEED, WORLD_DROP, SHORE_LEVEL } from './landscapeRows';
+import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { driftwoodGroundBytes } from './groundRows';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }

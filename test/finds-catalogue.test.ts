@@ -3,7 +3,7 @@ import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
 import type { OwnedId } from '../src/game/loot/Owned';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
-import { SHARD_FLAGS } from '../src/shards/driftwood-isle/data/interactables';
+import { SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
 import { FINDS_ELITES, elitePrize, nalatiFinds } from '../src/shards/nalati-grasslands/bag';
 import { NALATI_ELITE_DEFS } from '../src/shards/nalati-grasslands/data/eliteEncounters';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };

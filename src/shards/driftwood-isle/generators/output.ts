@@ -1,4 +1,4 @@
-import { ENTRY_WALK } from '../data/entryWalk';
+import { ENTRY_WALK } from './entryWalk';
 import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import fixedInventory from '../data/fixedGeometry.json' with { type: 'json' };
@@ -15,7 +15,7 @@ import { completionRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '../data/interactables';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from './interactables';
 import { DRIFTWOOD_MODES } from './modes';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';

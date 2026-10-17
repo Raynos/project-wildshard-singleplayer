@@ -1,0 +1,18 @@
+{
+  "world": {
+    "x": 153,
+    "z": 2,
+    "heading": 2.7,
+    "roll": -0.2,
+    "pitch": 0.05,
+    "floorY": 0.6499999999999999
+  },
+  "specimen": {
+    "x": 0,
+    "z": 0,
+    "heading": 0,
+    "roll": -0.2,
+    "pitch": 0.05,
+    "floorY": 1.2
+  }
+}

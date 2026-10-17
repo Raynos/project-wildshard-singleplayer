@@ -1,5 +1,5 @@
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { WORLD_DROP } from '../data/landscapeRows';
+import { WORLD_DROP } from './landscapeRows';
 import { driftwoodGroundBytes } from './groundRows';
 
 /** The native bilinear height law and datum, evaluated from cold authored bytes. */

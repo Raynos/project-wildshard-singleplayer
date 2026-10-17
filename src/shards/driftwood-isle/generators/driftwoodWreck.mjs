@@ -3,7 +3,7 @@ import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { ShipwreckBuilder } from './shipwreck.ts';
 import { wreckSite } from './wreckSite.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';
-import { WRECK_SITES } from '../data/wreckSites.ts';
+import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 
 /** The two admitted sites, using the original world AO and flat-ground specimen. */
 export function originalWreck() {

@@ -1,4 +1,5 @@
-import { PIER_START } from '../world/sea';
+import { PIER_START } from './sea';
+
 
 /** Native admission follows the socket's flare up to the original deck and six metres along it. */
 export const ENTRY_WALK = { lanes: 23, start: 1.5, walk: PIER_START + 9 + 6, maxTicks: 900,

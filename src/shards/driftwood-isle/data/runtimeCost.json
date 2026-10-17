@@ -1,0 +1,9 @@
+{
+  "webContentMB": 564.252728,
+  "glMB": 193.50654,
+  "engineBaseMB": 299,
+  "residentBaseMB": 442.731048,
+  "rev": "ef70dd7ff9a09b6bdec26bf666c8154eb15abe3a",
+  "device": "iOS Simulator Safari images matched pre-entry increment, three cold runs",
+  "evidence": "progress/memory/dw-g258-2026-10-15/summary.json"
+}

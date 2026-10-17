@@ -3,8 +3,10 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables, InteractHost } from '@wildshard/engine/world/interact/Interactables';
 import type { Scope } from '@wildshard/engine/app/scope';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
-import { DRIFTWOOD_INTERACT } from '../data/interactables';
+import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import { ownEnteredTree } from './Spine';
+
+const { DRIFTWOOD_INTERACT } = interactables;
 
 /** Build after lazy code admission under the actual entry owner, before registering its dependent cleanup. The two batches
  *  belong to that owner (SF57): a re-entered borrowed home runs this again, and the page scene must not keep each copy. */

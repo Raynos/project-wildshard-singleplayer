@@ -12,7 +12,7 @@ import { shardManifestPath } from '../authored-manifest.mjs';
 // world in their shardfiles yet (no terrain, no tiles; `public/shardfiles/<slug>/shard.json`). Their props and forests
 // exist only when their TypeScript builders run, so the SDK build has nothing to harvest, and no shardfile input can
 // reproduce these bytes (the coarsest built LOD of every placement, Pine's per-tree placements, the colour maps' mean
-// texels). Nothing here is per shard (each declares its ground and tree stand-ins in data/placeholder.ts); the grid
+// texels). Nothing here is per shard (each declares its ground and tree stand-ins in data/placeholder.json); the grid
 // prefers a shardfile's own `near` row and reads this runner's near.json only for a shard whose shardfile has none. It
 // retires per shard as each one's world moves into its shardfile tiles.
 import { spawnSync } from 'node:child_process';
@@ -67,7 +67,7 @@ const { default: manifest } = await at(shardManifestPath(root, slug));
 (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
 const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');
 const terrainBin = resolve(root, 'public/assets/baked', slug, 'terrain.bin');
-// G348: the shard's own data says where its ground comes from (its data/placeholder.ts row); no slug branch here
+// G348: the shard's own data says where its ground comes from (its data/placeholder.json row); no slug branch here
 const source = await placeholderOf(root, slug);
 const groundFrom = source.ground;
 // a shardfile-terrain shard (no terrain.bin, no ground row) builds its world on its own collider grid
@@ -223,7 +223,7 @@ const prototypes = parts.filter((p) => {
 const sdk = await at('src/sdk/bake/placeholders.ts');
 const exported = async (ref) => { const value = (await at(`src/shards/${slug}/${ref.module}`))[ref.export]; if (value === undefined) throw new Error(`${slug}: ${ref.module} has no export ${ref.export}`); return value; };
 // G380: a shard that declares no far look takes the generic one `wildshard build` gives any shardfile (`shardfileLook`)
-if (source.far === undefined && project === null) throw new Error(`${slug}: no far row in its data/placeholder.ts and no shardfile project`);
+if (source.far === undefined && project === null) throw new Error(`${slug}: no far row in its data/placeholder.json and no shardfile project`);
 const look = source.far === undefined ? sdk.shardfileLook(project.shard) : await exported(source.far.look);
 // a shard whose world lives in its shardfile tiles (Signal's sand and tower, a template's props, the Blender template's
 // authored mesh world) has nothing the authored host builds: its coarse (L1) tiles' meshes are its world, harvested as

@@ -10,7 +10,7 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
 import { Owned, type OwnedId } from '../src/game/loot/Owned';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
-import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';
+import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 
 const rows = () => parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot;
 const economy = declaredLootEconomy(rows());

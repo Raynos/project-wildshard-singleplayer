@@ -1,6 +1,6 @@
 import type { TerrainBakeSource } from '@wildshard/sdk/bake/terrain';
 import { CHUNK_HALF } from '@wildshard/format/contentBounds';
-import { SEED, SHORE_LEVEL, WORLD_DROP, GRADED, TRAILS } from '../data/landscapeRows';
+import { SEED, SHORE_LEVEL, WORLD_DROP, GRADED, TRAILS } from './landscapeRows';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildDriftwoodField, landscapeHash } from './groundField';
 import { driftwoodLandscape } from './landscape';

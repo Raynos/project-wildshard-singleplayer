@@ -2,7 +2,7 @@
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BOAT_MOOR } from '../data/layout';
-import { SHORE_LEVEL, WORLD_DROP } from '../data/landscapeRows';
+import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ENTRY_DECKS } from './entryDecks';
 import shore from '../data/shoreBoulders.generated.json' with { type: 'json' };

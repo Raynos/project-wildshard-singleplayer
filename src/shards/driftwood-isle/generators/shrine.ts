@@ -30,7 +30,7 @@ import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
-import type { ShrineSite, ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
+import type { ShrineSite, ShrineAnchor, ShrineParams } from './shrineTypes';
 
 /** the site's origin: its centre on the ground (a float32 value, so moving the geometry to own space and back is exact) */
 function shrineOrigin(p: ShrineParams): { x: number; y: number; z: number } {

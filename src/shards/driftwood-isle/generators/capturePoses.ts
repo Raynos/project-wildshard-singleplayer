@@ -1,7 +1,7 @@
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import manifest from '../manifest.json' with { type: 'json' };
-import { WORLD_DROP } from '../data/landscapeRows';
+import { WORLD_DROP } from './landscapeRows';
 import { driftwoodGroundBytes } from './groundRows';
 
 /** Diagnostic eyes use the shipping native lattice and datum, compiled before manifest discovery. */

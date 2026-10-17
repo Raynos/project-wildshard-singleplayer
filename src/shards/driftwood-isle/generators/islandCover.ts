@@ -11,10 +11,11 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { area } from '../world/blenderArea';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with {type:'json'};
 import { coveFamilyOf, type CoveFamily } from '../runtime/models/cove';
-import { WORLD_DROP } from '../world/sea';
+import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { Tier } from '@wildshard/engine/core/tier';
+
 
 /** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
 export interface CoverTriangle { ax: number; ay: number; az: number; bx: number; by: number; bz: number; dx: number; dy: number; dz: number; r: number; g: number; b: number }

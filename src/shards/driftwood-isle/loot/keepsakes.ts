@@ -44,12 +44,14 @@ import type { DeclaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { seaGlassChime, SeaGlassChime } from '../runtime/models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../runtime/models/trophyPlaques';
 import { buildCaptainHat, buildSailclothCape } from '../runtime/models/captainHat';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
+import interactables from '../data/interactables.generated.json' with { type: 'json' };
 import type { Adventure } from '../quest/adventure';
 import { ownEnteredTree } from '../quest/Spine';
 import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
 import { isOwnedId, type Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
+
+const { SEA_GLASS_COUNT, SEA_GLASS_FLAG } = interactables;
 
 type TrophyDropId = string;
 

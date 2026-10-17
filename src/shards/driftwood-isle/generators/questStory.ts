@@ -4,10 +4,10 @@
  * (src/shards/driftwood-isle/quest/interactables.ts) and by Adventure.ts (`talked:castaway` when the dialogue ends, `dead:sailor` /
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
-import { SHARD_FLAGS } from '../data/interactables';
+import { SHARD_FLAGS } from './interactables';
 import { parseNpcDialogueRow } from '@wildshard/format/npcs';
 import type { QuestData } from '@wildshard/sdk/quests';
-import { QUEST_DONE } from '../data/questStory';
+import { QUEST_DONE } from './questConstants';
 
 type DeclaredQuest = QuestData['quests'][number];
 type DeclaredMarker = NonNullable<DeclaredQuest['steps'][number]['markers']>[number];

@@ -48,7 +48,10 @@ export function authoredManifestSource(root, slug) {
   // Build-only budget bindings become checked literals. Generated runtime discovery
   // never imports data/. Remove this bridge with catalog activation (P3).
   const budgetPath = modulePath(b.budgets?.module);
-  const budget = budgetPath.startsWith('./data/')
+  if (budgetPath.endsWith('.json') && b.budgets.export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
+  const budget = budgetPath.endsWith('.json')
+    ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${slug}`, budgetPath), 'utf8')))
+    : budgetPath.startsWith('./data/')
     ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${slug}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
     : value(b.budgets);
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];

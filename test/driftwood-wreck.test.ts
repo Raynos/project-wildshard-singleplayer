@@ -4,7 +4,7 @@ import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/
 import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwreck';
 import { wreckSiteKind } from '../src/shards/driftwood-isle/runtime/models/fixedSites';
 import { floorAtRects } from '../src/engine/physics/box';
-import { WRECK_SITES } from '../src/shards/driftwood-isle/data/wreckSites';
+import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import bake from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };
 
 beforeAll(admitDriftwoodFixtureRows);

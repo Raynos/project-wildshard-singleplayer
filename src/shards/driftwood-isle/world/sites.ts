@@ -3,7 +3,7 @@ import type { OceanDef } from '@wildshard/game/shard/manifest';
 import { PLATEAU, HEADLAND } from '../data/layout';
 import { BRIDGE_SPANS } from '../data/bridgeRows';
 import { SHRINE_SITES } from '../data/shrineSites';
-import { WRECK_SITES } from '../data/wreckSites';
+import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { LOWERED_SEA } from './sea';
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
 

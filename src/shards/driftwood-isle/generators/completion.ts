@@ -3,7 +3,7 @@ import { parseCompletion, type CompletionRows } from '@wildshard/format/completi
 import { createQuestPlacements } from '@wildshard/engine/world/interact/types';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_PLACES } from './discovery';
-import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from '../data/interactables';
+import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
 
 export const COMPLETE_CONTENT = {
   seenFlag: 'seen:complete',

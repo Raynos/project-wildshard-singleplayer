@@ -2,7 +2,7 @@ import KEEPSAKES from '../data/keepsakes.json' with { type: 'json' };
 import PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
 import { DRIFTWOOD_EFFECTS, DRIFTWOOD_COIN_VALUES, DRIFTWOOD_EXCHANGE, GOODS, DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from './economy';
 import { DRIFTWOOD_FINDS } from './finds';
-import { DRIFTWOOD_INTERACT } from '../data/interactables';
+import { DRIFTWOOD_INTERACT } from './interactables';
 
 const flags = (input: readonly string[] | { readonly prefix: string; readonly count: number }): string[] => 'prefix' in input
   ? Array.from({ length: input.count }, (_, i) => `${input.prefix}${i + 1}`) : [...input];

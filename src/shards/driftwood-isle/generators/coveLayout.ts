@@ -1,5 +1,5 @@
 /** One authored layout and floor law for the offline mesh and live collision owner. */
-import { WORLD_DROP } from '../data/landscapeRows';
+import { WORLD_DROP } from './landscapeRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import type { FloorRect } from '@wildshard/engine/physics/box';
 

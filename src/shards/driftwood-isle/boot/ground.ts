@@ -3,7 +3,10 @@ import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainFie
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { PATHS, PIER_PATH_BED } from '../data/layout';
 import { DRIFTWOOD_TERRAIN } from '../data/terrainBindings';
-import { DRIFTWOOD_SEA, LOWERED_SEA, WORLD_DROP } from '../world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
+import sea from '../boot/sea.generated.json' with { type: 'json' };
+
+const { WORLD_DROP } = sea;
 
 export const GROUND = { paths: 'plugin' as const, water: [DRIFTWOOD_SEA], terrain: createBakedTerrainField(DRIFTWOOD_TERRAIN, { ...buildTerrainMetadata(DRIFTWOOD_TERRAIN.seed, {
     trails: [

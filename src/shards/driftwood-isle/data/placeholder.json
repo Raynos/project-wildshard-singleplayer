@@ -1,0 +1,20 @@
+{
+  "ground": {
+    "generator": "generators/groundRows.ts",
+    "export": "driftwoodGroundBytes"
+  },
+  "far": {
+    "look": {
+      "module": "generators/far.ts",
+      "export": "farLook"
+    }
+  },
+  "near": {
+    "floors": [
+      {
+        "prototype": "driftwood-isle/palm",
+        "triangles": 120
+      }
+    ]
+  }
+}

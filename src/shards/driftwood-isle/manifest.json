@@ -318,12 +318,12 @@
   "bindings": {
     "accent": "marigold",
     "budgets": {
-      "module": "./budgets",
-      "export": "DRIFTWOOD_BUDGET_INPUTS"
+      "module": "./data/budgets.json",
+      "export": "default"
     },
     "runtimeCost": {
-      "module": "./data/runtimeCost",
-      "export": "DRIFTWOOD_RUNTIME_COST"
+      "module": "./data/runtimeCost.json",
+      "export": "default"
     },
     "spawns": {
       "module": "./generators/fauna",

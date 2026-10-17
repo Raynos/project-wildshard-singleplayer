@@ -4,7 +4,7 @@ import { bindInteractionState, Flags } from '../src/engine/world/interact/flags'
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import pine from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
-import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables';
+import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 
 test('authored rest sites preserve quest laws and order; malformed or foreign sites refuse before building', () => {
   const table: InteractTable = { external: ['met'], rows: [

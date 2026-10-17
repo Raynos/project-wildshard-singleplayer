@@ -1,0 +1,8 @@
+{
+  "far": {
+    "look": {
+      "module": "look/far.ts",
+      "export": "farLook"
+    }
+  }
+}

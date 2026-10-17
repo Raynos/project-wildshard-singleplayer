@@ -1,0 +1,12 @@
+{
+  "far": {
+    "look": {
+      "module": "look/far.ts",
+      "export": "farLook"
+    },
+    "grid": {
+      "module": "look/far.ts",
+      "export": "farGrid"
+    }
+  }
+}

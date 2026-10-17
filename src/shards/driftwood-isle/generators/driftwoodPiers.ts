@@ -1,5 +1,5 @@
 import {Rng} from '@wildshard/sdk/random';
-import {SEED} from '../data/landscapeRows';
+import {SEED} from './landscapeRows';
 import type {BufferGeometry} from 'three';
 import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierParamsKey,type PierParams} from '../assets/contracts/pier';

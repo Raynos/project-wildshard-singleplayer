@@ -1,5 +1,5 @@
 // G348: the shards a placeholder bake serves, found from their own data, never a table here. A shard opts in by declaring
-// `PLACEHOLDER` in `src/shards/<slug>/data/placeholder.ts` (schema `@wildshard/format/placeholderSource`): its far look
+// JSON in `src/shards/<slug>/data/placeholder.json` (schema `@wildshard/format/placeholderSource`): its far look
 // (and its grid or model parts when its land is not a height field), its ground source and its tree stand-ins.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,9 +10,9 @@ export async function placeholderShards(root) {
   const { placeholderSource } = await import(pathToFileURL(join(root, 'src/format/placeholderSource.ts')).href);
   const out = [];
   for (const slug of readdirSync(join(root, 'src/shards')).sort()) {
-    const file = join(root, 'src/shards', slug, 'data/placeholder.ts');
+    const file = join(root, 'src/shards', slug, 'data/placeholder.json');
     if (!existsSync(file)) continue;
-    const { PLACEHOLDER } = await import(pathToFileURL(file).href);
+    const PLACEHOLDER = JSON.parse(readFileSync(file, 'utf8'));
     out.push({ slug, dir: join(root, 'src/shards', slug), source: placeholderSource(slug, PLACEHOLDER) });
   }
   return out;
@@ -20,9 +20,9 @@ export async function placeholderShards(root) {
 
 /** One shard's declared placeholder row (`{}` when it declares none). */
 export async function placeholderOf(root, slug) {
-  const file = join(root, 'src/shards', slug, 'data/placeholder.ts');
+  const file = join(root, 'src/shards', slug, 'data/placeholder.json');
   const { placeholderSource } = await import(pathToFileURL(join(root, 'src/format/placeholderSource.ts')).href);
-  return placeholderSource(slug, existsSync(file) ? (await import(pathToFileURL(file).href)).PLACEHOLDER : undefined);
+  return placeholderSource(slug, existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined);
 }
 
 /**

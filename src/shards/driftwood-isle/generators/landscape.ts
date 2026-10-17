@@ -1,4 +1,4 @@
-import { ISLAND, COVE, PLATEAU, HEADLAND, GULLY, SHRINE, SHORE_LEVEL } from '../data/landscapeRows';
+import { ISLAND, COVE, PLATEAU, HEADLAND, GULLY, SHRINE, SHORE_LEVEL } from './landscapeRows';
 import { smoothstep, clamp } from './landscapeNoise';
 import type { TerrainNoise } from './groundField';
 

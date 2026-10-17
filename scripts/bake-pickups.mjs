@@ -8,7 +8,7 @@ import { installKitProps } from '../src/game/models/interact.ts';
 import { Interactables, Live } from '../src/engine/world/interact/Interactables.ts';
 import { pickupLook, registerPickupLook } from '../src/engine/world/interact/types.ts';
 import { readBakedGeometry } from '../src/game/plugin/geometry.ts';
-import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/data/interactables.ts';
+import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables.ts';
 import { DRIFTWOOD_INTERACT as LEGACY_DRIFTWOOD } from '../src/shards/driftwood-isle-legacy/quest/interactables.ts';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable.ts';
 import { pineTable as legacyPineTable, RESIN_COUNT, TOKEN_NAMES } from '../src/shards/pine-hollow-legacy/quest/table.ts';

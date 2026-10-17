@@ -9,7 +9,7 @@ import { FIREFLY_LOOK } from './fireflyLook';
 import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import spots from '../data/spots.generated.json' with { type: 'json' };
 import ziplineRows from '../data/zipline.generated.json' with { type: 'json' };
-import { ISLAND_LOOKS } from '../data/islandLook';
+import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import { KIT_LENDS } from './kitLook';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
@@ -28,7 +28,7 @@ import { MIDDAY_SKY_ROWS } from '../data/skyPalette';
 import { CASTAWAY_SMOKE, SMOKE_LOOK } from './smokeLook';
 import { DAY_LIGHT, RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
-import { WRECK_SITES } from '../data/wreckSites';
+import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 
 /** Canonical authored view rows, emitted into the admitted native-view section. */
 export const NATIVE_VIEW = {

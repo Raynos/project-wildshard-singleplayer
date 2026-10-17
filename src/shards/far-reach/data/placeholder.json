@@ -1,0 +1,16 @@
+{
+  "far": {
+    "look": {
+      "module": "generators/farLook.ts",
+      "export": "farLook"
+    },
+    "grid": {
+      "module": "generators/farLook.ts",
+      "export": "farGrid"
+    },
+    "parts": {
+      "module": "generators/farLook.ts",
+      "export": "farParts"
+    }
+  }
+}

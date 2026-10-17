@@ -1,6 +1,6 @@
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import rows from '../data/trailCatalogue.json' with { type: 'json' };
-import type { CatalogueParams } from '../data/trailParams';
+import type { CatalogueParams } from './trailParams';
 
 const catalogue = defineSpecimenCatalogue<CatalogueParams>(rows);
 export const fencePost = catalogue.model('fencePost');

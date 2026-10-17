@@ -1,9 +1,11 @@
 import {CHUNK_HALF,ENTRY_WIDTH} from '@wildshard/format/contentBounds';
 import {PIER,JETTIES} from '../world/sites';
 import {PIER_PENNANT_AT} from '../data/layout';
-import {PIER_START,LOWERED_SEA} from '../world/sea';
+import { LOWERED_SEA } from '../world/sea';
+import { PIER_START } from './sea';
 import {PENNANT_WIND} from '../data/pierRows';
 import type {PierSpec,PierParams} from '../assets/contracts/pier';
+
 
 
 

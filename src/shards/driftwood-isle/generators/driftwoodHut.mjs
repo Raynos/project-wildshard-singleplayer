@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { driftwoodGroundSampler } from './groundSampling.ts';
-import { PLATEAU, HEADLAND } from '../data/landscapeRows.ts';
+import { PLATEAU, HEADLAND } from './landscapeRows.ts';
 import { hutBake } from './hut.ts';
 import { lookoutBake } from './lookout.ts';
 import { islandCoveSpec } from './coveLayout.ts';

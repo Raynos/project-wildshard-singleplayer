@@ -2,8 +2,8 @@ import { expect, it } from 'vitest';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
 import shore from '../src/shards/driftwood-isle/data/shoreBoulders.generated.json';
 import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from '../src/shards/driftwood-isle/generators/staticWorld';
-import { SEED } from '../src/shards/driftwood-isle/data/landscapeRows';
-import { WRECK_SITES } from '../src/shards/driftwood-isle/data/wreckSites';
+import { SEED } from '../src/shards/driftwood-isle/generators/landscapeRows';
+import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import { scatterShore } from '../src/shards/driftwood-isle/generators/shoreBoulders';
 
 it('keeps the admitted shoreline clear of the wreck with unchanged placements', () => {

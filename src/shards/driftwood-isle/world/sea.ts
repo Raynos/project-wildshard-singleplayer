@@ -14,18 +14,13 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
-import { DRY_ENTRIES, type DryEntryEdge } from '../data/entryRows';
+import type { DryEntryEdge } from '../data/entryRows';
+import sea from '../boot/sea.generated.json' with { type: 'json' };
 
-/** the waterline the island was authored round (its landscape and its offline bake) */
-export const SHORE_LEVEL = 0.8;
-/** G164: how far Driftwood's whole world is lowered, the sea with it */
-export const WORLD_DROP = 0.8;
+const { SHORE_LEVEL, WORLD_DROP, DECLARED_SEA } = sea;
+
 /** the lowered sea's rest level: road height */
 export const LOWERED_SEA = SHORE_LEVEL - WORLD_DROP;
-/** how far in from its edge midpoint the lowered world starts each pier and jetty: where the platform's entry socket ends
- *  (ENTRY_ASPHALT, 15 m of road asphalt at y = 0 into the shard; SF8c / G103), so the deck's sea-end ramp rises from the
- *  socket's edge; a whole number of 3 m piling bays, so every piling stays where it stands */
-export const PIER_START = Math.floor(ENTRY_ASPHALT / 3) * 3;
 
 /** G149: how far in from the cell edge the platform's rip-rap shore revetment (crest +0.6 m, spanning ±0.8 m about the
  *  edge) puts its inner face (the platform's SHORE_REVETMENT_INNER_FACE); the lowered sea, confined to a grid cell, stops
@@ -40,9 +35,6 @@ function loweredReaches(x: number, z: number): boolean {
 /** a level-space rectangle (metres) */
 export interface DryRect { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
 
-/** the declared `sea` water row (shard.config.ts): road height, the swell, the four dry sockets. The runtime consumes the
- *  same row: the lowered swim / wade body and the ocean's clip both read its `dryEntries` */
-export const DECLARED_SEA = { id: 'sea', kind: 'sea', level: LOWERED_SEA, waves: true, dryEntries: DRY_ENTRIES } as const;
 
 /** the canonical 8 × 15 m socket of a dry entry as a rectangle for the ocean shader's clip (inclusive, the same region as
  *  the engine's `dryEntryContains`) */
