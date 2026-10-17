@@ -26,8 +26,10 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  * `update()` drives `wind.update` / `trample.push` / `trample.update`.
  *
  * Lit like the prototype: wrap diffuse from the key (the cheat key, painterly uPSunDir / uPSunRef), a sky / ground
- * hemisphere, translucency looking into the sun, self-occlusion toward the roots; fogged by the v2 fog; graded by the
- * v2 chain. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
+ * hemisphere, translucency looking into the sun, self-occlusion toward the roots; fogged by the engine epilogue. The three
+ * programs are look.materials graphs (data/lookGraphs.json 'nalati-grass-blades', 'nalati-grass-flowers',
+ * 'nalati-grass-cards', compiled and lent by runtime/index.ts); this module culls the tiles, bakes the maps and writes
+ * their params once a frame. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
  */
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -35,27 +37,24 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { renderCount } from '@wildshard/engine/render/frameCounter';
-import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { trailDistance, splatAt } from '@wildshard/engine/world/Heightfield';
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { wind, WIND_GLSL } from '@wildshard/engine/world/steppeWind';
+import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '@wildshard/game/systems/looks/grassField';
-import { trample, TRAMPLE_GLSL } from '@wildshard/game/systems/looks/trample';
-import { paintedAir } from './air';
+import { trample } from '@wildshard/game/systems/looks/trample';
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from './trampleMovers';
 import { dressingCover } from '../world/dressing/index';
-import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
-import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
+import { bakeUniforms } from './bake';
+import { loadGrassCardAtlas } from './nalatiTextures';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { GRASS_GLSL } from '../runtime/looks/grassGlsl';
 import { tileFieldGeometry, tileOrigin, type TileCardRow } from '@wildshard/sdk/looks/tileField';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 
-/** the GLSL below is trusted custom code (runtime/looks/grassGlsl.ts); `@{name}` splices the fragments this module passes */
-const GRASS_GLSL_FAMILY = new ShaderFamily(GRASS_GLSL, {});
+const BLADES = 'nalati-grass-blades', HEADS = 'nalati-grass-flowers', CLUMPS = 'nalati-grass-cards';
+const LOOKS = [BLADES, HEADS, CLUMPS] as const;
 
 const PHONE = TIER === 'phone';
 
@@ -107,59 +106,54 @@ export function grassMood(night: number, dusk: number, overcast: number): void {
   grassV2Uniforms.uGrassTint.value.setRGB(1 - 0.22 * night - 0.08 * overcast, 1 - 0.12 * night - 0.04 * overcast, 1 + 0.12 * night + 0.04 * overcast);
 }
 
-const BLADE_VS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.BLADE_VS, { LOOK_BAKE_GLSL, WIND_GLSL, TRAMPLE_GLSL });
-
-const BLADE_FS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.BLADE_FS);
-
-const FLOWER_VS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.FLOWER_VS, { LOOK_BAKE_GLSL });
-
-const FLOWER_FS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.FLOWER_FS);
-
-const CARD_VS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.CARD_VS, { LOOK_BAKE_GLSL, WIND_GLSL, TRAMPLE_GLSL });
-
-const CARD_FS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.CARD_FS);
-
 /** A clump's outline on the tile field: 3 crossed quads, 2 rows each (the top row bends): across −0.5 … 0.5, up 0 … 1, part = the quad */
 const CLUMP: TileCardRow = {
   shape: [0, 1, 2].flatMap((k) => [0, 0.5, 1].flatMap((y) => [[-0.5, y, k], [0.5, y, k]] as const)),
   triangles: [0, 1, 2].flatMap((k) => [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4].map((i) => i + k * 6)),
 };
 
-function bladeGeometry(seg: number): THREE.InstancedBufferGeometry {
+/** one tile of blades (`per` a side, `seg` segments): aBlade = the cell's offset in the tile (m), t up the blade, side; the
+ *  ring's spacing / width / fade and its card hand-over ride along per vertex, the tile origin and the inner ring's square
+ *  per instance (`aTile`, `aHole`: written as the frame culls) */
+function bladeTile(per: number, cfg: RingCfg, fade: readonly [number, number], near: readonly [number, number, number]): InstancedBufferGeometry {
   const g = new THREE.InstancedBufferGeometry();
-  const t: number[] = [], s: number[] = [], idx: number[] = [];
-  for (let i = 0; i < seg; i++) { const tt = i / seg; t.push(tt, tt); s.push(-1, 1); }
-  t.push(1); s.push(0);
-  for (let i = 0; i < seg - 1; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-  const a = (seg - 1) * 2; idx.push(a, a + 1, a + 2);
-  g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(t.length * 3), 3));
-  g.setAttribute('aT', new THREE.Float32BufferAttribute(t, 1));
-  g.setAttribute('aSide', new THREE.Float32BufferAttribute(s, 1));
+  const nv = cfg.seg * 2 + 1, blade: number[] = [], idx: number[] = [];
+  for (let j = 0; j < per; j++) for (let i = 0; i < per; i++) {
+    const b = (j * per + i) * nv;
+    for (let k = 0; k < cfg.seg; k++) { const t = k / cfg.seg; blade.push(i * cfg.s, j * cfg.s, t, -1, i * cfg.s, j * cfg.s, t, 1); }
+    blade.push(i * cfg.s, j * cfg.s, 1, 0);
+    for (let k = 0; k < cfg.seg - 1; k++) { const a = b + k * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+    const a = b + (cfg.seg - 1) * 2; idx.push(a, a + 1, a + 2);
+  }
+  return tileGeometry(g, blade, 'aBlade', idx, [cfg.s, cfg.w, fade[0], fade[1]], near);
+}
+
+/** one tile of flower heads: aHead = the cell's offset in the tile (m), the quad corner (−0.5 … 0.5, 0 … 1) */
+function flowerTile(per: number, s: number, fade: readonly [number, number], near: readonly [number, number, number]): InstancedBufferGeometry {
+  const g = new THREE.InstancedBufferGeometry(), head: number[] = [], idx: number[] = [];
+  for (let j = 0; j < per; j++) for (let i = 0; i < per; i++) {
+    const b = (j * per + i) * 4;
+    for (const [x, y] of [[-0.5, 0], [0.5, 0], [0.5, 1], [-0.5, 1]] as const) head.push(i * s, j * s, x, y);
+    idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
+  }
+  return tileGeometry(g, head, 'aHead', idx, [s, 0, fade[0], fade[1]], near);
+}
+
+type InstancedBufferGeometry = THREE.InstancedBufferGeometry;
+function tileGeometry(g: InstancedBufferGeometry, cells: number[], name: string, idx: number[], ring: readonly number[], near: readonly number[]): InstancedBufferGeometry {
+  const n = cells.length / 4;
+  g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute(name, new THREE.Float32BufferAttribute(cells, 4));
+  g.setAttribute('aRing', new THREE.Float32BufferAttribute(Array.from({ length: n }, () => ring).flat(), 4));
+  g.setAttribute('aNear', new THREE.Float32BufferAttribute(Array.from({ length: n }, () => near).flat(), 3));
+  g.setAttribute('aTile', new THREE.InstancedBufferAttribute(new Float32Array(MAX_TILES * 2), 2).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('aHole', new THREE.InstancedBufferAttribute(new Float32Array(MAX_TILES * 4), 4).setUsage(THREE.DynamicDrawUsage));
   g.setIndex(idx);
   g.instanceCount = 0;
   return g;
 }
 
-function flowerGeometry(): THREE.InstancedBufferGeometry {
-  const g = new THREE.InstancedBufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, 0, 0, 0.5, 0, 0, 0.5, 1, 0, -0.5, 1, 0], 3));
-  g.setIndex([0, 1, 2, 0, 2, 3]);
-  g.instanceCount = 0;
-  return g;
-}
-
-function tileTexture(): { tex: THREE.DataTexture; data: Float32Array } {
-  const data = new Float32Array(MAX_TILES * 4);
-  const tex = new THREE.DataTexture(data, MAX_TILES, 1, THREE.RGBAFormat, THREE.FloatType);
-  tex.magFilter = tex.minFilter = THREE.NearestFilter; tex.needsUpdate = true;
-  return { tex, data };
-}
-
-interface Ring {
-  T: number; G: number; per: number; mesh: THREE.Mesh; geo: THREE.InstancedBufferGeometry;
-  tiles: { tex: THREE.DataTexture; data: Float32Array }; hole: THREE.Vector4; half: number;
-}
-
+interface Ring { T: number; G: number; mesh: THREE.Mesh; geo: InstancedBufferGeometry; half: number }
 
 let heightTex: THREE.DataTexture | null = null;
 /** the terrain height at 1 m over [−256, 256] (half float, linear) — the blades stand on it, the bake reads it */
@@ -250,88 +244,40 @@ export class GrassV2 {
 
   build(): this {
     const m = this.maps;
-    const shared = {
-      tHeight: { value: m.tHeight }, tMask: { value: m.tMask }, tField: { value: m.tField }, tGround: { value: m.tGround },
-      uHXf: { value: new THREE.Vector4(H_ORG, H_ORG, 1 / HN, HN) },
-      uFXf: { value: new THREE.Vector4(-CHUNK_HALF, -CHUNK_HALF, 1 / LAT, LN) },
-      uPSunDir: painterlyUniforms.uPSunDir, uPSunRef: painterlyUniforms.uPSunRef, ...bakeUniforms,
-      ...grassV2Uniforms,
-      ...THREE.UniformsLib.fog, ...fogUniforms, ...paintedAir,
+    for (const id of LOOKS) {
+      setLentTexture(id, 'tHeight', m.tHeight); setLentTexture(id, 'tMask', m.tMask); setLentTexture(id, 'tField', m.tField);
+      setLentParam(id, 'heightXf', [H_ORG, H_ORG, 1 / HN, HN]); setLentParam(id, 'fieldXf', [-CHUNK_HALF, -CHUNK_HALF, 1 / LAT, LN]);
+    }
+    setLentTexture(BLADES, 'tGround', m.tGround); // the roots sink into the painted ground (the blades only)
+    setLentTexture(BLADES, 'tTrample', trample.texture); setLentTexture(CLUMPS, 'tTrample', trample.texture);
+    const draw = (id: string, geo: InstancedBufferGeometry, name: string): THREE.Mesh => {
+      const mesh = new THREE.Mesh(geo, lentLook(id));
+      mesh.frustumCulled = false; mesh.name = name;
+      mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
+      this.group.add(mesh);
+      return mesh;
     };
     RINGS.forEach((cfg, ri) => {
-      const per = Math.round(cfg.T / cfg.s);
-      const geo = bladeGeometry(cfg.seg);
-      const last = ri === RINGS.length - 1;
-      const half = (cfg.G * cfg.T) / 2;
-      const tiles = tileTexture();
-      const hole = new THREE.Vector4(0, 0, 0, 0);
-      const mat = new THREE.ShaderMaterial({
-        uniforms: {
-          ...shared, ...wind.uniforms, ...trample.uniforms, tTiles: { value: tiles.tex },
-          uSpacing: { value: cfg.s }, uPerSide: { value: per }, uWidth: { value: cfg.w },
-          uFade0: { value: last ? half * 0.6 : 1e4 }, uFade1: { value: last ? half * 0.95 : 1e4 }, uHole: { value: hole },
-          uNear: { value: ri === 0 ? new THREE.Vector3(NEAR[0], NEAR[1], 0.4) : new THREE.Vector3(-1, 0, 1) },
-        },
-        vertexShader: BLADE_VS, fragmentShader: BLADE_FS, side: THREE.DoubleSide, fog: true,
-      });
-      mat.name = `grass-v2-ring${ri}`;
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.frustumCulled = false; mesh.name = mat.name;
-      mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
-      this.group.add(mesh);
-      this.rings.push({ T: cfg.T, G: cfg.G, per: per * per, mesh, geo, tiles, hole, half });
+      const per = Math.round(cfg.T / cfg.s), last = ri === RINGS.length - 1, half = (cfg.G * cfg.T) / 2;
+      const geo = bladeTile(per, cfg, last ? [half * 0.6, half * 0.95] : [1e4, 1e4], ri === 0 ? [NEAR[0], NEAR[1], 0.4] : [-1, 0, 1]);
+      this.rings.push({ T: cfg.T, G: cfg.G, mesh: draw(BLADES, geo, `grass-v2-ring${ri}`), geo, half });
     });
     {
-      const cfg = FLOWERS, per = Math.round(cfg.T / cfg.s), geo = flowerGeometry(), tiles = tileTexture(), half = (cfg.G * cfg.T) / 2;
-      const mat = new THREE.ShaderMaterial({
-        uniforms: {
-          ...shared, tTiles: { value: tiles.tex },
-          uSpacing: { value: cfg.s }, uPerSide: { value: per }, uFade0: { value: half * 0.6 }, uFade1: { value: half * 0.96 },
-          uNear: { value: new THREE.Vector3(NEAR[0] - 0.4, NEAR[1] - 0.2, 0) },
-        },
-        vertexShader: FLOWER_VS, fragmentShader: FLOWER_FS, side: THREE.DoubleSide, fog: true,
-      });
-      mat.name = 'grass-v2-flowers';
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.frustumCulled = false; mesh.name = mat.name;
-      mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
-      this.group.add(mesh);
-      this.flowers = { T: cfg.T, G: cfg.G, per: per * per, mesh, geo, tiles, hole: new THREE.Vector4(), half };
+      const cfg = FLOWERS, per = Math.round(cfg.T / cfg.s), half = (cfg.G * cfg.T) / 2;
+      const geo = flowerTile(per, cfg.s, [half * 0.6, half * 0.96], [NEAR[0] - 0.4, NEAR[1] - 0.2, 0]);
+      this.flowers = { T: cfg.T, G: cfg.G, mesh: draw(HEADS, geo, 'grass-v2-flowers'), geo, half };
     }
-    this.buildCards(shared);
+    // the near field: the painted card atlas as clumps of 3 crossed quads (not camera-facing: they hold up walked round),
+    // on the same field, mask, wind and trample as the blades, cut at the atlas's alpha; the atlas swapped in when it lands
+    const cfg = CARDS, per = Math.round(cfg.T / cfg.s), geo = tileFieldGeometry({ across: cfg.across, layers: 0, seed: 0x4a1a, grid: per, card: CLUMP }, per * per);
+    setLentParam(CLUMPS, 'cardNear', [NEAR[0], NEAR[1], per]);
+    draw(CLUMPS, geo, 'grass-v2-cards');
+    this.cards = { geo, tiles: geo.instanceCount, origin: new THREE.Vector2() };
+    void (async (): Promise<void> => {
+      try { setLentTexture(CLUMPS, 'tCards', await loadGrassCardAtlas()); } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
+    })();
     void this.bakeMask();
     return this;
-  }
-
-  /**
-   * The near field: the painted grass / flower card atlas as clumps of 3 crossed quads (not camera-facing — they hold
-   * up walked round), on the same field, mask, wind and trample as the blades; alpha-to-coverage under MSAA (desktop),
-   * alpha test on the phone. Built at once with a clear 1×1 stand-in (so it compiles with the rest), the atlas swapped
-   * in when it lands.
-   */
-  private buildCards(shared: Record<string, THREE.IUniform>): void {
-    // the cards stand on the cells of a per × per grid in each tile (the program jitters them, as the blades)
-    const cfg = CARDS, per = Math.round(cfg.T / cfg.s), geo = tileFieldGeometry({ across: cfg.across, layers: 0, seed: 0x4a1a, grid: per, card: CLUMP }, per * per), origin = new THREE.Vector2();
-    const clear = new THREE.DataTexture(new Uint8Array(4), 1, 1, THREE.RGBAFormat); clear.needsUpdate = true;
-    const a2c = !PHONE;
-    const cells = GRASS_CARDS.map((c) => new THREE.Vector4(c.u0 + 0.004, c.v0 + 0.004, c.u1 - 0.004, c.v1 - 0.01));
-    const mat = new THREE.ShaderMaterial({
-      uniforms: {
-        ...shared, ...wind.uniforms, ...trample.uniforms, tCards: { value: clear }, uOrigin: { value: origin }, uTile: { value: cfg.T },
-        uSpacing: { value: cfg.s }, uPerSide: { value: per }, uNear: { value: new THREE.Vector3(NEAR[0], NEAR[1], 0) },
-        uCells: { value: cells }, uA2C: { value: a2c ? 1 : 0 },
-      },
-      vertexShader: CARD_VS, fragmentShader: CARD_FS, side: THREE.DoubleSide, fog: true, alphaToCoverage: a2c,
-    });
-    mat.name = 'grass-v2-cards';
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.frustumCulled = false; mesh.name = mat.name;
-    mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
-    this.group.add(mesh);
-    this.cards = { geo, tiles: geo.instanceCount, origin };
-    void (async (): Promise<void> => {
-      try { const t = await loadGrassCardAtlas(); const u = mat.uniforms['tCards']; if (u) u.value = t; } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
-    })();
   }
 
   /** the dressing landed (`reseedGrassV2`): bake the fine mask again with its cover */
@@ -390,6 +336,27 @@ export class GrassV2 {
     // the hemisphere the fill comes from (the rig + the look retune it every frame)
     const hemi = this.sky.hemi;
     grassV2Uniforms.uHemiSky.value.copy(hemi.color); grassV2Uniforms.uHemiGround.value.copy(hemi.groundColor); grassV2Uniforms.uHemiI.value = hemi.intensity;
+    // the looks' params: the key, the hemisphere and the mood; the wind, the trample and its live movers; the static bake
+    const u = grassV2Uniforms, w = wind.uniforms, t = trample.uniforms, b = bakeUniforms;
+    const sunDir = painterlyUniforms.uPSunDir.value.toArray(), sunRef = painterlyUniforms.uPSunRef.value.toArray();
+    const be = b.uBakeMatrix.value.elements, cols = [0, 1, 2, 3].map((k) => be.slice(k * 4, k * 4 + 4));
+    for (const id of LOOKS) {
+      setLentParam(id, 'sunDir', sunDir); setLentParam(id, 'sunRef', sunRef);
+      setLentParam(id, 'hemiSky', u.uHemiSky.value.toArray()); setLentParam(id, 'hemiGround', u.uHemiGround.value.toArray());
+      setLentParam(id, 'mood', [u.uHemiI.value, u.uGrassGain.value, u.uGrassSat.value]); setLentParam(id, 'tint', u.uGrassTint.value.toArray());
+      cols.forEach((c, k) => { setLentParam(id, `bakeM${k}`, c); });
+      setLentParam(id, 'bakeInfo', b.uBakeInfo.value.toArray()); setLentParam(id, 'contactXf', b.uContactXf.value.toArray());
+      if (b.tBakeShadow.value) setLentTexture(id, 'tBakeShadow', b.tBakeShadow.value);
+      if (b.tBakeContact.value) setLentTexture(id, 'tBakeContact', b.tBakeContact.value);
+    }
+    setLentParam(HEADS, 'time', u.uTime.value);
+    for (const id of [BLADES, CLUMPS]) {
+      setLentParam(id, 'sunView', u.uSunView.value.toArray());
+      setLentParam(id, 'wind', [w.uWindDir.value.x, w.uWindDir.value.y, w.uWindTravel.value, w.uWindTime.value]);
+      setLentParam(id, 'windAux', [w.uWindSpeed.value, w.uWindGustiness.value]);
+      setLentParam(id, 'trampleWin', t.uTrampleWin.value.toArray());
+      for (let k = 0; k < 4; k++) setLentParam(id, `mover${k}`, k < t.uMoverCount.value ? (t.uMovers.value[k]?.toArray() ?? [0, 0, 0, 0]) : [0, 0, 0, 0]);
+    }
   }
 
   private placedFrame = -1;
@@ -415,15 +382,20 @@ export class GrassV2 {
       prev = this.fill(R, cx, cz, prev);
     });
     if (this.flowers) this.fill(this.flowers, cx, cz, null);
-    if (this.cards) { this.cards.geo.instanceCount = above > 6 ? 0 : this.cards.tiles; tileOrigin(this.cards.origin, _camL.set(cx, 0, cz), CARDS.T); }
+    if (this.cards) {
+      this.cards.geo.instanceCount = above > 6 ? 0 : this.cards.tiles;
+      const o2 = tileOrigin(this.cards.origin, _camL.set(cx, 0, cz), CARDS.T);
+      setLentParam(CLUMPS, 'cardField', [o2.x, o2.y, CARDS.T, CARDS.s]);
+    }
   }
 
   private fill(R: Ring, camX: number, camZ: number, prev: { cx: number; cz: number; half: number } | null): { cx: number; cz: number; half: number } {
     const { T, G } = R;
     const ox = Math.round(camX / T) * T - (G / 2) * T, oz = Math.round(camZ / T) * T - (G / 2) * T;
-    if (prev) R.hole.set(prev.cx, prev.cz, prev.half, 1); else R.hole.set(0, 0, 0, 0);
+    const tileAttr = R.geo.getAttribute('aTile'), holeAttr = R.geo.getAttribute('aHole');
+    if (!(tileAttr instanceof THREE.InstancedBufferAttribute) || !(holeAttr instanceof THREE.InstancedBufferAttribute)) return { cx: 0, cz: 0, half: 0 };
+    const data = tileAttr.array, hole = holeAttr.array;
     let n = 0;
-    const data = R.tiles.data;
     for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) {
       const x0 = ox + i * T, z0 = oz + j * T;
       if (prev && x0 >= prev.cx - prev.half && x0 + T <= prev.cx + prev.half && z0 >= prev.cz - prev.half && z0 + T <= prev.cz + prev.half) continue;
@@ -433,11 +405,12 @@ export class GrassV2 {
       _box.translate(_origin); // the frustum is the page's
       if (!_frustum.intersectsBox(_box)) continue;
       if (n >= MAX_TILES) break;
-      data[n * 4] = x0; data[n * 4 + 1] = z0;
+      data[n * 2] = x0; data[n * 2 + 1] = z0;
+      if (prev) { hole[n * 4] = prev.cx; hole[n * 4 + 1] = prev.cz; hole[n * 4 + 2] = prev.half; hole[n * 4 + 3] = 1; } else hole[n * 4 + 3] = 0;
       n++;
     }
-    R.tiles.tex.needsUpdate = true;
-    R.geo.instanceCount = n * R.per;
+    tileAttr.needsUpdate = true; holeAttr.needsUpdate = true;
+    R.geo.instanceCount = n;
     return { cx: ox + (G / 2) * T, cz: oz + (G / 2) * T, half: (G / 2) * T };
   }
 }
