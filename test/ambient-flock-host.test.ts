@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import poses from './fixtures/ambient-poses.json';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial } from 'three';
 import { AmbientFlockDraw } from '../src/sdk/looks/ambientFlock';
+import { withPortableMath } from './fake/portableMath';
 
 beforeEach(() => { setTerrainHeight(() => 0); });
 
@@ -47,7 +48,24 @@ test('ambient groups own scavenge arrivals, release and daylight gates', () => {
   expect(owl.birds[0]?.state).toBe(0);
 });
 
-test('all ambient groups preserve 18000 seeded shipping pose/call frames', () => {
+function expectShippingPose(actual: unknown, expected: unknown): void {
+  // The shipping JSON encodes the unset yaw sentinel (Infinity) as null.
+  if (expected === null && actual === Infinity) return;
+  if (typeof expected === 'number') {
+    expect(typeof actual).toBe('number');
+    expect(actual).toBeCloseTo(expected, 9);
+  } else if (Array.isArray(expected)) {
+    if (!Array.isArray(actual)) throw new Error('Missing shipping pose array');
+    expect(actual).toHaveLength(expected.length);
+    expected.forEach((value: unknown, i: number) => { expectShippingPose(actual[i], value); });
+  } else if (typeof expected === 'object' && expected !== null) {
+    if (typeof actual !== 'object' || actual === null) throw new Error('Missing shipping pose object');
+    expect(Object.keys(actual).sort()).toEqual(Object.keys(expected).sort());
+    for (const [key, value] of Object.entries(expected)) expectShippingPose(Reflect.get(actual, key), value);
+  } else expect(actual).toBe(expected);
+}
+
+test('all ambient groups preserve 18000 seeded shipping pose/call frames', () => withPortableMath(() => {
   for (const entry of poses.cases) {
     const row = entry.name === 'gull' ? parseAmbientFlock(GULL_FLOCK) : entry.name === 'guide' ? pine.guide.flock
       : entry.name === 'scavenger' ? pine.scavenger.flock : entry.name === 'sentinel' ? pine.sentinel.flock : pine.trunkForager.flock;
@@ -60,10 +78,12 @@ test('all ambient groups preserve 18000 seeded shipping pose/call frames', () =>
       if (frame === 30 && (entry.name === 'gull' || entry.name === 'guide')) group.guide(viewer, 150, 150);
       group.update(poses.dt, viewer);
       hash.update(JSON.stringify([group.birds, group.calls]));
+      const sample = entry.poses.find(pose => pose.frame === frame);
+      if (sample !== undefined) expectShippingPose({ birds: group.birds, calls: group.calls }, { birds: sample.birds, calls: sample.calls });
     }
-    expect(hash.digest('hex'), entry.name).toBe(entry.hash);
+    expect(hash.digest('hex'), entry.name).toBe(entry.portableHash);
   }
-});
+}));
 
 test('visitor rows admit only finite numeric perches and cannot mix flight policies', () => {
   expect(() => new AmbientGroup(pine.sentinel.flock, [{ x: Infinity, y: 0, z: 0 }])).toThrow();
