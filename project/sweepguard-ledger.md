@@ -212,3 +212,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 10:57 · wT:p6 · `python3 - <<'PY' from pathlib import Path import json p=Path('lint/ratchet.json');o=json.loads(p.read_text());o['allow']['shardfile/sim-in-runtime'].pop('src/shards/pine-hollow/runtime/weapons/ammunit`
 - 2026-10-17 11:06 · wT:pK · `GIT_INDEX_FILE="$PWD/tmp/boss-host/index" SKIP_SWEEPGUARD=1 bash .githooks/pre-commit > tmp/boss-host/precommit.log 2>&1`
 - 2026-10-17 11:57 · wT:p6 · `python3 - <<'PY' from pathlib import Path import json r=Path('tmp/held-loadout');(r/'intent4.json').write_text(json.dumps({'base':(r/'base4').read_text(),'paths':json.loads((r/'paths4.json').read_text`
+- 2026-10-17 12:25 · wT:pK · `cat > tmp/spawn-script/find-checkpoints.mjs <<'JS' import { readFileSync,readdirSync,existsSync } from 'node:fs'; import { resolve } from 'node:path'; import { generationCacheRoot } from '../../script`
