@@ -91,6 +91,12 @@ export const DONE = {
     'src/shards/driftwood-isle-legacy/world/islandInstances.ts': { why: "G144 / G173 (E435, E450): the Blender island's placements drawn instanced per tile set (the merged tiles retired): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
   },
   'nalati-grasslands': {
+    'src/shards/nalati-grasslands/runtime/weapons/javelinSpear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
+    'src/shards/nalati-grasslands-legacy/runtime/weapons/Spear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
+    'src/shards/nalati-grasslands-legacy/world/glbPaint.ts': { why: "the generated (GLB) models' instancing: one InstancedMesh per model per place (NalatiSet.flush)", counts: { InstancedMesh: 1 } },
+    'src/shards/nalati-grasslands-legacy/world/dressing/statics.ts': { why: "the region meshes the dressing's prop models are painted into (placed drawnInto), and the fences' timber layer", counts: { mergeGeometries: 2 } },
+    'src/shards/nalati-grasslands-legacy/weapons/recurve.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/shards/nalati-grasslands-legacy/species/sheep.ts': { why: "the sheep rig's fleece merged onto it (a creature, M5)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/creatures/flock.ts': { why: 'a bird flock drawn as one instanced mesh by its live system (creatures, M5)', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/creatures/marmots.ts': { why: 'the marmot colony drawn instanced by its live system (creatures, M5)', counts: { InstancedMesh: 1, mergeGeometries: 1 } },
     'src/shards/nalati-grasslands/world/WeatherFX.ts': { why: 'rain and snow: an effect', counts: { InstancedMesh: 1 } },
@@ -109,6 +115,7 @@ export const DONE = {
     'src/shards/nalati-grasslands-legacy/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
   'nine-dragon-stack': {
+    'src/shards/nine-dragon-stack-legacy/vm/swordSupport.ts': { why: "Gear: the jian's hidden support rig (the old kit wood sword, unchanged) that sets the animated arms' blade reach (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/nine-dragon-stack/runtime/kit/sweptKit.ts': { why: "the kit system's swept builder (SHARD-PLATFORM M3, moved from Nine Dragon's world/hero/kitx.ts, whose legacy copy keeps its entry): merges a region's curved pieces into one geometry (world); it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/nine-dragon-stack/runtime/kit/classKit.ts': { why: "the kit system's class builder (SHARD-PLATFORM M3, moved from Nine Dragon's vm/geo.ts, whose legacy copy keeps its entry): a close-up geometry library merged per rigid group (held gear's parts); it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/nine-dragon-stack/runtime/tools/hookCourse.ts': { why: "a grapple tool's practice course (SHARD-PLATFORM M3, moved from Nine Dragon's playground/GrapplePlayground.ts, whose entry still covers its frozen legacy copy): a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
@@ -138,6 +145,12 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.
+    'src/game/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },
+    // 3b5ac8c9a: same authored cord merge, moved into the offline curve bake.
+    'src/sdk/bake/glb.ts': { why: '3b5ac8c9a: the offline curve weld for the existing Sky fan tassels, replacing their private cord geometry; no runtime world registration', counts: { mergeGeometries: 1 } },
+    // bf05c8c27: same Pine wildlife / Nalati flock instance draw, shared owner.
+    'src/sdk/looks/posedInstances.ts': { why: 'bf05c8c27: the existing posed creature instance owner shared by Pine wildlife and the Nalati flock (creatures, M5); geometry and poses stay with their model', counts: { InstancedMesh: 1 } },
     'src/sdk/sceneGraph.ts': { why: 'DS1.2 authoring-only Node reconstruction of persisted scene data: restores the authored instance matrices for build compilers without a renderer, runtime host or newly placed world thing', counts: { InstancedMesh: 1 } },
     'src/engine/render/graph/compile.ts': { why: "SF59 step 7: a material graph's outline stage is a second draw of the mesh it outlines (an inverted hull sharing that mesh's geometry and instance matrices), never a thing of its own", counts: { InstancedMesh: 1 } },
     'src/engine/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
@@ -209,9 +222,55 @@ function countsOf(code) {
 // Literal SF54 relocation: these two helpers support Nalati's People model; no directory-wide exception.
 const MODEL_SUPPORT = new Map([
   ['src/shards/nalati-grasslands/models/npc/figureMotion.ts', 'Publishes the camp figure poses used by the People model and its entered runtime.'],
+  ['src/shards/driftwood-isle/runtime/models/slots.ts', 'The former shared model-slot support module: owns vertex ranges for the chime and trophy models, never a model of its own.'],
 ]);
 
 const SHARD_MODELS = /^src\/shards\/([^/]+)\/models\//;
+// G463 model-folder moves retain the exact former model contract. Every
+// relocation is a literal source entry; no runtime directory gains an exemption.
+const MODEL_RELOCATIONS = new Map([
+  ['driftwood-isle', 'runtime/models/boat.ts', 'boat.ts'],
+  ['driftwood-isle', 'runtime/models/captainHat.ts', 'captainHat.ts'],
+  ['driftwood-isle', 'runtime/models/cargo.ts', 'cargo.ts'],
+  ['driftwood-isle', 'runtime/models/cove.ts', 'cove.ts'],
+  ['driftwood-isle', 'runtime/models/creatures.ts', 'creatures.ts'],
+  ['driftwood-isle', 'runtime/models/entryDeck.ts', 'entryDeck.ts'],
+  ['driftwood-isle', 'runtime/models/fixedSites.ts', 'fixedSites.ts'],
+  ['driftwood-isle', 'runtime/models/gear.ts', 'gear.ts'],
+  ['driftwood-isle', 'runtime/models/hibiscusBush.ts', 'hibiscusBush.ts'],
+  ['driftwood-isle', 'runtime/models/palm.ts', 'palm.ts'],
+  ['driftwood-isle', 'runtime/models/people.ts', 'people.ts'],
+  ['driftwood-isle', 'runtime/models/pier.ts', 'pier.ts'],
+  ['driftwood-isle', 'runtime/models/reef.ts', 'reef.ts'],
+  ['driftwood-isle', 'runtime/models/ropeBridge.ts', 'ropeBridge.ts'],
+  ['driftwood-isle', 'runtime/models/seaGlassChime.ts', 'seaGlassChime.ts'],
+  ['driftwood-isle', 'runtime/models/shoreBoulder.ts', 'shoreBoulder.ts'],
+  ['driftwood-isle', 'runtime/models/slots.ts', 'slots.ts'],
+  ['driftwood-isle', 'runtime/models/trader.ts', 'trader.ts'],
+  ['driftwood-isle', 'runtime/models/trailside.ts', 'trailside.ts'],
+  ['driftwood-isle', 'runtime/models/trophyPlaques.ts', 'trophyPlaques.ts'],
+  ['driftwood-isle', 'runtime/models/zipline.ts', 'zipline.ts'],
+  ['pine-hollow', 'runtime/models/antlerKing.ts', 'antlerKing.ts'],
+  ['pine-hollow', 'runtime/models/caveArch.ts', 'caveArch.ts'],
+  ['pine-hollow', 'runtime/models/fallenLog.ts', 'fallenLog.ts'],
+  ['pine-hollow', 'runtime/models/fern.ts', 'fern.ts'],
+  ['pine-hollow', 'runtime/models/fireLookout.ts', 'fireLookout.ts'],
+  ['pine-hollow', 'runtime/models/forestTree.ts', 'forestTree.ts'],
+  ['pine-hollow', 'runtime/models/gear.ts', 'gear.ts'],
+  ['pine-hollow', 'runtime/models/hollowLog.ts', 'hollowLog.ts'],
+  ['pine-hollow', 'runtime/models/logCabin.ts', 'logCabin.ts'],
+  ['pine-hollow', 'runtime/models/mossyBoulder.ts', 'mossyBoulder.ts'],
+  ['pine-hollow', 'runtime/models/people.ts', 'people.ts'],
+  ['pine-hollow', 'runtime/models/skinningKnife.ts', 'skinningKnife.ts'],
+  ['pine-hollow', 'runtime/models/stoneFirePit.ts', 'stoneFirePit.ts'],
+  ['pine-hollow', 'runtime/models/treeStump.ts', 'treeStump.ts'],
+  ['pine-hollow', 'runtime/models/waystone.ts', 'waystone.ts'],
+  ['pine-hollow', 'runtime/models/woodenCrate.ts', 'woodenCrate.ts'],
+  ['pine-hollow', 'runtime/models/zipCable.ts', 'zipCable.ts'],
+  ['driftwood-isle', 'generators/trailsideModels.ts', 'trailside.ts'],
+  ['pine-hollow', 'roster.ts', 'creatures.ts'],
+].map(([slug, source, name]) => [`src/shards/${slug}/${source}`, `src/shards/${slug}/models/${name}`]));
+const modelPath = file => MODEL_RELOCATIONS.get(file) ?? MODEL_RELOCATIONS.get(`${file}.ts`) ?? file;
 const SHARD_FILE = /^src\/shards\/([^/]+)\//;
 /** Pine Hollow's remaining generic world builders retain their report area after the move. */
 const PINE_WORLD = /^src\/engine\/world\/(Cabin|Undergrowth|Props)\.ts$/;
@@ -244,7 +303,7 @@ function importsOf(file, text) {
 /** @type {Record<string, {file:string,list:string,optional?:boolean,labels?:boolean,legacyFile?:string}[]>} */
 export const NAMED_PLACES = {
   ...Object.fromEntries(primaryFolders().map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
-  'driftwood-isle': [{ file: 'src/shards/driftwood-isle/data/discovery.ts', list: 'DRIFTWOOD_PLACES' }],
+  'driftwood-isle': [{ file: 'src/shards/driftwood-isle/generators/discovery.ts', list: 'DRIFTWOOD_PLACES', legacyFile: 'quest/Places.ts' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/data/questStory.ts)
   'pine-hollow': [{ file: 'src/shards/pine-hollow/data/layout.ts', list: 'PINE_HOLLOW_POIS', legacyFile: 'layout.ts' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
@@ -320,25 +379,33 @@ export function checkModels(files) {
     const code = strip(text), own = constsIn(code);
     const value = (lit, name) => lit ?? own.get(name) ?? globalConsts.get(name);
     for (const m of code.matchAll(/\bregisterSpecies\(\{[^}]*?\bkind:\s*(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) speciesKinds.set(k, file); }
-    if (SHARD_MODELS.test(file) || (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
+    if (SHARD_MODELS.test(modelPath(file)) || (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
   }
   for (const [kind, file] of speciesKinds) if (!modelled.has(kind)) violations.push(`${file}: the species '${kind}' is no model — define it in a models folder with creature('${kind}') (src/engine/models/creature.ts) and list it in its shard's roster`);
   const bump = (area, key, n) => { if (n === 0) return; const r = report.get(area) ?? {}; r[key] = (r[key] ?? 0) + n; report.set(area, r); };
   for (const [file, text] of Object.entries(texts)) {
     const code = text.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''); // comments don't count
     const policy = policyPath(file);
-    const inShardModels = SHARD_MODELS.exec(policy), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
-    const defines = [...code.matchAll(/defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
-    const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0);
+    const model = modelPath(file);
+    const inShardModels = SHARD_MODELS.exec(model === file ? policy : model), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
+    const defines = [...code.matchAll(/define(?:Geometry)?Model(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
+    // The typed geometry/catalogue factories now own these model definitions.
+    // Recognize them only inside the existing model contract, not elsewhere.
+    const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0)
+      + (inShardModels ? (code.match(/\b(?:defineGeometryModel|modelCatalogue)\(/g) ?? []).length : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
     if (inShardModels && calls === 0 && !MODEL_SUPPORT.has(file)) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
-      if ((inShardModels || inShared) && !id.startsWith(want)) violations.push(`${file}: model id '${id}' must start with '${want}'`);
+      // Pine's unchanged deer specialization retains the defining shared model
+      // identity and source; only its prepared species differs (a888b0ac1).
+      const sharedDeer = id === 'shared/deer' && ['src/shards/pine-hollow/roster.ts', 'src/shards/pine-hollow-legacy/models/creatures.ts'].includes(file)
+        && /defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'shared\/deer',\s*file:\s*'src\/game\/models\/creatures.ts'/.test(code);
+      if ((inShardModels || inShared) && !id.startsWith(want) && !sharedDeer) violations.push(`${file}: model id '${id}' must start with '${want}'`);
     }
     const shard = SHARD_FILE.exec(file)?.[1];
     for (const spec of importsOf(file, code)) {
-      const target = /(?:^#?|\/)shards\/([^/]+)\/models\//.exec(spec)?.[1];
+      const target = /(?:^#?|\/)shards\/([^/]+)\/models\//.exec(modelPath(spec))?.[1];
       if (shard !== undefined && target !== undefined && target !== shard) violations.push(`${file}: imports another shard's models (${spec})`);
       if (inShared && /(?:^#?|\/)shards\//.test(spec)) violations.push(`${file}: src/engine/models/ imports a shard (${spec})`);
     }
