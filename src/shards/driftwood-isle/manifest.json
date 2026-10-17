@@ -342,8 +342,8 @@
     },
     "roster": {
       "module": "./roster",
-      "export": "ROSTER",
-      "call": false
+      "export": "roster",
+      "call": true
     },
     "boot": {
       "files": {

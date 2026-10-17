@@ -9,8 +9,6 @@ import { SECTIONS } from '../sections';
 type PaintedRows = InferOutput<(typeof SECTIONS)['custom/paintedTextures']>;
 /** One of Pine's painted textures: log ends, lamp glow, coat, chalk. */
 export type PaintedKey = keyof PaintedRows['textures'];
-/** The trophy wall's chalk atlas layout, in pixels. */
-export type ChalkLayout = PaintedRows['chalk'];
 
 const textures = new ResourceMemo<PaintedKey, THREE.Texture>();
 let admitted: { readonly rows: PaintedRows; readonly url: (name: string) => string } | null = null;
@@ -23,8 +21,6 @@ function paintedRows(): NonNullable<typeof admitted> {
   if (admitted === null) throw new Error('[pine-hollow] painted textures are not admitted');
   return admitted;
 }
-/** The trophy wall's chalk atlas layout; refuses before admission. */
-export function chalkLayout(): ChalkLayout { return paintedRows().rows.chalk; }
 
 /** Load a painted texture once and share it; a missing file refuses (there is no runtime painter). */
 export function loadPainted(key: PaintedKey): Promise<THREE.Texture> {

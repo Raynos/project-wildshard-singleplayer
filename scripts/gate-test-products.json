@@ -27,5 +27,6 @@
   "test/quest-step-traces.test.ts": [],
   "test/quest-step-native-parity.test.ts": ["pine-hollow", "driftwood-isle"],
   "test/held-equipment-platform.test.ts": ["pine-hollow"],
-  "test/held-loadout-platform.test.ts": ["pine-hollow"]
+  "test/held-loadout-platform.test.ts": ["pine-hollow"],
+  "test/collections-display.test.ts": ["driftwood-isle", "pine-hollow"]
 }

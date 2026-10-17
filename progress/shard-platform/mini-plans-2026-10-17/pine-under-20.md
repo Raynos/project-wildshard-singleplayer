@@ -172,6 +172,7 @@ batch has one parity check. A board is only needed where the look changes.
 11. **Trophy wall with DW, and the geography bake (≈255, M–L).** The game compendium wall host plus DW trophy plaques.
     Delete `runtime/compendium/trophyWall.ts`. Bake the forest and creek rasters, and delete most of
     `behaviour/layout.ts` and the analytic part of `world/terrain.ts`.
+    - G482 follow-up (sp-x4, feature #6, recheck 2026-10-18): replace the collection entry points' borrowed world/save capability bundles with platform context and resource ids. Collections lands at 5/6; packed geometry already registers rows and is borrowed by id.
 12. **LEGACY path and harness params (≈89, S–M).** Needs Jake's pick on dropping the non-retained LEGACY entry.
     Recommended answer: drop it (Developer-only; the public entry is `shardfile`). Until he answers, build everything
     else; this batch is last on purpose.

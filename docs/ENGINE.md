@@ -8978,3 +8978,45 @@ Their defining modules are `sdk/populationRoster`, `sdk/populationWaves`,
 The native and page owner adapters live in `game/population/nativeWaves`
 and `game/population/pageWaves`, separate so native workers never import
 the page's scene or singleton services.
+
+### Collections and display (G474/G475/G477)
+
+Client-only presentation: `format/collectionDisplay` admits baked collection cards, bounded vertex
+ranges, paired empty/full trophy slots, count reveals, mount packs, chalk
+atlases and keepsake presentation rows. `game/models/collectionDisplay` defines
+cold Explorer cards and `CollectionDisplay`: the existing engine
+`engine/models/slots.SlotGeometry` rewrites the same index in place.
+`collectionTrophy` uses the
+same baked loose geometry and authored mounting offset as its wall plaque.
+Geometry, materials, names and placements remain the shard's rows.
+
+`game/compendium/keepsakes.installCollectionKeepsakes` owns count-to-display
+synchronization, quiet
+restoration of earned rewards, trophy displays, delayed announcements,
+claimed pickups, restart reward drops, cosmetics and blade glow. It borrows
+the existing Flags, Owned, progression/effect, model, world and save owners.
+It creates no save slot: previous glass flags, owned/worn ids and compendium
+entry statistics continue unchanged. Perk application stays with effects.
+The owning entry scope retains subtree ownership and listener teardown.
+
+`game/models/collectionWall.installCollectionCompendium` supplies the existing
+compendium's wall port. Rows place slots and select chalk cells; the host
+merges taken mounts, draws untaken chalk, resolves look-at prompts and opens
+the journal on EXAMINE. The product loader lends mount geometry and chalk
+texture capabilities. Pine uses its original baked mounts and atlas;
+Driftwood uses its original chime, trophies and keepsake placements. A
+made-up gallery fixture exercises different slot names and saved entries.
+
+`sdk/runtime/geometryPack.registerPackedGeometrySource(scope, id, rows)`
+registers a URL, pack rows and label under an owner-local id. The SDK alone
+constructs the decoder. `engine/models/geometrySources.readGeometrySource`
+borrows fresh owned copies using that id and geometry indices; disposal
+retires the registration. A shard supplies no decoder object or callback.
+The canonical authoring codec remains in `sdk/kit/geometryPack`, preserving
+the isolated baker's existing dependencies.
+
+Host bar: **5/6**, passing tests 1–5. Both collection presenters use admitted
+rows, contain no shard identities and are labelled client-only. Test 6 is
+still open: the legacy world/save owners are borrowed as capability bundles
+at the collection entry points. Batch 11 of the Pine under-20 mini-plan owns
+the remaining context-and-id API work (G482, sp-x4, recheck 2026-10-18).

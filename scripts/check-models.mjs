@@ -129,7 +129,6 @@ export const DONE = {
     'src/shards/nine-dragon-stack-legacy/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
-    'src/shards/pine-hollow/runtime/compendium/trophyWall.ts': { why: "the compendium's trophy wall (SHARD-PLATFORM M3, moved from Pine Hollow's world/): its mounts, each a creature's head built from its rig, merged into one draw", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/world/logKit.ts': { why: "G285: the log kit's shared log shape (`logGeo`: a log's side and its two end caps merged) that the cabin bake and the landmarks' timber build with; it draws nothing of its own", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/world/treeFactory.ts': { why: "the forest field's authored tree geometry, moved from TreeFactory (world, not a placed thing)", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow-legacy/world/trophyWall.ts': { why: "the frozen copy keeps its own trophy wall mounts (a creature's head built from its rig); the primary wall moved to @wildshard/game/compendium/trophyWall", counts: { mergeGeometries: 2 } },
@@ -224,7 +223,6 @@ function countsOf(code) {
 // Literal SF54 relocation: these two helpers support Nalati's People model; no directory-wide exception.
 const MODEL_SUPPORT = new Map([
   ['src/shards/nalati-grasslands/models/npc/figureMotion.ts', 'Publishes the camp figure poses used by the People model and its entered runtime.'],
-  ['src/shards/driftwood-isle/runtime/models/slots.ts', 'The former shared model-slot support module: owns vertex ranges for the chime and trophy models, never a model of its own.'],
 ]);
 
 const SHARD_MODELS = /^src\/shards\/([^/]+)\/models\//;
@@ -245,12 +243,9 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/pier.ts', 'pier.ts'],
   ['driftwood-isle', 'runtime/models/reef.ts', 'reef.ts'],
   ['driftwood-isle', 'runtime/models/ropeBridge.ts', 'ropeBridge.ts'],
-  ['driftwood-isle', 'runtime/models/seaGlassChime.ts', 'seaGlassChime.ts'],
   ['driftwood-isle', 'runtime/models/shoreBoulder.ts', 'shoreBoulder.ts'],
-  ['driftwood-isle', 'runtime/models/slots.ts', 'slots.ts'],
   ['driftwood-isle', 'runtime/models/trader.ts', 'trader.ts'],
   ['driftwood-isle', 'runtime/models/trailside.ts', 'trailside.ts'],
-  ['driftwood-isle', 'runtime/models/trophyPlaques.ts', 'trophyPlaques.ts'],
   ['driftwood-isle', 'runtime/models/zipline.ts', 'zipline.ts'],
   ['pine-hollow', 'runtime/models/antlerKing.ts', 'antlerKing.ts'],
   ['pine-hollow', 'runtime/models/caveArch.ts', 'caveArch.ts'],

@@ -1,7 +1,12 @@
+import { readGeometrySource } from '@wildshard/engine/models/geometrySources';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { loadTexture } from '@wildshard/engine/core/assets';
+import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 /**
- * The trophy wall (SHARD-PLATFORM M3: the game's, any shard's compendium may hang one; first drawn for a remaster's
+ * Client-only presentation. The trophy wall (SHARD-PLATFORM M3: the game's, any shard's compendium may hang one; first drawn for a remaster's
  * journal board, the chalk-outline wall).
  * A wall of mount slots from the shard's compendium (`ShardCompendium.trophies`): a slot whose entry is TAKEN shows the
  * animal's own head and shoulders on a wooden shield; the rest show a chalk outline and the name in chalk. Looking at a
@@ -22,17 +27,17 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { fetchDeflated, GeometryPack } from '@wildshard/sdk/kit/geometryPack';
-import type { InferOutput } from 'valibot';
-import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { SECTIONS } from '../sections';
-import { chalkLayout, loadPainted } from '../looks/paintedTextures';
-import type { CompendiumState } from "@wildshard/game/compendium/state";
-import type { TrophySlot } from "@wildshard/game/compendium/types";
+import type { CollectionMountPack, CollectionChalk } from '@wildshard/format/collectionDisplay';
+import { installCompendium, type CompendiumHost } from '../compendium/install';
+import type { CompendiumState } from '../compendium/state';
+import type { TrophySlot } from '../compendium/types';
 
 export interface TrophyWallOptions {
   /** the admitted product: the baked mounts pack (`custom/trophyMounts`, a named blob) */
-  product: ShardProduct;
+  pack: CollectionMountPack;
+  loadMounts: (indices: readonly number[]) => Promise<THREE.BufferGeometry[]>;
+  chalk: CollectionChalk;
+  loadChalk: () => Promise<THREE.Texture>;
   anchor: THREE.Object3D;
   state: CompendiumState;
   /** slots per row, top row first (their sum = the slot count) */
@@ -50,7 +55,8 @@ interface Placed { slot: TrophySlot; x: number; y: number; w: number; h: number 
 const LOOK_RANGE = 4.2;
 /** past this (m) the wall is not drawn */
 const CULL = 30;
-type TrophyMounts = InferOutput<(typeof SECTIONS)['custom/trophyMounts']>;
+const wallTextures = new ResourceMemo<string, THREE.Texture>();
+
 
 export class TrophyWall {
   readonly scope = uiScope('trophyWall');
@@ -72,12 +78,10 @@ export class TrophyWall {
   private readonly hit = new THREE.Vector3();
   private readonly plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
   /** the baked mounts pack's rows and its blob URL; each slot's geometry in the pack by entry id */
-  private readonly pack: TrophyMounts;
-  private readonly packUrl: string;
+  private readonly pack: CollectionMountPack;
 
   constructor(private opts: TrophyWallOptions) {
-    this.pack = opts.product.section('custom/trophyMounts', SECTIONS);
-    this.packUrl = opts.product.url(this.pack.url);
+    this.pack = opts.pack;
     const slots = opts.state.def.trophies ?? [];
     let k = 0;
     opts.rows.forEach((count, r) => {
@@ -113,8 +117,7 @@ export class TrophyWall {
     let parts: THREE.BufferGeometry[] = [];
     if (taken.length > 0) {
       try {
-        const pack = new GeometryPack(await fetchDeflated(this.packUrl), this.pack.rows, 'trophy-wall');
-        parts = taken.map((i) => pack.geometry(i));
+        parts = await this.opts.loadMounts(taken);
       } catch (error: unknown) { console.error('[trophy-wall] the baked mounts did not load:', error); return; }
     }
     if (build !== this.builds) return; // a newer rebuild won
@@ -128,7 +131,7 @@ export class TrophyWall {
 
   /** the baked chalk atlas, then the chalk decals */
   private async loadChalk(): Promise<void> {
-    const map = await loadPainted('chalk');
+    const map = await this.opts.loadChalk();
     this.chalkMat = new THREE.MeshStandardMaterial({ map, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.62, polygonOffset: true, polygonOffsetFactor: -2 });
     this.buildChalk();
   }
@@ -138,7 +141,7 @@ export class TrophyWall {
     const mat = this.chalkMat;
     if (!mat) return;
     if (this.chalk) { this.group.remove(this.chalk); this.chalk.geometry.dispose(); this.chalk = null; }
-    const layout = chalkLayout(), [aw, ah] = layout.size, outlines: Readonly<Record<string, readonly number[]>> = layout.outlines, labels: Readonly<Record<string, readonly number[]>> = layout.labels;
+    const layout = this.opts.chalk, [aw, ah] = layout.size, outlines: Readonly<Record<string, readonly number[]>> = layout.outlines, labels: Readonly<Record<string, readonly number[]>> = layout.labels;
     const quad = (rect: readonly number[] | undefined, w: number, h: number, x: number, y: number): THREE.BufferGeometry => {
       if (rect === undefined) throw new Error('[trophy-wall] a slot has no baked chalk');
       const [rx = 0, ry = 0, rw = 0, rh = 0] = rect, g = new THREE.PlaneGeometry(w, h), uv = g.getAttribute('uv');
@@ -203,4 +206,24 @@ export class TrophyWall {
 
   /** after a take: re-mount, re-chalk, re-read the tip */
   refresh(): void { this.rebuild(); this.paintTip(); }
+}
+
+/** Install the existing compendium and save owner with a product-backed display wall. */
+export function installCollectionCompendium(owners: ReadonlyMap<string, CompendiumHost>, rows: { mounts: string; scope: Scope; product: ShardProduct; pack: CollectionMountPack; chalk: CollectionChalk; texture: { url: string; srgb: boolean; repeat: boolean } }): ReturnType<typeof installCompendium> {
+  const host = owners.get('compendium');
+  if (host === undefined) throw new Error('Missing compendium owners');
+  return installCompendium({ ...host, wall: (state, journal) => {
+    const def = state.def, place = def.wall, root = place ? host.cabins?.roots[place.cabin] : undefined;
+    if (place === undefined || root === undefined || (def.trophies ?? []).length === 0) return null;
+    const anchor = new THREE.Object3D(); anchor.position.set(...place.at); anchor.rotation.y = place.yaw;
+    root.add(anchor); anchor.updateMatrixWorld(true);
+    const wall = new TrophyWall({ pack: rows.pack, chalk: rows.chalk,
+      loadMounts: indices => readGeometrySource(rows.scope, rows.mounts, indices),
+      loadChalk: () => {
+        const url = rows.product.url(rows.texture.url);
+        return wallTextures.load(url, () => loadTexture(url, rows.texture.srgb, 1, undefined, texture => { if (!rows.texture.repeat) texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; }));
+      },
+      anchor, state, rows: place.rows, width: place.width, rowY: place.rowY, tip: true });
+    wall.onExamine = id => { journal.open(id); }; host.interactables.push(wall.interactable); return wall;
+  } });
 }

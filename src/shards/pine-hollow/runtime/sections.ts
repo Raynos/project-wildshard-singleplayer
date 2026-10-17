@@ -1,3 +1,4 @@
+import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
@@ -8,15 +9,10 @@ const finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Numb
 const point = { x:finite, y:finite, z:finite };
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const strings = v.pipe(v.array(text), v.maxLength(8192));
-const rect = v.tuple([number, number, number, number]);
 const pool = v.strictObject({ url: text, parts: strings });
 const icon = v.picklist(['deer','boar','elk','bear','ghost','ironhide','claw','antlers','poi','laurel','rope','seaglass','coin','check','lock','tusk','longbow']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, kind: v.exactOptional(text), variant: v.exactOptional(text), event: v.exactOptional(text), title: text, icon });
 const bagItem = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
-const packedGeometry = v.strictObject({ attrs: v.array(v.tuple([text,natural])), count: natural, unique: natural,
-  own: v.nullable(v.picklist(['u16','u32'])), indexCount: natural });
-const mountPack = v.strictObject({ notice:text, url:text, sha256:text, rows:v.strictObject({ bytes:natural, geometries:v.pipe(v.array(packedGeometry),v.maxLength(128)) }), slots:v.record(text,natural) });
-const chalk = v.strictObject({ size:v.tuple([natural,natural]), outlines:v.record(text,rect), labels:v.record(text,rect) });
 const texture = v.strictObject({ url:text, srgb:v.boolean(), repeat:v.boolean() });
 const triple = v.tuple([number, number, number]);
 const pair = v.tuple([number, number]);
@@ -27,8 +23,8 @@ export const CabinAmbienceSchema = v.strictObject({ floors:v.pipe(v.array(v.stri
 export const SECTIONS = {
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
-  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk}),
-  'custom/trophyMounts':mountPack,
+  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk:CollectionChalkSchema}),
+  'custom/trophyMounts':CollectionMountPackSchema,
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;
 

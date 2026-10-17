@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     "./bossEncounter": "./bossEncounter.ts",
-
     "./specimenCatalogue": "./specimenCatalogue.ts",
     "./exchange": "./exchange.ts",
     "./panelTemplate": "./panelTemplate.ts",
@@ -161,7 +160,8 @@
     "./populationRoster": "./populationRoster.ts",
     "./questSteps": "./questSteps.ts",
     "./heldEquipment": "./heldEquipment.ts",
-    "./loadout": "./loadout.ts"
+    "./loadout": "./loadout.ts",
+    "./collectionDisplay": "./collectionDisplay.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

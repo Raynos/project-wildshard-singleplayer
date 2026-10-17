@@ -436,6 +436,7 @@
     "./ai/ambientFlock": "./ai/ambientFlock.ts",
     "./ai/ambientForager": "./ai/ambientForager.ts",
     "./player/heldHandParts": "./player/heldHandParts.ts",
-    "./audio/declaredGameplay": "./audio/declaredGameplay.ts"
+    "./audio/declaredGameplay": "./audio/declaredGameplay.ts",
+    "./models/geometrySources": "./models/geometrySources.ts"
   }
 }

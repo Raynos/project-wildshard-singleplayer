@@ -158,7 +158,8 @@
     "./populationShelter": "./populationShelter.ts",
     "./populationRespawn": "./populationRespawn.ts",
     "./populationRoster": "./populationRoster.ts",
-    "./populationPageWaves": "./populationPageWaves.ts"
+    "./populationPageWaves": "./populationPageWaves.ts",
+    "./runtime/geometryPack": "./runtime/geometryPack.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

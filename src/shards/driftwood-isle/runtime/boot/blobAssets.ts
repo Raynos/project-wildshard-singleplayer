@@ -1,3 +1,4 @@
+import { CollectionCatalogue } from '@wildshard/game/models/collectionDisplay';
 import { createOwnedGeometryBatch, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { BufferGeometry } from 'three';
 import type { readWholeGeometry } from '@wildshard/game/plugin/geometry';
@@ -81,3 +82,8 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     await fixed.load(admitted); fixedReady = true;
   } finally { for (let i = 0, views = [...assembled?.values() ?? []]; i < 86; i++) { const view = views[i]; if (view === undefined) break; view.release?.(); } }
 }
+
+/** Inert collection binding shares the original fixed-draw intake without loading the live creature roster. */
+export const COLLECTIONS = new CollectionCatalogue('driftwood-isle', new Map([
+  ['chime', fixedDraw('chime')], ['trophyPlaques', fixedDraw('trophyPlaques')], ['trophyDrop', fixedDraw('trophyDrop')],
+]));

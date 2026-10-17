@@ -1,0 +1,80 @@
+{
+  "chime": {
+    "id": "driftwood-isle/sea-glass-chime",
+    "name": "Sea glass wind chime",
+    "file": "src/shards/driftwood-isle/roster.ts",
+    "surface": "wood",
+    "defaults": {
+      "count": 15
+    },
+    "variants": [
+      {
+        "id": "0",
+        "label": "0 / 15",
+        "params": {
+          "count": 0
+        }
+      },
+      {
+        "id": "5",
+        "label": "5 / 15",
+        "params": {
+          "count": 5
+        }
+      },
+      {
+        "id": "10",
+        "label": "10 / 15",
+        "params": {
+          "count": 10
+        }
+      },
+      {
+        "id": "15",
+        "label": "15 / 15",
+        "params": {
+          "count": 15
+        }
+      }
+    ]
+  },
+  "plaques": {
+    "id": "driftwood-isle/trophy-plaques",
+    "name": "Trophy plaques",
+    "file": "src/shards/driftwood-isle/roster.ts",
+    "surface": "wood",
+    "defaults": {
+      "bear": true,
+      "boar": true
+    },
+    "variants": [
+      {
+        "id": "both",
+        "label": "Both",
+        "params": {}
+      },
+      {
+        "id": "empty",
+        "label": "Empty",
+        "params": {
+          "bear": false,
+          "boar": false
+        }
+      },
+      {
+        "id": "bear",
+        "label": "Bear",
+        "params": {
+          "boar": false
+        }
+      },
+      {
+        "id": "boar",
+        "label": "Boar",
+        "params": {
+          "bear": false
+        }
+      }
+    ]
+  }
+}

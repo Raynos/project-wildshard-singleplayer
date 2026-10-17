@@ -144,8 +144,6 @@ const reviewedW2Owners = new Map([
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   ['src/shards/driftwood-isle/runtime/finalePresentation.ts', 'C5'],
-  ['src/shards/pine-hollow/runtime/compendium/install.ts', 'C5'],
-  ['src/shards/pine-hollow/runtime/compendium/trophyWall.ts', 'C1'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/combat/ammo.ts', 'C6'],
   ['src/engine/combat/Firearm.ts#RangedAction', 'C6'],
@@ -186,7 +184,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/runtime/fpArms.ts', 'C6'],
   ['src/shards/driftwood-isle/loadout/rows.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/effects.ts', 'C6'],
-  ['src/shards/driftwood-isle/loot/keepsakes.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/presentation.ts', 'C6'],
   ['src/shards/pine-hollow/combat/chargeTells.ts', 'C6'],
   ['src/shards/pine-hollow/combat/install.ts', 'C4'],

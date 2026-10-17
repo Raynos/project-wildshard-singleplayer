@@ -9,11 +9,13 @@ import { bear, boar } from '@wildshard/game/models/creatures'; // the creature r
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
 import { castaway } from './runtime/models/people';
 import { GEAR } from './runtime/models/gear';
-import { seaGlassChime } from './runtime/models/seaGlassChime';
-import { trophyPlaques } from './runtime/models/trophyPlaques';
+import { COLLECTIONS } from './runtime/boot/blobAssets';
 import { captainHat, sailclothCape } from './runtime/models/captainHat';
 
-export const ROSTER: readonly RosterEntry[] = [
+export async function roster(): Promise<readonly RosterEntry[]> {
+  await COLLECTIONS.prepare();
+  const seaGlassChime = COLLECTIONS.model('chime'), trophyPlaques = COLLECTIONS.model('plaques');
+  return [
   // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here
   live(boar, { pipeline: 'code' }), live(bear, { pipeline: 'code' }), // no deer since E318
   // the enemies (src/shards/driftwood-isle/creatures/Enemies.ts) and the boss (src/shards/driftwood-isle/runtime/finalePresentation.ts)
@@ -29,3 +31,4 @@ export const ROSTER: readonly RosterEntry[] = [
   live(seaGlassChime, { copies: 0, drawnAs: 'single' }), live(trophyPlaques, { copies: 0, drawnAs: 'single' }),
   live(captainHat, { copies: 0, drawnAs: 'single' }), live(sailclothCape, { copies: 0, drawnAs: 'single' }),
 ];
+}

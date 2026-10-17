@@ -7,7 +7,6 @@
     "./boss/wake": "./boss/wake.ts",
     "./boss/nativeWake": "./boss/nativeWake.ts",
     "./boss/presentation": "./boss/presentation.ts",
-
     "./proof/entryways": "./proof/entryways.ts",
     "./models/specimenCatalogue": "./models/specimenCatalogue.ts",
     "./shardfile/audioCatalogue": "./shardfile/audioCatalogue.ts",
@@ -151,7 +150,10 @@
     "./loadout/persistence": "./loadout/persistence.ts",
     "./loadout/events": "./loadout/events.ts",
     "./loadout/effects": "./loadout/effects.ts",
-    "./loadout/nativeAmmunition": "./loadout/nativeAmmunition.ts"
+    "./loadout/nativeAmmunition": "./loadout/nativeAmmunition.ts",
+    "./models/collectionDisplay": "./models/collectionDisplay.ts",
+    "./compendium/keepsakes": "./compendium/keepsakes.ts",
+    "./models/collectionWall": "./models/collectionWall.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

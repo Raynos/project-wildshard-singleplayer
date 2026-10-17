@@ -1,3 +1,4 @@
+import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
@@ -8,8 +9,6 @@ const reach = v.strictObject({ near: v.number(), far: v.number(), grow: v.number
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
-const run = v.strictObject({ start: natural, count: natural });
-const runs = v.pipe(v.array(run), v.maxLength(512));
 const site = v.strictObject({ x: number, z: number, rot: number });
 const point = v.strictObject({ x: number, y: number, z: number });
 const anchor = v.strictObject({ x: number, y: number, z: number, yaw: number });
@@ -30,7 +29,6 @@ const fixedSite = { site, origin: point, colliders: boxes, anchors: v.record(tex
 const shrineSite = v.strictObject({ ...fixedSite, descs: v.pipe(v.array(surfaced), v.maxLength(128)), baseY: number, terrace: number });
 const npcScene = v.strictObject({ recipe: PrivateSceneSchema, parts: v.pipe(v.record(text, v.picklist(['group', 'object'])), v.maxEntries(16)),
   bindings: v.pipe(v.record(text, v.strictObject({ kind: v.picklist(['group', 'object']), part: text })), v.maxEntries(16)) });
-const trophySlots = v.strictObject({ ranges: runs, boards: runs, empty: v.strictObject({ bear: natural, boar: natural }), full: v.strictObject({ bear: natural, boar: natural }) });
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
@@ -65,6 +63,7 @@ const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, 
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
 /** Product-owned logical names and the client's build-time rows (W2b, G449); runtime/ never imports data/. */
 export const SECTIONS = {
+  'custom/collections': CollectionDisplaysSchema,
   'custom/assets': v.strictObject({
     byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
   }),
@@ -131,7 +130,6 @@ export const SECTIONS = {
       v.strictObject({ kind: v.literal('hull'), x: number, y: number, z: number, points: v.pipe(v.array(number), v.maxLength(24)) }),
     ])), v.maxLength(128)) })), v.length(7)),
     npcScenes: v.strictObject({ castaway: npcScene, trader: npcScene }),
-    chimeSlots: runs,
     entryFloors: floors,
     gullPerches: v.pipe(v.array(point), v.maxLength(256)),
     boat: v.strictObject({ spec: v.strictObject({ x: number, z: number, heading: v.literal(0), waterY: number }), placement: point,
@@ -146,7 +144,6 @@ export const SECTIONS = {
     /** the shrine's two admitted sites (knoll and flat Explorer specimen): origin, colliders, stair descriptors, anchors, levels */
     shrine: v.strictObject({ world: shrineSite, specimen: shrineSite }),
     /** the trophy plaques' board, empty and full vertex ranges */
-    trophySlots,
     hut: v.strictObject({ ...fixedSite, descs }),
     lookout: v.strictObject({ ...fixedSite, descs, zipTo: v.strictObject({ x: number, z: number }) }),
   }),

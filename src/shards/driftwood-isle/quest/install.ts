@@ -1,5 +1,4 @@
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
-import { onCreatureDeath } from '@wildshard/game/loot/deaths';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { QuestViews } from '@wildshard/game/plugin/ui';
@@ -7,7 +6,10 @@ import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { placeDriftwoodPlaces } from '../world/places';
 import { installAdventure, type Adventure } from './adventure';
-import { installKeepsakes } from '../loot/keepsakes';
+import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/keepsakes';
+import { COLLECTIONS } from '../runtime/boot/blobAssets';
+import { captainHat, sailclothCape } from '../runtime/models/captainHat';
+import { driftwoodRows } from '../runtime/boot/rows';
 import { bindDriftwoodEffects } from '../loot/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
 import { installQuestHints } from '@wildshard/game/quest/hints';
@@ -40,11 +42,9 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
   bindDriftwoodEffects({ grants: economy.grants, effects, scope: ctx.scope, owned: h.owned, health, player, swords, hitCap: ctx.manifest.fight?.maxHitDamage ?? Infinity, slug: ctx.manifest.slug });
-  const scopedGame = { scene: game.scene, camera: game.camera, renderer: game.renderer,
-    onUpdate: (run: (dt: number, t: number) => void, label?: string) => { ctx.system({ id: label ?? 'shard.driftwood.keepsakes', phase: 'update', after: ['game.loot', 'body-shadow'], before: ['hud.combat', 'last place', 'first hints', 'main.world'], run }); } };
-  installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
-    progression: economy.progression, pickups: economy.pickups ?? {}, owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
-    body: h.bodyShadow ?? null, swords, effectsManaged: true });
+  await installDeclaredCollectionKeepsakes(ctx, driftwoodRows('custom/collections').keepsakes, economy,
+    new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
+      models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
     toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,
       nolock: h.nolock, touchUi: h.touchUi, restartOnClose: true,
