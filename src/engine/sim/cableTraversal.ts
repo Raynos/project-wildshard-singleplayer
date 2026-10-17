@@ -68,12 +68,10 @@ export class ZiplineDriver {
   private riding = false;
   private readonly row: ZiplineMode;
   private readonly profile: v.InferOutput<typeof CableProfileSchema> | undefined;
-  private readonly onRide: (on: boolean) => void;
   private readonly landing: ZiplineMode['bottom'];
   /** A direct-anchor profile may lend a separate landing deck; otherwise release uses the declared bottom endpoint. */
-  constructor(row: ZiplineMode, onRide: (on: boolean) => void = () => undefined,
+  constructor(row: ZiplineMode,
     profile?: v.InferOutput<typeof CableProfileSchema>, landing?: ZiplineMode['bottom']) {
-    this.onRide = onRide;
     // Author geometry lends real vectors; admit their numeric coordinates without prototype markers.
     const point = (value: ZiplineMode['top']) => value instanceof Vector3 ? { x: value.x, y: value.y, z: value.z } : value;
     this.row = v.parse(ZiplineModeSchema, { ...row, top: point(row.top), bottom: point(row.bottom) });
@@ -93,7 +91,6 @@ export class ZiplineDriver {
   start(): void {
     if (this.riding) return;
     this.riding = true; this.motion.s = this.profile?.start ?? 0.4; this.motion.v = this.profile?.landing.velocity ?? 2.5;
-    this.onRide(true);
   }
   /** Advance the same bounded law in a native caller's existing continuation, without commands or clock ownership. */
   step(ride: ZiplineRideState, dt: number): boolean {
@@ -122,7 +119,6 @@ export class ZiplineDriver {
         player.velocity.set(dir.x * Math.min(6, this.motion.v * 0.4), 1.5, dir.z * Math.min(6, this.motion.v * 0.4));
         this.layout.park(this.point);
       } else this.dismount(this.landing, player.position.y, player.position, player.velocity);
-      this.onRide(false);
     }
     return this.riding;
   }

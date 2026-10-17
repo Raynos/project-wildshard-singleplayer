@@ -36,7 +36,7 @@ for (const row of rows) test(`${row.id}: page carry, wind, trolley, release and 
   const flags = new Flags('cable-test', false), owner = new CableTraversal([row], flags);
   const rider = { position: new Vector3(), velocity: new Vector3(), carried: false }, expected = { position: new Vector3(), velocity: new Vector3(), carried: false };
   const object = new Group(), oldObject = new Group(), camera = new PerspectiveCamera();
-  const events: boolean[] = [], old = new ZiplineDriver(row, on => { events.push(on); }, row.profile, row.landing);
+  const old = new ZiplineDriver(row, row.profile, row.landing);
   const prompt = owner.bindView(row.id, object, rider, { position: new Vector3(), radius: 2.4, label: 'Ride' }, camera);
   const carriage = new ZiplineTrolley(old, row.presentation?.park ?? 0.6, oldObject,
     { position: new Vector3(), radius: 2.4, label: 'Ride' }, () => old.isRiding, () => { old.start(); });
@@ -71,7 +71,6 @@ for (const row of rows) test(`${row.id}: page carry, wind, trolley, release and 
     }
   }
   expect(ticks).toBeLessThan(2400);
-  expect(events).toEqual([true, false]);
   expect(owner.takeTransitions(row.id)).toEqual([false]);
   expect(owner.state(row.id)).toEqual({ riding: false, atEnd: true });
   expect(flags.has(row.lifecycle?.endFlag ?? '')).toBe(true);
@@ -91,7 +90,7 @@ test('both native carry policies keep release positions, impulses and original s
       const owner = installCableModes(host.scope, [row], flags);
       owner.bindNative(host);
       const rider = owner.nativeRider(row.id);
-      const reference = new ZiplineDriver(row, () => undefined, row.profile, row.landing), expected = { position: new Vector3(), velocity: new Vector3() };
+      const reference = new ZiplineDriver(row, row.profile, row.landing), expected = { position: new Vector3(), velocity: new Vector3() };
       owner.start(row.id); reference.start();
       for (let tick = 0; reference.isRiding && tick < 2400; tick++) {
         reference.update(1 / 60, expected);

@@ -1,5 +1,4 @@
 import type * as THREE from 'three';
-import { MoverMechanic } from '@wildshard/engine/sim/moverMotion';
 import { floorAtRects, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -81,17 +80,24 @@ export class BuildingLife {
   /** world y of a floor / deck under (x, z), if inside one */
   floorHeightAt(x: number, z: number): number | undefined { return floorAtRects(this.floors, x, z, 'first'); }
 
-  /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings. */
-  tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
-    const look = this.lifeLook;
-    for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
+  /** Pine-only reversible doors stay custom until a real second shard uses the same mover row. */
+  private stepDoors(dt: number): void {
+    const look = this.lifeLook.door;
     for (let i = 0; i < 128; i++) {
       const d = this.doors[i]; if (d === undefined) break;
       const target = d.open ? 1 : 0;
       if (d.t === target) continue;
-      const pose = MoverMechanic.hinge(d.t, target, dt, look.door.seconds, look.door.angle);
-      d.t = pose.progress; d.pivot.rotation.y = pose.angle;
+      d.t = Math.min(1, Math.max(0, d.t + Math.sign(target - d.t) * dt / look.seconds));
+      const eased = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2;
+      d.pivot.rotation.y = -eased * look.angle;
     }
+  }
+
+  /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings. */
+  tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
+    const look = this.lifeLook;
+    for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
+    this.stepDoors(dt);
     this.gain.fire = look.fire[0] + look.fire[1] * lamps; this.gain.lamp = look.lamp[0] + look.lamp[1] * lamps;
     this.lights.step(t, eye, this.gain);
     for (const m of this.lampMats) m.mat.emissiveIntensity = m.full * (look.glass[0] + look.glass[1] * lamps);

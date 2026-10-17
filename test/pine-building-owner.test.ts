@@ -36,7 +36,23 @@ test('building life keeps its door while the assembly owns static collision', ()
     prompt.onInteract();
     expect(heard).toEqual([{ label: CABIN_BUILD.door.close, opening: true }]);
     expect(door.swinging()).toBe(true);
-    life.tick(1, 1, new Vector3(), 0);
+    const eye = new Vector3();
+    life.tick(0.3, 0.3, eye, 0);
+    expect(door.pivot.rotation.y).toBeCloseTo(-0.925, 12);
+    prompt.onInteract();
+    expect(prompt.label).toBe(CABIN_BUILD.door.open);
+    expect(door.swinging()).toBe(true);
+    life.tick(0.15, 0.45, eye, 0);
+    expect(door.pivot.rotation.y).toBeCloseTo(-0.23125, 12);
+    life.tick(0.15, 0.6, eye, 0);
+    expect(door.swinging()).toBe(false);
+    expect(door.pivot.rotation.y).toBeCloseTo(0, 12);
+    expect(heard).toEqual([
+      { label: CABIN_BUILD.door.close, opening: true },
+      { label: CABIN_BUILD.door.open, opening: false },
+    ]);
+    prompt.onInteract();
+    life.tick(1, 1.6, eye, 0);
     expect(door.swinging()).toBe(false);
     expect(door.pivot.rotation.y).toBeLessThan(0);
     expect(prompt.label).toBe(CABIN_BUILD.door.close);

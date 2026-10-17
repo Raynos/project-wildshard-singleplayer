@@ -6867,8 +6867,9 @@ The G441 W3 match is Nalati `creatures/wildPlacement.ts#freeSpot`,
 `#placePack` and `#placeHerd`: preserve area-radius rejection, live-body
 clearance, centre fallback, variants and interleaved native spawning.
 
-`@wildshard/sdk/movers#ZiplineDriver` accepts an optional fourth landing
-point for direct-anchor profile rides. The default release still uses the
+`@wildshard/engine/sim/cableTraversal#ZiplineDriver(row, profile?, landing?)`
+accepts an optional third landing point for direct-anchor profile rides.
+The default release still uses the
 declared bottom endpoint. `speed` lends the live cable speed to camera
 and trolley presentation; `update` retains the one ride state and clock,
 returning whether the cable still carries the rider.

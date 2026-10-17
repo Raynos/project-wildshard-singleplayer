@@ -12,8 +12,6 @@ export interface MoverAdvance { readonly entity: ScriptEntity; readonly effects:
 const tau = 2 * Math.PI;
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 const clamp = (x: number): number => Math.min(1, Math.max(0, x));
-/** Bounded phase approach used by reversible doors as well as platform tracks. */
-function approach(value: number, target: number, dt: number, seconds: number): number { return clamp(value + Math.sign(target - value) * dt / seconds); }
 function sine(value: number): number {
   const x = value - Math.floor(value / tau + 0.5) * tau, z = x * x;
   return x * (1 + z * (-1 / 6 + z * (1 / 120 + z * (-1 / 5040 + z * (1 / 362880 + z * (-1 / 39916800 + z / 6227020800))))));
@@ -35,18 +33,6 @@ export class MoverMechanic {
     this.fixed = { ...motion, at: { ...input.at }, euler: { ...input.euler } };
     this.carry = input.carry === undefined ? undefined : v.parse(MoverCarrySchema, input.carry);
     const lowered = lowerMoverMotion(motion, input); this.parameters = lowered.input; this.module = lowered.module;
-  }
-  /** Door progress and angle share the track phase law; no object or authored update closure enters the mechanic. */
-  static approach(value: number, target: number, dt: number, seconds: number): number {
-    if (![value, target, dt, seconds].every(Number.isFinite) || value < 0 || value > 1 || target < 0 || target > 1 || dt < 0 || dt > 1 || seconds <= 0 || seconds > 3600) throw new Error('Invalid track phase');
-    return approach(value, target, dt, seconds);
-  }
-  /** Reversible hinged track output, including the original quadratic ease-in/out. */
-  static hinge(value: number, target: number, dt: number, seconds: number, angle: number): { progress: number; angle: number } {
-    const progress = MoverMechanic.approach(value, target, dt, seconds);
-    if (!Number.isFinite(angle) || Math.abs(angle) > Math.PI) throw new Error('Invalid hinge angle');
-    const eased = progress < 0.5 ? 2 * progress * progress : 1 - (-2 * progress + 2) ** 2 / 2;
-    return { progress, angle: -eased * angle };
   }
   /** Numeric publication matches the original field/position order; carry data is optional and renderer-free. */
   step(before: ScriptEntity, frame: MoverFrame): MoverAdvance {

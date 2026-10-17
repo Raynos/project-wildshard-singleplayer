@@ -83,7 +83,6 @@ test('the existing ride path preserves the old smoothstep and surface clock in b
     }
     expect(state.fields[6]).toBe(direction === 1 ? 0.25 : 0);
   }
-  expect(MoverMechanic.hinge(0, 1, 0.3, 0.6, 1.85)).toEqual({ progress: 0.5, angle: -0.925 });
 });
 
 test('retires only proved native mover module memory and migrates numeric and mover role contracts', () => {
