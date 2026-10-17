@@ -551,6 +551,7 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-weather-channels.mjs",
         "src/shards/nalati-grasslands/generators/weatherChannels.ts",
+        "src/shards/nalati-grasslands/generators/dayChannels.ts",
         "scripts/bake-output.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/format",
@@ -821,6 +822,7 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
         "src/shards/nalati-grasslands/generators/bootInventory.ts",
+        "src/shards/nalati-grasslands/generators/dayClock.ts",
         "src/shards/nalati-grasslands/generators/manifestRows.ts",
         "src/shards/nalati-grasslands/generators/budgets.ts",
         "src/shards/nalati-grasslands/generators/horizon.ts",

@@ -1,13 +1,14 @@
+import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 /**
  * Nalati's sky rig (07 §6.2 step 6; was the engine's `world/DayClock.ts`): applies the shared DayCycle and the steppe's
- * authored keyframes (dayKeys.ts) to the existing sky, lighting, fog, clouds and post effects. Clock arithmetic and
+ * authored day channels to the existing sky, lighting, fog, clouds and post effects. Clock arithmetic and
  * phase events live in the engine's dayCycle.ts; elevation keys and interpolation policy are this look's data.
  */
 import * as THREE from 'three';
 import type { ShardManifest, RGB } from '@wildshard/game/shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { compassDir, type DayCycle, type DayKeys } from '@wildshard/engine/world/dayCycle';
+import { compassDir, type DayCycle } from '@wildshard/engine/world/dayCycle';
 import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -22,11 +23,6 @@ export interface SkyKey {
   cloudSun: RGB; cloud: RGB; planet: RGB;
   shadowTint: RGB; highTint: RGB; lift: RGB; gain: RGB; sat: number; contrast: number;
   vol: RGB; volS: number; rays: number;
-}
-
-export interface SkyKeyProfile {
- frames: (day: SkyKey) => SkyKey[];
- blend: (out: SkyKey, a: SkyKey, b: SkyKey, t: number) => void;
 }
 
 // ─────────────────────────────────────────────── the look ───────────────────────────────────────────────
@@ -90,7 +86,7 @@ const lerpN = (a: number, b: number, t: number): number => a + (b - a) * t;
 export class SkyRig {
   readonly dome: THREE.Mesh;
   private readonly day: SkyKey;
-  private readonly dayKeys: DayKeys<SkyKey>;
+  private readonly dayChannels: ReturnType<typeof installChannelPrograms>;
   private readonly keyScratch: SkyKey;
   private readonly domeU = {
     uZenith: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uGround: { value: new THREE.Color() }, uGlow: { value: new THREE.Color() },
@@ -108,7 +104,7 @@ export class SkyRig {
   readonly dayFog = new THREE.Color();
   readonly daySunIntensity: number;
 
-  constructor(private game: Game, private sky: Sky, keys: SkyKeyProfile, def: ShardManifest) {
+  constructor(private game: Game, private sky: Sky, channels: unknown, clock: DayCycle<SkyKey>, def: ShardManifest) {
     const S = def.sky, G = def.grade, A = def.atmosphere;
     const P = S.painted ?? { zenith: [0.1, 0.28, 0.85] as RGB, horizon: [0.62, 0.78, 0.98] as RGB, ground: [0.3, 0.36, 0.3] as RGB, glow: [1.0, 0.82, 0.55] as RGB };
     const fog = game.scene.fog as THREE.Fog | null;
@@ -127,8 +123,17 @@ export class SkyRig {
       shadowTint: G.shadowTint, highTint: G.highTint, lift: G.lift, gain: G.gain, sat: G.saturation, contrast: G.contrast,
       vol: A.volumetricSunColor, volS: vs, rays: 1,
     };
-    this.dayKeys = { coordinate: 'elevation', frames: [this.day, ...keys.frames(this.day)].map((key) => [key.el, key]), blend: keys.blend };
     this.keyScratch = { ...this.day, sun: [...this.day.sun], zenith: [...this.day.zenith], horizon: [...this.day.horizon], ground: [...this.day.ground], glow: [...this.day.glow], hemiSky: [...this.day.hemiSky], hemiGround: [...this.day.hemiGround], fog: [...this.day.fog], fogSun: [...this.day.fogSun], shade: [...this.day.shade], rim: [...this.day.rim], cloudSun: [...this.day.cloudSun], cloud: [...this.day.cloud], planet: [...this.day.planet], shadowTint: [...this.day.shadowTint], highTint: [...this.day.highTint], lift: [...this.day.lift], gain: [...this.day.gain], vol: [...this.day.vol] };
+    const owners = new Map<string, unknown>([['day', this.day], ['key', this.keyScratch], ['clock', { get elevation() { return clock.sunElevation; } }]]);
+    for (const field of Object.keys(this.keyScratch) as (keyof SkyKey)[]) {
+      const value = this.keyScratch[field];
+      if (Array.isArray(value)) owners.set(`key.${field}`, {
+        get x() { return value[0]; }, set x(n: number) { value[0] = n; },
+        get y() { return value[1]; }, set y(n: number) { value[1] = n; },
+        get z() { return value[2]; }, set z(n: number) { value[2] = n; },
+      });
+    }
+    this.dayChannels = installChannelPrograms(channels, 'nalati.day', owners);
     this.dayFog.setRGB(...this.day.fog);
     this.daySunIntensity = this.day.sunI;
     this.fogDist = fogUniforms.fogDistDensity.value;
@@ -198,7 +203,7 @@ export class SkyRig {
 
   /** the time-of-day look at the clock's hour → out */
   look(clock: DayCycle<SkyKey>, out: SkyLook): SkyLook {
-    clock.spec.keys = this.dayKeys;
+    this.dayChannels.evaluate({ time: 0, delta: 0, values: {} });
     return sampleSkyLook(clock, out, this.keyScratch, this.fogDist, this.fogHeight, this.bright);
   }
 
@@ -263,7 +268,6 @@ export function copyLook(out: SkyLook, L: SkyLook): SkyLook {
 export function sampleSkyLook(clock: DayCycle<SkyKey>, out: SkyLook, key: SkyKey, fogDist: number, fogHeight: number, brightness: number): SkyLook {
     const el = clock.sunElevation;
     compassDir(clock.sunAzimuth, el, out.sunDir);
-    clock.key(key);
     const a = key, b = key, s = 0;
     // the key light: the sun until it touches the horizon, then (at zero) the moon
     const moonT = smoothstep(-2, -12, el);

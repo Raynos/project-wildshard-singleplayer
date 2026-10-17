@@ -1,6 +1,7 @@
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { wildEnv } from '../creatures/env';
-import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
+import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
+import * as v from 'valibot';
 import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, type SkyLook } from '../look/skyRig';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
@@ -28,7 +29,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
-import type { DayCycle, DayPhase } from '@wildshard/engine/world/dayCycle';
+import { DayCycle, type DayPhase } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -114,12 +115,13 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   let indoors = false;
 
   // ── the clock: starts on the def's own sun, so the first frame is the look the shard was painted with ──
-  const clock = def.sky.sun ? clockForSun(def.sky.sun) : steppeClock();
+  const clock = new DayCycle<SteppeKey>({ ...bootMetadata.dayClock, units: 'hour',
+    schedule: bootMetadata.dayClock.schedule.map(row => ({ from: row.from, to: row.to, minutes: row.minutes, phase: v.parse(v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), row.phase) })) });
   const tq = qs.get('time');
   if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) void clock.set(h); else if (isTimeName(tq)) void clock.set(tq); }
   clock.paused = qs.get('clock') === '0';
 
-  const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);
+  const rig = new SkyRig(game, sky, ctx.ctx.product.shardfile.clientChannels, clock, def);
   const base = makeLook(), look = makeLook();
   const stormLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'weather',new Map([['look',look]]));
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);

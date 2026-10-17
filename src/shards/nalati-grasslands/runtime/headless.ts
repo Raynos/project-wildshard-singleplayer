@@ -12,7 +12,8 @@ import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from '../look/trampleMovers';
-import { clockForSun } from '../look/dayKeys';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import type { SkyKey } from '../look/skyRig';
 import * as v from 'valibot';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import type { WildEnv } from '../creatures/env';
@@ -25,10 +26,13 @@ import { Vector3 } from 'three';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
 
 /** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
- *  `clockForSun(def.sky.sun)`, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
+ *  the generated day-clock row, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
 export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
-/** The page's day clock as its weather builds it (look/dayKeys.ts clockForSun over the steppe schedule). */
-export function nalatiDayClock(): ReturnType<typeof clockForSun> { return clockForSun(NALATI_SUN); }
+/** The page's clock, resolved from the same generated manifest sun and schedule. */
+export function nalatiDayClock(): DayCycle<SkyKey> {
+  return new DayCycle({ ...bootMetadata.dayClock, units: 'hour',
+    schedule: bootMetadata.dayClock.schedule.map(row => ({ from: row.from, to: row.to, minutes: row.minutes, phase: v.parse(v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), row.phase) })) });
+}
 /** The boot's clock for the roster's elite rules (combat/elites.ts `condition`): the clock's day phase at install and no
  *  storm (the weather starts clear; the storm state machine is not hosted yet). */
 export function nalatiBootClock(clock: { readonly dayPhase: string }): { phase: string; storm: boolean } { return { phase: clock.dayPhase, storm: false }; }
