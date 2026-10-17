@@ -11349,6 +11349,7 @@
         "src/shards/_template/.wildshard/product/36e7e5342b911b4ceb619e52bd72a83d3921741a5ae31b81888bf8421f66cc95",
         "src/shards/_template/.wildshard/product/397bfa57961f7c98603a8be7123a461844b469577acd771e220047bdbce1e430",
         "src/shards/_template/.wildshard/product/3a09f6f5b7a707e56a46bebbb7729de977d6887ca27a7cc8d05331583f22e680",
+        "src/shards/_template/.wildshard/product/3e055fba8c9b5a5c4986ac4e0885267005b9b5b62ad98e0ee3a61a1e461b3a6c",
         "src/shards/_template/.wildshard/product/3e17a5b3da2ae2200f957fffe2b9f1799b85f86865784fff9f468518ccf63644",
         "src/shards/_template/.wildshard/product/402db6566f3adc561e7a665fab9c2e3474505ac3b2097d9baf0a353688da35d3",
         "src/shards/_template/.wildshard/product/442f80b188f7bb3113a87090f376cfd607f6f841e69836d7384e39864fe0efb2",
@@ -11418,7 +11419,6 @@
         "src/shards/_template/.wildshard/product/a6414ec7d9c0d07a70484974bbaa1d0cdb28fd9589a0399581f639ac9f2a9c9b",
         "src/shards/_template/.wildshard/product/a96eeec169ffea8c074d6924bd5bf7bba9fe65a9d9d1bfa2530ba689291608eb",
         "src/shards/_template/.wildshard/product/ab3edc512d832ce7e2dbd0c27e289e4094bce4f38b31fa3197c6035b48896a2c",
-        "src/shards/_template/.wildshard/product/acfb2a6682ec6f5f7bf95d3231eea6221fa7c2bcc868ef8c38dbaa7a9dc22223",
         "src/shards/_template/.wildshard/product/afa379416030bc222d8155daaa86110d280586f0ad3edb8b3e6e8c7fb3a5492e",
         "src/shards/_template/.wildshard/product/b38f10c26b67cb760d278cfc3efb6b912686b6df42b562e15ef7874653971d17",
         "src/shards/_template/.wildshard/product/b41c80bdc5b6ea1874d4b21fd3f2fb2cb56697996b2be739f11826495c1a71b6",
@@ -11477,7 +11477,8 @@
         "src/shards/_template/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/_template/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/_template/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/_template/.wildshard/product/shard.json"
+        "src/shards/_template/.wildshard/product/shard.json",
+        "src/shards/_template/.wildshard/product/validation.json"
       ],
       "platform": "portable",
       "buildOutputs": {
@@ -11521,6 +11522,7 @@
         "src/shards/_template/.wildshard/product/36e7e5342b911b4ceb619e52bd72a83d3921741a5ae31b81888bf8421f66cc95": "36e7e5342b911b4ceb619e52bd72a83d3921741a5ae31b81888bf8421f66cc95",
         "src/shards/_template/.wildshard/product/397bfa57961f7c98603a8be7123a461844b469577acd771e220047bdbce1e430": "397bfa57961f7c98603a8be7123a461844b469577acd771e220047bdbce1e430",
         "src/shards/_template/.wildshard/product/3a09f6f5b7a707e56a46bebbb7729de977d6887ca27a7cc8d05331583f22e680": "3a09f6f5b7a707e56a46bebbb7729de977d6887ca27a7cc8d05331583f22e680",
+        "src/shards/_template/.wildshard/product/3e055fba8c9b5a5c4986ac4e0885267005b9b5b62ad98e0ee3a61a1e461b3a6c": "3e055fba8c9b5a5c4986ac4e0885267005b9b5b62ad98e0ee3a61a1e461b3a6c",
         "src/shards/_template/.wildshard/product/3e17a5b3da2ae2200f957fffe2b9f1799b85f86865784fff9f468518ccf63644": "3e17a5b3da2ae2200f957fffe2b9f1799b85f86865784fff9f468518ccf63644",
         "src/shards/_template/.wildshard/product/402db6566f3adc561e7a665fab9c2e3474505ac3b2097d9baf0a353688da35d3": "402db6566f3adc561e7a665fab9c2e3474505ac3b2097d9baf0a353688da35d3",
         "src/shards/_template/.wildshard/product/442f80b188f7bb3113a87090f376cfd607f6f841e69836d7384e39864fe0efb2": "442f80b188f7bb3113a87090f376cfd607f6f841e69836d7384e39864fe0efb2",
@@ -11590,7 +11592,6 @@
         "src/shards/_template/.wildshard/product/a6414ec7d9c0d07a70484974bbaa1d0cdb28fd9589a0399581f639ac9f2a9c9b": "a6414ec7d9c0d07a70484974bbaa1d0cdb28fd9589a0399581f639ac9f2a9c9b",
         "src/shards/_template/.wildshard/product/a96eeec169ffea8c074d6924bd5bf7bba9fe65a9d9d1bfa2530ba689291608eb": "a96eeec169ffea8c074d6924bd5bf7bba9fe65a9d9d1bfa2530ba689291608eb",
         "src/shards/_template/.wildshard/product/ab3edc512d832ce7e2dbd0c27e289e4094bce4f38b31fa3197c6035b48896a2c": "ab3edc512d832ce7e2dbd0c27e289e4094bce4f38b31fa3197c6035b48896a2c",
-        "src/shards/_template/.wildshard/product/acfb2a6682ec6f5f7bf95d3231eea6221fa7c2bcc868ef8c38dbaa7a9dc22223": "acfb2a6682ec6f5f7bf95d3231eea6221fa7c2bcc868ef8c38dbaa7a9dc22223",
         "src/shards/_template/.wildshard/product/afa379416030bc222d8155daaa86110d280586f0ad3edb8b3e6e8c7fb3a5492e": "afa379416030bc222d8155daaa86110d280586f0ad3edb8b3e6e8c7fb3a5492e",
         "src/shards/_template/.wildshard/product/b38f10c26b67cb760d278cfc3efb6b912686b6df42b562e15ef7874653971d17": "b38f10c26b67cb760d278cfc3efb6b912686b6df42b562e15ef7874653971d17",
         "src/shards/_template/.wildshard/product/b41c80bdc5b6ea1874d4b21fd3f2fb2cb56697996b2be739f11826495c1a71b6": "b41c80bdc5b6ea1874d4b21fd3f2fb2cb56697996b2be739f11826495c1a71b6",
@@ -11649,7 +11650,8 @@
         "src/shards/_template/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c": "f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/_template/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e": "faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/_template/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31": "fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/_template/.wildshard/product/shard.json": "9c77e896b736cc2f619c7c492b71ed186f0a337c3364c8bd40241f4fd601fca5"
+        "src/shards/_template/.wildshard/product/shard.json": "3484fb8b587357389a119303231051091f3e684872c4ab0917f57898320b0f86",
+        "src/shards/_template/.wildshard/product/validation.json": "cf015eec212e3d8b6529edcf420fb0e0b910d65a4e65b12cf836915efafbed5b"
       }
     },
     {
@@ -11983,7 +11985,8 @@
         "src/shards/pastel-plain/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/pastel-plain/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/pastel-plain/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/pastel-plain/.wildshard/product/shard.json"
+        "src/shards/pastel-plain/.wildshard/product/shard.json",
+        "src/shards/pastel-plain/.wildshard/product/validation.json"
       ],
       "platform": "portable",
       "buildOutputs": {
@@ -12155,7 +12158,8 @@
         "src/shards/pastel-plain/.wildshard/product/f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c": "f675745c3dcce80ef237aad551412bff7165df9ba2a224e7e61291278284631c",
         "src/shards/pastel-plain/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e": "faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/pastel-plain/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31": "fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
-        "src/shards/pastel-plain/.wildshard/product/shard.json": "ba53cf6356f1ad36e6b2aa869b22b404bd786ef208ba9de9732b4b3a3211d086"
+        "src/shards/pastel-plain/.wildshard/product/shard.json": "b87a7b9d862d1c98e13fb4e3ecd2eed89ef06d0e561cbe33dfaf60b6ca2312a7",
+        "src/shards/pastel-plain/.wildshard/product/validation.json": "6c29a6fcf4f2bf99d3d7da6123d28987806b767f88839d723c09cd302daf3e15"
       }
     },
     {
@@ -12675,6 +12679,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/59fea76ba5df1d35303d46896fd96318bbbae4fd47d7ec70760115c648d129ee",
         "src/shards/sunscar-dunes/.wildshard/product/5a98937e34899c481b339f36f8c0bf409bd8ceb11b06f2ce0378c1972a3765ce",
         "src/shards/sunscar-dunes/.wildshard/product/5dc42fd78aee20db8852c6677f7d5ab504a27a08ca300d5a96c8054cd2081d4c",
+        "src/shards/sunscar-dunes/.wildshard/product/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
         "src/shards/sunscar-dunes/.wildshard/product/600416e2fce99d17e30bb88d9ef482df92fe3ba1104eb59ea34ecd7a08b5c052",
         "src/shards/sunscar-dunes/.wildshard/product/6cdb022ffb552096dcddb0fa4cb2332f1d655e9fc3e328783543111f784df82d",
         "src/shards/sunscar-dunes/.wildshard/product/6dd069f5db64fb4bbdcffebc59146217d824b988bcea6beb7a624b3e0e76c50f",
@@ -12718,6 +12723,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/e7467885e86eba95dd0613bab97a39ffced6e51a5a20d6dc651d9e3c0d27ea04",
         "src/shards/sunscar-dunes/.wildshard/product/ea74daed3893a249c38e2ec76f6061e5c639db0e9c13c97f712404136d94d056",
         "src/shards/sunscar-dunes/.wildshard/product/eebac1722f79e247097444626a01c75d250535df6f6e7565d7472dbb8cf90fa7",
+        "src/shards/sunscar-dunes/.wildshard/product/f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8",
         "src/shards/sunscar-dunes/.wildshard/product/f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264",
         "src/shards/sunscar-dunes/.wildshard/product/f0f5c1fce791101c0fd676f47b19501d47a6f2ab956f7f17d29b4b0e94031115",
         "src/shards/sunscar-dunes/.wildshard/product/f19336c67d959bb215ab1f689dbb3d7f3b500d9ecd00e5a279a217c02d5d35cc",
@@ -12726,8 +12732,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
         "src/shards/sunscar-dunes/.wildshard/product/shard.json",
-        "src/shards/sunscar-dunes/.wildshard/product/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
-        "src/shards/sunscar-dunes/.wildshard/product/f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8"
+        "src/shards/sunscar-dunes/.wildshard/product/validation.json"
       ],
       "platform": "portable",
       "comparisonOutputs": {
@@ -12766,6 +12771,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/59fea76ba5df1d35303d46896fd96318bbbae4fd47d7ec70760115c648d129ee": "59fea76ba5df1d35303d46896fd96318bbbae4fd47d7ec70760115c648d129ee",
         "src/shards/sunscar-dunes/.wildshard/product/5a98937e34899c481b339f36f8c0bf409bd8ceb11b06f2ce0378c1972a3765ce": "5a98937e34899c481b339f36f8c0bf409bd8ceb11b06f2ce0378c1972a3765ce",
         "src/shards/sunscar-dunes/.wildshard/product/5dc42fd78aee20db8852c6677f7d5ab504a27a08ca300d5a96c8054cd2081d4c": "5dc42fd78aee20db8852c6677f7d5ab504a27a08ca300d5a96c8054cd2081d4c",
+        "src/shards/sunscar-dunes/.wildshard/product/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a": "5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
         "src/shards/sunscar-dunes/.wildshard/product/600416e2fce99d17e30bb88d9ef482df92fe3ba1104eb59ea34ecd7a08b5c052": "600416e2fce99d17e30bb88d9ef482df92fe3ba1104eb59ea34ecd7a08b5c052",
         "src/shards/sunscar-dunes/.wildshard/product/6cdb022ffb552096dcddb0fa4cb2332f1d655e9fc3e328783543111f784df82d": "6cdb022ffb552096dcddb0fa4cb2332f1d655e9fc3e328783543111f784df82d",
         "src/shards/sunscar-dunes/.wildshard/product/6dd069f5db64fb4bbdcffebc59146217d824b988bcea6beb7a624b3e0e76c50f": "6dd069f5db64fb4bbdcffebc59146217d824b988bcea6beb7a624b3e0e76c50f",
@@ -12809,6 +12815,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/e7467885e86eba95dd0613bab97a39ffced6e51a5a20d6dc651d9e3c0d27ea04": "e7467885e86eba95dd0613bab97a39ffced6e51a5a20d6dc651d9e3c0d27ea04",
         "src/shards/sunscar-dunes/.wildshard/product/ea74daed3893a249c38e2ec76f6061e5c639db0e9c13c97f712404136d94d056": "ea74daed3893a249c38e2ec76f6061e5c639db0e9c13c97f712404136d94d056",
         "src/shards/sunscar-dunes/.wildshard/product/eebac1722f79e247097444626a01c75d250535df6f6e7565d7472dbb8cf90fa7": "eebac1722f79e247097444626a01c75d250535df6f6e7565d7472dbb8cf90fa7",
+        "src/shards/sunscar-dunes/.wildshard/product/f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8": "f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8",
         "src/shards/sunscar-dunes/.wildshard/product/f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264": "f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264",
         "src/shards/sunscar-dunes/.wildshard/product/f0f5c1fce791101c0fd676f47b19501d47a6f2ab956f7f17d29b4b0e94031115": "f0f5c1fce791101c0fd676f47b19501d47a6f2ab956f7f17d29b4b0e94031115",
         "src/shards/sunscar-dunes/.wildshard/product/f19336c67d959bb215ab1f689dbb3d7f3b500d9ecd00e5a279a217c02d5d35cc": "f19336c67d959bb215ab1f689dbb3d7f3b500d9ecd00e5a279a217c02d5d35cc",
@@ -12816,9 +12823,8 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "afe9c5205f9213c75143cf153b17a13846436e7ecdbe07db73f06c4ad2a5248f",
-        "src/shards/sunscar-dunes/.wildshard/product/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a": "5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
-        "src/shards/sunscar-dunes/.wildshard/product/f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8": "f0630bbd3bb09a8ebede765b5270c231bb22154be2c5c3c716841623f32278b8"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "44b6d95ff1c30c315e2208a59bfb164fac7eb72617cd3b9bfe930ef750873db2",
+        "src/shards/sunscar-dunes/.wildshard/product/validation.json": "0611fa3d13ff78fb60a6cdcdf0ad6e75ab68ada19c74f184132843a6c55c882c"
       },
       "catalogueDependencies": [
         "signal-fire-book"

@@ -1,0 +1,119 @@
+[
+  {
+    "slug": "_template",
+    "meanChannelDelta": 0.020181333333333332,
+    "rgbaMean": [
+      0.020199,
+      0.019988,
+      0.020357,
+      0
+    ],
+    "changedPercent": 0.9912,
+    "over10Percent": 0.0062,
+    "max": 146
+  },
+  {
+    "slug": "blender-template",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  },
+  {
+    "slug": "driftwood-isle",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  },
+  {
+    "slug": "far-reach",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  },
+  {
+    "slug": "ink-cel-valley",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  },
+  {
+    "slug": "nalati-grasslands",
+    "meanChannelDelta": 1.5783523333333334,
+    "rgbaMean": [
+      1.685837,
+      1.36623,
+      1.68299,
+      0
+    ],
+    "changedPercent": 63.6773,
+    "over10Percent": 2.2352,
+    "max": 153
+  },
+  {
+    "slug": "pastel-plain",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  },
+  {
+    "slug": "pine-hollow",
+    "meanChannelDelta": 1.9564463333333333,
+    "rgbaMean": [
+      2.019085,
+      1.78885,
+      2.061404,
+      0
+    ],
+    "changedPercent": 75.2333,
+    "over10Percent": 2.8952,
+    "max": 115
+  },
+  {
+    "slug": "sunscar-dunes",
+    "meanChannelDelta": 0,
+    "rgbaMean": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "changedPercent": 0,
+    "over10Percent": 0,
+    "max": 0
+  }
+]

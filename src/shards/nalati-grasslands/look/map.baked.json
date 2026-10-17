@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "38e822e00a7d9227d1cd943d73311af5e8fa5b0bd354c87900edce5ad4d42a29",
-  "pixelHash": "fc3f9d724b2d522cafc48a35225de7b5125b27ad3e90b093338dcc5c27d78aef",
+  "tilesHash": "7a4e09b3fed3949e8c1c136dbd7d60d66b6ad05dee3bdd2667e91386647bb44d",
+  "pixelHash": "4ebc71c9719a690290d961dd4646e72fe88ccdca0726cc2b40cb319d2bbd7eeb",
   "image": "/assets/nalati-grasslands/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 134504
+  "bytes": 134432
 }
