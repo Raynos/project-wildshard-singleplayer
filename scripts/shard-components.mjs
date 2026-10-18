@@ -7,6 +7,7 @@ import { parseSync } from 'vite';
 export const SHARD_WAVES = [
   { id:'W1',status:'current',current:true,shards:[{slug:'far-reach',name:'Sky'},{slug:'sunscar-dunes',name:'Signal'}] },
   { id:'W2',status:'next',current:false,shards:[{slug:'pine-hollow',name:'Pine'},{slug:'driftwood-isle',name:'Driftwood'}] },
+  { id:'W3',status:'next',current:false,shards:[{slug:'nalati-grasslands',name:'Nalati'},{slug:'nine-dragon-stack',name:'Nine'}] },
 ];
 const waveRow = id => { const row=SHARD_WAVES.find(wave=>wave.id===id);if(row===undefined)throw new Error(`Unknown shard wave ${id}`);return row; };
 export const W1_SHARDS = waveRow('W1').shards.map(row=>row.slug);
@@ -165,10 +166,46 @@ const reviewedW2Owners = new Map([
 function namedRole(name,path='') {
   const reviewed = reviewedW2Owners.get(`${path}#${name}`); if (reviewed !== undefined) return reviewed;
   if(creatureOwners.has(path)&&/keeper/iu.test(name))return 'C4'; return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
+// W3 folder baselines describe the runtime owner; mixed declarations still split
+// through the existing AST rules. Build-time generators are outside this census.
+const w3Paths = [
+  ['C5', /^(?:quest\/|adventure\.ts$|campPeople(?:Models)?\.ts$|models\/people\.ts$)/u],
+  ['C6', /^(?:weapons\/|runtime\/(?:weapons|viewmodel)\/|vm\/|bag\.ts$|models\/gear\.ts$|runtime\/jian\.ts$)/u],
+  ['C7', /^(?:ride\/|grapple\/|playground\/|runtime\/(?:tools|portals)\/|runtime\/(?:grapple|playerModes|headlessMounted)\.ts$|world\/(?:portalRide|portalVeil|portals|feats)\.ts$)/u],
+  ['C3', /^(?:world\/(?:installWeather|weatherStep|WeatherFX|Lightning|rainProgram|Flutter)\.ts$|combat\/nightFx\.ts$|runtime\/looks\/(?:burstFx|ropeFilament|strandCloth)\.ts$)/u],
+  ['C4', /^(?:species\/|creatures\/|models\/(?:creatures|ambientLife)\.ts$|runtime\/(?:enteredEnvironment|[a-zA-Z]+Keeper|[a-zA-Z]+Brain|headless(?:Creatures|Raid|Taming)|flockDeclared|groups?|group[A-Z][a-zA-Z]*|raidDirector|ghostVolleyDirector|tamingLaw)\.ts$|combat\/(?:stormTitan|goldenKing|ghostRiders|balbalWarriors|eliteRoster|elites|night)\.ts$|data\/(?:species\/|fauna|brains|eliteEncounters|crowds)\.ts$)/u],
+  ['C6', /^combat\//u],
+  ['C1', /^(?:world\/|runtime\/heightPatch\.ts$|assets\/contracts\/(?:modelPlacement|tangentRows)\.ts$|generators\/bakeWrite\.ts$|models\/|runtime\/(?:cull|kit|props)\/|(?:terrain|edge|wet|layout)\.ts$|data\/(?:layoutPlan|floorPlan|decks|casts|worldDressing|specimenDims|lod)\.ts$)/u],
+  ['C2', /^(?:assets\/contracts\/signPlacement\.ts$|look\/|runtime\/(?:looks|signs)\/|data\/(?:aoLook|weaponLooks|arms|cloth|facadeModels|signs|specimenProfiles)\.ts$)/u],
+  ['C9', /^(?:boot\/|runtime\/(?:index|state|baked|headless|headlessMounted|enteredEnvironment|facts)\.ts$|(?:manifest|plugin|roster|shard\.config|util|stealth)\.ts$|data\/(?:budgets|ledger|words|modes|campParams|(?:layout|poiLayout)\.generated\.d\.json)\.ts$)/u],
+];
+// Sole-user platform contributions retain their canonical size. These reviewed
+// owners only distribute W3's existing charges into the component table.
+const w3SharedOwners = new Map([
+  ...['src/engine/combat/targets.ts', 'src/engine/combat/Thrown.ts',
+    'src/engine/combat/thrownProfile.ts', 'src/engine/combat/effects/types.ts',
+    'src/engine/player/nalatiArms.ts', 'src/game/plugin/heldLauncher.ts',
+    'src/game/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
+  ...['src/game/shardfile/eliteEncounters.ts', 'src/sdk/crowds.ts',
+    'src/game/shardfile/crowdRuntime.ts', 'src/sdk/phasedBoss.ts'].map(path => [path, 'C4']),
+  ...['src/engine/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
+    'src/sdk/kit/geometryPack.ts'].map(path => [path, 'C1']),
+  ['src/engine/core/ktx2.ts', 'C2'],
+  ...['src/game/plugin/quests.ts', 'src/game/shardfile/directorClient.ts',
+    'src/sdk/panels.ts'].map(path => [path, 'C5']),
+  ...['src/game/proof/entryways.ts', 'src/game/shardfile/portalLinkProof.ts'].map(path => [path, 'C7']),
+  ...['src/game/shard/runtimeVariant.ts', 'src/sdk/assets.ts',
+    'src/sdk/buildBehaviour.ts', 'src/engine/app/systems.ts'].map(path => [path, 'C9']),
+]);
+function w3FileRole(path) {
+  const match = /^src\/shards\/(?:nalati-grasslands|nine-dragon-stack)\/(.+)$/u.exec(path);
+  return match === null ? null : w3Paths.find(([, pattern]) => pattern.test(match[1]))?.[0] ?? null;
+}
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
   const reviewed = reviewedW2Owners.get(name ? `${path}#${name}` : path) ?? reviewedW2Owners.get(path);
   if (reviewed !== undefined) return reviewed;
+  const w3 = w3FileRole(path); if (w3 !== null) return w3;
   if (/\/systems\/life\//u.test(path)||path==='src/engine/ai/ambientFlight.ts'||name==='installAmbientLife')return 'C4';
   if (path === 'src/engine/world/waves.ts' && name === 'GERSTNER_TERMS') return 'C2';
   if (['src/format/materialGraph.ts', 'src/game/shardfile/clientMaterials.ts', 'src/game/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
@@ -255,7 +292,7 @@ export function componentInventory(root, shard, sources, canonical) {
   const counts=Object.fromEntries(Object.keys(COMPONENTS).map(key=>[key,0])), unknown=[], spans=[];
   for(const row of sources) {
     const ownerPath=row.ownerPath??row.path;
-    const role=fileRole(ownerPath,row.name);
+    const role=fileRole(ownerPath,row.name) ?? (/^(?:nalati-grasslands|nine-dragon-stack)$/u.test(shard) ? w3SharedOwners.get(ownerPath) ?? null : null);
     if(role===null)unknown.push(`${row.path}${row.name?`#${row.name}`:''}`);
     const owner=role??'C9';
     if(row.kind==='runtime-ts'||row.kind==='sole-module') {
