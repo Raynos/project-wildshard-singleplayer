@@ -187,7 +187,8 @@ export function spawnOverhead() {
  * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'|'public-policy'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] */
 export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false) {
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
-  const started = Date.now(), deadline = started + 90000;
+  const started = Date.now();
+  let deadline = started + 150000;
   /** @type {{initial:number|null,final:number|null}} */
   const gameplayFrames = {initial:null,final:null};
   const receipt = mode !== 'grid' && shard !== 'driftwood-isle' ? shard : mode;
@@ -266,10 +267,14 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       await play.waitFor();
       await until(page, faults, async () => await play.isEnabled() || (await shardfile.isVisible() && await shardfile.isEnabled()), 'available shard entry', deadline);
       const viaShardfile = await shardfile.isVisible() && await shardfile.isEnabled();
+      phases.entryMs = Date.now() - started;
+      deadline = Date.now() + 90000;
       await (viaShardfile ? shardfile : play).click();
     } else {
       // The real grid button writes its one-shot intent and deliberately changes the document.
       gridNavigationIntent = true;
+      phases.entryMs = Date.now() - started;
+      deadline = Date.now() + 90000;
       await page.locator('.ws-main-grid').click();
     }
     let revealSkipped = false;
