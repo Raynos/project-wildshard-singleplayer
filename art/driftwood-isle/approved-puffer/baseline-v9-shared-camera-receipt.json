@@ -1,0 +1,304 @@
+{
+  "status": "rendered unchanged V9 diagnostic baseline",
+  "sourceBlendSha256": "f480dce09fc69a3b912ddf87cae4feb327c9135068acd66349964bc7c1f56405",
+  "v9BuilderSha256": "ec6148f2620675eb52872269591e56212249ab7f1687c2546365c5e248d57500",
+  "cameraReceiptSha256": "bf4ca8ff694a0315cbb1688f005d6fa4f99fc7698a22fca8efb7022cf0091fc6",
+  "scriptSha256": "0d3ecd9db783ea121519a73111dff612901b1df57878233726a7c9b67cdb5363",
+  "nineViewCamera": {
+    "projection": "orthographic",
+    "fixedScale": 3.919041395187378,
+    "target": [
+      0.0,
+      -0.05750000476837158,
+      0.7900000214576721
+    ],
+    "unionRadius": 1.3696556483087274,
+    "margin": 0.16,
+    "imageSize": [
+      600,
+      740
+    ],
+    "sameCameraForAllNine": true
+  },
+  "shots": [
+    [
+      "01-front",
+      0,
+      0
+    ],
+    [
+      "02-left",
+      90,
+      0
+    ],
+    [
+      "03-right",
+      -90,
+      0
+    ],
+    [
+      "04-back",
+      180,
+      0
+    ],
+    [
+      "05-top",
+      0,
+      90
+    ],
+    [
+      "06-elevated-front",
+      0,
+      39.2894
+    ],
+    [
+      "07-elevated-left",
+      90,
+      39.2894
+    ],
+    [
+      "08-elevated-right",
+      -90,
+      39.2894
+    ],
+    [
+      "09-elevated-back",
+      180,
+      39.2894
+    ]
+  ],
+  "orbitRadius": 5,
+  "hero": {
+    "location": [
+      3,
+      4.6,
+      2.25
+    ],
+    "target": [
+      0,
+      -0.03,
+      0.84
+    ],
+    "orthoScale": 3.2,
+    "imageSize": [
+      780,
+      960
+    ],
+    "samples": 32
+  },
+  "lights": [
+    [
+      "Warm key",
+      [
+        -3,
+        4,
+        5
+      ],
+      650,
+      4,
+      [
+        1,
+        0.9,
+        0.76
+      ]
+    ],
+    [
+      "Cool fill",
+      [
+        4,
+        1,
+        3
+      ],
+      360,
+      4,
+      [
+        0.73,
+        0.87,
+        1
+      ]
+    ],
+    [
+      "Rim",
+      [
+        0,
+        -4,
+        4
+      ],
+      500,
+      3,
+      [
+        0.66,
+        0.87,
+        1
+      ]
+    ]
+  ],
+  "lightTarget": [
+    0,
+    0,
+    0.7
+  ],
+  "worldColor": [
+    0.18,
+    0.18,
+    0.18
+  ],
+  "floorColor": [
+    0.028,
+    0.045,
+    0.06,
+    1
+  ],
+  "nineViewSamples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "comparisonScope": "Exact shared diagnostic camera and studio settings, not AI mockup camera verification or game rendering",
+  "geometryFingerprint": "72a261ca972eb9c1538bb6f40a83b36cafb5032e8b10c5aff6dd2db9a0a110ba",
+  "images": [
+    {
+      "name": "matched-style.png",
+      "sha256": "94556426a8a06dbc2e879658d05fc740d061bbe23f545a99fcdbc5fcf9fe8870",
+      "bytes": 1191159
+    },
+    {
+      "name": "01-front.png",
+      "sha256": "9558e11b305f83bf0f8ee585976287d7f693ea271a9cd7de921f33ed0ce57c7c",
+      "bytes": 352455
+    },
+    {
+      "name": "02-left.png",
+      "sha256": "fe4450e09ab4331d0e1ef36ab2bb1ca06018652301d2908d4c5669633dced5ba",
+      "bytes": 353491
+    },
+    {
+      "name": "03-right.png",
+      "sha256": "e4c6ee059175fa30a5a9e945400ce12345c00bb9a6cc632b578b91394d27bc23",
+      "bytes": 365529
+    },
+    {
+      "name": "04-back.png",
+      "sha256": "11c755f90e8307f1477c464d86fcc80788a3fdcd936e85d28ac8cf061a394728",
+      "bytes": 339072
+    },
+    {
+      "name": "05-top.png",
+      "sha256": "e9f9d839514f7180ab546b6199e811ed7113d1d02284bd259bd5bb2ba668d08d",
+      "bytes": 788585
+    },
+    {
+      "name": "06-elevated-front.png",
+      "sha256": "b3b8ccedfe961edd0d78b9f467523969236dded77b9df212a818c10447c5ab63",
+      "bytes": 785520
+    },
+    {
+      "name": "07-elevated-left.png",
+      "sha256": "6f935cc2ba93d8f420cc8b107747e4fa8e00fd0cdba0ef2bed0003cddd6cd367",
+      "bytes": 778491
+    },
+    {
+      "name": "08-elevated-right.png",
+      "sha256": "35e5950335417051a152d4248ccd3874ec7735f7078816452b72816d37b81202",
+      "bytes": 799562
+    },
+    {
+      "name": "09-elevated-back.png",
+      "sha256": "94be3cca7e770a264bf7dcf0410cf6f3b9e8b5ba8f01c34c6e3ff679d03075fe",
+      "bytes": 771767
+    }
+  ],
+  "preservation": {
+    "status": "unchanged V9 actual Blender render / shared-camera baseline",
+    "derivation": "Added 86px navy title strip above full uncropped source image, then WebP quality88. No model pixels repainted, no geometry/material changes.",
+    "originalFrames": "tmp/puffer-v9-shared-baseline",
+    "frames": [
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-matched-style.webp",
+        "bytes": 61158,
+        "sha256": "9229b5d0937b531500cf19caf776ffc07dc26828a43f265ddbbc4b438754ab80",
+        "original": "matched-style.png",
+        "originalSha256": "94556426a8a06dbc2e879658d05fc740d061bbe23f545a99fcdbc5fcf9fe8870",
+        "label": "10 MATCHED HERO\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-01-front.webp",
+        "bytes": 24148,
+        "sha256": "06bfd4ce4f419190d522544b1610e6001ae72687ebbad4091e1ccc80a2aec00e",
+        "original": "01-front.png",
+        "originalSha256": "9558e11b305f83bf0f8ee585976287d7f693ea271a9cd7de921f33ed0ce57c7c",
+        "label": "01 FRONT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-02-left.webp",
+        "bytes": 22114,
+        "sha256": "e58dbaa11dbf6bb63c0e7e2b7f065e128144cc78d1b66da9e6a2a6800142e58b",
+        "original": "02-left.png",
+        "originalSha256": "fe4450e09ab4331d0e1ef36ab2bb1ca06018652301d2908d4c5669633dced5ba",
+        "label": "02 LEFT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-03-right.webp",
+        "bytes": 24436,
+        "sha256": "bb33099d2507a382dfbabb2ba9676baec7bfd3c490b584dfaf242866bf36b6ed",
+        "original": "03-right.png",
+        "originalSha256": "e4c6ee059175fa30a5a9e945400ce12345c00bb9a6cc632b578b91394d27bc23",
+        "label": "03 RIGHT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-04-back.webp",
+        "bytes": 19840,
+        "sha256": "67e0b1f2f767e11334ea01d42761386810988e04cadf56e24bb4f98fa55ed806",
+        "original": "04-back.png",
+        "originalSha256": "11c755f90e8307f1477c464d86fcc80788a3fdcd936e85d28ac8cf061a394728",
+        "label": "04 BACK\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-05-top.webp",
+        "bytes": 63538,
+        "sha256": "5603b377b22338fa5e97a01588d2b27fbee413f6c52b007ad24d52042bf0dc53",
+        "original": "05-top.png",
+        "originalSha256": "e9f9d839514f7180ab546b6199e811ed7113d1d02284bd259bd5bb2ba668d08d",
+        "label": "05 TOP\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-06-elevated-front.webp",
+        "bytes": 68506,
+        "sha256": "26a9a201450cb0a6729b14f6c315b688c2e1559e90c1800df628caccf37b89f9",
+        "original": "06-elevated-front.png",
+        "originalSha256": "b3b8ccedfe961edd0d78b9f467523969236dded77b9df212a818c10447c5ab63",
+        "label": "06 ELEVATED FRONT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-07-elevated-left.webp",
+        "bytes": 61616,
+        "sha256": "8446e8236c2f36e56d20ec28169bd8ae8de7034ea0a0a6cc28d354c999aed527",
+        "original": "07-elevated-left.png",
+        "originalSha256": "6f935cc2ba93d8f420cc8b107747e4fa8e00fd0cdba0ef2bed0003cddd6cd367",
+        "label": "07 ELEVATED LEFT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-08-elevated-right.webp",
+        "bytes": 79816,
+        "sha256": "e1b49fa5a71450d034a3e3dcb00a932a9c1ae6fac050d1f2fc32e87c24fdf5f8",
+        "original": "08-elevated-right.png",
+        "originalSha256": "35e5950335417051a152d4248ccd3874ec7735f7078816452b72816d37b81202",
+        "label": "08 ELEVATED RIGHT\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      },
+      {
+        "path": "art/driftwood-isle/approved-puffer/baseline-v9-09-elevated-back.webp",
+        "bytes": 61276,
+        "sha256": "0272334f0efca014153f4c221dce24239ff72830f2f4b978e56d669f941922eb",
+        "original": "09-elevated-back.png",
+        "originalSha256": "94be3cca7e770a264bf7dcf0410cf6f3b9e8b5ba8f01c34c6e3ff679d03075fe",
+        "label": "09 ELEVATED BACK\nUNCHANGED V9 | ACTUAL BLENDER RENDER\nSHARED-CAMERA BASELINE"
+      }
+    ],
+    "scope": "Nine views use the exact V27/V28 orthographic camera target/scale; matched hero uses original V9 hero camera. These are actual Blender diagnostics, not game renders or visual acceptance.",
+    "geometryFingerprintScope": "Mesh vertex positions, polygon topology, linear corner colors, skin weights and world transform hashed before/after capture; original .blend SHA256 unchanged. No source model/material edits."
+  },
+  "sourcePaths": {
+    "builder": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v9.py",
+    "blend": "tmp/puffer-lowpoly-v9/inspection.blend",
+    "captureScript": "art/driftwood-isle/approved-puffer/capture_v9_shared_baseline.py",
+    "sharedCameraReceipt": "tmp/puffer-lowpoly-v27-from-v9/nine-view-camera.json"
+  }
+}

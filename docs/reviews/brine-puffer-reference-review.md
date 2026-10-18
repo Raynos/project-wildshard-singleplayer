@@ -272,3 +272,28 @@ The matched hero improves V9's filled tail, pointed four-lobe toes and lower pou
 The lower all-view score versus V9's 3.43 single-view estimate reflects stronger evidence, not a claim that V26's matched hero regressed. Neither reaches 4.5/5.
 
 Next bounded correction: preserve each fin's frontal width, orange top band and four distinct terminal lobes while adding real Y-depth cross-sections; roughly 0.07–0.10 half-depth at midfoot and 0.09–0.12 at the fan are initial modelling estimates, not reference-certified dimensions. Fit each diagnostic camera to the same complete object bounds. Then shorten orbital sidewalls without shrinking the amber opening, reduce muzzle shelf depth while keeping the peaked arch/tongue/nostrils, and integrate mantle surface relief without deleting the authored broad facets or spines.
+
+## 2026-10-18: V27 full multiview result
+
+Reviewed `tmp/puffer-lowpoly-v27-from-v9/matched-style.png` and all nine numbered diagnostic views. **Overall 3.04/5:** silhouette/proportions 2.9, face/expression 3.2, defining details 3.2, facet/style 2.8, using the same 35/30/20/15 weights. Diagnostic framing now contains the geometry and fin fore/aft depth is real. However, exposed cylindrical fin-root caps read as detached boots; orange top bands shrink to vertical hems, toe wedges become little teeth, and mantle overlaps remain fractured. This is a visual regression despite a useful volumetric construction test. V28 is unscored until actual renders exist. The historical 31-version ranking remains unchanged.
+
+## 2026-10-18: unchanged V9 fair-camera baseline
+
+Reviewed all ten images in `tmp/puffer-v9-shared-baseline/`: matched original hero plus nine shared-camera diagnostic frames. The capture owner reports an unchanged V9 blend with fingerprint checks in `baseline-capture.json`. Actual images independently confirm the knife-thin fins, hanging pouch, long orbital cylinders, C-shaped tail and layered mantle were present in V9.
+
+**V9 with full multiview evidence: 3.07/5** (silhouette 2.9, face 3.2, details 3.2, facets 3.0). This is a new evidence-specific assessment, distinct from the historical hero-only 3.43. On comparable multiview evidence, V26 (3.21) is ahead of unchanged V9 (3.07), with V27 (3.04) approximately tied but showing the documented boot-root regression. Small differences are close calls. None approaches 4.5. Keep the original ranking's stated cutoff and source coverage rather than silently revising its past judgments.
+
+## 2026-10-18: V28 full multiview result
+
+Reviewed matched hero and all nine diagnostics in `tmp/puffer-lowpoly-v28-from-v9/`. **Overall 3.33/5:** silhouette/proportions 3.3, face/expression 3.25, defining details 3.6, facet/style 3.2, same 35/30/20/15 weights. Current best on comparable multiview evidence, ahead of V26 3.21, unchanged V9 3.07 and V27 3.04; still below 4.5.
+
+Direct approved-target gains: complete face-bordered tail, readable tongue, broader four-lobe tips and retained rounded eyes/brows/spines. Side evidence now shows real fin volume and buried roots. Remaining high-impact defects: long upright conical fins rather than low diagonal fans; long projecting orbital walls and cream beak shelf; a black triangular gap above the cream nose bridge in top/elevated-front views, separate from the intended mouth cavity. Union topology did not alone solve the cream pouch's separated visual mass. Reduce visible upright fin length, restore a broad orange distal dorsal band, then integrate sockets and nose while preserving projected amber aperture and thick brow character.
+
+Hidden-view coherence is judged against the approved original's small side/rear thumbnails and internally consistent 3D attachment, not literal derived-AI anatomy. No penalty is imposed for the tail failing to face every contradictory generated camera. Exact hidden underside/spine-root anatomy remains inferred. Historical all-version ranking and its original cutoff remain unchanged. No animation/runtime/export acceptance is asserted.
+
+
+## 2026-10-18: V29 full multiview result
+
+Reviewed all ten PNGs in `tmp/puffer-lowpoly-v29-from-v9/`. **Overall 3.37/5:** silhouette/proportions 3.4, face/expression 3.25, details 3.6, facet/style 3.2; total computed using decimal arithmetic with the unchanged 35/30/20/15 weights. This is a modest stance improvement over V28, not a major fidelity jump. Lower body and shorter wider feet reduce the elevated belly gap and improve squatness. Rear feet remain nearly as prominent as forefeet in the hero, and tall conical shoulders still differ from the original's low sloping fan silhouette. Existing long orbital sidewalls, cream shelf and black gap above the nose remain unchanged.
+
+Next three priorities: repair connected nasal bridge and reduce orbital projection without sacrificing visible rounded amber lobes or thick brows; subordinate rear supports while retaining stable real depth; replace conspicuous mantle layering with coherent broad facets without deleting the crown detail. V30 remains unscored before actual images. All scores refer to the approved original, with derived hidden-view art treated as approximate.
