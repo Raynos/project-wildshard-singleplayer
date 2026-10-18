@@ -1,27 +1,46 @@
-import { Vector3, type Object3D, type Scene } from 'three';
+import * as v from 'valibot';
+import type { Object3D } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { QuestState } from '@wildshard/engine/quest/core';
-import type { LiveMarker } from '@wildshard/engine/quest/view';
-import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
-import type { QuestStory } from '@wildshard/format/questStory';
-import type { Interactable, Place } from '@wildshard/engine/world/interact/types';
-import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { MapQuest } from '@wildshard/engine/ui/Map';
-import { bindStoryChapters, presentChapterStory, installStoryTalks } from './story';
-import { QuestViews, type QuestTalkFigure, type QuestNpcTalkPorts } from '../plugin/ui';
-import { bindQuestDeathEffects } from '../plugin/quests';
-import type { bindRuntimeQuest, RuntimeFacts } from '../plugin/headless';
+import { placesWithDiscovery, type Places, type LiveMarker } from '@wildshard/engine/quest/view';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
+import type { FullMap } from '@wildshard/engine/ui/Map';
+import type { ObjectiveLine } from '@wildshard/engine/quest/view/ui';
+import { parseQuestStory } from '@wildshard/format/questStory';
+import type { ShardContext } from '../plugin/context';
+import { completionProjection, type CompletionProgress } from '../complete/declared';
+import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/ui';
+import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from './boundState';
+import { bindRuntimeQuest } from '../plugin/headless';
+import { bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
 
-/** A rendered chapter view; the existing flags and save owner remain authoritative. */
+const finite = v.pipe(v.number(), v.finite());
+const point = v.strictObject({ x: finite, y: finite, z: finite });
+const discoverySchema = v.pipe(v.array(v.strictObject({ id: v.string(), label: v.string(), x: finite, z: finite,
+  r: v.pipe(finite, v.minValue(0)), quiet: v.exactOptional(v.boolean()) })), v.maxLength(64));
+const schema = v.strictObject({
+  placements: v.exactOptional(v.record(v.string(), point)),
+  completion: v.exactOptional(v.boolean()),
+  remainingLabel: v.exactOptional(v.string()),
+});
+/** Existing entered services; callers cannot inject story policy or owner paths. */
+export interface QuestChapterContext extends Pick<ShardContext, 'app' | 'scope' | 'product'> {
+  readonly game: { readonly runtime?: {
+    readonly world: { readonly player: QuestPresentationHost['player'] } | null;
+    readonly play: { readonly progress?: CompletionProgress; readonly fullMap: Pick<FullMap, 'setQuest'>;
+      readonly hud: { toast: (text: string) => void }; readonly music: { sting: (name: 'chunk') => void } } | null;
+  } };
+}
+/** A client-only view over a quest already bound by its existing progression owner. */
 export interface QuestChapter {
-  quest: QuestState;
-  dialogue: DialogueBox;
-  objective: ObjectiveLine;
-  markers: () => LiveMarker[];
+  readonly quest: QuestState;
+  readonly objective: ObjectiveLine;
+  readonly places: Places | null;
+  readonly discover: (rows: unknown) => Places;
+  readonly chip: ReturnType<typeof presentQuestStory>['chip'];
+  readonly markers: () => LiveMarker[];
 }
 /** Respect a piece's owner when a quest borrows it; own only the entry's unowned subtree. */
 export function ownQuestTree(object: Object3D, scope: Scope): void {
@@ -29,74 +48,60 @@ export function ownQuestTree(object: Object3D, scope: Scope): void {
   if (mine !== null && mine !== (object.parent === null ? null : sceneObjectOwner(object.parent))) return;
   ownSceneTree(object, scope, app.assets);
 }
-/** A native pivot figure lends its existing head point, greeting and rig update. */
-export interface QuestChapterFigure extends QuestTalkFigure {
-  readonly position: Vector3;
-  headWorld: (out: Vector3) => Vector3;
-  wave: () => void;
+
+/** Bind the existing saved flag book by declared quest id and its original level key. */
+export function installQuestFlags(ctx: Pick<QuestChapterContext, 'scope' | 'product'>, id: string, level: string): Flags {
+  if (!ctx.product.shardfile.quests.quests.some(row => row.id === id)) throw new Error('Quest flags require a declared quest');
+  return installBoundQuestFlags(ctx.scope, id, level);
 }
-/** Existing world and UI owners, passed as capabilities rather than shard callbacks. */
-export interface QuestChapterWorld<Body extends { readonly kind: string; readonly position: { readonly x: number; readonly z: number } }> {
-  readonly game: { readonly scene: Scene; onUpdate: (run: (dt: number, t: number) => void, label?: string) => void };
-  readonly player: { readonly position: Vector3; readonly yaw: number };
-  readonly hud: { toast: (text: string) => void };
-  readonly music: { sting: (name: 'chunk') => void };
-  readonly audio: { weaponSwap: () => void };
-  readonly registry?: WorldRegistry | undefined;
-  readonly prompts: Interactable[];
-  readonly fullMap?: { setQuest?: (source: () => MapQuest | null) => void };
-  readonly stowWeapon?: ((on: boolean) => void) | undefined;
-  readonly onDeath?: ((run: (body: Body) => void, order: number) => void) | undefined;
-}
-/** Borrowed figure rigs keep their own model recipe, collider, materials and animation law. */
-export interface QuestChapterPorts<Figure extends QuestChapterFigure> {
-  readonly flags: Parameters<typeof bindRuntimeQuest>[3]['flags'];
-  readonly facts: RuntimeFacts;
-  readonly placement: { readonly place: (place: Place) => { x: number; y: number; z: number; yaw: number } };
-  readonly figures: ReadonlyMap<string, { readonly model: Figure; update: (dt: number, time: number, player: Vector3) => void; dispose: () => void }>;
-  readonly adventure: { readonly complete: { leftMarkers: () => LiveMarker[] } | null; readonly kit: Pick<Interactables, 'moveTo'> };
-  readonly deaths: unknown;
-  readonly drops: readonly { readonly call: string; readonly item: string }[];
-  readonly system: string;
-}
-/** Compose declared chapters and named NPC dialogue at the original event and update phases. */
-export function installQuestChapter<Figure extends QuestChapterFigure, Body extends { readonly kind: string; readonly position: { readonly x: number; readonly z: number } }>(ctx: ConstructorParameters<typeof QuestViews>[0],
-  source: Parameters<typeof bindRuntimeQuest>[1], story: QuestStory, worldOwners: ReadonlyMap<string, QuestChapterWorld<Body>>, questOwners: ReadonlyMap<string, QuestChapterPorts<Figure>>): QuestChapter {
-  const world = worldOwners.get('world'), ports = questOwners.get('quest');
-  if (world === undefined || ports === undefined) throw new Error('Missing declared quest chapter owners');
-  if (story.chapters === undefined) throw new Error('Quest requires its chapter presentation');
-  const { flags, facts, placement: { place } } = ports;
-  const chapters = bindStoryChapters(ctx, source, [story.quest.id], { flags, facts,
-    place: marker => story.quest.markers[marker.id] }, 'after-facts');
-  const quest = chapters.chapters[0];
-  if (quest === undefined) throw new Error('Quest requires its declared chapter');
-  const leftovers = (): LiveMarker[] | null => quest.isComplete ? ports.adventure.complete?.leftMarkers() ?? null : null;
-  const presentation = presentChapterStory(chapters, story.chapters, { scope: ctx.scope, flags,
-    figures: {}, npcs: {}, places: [], prompts: [], open: () => undefined, toast: text => { world.hud.toast(text); }, sting: () => { world.music.sting('chunk'); },
-    ...(world.fullMap?.setQuest === undefined ? {} : { fullMap: { setQuest: world.fullMap.setQuest.bind(world.fullMap) } }), place,
-    chip: () => { const left = leftovers(); return left === null ? quest.chip() : { label: left.length > 0 ? 'Still to find' : '', count: '' }; },
-    markers: () => leftovers() ?? presentation.markers(),
+
+/** Client-only chapter presentation. Intake is story/placement rows and an existing quest id;
+ * play, map, music, flags and completion progress resolve from the entered context.
+ * Anchors are the placement owner's coordinate table, never callbacks or reflected services.
+ * The caller retains the original UI update phase; this installs no clock or save owner.
+ */
+export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknown,
+  input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
+  const story = parseQuestStory(storyInput), rows = v.parse(schema, input);
+  const existing = findBoundQuestState(ctx.scope, story.quest.id);
+  const services = existing === undefined ? boundQuestServices(ctx.scope, story.quest.id) : { flags: existing.flags };
+  const ports: Parameters<typeof bindRuntimeQuest>[3] = { ...services, place: marker => story.quest.markers[marker.id] };
+  const line = story.chapters === undefined ? null
+    : bindStoryChapters(ctx, ctx.product.shardfile, [story.quest.id], ports, 'after-facts');
+  const quest = existing ?? line?.chapters[0] ?? bindRuntimeQuest(ctx, ctx.product.shardfile, story.quest.id, ports).state;
+  const world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
+  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest chapter requires its entered play services');
+  if (rows.placements !== undefined) {
+    const markers = [...quest.def.intro?.markers ?? [], ...quest.def.steps.flatMap(step => step.markers ?? [])];
+    if (markers.some(marker => rows.placements?.[JSON.stringify(marker.at)] === undefined)) throw new Error('Quest chapter lacks an admitted marker placement');
+  }
+  const complete = rows.completion === true ? ctx.product.section('ui/completion') : null;
+  const left = (): LiveMarker[] | null => complete === null || !quest.isComplete ? null
+    : completionProjection(complete, quest.flags, play.progress, undefined, undefined, anchors).markers;
+  const markers = (): LiveMarker[] => quest.markers().map(marker => {
+    const at = rows.placements?.[JSON.stringify(marker.at)] ?? marker.at;
+    return { id: marker.id, label: marker.label, short: marker.short ?? marker.label, x: at.x, z: at.z };
   });
-  const objective = presentation.chip.line;
-  ctx.scope.onDispose(() => { quest.dispose(); objective.root.remove(); });
-  const figures: QuestNpcTalkPorts<Figure>['figures'] = new Map([...ports.figures].map(([id, rig]) => {
-    ctx.scope.onDispose(() => { rig.dispose(); });
-    return [id, { kind: 'borrowed' as const, create: () => rig.model,
-      own: (figure: Figure, register: () => void) => { ownQuestTree(figure.group, ctx.scope); ctx.scope.run(register); },
-      at: (figure: Figure) => { figure.group.updateMatrixWorld(true); return figure.headWorld(new Vector3()); },
-      advance: (_figure: Figure, dt: number, time: number, player: Vector3) => { rig.update(dt, time, player); },
-      open: () => { world.audio.weaponSwap(); }, stow: (on: boolean) => { world.stowWeapon?.(on); },
-      approach: { at: (figure: Figure) => figure.position, run: (figure: Figure) => { figure.wave(); } } }];
-  }));
-  const talks = installStoryTalks(new QuestViews(ctx), source, { flags, scene: world.game.scene, registry: world.registry ?? app.registry,
-    prompts: world.prompts, calls: new Map(), figures });
-  if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
-  const calls = new Map(ports.drops.map(row => [row.call, (body: Body) => { ports.adventure.kit.moveTo(row.item, body.position.x, body.position.z); }]));
-  world.onDeath?.(bindQuestDeathEffects<Body>(ports.deaths, { flags, calls, toast: text => { world.hud.toast(text); } }), 10);
-  world.game.onUpdate((dt, t) => {
-    talks.update(dt, t, world.player.position);
-    presentation.update(dt, world.player.position);
-    if (!practiceRoom.open) presentation.chip.update(t, world.player);
-  }, ports.system);
-  return { quest, get dialogue() { return talks.dialogue(); }, objective, markers: presentation.markers };
+  const toast = (text: string): void => { play.hud.toast(text); }, sting = (): void => { play.music.sting('chunk'); };
+  const fullMap = { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
+  const options: Pick<QuestPresentationOptions, 'markers' | 'chip' | 'place'> = { markers: () => left() ?? markers(), chip: () => { const remaining = left(); return remaining === null ? quest.chip()
+      : { label: remaining.length > 0 ? rows.remainingLabel ?? '' : '', count: '' }; },
+    ...(rows.placements === undefined ? {} : { place: at => {
+      const resolved = rows.placements?.[JSON.stringify(at)];
+      if (resolved === undefined) throw new Error('Quest chapter lacks an admitted marker placement');
+      return resolved;
+    } }),
+  };
+  const presentation = line === null || story.chapters === undefined
+    ? presentQuestStory(story, { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)
+    : presentChapterStory(line, story.chapters, { scope: ctx.scope, flags: quest.flags, figures: {}, npcs: {},
+      places: [], prompts: [], open: () => undefined, fullMap, toast, sting, ...options });
+  let places: Places | null = null;
+  const discover = (catalogue: unknown): Places => {
+    if (places !== null) throw new Error('Quest discovery is already installed');
+    places = placesWithDiscovery(v.parse(discoverySchema, catalogue), quest.flags, text => { play.hud.toast(text); }, markers);
+    return places;
+  };
+  ctx.scope.onDispose(() => { presentation.chip.line.root.remove(); });
+  return { quest, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers };
 }

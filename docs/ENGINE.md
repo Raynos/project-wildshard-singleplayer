@@ -9067,13 +9067,29 @@ The Copper Town fixture exercises all nine kinds, numeric script commands,
 non-mutating evaluation, delivery order, idempotence and wait restore.
 
 G482 returned the single-user `StagWalk` to Pine `quest/stagWalk.ts` and
-removed its public platform export. Driftwood's chapter adapter remains
-in its legacy migration location (`game/quest/chapter.ts`), with its
-pending-user exemption removed. Both charge their actual shard and are
-not credited as shared platform features. Pine's remaining page assembly,
-Driftwood adventure/finale and both native quest keepers retain their
-charge. Model, pool, door, traversal, map and reward-camera view assembly
-is native code that the chapter/panel hosts do not construct.
+removed its public platform export. It remains charged to Pine.
+`game/quest/chapter.installQuestChapter(ctx, story, rows, anchors?)` is a
+client-only presenter used by Pine and Driftwood. `installQuestFlags(ctx,
+id, level)` lends the original saved flag book once per entered scope;
+`bindStoryAchievements` publishes its exact ledger and refresh service.
+The chapter resolves those services by `story.quest.id`, reusing a bound
+quest when one exists and borrows the entered map, music, HUD and
+completion progress directly. Rows may supply world marker coordinates
+keyed by the authored placement, a completion projection and its remaining
+objective label. `chapter.discover(rows)` registers the ordered discovery
+catalogue at its original phase, after late placement anchors exist.
+The optional anchor coordinate table stays owned by the
+existing placement resolver, so late zipline anchors remain live data.
+Unknown rows, missing placements, unbound quests and disposed entries
+refuse. There are no shard callbacks, reflected owner paths, NPC factories,
+update systems or save adapters in the chapter intake. Callers keep their
+original chip update phase. Both shipped quests preserve their flags,
+notice/sting ordering, map card and completion marker policy.
+
+Pine's remaining page assembly, Driftwood's adventure/finale and both
+native quest keepers retain their charge. NPC rig updates, death drops,
+model, pool, door, traversal and reward-camera assembly stay in their
+existing native owners; chapter presentation does not construct them.
 
 `game/quest/killSteps.installQuestKillSteps` runs ordered kill flags before
 existing achievement counts and retains the legacy flat save envelope.

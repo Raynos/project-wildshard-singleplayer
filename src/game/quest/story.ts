@@ -1,3 +1,4 @@
+import { findBoundQuestState, publishQuestFacts } from './boundState';
 import { bindBorrowedMethod } from '../plugin/borrowed';
 import { questBenchPose } from './storyLaw';
 import * as v from 'valibot';
@@ -26,7 +27,7 @@ export function bindStoryChapters(ctx: Parameters<typeof bindRuntimeQuest>[0], s
   if (ids.length === 0 || ids.length > 64 || new Set(ids).size !== ids.length || ids.some(id => !source.quests.quests.some(q => q.id === id))) throw new Error('Invalid story chapters');
   const line = new QuestLine([], ports.flags);
   for (const id of ids) {
-    const quest = bindRuntimeQuest(ctx, source, id, ports).state;
+    const quest = findBoundQuestState(ctx.scope, id) ?? bindRuntimeQuest(ctx, source, id, ports).state;
     const step: NonNullable<QuestState['onStep']> = (next, previous) => { line.onStep?.(quest, next, previous); };
     const complete = (): void => { line.onComplete?.(quest); };
     if (order === 'after-facts') ctx.scope.onDispose(quest.observe({ step, complete }));
@@ -154,6 +155,7 @@ export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory
     checkpoint: () => { if (saved === null) return emit.flush(); const written = saved.write(saved.read()), grants = emit.flush(); return written && grants; } });
   const refresh = (): void => { if (policy.refresh === 'outcome') progress?.refreshLedger?.(); };
   const event = (name: string, total?: number): void => { counters.event(name, total); refresh(); };
+  publishQuestFacts(ctx.scope, story.quest.id, facts);
   return { facts, count: counters.count, kill: (kind: string, variant?: string): void => { counters.kill(kind, variant); refresh(); }, event,
     syncFlags: (flags: Parameters<typeof counters.syncFlags>[0]): void => { counters.syncFlags(flags, policy.syncEvents ? event : undefined); } };
 }

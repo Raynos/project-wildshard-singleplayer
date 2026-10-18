@@ -1,5 +1,6 @@
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
+import { installQuestChapter, installQuestFlags } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
@@ -25,7 +26,7 @@ import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { FullMap, MapPoi } from '@wildshard/engine/ui/Map';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
-import { Flags, test } from '@wildshard/engine/world/interact/flags';
+import { test } from '@wildshard/engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import { createQuestPlacements, type Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -73,7 +74,7 @@ import type { FigureRows as NpcFigure } from '@wildshard/game/systems/npc/figure
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from '@wildshard/game/quest/contracts';
-import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
+import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import './pinehollow.css';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
@@ -147,7 +148,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const figureScenes = new SceneHandles(sky);
-  const flags = new Flags(h.chunkId);
+  const flags = installQuestFlags(ctx, story.quest.id, h.chunkId);
   if (h.params.has('resetquest')) flags.reset();
   const beatParam = h.params.get('quest');
   const beat = beatParam === null ? undefined : native.beats[beatParam];
@@ -377,8 +378,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
-  const presentation=presentQuestStory(story,{scope:ctx.scope,player,fullMap:{setQuest:h.fullMap.setQuest.bind(h.fullMap)},toast:text=>{hud.toast(text);},sting:()=>{h.music.sting('chunk');}},quest,
-    {afterStep:step=>{if(step?.id==='dawn')runDawn();}});
+  const presentation = installQuestChapter(ctx, story);
+  ctx.scope.onDispose(quest.observe({ step: step => { if (step?.id === 'dawn') runDawn(); } }));
   const questChip=presentation.chip;
   const objective = questChip.line;
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');

@@ -8,7 +8,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
-import { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables, InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import { createQuestPlacements, type Interactable, type Place } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -22,11 +22,14 @@ import { OCEAN } from '../world/sites';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' };
 import { installAdventureInteractables } from './interactLifetime';
-import { installPlaces } from './Places';
-import { installQuestChapter, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
+import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
+import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
+import { installQuestChapter, installQuestFlags, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
 import { Castaway } from '../runtime/npc/Castaway';
 import deathRows from '../data/questDeaths.json' with { type: 'json' };
-import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench } from '@wildshard/game/quest/story';
+import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { installQuestTrader, type QuestTrader } from '@wildshard/game/quest/trader';
 import { trader, tradeCounter, traderRigOf } from '../runtime/models/trader';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
@@ -87,7 +90,7 @@ export interface Adventure {
   flags: Flags;
   kit: Interactables;
   /** the quest spine (A1): quest state, objective line, the castaway — set once installed */
-  spine: QuestChapter | null;
+  spine: (QuestChapter & { readonly dialogue: DialogueBox }) | null;
   /** the island's named places + discovery (A5) */
   places: Places | null;
   /** the Drowned Captain + the golden-hour reward (A6) */
@@ -127,7 +130,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
-  const flags = new Flags(w.chunk.slug);
+  const flags = installQuestFlags(ctx, story.quest.id, w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
   const { floorAt, place, setAnchor, anchors } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames, pois: w.pois,
@@ -150,9 +153,28 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   const npc = new Castaway(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }), scenes).build(ctx.scope);
-  adventure.spine = installQuestChapter(ctx, declaration, story, new Map([['world', w]]), new Map([['quest', { flags, facts: grants.facts, placement: { place },
-    figures: new Map([['castaway', npc]]), adventure, deaths: deathRows.page,
-    drops: [{ call: 'hold-key', item: 'hold-key' }], system: 'shard.driftwood-isle.installSpine' }]]));
+  const placements = Object.fromEntries(Object.values(story.quest.markers).map(at => {
+    const p = place(at); return [JSON.stringify(at), { x: p.x, y: p.y, z: p.z }];
+  }));
+  const chapter = installQuestChapter(ctx, story, { placements, completion: true, remainingLabel: 'Still to find' }, anchors);
+  const figures: QuestNpcTalkPorts<typeof npc.model>['figures'] = new Map([['castaway', {
+    kind: 'borrowed', create: () => npc.model,
+    own: (figure, register) => { ownQuestTree(figure.group, scope); scope.run(register); },
+    at: figure => { figure.group.updateMatrixWorld(true); return figure.headWorld(new THREE.Vector3()); },
+    advance: (_figure, dt, time, player) => { npc.update(dt, time, player); },
+    open: () => { w.audio.weaponSwap(); }, stow: on => { w.stowWeapon?.(on); },
+    approach: { at: figure => figure.position, run: figure => { figure.wave(); } },
+  }]]);
+  const talks = installStoryTalks(new QuestViews(ctx), declaration, { flags, scene: w.game.scene, registry: w.registry ?? ctx.app.registry,
+    prompts: w.prompts, calls: new Map(), figures });
+  if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
+  adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
+  w.onDeath?.(bindQuestDeathEffects<A>(deathRows.page, { flags, toast: text => { w.hud.toast(text); },
+    calls: new Map([['hold-key', body => { kit.moveTo('hold-key', body.position.x, body.position.z); }]]) }), 10);
+  w.game.onUpdate((dt, t) => {
+    talks.update(dt, t, w.player.position);
+    if (!practiceRoom.open) chapter.chip.update(t, w.player);
+  }, 'shard.driftwood-isle.installSpine');
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installQuestTrader(traderStall, { player: w.player, placed: { scope, sky: w.sky,
     ...(w.registry === undefined ? {} : { registry: w.registry }),
@@ -190,7 +212,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     adventure.setAnchor('lookout.zipline', { x: lx, z: lz });
   }
 
-  const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
+  const places = chapter.discover(content.places.map(d => { const p = place(d.at);
+    return { id: d.id, label: d.label, x: p.x, z: p.z, r: d.r, quiet: d.id === 'pier' }; }));
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
   let guide: PlaceGuide<Places['points'][number]> | null = null;
@@ -223,6 +246,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   }
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, 'shard.driftwood.adventure.4');
-  ctx.debug.expose('driftwood.adventure', adventure);
+  ctx.debug.expose('driftwood.adventure', { content, flags, kit, spine: adventure.spine, places, finale: adventure.finale,
+    ecology: adventure.ecology, complete: adventure.complete, trader: adventure.trader });
   return adventure;
 }
