@@ -1,0 +1,50 @@
+{
+  "schema": "wildshard.puffer.v70-rig1-source-validation.v1",
+  "candidate": "V70 rig1 gait5",
+  "date": "2026-10-18",
+  "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+  "weightedSourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+  "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+  "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+  "actualPoseTestSha256": "d2dd8496c83b1d383075450410d4cd3c0befd24a4bd5cc5cdb86dc4fa449bacb",
+  "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+  "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+  "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0",
+  "passed": {
+    "pythonTransferTests": 19,
+    "pythonNativeExportTests": 5,
+    "pythonMeasurementTests": 3,
+    "nodeInputAdmissionTests": 6,
+    "focusedVitestTestsIncludingActualV70Codec": 18,
+    "actualV70PoseTests": 2,
+    "skippedCodecTests": 0,
+    "typedLint": true
+  },
+  "codec": {
+    "vertices": 9993,
+    "triangles": 3331,
+    "bones": 8,
+    "parts": 7,
+    "compressedBytes": 53440
+  },
+  "actualPoseAudit": {
+    "implementation": "Actual admitted numeric programs and actual Three.js bone matrices, applied to V70 weighted vertices",
+    "frames": 1068,
+    "scenarios": ["stop-resume", "attack", "hit", "death"],
+    "dt": [0.016666666666666666, 0.03333333333333333, 0.1, 0.2],
+    "minimumLocalFinY": 0.00400000018998975,
+    "maximumCapToBellyError": 0,
+    "minimumTriangleAreaRatio": 0.5999999999999932,
+    "headAndTailBindPositionsPreserved": true
+  },
+  "appBuildRun": false,
+  "browserRun": false,
+  "published": false,
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "limitations": [
+    "Sampled flat model-space floor and attachment only",
+    "No world yaw-turn, terrain or world-ragdoll contact proof",
+    "No rendered motion, gameplay, phone or final visual acceptance"
+  ]
+}

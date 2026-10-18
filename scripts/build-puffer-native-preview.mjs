@@ -14,6 +14,7 @@ import { rapierAlias } from '../vite/rapier.ts';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
+import { assertPufferGaitAdmission } from './puffer-gait-admission.mjs';
 
 /** Pack one native source and compile one unchanged decision through the official SDK pipeline. */
 export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null) {
@@ -23,13 +24,9 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
   // Refuse stale/foreign output rather than silently deleting data or leaving an invalid mixed inventory.
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Practice output must be a new or empty directory');
-  const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = resolvePufferPreviewInput(root, descriptor, dimensions);
-  if (mode === 'gait4' || mode === 'gait5') {
-    const rig1Hash = '7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb';
-    const dims = JSON.parse(dimensionBytes.toString('utf8'));
-    if (createHash('sha256').update(sourceBytes).digest('hex') !== rig1Hash
-      || Math.abs(dims.legLen - .24 / (2 * Math.sin(.36))) > 1e-9) throw new Error('gait4 requires pinned rig1 and explicit phase calibration');
-  }
+  const input = resolvePufferPreviewInput(root, descriptor, dimensions);
+  const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = input;
+  const rigAdmission = mode === 'gait4' || mode === 'gait5' ? assertPufferGaitAdmission(root, input, mode) : null;
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });
@@ -63,6 +60,7 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
     schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
+    ...(rigAdmission === null ? {} : { rigAdmission }),
     ...(mode === 'gait5' ? { visualAdapter: 'puffer-gait5-continuity', visualAdapterSha256: hash(readFileSync(resolve(root, 'src/pufferGaitContinuityPreview.ts'))) } : {}),
     source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     dimensionsSha256: hash(dimensionBytes), colliderAcceptance: false, visualAcceptance: false,

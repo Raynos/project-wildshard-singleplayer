@@ -1,0 +1,14 @@
+{
+  "status": "source-only proposal rejected before model edits",
+  "baselineBuilder": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v70_from_v9.py",
+  "baselineBuilderSha256": "5a0be4072b3d0346229b09e964727944c2e4168f4a1634bd02220461f086c731",
+  "diagnosticSource": "art/driftwood-isle/approved-puffer/audit_flank_patch_feasibility.py",
+  "diagnosticSha256": "3bbbc7b73b8f9d6aecca04af74fb9fd83b12ba805cd25826b78f5f77cf3be73c",
+  "method": "Pure analytic reconstruction of mantle samples and proposed convex patch; no Blender execution",
+  "oldTrianglesPerPatch": 18,
+  "oldInteriorEqualYEdgesPerPatch": 6,
+  "candidateSurvivingOldRailEdgesPerPatch": 3,
+  "protectedSample70OutwardSupportDistanceBaseline": -0.004352122676146243,
+  "protectedSample70OutwardSupportDistanceCandidate": -0.004348957467099623,
+  "failure": "Protected centerline sample70 is strictly below the exterior convex envelope. Reinsert without moving it would not preserve that envelope. Lateral boundary edges also bypassed. No builder change or render."
+}
