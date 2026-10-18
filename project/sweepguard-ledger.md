@@ -232,3 +232,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-18 03:00 · wT:pK · `GIT_INDEX_FILE="$PWD/tmp/z10/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit >tmp/z10/precommit-dry.log 2>&1`
 - 2026-10-18 03:03 · wT:pK · `kill -TERM 37533 python3 - <<'PY' from pathlib import Path p=Path('tmp/z10/proof-catalogue.mjs');s=p.read_text().replace('timeout: 120000', 'timeout: 240000');p.write_text(s) PY GIT_INDEX_FILE="$PWD/t`
 - 2026-10-18 03:10 · wT:pK · `GIT_INDEX_FILE="$PWD/tmp/z10/index" SKIP_SWEEPGUARD=1 WS_COMMIT_INTENT="$(python3 -c 'import json; d=json.load(open("tmp/z10/snapshot.json")); print(json.dumps({"base":d["parent"],"paths":list(dict.fr`
+- 2026-10-18 04:14 · wT:pK · `python3 - <<'PY' from pathlib import Path import json s=json.loads(Path('tmp/z10/snapshot-final-input.json').read_text()) Path('tmp/z10/intent.json').write_text(json.dumps({'base':s['parent'],'paths':`
