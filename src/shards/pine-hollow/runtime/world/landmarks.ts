@@ -33,7 +33,8 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { type ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Cabins } from './homestead';
+import type { PineCabins } from '../index';
+import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { loadCodeParts } from './codeParts';
 import { CaveInterior } from '../kit/caveInterior';
@@ -70,6 +71,7 @@ export class PineLandmarks {
   private lit: Record<WaystoneId, { lit: boolean }> = { pond: { lit: true }, ridge: { lit: true }, den: { lit: true } };
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
   private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
+  private cabins: PineCabins | null = null;
   private glow: THREE.Points | null = null;
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
@@ -83,7 +85,7 @@ export class PineLandmarks {
    * `registry`: where the placed models register (null: only built, and drawn under `group`). The crags stand where their
    * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
-  async build(cabins: Cabins | null): Promise<this> {
+  async build(cabins: PineCabins | null): Promise<this> {
     const cave = CaveInterior.load(); // the kit + the cave + their textures, fetched while the timber builds
     await loadCodeParts(); // the retained cave roof still borrows its native collider part
     this.timberColliders.push(...(await this.scenes.place('timbers.fire-lookout')).colliders);
@@ -108,7 +110,7 @@ export class PineLandmarks {
     return this;
   }
 
-  private async buildProps(cabins: Cabins | null): Promise<void> {
+  private async buildProps(cabins: PineCabins | null): Promise<void> {
     const product = await loadFirstPartyProduct('pine-hollow');
     const stones = authored.landmarks.stones;
     if (stones.length > 16) throw new Error('Standing-stone row bound exceeded');
@@ -124,7 +126,7 @@ export class PineLandmarks {
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
-  private lanterns(cabins: Cabins | null, glow: THREE.Texture): void {
+  private lanterns(cabins: PineCabins | null, glow: THREE.Texture): void {
     const lamps = authored.landmarks.lamps, glowPos = Float32Array.from(lamps.flat());
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
     lamps.forEach((w, i) => { const id = WAYSTONE_IDS[i]; if (id) { const a = new THREE.Object3D(); a.position.fromArray(w); this.group.add(a); anchors[id] = a; } });
@@ -137,7 +139,12 @@ export class PineLandmarks {
     this.glow.renderOrder = 6;
     this.group.add(this.glow);
     this.anchors = anchors;
-    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, this.lit[id]); }
+    this.cabins = cabins;
+    if (cabins) for (const id of ['pond', 'ridge', 'den'] as const) {
+      const anchor = anchors[id], handle = cabins.resources.lend(anchor), rows = emptyBuildingLifeRows();
+      rows.sites.push({ id: `waystone.${id}`, root: handle, anchors: [{ anchor: handle, color: 0xffb060, intensity: 9, distance: 12, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 }] });
+      cabins.life.add(rows);
+    }
   }
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
@@ -150,6 +157,7 @@ export class PineLandmarks {
 
   setLit(id: WaystoneId, on: boolean): void {
     this.lit[id].lit = on;
+    this.cabins?.life.setLit(`waystone.${id}`, on);
     const i = WAYSTONE_IDS.indexOf(id);
     const pos = this.glow?.geometry.getAttribute('position');
     if (pos && this.anchors) { const a = this.anchors[id]; pos.setY(i, on ? a.position.y : -1e4); pos.needsUpdate = true; }
@@ -176,7 +184,7 @@ export class PineLandmarks {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, game.scene)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; scenes: SceneHandles; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: PineCabins | null; scenes: SceneHandles; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins);
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });

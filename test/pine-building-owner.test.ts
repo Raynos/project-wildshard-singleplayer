@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { BoxGeometry, Group, MeshBasicMaterial, MeshStandardMaterial, Vector3 } from 'three';
+import { BoxGeometry, type BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, PointLight, Vector3 } from 'three';
 import * as v from 'valibot';
 import { BakedBuildingAssembly } from '../src/game/shardfile/buildingAssembly';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
@@ -7,6 +7,88 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { BakedBuildingLookSchema, type BakedBuildingRecord } from '../src/format/buildings';
 import buildingLook from '../src/shards/pine-hollow/data/buildingLook.json' with { type: 'json' };
 import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
+import { CabinSceneRecorder } from '../src/shards/pine-hollow/generators/cabinScenes';
+import { cabinSceneSources } from '../src/shards/pine-hollow/generators/cabinSceneSources.mjs';
+import { installPortableMath } from '../src/commons/bake/portableMath';
+import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
+import { Scope } from '../src/engine/app/scope';
+import plumbing from '../src/shards/pine-hollow/data/plumbing.json' with { type: 'json' };
+import { parsePlumbing } from '../src/format/plumbing';
+
+function mesh3(node: Object3D): node is Object3D & { readonly geometry: BufferGeometry; readonly material: Material | Material[] } { return node instanceof Mesh; }
+
+test('eight living graphs preserve native hierarchy, arrays, materials and door life', async () => {
+  const restore = installPortableMath();
+  try {
+    for (const tier of ['phone', 'desktop'] as const) for (const shadow of [false, true]) for (const shared of [false, true]) {
+      const source = await cabinSceneSources(tier), recorder = new CabinSceneRecorder(), captured = recorder.living(source, shadow, shared);
+      const resources = new SceneHandles({ setupMaterial: () => undefined }), owner = new Scope('living-oracle');
+      const native = new Group(), materials = new Map<string, Material>();
+      const parts = Object.fromEntries(['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'bark', 'iron', 'cloth', 'char', 'glass'].map(key => {
+        const id = `materials.timber.${key}`, material = new MeshStandardMaterial();
+        resources.publish(id, material); materials.set(id, material); return [key, id];
+      }));
+      const particles = Object.fromEntries(['flame', 'ember', 'smoke'].map(key => {
+        const id = `materials.cabin.${key}`, material = new MeshBasicMaterial();
+        resources.publish(id, material); materials.set(id, material); return [key, id];
+      }));
+      const glow = new MeshBasicMaterial({ color: 0xff7a1a, transparent: true, blending: 2, depthWrite: false, fog: false });
+      resources.publish('glow', glow); materials.set('cabin.glow-map', new MeshStandardMaterial());
+      resources.publish('pit', source.firePit.scene); resources.publish('lantern', source.lantern.scene);
+      for (const [kind, model] of [['pit', source.firePit], ['lantern', source.lantern]] as const) {
+        let part = 0;
+        model.scene.traverse(node => { if (mesh3(node) && node.material instanceof Material) materials.set(`materials.cabin.${kind}.${String(part++)}`, node.material); });
+      }
+      const geometry = Object.fromEntries([...source.geometry].map(([ordinal, shape]) => {
+        const id = `shape.${String(ordinal)}`; resources.publish(id, shape); return [String(ordinal), id];
+      }));
+      const life = new LivingBuildings(resources, CABIN_LIFE);
+      const detail = tier === 'phone' ? 28 : 55;
+      const ordered = [...source.rows.buildings.filter(row => !row.hamlet), ...source.rows.buildings.filter(row => row.hamlet)];
+      for (const record of ordered) {
+        const assembly = new BakedBuildingAssembly(resources, { id: record.id, record, geometry, materials: { parts, particles: { flame: particles['flame'] ?? '', ember: particles['ember'] ?? '', smoke: particles['smoke'] ?? '' }, glass: parts['glass'] ?? '', glow: 'glow' },
+          models: { firePit: 'pit', lantern: 'lantern' }, role: record.hamlet ? 'member' : 'standalone', look: v.parse(BakedBuildingLookSchema, buildingLook),
+          tier: { detailDist: detail, detailShadows: shadow, sharedLights: shared }, bakedStatic: true });
+        if (record.hamlet) assembly.root.name = record.id;
+        native.add(assembly.root); life.add(assembly.lifeRows);
+      }
+      native.updateMatrixWorld(true);
+      const frozen = new Group(), handles = new SceneHandles({ setupMaterial: () => undefined }); handles.publish('cabins.root', frozen);
+      for (const [id, material] of materials) handles.publish(id, material);
+      const geometries = new Map([...recorder.geometry].map(([id, shape], index) => [JSON.stringify([`cabin-shapes-${String(Math.floor(index / 128))}`, id]), shape]));
+      try {
+        hydrateWorldSceneWeld(captured.graph, handles, { geometry: geometries, materials, plumbing: parsePlumbing(plumbing), quality: { tier, overrides: { 'pine.cabinDetailDist': detail } } }, owner);
+        frozen.updateMatrixWorld(true);
+        const snapshot = (root: Object3D) => {
+          const nodes: unknown[] = [], materialIds = new Map<Material, number>();
+          root.traverse(node => {
+            const draw = mesh3(node) ? node : undefined;
+            const material = draw?.material;
+            if (Array.isArray(material)) throw new Error('Unexpected living material array');
+            if (material !== undefined && !materialIds.has(material)) materialIds.set(material, materialIds.size);
+            nodes.push({ type: node.type, name: node.name, matrix: node.matrix.elements, position: node.position.toArray(), quaternion: node.quaternion.toArray(), scale: node.scale.toArray(),
+              cast: node.castShadow, receive: node.receiveShadow, order: node.renderOrder, visible: node.visible, layers: node.layers.mask,
+              ...(draw === undefined ? {} : { material: material === undefined ? null : materialIds.get(material),
+                attributes: Object.fromEntries(Object.entries(draw.geometry.attributes).map(([key, attribute]) => [key, Array.from({ length: attribute.count * attribute.itemSize }, (_, index) => attribute.getComponent(Math.floor(index / attribute.itemSize), index % attribute.itemSize))])),
+                index: draw.geometry.index === null ? null : Array.from(draw.geometry.index.array) }),
+              ...(node instanceof PointLight ? { light: [node.color.getHex(), node.intensity, node.distance, node.decay] } : {}) });
+          }); return nodes;
+        };
+        expect(snapshot(frozen), `${tier}/${String(shadow)}/${String(shared)}`).toEqual(snapshot(native));
+        const restored = new LivingBuildings(handles, CABIN_LIFE); restored.add(captured.life);
+        expect(restored.interactables.map(row => ({ at: row.position.toArray(), reach: row.radius, label: row.label }))).toEqual(life.interactables.map(row => ({ at: row.position.toArray(), reach: row.radius, label: row.label })));
+        for (const door of life.doorPieces()) door.use(); for (const door of restored.doorPieces()) door.use();
+        life.tick(0.3, 0.3, new Vector3(), 0.5); restored.tick(0.3, 0.3, new Vector3(), 0.5);
+        expect(restored.doorPieces().map(row => row.pivot.rotation.y)).toEqual(life.doorPieces().map(row => row.pivot.rotation.y));
+        expect(captured.life.sites.map(row => ({ id: row.id, rooms: row.rooms, door: row.door }))).toEqual(ordered.map(row => ({ id: row.id, rooms: row.rooms, door: row.doorAt })));
+      } finally {
+        owner.dispose(); glow.dispose(); for (const material of materials.values()) material.dispose();
+        native.traverse(node => { if (mesh3(node)) node.geometry.dispose(); });
+        for (const shape of source.geometry.values()) shape.dispose(); for (const shape of recorder.geometry.values()) shape.dispose();
+      }
+    }
+  } finally { restore(); }
+});
 
 test('building life keeps its door while the assembly owns static collision', () => {
   const material = new MeshStandardMaterial(), glow = new MeshBasicMaterial(), shape = new BoxGeometry();

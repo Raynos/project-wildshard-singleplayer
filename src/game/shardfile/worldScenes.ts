@@ -176,6 +176,14 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     await buildYield(resident);
   }
   for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) && !deferredPlacements.has(row.id) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
+  // Specimen graphs are fully admitted above; their buffers belong to a requested
+  // Explorer choice, rather than every resident world and inactive profile.
+  const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
+  const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry;
+  const residentReferences = new Set([...modelGeometry, ...section.steps.flatMap(step => Object.values(step.geometry)),
+    ...[...batches.values()].flatMap(row => row.geometry),
+    ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
+      .concat(row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   try {
@@ -183,6 +191,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       if (row.kind === 'owned') {
         const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
         for (const model of row.models) {
+          if (!residentReferences.has(JSON.stringify([row.id, model.id]))) continue;
           const file = typeof model.file === 'string' ? model.file : model.file[TIER];
           const geometry = createOwnedGeometry(product.url(file), model.attributes);
           await geometry.load(await product.file(file), model.segments === undefined ? undefined : await Promise.all(model.segments.map(segment => product.file(segment)))); models.set(model.id, geometry);
@@ -269,7 +278,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     }
     if (sky !== undefined && catalogue !== undefined) {
       const geometries = new Map<string, BufferGeometry>();
-      for (const draw of worldSceneModelResources(catalogue, [...modelScenes.values()]).geometry) {
+      for (const draw of modelGeometry) {
         const key = JSON.stringify([draw.library, draw.model]);
         if (geometries.has(key)) continue;
         const geometry = libraries.get(draw.library)?.geometry(draw.model);

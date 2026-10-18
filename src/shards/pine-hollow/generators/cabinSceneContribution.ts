@@ -10,6 +10,7 @@ import cabins from '../data/cabins.json' with { type: 'json' };
 import logKit from '../data/logKit.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { HEARTH_LOOKS } from './hearthLook';
+import { CABIN_LIVING_LIBRARIES, CABIN_LIVING_BLOBS, CABIN_SITES, cabinLivingResources } from './cabinLivingContribution';
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
 const registration = v.variant('kind', [
@@ -49,7 +50,7 @@ function sourceGraph(file: string): WorldSceneWeld {
 }
 
 export const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
-export const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [];
+export const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(CABIN_SITES)))];
 const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));
 for (const world of metadata.worlds) {
   const prefix = `cabins.${world.tier}.${String(world.shadow)}`, placements: string[] = [], hamlet: string[] = [];
@@ -81,7 +82,7 @@ for (const world of metadata.worlds) {
     CABIN_PLACEMENTS.push(parseWorldScenePlacement(input));
   }
   const row = sourceGraph(world.file);
-  CABIN_JSON_BLOBS.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', placements,
+  CABIN_JSON_BLOBS.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', resources: cabinLivingResources(world.tier, world.shadow), placements,
     sets: [{ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'data/cabinScenes.generated.json', place: 'pine-hollow/hamlet', members: hamlet }] })));
 }
 for (const specimen of metadata.specimens) CABIN_JSON_BLOBS.push(encode(specimen.file, sourceGraph(specimen.file)));
@@ -91,8 +92,8 @@ const worldFile = (tier: 'phone' | 'desktop', shadow: boolean): string => {
 };
 export const CABIN_WELDS = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
   false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } } }];
-export const CABIN_LIBRARIES = [...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
-  models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }));
+export const CABIN_LIBRARIES = [...CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
+  models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }))];
 export const CABIN_BLOBS = metadata.blobs.filter(row => row.kind === 'glb');
 export const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
   aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));

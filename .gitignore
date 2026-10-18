@@ -2024,3 +2024,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/pine-hollow/assets/cabin-scenes/
 /src/shards/pine-hollow/data/cabinScenes.generated.json
+
+/src/shards/pine-hollow/assets/cabin-living/
+/src/shards/pine-hollow/data/cabinLivingScenes.generated.json

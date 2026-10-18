@@ -1,5 +1,5 @@
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
-import { BakedBuildingLookSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
+import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
@@ -190,26 +190,12 @@ export const PlaceSetsSchema = v.array(v.strictObject({ id: v.string(), place: v
 
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
-const appearanceNumber = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE)), appearancePair = v.tuple([appearanceNumber, appearanceNumber]), appearanceTriple = v.tuple([appearanceNumber, appearanceNumber, appearanceNumber]);
-const materialRow = v.strictObject({ color: appearanceNumber, roughness: appearanceNumber, metalness: appearanceNumber,
-  transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(appearanceNumber), envMapIntensity: v.exactOptional(appearanceNumber),
-  emissiveIntensity: v.exactOptional(appearanceNumber), emissive: v.exactOptional(appearanceNumber), side: v.exactOptional(v.picklist([0, 1, 2])),
-  depthWrite: v.exactOptional(v.boolean()), vertexColors: v.exactOptional(v.boolean()) });
-const timberDraw = v.strictObject({ depth: v.picklist(['proxy', 'near']), receiveShadow: v.boolean(),
-  castShadow: v.exactOptional(v.boolean()), until: v.exactOptional(appearanceNumber) });
+const appearanceNumber = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
 /** Client-only author rows: unknown fields, malformed vectors and unbounded lists refuse before construction. */
 export const CabinAppearanceSchema = v.strictObject({
-  BUILDING_LOOK: BakedBuildingLookSchema,
-  CABIN_DOOR_LOOK: v.string(), CABIN_MOSS_LOOKS: v.strictObject({ roof: v.string(), stone: v.string() }),
   HEARTH_LOOKS: v.strictObject({ smoke: v.string(), flame: v.string(), ember: v.string() }),
   CABIN_LIFE: BuildingLifeLookSchema,
-  CABIN_PBR: v.pipe(v.array(v.strictObject({ key: v.picklist(['log', 'roof', 'beam', 'deck', 'door', 'stone', 'bark']),
-    scan: v.string(), color: appearanceTriple, normal: appearancePair })), v.length(7)),
-  CABIN_MATERIALS: v.strictObject({ endGrain: materialRow, chink: materialRow, glass: materialRow, iron: materialRow, cloth: materialRow, char: materialRow }),
-  TIMBER_DRAWS: v.strictObject({ log: timberDraw, endGrain: timberDraw, chink: timberDraw, roof: timberDraw, beam: timberDraw, deck: timberDraw,
-    door: timberDraw, stone: timberDraw, bark: timberDraw, iron: timberDraw, cloth: timberDraw, char: timberDraw }),
-  TIMBER_GLASS: v.strictObject({ renderOrder: appearanceNumber, receiveShadow: v.boolean() }),
-  CABIN_GLASS_EMISSIVE: appearanceTriple, CABIN_LIGHT: v.strictObject({ count: appearanceNumber, color: appearanceNumber, intensity: appearanceNumber, distance: appearanceNumber, decay: appearanceNumber }),
+  CABIN_LIGHT: v.strictObject({ count: appearanceNumber, color: appearanceNumber, intensity: appearanceNumber, distance: appearanceNumber, decay: appearanceNumber }),
 });
 
 const floorNumber = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));

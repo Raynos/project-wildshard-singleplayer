@@ -5998,7 +5998,8 @@
         "public/assets/models/stone_fire_pit/stone_fire_pit.gltf",
         "public/assets/models/stone_fire_pit/stone_fire_pit.bin",
         "public/assets/models/Lantern_01/Lantern_01_lod.glb",
-        "public/assets/models/Lantern_01/Lantern_01_lod.phone.glb"
+        "public/assets/models/Lantern_01/Lantern_01_lod.phone.glb",
+        "src/shards/pine-hollow/generators/cabinAssembly.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/cabin-scenes/shape-0.glb",
@@ -19507,6 +19508,73 @@
       "buildTimeOutputs": [
         "src/shards/pine-hollow/behaviour/life.generated.json"
       ]
+    },
+    {
+      "id": "pine-cabin-living",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-cabin-living.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-cabin-living.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-cabin-living.mjs",
+        "src/shards/pine-hollow/generators/cabinScenes.ts",
+        "src/shards/pine-hollow/generators/cabinSceneAssembly.ts",
+        "src/shards/pine-hollow/generators/cabinSceneSources.mjs",
+        "src/shards/pine-hollow/generators/cabinWeld.ts",
+        "src/shards/pine-hollow/generators/cabinPropMaterials.mjs",
+        "src/shards/pine-hollow/generators/cabinPropShapes.ts",
+        "src/shards/pine-hollow/data/cabins.json",
+        "src/shards/pine-hollow/data/buildingLook.json",
+        "src/shards/pine-hollow/data/plumbing.json",
+        "src/shards/pine-hollow/data/logKit.json",
+        "src/shards/pine-hollow/data/timberWorld.generated.json",
+        "public/assets/pine-hollow/baked/cabins.bin",
+        "scripts/bake-output.mjs",
+        "src/sdk",
+        "src/format",
+        "src/commons",
+        "public/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+        "public/assets/models/wooden_crate_02/wooden_crate_02.bin",
+        "public/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+        "public/assets/models/wine_barrel_01/wine_barrel_01.bin",
+        "public/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+        "public/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+        "public/assets/models/hatchet/hatchet.gltf",
+        "public/assets/models/hatchet/hatchet.bin",
+        "public/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+        "public/assets/models/stone_fire_pit/stone_fire_pit.bin",
+        "public/assets/models/Lantern_01/Lantern_01_lod.glb",
+        "public/assets/models/Lantern_01/Lantern_01_lod.phone.glb",
+        "src/shards/pine-hollow/generators/cabinAssembly.ts",
+        "src/shards/pine-hollow/data/cabinScenes.generated.json"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/assets/cabin-living/desktop-false-false.json",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-false-true.json",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-true-false.json",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-true-true.json",
+        "src/shards/pine-hollow/assets/cabin-living/phone-false-false.json",
+        "src/shards/pine-hollow/assets/cabin-living/phone-false-true.json",
+        "src/shards/pine-hollow/assets/cabin-living/phone-true-false.json",
+        "src/shards/pine-hollow/assets/cabin-living/phone-true-true.json",
+        "src/shards/pine-hollow/data/cabinLivingScenes.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/assets/cabin-living/phone-false-false.json": "9bf0a591598de227bedc7996a5c612fa80f80d02a5f4daad4120592978cefbbf",
+        "src/shards/pine-hollow/assets/cabin-living/phone-false-true.json": "f6235dc373b9bdfc845fd558a2469b0fb4b7c519fe98b213d1eb5c9f0b8e6a0d",
+        "src/shards/pine-hollow/assets/cabin-living/phone-true-false.json": "4bd83ef24c5f4aaf96e7fd8dae08c55160b33410cfa8121bd5d1564a51c4c377",
+        "src/shards/pine-hollow/assets/cabin-living/phone-true-true.json": "20a1def4aa2703a3bf0f0aaf97d008199821e06c9bd5b0afee1dbf922b27a9a2",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-false-false.json": "feca494b8e77f330cb64546fb4e831980458705b6bc36dcbc50fa0a33537105d",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-false-true.json": "de2aa1400f4a3bcc42a359cee436a5045c1f0523b9461aacf05a165cec2c72d3",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-true-false.json": "e2aa9e9d19881b22a0569a613eefe60073bd9333f6f3f7af9a569e2d331f98cd",
+        "src/shards/pine-hollow/assets/cabin-living/desktop-true-true.json": "ecf48da3de812037adfe652231e879bb7c5adaacfab087401fd0a76202cb16fe",
+        "src/shards/pine-hollow/data/cabinLivingScenes.generated.json": "1c2543b2c38c076730f3001334840c07033ee1ed76b2863be69f9835cce846ff"
+      }
     }
   ]
 }

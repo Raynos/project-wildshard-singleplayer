@@ -1,7 +1,10 @@
 {
   "test/frame-floor-output-entry.test.ts": [],
   "test/texture-scope-lifetime.test.ts": [],
-  "test/chapter-director-product.test.ts": ["pine-hollow", "driftwood-isle"],
+  "test/chapter-director-product.test.ts": [
+    "pine-hollow",
+    "driftwood-isle"
+  ],
   "test/world-scene-tier.test.ts": [],
   "test/quest-message-rows.test.ts": [],
   "test/npc-figure-rows.test.ts": [],
@@ -144,5 +147,8 @@
     "driftwood-isle"
   ],
   "test/page-life.test.ts": [],
-  "test/world-scene-weld.test.ts": []
+  "test/world-scene-weld.test.ts": [],
+  "test/pine-building-owner.test.ts": [
+    "pine-hollow"
+  ]
 }

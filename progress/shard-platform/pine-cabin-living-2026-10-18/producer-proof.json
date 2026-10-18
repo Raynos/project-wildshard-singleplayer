@@ -1,0 +1,55 @@
+{
+  "authorSourceTree": "3a030f71e7f8c80ac4d6c8c480f6593599b883fa",
+  "checkedAugmentedTree": "30b48b9102c6281b5c3a6bcbd1376d06a685328d",
+  "sourceParent": "8fc8afa158c3b2c5f408d41daa493b835b067306",
+  "authorFiles": {
+    "src/shards/pine-hollow/generators/bake-cabin-living.mjs": "d0b6bca20d76abb8d6e49e2d2c6a8ee8254dd5f5",
+    "src/shards/pine-hollow/generators/cabinScenes.ts": "62bc2fe500d54351fa69d26d1d7c67167f9a2e63",
+    "src/shards/pine-hollow/generators/cabinSceneAssembly.ts": "9d5d241d380e0f8d61c4f19374309219d34b3f63",
+    "src/shards/pine-hollow/generators/cabinSceneSources.mjs": "14a333d2d749c3d1d07d3f160b55f3f97405d48b",
+    "src/shards/pine-hollow/generators/cabinWeld.ts": "e4e9772531a8bc24a8d4dd905a9e6fca532f200c",
+    "src/shards/pine-hollow/generators/cabinAssembly.ts": "7662a565e13b73bdc0901e557bf655cbb8913e7a"
+  },
+  "job": "pine-cabin-living",
+  "outputs": 9,
+  "profiles": 8,
+  "byteReport": {
+    "source": "30b48b9102c6281b5c3a6bcbd1376d06a685328d",
+    "outputs": 9,
+    "profiles": 8,
+    "models": 346,
+    "geometryDependencies": 11,
+    "newGlbs": 0,
+    "metadataBytes": 1861500,
+    "staticBookHash": "8676bcfb364f555d6f85bf6cf2aa20463ed5170f61a0e414cdeecc5cdaeac65a",
+    "allPinnedOutputBytes": true,
+    "allGeometryDependenciesExact": true
+  },
+  "crossArchitecture": {
+    "node": "24.18.1",
+    "arm64": "complete live9 +static222 producer --check passed",
+    "x64": "complete live9 +static222 producer --check passed"
+  },
+  "sealedStaticOutputs": {
+    "count": 222,
+    "bookHash": "8676bcfb364f555d6f85bf6cf2aa20463ed5170f61a0e414cdeecc5cdaeac65a",
+    "outputPinsChanged": false
+  },
+  "nativeOracle": {
+    "owner": "sp-x9",
+    "reportedSourceTree": "3a030f71e7f8c80ac4d6c8c480f6593599b883fa",
+    "test": "test/pine-building-owner.test.ts",
+    "testBlob": "b531be88bfae5058752ef63bf2826d0b48bbf74b",
+    "tests": 2,
+    "profiles": 8,
+    "checks": "Original runtime BakedBuildingAssembly hierarchy/TRS/channel/index/material sharing; prompts, rooms/sites and reversible doors. Owner-reported green on the exact source before catalogue-only augmentation."
+  },
+  "checkedAuthorTypes": true,
+  "typedLint": true,
+  "inputClosure": {
+    "liveRoots": 31,
+    "staticAddition": "src/shards/pine-hollow/generators/cabinAssembly.ts"
+  },
+  "proof": "20261018T013350-sp-x10-cabin-living-portable-13546",
+  "limitations": "This receipt proves producer determinism and byte dependencies. The paired consumer owns root/layer/all-product/headless checks and served native look, pooled-light, clock, walk and phone parity."
+}

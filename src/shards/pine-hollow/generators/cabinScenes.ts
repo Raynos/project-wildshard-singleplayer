@@ -3,10 +3,11 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { WorldSceneWeld, WorldSceneWeldNode } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
-import { BakedBuildingLookSchema, type BuildingAssemblyRows } from '@wildshard/format/buildings';
+import { BakedBuildingLookSchema, emptyBuildingLifeRows, parseBuildingLifeRows, type BuildingAssemblyRows } from '@wildshard/format/buildings';
 import type { CabinRows, BakedBuilding, PropKind } from './cabinShapes';
 import look from '../data/buildingLook.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
+import { CABIN_MATERIALS } from './cabinAssembly';
 import { CabinAuthorAssembly, CabinAuthorResources } from './cabinSceneAssembly';
 import { CabinAuthorWeld, CabinUnitParts, CabinWeldBatch, CabinWeldView, cabinNearProxy, cabinTwoSidedPositions } from './cabinWeld';
 
@@ -86,7 +87,7 @@ export class CabinSceneRecorder {
     }
     return result;
   }
-  private assembly(source: CabinSceneSources, record: BakedBuilding, shadow: boolean, role: 'standalone' | 'member' | 'specimen', surfaces: ReadonlyMap<string, THREE.Material>): Owner {
+  private assembly(source: CabinSceneSources, record: BakedBuilding, shadow: boolean, role: 'standalone' | 'member' | 'specimen', surfaces: ReadonlyMap<string, THREE.Material>, sharedLights = source.tier === 'phone'): Owner {
     const resources = new CabinAuthorResources(`cabins.${record.id}`, this.shadow), geometry: Record<string, string> = {}, parts: Record<string, string> = {}, particles: Record<string, string> = {};
     for (const [ordinal, shape] of source.geometry) geometry[String(ordinal)] = resources.register(`cabins.live.${String(ordinal)}`, shape);
     for (const key of partKeys) parts[key] = resources.register(`materials.timber.${key}`, need(surfaces.get(key), 'Cabin material absent'));
@@ -95,7 +96,7 @@ export class CabinSceneRecorder {
       materials: { parts, particles: { flame: need(particles['flame'], 'Flame absent'), ember: need(particles['ember'], 'Ember absent'), smoke: need(particles['smoke'], 'Smoke absent') },
         glass: resources.register('materials.timber.glass', need(surfaces.get('glass'), 'Glass absent')), glow: resources.register('materials.cabin.glow', need(surfaces.get('glow'), 'Glow absent')) },
       models: { firePit: resources.register('source.pit', source.firePit.scene), lantern: resources.register('source.lantern', source.lantern.scene) },
-      role, look: v.parse(BakedBuildingLookSchema, look), tier: { detailDist: detailFor(source.tier), detailShadows: shadow, sharedLights: source.tier === 'phone' } };
+      role, look: v.parse(BakedBuildingLookSchema, look), tier: { detailDist: detailFor(source.tier), detailShadows: shadow, sharedLights } };
     const assembly = new CabinAuthorAssembly(resources, input);
     let part = 0;
     assembly.lanternObj?.traverse(node => {
@@ -262,6 +263,50 @@ export class CabinSceneRecorder {
     body.traverse(node => { owned.add(node); names.set(node, `specimen.node-${String(ordinal++)}`); });
     const graph = this.graph(id, 'specimen.root', parent, owned, names, owners, detail, 0);
     return { ...graph, result: need(names.get(body), 'Missing specimen result'), materials };
+  }
+
+  /** Live nodes before the static weld, independently of the sealed world/specimen recorder. */
+  living(source: CabinSceneSources, shadow: boolean, shared: boolean): { readonly graph: WorldSceneWeld; readonly life: ReturnType<typeof parseBuildingLifeRows> } {
+    const surfaces = this.surfaces(source), parent = new THREE.Group(), owners: Owner[] = [];
+    const names = new Map<THREE.Object3D, string>([[parent, 'cabins.root']]), owned = new Set<THREE.Object3D>();
+    const aliases = new Map<string, string>(), materials: WorldSceneWeld['materials'] = [];
+    let ordinal = 0;
+    const life = emptyBuildingLifeRows();
+    life.lamps.push({ material: 'materials.timber.glass', full: CABIN_MATERIALS.glass.emissiveIntensity });
+    for (const record of [...source.rows.buildings.filter(row => !row.hamlet), ...source.rows.buildings.filter(row => row.hamlet)]) {
+      const owner = this.assembly(source, record, shadow, record.hamlet ? 'member' : 'standalone', surfaces, shared), building = owner.assembly;
+      owners.push(owner); parent.add(building.root); names.set(building.root, `cabins.${record.id}.root`);
+      if (record.hamlet) building.root.name = record.id;
+      if (building.firePitObj !== null) names.set(building.firePitObj, `cabins.${record.id}.firePit`);
+      if (building.lanternObj !== null) names.set(building.lanternObj, `cabins.${record.id}.lantern`);
+      for (const [id, value] of owner.resources.entries()) if (value instanceof THREE.Object3D) {
+        if (!names.has(value)) names.set(value, id);
+        aliases.set(id, need(names.get(value), 'Missing living resource identity'));
+      } else if (value instanceof THREE.Material) aliases.set(id, this.material(value));
+      building.root.traverse(node => { owned.add(node); if (!names.has(node)) names.set(node, `cabins.living.node-${String(ordinal++)}`); });
+      for (const [index, entry] of owner.resources.materials.entries()) {
+        const id = `cabins.${record.id}.lantern.material-${String(index)}`;
+        if (this.material(entry.material) !== id) throw new Error('Living lantern material order differs');
+        materials.push({ id, kind: 'standard', properties: v.parse(WorldSceneSurfaceSchema.entries.properties, entry.properties), sky: true,
+          ...(entry.source === undefined ? {} : { source: { material: this.material(entry.source), maps: ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'] } }) });
+      }
+      const rows = building.lifeRows;
+      rows.sites.push({ id: record.id, root: need(names.get(building.root), 'Missing living building root'),
+        anchors: building.anchors.map(anchor => ({ ...anchor, anchor: need(names.get(anchor.anchor), 'Missing living light anchor') })), rooms: [...building.rooms], door: building.doorAt });
+      // Native life bindings name resources; normalize each borrowed object/material to its frozen publication.
+      const remap = (id: string): string => aliases.get(id) ?? id;
+      life.doors.push(...rows.doors.map(row => ({ ...row, pivot: remap(row.pivot) })));
+      life.swings.push(...rows.swings.map(row => ({ ...row, pivot: remap(row.pivot) })));
+      life.wheels.push(...rows.wheels.map(row => ({ ...row, object: remap(row.object) })));
+      life.lamps.push(...rows.lamps.map(row => ({ ...row, material: remap(row.material) })));
+      life.flickers.push(...rows.flickers.map(row => ({ ...row, light: remap(row.light) })));
+      life.sites.push(...rows.sites);
+      life.colors.push(...rows.colors); life.params.push(...rows.params); life.shared.push(...rows.shared);
+    }
+    materials.unshift({ id: 'materials.cabin.glow', kind: 'basic', source: { material: 'cabin.glow-map', maps: ['map'] },
+      properties: { color: 0xff7a1a, transparent: true, depthWrite: false }, blending: 2, fog: false, sky: false });
+    parent.updateMatrixWorld(true);
+    return { graph: { ...this.graph('cabins.living', 'cabins.root', parent, owned, names, owners, detailFor(source.tier), 0), materials }, life: parseBuildingLifeRows(life) };
   }
 
   /** Native buildingSpecimen and dressedCopy, frozen before any living update. */

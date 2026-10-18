@@ -21,14 +21,21 @@ import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { Vector3 } from 'three';
+import { Vector3, Group, type Object3D } from 'three';
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { Cabins, loadCabinRows } from './world/homestead';
+import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
+import { hydrateWorldSceneWeld } from '@wildshard/game/shardfile/worldSceneWeld';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { parseBuildingLifeRows } from '@wildshard/format/buildings';
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { updatePineForest } from '../world/treeFactory';
-import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
+import { lendLooks, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { dressPineWater } from '../world/water';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from './world/undergrowthKit';
@@ -70,9 +77,19 @@ function runtime(ctx: ShardContext): ShardRuntime {
   return rt;
 }
 
+/** Remaining native readers borrow data and the platform life owner. */
+export interface PineCabins {
+  readonly resources: SceneHandles;
+  readonly life: LivingBuildings;
+  readonly group: Group;
+  readonly buildings: readonly { readonly id: string; readonly index: number; readonly root: string; readonly standalone: boolean }[];
+  readonly roots: readonly Object3D[];
+  readonly roofs: { x: number; z: number; rot: number; w: number; d: number }[];
+}
+
 /** Pine's authored world and gameplay; the shell supplies engine services at each hook. */
 export class PineHollow extends ShardPlugin {
-  private cabins: Cabins | null = null;
+  private cabins: PineCabins | null = null;
   private landmarks: PineLandmarks | null = null;
   private particles: Particles | null = null;
 
@@ -112,10 +129,25 @@ export class PineHollow extends ShardPlugin {
     this.particles = carpet.particles;
     rt.overhead.push(carpet.grass.group, carpet.under.group, carpet.particles.group);
     await step('cabins', async () => {
-      const content = game.scene, cabins = new Cabins(sky, content, await loadCabinRows(), sceneHandles);
-      const built = await cabins.build();
-      content.add(built.group);
-      rt.interactables.push(...built.interactables);
+      const appearance = ctx.product.section<CustomSections['custom/cabinAppearance']>('custom/cabinAppearance');
+      const knob = (id: string) => plumbingKnob(ctx.product.shardfile.plumbing, buildTier(), id, 'boolean', TIER_CONFIG);
+      const shared = knob('pine.sharedCabinLights'), shadow = knob('pine.cabinDetailShadows');
+      const input = await ctx.product.json<{ graph: unknown; life: unknown }>(`scenes/cabins/living/${buildTier()}-${String(shadow)}-${String(shared)}.json`);
+      const graph = parseWorldSceneWeld(input.graph), lifeRows = parseBuildingLifeRows(input.life), group = new Group();
+      sceneHandles.publish('cabins.root', group);
+      const geometry = new Map(graph.nodes.flatMap(node => 'geometry' in node ? [[JSON.stringify([node.geometry.library, node.geometry.model]), sceneHandles.geometry(`cabins.living.geometry.${node.geometry.library}.${node.geometry.model}`)] as const] : []));
+      const materials = new Map(ctx.product.section('world/scenes').materials.filter(row => sceneHandles.has(`materials.${row.id}`)).map(row => [row.id, sceneHandles.material(`materials.${row.id}`)]));
+      const life = new LivingBuildings(sceneHandles, appearance.CABIN_LIFE), owner = residentWorldScope(ctx);
+      if (shared) for (let k = 0; k < Math.min(appearance.CABIN_LIGHT.count, 4); k++) {
+        const light = appearance.CABIN_LIGHT;
+        lifeRows.shared.push(sceneHandles.lend(LightPool.for(game.scene).acquire(light.color, light.intensity, light.distance, light.decay)));
+      }
+      hydrateWorldSceneWeld(graph, sceneHandles, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner);
+      life.add(lifeRows);
+      const sites = await ctx.product.json<Pick<PineCabins, 'buildings' | 'roofs'>>('world/building-sites.json');
+      const cabins: PineCabins = { resources: sceneHandles, life, group, ...sites, roots: sites.buildings.filter(row => row.standalone).map(row => sceneHandles.object(row.root)) };
+      game.scene.add(group);
+      rt.interactables.push(...life.interactables);
       await sceneHandles.assemble('cabins.shells');
       cabins.life.persist(ctx.app.saves, residentWorldScope(ctx), { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: 'cabins' });
       cabins.life.registerDoors(registry, player.position);
@@ -123,7 +155,7 @@ export class PineHollow extends ShardPlugin {
         ? fn => { installEnteredRuntimeUpdate(ctx, { id: 'pine.landmarks', phase: 'update', run: fn }); } : fn => { game.onUpdate(fn, 'pine.landmarks'); } });
       const cave = landmarks.crags?.cave;
       if (cave) { cutTerrain(world.physics, cave.terrainCuts()); await world.terrain.punchSliced(cave.holeTest(), slicer(30).due); }
-      for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
+      cabins.life.interactables.forEach(item => { setSight(item, { slack: 0.75 }); });
       this.cabins = cabins; this.landmarks = landmarks;
     });
     const props = await step('props', async () => {
@@ -132,12 +164,17 @@ export class PineHollow extends ShardPlugin {
     });
     await placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry }, slicer(30).due);
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
+    const eye = new Vector3(), sunColour = [1, 1, 1];
+    const hearth = ctx.product.section<CustomSections['custom/cabinAppearance']>('custom/cabinAppearance').HEARTH_LOOKS.smoke;
     rt.hooks.worldUpdate = (dt, t) => {
       updatePineForest(forest.factory, rt.viewer());
       carpet.grass.update(dt, rt.viewer());
       carpet.under.update(dt, rt.viewer());
       carpet.particles.update(dt, rt.viewer(), game.camera);
-      this.cabins?.update(dt, t);
+      sky.viewCamera.getWorldPosition(eye);
+      this.cabins?.life.tick(dt, t, eye, sky.lamps);
+      sunColour[0] = sky.sunColor.r; sunColour[1] = sky.sunColor.g; sunColour[2] = sky.sunColor.b;
+      setLentParam(hearth, 'sunColour', sunColour); setLentParam(hearth, 'lamps', sky.lamps); setLentParam(hearth, 'shade', 1 - 0.8 * sky.night);
     };
   }
 
@@ -183,7 +220,7 @@ export class PineHollow extends ShardPlugin {
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
     const cabinAudio = { ...ctx.product.section<CustomSections['custom/cabinAmbience']>('custom/cabinAmbience') };
-    if (cabins?.kit === null || cabins === null) { cabinAudio.floors = []; cabinAudio.firePits = []; }
+    if (cabins === null) { cabinAudio.floors = []; cabinAudio.firePits = []; }
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
     installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
@@ -244,7 +281,7 @@ export class PineHollow extends ShardPlugin {
     const quest = await installPineQuest(ctx, { cabins, landmarks, loadout, compendium });
     const placeSets = ctx.product.section<CustomSections['custom/placeSets']>('custom/placeSets');
     registerPlaceSets(placeSets, { file: 'generators/placeSets.ts', registry, centres: { placed: placedGroups(), point: row => row } });
-    const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
+    const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.life.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx);
     await installRuntimeGameplayAudio(ctx, { audio, music, camera: game.camera, ambience, ...(cabins === null ? {} : { doorChanges: cabins.life.doorChanges }), owners: { sky, animals, elites: fights.elites } });
     landmarks?.crags?.cave.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });

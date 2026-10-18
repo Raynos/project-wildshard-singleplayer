@@ -51,13 +51,12 @@ import source from '../shard.config';
  * Dev: `?quest=ranger|pond|ridge|zip|den|stag|king|dawn|done` (beats.ts), `?resetquest`, `window.__pineQuest`.
  */
 import * as THREE from 'three';
-import type { Cabins } from '../runtime/world/homestead';
+import type { PineCabins } from '../runtime/index';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { PINE_PHASES } from '../look/dayKeys';
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
-import { hamletRoofs } from '../runtime/world/cabinBake';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { PINE_FIGURES } from '../roster';
@@ -92,7 +91,7 @@ async function loadQuest() {
   const { QuestViews, bindQuestPageInteractions } = await import('@wildshard/game/plugin/ui');
   return { QuestViews, bindQuestPageInteractions };
 }
-export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins | null; landmarks: PineLandmarks | null;
+export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCabins | null; landmarks: PineLandmarks | null;
   loadout: HeldLoadout; compendium: ReturnType<typeof installCollectionCompendium>;
   preload?: () => Promise<void>; loadQuest?: typeof loadQuest }): Promise<PineQuest> {
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
@@ -185,7 +184,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
   const lanternPrompts = { pond: lanternPage.prompt('pond'), ridge: lanternPage.prompt('ridge'), den: lanternPage.prompt('den') };
 
   // ── the miller's errand: the wheel stands still until the race is clear ──
-  const syncWheel = (): void => { if (h.cabins) h.cabins.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
+  const syncWheel = (): void => { if (h.cabins) h.cabins.life.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
   const consequences = bindQuestPageInteractions(consequenceRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['native', { syncWheel }]]) });
@@ -195,13 +194,13 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
   // leaf solid: the same slab, following the same pivot, on until the errand is done
   const millDoor = ((): { prompt: Interactable; use: () => void } | null => {
     const mill = h.cabins?.buildings.find((b) => b.id === 'watermill');
-    const piece = mill ? h.cabins?.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
+    const piece = mill ? h.cabins?.life.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
     if (!piece) return null;
     h.registry.add({ id: `${piece.id}-bar`, name: 'Mill door bar', category: 'buildings', file: 'src/shards/pine-hollow/quest/index.ts', surface: 'wood',
       follows: piece.pivot, colliders: piece.colliders, active: () => !flags.has('errand:done') });
     const hinge = piece.pivot.getWorldPosition(new THREE.Vector3());
     let best: Interactable | null = null, bestD = 1.5; // the prompt stands ~0.7 m from its hinge; the next door is metres off
-    for (const it of h.cabins?.interactables ?? []) {
+    for (const it of h.cabins?.life.interactables ?? []) {
       const d = Math.hypot(it.position.x - hinge.x, it.position.z - hinge.z);
       if (d < bestD && /^(Open|Close) door$/.test(it.label)) { best = it; bestD = d; }
     }
@@ -367,7 +366,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
   // the zones a place's name does not already say (the Ridge, the old-growth, the Hollow), the real pines, the hamlet's roofs
   const placeNames = new Set(LAYOUT.PINE_HOLLOW_POIS.map((p) => p.name.toUpperCase()));
   h.fullMap.setZones(LAYOUT.PINE_HOLLOW_ZONES.filter((zn) => !placeNames.has(zn.label)));
-  h.fullMap.setFeatures({ trees: h.trees, roofs: hamletRoofs() });
+  h.fullMap.setFeatures({ trees: h.trees, roofs: h.cabins?.roofs ?? [] });
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   observeStoryFlags(story, ctx.scope, flags, new Map<string, unknown>([['counters', featFacts], ['hud', hud]]));

@@ -26,6 +26,8 @@ export class CabinAuthorResources {
     const previous = this.names.get(value);
     return previous ?? this.register(`${this.prefix}.resource-${String(this.values.size)}`, value);
   }
+  /** Borrow named native objects for the live-scene recorder only. */
+  entries(): readonly (readonly [string, THREE.Object3D | THREE.Material | THREE.BufferGeometry])[] { return [...this.values.entries()]; }
   geometry(id: string): THREE.BufferGeometry { const value = this.values.get(id); if (!(value instanceof THREE.BufferGeometry)) throw new Error('Missing cabin author geometry'); return value; }
   object(id: string): THREE.Object3D { const value = this.values.get(id); if (!(value instanceof THREE.Object3D)) throw new Error('Missing cabin author object'); return value; }
   material(id: string): THREE.Material { const value = this.values.get(id); if (!(value instanceof THREE.Material)) throw new Error('Missing cabin author material'); return value; }

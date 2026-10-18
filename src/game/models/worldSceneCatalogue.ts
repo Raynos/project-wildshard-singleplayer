@@ -16,7 +16,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { isJsonData } from '@wildshard/format/json';
-import { parseWorldSceneModels, worldSceneModelResources, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { hydrateWorldSceneWeld, admitWorldSceneModelGraphs } from '../shardfile/worldSceneWeld';
 import type { WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { SceneHandles } from '../shardfile/sceneHandles';
@@ -32,7 +32,12 @@ interface Sources {
   readonly plumbing?: PlumbingData | null;
   readonly scenes?: ReadonlyMap<string, WorldSceneWeld>;
 }
-interface State { value?: Sources; pending?: Promise<Sources> }
+interface State { value?: Sources; pending?: Promise<Sources>; owner?: Scope }
+interface Selection {
+  readonly model: WorldSceneModels['models'][number];
+  readonly choice: WorldSceneModels['models'][number]['choices'][number];
+  readonly quality?: { readonly tier: 'phone' | 'desktop'; readonly overrides: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> } | undefined;
+}
 const state = (ctx: ModelContext, product: string): State => ctx.once(`world-scenes/models/${product}`, () => ({}));
 type Draw = WorldSceneModels['models'][number]['choices'][number]['draws'][number];
 const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefined): number => typeof value === 'number' ? value
@@ -51,22 +56,50 @@ const same = (a: unknown, b: unknown): boolean => {
 
 /** Z2 lends its prepared libraries and graph slots to model recipes in the same world context. */
 export function bindWorldSceneModelSources(ctx: ModelContext, product: string, sources: Sources, owner: Scope): void {
-  const current = state(ctx, product); current.value = sources;
-  owner.onDispose(() => { if (current.value === sources) { delete current.value; delete current.pending; } });
+  const current = state(ctx, product); current.value = sources; current.owner = owner;
+  owner.onDispose(() => { if (current.owner === owner) { delete current.value; delete current.pending; delete current.owner; } });
 }
 
-async function load(ctx: ModelContext, product: string, catalogue: WorldSceneModels): Promise<Sources> {
+/** Resolve one requested choice while keeping the complete catalogue admitted. */
+function selectedResources(catalogue: WorldSceneModels, selection: Selection, sources: Pick<Sources, 'plumbing' | 'scenes'>) {
+  let choice = selection.choice;
+  if (choice.scene !== undefined) {
+    const scene = choice.scene, quality = selection.quality;
+    if (quality === undefined) throw new Error('Frozen specimen needs its captured quality');
+    const topology = 'knob' in scene ? scene[plumbingKnob(sources.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : scene;
+    choice = { ...choice, scene: 'nodes' in topology || 'file' in topology ? topology : topology[TIER] };
+  }
+  const selected = { ...catalogue, models: [{ ...selection.model, choices: [choice] }] };
+  const graphs = worldSceneModelGraphs(choice).flatMap(leaf => {
+    if (!('file' in leaf)) return [];
+    const graph = sources.scenes?.get(leaf.file);
+    if (graph === undefined) throw new Error('Missing admitted frozen specimen');
+    return [graph];
+  });
+  return worldSceneModelResources(selected, graphs);
+}
+function ready(sources: Sources | undefined, catalogue: WorldSceneModels, selection: Selection): boolean {
+  if (sources === undefined) return false;
+  const needed = selectedResources(catalogue, selection, sources);
+  return needed.geometry.every(ref => sources.geometries.has(JSON.stringify([ref.library, ref.model]))) && needed.materials.every(id => sources.materials.has(id));
+}
+
+async function load(ctx: ModelContext, product: string, catalogue: WorldSceneModels, selection: Selection): Promise<Sources> {
   const current = state(ctx, product);
-  if (current.value !== undefined) return current.value;
+  if (ready(current.value, catalogue, selection) && current.value !== undefined) return current.value;
+  // Requests serialize only intake; concurrent choices still receive their own
+  // captured tier/profile and never reuse another choice's incomplete resources.
+  if (current.pending !== undefined) return current.pending.then(() => load(ctx, product, catalogue, selection));
   current.pending ??= (async () => {
-    const owner = resourceScope().child(`scene-models/${product}`);
+    const owner = (current.owner ?? resourceScope()).child(`scene-models/${product}`);
     try {
     const admitted = await loadFirstPartyProduct(product, owner), rows = admitted.section('world/scenes');
     requireLive(owner);
     if (!Object.is(admitted.shardfile.identity.slug, product)) throw new Error('Scene model product identity differs');
     if (rows.catalogue === undefined || !same(parseWorldSceneModels(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await admitted.file(rows.catalogue)))), catalogue)) throw new Error('Scene model boot metadata differs from its admitted catalogue');
-    const geometries = new Map<string, BufferGeometry>();
-    const scenes = await admitWorldSceneModelGraphs(admitted, catalogue), declared = worldSceneModelResources(catalogue, [...scenes.values()]);
+    const geometries = new Map(current.value?.geometries);
+    const scenes = current.value?.scenes ?? await admitWorldSceneModelGraphs(admitted, catalogue);
+    const declared = selectedResources(catalogue, selection, { scenes, plumbing: admitted.shardfile.plumbing });
     const slots = new Set(declared.materials), materialRows = rows.materials.filter(row => slots.has(row.id));
     if (materialRows.length !== slots.size) throw new Error('Missing scene model material slot');
     for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
@@ -88,10 +121,11 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       if (ctx.renderer === null) throw new Error('Cold scene graph materials require a renderer');
       lendLooks(owner, await runtimeLookMaterials({ scope: owner, renderer: ctx.renderer }, admitted.shardfile, true, [...new Set(missing)]));
     }
-    const materials = new Map<string, Material>();
+    const materials = new Map(current.value?.materials);
     const surfaceRows = materialRows.filter(row => row.kind === 'surface');
     if (surfaceRows.length > 0) await prepareWorldSceneSurfaces(surfaceRows, ctx.sky, admitted, owner);
     for (const row of materialRows) {
+      if (materials.has(row.id)) continue;
       let material: Material;
       if (row.kind === 'surface') material = await worldSceneSurfaceMaterial(row, ctx.sky, admitted, owner);
       else if (row.kind === 'source') material = await worldSceneSourceMaterial(row, ctx.sky, owner);
@@ -104,11 +138,21 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       if (row.kind === 'basic' || row.kind === 'standard') owner.onDispose(() => { material.dispose(); });
     }
     requireLive(owner);
+    // A late world publication wins over a newly prepared copy, preserving the
+    // world's original material maps and borrowed source-root identity.
+    for (const [id, material] of current.value?.materials ?? []) materials.set(id, material);
+    for (const [id, geometry] of current.value?.geometries ?? []) geometries.set(id, geometry);
     const result: Sources = { catalogue, materials, geometries, plumbing: admitted.shardfile.plumbing, scenes };
-    current.value ??= result; owner.onDispose(() => { if (current.value === result) { delete current.value; delete current.pending; } }); return current.value;
+    current.value = result;
+    if (current.owner === undefined) {
+      current.owner = owner;
+      owner.onDispose(() => { if (current.owner === owner) { delete current.value; delete current.pending; delete current.owner; } });
+    }
+    return result;
     } catch (error) { owner.dispose(); throw error; }
   })();
-  try { return await current.pending; } catch (error) { delete current.pending; throw error; }
+  const pending = current.pending;
+  try { return await pending; } finally { if (current.pending === pending) delete current.pending; }
 }
 
 /** Client-only, cold-loadable model catalogue. Metadata, choices, draws and site facts are rows. */
@@ -170,9 +214,10 @@ export function defineWorldSceneCatalogue(input: unknown): {
             return root;
           }
           const made = builder(ctx).build(ctx, params, rng); if (!(made instanceof Group)) throw new Error('Scene model library must build a group'); return made; };
-        if (state(ctx, rows.product).value !== undefined) return build();
+        const selection: Selection = { model: row, choice, quality };
+        if (ready(state(ctx, rows.product).value, rows, selection)) return build();
         return loadingSpecimen(row.id, choice.size, async () => {
-          await load(ctx, rows.product, rows); const made = build(); if (made instanceof Object3D) return made;
+          await load(ctx, rows.product, rows, selection); const made = build(); if (made instanceof Object3D) return made;
           const root = new Group();
           for (const part of made) { const mesh = new Mesh(part.geometry, part.material); mesh.castShadow = part.castShadow ?? false; mesh.receiveShadow = part.receiveShadow ?? false; mesh.renderOrder = part.renderOrder ?? 0; root.add(mesh); }
           return root;

@@ -9,6 +9,7 @@ import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
+import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -47,6 +48,52 @@ function fixture(cell = false): ShardContext {
     product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
+
+test('resident worlds admit every frozen choice and load only requested specimen buffers', async () => {
+  const { defineWorldSceneCatalogue } = await import('../src/game/models/worldSceneCatalogue');
+  const { sharedModelContext } = await import('../src/engine/models/model');
+  const { Rng } = await import('../src/engine/core/rng');
+  const { SkyRig } = await import('../src/engine/world/skyRig');
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing specimen fixture sky');
+  const context = fixture(), rows = section(), reads: string[] = [];
+  Object.assign(context.game, { runtime: { world: { sky, game: context.game } } });
+  const graph = (model: string) => ({ id: `specimen.${model}`, root: 'specimen.root', nodes: [{ id: 'shape', parent: 'specimen.root', kind: 'mesh',
+    geometry: { library: 'shapes', model }, material: 'paint', sphere: [0, 0, 0, 2] }] });
+  const catalogue = { product: 'fixture-harbour', models: [{ key: 'crate', id: 'fixture-harbour/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code',
+    assembly: 'scene', defaults: { profile: 'a' }, variants: [{ id: 'b', label: 'B', params: { profile: 'b' } }],
+    choices: ['a', 'b'].map(id => ({ id, params: { profile: id }, size: [1, 1, 1], draws: [], colliders: [], scene: { file: `scenes/${id}.json` } })) }] };
+  const sectionRows = parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', libraries: [{ id: 'shapes', kind: 'owned', models: [
+    { id: 'stone', file: 'models/stone.glb' }, { id: 'a', file: 'models/a.glb' }, { id: 'b', file: 'models/b.glb' },
+  ] }] });
+  const extra = new Map([['models/catalogue.json', new TextEncoder().encode(JSON.stringify(catalogue))],
+    ['scenes/a.json', new TextEncoder().encode(JSON.stringify(graph('a')))], ['scenes/b.json', new TextEncoder().encode(JSON.stringify(graph('b')))],
+    ['models/a.glb', triangle()], ['models/b.glb', triangle()]]);
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => extra.has(name) || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => { reads.push(name); return extra.has(name) ? Promise.resolve(extra.get(name) ?? new Uint8Array()) : file(name); });
+  Object.assign(context.product, { section: () => sectionRows });
+  vi.spyOn(runtimeProducts, 'loadFirstPartyProduct').mockResolvedValue(context.product);
+  try {
+    const handles = await installWorldScenes(context, sectionRows);
+    expect(reads).toContain('scenes/a.json'); expect(reads).toContain('scenes/b.json');
+    expect(reads).toContain('models/stone.glb'); expect(reads).not.toContain('models/a.glb'); expect(reads).not.toContain('models/b.glb');
+    const models = defineWorldSceneCatalogue(catalogue), ctx = sharedModelContext(sky), material = handles.material('materials.paint');
+    const a = models.model('crate').build(ctx, { profile: 'a' }, new Rng(1));
+    const b = models.model('crate').build(ctx, { profile: 'b' }, new Rng(2));
+    const mesh = (root: unknown): Mesh | undefined => {
+      let value: Mesh | undefined;
+      if (root instanceof Object3D) root.traverse(node => { if (node instanceof Mesh) value = node; });
+      return value;
+    };
+    await vi.waitFor(() => { expect(mesh(a)?.geometry.getAttribute('position').count).toBe(3); expect(mesh(b)?.geometry.getAttribute('position').count).toBe(3); });
+    expect(reads.filter(name => name === 'models/a.glb')).toHaveLength(1); expect(reads.filter(name => name === 'models/b.glb')).toHaveLength(1);
+    expect(mesh(a)?.material).toBe(material); expect(mesh(b)?.material).toBe(material);
+    const again = models.model('crate').build(ctx, { profile: 'a' }, new Rng(3));
+    expect(mesh(again)?.geometry).not.toBe(mesh(a)?.geometry);
+    expect(reads.filter(name => name === 'models/a.glb')).toHaveLength(1);
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});
 
 test('fictional prewelded copies borrow named parts and keep independent contacts and picking boxes', async () => {
   const { SkyRig } = await import('../src/engine/world/skyRig');

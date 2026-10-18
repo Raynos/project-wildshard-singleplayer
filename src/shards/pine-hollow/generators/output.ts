@@ -10,7 +10,6 @@ import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json'
 import elites from '../behaviour/elites.generated.json' with {type:'json'};
 import strings from '../data/strings.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
-import buildingLook from '../data/buildingLook.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS } from './worldScenes';
 import { HELD_GEAR, HELD_FINISHES, HELD_TOOL_LIFETIME } from './heldGear';
 import heldLoadout from '../data/loadout.json' with { type: 'json' };
@@ -58,12 +57,11 @@ import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
-import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from './cabinLook';
-import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from './cabinAssembly';
+import { CABIN_LIFE } from './cabinLook';
+import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { WEAPON_FINISHES } from './weaponFinishes';
-import { TIMBER_DRAWS, TIMBER_GLASS } from './timberDraws';
 import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -79,7 +77,7 @@ function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(
 
 v.parse(CabinSeedsSchema, timbers.cabins.seeds);
 v.parse(PoolGroundSchema, timbers.poolGround);
-const cabinAppearance = { BUILDING_LOOK:buildingLook,CABIN_DOOR_LOOK,CABIN_MOSS_LOOKS,CABIN_LIFE,CABIN_PBR,CABIN_MATERIALS,CABIN_GLASS_EMISSIVE,CABIN_LIGHT,HEARTH_LOOKS,TIMBER_DRAWS,TIMBER_GLASS };
+const cabinAppearance = { CABIN_LIFE,CABIN_LIGHT,HEARTH_LOOKS };
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 function eliteCatalogueFight(fight: typeof elites.fights[number]) { return { ...fight, program: { ...fight.program, bytes: '' } }; }
 const eliteFights = elites.fights.map(eliteCatalogueFight);
