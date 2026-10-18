@@ -113,9 +113,9 @@ export class ShardDecisions {
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
-    // Display metadata never changes the existing quest decision continuation.
+    // Display and admission provenance never change the executable continuation.
     const { achievements: _achievements, ...quests } = source.quests;
-    this.contract = JSON.stringify({ rows: this.rows, moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
+    this.contract = JSON.stringify({ rows: this.rows.map(({ sourceHash: _sourceHash, ...row }) => row), moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
       ...(this.spawnGroups.size === 0 ? {} : { spawnGroups: [...this.spawnGroups] }),
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, ...(nativeStrikes.length === 0 ? {} : { nativeStrikes }), quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });

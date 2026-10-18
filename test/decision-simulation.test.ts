@@ -67,6 +67,41 @@ test('achievement display rows preserve a pre-catalogue decision continuation si
   } finally { restored?.dispose(); first.dispose(); }
 });
 
+test('source provenance preserves native continuation while executable row changes still refuse', async () => {
+  const f = fixture(), row = f.scripts[0], R = await rapier;
+  if (row === undefined) throw new Error('Missing script fixture');
+  const first = createShardfileSim(f.source, f.assets, { ...f.options, rapier: R });
+  try {
+    for (let i = 0; i < 9; i++) first.host.step();
+    for (const sourceHash of ['a'.repeat(64), 'b'.repeat(64), undefined]) {
+      if (sourceHash === undefined) delete row.sourceHash; else row.sourceHash = sourceHash;
+      const saved = snapshotSimHost(first.host), invoke = vi.spyOn(DecisionModule.prototype, 'invoke');
+      let resumed: ShardfileSimulation | undefined;
+      try {
+        const restored = restoreSimHost(first.host.level, { rapier: R }, saved, host => {
+          resumed = bindShardfileSim(host, f.source, f.assets, { ...f.options, rapier: R, restoring: true });
+          // Fresh-host initialization precedes adapter restore; observe only the restore itself.
+          invoke.mockClear();
+        });
+        expect(invoke).not.toHaveBeenCalled(); expect(snapshotSimHost(restored)).toEqual(saved);
+        for (let i = 0; i < 30; i++) { first.host.step(); restored.step(); }
+        expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(first.host));
+      } finally { invoke.mockRestore(); resumed?.dispose(); }
+    }
+    const saved = first.decisions?.snapshot(); if (saved === undefined) throw new Error('Missing continuation');
+    const changedModule = `blobs/wasm/${hashImmutableBytes(refused)}.wasm`; f.assets.set(hashImmutableBytes(refused), refused);
+    for (const change of [{ module: changedModule }, { params: { changed: 1 } }, { stateVersion: 2 }, { onFail: 'reset' as const }]) {
+      f.sections.set('sim/scripts', [{ ...row, ...change }]);
+      const incompatible = createShardfileSim(f.source, f.assets, { ...f.options, rapier: R });
+      try {
+        const before = snapshotSimHost(incompatible.host);
+        expect(() => incompatible.decisions?.restore(saved)).toThrow('Incompatible decision continuation');
+        expect(snapshotSimHost(incompatible.host)).toEqual(before);
+      } finally { incompatible.dispose(); }
+    }
+  } finally { first.dispose(); }
+});
+
 test('two actors execute rows on the real fixed-step move, strike, field and flag owners', async () => {
   const f = fixture(), sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
   try {

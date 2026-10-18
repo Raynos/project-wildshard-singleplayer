@@ -80,7 +80,8 @@ export class SpawnScript {
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
     const bytes = Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
-    this.contract = JSON.stringify({ ...rows, bytes: undefined });
+    const { sourceHash: _sourceHash, ...executable } = rows.script;
+    this.contract = JSON.stringify({ ...rows, script: executable, bytes: undefined });
     const scripts: DecisionScript[] = [];
     for (const row of actorDecisionRows(rows.script)) {
       const state: DecisionScript['state'][number][] = [];

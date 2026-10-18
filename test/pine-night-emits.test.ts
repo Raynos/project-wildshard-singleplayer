@@ -18,7 +18,7 @@ import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/spec
 const active = { draws: 0, created: [] as AnimalSim[] };
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
-function scenario(rosterStep = 'pine.roster') {
+function scenario(rosterStep = 'pine.roster', program: unknown = night) {
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
   active.draws = 0; active.created = [];
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing fixture recipe');
@@ -39,7 +39,7 @@ function scenario(rosterStep = 'pine.roster') {
   vi.spyOn(host, 'spawn').mockImplementation(recipe => {
     const body = spawn(recipe); active.created.push(body); active.draws += 6; return body;
   });
-  const runner = SpawnScript.native(host, { ...night, roster: rosterStep });
+  const runner = SpawnScript.native(host, { ...parseSpawnScript(program), roster: rosterStep });
   const point = { x: 150, y: 0, z: -40 };
   return { host, runner, point, run: (ticks: number, dark = 1, flags: string[] = []) => {
     for (let i = 0; i < ticks; i++) {
@@ -66,6 +66,26 @@ test('night v1 places roamers, retains IDs and draws, flees dawn and restores wi
     expect(restored.channel(1)).toBe(0); expect(ids.every(id => !host.entities.has(id))).toBe(true);
     expect(events.filter(event => event.kind === 'cue' && event.id === 4)).toHaveLength(3);
     expect(active.draws).toBe(draws); expect(restored.failure).toBeNull(); expect(restored.host.metrics()[0]?.refusals).toBe(0);
+  } finally { host.dispose(); }
+});
+
+test('spawn provenance preserves pre-hash saves without accepting executable row drift', () => {
+  const rows = parseSpawnScript(night), { sourceHash: _sourceHash, ...script } = rows.script;
+  const { host, runner, run } = scenario('pine.roster', { ...rows, script });
+  try {
+    run(181); const saved = runner.snapshot(), draws = active.draws;
+    for (const sourceHash of ['a'.repeat(64), 'b'.repeat(64), undefined]) {
+      const restored = SpawnScript.native(host, { ...rows, script: { ...script, ...(sourceHash === undefined ? {} : { sourceHash }) } });
+      restored.restore(saved);
+      expect(restored.snapshot()).toBe(saved); expect(restored.host.metrics().every(row => row.calls === 0)).toBe(true);
+      expect(active.draws).toBe(draws); expect(restored.drainEffects()).toEqual([]);
+    }
+    for (const change of [{ module: `blobs/wasm/${'f'.repeat(64)}.wasm` }, { params: { ...script.params, changed: 1 } },
+      { stateVersion: script.stateVersion + 1 }, { onFail: 'reset' as const }]) {
+      const incompatible = SpawnScript.native(host, { ...rows, script: { ...script, ...change } }), before = incompatible.snapshot();
+      expect(() => incompatible.restore(saved)).toThrow('Incompatible population script continuation');
+      expect(incompatible.snapshot()).toBe(before);
+    }
   } finally { host.dispose(); }
 });
 

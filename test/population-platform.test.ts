@@ -173,6 +173,8 @@ test('return guests share one module per live owner and refuse declaration drift
   const owner = new Scope('fixture.projections');
   const first = ReturnProgram.page(program, owner);
   expect(ReturnProgram.page(structuredClone(program), owner)).toBe(first);
+  for (const sourceHash of ['a'.repeat(64), 'b'.repeat(64)])
+    expect(ReturnProgram.page({ ...program, script: { ...program.script, sourceHash } }, owner)).toBe(first);
   expect(() => ReturnProgram.page({ ...program, script: { ...program.script, params: { different: 1 } } }, owner)).toThrow('Shared return declaration changed');
   const secondOwner = new Scope('fixture.other-projections');
   expect(ReturnProgram.page(program, secondOwner)).not.toBe(first);

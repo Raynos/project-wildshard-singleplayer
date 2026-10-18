@@ -60,7 +60,8 @@ export class ReturnProgram {
     if (owner.disposed) throw new Error('Return owner disposed');
     const row = v.parse(Program, input), script = parseDecisionScripts([row.script])[0];
     if (script === undefined) throw new Error('Missing return script');
-    const declaration = JSON.stringify({ script, bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
+    const { sourceHash: _sourceHash, ...executable } = script;
+    const declaration = JSON.stringify({ script: executable, bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
     const previous = modules.get(script.module);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
