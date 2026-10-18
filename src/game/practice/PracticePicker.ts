@@ -32,7 +32,8 @@ export function installPracticePicker(options: {
     if (!options.arena.entered) return;
     try { options.retry(); } catch (error: unknown) { status.textContent = error instanceof Error ? error.message : 'Retry failed.'; }
   });
-  panel.append(summary, select, retry, status); mountUi(panel, scope);
+  // Explore is a body-level overlay. A child of the fixed HUD cannot escape its stacking context.
+  panel.append(summary, select, retry, status); mountUi(panel, scope, document.body);
   let loading = false, request = 0;
   scope.listen(select, 'change', () => {
     if (options.arena.entered) return;
