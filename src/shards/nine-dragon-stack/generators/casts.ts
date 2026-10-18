@@ -57,13 +57,15 @@ function packGeometry(name: PreparedGeometry, geometry: BufferGeometry): Uint8Ar
 }
 
 /** Both reachable deck variants and the single Rng(4242) slot sequence, including lantern and sign replay rows. */
-export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: Map<PreparedGeometry, Uint8Array>; signs: SignRecorder['calls']; lanterns: number[][] } {
+export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: Map<PreparedGeometry, Uint8Array>; geometries: Map<PreparedGeometry, BufferGeometry>; signs: SignRecorder['calls']; lanterns: number[][] } {
   const packs = new Map<PreparedGeometry, Uint8Array>();
+  const geometries = new Map<PreparedGeometry, BufferGeometry>();
   let lanterns: number[][] = [];
   for (const caps of [false, true]) {
     const ctx = new Ctx(new SignRecorder());
     buildEntryDecks(ctx, caps);
-    packs.set(caps ? 'entries-capped' : 'entries-open', packGeometry(caps ? 'entries-capped' : 'entries-open', ctx.kit('entries').build()));
+    const name = caps ? 'entries-capped' : 'entries-open', geometry = ctx.kit('entries').build();
+    geometries.set(name, geometry); packs.set(name, packGeometry(name, geometry));
     if (caps) lanterns = ctx.lanterns.map(matrix => matrix.toArray());
   }
   const recorder = new SignRecorder(), ctx = new Ctx(recorder), rng = new Rng(4242);
@@ -73,6 +75,7 @@ export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: M
     recorder.place({ at: new Vector3(...row.at), normal: new Vector3(...row.normal), size, spec: { text: word, color, vertical: row.blade,
       style: row.blade || rng.chance(0.5) ? 'tube' : 'box' }, blade: row.blade }, row.blade ? null : kit);
   }
-  packs.set('facade-signs', packGeometry('facade-signs', kit.build()));
-  return { packs, signs: recorder.calls, lanterns };
+  const geometry = kit.build(); geometries.set('facade-signs', geometry);
+  packs.set('facade-signs', packGeometry('facade-signs', geometry));
+  return { packs, geometries, signs: recorder.calls, lanterns };
 }

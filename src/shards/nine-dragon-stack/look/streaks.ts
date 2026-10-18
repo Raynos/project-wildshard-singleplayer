@@ -11,7 +11,7 @@
 import { type Mesh, Vector4 } from 'three';
 import { type ReflectCardProgram, type StairCardPlan, reflectionCards, stairReflectionCards } from '../runtime/looks/reflectionCards';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import type { Emitter } from '../runtime/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/emitterCards';
 import { STAIR_CARDS, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../runtime/looks/streaks';
 import { LOOK_FRAGMENTS, type Shared } from './style';
 

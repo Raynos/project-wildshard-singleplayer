@@ -209,5 +209,6 @@
   "test/nalati-adventure-errors.test.ts": [],
   "test/nalati-quest-content-product.test.ts": [
     "nalati-grasslands"
-  ]
+  ],
+  "test/nine-light-spill.test.ts": []
 }

@@ -4,8 +4,12 @@
 // glow card program lays each one out from these.
 //
 //   new Mesh(emitterCardsGeometry(emitters), streakMaterial)
-import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Uint16BufferAttribute } from 'three';
-import type { Emitter } from './vertexSpill';
+import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Uint16BufferAttribute, type Color, type Vector3 } from 'three';
+/** A static glow drives reflection cards and the prepared vertex channel. */
+export interface Emitter {
+  at: Vector3; color: Color;
+  w: number; h: number; power: number; spill: number;
+}
 
 /** An instanced card geometry with one instance per emitter (aE, aCol, aSize) over a zeroed quad with aCorner. */
 export function emitterCardsGeometry(emitters: readonly Emitter[]): InstancedBufferGeometry {

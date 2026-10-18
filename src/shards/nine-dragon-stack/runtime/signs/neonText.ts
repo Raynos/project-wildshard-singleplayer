@@ -5,7 +5,7 @@ import {
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import * as val from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { Emitter as SignLight } from '../looks/vertexSpill';
+import type { Emitter as SignLight } from '../looks/emitterCards';
 
 
 const GlyphRows = val.strictObject({

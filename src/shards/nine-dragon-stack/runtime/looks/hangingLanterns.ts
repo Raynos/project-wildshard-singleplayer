@@ -15,7 +15,7 @@ import {
 } from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
-import type { Emitter } from './vertexSpill';
+import type { Emitter } from './emitterCards';
 
 /** A lantern set as data: its lathe, how far it hangs below its hook, its glow, its distance switches and its draws' names. */
 export interface HangingLanternRow {

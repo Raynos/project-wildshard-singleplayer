@@ -1,10 +1,10 @@
-import { type BufferGeometry, type Texture, Color, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import { type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { PlacedSign } from '../runtime/signs/signModel';
-import type { Emitter } from '../runtime/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/emitterCards';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import * as v from 'valibot';
@@ -37,6 +37,24 @@ export async function loadCast(name: string): Promise<BufferGeometry> {
   const geometry = library.geometry(name, { borrow: true });
   if (geometry === null) throw new Error(`Nine prepared cast ${name} did not load`);
   return geometry;
+}
+
+/** Attach verified, lossless float32 spill to the final merged vertex stream. */
+export async function loadSpill(meshes: readonly (readonly [string, BufferGeometry])[], tier: 'phone' | 'desktop', caps: boolean): Promise<void> {
+  const product = await loadFirstPartyProduct('nine-dragon-stack');
+  for (const [name, geometry] of meshes) {
+    const values = new Float32Array(geometry.getAttribute('position').count * 3);
+    for (let i = 0; i < values.length; i += 196608) {
+      const path = `lighting/spill/${tier}/${caps ? 'capped' : 'open'}/${name}-${i / 196608}.bin`, packed = await product.file(path);
+      const decoded = await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+      const length = new DataView(decoded).getUint32(0, true);
+      if (new TextDecoder().decode(new Uint8Array(decoded, 4, length)) !== path) throw new Error('Nine spill draw binding differs');
+      const part = new Float32Array(decoded, 4 + Math.ceil(length / 4) * 4);
+      if (part.length !== Math.min(196608, values.length - i)) throw new Error(`Nine spill vertex count differs: ${name}`);
+      values.set(part, i);
+    }
+    geometry.setAttribute('aSpill', new Float32BufferAttribute(values, 3));
+  }
 }
 
 /** Recorded fixed additions; their source author and the geometry are generated together. */

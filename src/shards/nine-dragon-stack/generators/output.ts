@@ -14,6 +14,7 @@ import { lightVolumeBlobs } from './lightVolumes';
 import lantern from '../data/lantern.json' with { type: 'json' };
 import { CAST_CHANNELS } from '../data/casts';
 import { signAtlasBlobs } from './signAtlasOutput';
+import { spillBlobs } from './spillBlobs';
 
 // JSON numbers erase -0; the numeric reviver restores its original float32 sign bit.
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
@@ -25,7 +26,7 @@ const viewmodel = buildViewmodelParts();
 const glyphBlobs = Object.entries(glyphs).flatMap(([tier, row]) => [
     nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS, parts: row.packed.length })),
   ].concat(row.packed.map((part, index) => nameBlob(`signs/glyphs-${tier}-${index}.rg8`, 'bin', Uint8Array.from(atob(part), byte => byte.codePointAt(0) ?? 0), { decoded: 2_097_152, gpu: Math.ceil(2_097_152 * 4 / 3) }))));
-const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBlobs(), layoutBlobs(), [
+const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
   nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern })),
   nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),

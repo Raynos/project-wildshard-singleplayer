@@ -19955,6 +19955,40 @@
         "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb"
       ],
       "platform": "native"
+    },
+    {
+      "id": "nine-light-spill",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-light-spill.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-light-spill.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "src/commons",
+        "src/engine",
+        "src/format",
+        "src/game",
+        "src/sdk",
+        "src/shards/nine-dragon-stack"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/lightSpill.generated.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nine-sign-atlas"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/lightSpill.generated.json"
+      ]
     }
   ]
 }

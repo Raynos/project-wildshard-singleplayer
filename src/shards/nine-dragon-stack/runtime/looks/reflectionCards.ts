@@ -10,9 +10,8 @@
 // `stairReflectionCards` lays a set on each flight's plane half a rise under its nosing line (the depth test shows each
 // card on the back half of every tread: the per-step broken reflection) and a flat set on each landing.
 import { Mesh, Vector3, Vector4 } from 'three';
-import { emitterCardsGeometry } from './emitterCards';
+import { emitterCardsGeometry, type Emitter } from './emitterCards';
 import type { ShaderFamily, UniformMap } from '@wildshard/game/plugin/shaderFamily';
-import type { Emitter } from './vertexSpill';
 
 /** A reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1). */
 export interface ReflectPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }

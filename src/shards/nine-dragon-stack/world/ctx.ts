@@ -1,7 +1,7 @@
 // The build context every world module writes into: named kits (one merged mesh each), instance lists, sign quads,
 // the grapple's dragon hooks and the minimap's floor plan.
 import { type BufferGeometry, type Color, Matrix4, Vector3 } from 'three';
-import type { Emitter } from '../runtime/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/emitterCards';
 import { Dressing } from './facade/dressing';
 import type { DrawnCopy } from '../runtime/kit/drawnInto';
 import { Rng } from '@wildshard/engine/core/rng';

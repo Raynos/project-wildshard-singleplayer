@@ -20,7 +20,6 @@
 // SHARD-PLATFORM M3: the foliage program's GLSL, its rows and the crown's uniforms are data (data/canopy.ts); the card
 // canopy (@wildshard/sdk/looks/cardCanopy) draws them.
 import type { Mesh } from 'three';
-import type { Emitter } from '../runtime/looks/vertexSpill';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { type CanopyGeometry as PlatformCanopyGeometry, buildCardCanopy } from '../runtime/looks/cardCanopy';
 import { DOME_B_CROWN, FOLIAGE_PROGRAMS, LEAF_ATLAS } from '../runtime/looks/canopy';
@@ -37,6 +36,6 @@ const FOLIAGE_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, FOLIAGE_PROGRAMS);
  * lumps' plateau depth into the colour target's alpha for the post's ink) over a darker core. Returns the meshes to add
  * (none when the atlas fails: the tree then stands bare, which shows at once). Spill is baked like the kits'.
  */
-export function buildCanopy(shared: Shared, crown: CanopyGeometry | null, emitters: readonly Emitter[]): Promise<Mesh[]> {
-  return buildCardCanopy(FOLIAGE_FAMILY, shared.u, { cards: 'cards', plateau: 'cards-depth', core: 'inner', uniforms: DOME_B_CROWN, atlas: LEAF_ATLAS, label: 'nine-dragon' }, crown, emitters);
+export function buildCanopy(shared: Shared, crown: CanopyGeometry | null): Promise<Mesh[]> {
+  return buildCardCanopy(FOLIAGE_FAMILY, shared.u, { cards: 'cards', plateau: 'cards-depth', core: 'inner', uniforms: DOME_B_CROWN, atlas: LEAF_ATLAS, label: 'nine-dragon' }, crown);
 }

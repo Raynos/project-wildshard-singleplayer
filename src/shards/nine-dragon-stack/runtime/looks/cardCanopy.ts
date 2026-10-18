@@ -12,7 +12,6 @@ import {
   type ShaderMaterial, type Texture, TextureLoader, ZeroFactor,
 } from 'three';
 import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/plugin/shaderFamily';
-import { type Emitter, bakeSpill } from './vertexSpill';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 
@@ -74,7 +73,7 @@ export interface CardCanopyRow<P extends string> {
  * fails (the tree then stands bare, which shows at once).
  */
 export async function buildCardCanopy<P extends string>(
-  family: ShaderFamily<P>, shared: UniformMap, row: CardCanopyRow<P>, crown: CanopyGeometry | null, emitters: readonly Emitter[],
+  family: ShaderFamily<P>, shared: UniformMap, row: CardCanopyRow<P>, crown: CanopyGeometry | null,
 ): Promise<Mesh[]> {
   if (crown === null) return [];
   try {
@@ -82,7 +81,6 @@ export async function buildCardCanopy<P extends string>(
     const fu = uniformsFrom(row.uniforms);
     const material = (program: P, tex: Texture | null): ShaderMaterial => family.material(program, shared, { uniforms: { ...fu, uAtlas: { value: tex } } });
     const { cards: gCards, core: gCore } = crown;
-    await bakeSpill([gCards, gCore], emitters);
     const cards = new Mesh(gCards, coveragePass(material(row.cards, atlas)));
     const cardsDepth = new Mesh(gCards, plateauPass(material(row.plateau, atlas)));
     cards.renderOrder = 1;

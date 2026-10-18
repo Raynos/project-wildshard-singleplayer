@@ -24,7 +24,7 @@ import { landingPlanterModel } from '../models/landingPlanter';
 import { wellBalustrade } from '../models/wellBalustrade';
 import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
-import { type Emitter, bakeSpill } from '../runtime/looks/vertexSpill';
+import type { Emitter } from '../runtime/looks/emitterCards';
 import { NeonText, loadGlyphField } from '../runtime/signs/neonText';
 import { Lanterns } from '../look/lanterns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
@@ -60,7 +60,7 @@ import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadCast, loadFixedRows, loadSignAtlas } from './casts';
+import { loadCast, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
 import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
 import { cullHandedBatches } from '../runtime/cull/handedBatches';
@@ -205,10 +205,12 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
   progress(0.52, 'neon spill + canopy');
   let phaseStart = performance.now();
-  await bakeSpill(kitGeos.map(([, g]) => g), emitters);
+  await loadSpill(kitGeos, tier, entryCaps);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  const crown = await buildCanopy(shared, specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null, emitters);
+  const canopy = specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null;
+  if (canopy !== null) await loadSpill([['canopy-cards', canopy.cards], ['canopy-core', canopy.core]], tier, entryCaps);
+  const crown = await buildCanopy(shared, canopy);
   for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));
