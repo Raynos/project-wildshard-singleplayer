@@ -1,0 +1,342 @@
+{
+  "sourceTree": "413541a522f8a8d50de065461e08258c07cf3167",
+  "sourceParent": "d0ab45464a0f578210a7d3a5e4b9aa694d8ae964",
+  "commitParent": "d889b9f2d24721370fef08661a7a75b6518a83b4",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2268,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "511b2060d204dde424a5ef3a730f96dd187440803cf810c6092b77f2238aa33f",
+      "inputFiles": 273,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "511b2060d204dde424a5ef3a730f96dd187440803cf810c6092b77f2238aa33f",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "30dd78ebdbeb12a6cc8e7dd9494810838adee99a607101feb837ae8cb60be37f",
+      "inputFiles": 262,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "30dd78ebdbeb12a6cc8e7dd9494810838adee99a607101feb837ae8cb60be37f",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "far-reach": {
+      "inputHash": "3d36913884bed34872b85e5fa66fcc367fd062e93bc95c2769ad0407e5801cd3",
+      "inputFiles": 168,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "3d36913884bed34872b85e5fa66fcc367fd062e93bc95c2769ad0407e5801cd3",
+        "pixelHash": "280bb9d964ac7adc95688defd60783214c6c960a2bd212f5a6a30cd2b0fd1f68",
+        "image": "/assets/far-reach/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:void",
+        "bytes": 23334
+      }
+    },
+    "nine-dragon-stack": {
+      "inputHash": "4c281c78fd56505febf1d945d4627a19a8dd6382566db224916db2d8a69f802a",
+      "inputFiles": 146,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "4c281c78fd56505febf1d945d4627a19a8dd6382566db224916db2d8a69f802a",
+        "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+        "image": "/assets/nine-dragon-stack/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 13378
+      }
+    },
+    "sunscar-dunes": {
+      "inputHash": "6b5c566f2f827eb11985f6761402fbb4604b8b11aa611b1ea75d2e3ea756f3e5",
+      "inputFiles": 120,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "6b5c566f2f827eb11985f6761402fbb4604b8b11aa611b1ea75d2e3ea756f3e5",
+        "pixelHash": "0ac8178b0a3fa38cd2c2a852d06456764fd3d2ec1606792c7b4bbfd5e4fa33dc",
+        "image": "/assets/sunscar-dunes/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 27322
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "231c16e4f8d680400aacd10efcc3957d16afd5d3",
+      "owner": "sp-x8",
+      "shards": [
+        "pine-hollow",
+        "nine-dragon-stack",
+        "far-reach",
+        "sunscar-dunes"
+      ],
+      "change": "G486 declared controls, knobs and saved-slot source adoption",
+      "directFactInputs": {
+        "pine-hollow": [
+          "data/plumbing.json"
+        ],
+        "nine-dragon-stack": [
+          "data/plumbing.json"
+        ],
+        "far-reach": [
+          "data/plumbing.json"
+        ]
+      }
+    },
+    {
+      "sha": "7ddae8a5af2e8bc905b4b94b42418a06e9db6521",
+      "owner": "sp-x4",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "declared cover appearance, water facts and shared day binding",
+      "directFactInputs": {
+        "pine-hollow": [
+          "data/coverAppearance.json",
+          "data/waterLook.json"
+        ]
+      }
+    },
+    {
+      "sha": "8e830e0be4fc944efaf20c0fffaf820868133eb2",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle",
+        "pine-hollow"
+      ],
+      "change": "static rock scenes and shared scene/building registry ownership",
+      "directFactInputs": {
+        "driftwood-isle": [
+          "data/buildingLife.json",
+          "data/rockScenes.generated.json",
+          "data/shoreBoulders.generated.json"
+        ]
+      }
+    },
+    {
+      "sha": "4e3060376d4838aeaad33b4af63e56a330c549e3",
+      "owner": "sp-x6",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "declared NPC figure catalogues and native figure ownership",
+      "directFactInputs": {
+        "driftwood-isle": [
+          "data/castawayFigure.json",
+          "data/traderFigure.json"
+        ],
+        "pine-hollow": [
+          "data/npcSkins.generated.json",
+          "data/codeParts.json"
+        ]
+      },
+      "nonVisualMetadata": [
+        "pine-hollow/data/explorerMetadata.generated.json"
+      ],
+      "ownerProof": {
+        "build": "4e30603-mvd5tg5r",
+        "phone": "muted iPhone 16 Pro Hale/Wendell and old-save checks passed; portraits inspected",
+        "native": "20 exact phone/desktop tier views, source-hash verified",
+        "fullRuler": "tmp/c6-landed-ruler.json",
+        "smallRuler": "tmp/c6-actual-small-ruler.json",
+        "resources": "owner previews and browsers closed"
+      }
+    },
+    {
+      "sha": "93053fc24457376f8ce0ac980128acbe3a032113",
+      "owner": "sp-x8",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "generated section schema rows replace both runtime section modules",
+      "directFactInputs": {},
+      "sharedGenerationInputs": [
+        "scripts/bake-section-schemas.mjs",
+        "scripts/section-types.mjs",
+        "scripts/generation-jobs.json",
+        "src/sdk/formatJsonSchema.ts",
+        "src/sdk/outputRuntime.ts"
+      ]
+    },
+    {
+      "sha": "0d3bac6b0ff52b69fa64833bcea44050d7389319",
+      "owner": "sp-x6",
+      "shards": [],
+      "change": "guard debt repair; no declared map inputs changed",
+      "reportedNetShardLines": {
+        "pine-hollow": -13,
+        "driftwood-isle": 0
+      },
+      "ownerProof": "all10, 17 headless, root/layer types, typed lint and check-models passed"
+    },
+    {
+      "sha": "67d5565a2091aeb9a0b2a5727d829aeb9e3050a6",
+      "owner": "sp-x6",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "declared item effect rows; landed before fifth-window freeze",
+      "sharedGenerationInputs": [
+        "src/format/items.ts"
+      ],
+      "generationInputChanges": {
+        "driftwood-isle-items": [
+          "src/shards/driftwood-isle/generators/economy.ts"
+        ]
+      },
+      "reportedNetShardLines": {
+        "pine-hollow": -106,
+        "driftwood-isle": -35
+      },
+      "ownerProof": "all10 nonstrict, root/layer types, typed lint, check-models and 17 headless passed; browser parity pending",
+      "finalBrowserProof": {
+        "path": ".git/c6-final-receipt.json",
+        "sha256": "3fde3c34409e82b078d4f9fdd833d0aea41b2907b736edd93d15e5f25ba7e6fa",
+        "heldPoses": 60,
+        "pineMinSSIM": 0.999999421,
+        "driftwoodMinSSIM": 1,
+        "phoneBuild": "67d5565",
+        "phone": "muted iPhone 16 Pro firing and swinging, zero errors",
+        "ownerResources": "freeze honored, no further source/map landing"
+      }
+    },
+    {
+      "sha": "aca0891f1dc632f15592330d27a2ce0f292655af",
+      "owner": "sp-x7",
+      "shards": [],
+      "change": "deploy-only bounded grid preparation smoke and frame observation; no declared map inputs changed",
+      "ownerProof": "normal and 8x CPU GRID/Signal, strict all10, types, lint and 28 tests including 17 headless passed"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "far-reach": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nine-dragon-stack": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "sunscar-dunes": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "data/castawayFigure.json",
+      "data/traderFigure.json",
+      "data/buildingLife.json",
+      "data/rockScenes.generated.json",
+      "data/shoreBoulders.generated.json"
+    ],
+    "pine-hollow": [
+      "data/plumbing.json",
+      "data/coverAppearance.json",
+      "data/waterLook.json"
+    ],
+    "far-reach": [
+      "data/plumbing.json"
+    ],
+    "nine-dragon-stack": [
+      "data/plumbing.json"
+    ],
+    "sunscar-dunes": []
+  }
+}

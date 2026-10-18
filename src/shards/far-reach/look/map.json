@@ -18,7 +18,8 @@
     "../../../public/assets/far-reach/baked/rest-hover-1.glb",
     "../../../public/assets/far-reach/baked/rest-hover-2.glb",
     "../../../public/assets/far-reach/baked/rest-winch.glb",
-    "data/isletMotion.generated.json"
+    "data/isletMotion.generated.json",
+    "data/plumbing.json"
   ],
   "hide": [
     "far.storm",

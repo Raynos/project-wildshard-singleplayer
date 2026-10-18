@@ -97,6 +97,9 @@
     "data/propScenes.generated.json",
     "data/npcSkins.generated.json",
     "data/codeParts.json",
-    "data/paintedTextures.generated.json"
+    "data/paintedTextures.generated.json",
+    "data/plumbing.json",
+    "data/coverAppearance.json",
+    "data/waterLook.json"
   ]
 }

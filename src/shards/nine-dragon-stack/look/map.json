@@ -10,7 +10,8 @@
     "data/specimenProfiles.ts",
     "data/layoutPlan.ts",
     "data/specimenDims.ts",
-    "data/weaponLooks.ts"
+    "data/weaponLooks.ts",
+    "data/plumbing.json"
   ],
   "clipAbove": 153,
   "style": {
