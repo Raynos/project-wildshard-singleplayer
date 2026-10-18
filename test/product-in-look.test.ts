@@ -24,9 +24,14 @@ const emittedSections = async (slug: string): Promise<Map<string, unknown>> => {
   }
   return sections;
 };
-const productOf = async (slug: string): Promise<ShardProduct> => createShardProduct({ slug, revision: 1,
-  shardfile: emptyShardfile({ slug, name: slug, author: 'Wildshard', revision: 1, seed: 1 }),
-  sections: await emittedSections(slug), files: new Map(), read: () => Promise.reject(new Error('no files in this fixture')) });
+const productOf = async (slug: string): Promise<ShardProduct> => {
+  const sections = await emittedSections(slug);
+  // This fixture observes product forwarding, with no native specimen roster.
+  sections.delete('explore/catalogue');
+  return createShardProduct({ slug, revision: 1,
+    shardfile: emptyShardfile({ slug, name: slug, author: 'Wildshard', revision: 1, seed: 1 }),
+    sections, files: new Map(), read: () => Promise.reject(new Error('no files in this fixture')) });
+};
 
 test.each([
   ['driftwood-isle', 'custom/enemyPlacements', 'sim/enemy-placement.json'],
@@ -83,7 +88,7 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
       expect(source).toContain('const callWithProduct = ');
       expect(source).toContain("import type { ShardProduct } from '../../game/shardfile/shardProduct';");
     }
-    expect(authoredManifestSource(root, 'sunscar-dunes')).toContain('roster: async (product) => callWithProduct(');
+    expect(authoredManifestSource(root, 'sunscar-dunes')).not.toContain('import("./roster")');
     // d78cef781: Driftwood's roster is a called factory now, so discovery forwards the product to it too
     expect(authoredManifestSource(root, 'driftwood-isle')).toContain('roster: async (product) => callWithProduct((await import("./roster"))["roster"], product)');
   });
