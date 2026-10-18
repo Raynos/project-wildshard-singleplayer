@@ -38,7 +38,7 @@ export function pbrFillers(): { readonly white: THREE.DataTexture; readonly flat
 }
 
 /** Compile a PBR surface to a three.js material (WebGL v1 renderer). */
-export function compilePbr(params: PbrMaterialParams, textures: TextureResolver): THREE.MeshStandardMaterial {
+export function compilePbr(params: PbrMaterialParams, textures: TextureResolver, emitterPools?: (id: string) => { readonly value: readonly THREE.Vector4[] }): THREE.MeshStandardMaterial {
   const { white, flatNormal } = pbrFillers();
   const { colour, normal, orm } = params.maps;
   const ormMap = orm === null ? white : textures(orm, 'data');
@@ -61,7 +61,7 @@ export function compilePbr(params: PbrMaterialParams, textures: TextureResolver)
   });
   m.name = 'family:pbr';
   if (params.ground !== null && params.measure !== null) throw new Error('material family: a PBR surface takes a ground or a measure layer, not both');
-  if (params.ground !== null) applyGround(m, params.ground, textures);
+  if (params.ground !== null) applyGround(m, params.ground, textures, emitterPools);
   if (params.measure !== null) applyMeasure(m, params.measure);
   return m;
 }

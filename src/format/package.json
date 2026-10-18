@@ -194,7 +194,8 @@
     "./worldSceneWeld": "./worldSceneWeld.ts",
     "./populationEnvironment": "./populationEnvironment.ts",
     "./explorerCatalogue": "./explorerCatalogue.ts",
-    "./sceneDraws": "./sceneDraws.ts"
+    "./sceneDraws": "./sceneDraws.ts",
+    "./lightEmitters": "./lightEmitters.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -9,6 +9,7 @@ import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import * as v from 'valibot';
 import { LayoutRowsSchema, Place, layoutReviver } from './layoutBake';
+import { LightPoolProfilesSchema } from '../look/light/install';
 
 /** Adopt the exact prepared prop at its former load phase; the caller owns this geometry. */
 export async function loadCast(name: string): Promise<BufferGeometry> {
@@ -25,9 +26,9 @@ export async function loadCast(name: string): Promise<BufferGeometry> {
 }
 
 /** Recorded fixed additions; their source author and the geometry are generated together. */
-export async function loadFixedRows(): Promise<{ signs: v.InferOutput<typeof LayoutRowsSchema>['signs']; lanterns: number[][] }> {
+export async function loadFixedRows(): Promise<{ signs: v.InferOutput<typeof LayoutRowsSchema>['signs']; lanterns: number[][]; lightPools: v.InferOutput<typeof LightPoolProfilesSchema> }> {
   const bytes = await (await loadFirstPartyProduct('nine-dragon-stack')).file('geometry/fixed-kits.json');
-  return v.parse(v.strictObject({ signs: LayoutRowsSchema.entries.signs, lanterns: v.array(v.array(v.number())) }),
+  return v.parse(v.strictObject({ signs: LayoutRowsSchema.entries.signs, lanterns: v.array(v.array(v.number())), lightPools: LightPoolProfilesSchema }),
     JSON.parse(new TextDecoder().decode(bytes), layoutReviver));
 }
 

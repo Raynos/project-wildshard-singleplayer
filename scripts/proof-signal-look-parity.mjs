@@ -38,6 +38,13 @@ const C1_POSES = [
 ];
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+/** Stable object keys preserve descriptor values and array order through schema decoding.
+ * @param {unknown} value @returns {unknown} */
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, canonical(item)]));
+  return value;
+}
 const compare = arg('compare');
 if (compare !== undefined) {
   const [a, b] = compare.split(',').map(path => JSON.parse(readFileSync(path, 'utf8')));
@@ -57,7 +64,12 @@ if (compare !== undefined) {
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
-  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders']) for (const tier of Object.keys(a.tiers)) {
+    const left = a.tiers[tier], right = b.tiers[tier];
+    if (key === 'colliders' && left.colliderJson !== undefined && right?.colliderJson !== undefined
+      && JSON.stringify(canonical(JSON.parse(left.colliderJson))) === JSON.stringify(canonical(JSON.parse(right.colliderJson)))) continue;
+    if (left[key] !== right?.[key]) diffs.push(`${tier}: ${key} ${left[key]} ≠ ${right?.[key]}`);
+  }
   console.log(diffs.length === 0 ? `signal-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -65,7 +77,20 @@ const url = arg('url'), output = arg('output'), raw = arg('raw');
 // W1 C1 (scripts/w1-c1-parity.mjs): `--poses=c1` adds close-ups of the static pieces C1 bakes and skips the creature shots
 const c1 = arg('poses') === 'c1', SHOTS = c1 ? [...POSES, ...C1_POSES] : POSES;
 // The painted-row proof also exercises the quest's late sky, light curves and burning braziers.
-const shots = process.argv.includes('--dusk') ? [...SHOTS, { id: 'waymarks-dusk', x: 2, z: -60, yaw: -0.38, pitch: 0.25, stage: 'waymarks-lit' }] : SHOTS;
+const defaultShots = process.argv.includes('--dusk') ? [...SHOTS, { id: 'waymarks-dusk', x: 2, z: -60, yaw: -0.38, pitch: 0.25, stage: 'waymarks-lit' }] : SHOTS;
+// Z7/Z9: exercise every original quest-light step through admitted actions.
+const questLighting = process.argv.includes('--quest-lighting');
+const lightingPose = { x: 2, z: -60, yaw: -0.38, pitch: 0.25 };
+const shots = questLighting ? [
+  { ...lightingPose, id: 'sunset', actions: [] },
+  { ...lightingPose, id: 'scout', stage: 'logbook', actions: [] },
+  { ...lightingPose, id: 'logbook', actions: ['logbook'] },
+  { ...lightingPose, id: 'oil', actions: ['crank', 'well'] },
+  { ...lightingPose, id: 'brazier-one', actions: ['pour.0', 'light.0'] },
+  { ...lightingPose, id: 'brazier-two', actions: ['pour.1', 'light.1'] },
+  { ...lightingPose, id: 'brazier-three', actions: ['pour.2', 'light.2'] },
+  { ...lightingPose, id: 'signal-night', actions: ['fire'] },
+] : defaultShots;
 const frame = arg('frame') ?? 'plain';
 if (!['plain', 'composer'].includes(frame)) throw new Error('Frame must be plain or composer');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
@@ -102,15 +127,20 @@ try {
       const list = pieces.filter(p => (p.colliders?.length ?? 0) > 0).map(p => ({ id: p.id, active: p.active?.() ?? true, surface: p.surface ?? null, owner: p.colliderOwner ?? null, colliders: copy(p.colliders) })).sort((a, b) => a.id.localeCompare(b.id));
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
-    tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
+    tiers[tier].colliders = sha(tiers[tier].colliderJson);
     for (const p of shots) {
       const { yaw, pitch } = p;
       if ('stage' in p) await page.evaluate(stage => {
         const plugin = window.__wildshard.shard.sunscar;
         plugin.stage(stage); plugin.settleQuestDusk();
         const places = plugin.places;
-        if (places === null || places.braziers.length === 0 || places.braziers.some(brazier => !brazier.lit)) throw new Error('Dusk pose requires every waymark lit');
+        if (stage === 'waymarks-lit' && (places === null || places.braziers.length === 0 || places.braziers.some(brazier => !brazier.lit))) throw new Error('Dusk pose requires every waymark lit');
       }, p.stage);
+      if (questLighting && 'actions' in p) await page.evaluate(actions => {
+        const plugin = window.__wildshard.shard.sunscar;
+        for (const action of actions) if (!plugin.places.contacts.run(action)) throw new Error(`Lighting action refused: ${action}`);
+        plugin.settleQuestDusk();
+      }, p.actions);
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__slpGate' in window) g.frameGate = window.__slpGate; });
       await page.evaluate(a => {
         const w = window.__wildshard.world;

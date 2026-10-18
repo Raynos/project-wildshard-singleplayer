@@ -520,6 +520,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 /** @type {Record<string,string>} */
 const approvedFeatures = {
   'H6 ambient life':'G474',
+  'light emitters':'G478',
   'declared runtime entry':'G483',
   'contracts + elites':'G473',
   'world scene assembly':'G483',
@@ -542,7 +543,7 @@ const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1
   shard:v.exactOptional(v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack'])),
   plan:v.exactOptional(v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()})),
   documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.exactOptional(v.literal('end of W3')),
-  approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G473','G474','G475','G483'])})})),
+  approvedFeature:v.exactOptional(v.strictObject({name:v.string(),decision:v.strictObject({path:v.literal('docs/plans/shard-platform/decisions.md'),row:v.picklist(['G473','G474','G475','G478','G483'])})})),
 })), v.check(rows => rows.every(entry => {
   const complete = entry.shard !== undefined && entry.plan !== undefined && entry['rechecked-by'] !== undefined;
   const empty = entry.shard === undefined && entry.plan === undefined && entry['rechecked-by'] === undefined;

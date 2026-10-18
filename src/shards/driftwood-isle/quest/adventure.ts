@@ -1,5 +1,5 @@
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
-import { residentWorldScope } from '@wildshard/game/shardfile/hybrid';
+import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';

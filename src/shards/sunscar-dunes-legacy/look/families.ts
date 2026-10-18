@@ -1,9 +1,9 @@
-import { MeshStandardMaterial, type Material, type Texture } from 'three';
+import { MeshStandardMaterial, Vector4, type Material, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
+import { updateGround } from '@wildshard/engine/render/families/ground';
 import type { GroundLayerParams } from '@wildshard/format/materialFamilies';
 import { GROUND_HALF } from '../data/layout';
 import { WIND } from '../world/dunes';
@@ -56,12 +56,14 @@ export function sandEntry(dusk: number, grain: { readonly mean: number; readonly
     // E407 row 3: long dune shadows across the troughs, the key kept at 0.28 in cast shade
     keyShadow: { map: 'sd:shadow', rect: [-SHADOW_HALF, -SHADOW_HALF, SHADOW_HALF, SHADOW_HALF], edge: [0.25, 0.75], floor: 0.28 },
     // round 8 / 23 / 24: each burning fire lights the sand orange round it, the caravan's lantern (a fraction of a fire) amber
-    pools: { low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 },
+    pools: { source: 'legacy-fires', low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 },
   } };
 }
 
 /** The painted dome's family entry: the emissive family's sky over the two dusk stages `sd:early` / `sd:late`. */
 export const SKY_ENTRY = { family: 'emissive', sky: { maps: ['sd:early', 'sd:late'], elevation: [PAINTED.elevBottom, PAINTED.elevTop], window: [...PAINTED.dusk], firstGain: [0.64, 1], hold: 2.5 } } as const;
+
+interface GroundPool { readonly x: number; readonly y: number; readonly z: number; readonly w: number }
 
 /** The live sand: its material and the adapter that moves it with the dusk and the fires. */
 export interface FamilySand {
@@ -74,7 +76,8 @@ export interface FamilySand {
 export function familySand(maps: { readonly grain: Texture; readonly trail: Texture; readonly shadow: Texture }, dusk: number, scope: Scope): FamilySand {
   const grain = { mean: Number(maps.grain.userData['meanR']), glintMean: Number(maps.grain.userData['meanGlint']) };
   const byRef: Record<string, Texture> = { 'sd:grain': maps.grain, 'sd:trail': maps.trail, 'sd:shadow': maps.shadow };
-  const material = familyMaterial(sandEntry(dusk, grain), { toon: new ToonLook(), scope, textures: (ref) => {
+  const pools = { value: Array.from({ length: 4 }, () => new Vector4()) };
+  const material = familyMaterial(sandEntry(dusk, grain), { emitterPools: () => pools, toon: new ToonLook(), scope, textures: (ref) => {
     const t = byRef[ref];
     if (t === undefined) throw new Error(`Signal Dunes sand: no texture ${ref}`);
     return t;
@@ -84,7 +87,9 @@ export function familySand(maps: { readonly grain: Texture; readonly trail: Text
   let fed = dusk;
   return { material, update: (next, fires) => {
     if (next !== fed) { fed = next; updateGround(material, sandAtDusk(next, grain)); }
-    setGroundPools(material, fires);
+    for (const [index, point] of pools.value.entries()) {
+      const fire = fires[index]; if (fire === undefined) point.set(0, 0, 0, 0); else point.set(fire.x, fire.y, fire.z, fire.w);
+    }
   } };
 }
 

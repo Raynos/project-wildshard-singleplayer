@@ -1,13 +1,11 @@
 import type { Material } from 'three';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { paintedLookFromRow, parsePaintedLookRow } from '@wildshard/engine/render/dataLook';
-import { setGroundPools } from '@wildshard/engine/render/families/ground';
 import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
 import { CubeSkirt } from '../runtime/looks/bakedGround';
 import { DUSK } from './dusk';
 import rows from '../data/paintedLook.generated.json' with { type: 'json' };
 import skirtRows from '../data/skirt.json' with { type: 'json' };
-import { FIRE_LIGHTS } from '../world/fireFx';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md) on the engine's painted look (G406, one painted look for Sky
@@ -26,7 +24,7 @@ export const SKIRT = new CubeSkirt();
  * Signal Dunes' look: its two painted strips on the dome, the key, fill, fog and haze riding the quest's dusk (look/dusk.ts)
  * on its curves, the clock held. The ground is the manifest's declared key, which the platform's required-ground loader
  * (`installProductGround`) reads from the shard's product; the look only holds the skirt, which the plugin dresses in
- * the lent sand, and feeds the burning fires' light pools to that sand each frame.
+ * the lent sand. The ground material reads the emitter pool input directly.
  */
 export function signalDunesLook(): LookStrategy {
   return paintedLookFromRow(parsePaintedLookRow(rows.look), { load: loadPaintedTexture, state: DUSK,
@@ -35,6 +33,5 @@ export function signalDunesLook(): LookStrategy {
         await SKIRT.load(terrain.group, { url: rows.sand.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' }, scope);
         await field.ready();
       },
-      update: () => { if (SAND.material !== null) setGroundPools(SAND.material, FIRE_LIGHTS.value); },
     } });
 }

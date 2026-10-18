@@ -1,4 +1,5 @@
 import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
+import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
 import { installDeclaredMovers, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -72,15 +73,6 @@ interface ActiveRuntime {
   retained?: { slots: ScopedRuntimeBinding; hooks: RetainedRuntimeHooks };
 }
 
-const residentScopes = new WeakMap<Scope, Scope>();
-
-/** Static presentation belongs to the resident, including transitional entered world hooks. */
-export function residentWorldScope(context: Pick<ShardContext, 'scope'>): Scope {
-  const owner = residentScopes.get(context.scope) ?? context.scope;
-  if (owner.disposed || context.scope.disposed) throw new Error('Missing live resident world');
-  return owner;
-}
-
 /** A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope. */
 /** Static-world recipe optionally binds admitted motion after each entered load, on the existing mover host. */
 export interface ResidentWorldRecipe {
@@ -107,7 +99,7 @@ export class HybridResidentWorld<T> {
   }
   /** Reuse one asynchronous build across entries; the supplied owner outlives each entered play scope. */
   load(context: ShardContext, build: (owner: Scope) => Promise<T>): Promise<T> {
-    const owner = residentScopes.get(context.scope);
+    const owner = boundResidentWorldScope(context.scope);
     if (owner === undefined || owner.disposed || context.scope.disposed) return Promise.reject(new Error('Missing live hybrid resident world'));
     const existing = this.builds.get(owner); if (existing !== undefined) return this.entered(context, existing);
     const pending = Promise.resolve().then(() => {
@@ -126,8 +118,7 @@ export class HybridResidentWorld<T> {
 
 /** Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. */
 export function hybridInstallation(base: ShardContext, scope: Scope, runtime: ShardRuntime): LevelInstallation & { context: ShardContext } {
-  residentScopes.set(scope, base.scope);
-  scope.onDispose(() => { residentScopes.delete(scope); });
+  bindResidentWorldScope(scope, base.scope);
   const installation = createLevelInstallation(base.app, scope, base.app.levelAdapters, () => base.progress);
   base.root.add(installation.context.root);
   // A captured callback may register after an await, when the ambient owner has already returned to the page.
@@ -471,8 +462,7 @@ export class HybridRuntimeSession {
       const slots = resident.retainRuntime === true ? createScopedRuntimeBinding(resident.runtime, scope) : undefined;
       if (!preparing) slots?.activate();
       const runtime = slots?.runtime ?? bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
-      residentScopes.set(scope, resident.scope);
-      scope.onDispose(() => { residentScopes.delete(scope); });
+      bindResidentWorldScope(scope, resident.scope);
       const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing });
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       const context = hooks?.context ?? installation.context;

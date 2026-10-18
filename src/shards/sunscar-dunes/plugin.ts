@@ -1,5 +1,4 @@
 import SIGNAL_RUNTIME_ROWS from './data/runtimeRows.generated.json' with { type: 'json' };
-import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -13,7 +12,6 @@ import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
 import flags from './data/flags.generated.json' with { type: 'json' };
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
-import { prepareFireFx } from './world/fireFx';
 
 type ShardContext = Parameters<HybridRuntimePlugin['world']>[0];
 
@@ -40,8 +38,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
-    await prepareFireFx(ctx, source, DUNE_LIBRARY);
-    this.places = await buildWorld(ctx, new Flags(ctx.manifest.slug), baked, this.keepClientChannels.bind(this, ctx)); this.fire = this.places.fire;
+    this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked, this.keepClientChannels.bind(this, ctx)); this.fire = this.places.fire;
     // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
     // its dusk curves read DUSK (the host field shared.dusk). In a grid cell the region lends it the same way.
     const sand = lentMaterial(source, 'pbr', ctx.scope, (scope, name) => (scope === 'shared' && name === 'dusk' ? DUSK.value : undefined));
@@ -74,12 +71,4 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
     }
   }
-}
-// oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default firstPartyStandaloneEntry(SignalDunesPlugin, 'Signal Dunes', () => import('./runtime/index'));
-
-/** Resolve only the declared first-party entry, preserving the standalone constructor. */
-export function resolveTrustedRuntime(entry: string): typeof SignalDunesPlugin {
-  if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
-  return SignalDunesPlugin;
 }

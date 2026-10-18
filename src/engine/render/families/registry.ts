@@ -21,6 +21,8 @@ import { compileToon, type ToonLook } from './toon';
 
 /** What a compiler may read besides the material's own parameters. */
 export interface FamilyContext {
+  /** Named light-pool uniforms supplied by the owning presentation. */
+  readonly emitterPools?: (id: string) => { readonly value: readonly THREE.Vector4[] };
   /** the toon look its toon materials share (one per shard) */
   readonly toon: ToonLook;
   /** the painterly look its painterly materials share (one per shard; needed only for painterly entries) */
@@ -37,7 +39,7 @@ const live = new Map<THREE.Material, FamilyMaterialParams>();
 
 function compile(params: FamilyMaterialParams, ctx: FamilyContext): THREE.Material {
   if (params.family === 'toon') return compileToon(params, ctx.toon);
-  if (params.family === 'pbr') return compilePbr(params, ctx.textures);
+  if (params.family === 'pbr') return compilePbr(params, ctx.textures, ctx.emitterPools);
   if (params.family === 'painterly') {
     if (ctx.painterly === undefined) throw new Error('material family: a painterly entry needs a painterly look in its family context');
     return compilePainterly(params, ctx.painterly, ctx.textures);

@@ -2323,6 +2323,17 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/shardfile/lightEmitters.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "light emitters",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
     }
   ]
 }

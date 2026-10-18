@@ -56,6 +56,7 @@ export function parseInteractionRows(input: unknown): InteractionRowsData { retu
 
 const pageText=v.pipe(v.string(),v.maxLength(4096));
 const pageEffect=v.variant('kind',[
+  v.strictObject({kind:v.literal('emitter'),target:name,value:v.boolean()}),
   v.strictObject({kind:v.literal('label'),target:name,text:pageText}),
   v.strictObject({kind:v.literal('visible'),target:name,value:v.boolean()}),
   v.strictObject({kind:v.literal('call'),target:name}),

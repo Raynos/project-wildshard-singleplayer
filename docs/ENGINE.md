@@ -10036,3 +10036,28 @@ or defer construction until requested by the Explorer. A specimen retains its
 original `SceneModelRow` framing and visibility on a fresh copy of that same
 declared step. `sceneDraws` preserves ordered cards, point seeds and pools,
 sharing geometry within one product/scope and disposing it with that scope.
+
+
+### Light emitter presentation (G478, G486)
+
+`format/lightEmitters` admits numeric light pools and client-only emitter
+rows. `game/shardfile/lightEmitters` installs their presentation. A
+`client/plan` feature `{kind: "light.emitters", rows}` runs after
+`world.scenes`, using its published groups, points, light and material ids.
+Cards, seeded points and baked pool meshes use the shared `sceneDraws`
+constructor; their material graphs read the emitter clock. Quest page effects
+`{kind: "emitter", target, value}` switch the admitted emitter id, including
+its pool slot, ember material collection and optional point light. No shard
+callback, property path, save or gameplay rule enters the feature.
+Shared lamps use SiteLights' fixed inverse-square decay; other values
+refuse admission.
+
+`engine/fx/lightEmitters.LightEmitters` materialises plain numeric rows in
+original order as irradiance-volume sources or a bounded live vector uniform.
+Nine's lantern/window volume and Signal's four firelight slots use this same
+owner. A PBR ground row's `pools.source` names its owning emitter input;
+`FamilyContext.emitterPools` resolves that uniform once at compilation.
+Dusk updates retain its identity without copying pools every frame or
+recompiling shaders. The old `setGroundPools` adapter is removed.
+Resident scope lookup lives in `game/shardfile/hybridPresentation`, so
+quest presentation does not import the runtime lifecycle.

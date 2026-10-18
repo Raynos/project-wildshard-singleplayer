@@ -10,7 +10,7 @@
  * - **terrain light shaping** for the key (the scene's first directional light): a baked visibility map, a crisp
  *   terminator on the ground's own normal, a brighter grazing band, a sheen, a coloured shade fill, a light-saturation
  *   split and an "away from the glow" darkening an adapter raises as the light goes;
- * - up to four **light pools** (campfires, lanterns) warming the ground round them, moved every frame by `setGroundPools`.
+ * - up to four **light pools** (campfires, lanterns) warming the ground round them, read from the owning emitter uniform.
  * It is Signal Dunes' sand shader with its numbers as parameters (GroundLayerSchema); a runtime adapter moves them with
  * `updateGround` (uniforms only). Identifiers carry a `famG` prefix.
  */
@@ -200,7 +200,7 @@ function filler(): THREE.DataTexture {
 }
 
 type Uniforms = Record<string, THREE.IUniform>;
-interface GroundState { params: GroundLayerParams; readonly uniforms: Uniforms; readonly textures: TextureResolver; readonly pools: readonly THREE.Vector4[] }
+interface GroundState { params: GroundLayerParams; readonly uniforms: Uniforms; readonly textures: TextureResolver }
 /** how many light pools a ground layer draws */
 export const GROUND_POOLS = 4;
 const states = new WeakMap<THREE.Material, GroundState>();
@@ -254,10 +254,13 @@ function uniformsOf(p: GroundLayerParams, textures: TextureResolver): Uniforms {
 }
 
 /** Add a ground layer to a PBR family material (the PBR compiler calls it; the program becomes the ground program). */
-export function applyGround(m: THREE.MeshStandardMaterial, params: GroundLayerParams, textures: TextureResolver): void {
-  const pools = Array.from({ length: GROUND_POOLS }, () => new THREE.Vector4());
-  const uniforms: Uniforms = { ...uniformsOf(params, textures), famGPools: { value: pools } };
-  states.set(m, { params, uniforms, textures, pools });
+export function applyGround(m: THREE.MeshStandardMaterial, params: GroundLayerParams, textures: TextureResolver, emitterPools?: (id: string) => { readonly value: readonly THREE.Vector4[] }): void {
+  const source = params.pools?.source;
+  if (source !== undefined && emitterPools === undefined) throw new Error('Ground pools require their emitter input');
+  const uniform = source === undefined ? { value: Array.from({ length: GROUND_POOLS }, () => new THREE.Vector4()) } : emitterPools?.(source);
+  if (uniform === undefined || uniform.value.length !== GROUND_POOLS) throw new Error('Ground emitter pool size differs');
+  const uniforms: Uniforms = { ...uniformsOf(params, textures), famGPools: uniform };
+  states.set(m, { params, uniforms, textures });
   m.userData['familyUniforms'] = uniforms;
   patchShader(m, 'engine.family.ground', PATCH_ORDER.material, (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -284,23 +287,5 @@ export function updateGround(m: THREE.Material, params: Partial<GroundLayerParam
     else if (cur instanceof THREE.Vector3 && val instanceof THREE.Vector3) cur.copy(val);
     else if (cur instanceof THREE.Vector2 && val instanceof THREE.Vector2) cur.copy(val);
     else live.value = val;
-  }
-}
-
-/** A light pool's place (x, y, z) and strength (w: 0 = out). */
-export interface GroundPool { readonly x: number; readonly y: number; readonly z: number; readonly w: number }
-/**
- * Move a ground layer's light pools (a runtime adapter: Signal Dunes' burning fires): up to `GROUND_POOLS` points, the
- * rest go out. Uniforms only, cheap enough for every frame; the layer's `pools` colours / radius / gain light them.
- */
-export function setGroundPools(m: THREE.Material, points: readonly GroundPool[]): void {
-  const state = states.get(m);
-  if (state === undefined) throw new Error('setGroundPools: not a PBR family material with a ground layer');
-  for (let i = 0; i < state.pools.length; i++) {
-    const p = points[i], live = state.pools[i];
-    if (live === undefined) continue;
-    if (p === undefined) { live.set(0, 0, 0, 0); continue; }
-    if (![p.x, p.y, p.z, p.w].every(Number.isFinite) || p.w < 0) throw new RangeError('setGroundPools: a pool is finite with a strength >= 0');
-    live.set(p.x, p.y, p.z, p.w);
   }
 }

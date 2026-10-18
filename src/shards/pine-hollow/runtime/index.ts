@@ -1,5 +1,5 @@
 import { installQuestCatalogue } from '@wildshard/game/quest/chapter';
-import { residentWorldScope } from '@wildshard/game/shardfile/hybrid';
+import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 import { readAdventurePersistence } from '@wildshard/game/quest/persistence';

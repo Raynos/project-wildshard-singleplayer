@@ -63,11 +63,11 @@ test('G483 declared runtime entry retains its explicit approved feature credit',
 });
 
 
-test('G475 day-one hosts carry approval without a fictional future user', () => {
-  for (const name of ['streamed cover', 'toon look host']) {
+test('day-one hosts carry their exact approval without a fictional future user', () => {
+  for (const [name, row] of [['streamed cover', 'G475'], ['toon look host', 'G475'], ['light emitters', 'G478']] as const) {
     const module = 'src/game/looks/fixture.ts';
     const allowance: PendingPlatformUser = { module, documentation: 'docs/ENGINE.md',
-      approvedFeature: { name, decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G475' } } };
+      approvedFeature: { name, decision: { path: 'docs/plans/shard-platform/decisions.md', row } } };
     const rows = [{ path: module, lines: 200 }];
     expect(partitionPendingPlatformUsers('driftwood-isle', rows, [], [allowance]).modules).toEqual([]);
     const noDecision: PendingPlatformUser = { module, documentation: 'docs/ENGINE.md' };

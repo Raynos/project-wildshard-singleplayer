@@ -204,7 +204,9 @@
     "./models/explorerCatalogue": "./models/explorerCatalogue.ts",
     "./shardfile/sceneSources": "./shardfile/sceneSources.ts",
     "./shardfile/sceneInputs": "./shardfile/sceneInputs.ts",
-    "./shardfile/sceneDraws": "./shardfile/sceneDraws.ts"
+    "./shardfile/sceneDraws": "./shardfile/sceneDraws.ts",
+    "./shardfile/lightEmitters": "./shardfile/lightEmitters.ts",
+    "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

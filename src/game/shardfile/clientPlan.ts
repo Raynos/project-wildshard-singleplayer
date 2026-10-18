@@ -1,3 +1,4 @@
+import { installLightEmitters } from './lightEmitters';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan, type ClientFeatureKind, type ClientFeatureRow } from '@wildshard/format/clientPlan';
@@ -32,6 +33,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       products.set(ctx.product, value);
       resident.onDispose(() => { if (products.get(ctx.product) === value) products.delete(ctx.product); });
     } },
+  'light.emitters': { phase: 'world', rank: 30, lifetime: 'resident', sections: ['world/scenes'],
+    install: async (ctx, row, resident) => {
+      if (row.kind !== 'light.emitters') throw new Error('Invalid emitter feature');
+      await installLightEmitters(ctx, row.rows, clientSceneHandles(ctx.product, resident), resident);
+    } },
   'debug.expose': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     ctx.debug.expose(row.name, ctx.game.runtime);
@@ -42,6 +48,7 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
+    if (plan.features.some(row => row.kind === 'light.emitters') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Emitters require the scene feature');
     for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
       if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
       product.section(name); // A listed stream section is not an admitted boot dependency.

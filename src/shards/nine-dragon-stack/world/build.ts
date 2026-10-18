@@ -370,6 +370,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
   progress(0.9, 'light volume');
   const light = installLight({
+    pools: fixed.lightPools,
     u: shared.u, pipe: { glow: glowUniforms(), grade: gradeUniforms() }, lanterns: paper.emitters, ctxEmitters: ctx.emitters,
     signs: [...neonSigns.emitters, ...signs.lights], windows: ctx.fd.windows,
   });

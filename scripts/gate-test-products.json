@@ -156,5 +156,6 @@
   "test/explorer-catalogue.test.ts": [
     "far-reach",
     "sunscar-dunes"
-  ]
+  ],
+  "test/light-emitters.test.ts": []
 }

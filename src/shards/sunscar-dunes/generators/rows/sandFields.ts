@@ -17,5 +17,5 @@ export const SAND_FIELDS = { family: 'pbr', vertexColours: true, roughness: 0.88
     // E407 row 3: long dune shadows across the troughs, the key kept at 0.28 in cast shade
     keyShadow: { rect: [-SHADOW_HALF, -SHADOW_HALF, SHADOW_HALF, SHADOW_HALF], edge: [0.25, 0.75], floor: 0.28 },
     // round 8 / 23 / 24: each burning fire lights the sand orange round it, the caravan's lantern (a fraction of a fire) amber
-    pools: { low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 },
+    pools: { source: 'firelights', low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 },
   } };

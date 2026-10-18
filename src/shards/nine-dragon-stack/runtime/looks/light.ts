@@ -173,22 +173,6 @@ vec3 gradeLut(vec3 srgb) {
 }
 `;
 
-// ── the light pools (look/light/pools.ts): colours are hex ──
-/** per source kind: strength k, radius r (m, scaled by the source's size where noted), reach in r, colour pull */
-export const POOL = {
-  /** paper lanterns: the candle light is amber, the paper's red only tints it */
-  // (render, round 14: Jake's "warm and deep around the gate" — the lanterns' pools ×1.4 and wider, a deeper amber)
-  lantern: { k: 0.5, r: 2.6, cut: 3.0, tint: 0xff9448, redShare: 0.25 },
-  /** a lit shop interior (the emitter sits 0.1 m inside the shop's glazing, 1.6 m up) */
-  shop: { k: 2.3, rPerW: 0.5, rMin: 2.0, cut: 3.0, out: 0.9, tint: 0xffa850 },
-  /** the square's street lamps (a warm sodium head 4.2 m up) */
-  lamp: { k: 3.8, r: 3.0, cut: 3.4, tint: 0xffb468 },
-  /** neon signs and lightboxes: coloured, weaker, short */
-  sign: { k: 0.45, rPerSize: 0.55, rMin: 0.8, cut: 2.4 },
-  /** a lit window: warm light on its sill, the balcony floor under it and the wall around it */
-  window: { k: 0.2, r: 0.8, cut: 2.4, out: 0.45 },
-} as const;
-
 // ── the phone's halos (look/light/halos.ts) ──
 /** per source kind: the disc's radius (m; signs: + a share of the board's size) and its gain */
 export const HALO = {

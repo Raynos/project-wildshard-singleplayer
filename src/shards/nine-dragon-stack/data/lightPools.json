@@ -1,0 +1,7 @@
+{
+  "lantern": { "k": 0.5, "r": 2.6, "cut": 3, "tint": 16749640, "redShare": 0.25 },
+  "shop": { "k": 2.3, "rPerW": 0.5, "rMin": 2, "cut": 3, "out": 0.9, "tint": 16754768 },
+  "lamp": { "k": 3.8, "r": 3, "cut": 3.4, "tint": 16757864 },
+  "sign": { "k": 0.45, "rPerSize": 0.55, "rMin": 0.8, "cut": 2.4 },
+  "window": { "k": 0.2, "r": 0.8, "cut": 2.4, "out": 0.45 }
+}

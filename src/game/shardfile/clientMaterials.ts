@@ -1,3 +1,4 @@
+import { sceneVectors } from './sceneInputs';
 /**
  * The shardfile loader's materials (SHARD-PLATFORM SF15a): the look's material catalogue (`look.materials`, SF10a's
  * family entries) and its family looks compiled on the game's renderer, with every texture an admitted KTX2 file
@@ -139,7 +140,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   for (const entry of shard.props?.textures ?? []) resolveTexture(entry.colour, 'colour');
   const toon = new ToonLook(shard.look.familyLooks.toon ?? {}), painterly = new PainterlyLook(shard.look.familyLooks.painterly ?? {}), emissive = new EmissiveLook(shard.look.familyLooks.emissive ?? {});
-  const context = { toon, painterly, emissive, textures: resolveTexture, scope }, materials = new MaterialCatalogue();
+  const context = { toon, painterly, emissive, textures: resolveTexture, scope, emitterPools: (id: string) => sceneVectors(shard.identity.slug, id, 4) }, materials = new MaterialCatalogue();
   const defaults = new Set([...shard.look.families, ...(shard.terrain === null || shard.terrain.form === 'query' ? [] : [shard.terrain.family]), ...(shard.props === null ? [] : [shard.props.family])]);
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
   for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, scope.own(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));

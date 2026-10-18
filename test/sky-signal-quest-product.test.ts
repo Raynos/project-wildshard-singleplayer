@@ -8,6 +8,30 @@ import signalPhysics from '../src/shards/sunscar-dunes/data/physics.generated.js
 import skyPrompts from '../src/shards/far-reach/data/questPrompts.generated.json' with { type: 'json' };
 import { SKY_SPOTS, SKY_ACT, SKY_INTERACT, QUEST_STEP, ROOST_IDS } from '../src/shards/far-reach/generators/questPrompts';
 import { KEEPER_AT } from '../src/shards/far-reach/generators/quests';
+import type { QuestHostRow } from '../src/format/questHost';
+
+/** Z7 changes only presentation dispatch: project ids back to the original
+ * visible/light calls so the complete frozen quest policy stays checked. */
+function originalSignalPresentation(host: QuestHostRow | null | undefined): unknown {
+  if (host?.page?.bindings?.labels === undefined || host.page.bindings.visible === undefined || host.page.bindings.calls === undefined || host.page.initial === undefined) throw new Error('Missing Signal page');
+  const page = host.page, bindings = page.bindings;
+  const effects = (rows: typeof page.actions[number]['after']): unknown[] | undefined => rows?.flatMap<unknown>(row => {
+    if (row.kind === 'label' && row.target === 'signal') return [];
+    if (row.kind !== 'emitter') return [row];
+    if (row.target === 'signal') return [{ kind: 'call', target: 'catch-fire' }];
+    const id = row.target.slice('brazier.'.length);
+    return [{ kind: 'visible', target: `fire.${id}`, value: row.value }, { kind: 'call', target: `glow.${id}` }];
+  });
+  return { ...host, page: { ...page, bindings: { ...bindings,
+    labels: bindings?.labels?.filter(row => row.target !== 'signal'),
+    visible: bindings?.visible?.flatMap(row => row.target.startsWith('oil.') ? [row, { ...row, target: row.target.replace('oil.', 'fire.'), path: ['braziers', Number(row.target.slice(4)), 'parts', 'fire', 'visible'] }] : [row]),
+    calls: [...(bindings?.calls?.filter(row => row.target === 'haul') ?? []),
+      { target: 'catch-fire', owner: 'commands', path: ['catchFire'] },
+      ...(bindings?.calls?.filter(row => row.target === 'summon') ?? []),
+      ...[0, 1, 2].map(id => ({ target: `glow.${String(id)}`, owner: 'world', path: ['braziers', id, 'parts', 'glow'], args: [true] }))],
+  }, actions: page.actions.map(row => Object.assign(structuredClone(row), { before: effects(row.before), after: effects(row.after) })),
+  initial: page.initial?.map(row => Object.assign(structuredClone(row), { effects: effects(row.effects) })) } };
+}
 
 // Shipping declarations frozen before the quest authoring modules left data/.
 // The moved scout source path is diagnostic metadata, normalized below.
@@ -30,7 +54,8 @@ for (const slug of ['far-reach', 'sunscar-dunes'] as const) {
   test(`${slug} compiles identical quest, NPC and director continuations`, async () => {
     const loaded = await readProjectAssets(`src/shards/${slug}`);
     for (const section of ['quests', 'questHost', 'questNpcs', 'directors'] as const) {
-      const bytes = new TextEncoder().encode(JSON.stringify(loaded.shard[section]).replaceAll('sunscar-dunes/generators/questPresentation.ts', 'sunscar-dunes/data/questPresentation.ts'));
+      const value = slug === 'sunscar-dunes' && section === 'questHost' ? originalSignalPresentation(loaded.shard.questHost) : loaded.shard[section];
+      const bytes = new TextEncoder().encode(JSON.stringify(value).replaceAll('sunscar-dunes/generators/questPresentation.ts', 'sunscar-dunes/data/questPresentation.ts'));
       expect(hashImmutableBytes(bytes), section).toBe(originals[slug][section]);
     }
   }, 30_000);

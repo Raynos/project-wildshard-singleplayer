@@ -1,3 +1,5 @@
+import { lightEmitterPresentation } from '../shardfile/lightEmitters';
+import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { createClientChannels, type ClientTubeFrame, type ClientConnectorFrame, type ClientChannelObservation, type ClientChannelFrame } from './channels';
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
@@ -1144,6 +1146,8 @@ export function createQuestPagePrompts<const Names extends readonly string[]>(so
 /** Borrowed view ports for declared page interaction presentation. Native rules remain the state owner. */
 export interface QuestPageInteractionPorts {
   readonly flags:Pick<Flags,'has'|'set'>; readonly rules?:InteractionRules;
+  /** Compiled presentation effects resolve scene resources from this context. */
+  readonly context?: Pick<ShardContext, 'scope' | 'product'>;
   readonly interactions?:ConstructorParameters<typeof InteractionRules>[1];
   /** Construct these admitted prompts under the reserved borrowed owner `prompts`. */
   readonly promptIds?:readonly string[];
@@ -1203,6 +1207,11 @@ export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPage
   const view={has:(id:string):boolean=>observations.get(id)?.()??rules.has(id)};
   type Effect=QuestPageInteractionsData['actions'][number]['after'];
   const compile=(rows:Effect):(()=>void)[] => (rows??[]).map(row=>{
+    if(row.kind==='emitter'){
+      const context=ports.context;if(context===undefined)throw new Error('Emitter effects require their presentation context');
+      const emitters=lightEmitterPresentation(residentWorldScope(context),context.product.slug);
+      return ()=>{emitters.set(row.target,row.value);};
+    }
     if(row.kind==='toast')return ()=>{
       const progress=row.progress;if(progress===undefined){ports.toast(row.text);return;}
       const lit=progress.flags.filter(flag=>rules.has(flag)).length;

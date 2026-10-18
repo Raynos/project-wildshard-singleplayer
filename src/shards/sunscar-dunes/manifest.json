@@ -515,12 +515,14 @@
       "module": "./look/render",
       "export": "signalDunesLook"
     },
-    "load": {
-      "module": "./plugin"
-    },
     "ground": {
       "module": "./boot/ground",
       "export": "GROUND"
+    },
+    "entry": {
+      "legacy": "./runtime/index",
+      "retainHomeRuntime": true,
+      "stagesOwner": "declared"
     }
   }
 }
