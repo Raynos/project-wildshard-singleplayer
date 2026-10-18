@@ -1,11 +1,10 @@
 {
-  "date": "17 OCT 2026",
-  "updated": "2026-10-17T12:05:00-05:00",
+  "date": "18 OCT 2026",
+  "updated": "2026-10-18T18:20:11Z",
   "entries": [
-    "Nine Dragon: portal and lantern colours look right again",
-    "Sky Reach and Signal Dunes now run mostly from their shard files: same look, same play",
-    "Road grid: the four nearest cells always show their near detail",
-    "Bosses (Storm Roc, Matriarch) no longer vanish at long range on the phone",
-    "Main menu: a real in-game aerial over Nalati as the hero shot"
+    "Infinite Wildshard: fixed road entry into Signal Dunes",
+    "Signal Dunes: fixed skitterer pack startup during slow loads",
+    "Slow grid launches no longer return to the title",
+    "Nalati Grasslands: restored entering play after loading"
   ]
 }
