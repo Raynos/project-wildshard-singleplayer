@@ -1,0 +1,116 @@
+{
+  "sourceCommit": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "previewConfigSha256": "28321f9df9c27f4b785ea53975dba1608662ac0bbee60eda460073de94cf1c63",
+  "candidate": "V38 UNACCEPTED WIP",
+  "environment": "Cloud headless Chromium with software WebGL; 390x844 portrait, scale 1; not an iPhone measurement",
+  "rest": {
+    "mode": "rest",
+    "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+    "errors": [],
+    "httpErrors": [],
+    "console": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "type": "warning",
+        "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+      }
+    ],
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "phonePerformanceClaim": false,
+    "opponents": [
+      "Brine Puffer Native \u00b7 UNACCEPTED WIP"
+    ],
+    "storage": {
+      "local": 0,
+      "session": 0,
+      "serviceWorker": false
+    }
+  },
+  "inflate105": {
+    "mode": "inflate-105",
+    "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+    "errors": [],
+    "httpErrors": [],
+    "console": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "type": "warning",
+        "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+      }
+    ],
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "phonePerformanceClaim": false,
+    "opponents": [
+      "Brine Puffer Native \u00b7 UNACCEPTED WIP"
+    ],
+    "storage": {
+      "local": 0,
+      "session": 0,
+      "serviceWorker": false
+    },
+    "retryStatus": "Fresh practice bout."
+  },
+  "restProduct": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V38",
+    "mode": "rest",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-native-v38.json",
+    "measurementSha256": "feeb806c01d57d467d8249feec9a97a4f0a1b62b8d6975130b8a783e241b0369",
+    "sourceSha256": "34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b",
+    "metadataSha256": "0933191b6f61f8024b5892278d4a942837ef8f47b7921dc80ffe40ef03714793",
+    "dimensionsSha256": "53f6fa3379f231cadd710ae234974f796f50963ce689f3bf1303ae09d301fb9d",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+    "sourceHash": "2edc68a5344ad459bee5753206d1cfd0120e246de52c3b94324cde3263ad59fe"
+  },
+  "inflate105Product": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V38",
+    "mode": "inflate-105",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-native-v38.json",
+    "measurementSha256": "feeb806c01d57d467d8249feec9a97a4f0a1b62b8d6975130b8a783e241b0369",
+    "sourceSha256": "34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b",
+    "metadataSha256": "0933191b6f61f8024b5892278d4a942837ef8f47b7921dc80ffe40ef03714793",
+    "dimensionsSha256": "53f6fa3379f231cadd710ae234974f796f50963ce689f3bf1303ae09d301fb9d",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+    "sourceHash": "a542179148bb7b5138441c04697e0c55478d907e44db4563435e8e020ded8c05"
+  },
+  "observations": [
+    "Actual arena booted with sole native Puffer in both modes",
+    "No obvious detached head or fins in captured front views",
+    "Small/distant arena framing does not establish all-angle containment",
+    "Retry reset reported a fresh practice bout"
+  ],
+  "notTested": [
+    "1.10 inflation",
+    "Dynamic attack animation and rig containment",
+    "Human playtest",
+    "Phone performance",
+    "Full Driftwood Noon/Model Explorer palette parity"
+  ],
+  "screenshots": [
+    {
+      "file": "inflate-105-cloud-portrait.png",
+      "bytes": 146262,
+      "sha256": "18ebfbe1c7a4bce8dd9b86eafe8b03b558e9536e8667bb609f4cc30a0716b578"
+    },
+    {
+      "file": "rest-cloud-portrait.png",
+      "bytes": 145052,
+      "sha256": "a4851765d63d07eecdb1d27eeae8cc18156c288d3198e37e1d47a6fa59bbb75a"
+    }
+  ]
+}

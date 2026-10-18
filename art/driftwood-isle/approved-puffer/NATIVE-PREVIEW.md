@@ -201,3 +201,40 @@ single symlink to the original node_modules otherwise resolves workspace package
 back into the mutable source tree. Other installed dependency links can be reused.
 Copy the installed Rapier WASM byte-identically into the export's public assets
 when it is absent from Git; do not manufacture a substitute or modify production.
+
+
+### Actual cloud runtime result (2026-10-18)
+
+The repaired app build succeeded in 1.77 seconds. V38 rest and 1.05 static belly
+swell both booted the real arena in cloud Chromium at 390×844 portrait (software
+WebGL, device scale 1). There were zero JavaScript page errors and zero HTTP errors;
+the only console warnings were THREE.Clock deprecation and already-nonindexed
+geometry. Exactly one Puffer opponent was admitted. Local/session storage remained
+empty, no service worker controlled the page, and Retry reported a fresh bout.
+
+Genuine screenshots and source/product/asset pins are preserved under
+`docs/reviews/brine-puffer-native-preview-v38/`. Both captured front views show no
+obvious detached head or fin pieces. The model is relatively distant in the arena;
+this is not an all-angle containment test, animation acceptance or a quality pass.
+The 1.10 mode and dynamic attack animation were not browser-tested. No phone
+performance, human-playtest, full Noon lighting or Model Explorer parity is claimed.
+The empty-look/fixed-light/AgX-grade/no-LUT limitations still apply unchanged.
+
+The clean source used the pinned commit above plus the scoped preview config
+fixes recorded in the receipt. Export `src`, `scripts`, `vite`, `lint`, `test`,
+`budgets`, package.json, pnpm-lock.yaml, tsconfig.json, practice.html, the preserved
+approved-puffer inputs and public/assets/models/driftwood-fp/fp-arms.glb. Reuse
+installed dependency packages without installation, but rebind top-level
+@wildshard workspace links to the export. Also preserve the installed package-local
+node_modules symlink trees under src/{format,game,commons,sdk}; their relative
+workspace links then resolve inside the export and their third-party links reach
+the reused .pnpm store. The missing SDK-local @valibot/to-json-schema link caused
+one failed swell attempt before this was corrected. Preserve failed output folders
+and use new destinations. No global generation or other-enemy bake is required.
+
+The current config provides byte/hash, arm-clip and starter-effect modules virtually
+from actual copied files and official generators. It never writes the production
+boot tables. Rest/1.05 product and app commands remain the explicit CLI above;
+serve the resulting isolated app directory and click Start practice. The screenshot
+browser scripts and full failed/successful logs remain in the clean export's tmp;
+public-safe evidence receipts carry no private absolute paths.

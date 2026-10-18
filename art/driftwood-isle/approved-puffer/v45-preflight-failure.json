@@ -1,0 +1,12 @@
+{
+  "status": "failed before render; unaccepted",
+  "source": "build_puffer_lowpoly_v45_from_v9.py",
+  "actualRenderCount": 0,
+  "stage": "surface-preserving paint partition",
+  "volumeBefore": 1.1998005725945677,
+  "volumeAfter": 1.1998191549513093,
+  "nonManifoldEdgesBefore": 0,
+  "nonManifoldEdgesAfter": 0,
+  "reason": "Deformation made inherited polygons non-planar; partition triangulation changed the implied surface",
+  "resolution": "V46 explicitly triangulates deformed faces before declaring paint surface baseline; guard unchanged"
+}
