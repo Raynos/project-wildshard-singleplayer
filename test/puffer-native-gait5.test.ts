@@ -71,3 +71,30 @@ test('original numeric admission remains mandatory; normal caller route is uncha
   expect(pufferPreviewPoseRoute('gait5', './game/plugin/channelPrograms', '/candidate/src/pufferGaitContinuityPreview.ts', '/candidate')).toBeNull();
   expect(pufferPreviewPoseRoute('gait5', '@wildshard/game/plugin/channelPrograms', '/candidate/src/practiceContent.ts', '/candidate')).toBeNull();
 });
+
+test('a real rising hit cancels visual continuation and keeps the admitted hit response', () => {
+  const a = rig(), expected = rig(), animate = numericCreaturePose(pufferNativeGait4Clips()), direct = admittedPose(pufferNativeGait4Clips());
+  a.context.speed = .7; a.context.phase = .1; a.context.t = 1; animate(a.context);
+  a.context.speed = 0; a.context.t += a.context.dt; animate(a.context);
+  a.context.flinch = .3; a.context.t += a.context.dt; animate(a.context);
+  Object.assign(expected.context, { speed: 0, phase: .1, t: a.context.t, flinch: .3 }); direct(expected.context);
+  for (const name of ['finL', 'finR', 'rearL', 'rearR']) {
+    expect(a.bones[name]?.position.toArray()).toEqual(expected.bones[name]?.position.toArray());
+    expect(a.bones[name]?.rotation.toArray()).toEqual(expected.bones[name]?.rotation.toArray());
+  }
+});
+
+test('repeated pose timestamps do not advance the continuation; hit decay stays admitted', () => {
+  const a = rig(), animate = numericCreaturePose(pufferNativeGait4Clips());
+  a.context.t = 1; a.context.speed = .7; a.context.phase = .1; animate(a.context);
+  a.context.t += a.context.dt; a.context.speed = 0; animate(a.context);
+  const stopped = a.bones['finL']?.position.toArray();
+  for (let i = 0; i < 5; i++) animate(a.context);
+  expect(a.bones['finL']?.position.toArray()).toEqual(stopped);
+  for (const flinch of [.3, .3, .2, .1, 0]) {
+    a.context.flinch = flinch; a.context.t += a.context.dt; animate(a.context);
+    const expected = rig(); Object.assign(expected.context, { t: a.context.t, phase: .1, speed: 0, flinch });
+    admittedPose(pufferNativeGait4Clips())(expected.context);
+    expect(a.bones['finL']?.position.toArray()).toEqual(expected.bones['finL']?.position.toArray());
+  }
+});

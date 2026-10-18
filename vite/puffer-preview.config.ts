@@ -1,4 +1,4 @@
-import { pufferPreviewPoseRoute } from './puffer-preview-pose-route';
+import { pufferPreviewPoseRoute } from './puffer-preview-pose-route.ts';
 import { defineConfig } from 'vite';
 import { createHash } from 'node:crypto';
 import { copyFileSync, cpSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';

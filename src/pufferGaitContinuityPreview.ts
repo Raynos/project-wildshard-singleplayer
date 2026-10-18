@@ -6,7 +6,7 @@ const FEET = ['finL', 'finR', 'rearL', 'rearR'] as const;
 interface Foot { position: Vector3; rotation: Euler }
 interface Displayed { feet: Foot[]; bodyY: number; bodyRotation: Euler }
 interface Blend { from: Displayed; elapsed: number; duration: number }
-interface History { shown: Displayed; moving: boolean; stage: number; time: number; blend: Blend | null }
+interface History { shown: Displayed; moving: boolean; stage: number; flinch: number; time: number; blend: Blend | null }
 const copy = (c: AnimalRigContext): Displayed | null => {
   const body = c.bones['body']; if (body === undefined) return null;
   const feet: Foot[] = [];
@@ -27,8 +27,8 @@ export function numericCreaturePose(input: unknown): (context: AnimalRigContext)
     const stageValue: unknown = c.mem['puffer-st'];
     const stage = typeof stageValue === 'number' ? stageValue : 0;
     const moving = Math.abs(c.speed) > .001;
-    if (prior === undefined || !c.alive || c.deathT > 0 || !Number.isFinite(c.dt) || c.dt < 0 || c.dt > .25 || c.t < prior.time) {
-      histories.set(c.bones, { shown: target, moving, stage, time: c.t, blend: null }); return;
+    if (prior === undefined || !c.alive || c.deathT > 0 || c.flinch > prior.flinch || !Number.isFinite(c.dt) || c.dt < 0 || c.dt > .25 || c.t < prior.time) {
+      histories.set(c.bones, { shown: target, moving, stage, flinch: c.flinch, time: c.t, blend: null }); return;
     }
     const stopped = prior.moving && !moving;
     const enteredAttack = prior.stage !== 1 && stage === 1;
@@ -54,6 +54,6 @@ export function numericCreaturePose(input: unknown): (context: AnimalRigContext)
       }
       if (u >= 1) blend = null;
     }
-    histories.set(c.bones, { shown: copy(c) ?? target, moving, stage, time: c.t, blend });
+    histories.set(c.bones, { shown: copy(c) ?? target, moving, stage, flinch: c.flinch, time: c.t, blend });
   };
 }

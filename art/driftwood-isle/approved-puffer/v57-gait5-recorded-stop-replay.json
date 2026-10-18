@@ -1,0 +1,251 @@
+{
+  "status": "sampled telemetry replay, not full-cadence wrapper recording",
+  "sourceSha256": "fccdc04610e42e6d901705eab15fed191068ffb10fb08e0daf43e44e1c8fadef",
+  "samples": 1402,
+  "maximumAddedY": 0.018598250753250015,
+  "minimumFloorAboveActorY": 0.004000000189989805,
+  "stopWindow": [
+    {
+      "t": 19.929099999997764,
+      "floorAboveActorY": 0.010005897768223804,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.010728966669394845,
+      "stage": 0,
+      "speed": 0.1808572162440707
+    },
+    {
+      "t": 19.948800000000745,
+      "floorAboveActorY": 0.011450340017631788,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.004732968922603479,
+      "stage": 0,
+      "speed": 0.16941450647973477
+    },
+    {
+      "t": 19.98139999999851,
+      "floorAboveActorY": 0.012202801895455195,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.007120594138086995,
+      "stage": 0,
+      "speed": 0.16458562112682573
+    },
+    {
+      "t": 20.004800000000746,
+      "floorAboveActorY": 0.013318451979785095,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.005418189431441636,
+      "stage": 0,
+      "speed": 0.15639555222864487
+    },
+    {
+      "t": 20.039800000000746,
+      "floorAboveActorY": 0.01414516022771295,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.00799709180220116,
+      "stage": 0,
+      "speed": 0.15106538261173608
+    },
+    {
+      "t": 20.08,
+      "floorAboveActorY": 0.01414516022771295,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.00043488192497187494,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.10939999999851,
+      "floorAboveActorY": 0.016922422869242837,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.004348611831891965,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.143199999999254,
+      "floorAboveActorY": 0.02450322693164253,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.013250545635767696,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.17589999999851,
+      "floorAboveActorY": 0.04181741191280253,
+      "addedY": 0.004917671883209284,
+      "maxFootLocalDelta": 0.020616501374336203,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.205,
+      "floorAboveActorY": 0.044744883750468034,
+      "addedY": 0.007802365199496689,
+      "maxFootLocalDelta": 0.0146164030749656,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.24339999999851,
+      "floorAboveActorY": 0.0422708028308989,
+      "addedY": 0.005389236465373811,
+      "maxFootLocalDelta": 0.01715837569388851,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.279199999999253,
+      "floorAboveActorY": 0.0412709106199145,
+      "addedY": 0.0015476746319894466,
+      "maxFootLocalDelta": 0.010829657646894947,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.312699999999253,
+      "floorAboveActorY": 0.03944143930232258,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.002393096567288511,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.347099999997766,
+      "floorAboveActorY": 0.03903893520237034,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.384599999997764,
+      "floorAboveActorY": 0.0415289166517141,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.4185,
+      "floorAboveActorY": 0.040930836748657384,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.472199999999255,
+      "floorAboveActorY": 0.04287089002207267,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 1,
+      "speed": 0
+    },
+    {
+      "t": 20.494,
+      "floorAboveActorY": 0.042393711171826,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 1,
+      "speed": 0
+    }
+  ],
+  "resumeWindow": [
+    {
+      "t": 33.714699999999254,
+      "floorAboveActorY": 0.027306558464829322,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 2,
+      "speed": 0
+    },
+    {
+      "t": 33.766,
+      "floorAboveActorY": 0.02570978877338348,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 2,
+      "speed": 0
+    },
+    {
+      "t": 33.79930000000075,
+      "floorAboveActorY": 0.024620674664447506,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 0,
+      "speed": 0
+    },
+    {
+      "t": 33.82139999999851,
+      "floorAboveActorY": 0.023858456303401,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 0,
+      "speed": 0
+    },
+    {
+      "t": 33.85819999999926,
+      "floorAboveActorY": 0.022598250943246967,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.0,
+      "stage": 0,
+      "speed": 0
+    },
+    {
+      "t": 33.9015,
+      "floorAboveActorY": 0.022598250943246967,
+      "addedY": 0.018598250753250015,
+      "maxFootLocalDelta": 0.001515713858679435,
+      "stage": 0,
+      "speed": 0.3002999999895692
+    },
+    {
+      "t": 33.94539999999851,
+      "floorAboveActorY": 0.019995148514226457,
+      "addedY": 0.015995148324324852,
+      "maxFootLocalDelta": 0.02006462067302581,
+      "stage": 0,
+      "speed": 0.6076000000052154
+    },
+    {
+      "t": 33.968599999997764,
+      "floorAboveActorY": 0.01514217431781617,
+      "addedY": 0.011142174127850003,
+      "maxFootLocalDelta": 0.017962597482794086,
+      "stage": 0,
+      "speed": 0.6762113894873594
+    },
+    {
+      "t": 33.999199999999256,
+      "floorAboveActorY": 0.006875936497294788,
+      "addedY": 0.002875936307312879,
+      "maxFootLocalDelta": 0.04641174793867974,
+      "stage": 0,
+      "speed": 0.7
+    },
+    {
+      "t": 34.050300000000746,
+      "floorAboveActorY": 0.004000000189989805,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.07203898052186339,
+      "stage": 0,
+      "speed": 0.7
+    },
+    {
+      "t": 34.078199999999256,
+      "floorAboveActorY": 0.004000000189989805,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.021590471927910724,
+      "stage": 0,
+      "speed": 0.7
+    },
+    {
+      "t": 34.099300000000746,
+      "floorAboveActorY": 0.004000000189989805,
+      "addedY": 0.0,
+      "maxFootLocalDelta": 0.014647534167539573,
+      "stage": 0,
+      "speed": 0.7
+    }
+  ]
+}

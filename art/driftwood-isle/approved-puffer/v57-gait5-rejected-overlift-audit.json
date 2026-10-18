@@ -1,0 +1,31 @@
+{
+  "status": "sampled cross-frame prototype audit; no visual acceptance",
+  "wrapperSha256": "ade9c771d0367317e1d17b06b36d32bc44a1a76b70bc6f8ff2c7eb671ab394a4",
+  "cases": 288,
+  "frames": 22968,
+  "worstFloor": {
+    "y": 0.004000000189989694,
+    "bone": "finL",
+    "scenario": "stop",
+    "dt": 0.016666666666666666,
+    "seed": 0,
+    "timeOffset": 0,
+    "elapsed": 0.5666666666666667
+  },
+  "maximumAdditionalFootY": {
+    "lift": 0.11130206743204017,
+    "bone": "finR",
+    "scenario": "hit",
+    "dt": 0.016666666666666666,
+    "seed": 0.2,
+    "timeOffset": 1.3,
+    "elapsed": 0.65
+  },
+  "minimumTriangleAreaRatio": 0.48626154742149086,
+  "maximumCapToBellyError": 0.0,
+  "limitations": [
+    "flat model floor only",
+    "no yaw-turn/world-ragdoll/terrain contact",
+    "recorded wrapper dt uses existing pose delta"
+  ]
+}
