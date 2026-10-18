@@ -6,12 +6,18 @@ export interface RulerShard {
 /** A measured commit: each shard's custom % then. */
 export interface RulerPoint { revision:string; at:string; basis:string; shards:Record<string,number> }
 export interface RulerWaveState { id:string; startedAt:string; start:Record<string,number>; endedAt:string|null }
+/** Signed platform growth is charged once against each wave's shard cut. */
+export interface RulerNetLines {
+  wave:string; revision:string; customCut:number|null; platformGrowth:number; netCut:number|null;
+  layers:Record<string,{before:number;after:number;growth:number}>;
+}
 /** progress/shard-platform/ruler/ruler.json (shard-platform-ruler/1), G458 outcome-only. */
 export interface Ruler {
   schema:string; command:string; revision:string; committedAt:string; measuredAt:string; basis:string;
   plan:{lower:number;upper:number};
   m3:{cut:number;mustGo:number;fraction:number};
   m2:{ready:number;fail:number;unknown:number;total:number};
+  netLines?:RulerNetLines[];
   shards:RulerShard[]; native:string[];
   wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
   waves:RulerWaveState[]; history:RulerPoint[]; events:{at:string;label:string}[];

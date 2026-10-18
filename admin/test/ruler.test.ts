@@ -1,5 +1,11 @@
 import { expect, it } from 'vitest';
+import { netLineReport } from '../../scripts/shard-net-lines.mjs';
 import { SHARDS, nextRuler, readRuler, wavePercent } from '../../scripts/admin-data/ruler.mjs';
+
+const netLines = netLineReport({ sample: {customLines: 70, basis: 'source'} },
+  [{wave: 'W2', revision: 'sealed', record: 'M0', customLines: {sample: 100},
+    platformLines: {engine: 100, game: 100, format: 10, sdk: 100}}],
+  {engine: 110, game: 120, format: 15, sdk: 100});
 
 /** A minimal `node scripts/shard-platform.mjs --json` output: every legacy shard at `custom` lines of 1,000 legacy. */
 function raw(custom: Record<string, number>, basis = 'source', legacy = 1000): unknown {
@@ -7,7 +13,7 @@ function raw(custom: Record<string, number>, basis = 'source', legacy = 1000): u
     m3: { basis, customLines: custom[s.slug] ?? legacy * 0.9, legacyLines: legacy },
     gridReady: { verdict: s.slug === 'nalati-grasslands' ? 'fail' : 'unknown', criteria: { memory: { verdict: 'unknown' }, edgeProfile: { verdict: 'pass' } } },
   }]));
-  return { ...rows, _template: { m3: null }, _summary: { progress: {
+  return { ...rows, _template: { m3: null }, _summary: { netLines, progress: {
     m3: { fraction: 0.171, cut: 13746, mustGo: 80171.5 }, m2: { ready: 0, unknown: 5, total: 6 }, plan: { lower: 0.103, upper: 0.436 },
   } } };
 }
@@ -76,4 +82,15 @@ it('keeps a wave open when its displayed percentage rounds down to the goal', ()
   const ruler = nextRuler(raw({ 'far-reach': 1004, 'sunscar-dunes': 1000 }, 'source', 10000), null, at);
   expect(ruler.shards.find(shard => shard.slug === 'far-reach')?.pct).toBe(10);
   expect(ruler.wave.id).toBe('W1');
+});
+
+
+it('publishes format-inclusive signed net lines and refuses an incomplete measurement', () => {
+  const at = {revision: 'a'.repeat(40), committedAt: '2026-10-18T12:00:00Z', now: '2026-10-18T12:10:00Z'};
+  const measured = raw({});
+  const ruler = nextRuler(measured, null, at);
+  expect(ruler.netLines).toMatchObject([{customCut: 30, platformGrowth: 35, netCut: -5,
+    layers: {format: {before: 10, after: 15, growth: 5}}}]);
+  expect(readRuler(structuredClone(ruler)).netLines).toEqual(ruler.netLines);
+  expect(() => readRuler({...ruler, netLines: [{...netLines[0], layers: {}}]})).toThrow();
 });

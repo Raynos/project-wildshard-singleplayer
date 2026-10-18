@@ -15,12 +15,21 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import * as v from 'valibot';
 import { writePortShares } from '../gen-port-shares.mjs';
 
 export const RULER_PATH = 'progress/shard-platform/ruler/ruler.json';
 export const RULER_CHART = 'progress/shard-platform/ruler/custom-vs-hours.jpg';
 export const RULER_COMMAND = 'node scripts/shard-platform.mjs --json';
 export const RULER_SCHEMA = 'shard-platform-ruler/1';
+
+// Keep signed cuts: platform growth can exceed the custom shard reduction.
+const netLinesSchema = v.array(v.object({
+  wave: v.string(), revision: v.string(), customCut: v.nullable(v.number()),
+  platformGrowth: v.number(), netCut: v.nullable(v.number()),
+  layers: v.object(Object.fromEntries(['engine', 'game', 'format', 'sdk'].map(layer => [layer,
+    v.object({ before: v.number(), after: v.number(), growth: v.number() })]))),
+}));
 
 /** The six legacy shards, in wave order. */
 export const SHARDS = /** @type {const} */ ([
@@ -47,7 +56,7 @@ export const WAVES = [
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
  *   plan:{lower:number;upper:number};m3:{cut:number;mustGo:number;fraction:number};m2:{ready:number;fail:number;unknown:number;total:number};
- *   shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
+ *   netLines?:import('./ruler.mjs').RulerNetLines[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number;shards:string[];goal:number};
  *   waves:RulerWaveState[];history:RulerPoint[];events:{at:string;label:string}[]}} Ruler */
 
 /** @param {unknown} value @returns {value is Record<string,unknown>} */
@@ -92,7 +101,7 @@ export function nextRuler(raw, prev, at) {
     bases.push(str(row.m3.basis, `${slug}.m3.basis`));
     const grid = isObject(row.gridReady) ? row.gridReady : {};
     const verdict = grid.verdict === 'pass' || grid.verdict === 'fail' ? grid.verdict : 'unknown';
-    const criteria = isObject(grid.criteria) ? Object.fromEntries(Object.entries(grid.criteria).map(([k, v]) => [k, isObject(v) && typeof v.verdict === 'string' ? v.verdict : 'unknown'])) : {};
+    const criteria = isObject(grid.criteria) ? Object.fromEntries(Object.entries(grid.criteria).map(([k, criterion]) => [k, isObject(criterion) && typeof criterion.verdict === 'string' ? criterion.verdict : 'unknown'])) : {};
     return { slug, name, wave, goal, custom, legacy, pct: pct1((custom / legacy) * 100), grid: verdict, criteria };
   });
   const kinds = [...new Set(bases)];
@@ -138,6 +147,7 @@ export function nextRuler(raw, prev, at) {
     plan: { lower: num(progress.plan.lower, 'plan.lower'), upper: num(progress.plan.upper, 'plan.upper') },
     m3: { cut: num(progress.m3.cut, 'm3.cut'), mustGo: num(progress.m3.mustGo, 'm3.mustGo'), fraction: num(progress.m3.fraction, 'm3.fraction') },
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
+    netLines: v.parse(netLinesSchema, summary.netLines),
     shards, native,
     wave: { id: current.id, label: current.label, until: current.until, goal: current.goal, shards: [...current.shards],
       pct: wavePercent(currentState?.start ?? {}, now, current.shards, current.goal) },
@@ -162,6 +172,8 @@ export function readRuler(value) {
   if (!isObject(plan) || !isObject(m3) || !isObject(m2) || !isObject(wave)) throw new Error('Ruler: plan, m3, m2 and wave are objects');
   for (const key of ['lower', 'upper']) if (num(plan[key], `plan.${key}`) > 1) throw new Error(`Ruler: plan.${key} above 1`);
   num(m3.fraction, 'm3.fraction'); num(m2.total, 'm2.total'); num(wave.pct, 'wave.pct');
+  // Existing snapshots predate G496; newly measured snapshots always carry it.
+  if (value.netLines !== undefined) v.parse(netLinesSchema, value.netLines);
   if (!Array.isArray(value.history) || !Array.isArray(value.events) || !Array.isArray(value.native)) throw new Error('Ruler: history, events and native are arrays');
   return /** @type {Ruler} */ (/** @type {unknown} */ (value));
 }

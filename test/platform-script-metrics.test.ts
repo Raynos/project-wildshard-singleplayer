@@ -26,12 +26,14 @@ test('scenario metrics require matching actual section bytes and script identity
 });
 
 test('net lines subtract platform growth once and retain increases and missing evidence',()=>{
- const baseline=[{wave:'test',revision:'base',record:'source M0',customLines:{one:100,two:50},platformLines:{engine:100,game:50,sdk:20}}];
- const platform={engine:130,game:40,sdk:20};
+ const baseline=[{wave:'test',revision:'base',record:'source M0',customLines:{one:100,two:50},platformLines:{engine:100,game:50,format:10,sdk:20}}];
+ const platform={engine:130,game:40,format:15,sdk:20};
  const result=netLineReport({one:{customLines:120,basis:'output'},two:{customLines:10,basis:'source'}},baseline,platform)[0];
- expect(result).toMatchObject({customCut:20,platformGrowth:20,netCut:0,shards:{one:{cut:-20},two:{cut:40,basis:'source'}}});
+ expect(result).toMatchObject({customCut:20,platformGrowth:25,netCut:-5,layers:{format:{before:10,after:15,growth:5}},shards:{one:{cut:-20},two:{cut:40,basis:'source'}}});
  expect(netLineReport({one:{customLines:10,basis:'output'}},baseline,platform)[0]?.netCut).toBeNull();
  expect(platformLineFile('src/sdk/project.ts')).toBe(true);
+ expect(platformLineFile('src/format/questStory.ts')).toBe(true);
+ expect(platformLineFile('src/format/types.d.ts')).toBe(false);
  expect(platformLineFile('src/engine/look.glsl')).toBe(true);
  expect(platformLineFile('src/game/tests/example.ts')).toBe(false);
  expect(platformLineFile('src/game/example.test.ts')).toBe(false);

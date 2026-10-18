@@ -10,7 +10,8 @@
     "platformLines": {
       "engine": 67206,
       "game": 33346,
-      "sdk": 7240
+      "sdk": 7240,
+      "format": 7102
     }
   },
   {
@@ -24,7 +25,8 @@
     "platformLines": {
       "engine": 67897,
       "game": 35276,
-      "sdk": 7536
+      "sdk": 7536,
+      "format": 7749
     }
   }
 ]
