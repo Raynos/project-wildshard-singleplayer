@@ -6,6 +6,7 @@ import { strike } from '@wildshard/sdk/species';
 import * as layout from './kurganLayout.ts';
 import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingArena.ts';
 import { KING_ENCOUNTER, KING_REWARD, KING_TUNING } from './goldenKingFight.ts';
+import { GOLDEN_KING_POSE } from './goldenKingPose.ts';
 import { NALATI_STRIKE_ROWS } from './strikeProfiles.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -17,4 +18,5 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKing.generated
   profile: parseBossProfile(GOLDEN_KING_BOSS_PROFILE), encounter: KING_ENCOUNTER, reward: KING_REWARD, tuning: KING_TUNING,
 }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/strikeProfiles.generated.json'), jsonBytes(strikes));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/goldenKingPose.generated.json'), jsonBytes(GOLDEN_KING_POSE));
 writer.finish();

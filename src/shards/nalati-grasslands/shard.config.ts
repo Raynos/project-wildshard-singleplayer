@@ -16,6 +16,8 @@ import navigation from './data/navigation.generated.json' with { type: 'json' };
 import queryTerrain from './data/terrain.generated.json' with { type: 'json' };
 import lookGraphs from './data/lookGraphs.json' with { type: 'json' };
 import kokpar from './data/kokpar.generated.json' with { type: 'json' };
+import titanProgram from './behaviour/titan.generated.json' with { type: 'json' };
+import kingPose from './data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from './behaviour/admission.generated.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
@@ -32,7 +34,7 @@ const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grassland
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
 const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
-const programs = [kokpar.program, admission];
+const programs = [kokpar.program, admission, titanProgram];
 const programBytes = programs.reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
@@ -42,6 +44,6 @@ export default parseShardfile({ ...base,
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
-  clientChannels: [...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels],
+  clientChannels: [...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels],
   modes: ecology.modes, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

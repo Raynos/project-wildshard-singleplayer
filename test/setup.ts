@@ -67,7 +67,8 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
-const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/rows');
+const { installNalatiSpeciesForTests, prepareGoldenKing } = await import('../src/shards/nalati-grasslands/species/rows');
+prepareGoldenKing((await import('../src/shards/nalati-grasslands/data/goldenKingPose.generated.json')).default.programs);
 installNalatiSpeciesForTests();
 // Nalati's species bodies are an offline bake the page fetches: tests read the committed file (species/bodies.ts)
 const { provideNalatiBodies } = await import('../src/shards/nalati-grasslands/species/bodies');

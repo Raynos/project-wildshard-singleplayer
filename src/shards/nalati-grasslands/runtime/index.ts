@@ -3,7 +3,7 @@ import { prepareSabre } from './weapons/mountedSword';
 import { prepareSpear } from './weapons/javelinSpear';
 import { prepareRifleModel } from '../models/gear';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
+import { NALATI_SPECIES, NALATI_LOOKS, prepareGoldenKing } from '../species/rows';
 import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
 import type { AchievementDef } from '@wildshard/game/achievements';
 import { renderFinds } from '@wildshard/game/bag/bag';
@@ -90,6 +90,8 @@ export class NalatiPlugin extends ShardPlugin {
     shell.overhead.push(grass.group, particles.group);
     shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
+    if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
+    prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     await prepareStormTitan(ctx.product);
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);

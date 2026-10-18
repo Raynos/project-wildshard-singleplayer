@@ -1,45 +1,8 @@
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-
+// Shipped pose at c623a5be8, frozen for the ordered-row migration.
 import * as THREE from 'three';
-import { nalatiBody } from './bodies';
-
-
-
-
-
-
-
-/**
- * The Golden King — Nalati's first boss (docs/design/nalati/elites-and-bosses.md §2, plan row B13; mockups
- * art/nalati-grasslands/round-2/5-bosses/boss-1…4, round-1/3-enemies/enemy-5-kurgan-king.png). A Saka king risen in the great
- * kurgan: gold scale armour over a withered body, a tall pointed red-felt headdress hung with gold plaques (the Issyk
- * "Golden Man"), a red cloak with a gold hem, a golden akinakes (the short sword) in the right hand, eyes of gold fire.
- * Humanoid custom rig like the drowned sailor (sailor.ts): body · spine · chest · head · crown · cape · per side arm
- * sh / el / hand and leg hip / knee / foot. The `crown` and `cape` bones exist so the fight can take them off: a bone
- * scaled to ~0 collapses its skin (phase III tears off the cloak; shooting the headdress off drops it).
- *
- * This file is the BODY only: the rig, the paint and the poses. The brain lives with the fight
- * (`src/shards/nalati-grasslands/combat/goldenKing.ts` sets `bindGoldenKing`), because the King's AI is the boss script — phases, the
- * shield, the adds and the hazards all read the arena. The species' `think` just forwards to it.
- *
- * `Animal.mem` (numbers only) is the contract between the brain and the poses:
- *   floorY   absolute world y of the floor he stands on (the chamber is not on the terrain: yOffset follows it)
- *   lift     extra metres over the floor (lying in the coffin / standing in it)
- *   pose     0 lying in the coffin · 1 standing · 2 dead (crumbling)
- *   rise     0..1 lying → sitting → standing (advanced by the brain; eased here)
- *   kneel    0..1 target: down on one knee (the phase II shield, a stun, the headdress shot off)
- *   act      what the attack timer (`animal.startAttack`) is: 1 akinakes strike · 2 sunburst · 3 roar (phase change) · 4 tear the cloak
- *   strike   which strike of the combo (0..3): the cut alternates forehand / backhand, the last is the wide one
- *   cape / crown   1 worn, 0 gone
- *   raise    0..1 the sword held high (the sunburst's charge, the phase II kneel)
- */
-
-export const GOLDEN_KING = 'golden-king';
-
+import type { AnimalRigContext as RigAnimCtx } from '../../src/engine/entities/animalRig';
+import { lookAngles, smooth01, bump, step, clamp } from '../../src/engine/entities/species/rigs';
+import { terrainHeight as heightAt } from '../../src/engine/world/terrainHeight';
 type Side = 'L' | 'R';
 type KingBones = Record<'body' | 'spine' | 'chest' | 'head' | 'crown' | 'cape' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
 interface KingMem extends Record<string, number | undefined> {
@@ -47,25 +10,10 @@ interface KingMem extends Record<string, number | undefined> {
   cape?: number; crown?: number; raise?: number; kneelS?: number; raiseS?: number; floorS?: number; deadT?: number;
 }
 
-/** the fight script's brain (src/shards/nalati-grasslands/combat/goldenKing.ts) — the species forwards its 10 Hz tick and its damage rule here
- *  (the gold scale takes half from arrows, the face full, a shield nothing; the script knows which) */
-export interface GoldenKingPorts {
-  think: (a: Animal, c: ThinkCtx) => void;
-  act: (a: Animal, c: ThinkCtx) => void;
-  damageMul: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number;
-}
-const kingBrains = new WeakMap<Animal, GoldenKingPorts>();
-export function bindGoldenKing(a: Animal, ports: GoldenKingPorts): void { kingBrains.set(a, ports); }
-
-/** the King's body: the variant's baked lofts (`generators/goldenKingBody.ts` -> `species/bodies.ts`) */
-const buildKing = (v: VariantDef): AnimalSpecies => nalatiBody('goldenKing', v);
-
-// ── animation ────────────────────────────────────────────────────────────────────────────
-
 const R = (b: THREE.Bone, x: number, y: number, z: number) => b.rotation.set(x, y, z);
 const L = THREE.MathUtils.lerp;
 
-function animateKing(c: RigAnimCtx): void {
+export function animateKing(c: RigAnimCtx): void {
   const b = c.bones as KingBones, t = c.t, m = c.mem as KingMem, a = c.animal, dt = c.dt;
   // ── where he stands: the chamber floor (not the terrain) + the coffin lift ──
   // the floor under him, smoothed (the brain samples it at 10 Hz: plinth, sand drifts, fallen beams); dead, he crumbles
@@ -178,37 +126,3 @@ function animateKing(c: RigAnimCtx): void {
   }
 }
 
-// ── registration ─────────────────────────────────────────────────────────────────────────
-
-function thinkKing(a: Animal, c: ThinkCtx): void {
-  const m = a.mem as KingMem;
-  if (m.init !== 1) {
-    m.init = 1; m.pose ??= 0; m.rise ??= 0; m.cape ??= 1; m.crown ??= 1;
-    m.floorY ??= c.heightAt(a.position.x, a.position.z);
-  }
-  kingBrains.get(a)?.think(a, c);
-}
-
-export const GOLDENKING_SPECIES: SpeciesDef = {
-  lockable: true,
-  rigContract: { skeleton: 'goldenKing.v1', clips: [], sockets: ['body', 'head'] },
-  kind: GOLDEN_KING,
-  label: engineString('s_5e6771dbba8c'),
-  fur: NO_FUR,
-  rig: 'custom',
-  aggressive: true,
-  walkSpeed: 1.5,
-  chargeDamage: 14,
-  // no corpseFade: a fade clones the painterly material (a new program at the victory); the fight sinks + hides him
-  eyeGlow: [0.9, 0.55, 0.12], eyeGlowIntensity: 0.18,
-  sounds: { call: 'king_call', hurt: 'king_hurt', callEvery: [18, 40] }, // its own voice (NALATI-MERGE A1), not Pine's bear / Driftwood's sailor
-  variants: [
-    { id: 'king', label: engineString('s_5e6771dbba8c'), weight: 1, rarity: 'legendary', scale: [1.22, 1.22], hp: 2400 },
-  ],
-  build: buildKing,
-  animate: animateKing,
-  tick: 'always',
-  act: (a, c) => { kingBrains.get(a)?.act(a, c); },
-  think: thinkKing,
-  damageMul: (a, hitPoint, dir) => kingBrains.get(a)?.damageMul(a, hitPoint, dir) ?? 1,
-};

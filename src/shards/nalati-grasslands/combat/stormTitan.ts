@@ -1,3 +1,5 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import { NALATI_STRIKES, sampleArena } from './strikes';
 import { app } from '@wildshard/engine/app/runtime';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
@@ -9,7 +11,7 @@ import { setEliteDamage } from '../runtime/eliteBrain';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Player } from '@wildshard/engine/player/Player';
-import { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
@@ -27,7 +29,7 @@ import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
+import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
@@ -360,9 +362,12 @@ export class StormTitanFight implements BossScript {
   private readonly wall: THREE.Mesh[]; private readonly wallMat: FxMaterial[];
   private wallK = 0; private sealed = false;
   private immuneT = 0; private introBolt = false;
+  private decisionT = 0;
+  private readonly author: ReturnProgram;
 
   constructor(private readonly ctx: TitanCtx, private readonly host: TitanFightHost) {
     const scene = ctx.game.scene;
+    this.author = ReturnProgram.page(titanProgram, ctx.game.levelScope);
     this.body = new TitanBody(scene);
     this.spearRing = new GroundTell(scene, 'ring', new THREE.Color(2.6, 2.0, 0.8));
     this.spearFork = new GroundTell(scene, 'ring', new THREE.Color(2.8, 2.6, 1.6));
@@ -430,7 +435,7 @@ export class StormTitanFight implements BossScript {
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(CAIRN.x, heightAt(CAIRN.x, CAIRN.z + 3), CAIRN.z + 3); }
 
   reset(phase: number): void {
-    this.phase = phase;
+    this.phase = phase; this.decisionT = 0;
     this.hp = Math.round(this.data.HEART_HP * (this.data.TITAN_PHASES[phase]?.at ?? 1));
     this.fighting = false; this.invuln = false; this.victoryT = -1; this.introBolt = false;
     const b = this.body;
@@ -521,8 +526,11 @@ export class StormTitanFight implements BossScript {
     if (fighting && this.victoryT < 0) {
       this.trailT -= dt;
       if (this.trailT <= 0) { this.trailT = 0.1; this.trail.push({ x: p.x, z: p.z }); if (this.trail.length > 12) this.trail.shift(); }
-      if (this.phase !== 1) this.updateSpear(dt, t);
-      if (this.phase === 1) this.updateRiders(dt, t);
+      this.decisionT += dt;
+      const thinkDt = this.decisionT >= .1 - 1e-9 ? this.decisionT : 0;
+      if (thinkDt > 0) this.decisionT = 0;
+      if (this.phase !== 1) this.updateSpear(dt, t, thinkDt);
+      if (this.phase === 1 && thinkDt > 0) this.updateRiders(thinkDt);
       if (this.phase === 2) this.updateChains(dt, t);
     }
     this.spearRing.setTime(t); this.spearFork.setTime(t);
@@ -601,44 +609,31 @@ export class StormTitanFight implements BossScript {
 
   // ── I · the Sky Spear ──
 
-  private updateSpear(dt: number, t: number): void {
+  private updateSpear(dt: number, t: number, thinkDt: number): void {
     const b = this.body, p = this.host.player.position;
-    this.spearT += dt;
-    switch (this.spear) {
-      case 'idle':
-        b.bend += (0 - b.bend) * Math.min(1, dt * 2);
-        b.raise += (0.2 - b.raise) * Math.min(1, dt * 2);
-        this.spearCd -= dt;
-        if (this.spearCd <= 0 && this.chainLeft === 0) { this.spear = 'aim'; this.spearT = 0; this.spearAt.set(p.x, 0, p.z); }
-        break;
-      case 'aim': {
-        b.raise += (1 - b.raise) * Math.min(1, dt * 4);
-        // the ring tracks you until 0.5 s before the strike
-        if (this.spearT < this.data.SPEAR_AIM - this.data.SPEAR_LOCK) { const k = Math.min(1, dt * 5); this.spearAt.x += (p.x - this.spearAt.x) * k; this.spearAt.z += (p.z - this.spearAt.z) * k; }
-        const pulse = 0.6 + 0.4 * Math.sin(t * (this.spearT > this.data.SPEAR_AIM - this.data.SPEAR_LOCK ? 30 : 12));
-        this.spearRing.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R, 0.95 * pulse);
-        this.spearFork.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R * (0.3 + 0.7 * (1 - this.spearT / this.data.SPEAR_AIM)), 0.8 * pulse);
-        if (this.spearT >= this.data.SPEAR_AIM) {
-          this.spear = 'strike'; this.spearT = 0;
-          this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z);
-          this.spearRing.hide(); this.spearFork.hide();
-          this.bolt(this.spearAt.x, this.spearAt.z);
-          if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < this.data.SPEAR_R && sampleArena(NALATI_STRIKES.spear, this.spearAt, p, () => { this.host.hurt(this.data.SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); }, app.physics)) this.host.throwRider();
-          if (this.phase === 2) this.ignite(this.spearAt.x, this.spearAt.z);
-        }
-        break;
+    if (thinkDt > 0) {
+      const answer = this.author.project('spear', { dt: thinkDt, phase: this.phase, mode: ['idle', 'aim', 'strike', 'stuck'].indexOf(this.spear),
+        t: this.spearT, cd: this.spearCd, x: this.spearAt.x, z: this.spearAt.z, px: p.x, pz: p.z,
+        chain: this.chainLeft, aim: this.data.SPEAR_AIM, lock: this.data.SPEAR_LOCK, stuck: this.data.SPEAR_STUCK }, app.rng.stream('ai'));
+      const n = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing Titan spear decision'); return value; };
+      const mode = (['idle', 'aim', 'strike', 'stuck'] as const)[n('mode')]; if (mode === undefined) throw new Error('Invalid Titan spear mode');
+      this.spear = mode; this.spearT = n('t'); this.spearCd = n('cd'); this.spearAt.x = n('x'); this.spearAt.z = n('z');
+      if (n('strike') === 1) {
+        this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z); this.bolt(this.spearAt.x, this.spearAt.z);
+        if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < this.data.SPEAR_R && sampleArena(NALATI_STRIKES.spear, this.spearAt, p, () => { this.host.hurt(this.data.SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); }, app.physics)) this.host.throwRider();
+        if (this.phase === 2) this.ignite(this.spearAt.x, this.spearAt.z);
       }
-      case 'strike':
-        b.raise += (0 - b.raise) * Math.min(1, dt * 8);
-        b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT > 0.45) { this.spear = 'stuck'; this.spearT = 0; if (this.phase === 0) this.host.feed(this.data.TITAN_LINES.spearStuck); }
-        break;
-      case 'stuck':
-        b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT >= this.data.SPEAR_STUCK) { this.spear = 'idle'; this.spearT = 0; this.spearCd = this.phase === 2 ? 6 + app.rng.stream('ai').next() * 2 : 2 + app.rng.stream('ai').next() * 1.5; }
-        break;
-      default: break;
+      if (n('stuck') === 1) this.host.feed(this.data.TITAN_LINES.spearStuck);
     }
+    // Continuous pose and telegraph drawing observes the last 10 Hz decision.
+    if (this.spear === 'idle') { b.bend += (0 - b.bend) * Math.min(1, dt * 2); b.raise += (.2 - b.raise) * Math.min(1, dt * 2); }
+    else if (this.spear === 'aim') {
+      b.raise += (1 - b.raise) * Math.min(1, dt * 4);
+      const pulse = .6 + .4 * Math.sin(t * (this.spearT > this.data.SPEAR_AIM - this.data.SPEAR_LOCK ? 30 : 12));
+      this.spearRing.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R, .95 * pulse);
+      this.spearFork.ring(this.spearAt.x, this.spearAt.z, this.data.SPEAR_R * (.3 + .7 * (1 - this.spearT / this.data.SPEAR_AIM)), .8 * pulse);
+    } else { b.bend += (1 - b.bend) * Math.min(1, dt * 5); if (this.spear === 'strike') b.raise += (0 - b.raise) * Math.min(1, dt * 8); }
+    if (this.spear !== 'aim') { this.spearRing.hide(); this.spearFork.hide(); }
   }
 
   // ── II · the Three Winds ──
@@ -672,7 +667,7 @@ export class StormTitanFight implements BossScript {
     for (const l of this.lanes) l.hide();
   }
 
-  private updateRiders(dt: number, _t: number): void {
+  private updateRiders(dt: number): void {
     const p = this.host.player.position;
     this.chargeCd -= dt;
     let aiming = false;
@@ -688,37 +683,16 @@ export class StormTitanFight implements BossScript {
         if (this.stormRiders.length === 0) { this.domeBroken = true; this.stunT = this.data.STUN_T; this.body.uni.uFlash.value = 1; }
         continue;
       }
-      r.t += dt;
       if (r.mode === 'aim' || r.mode === 'charge') aiming = true;
-      switch (r.mode) {
-        case 'circle': {
-          r.th += dt * 12 / 26;
-          m['tx'] = p.x + Math.sin(r.th) * 26; m['tz'] = p.z + Math.cos(r.th) * 26; m['v'] = 12; m['turn'] = 2.8;
-          r.lane.hide();
-          break;
-        }
-        case 'aim': {
-          m['tx'] = r.x0; m['tz'] = r.z0; m['v'] = 0.5; m['turn'] = 5;
-          r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, 0.9 * (0.65 + 0.35 * Math.sin(r.t * 18)));
-          if (r.t >= this.data.LANE_T) { r.mode = 'charge'; r.t = 0; r.hit = false; }
-          break;
-        }
-        case 'charge': {
-          m['tx'] = r.x1; m['tz'] = r.z1; m['v'] = 21; m['turn'] = 6;
-          r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, Math.max(0, 0.5 - r.t * 0.3));
-          if (!r.hit && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 3.4) { r.hit = true; if (sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(this.data.CHARGE_DMG, 'Wind Charge — swerve out of the lane'); }, app.physics)) this.host.throwRider(); }
-          if (Math.hypot(r.x1 - a.position.x, r.z1 - a.position.z) < 4 || r.t > 3.2) { r.mode = 'open'; r.t = 0; r.lane.hide(); }
-          break;
-        }
-        case 'open': {
-          // past you: its flank is open (the sabre ×3) while it wheels
-          const dx = r.x1 - r.x0, dz = r.z1 - r.z0, l = Math.hypot(dx, dz) || 1;
-          m['tx'] = r.x1 + (dx / l) * 14; m['tz'] = r.z1 + (dz / l) * 14; m['v'] = 7; m['turn'] = 2;
-          if (r.t >= this.data.FLANK_T) { r.mode = 'circle'; r.t = 0; r.th = Math.atan2(a.position.x - p.x, a.position.z - p.z); }
-          break;
-        }
-        default: break;
-      }
+      const answer = this.author.project('rider', { dt, px: p.x, pz: p.z, ax: a.position.x, az: a.position.z,
+        mode: ['circle', 'aim', 'charge', 'open'].indexOf(r.mode), t: r.t, theta: r.th, hit: Number(r.hit),
+        x0: r.x0, z0: r.z0, x1: r.x1, z1: r.z1, lane: this.data.LANE_T, flank: this.data.FLANK_T });
+      const n = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing Titan rider decision'); return value; };
+      const mode = (['circle', 'aim', 'charge', 'open'] as const)[n('mode')]; if (mode === undefined) throw new Error('Invalid Titan rider mode');
+      r.mode = mode; r.t = n('t'); r.th = n('theta'); r.hit = n('hit') === 1;
+      m['tx'] = n('x'); m['tz'] = n('z'); m['v'] = n('speed'); m['turn'] = n('turn');
+      if (n('show') === 1) r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, n('alpha')); else r.lane.hide();
+      if (n('hurt') === 1 && sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(this.data.CHARGE_DMG, 'Wind Charge — swerve out of the lane'); }, app.physics)) this.host.throwRider();
     }
     // one charge at a time
     if (!aiming && this.chargeCd <= 0) {
@@ -936,9 +910,6 @@ export interface TitanPlay {
   params: URLSearchParams;
 }
 
-/** Authored Titan presentation over the shared BossBrain clock. */
-export class StormTitanBrain extends Boss {}
-
 export class StormTitan {
   private readonly data = titanRows();
   readonly fight: StormTitanFight;
@@ -990,31 +961,20 @@ export class StormTitan {
       storm: () => this.ctx.weather.weather.stormActive,
       bolt: (x, y, z) => { this.ctx.weather.fx.bolt({ x, y, z, kind: 'ground' }); this.ctx.weather.weather.flash = 1; },
     });
-    this.ui = new BossBar();
-    const def: BossDef = {
-      ...this.data.TITAN_ENCOUNTER,
-      reward: {
-        ...this.data.TITAN_REWARD,
-        model: () => naizagaiModel(),
-        grant: () => {
-          if (this.naizagai) play.upgradeSabre?.(this.naizagai);
-          play.ownSkin?.(this.data.TITAN_SKIN.id);
-          play.toast(this.data.TITAN_SKIN.toast);
-        },
-      },
-    };
-    this.boss = new StormTitanBrain(def, this.fight, {
-      scene: game.scene, player, camera: game.camera, renderer: game.renderer, spareLight: this.spareLight,
-      lockInput: (on) => { play.setWeaponsEnabled(!on); player.moveScale = on ? 0 : 1; },
+    const encounter = installBossEncounter({ definition: this.data.TITAN_ENCOUNTER, reward: this.data.TITAN_REWARD }, () => this.fight, {
+      game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,
+      reward: { model: () => naizagaiModel(), grant: () => {
+        if (this.naizagai) play.upgradeSabre?.(this.naizagai);
+        play.ownSkin?.(this.data.TITAN_SKIN.id); play.toast(this.data.TITAN_SKIN.toast);
+      } },
+      lockInput: on => { play.setWeaponsEnabled(!on); player.moveScale = on ? 0 : 1; },
       respawn: (pos, yaw) => { this.respawnMounted(pos, yaw); play.refill(); },
-      addInteractable: (it) => { play.interactables.push(it); },
-      removeInteractable: (it) => { const i = play.interactables.indexOf(it); if (i !== -1) play.interactables.splice(i, 1); },
       skipHeld: () => this.skipEnter || this.skipTouch || app.input.held('jump') || app.input.held('use'),
       toast: play.toast, feed: play.feed,
-      ...(play.music ? { music: play.music } : {}),
-      ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
-    }, this.ui, 'nalati-grasslands', play.persistence);
-    app.encounters.boss('storm-titan', this.boss, game.levelScope);
+      ...(play.persistence === undefined ? {} : { persistence: play.persistence }),
+      ...(play.music ? { music: play.music } : {}), ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
+    });
+    this.ui = encounter.ui; this.boss = encounter.boss;
     play.interactables.push(this.prompt);
     if (this.boss.rewardTaken) play.upgradeSabre?.(this.naizagai);
     // the horse refuses the storm wall and the fire line

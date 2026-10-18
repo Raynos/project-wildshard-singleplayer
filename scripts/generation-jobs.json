@@ -354,6 +354,9 @@
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/stormTitanFight.ts",
         "src/shards/nalati-grasslands/generators/stormTitanGeometry.ts",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/sdk",
+        "src/format",
         "src/sdk/bake/source-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
@@ -362,11 +365,13 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
-        "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json"
+        "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titan.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
-        "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json"
+        "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titan.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": []
@@ -419,6 +424,8 @@
         "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
         "src/shards/nalati-grasslands/generators/kurganLayout.ts",
         "src/shards/nalati-grasslands/generators/goldenKingArena.ts",
+        "src/shards/nalati-grasslands/generators/goldenKingPose.ts",
+        "src/sdk/clientChannels.ts",
         "src/shards/nalati-grasslands/generators/goldenKingFight.ts",
         "src/shards/nalati-grasslands/generators/strikeProfiles.ts",
         "src/sdk/bake/source-loader.mjs",
@@ -434,11 +441,13 @@
       "outputs": [
         "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
         "src/shards/nalati-grasslands/data/goldenKing.generated.json",
+        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
         "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
         "src/shards/nalati-grasslands/data/goldenKing.generated.json",
+        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
         "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
       ],
       "platform": "portable",

@@ -18,7 +18,7 @@ import type { Bow } from '@wildshard/game/weapons/Bow';
 import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KurganEntrance } from '../world/types';
-import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
+import { GOLDEN_KING, bindGoldenKing } from '../species/rows';
 import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';

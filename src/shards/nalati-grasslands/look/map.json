@@ -26,6 +26,7 @@
     "data/chapterStory.json",
     "boot/poiPaint.json",
     "behaviour/admission.as",
+    "behaviour/titan.as",
     "data/ecology.json",
     "data/ecology.generated.json"
   ],
