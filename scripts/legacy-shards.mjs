@@ -100,6 +100,11 @@ export function compareLegacyInventory(before, after, changed, message) {
     if (next !== undefined && (next.primary !== row.primary || next.source !== row.source)) failures.push(`${slug}: immutable legacy provenance changed`);
     const touched = changed.filter(file => file.startsWith(`src/shards/${slug}/`));
     if (next === undefined) continue;
+    if (before.sealed) {
+      const added = new Set([...Object.keys(next.files), ...touched.map(file => file.slice(`src/shards/${slug}/`.length))]
+        .filter(file => !Object.hasOwn(row.files, file)));
+      for (const file of added) failures.push(`${slug}/${file}: sealed legacy copies refuse new files, including crash fixes`);
+    }
     if (!fix && (touched.length > 0 || JSON.stringify(row.files) !== JSON.stringify(next.files) || JSON.stringify(row.compatibility) !== JSON.stringify(next.compatibility))) failures.push(`${slug}: frozen feature edit refused; crash fixes require Legacy-Crash-Fix: <reason>`);
   }
   return failures;

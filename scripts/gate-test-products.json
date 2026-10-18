@@ -200,5 +200,6 @@
   "test/native-runtime-plan.test.ts": [
     "far-reach",
     "sunscar-dunes"
-  ]
+  ],
+  "test/legacy-seal.test.ts": []
 }
