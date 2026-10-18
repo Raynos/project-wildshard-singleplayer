@@ -6,7 +6,7 @@
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns a red gate; G496 shrink-only custom sections, attribution SHAs to the coordinator first; G498 legacy copies take crash fixes only.
 
-**Batches:** twentieth 9f77d61bd pushed and LIVE (9f77d61bd-mved29kd, 16:54 Cancun; CI, smoke, deploy green). Twenty-first all landed (B10 b4684bed9, B4 08ffac96d, B7 b8b5a6bbc, boss 22b54b699, C9 dda2b863a, canopy 5d380ae82, NM2 0a765219d closed) and baking; freeze until PUSHED. **Twenty-first:** sealed 2ba606e3d (Nine + Nalati maps), pushed. Twenty-second window open, cutoff 19:30 Cancun, no landing order. Since 17:18 (G506/G507 mega-build): −1,938 shard lines in 7 commits (Nalati −1,446, Nine −470, Pine −22; platform −108), about 2,500 lines/h against ~400 before; elites 062a09f731 (−204) + budget fix 1529554259 in it.
+**Batches:** twentieth 9f77d61bd LIVE (16:54 Cancun). Twenty-first sealed 2ba606e3d, pushed. Twenty-second window open to 19:30 Cancun, no landing order. Mega-build (G506/G507) 17:18 to 18:50: −6,284 shard lines from commit bodies (Nalati −3,482, Nine −2,713, DW −67, Pine −22), ~4,000 lines/h against ~400 before. Reds fixed by sp-x7: nine-layout pins 1284abfc7, generation order 1040cea94; open: root types from f6735966af (sp-x8 fixing).
 
 **P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
