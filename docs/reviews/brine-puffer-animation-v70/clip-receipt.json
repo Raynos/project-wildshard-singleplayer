@@ -1,0 +1,41 @@
+{
+  "fps": 25,
+  "interpolation": false,
+  "speed_change": false,
+  "clips": [
+    {
+      "path": "public/review-evidence/puffer-animation-v70/diagnostic-stop-attack-recovery.mp4",
+      "source_sha256": "64ded1b1739479ac2c80f1b68d5d11e46776ec3021b783f405d10a84bb9a0025",
+      "source_frames": [
+        610,
+        765
+      ],
+      "bytes": 479958,
+      "sha256": "5e9e280a26ae6807579352be1e21697b03695b9b65db1b24b81a33b14612a781",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "6.240000",
+        "nb_read_frames": "156"
+      },
+      "label": "DIAGNOSTIC 1x cloud - post/shadows OFF"
+    },
+    {
+      "path": "public/review-evidence/puffer-animation-v70/normal-hits-death.mp4",
+      "source_sha256": "6c975937476c07b317d3426068433e2862b4076dfb3aeda1587145d98cef99c8",
+      "source_frames": [
+        925,
+        1198
+      ],
+      "bytes": 614991,
+      "sha256": "4e1f23c520a46498a84ce925b4e00e6df63891bb9750cc8d295465fdf0018ddc",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "10.960000",
+        "nb_read_frames": "274"
+      },
+      "label": "NORMAL 1x cloud - low rendered cadence"
+    }
+  ]
+}

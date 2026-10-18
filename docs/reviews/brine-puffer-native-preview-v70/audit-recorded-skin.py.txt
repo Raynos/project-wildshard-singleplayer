@@ -1,0 +1,55 @@
+"""Audit V70 weighted fins against captured actual bone world matrices (read only)."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import numpy as np
+
+SOURCE_SHA = 'b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762'
+CAPTURE_SHAS = {'34be82af15fc0ef8e15f3afef76767021b7de100890919579fb5828fa9e913ee', 'f6a929b49ef06c6ed05b3b55cbf8168717a560c91a8434c61564bd13ffbab72c'}
+p = argparse.ArgumentParser()
+p.add_argument('native'); p.add_argument('capture'); p.add_argument('output')
+a = p.parse_args()
+def read_pinned(name, pins):
+    raw = Path(name).read_bytes(); sha = hashlib.sha256(raw).hexdigest()
+    if sha not in pins: raise ValueError('Input pin mismatch')
+    return json.loads(raw), sha
+native, source_sha = read_pinned(a.native, {SOURCE_SHA})
+capture, capture_sha = read_pinned(a.capture, CAPTURE_SHAS)
+bones = native['bones']; names = [b['name'] for b in bones]; belly_index = names.index('belly')
+parts = []
+for part in native['parts']:
+    if not part['name'].startswith('Volumetric connected '): continue
+    points = np.array(part['positions']).reshape(-1, 3)
+    ids = np.array(part['skinIndices']).reshape(-1, 4)
+    weights = np.array(part['skinWeights']).reshape(-1, 4)
+    tris = points.reshape(-1, 3, 3)
+    area = np.linalg.norm(np.cross(tris[:, 1]-tris[:, 0], tris[:, 2]-tris[:, 0]), axis=1)
+    if not np.all(area > 1e-10): raise ValueError('Degenerate source triangle')
+    parts.append((part['name'], points, ids, weights, area))
+minimum_y = float('inf'); min_area = float('inf'); cap_error = 0.; worst = None; frames = 0
+for row in capture['capture']['samples']:
+    if not row.get('bones'): continue
+    shown_bones = {b['name']: np.array(b['world']).reshape(4, 4).T for b in row['bones']}
+    if set(shown_bones) != set(names): raise ValueError('Bone identity mismatch')
+    for name, points, ids, weights, area in parts:
+        displayed = np.zeros_like(points)
+        for bone_index, definition in enumerate(bones):
+            matrix = shown_bones[definition['name']]
+            weight = np.where(ids == bone_index, weights, 0).sum(axis=1)
+            displayed += ((points-np.array(definition['pos'])) @ matrix[:3, :3].T + matrix[:3, 3]) * weight[:, None]
+        low = float(displayed[:, 1].min() - 900.)
+        if low < minimum_y:
+            minimum_y = low; worst = {'t': row['t'], 'stage': row['stage'], 'clock': row['clock'], 'alive': row['alive'], 'part': name}
+        matrix = shown_bones['belly']
+        attached = (points-np.array(bones[belly_index]['pos'])) @ matrix[:3, :3].T + matrix[:3, 3]
+        protected = points[:, 1] > .4
+        cap_error = max(cap_error, float(np.linalg.norm(displayed[protected]-attached[protected], axis=1).max()))
+        tris = displayed.reshape(-1, 3, 3)
+        displayed_area = np.linalg.norm(np.cross(tris[:, 1]-tris[:, 0], tris[:, 2]-tris[:, 0]), axis=1)
+        min_area = min(min_area, float((displayed_area/area).min()))
+    frames += 1
+result = {'schema': 'wildshard.puffer.v70-recorded-skin-audit.v1', 'nativeSha256': source_sha, 'rawCaptureSha256': capture_sha, 'frames': frames, 'arenaFloorY': 900, 'minimumFinClearance': minimum_y, 'maximumCapToBellyError': cap_error, 'minimumTriangleAreaRatio': min_area, 'worstFloorSample': worst, 'passed': minimum_y >= .00399 and cap_error < 1e-9 and min_area > 1e-6, 'scope': 'Recorded actual app bone world matrices applied to exact weighted V70 fin vertices; sampled flat practice arena only, no terrain, phone, or visual acceptance.'}
+Path(a.output).write_text(json.dumps(result, indent=2)+'\n')
+print(json.dumps(result))
+if not result['passed']: raise SystemExit(1)

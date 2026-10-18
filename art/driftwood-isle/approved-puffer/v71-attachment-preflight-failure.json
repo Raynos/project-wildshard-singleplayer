@@ -1,0 +1,10 @@
+{
+  "status": "failed actual preflight before export/render",
+  "builderSha256": "653f2be77e3cd2302f7cbd4735e6d957ec97a722edfdf155b2dc659ffc0927ec",
+  "exitCode": 1,
+  "framesProduced": 0,
+  "baselineIdentityPassed": true,
+  "error": "Attachment burial worsened by over1mm: Volumetric connected finR",
+  "geometryAccepted": false,
+  "next": "exact failed-query diagnostic; original guard remains hard"
+}

@@ -1,0 +1,25 @@
+{
+  "candidate": "V70",
+  "sourceCheckpoint": "207c95b5e13de559734610d06761eec1e1ae3ab6",
+  "normalRenderer": true,
+  "dimensions": [
+    390,
+    844
+  ],
+  "transform": "WebP encoding only; no crop, resize or retouch",
+  "images": [
+    {
+      "file": "normal-retry.webp",
+      "sha256": "176d336febe7e89c36bfc5351b61754fbed7e02f9ff1e1cdf939b50a64de85c3",
+      "originalFile": "v70-gait5-normal-combat-final.png",
+      "originalSha256": "ccb3ff206b59d1a54bde59872ce2537d42c56ed31d170f0d2d79e83948acd8ef"
+    },
+    {
+      "file": "normal-local-reward.webp",
+      "sha256": "ab76aed7c8670c8e3e4e01dd63d25349d481e0543001b5da1c24291b681781ca",
+      "originalFile": "v70-gait5-normal-combat-after.png",
+      "originalSha256": "2ea7ed3a64fc1ed53bbe4e5027877a7b4cd658e5fe51ebc1a6506ebf5487b1ea"
+    }
+  ],
+  "scope": "Real normal renderer screenshots from captured combat/Retry sequence; cloud1x, not phone2x proof"
+}

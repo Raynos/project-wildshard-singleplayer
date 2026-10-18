@@ -1,0 +1,19 @@
+{
+  "schema": "wildshard.puffer.v70-recorded-skin-audit.v1",
+  "nativeSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+  "rawCaptureSha256": "f6a929b49ef06c6ed05b3b55cbf8168717a560c91a8434c61564bd13ffbab72c",
+  "frames": 1452,
+  "arenaFloorY": 900,
+  "minimumFinClearance": 0.004000000189989805,
+  "maximumCapToBellyError": 0.0,
+  "minimumTriangleAreaRatio": 0.6855475457179567,
+  "worstFloorSample": {
+    "t": 0.17910000000149012,
+    "stage": 0,
+    "clock": 0.30000000000000004,
+    "alive": true,
+    "part": "Volumetric connected finL"
+  },
+  "passed": true,
+  "scope": "Recorded actual app bone world matrices applied to exact weighted V70 fin vertices; sampled flat practice arena only, no terrain, phone, or visual acceptance."
+}

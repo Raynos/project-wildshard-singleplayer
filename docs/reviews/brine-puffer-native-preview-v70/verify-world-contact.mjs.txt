@@ -1,0 +1,39 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import zlib from 'node:zlib';
+import { Bone, Skeleton, SkinnedMesh, BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute, Vector3, Matrix4 } from 'three';
+const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+const load = (p,pin) => { const b=fs.readFileSync(p); if(sha(b)!==pin)throw Error(`Pin mismatch ${p}`);return JSON.parse(b); };
+const root='art/driftwood-isle/approved-puffer/';
+const sources=[['V70',root+'unaccepted-v70-motion-rig1-native.json','b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762'],['V57',root+'unaccepted-v57-motion-rig1-native.json','7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb']];
+const capture=load('tmp/v70-gait5-normal-combat-capture.json','34be82af15fc0ef8e15f3afef76767021b7de100890919579fb5828fa9e913ee');
+const metadata=load('tmp/puffer-native-preview/v70-gait5/pack/metadata.json','55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673');
+const packed=fs.readFileSync('tmp/puffer-native-preview/v70-gait5/pack/payload.bin');if(sha(packed)!=='2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15')throw Error('Packed pin');const bytes=zlib.inflateSync(packed);
+const output={schema:'wildshard.puffer.v70-world-contact-verification.v1',sourceCheckpoint:'207c95b5e13de559734610d06761eec1e1ae3ab6',cleanEngineBaseline:'c4339d90a93ccc289540e3a72c1e9cbf221d98fb',rawTelemetrySha256:'34be82af15fc0ef8e15f3afef76767021b7de100890919579fb5828fa9e913ee',floor:{colliderTop:900,renderedPlane:899.97,gridStrokes:900.015,evidence:'TrainingArena.ts: Y=900; floor mesh localY=-.03; box centerY=Y-2 plus half-height2; registry floor()=>Y. PracticeCreature uses at.y for heightAt/floorBelow.'},skinning:{implementation:'Installed Three.js SkinnedMesh.applyBoneTransform, exact Float32 vertex/weight channels, name-validated capture bone world matrices and actual bind inverses.',worldFormula:'meshWorld * bindMatrixInverse * sum(weight * boneWorld * boneInverse * bindMatrix * point); attached meshWorld and bindMatrixInverse cancel; factory bindMatrix is identity.',packedBuffersVerified:false},sourcePins:{},results:[]};
+for(const file of ['src/engine/practice/TrainingArena.ts','src/engine/entities/AnimalFactory.ts','src/engine/entities/animalRig.ts','src/game/practice/PracticeCreature.ts','node_modules/three/src/objects/SkinnedMesh.js'])output.sourcePins[file]=sha(fs.readFileSync(file));
+for(const [candidate,file,pin] of sources){
+ const native=load(file,pin), names=native.bones.map(b=>b.name), bones=native.bones.map(d=>{const b=new Bone();b.name=d.name;return b;});
+ native.bones.forEach((d,i)=>{const parent=native.bones.findIndex(p=>p.name===d.parent);bones[i].position.fromArray(d.pos);if(parent>=0){bones[i].position.sub(new Vector3(...native.bones[parent].pos));bones[parent].add(bones[i]);}});
+ const mesh=new SkinnedMesh(new BufferGeometry());mesh.add(bones[0]);mesh.updateMatrixWorld(true);mesh.bind(new Skeleton(bones));
+ if(!mesh.bindMatrix.equals(new Matrix4()))throw Error('Unexpected bind matrix');
+ native.bones.forEach((d,i)=>{const expected=new Matrix4().makeTranslation(...d.pos).invert();if(!mesh.skeleton.boneInverses[i].equals(expected))throw Error('Bind inverse not negative absolute bind');});
+ const parts=[];for(const [index,p]of native.parts.entries()){
+  if(candidate==='V70'){
+   if(JSON.stringify(metadata.bodies[0].bones)!==JSON.stringify(native.bones))throw Error('Metadata bones differ');
+   const data=metadata.bodies[0].hard[index];for(const [key,width,offset]of [['positions',3,data.offsets[0]],['skinWeights',4,data.offsets[3]]])for(let j=0;j<p[key].length;j++)if(bytes.readFloatLE(offset+j*4)!==Math.fround(p[key][j]))throw Error('Packed scalar differs');
+   for(let j=0;j<p.skinIndices.length;j++)if(bytes.readUInt16LE(data.offsets[2]+j*2)!==p.skinIndices[j])throw Error('Packed bone mapping differs');
+  }
+  if(!p.name.startsWith('Volumetric connected '))continue;
+  const g=new BufferGeometry();g.setAttribute('position',new Float32BufferAttribute(p.positions,3));g.setAttribute('skinIndex',new Uint16BufferAttribute(p.skinIndices,4));g.setAttribute('skinWeight',new Float32BufferAttribute(p.skinWeights,4));parts.push({name:p.name,g});
+ }
+ if(candidate==='V70')output.skinning.packedBuffersVerified=true;
+ const result={candidate,nativeSha256:pin,sameCapturedActorAndBoneWorldTransforms:true,frames:0,minimumColliderClearance:Infinity,minimumRenderedPlaneClearance:Infinity,worst:null,byPart:{},sampleFloors:[]};
+ for(const row of capture.capture.samples){if(!row.bones)continue;if(row.bones.length!==bones.length||row.bones.some((b,i)=>b.name!==names[i]))throw Error('Capture bone identity/order differs');row.bones.forEach((b,i)=>bones[i].matrixWorld.fromArray(b.world));let frameFloor=Infinity;
+  for(const part of parts){mesh.geometry=part.g;let low=Infinity;for(let i=0;i<part.g.getAttribute('position').count;i++){const point=new Vector3().fromBufferAttribute(part.g.getAttribute('position'),i);mesh.applyBoneTransform(i,point);low=Math.min(low,point.y-900);}
+   result.byPart[part.name]=Math.min(result.byPart[part.name]??Infinity,low);frameFloor=Math.min(frameFloor,low);if(low<result.minimumColliderClearance){result.minimumColliderClearance=low;result.minimumRenderedPlaneClearance=low+.03;result.worst={t:row.t,stage:row.stage,clock:row.clock,alive:row.alive,hp:row.hp,flinch:row.flinch,part:part.name,actorPosition:row.position};}
+  }result.sampleFloors.push({t:row.t,clearance:frameFloor});result.frames++;
+ }
+ output.results.push(result);
+}
+output.comparison={minimumClearanceDeltaV70MinusV57:output.results[0].minimumColliderClearance-output.results[1].minimumColliderClearance,maximumPerFrameClearanceDifference:Math.max(...output.results[0].sampleFloors.map((r,i)=>Math.abs(r.clearance-output.results[1].sampleFloors[i].clearance))),interpretation:'Same captured V70 pose/actor transforms applied to both frozen rest meshes. Both penetrate during the existing world-root hit tilt. This comparison is geometry isolation, not a separate V57 gameplay capture.'};
+fs.writeFileSync('tmp/v70-world-contact-verification.json',JSON.stringify(output,null,2)+'\n');console.log(JSON.stringify({...output,results:output.results.map(({sampleFloors,...rest})=>rest)},null,2));

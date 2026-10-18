@@ -593,7 +593,13 @@ while unseen:
                 if neighbor in unseen:unseen.remove(neighbor);stack.append(neighbor);component.append(neighbor)
     components.append(component)
 main_component=max(components,key=len)
-if len(main_component)<len(base_faces)*.75:raise RuntimeError('Cannot identify baseline main hull component')
+# Identity is the frozen main core, not an arbitrary share of a consolidated group.
+expected_bounds=[[-.5929591655731201,.5929591655731201],[-.5450000166893005,.9181897640228271],[.07079359143972397,1.25]]
+component_used={i for fi in main_component for i in base_faces[fi]}
+component_bounds=[[min(base_vertices[i][k]for i in component_used),max(base_vertices[i][k]for i in component_used)]for k in range(3)]
+component_volume=signed_volume([tuple(v)for v in base_vertices],[base_faces[i]for i in main_component])
+if len(main_component)!=1018 or any(abs(a-b)>1e-7 for aa,bb in zip(component_bounds,expected_bounds)for a,b in zip(aa,bb)) or abs(component_volume-1.0561822674269123)>1e-9:raise RuntimeError('Frozen baseline main hull identity mismatch')
+(out/'baseline-hull-identity.json').write_text(json.dumps({'nativeSha256':'3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc','triangles':len(main_component),'bounds':component_bounds,'signedVolume':component_volume,'componentSizes':sorted([len(c)for c in components],reverse=True),'status':'exact frozen native main-core identity checked; no geometry changed'},indent=2))
 base_faces=[base_faces[i]for i in main_component]
 base_used={i for face in base_faces for i in face}
 base_bvh=BVHTree.FromPolygons(base_vertices,base_faces,all_triangles=True)

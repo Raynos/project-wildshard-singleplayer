@@ -1,0 +1,285 @@
+{
+  "start": "2026-10-18T23:39:31.300Z",
+  "errors": [],
+  "httpErrors": [],
+  "preview": {
+    "schema": "wildshard.puffer.native-preview.v1",
+    "candidate": "V70",
+    "mode": "gait5",
+    "rigAdmission": {
+      "profile": "v70-rig1-gait5",
+      "originalSourceSha256": "3d0606971754f7788e899fe31214748fd38f43b38b363f2d2b291be588de48dc",
+      "equivalenceSha256": "5cb9e2b3128f5b87ef4ed7c89816c324d79bd57bc6b947d25b23c46bea567b06",
+      "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+      "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0"
+    },
+    "visualAdapter": "puffer-gait5-continuity",
+    "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+    "source": "art/driftwood-isle/approved-puffer/unaccepted-v70-motion-rig1-native.json",
+    "measurementSha256": "a923ca6c0ca4ba7d853da3b871d536e2b2a3106202a21c3673f22a8eaa6c6f27",
+    "sourceSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+    "metadataSha256": "55f188d53546dd06537c12ba64a29a36b0569a1d72930146605aaa0a43b86673",
+    "dimensionsSha256": "aac576c8ab54b45ef2beff42ceee591aeb41e70ac764fb1911bc51f7e59fd39e",
+    "colliderAcceptance": false,
+    "visualAcceptance": false,
+    "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+    "packedSha256": "2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15",
+    "bodyFile": "/assets/driftwood-isle/puffer-native-2ffa9b3db66bb27a6a4b9a75abee22569b8aeab0e5e8a6fb5d68e38e5474ea15.bin",
+    "sourceHash": "e199cd76bde6fbd0c6203281f8d63d93f1ec251d2b7be993dad776bbdc0a3063"
+  },
+  "title": "Puffer V70 \u00b7 UNACCEPTED WIP",
+  "before": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "op",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ],
+    "camera": [
+      -9.183871101522737e-07,
+      901.6803995916007,
+      -0.33694014458223703
+    ],
+    "t": 0.0135
+  },
+  "after": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": false,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": true
+      },
+      {
+        "name": "op",
+        "enabled": false,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": false,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": false,
+        "renderToScreen": false
+      }
+    ],
+    "camera": [
+      -2.2737919976129743e-06,
+      901.6906411877768,
+      -0.3369443632768309
+    ],
+    "t": 7.63339999999851
+  },
+  "status": "Practice bout. Health and rewards stay in this page.",
+  "end": "2026-10-18T23:40:35.866Z",
+  "schema": "wildshard.puffer.v70-gait5-capture.v1",
+  "sourceCheckpoint": "207c95b5e13de559734610d06761eec1e1ae3ab6",
+  "cleanEngineBaseline": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "rawTelemetrySha256": "f6a929b49ef06c6ed05b3b55cbf8168717a560c91a8434c61564bd13ffbab72c",
+  "compactTelemetrySha256": "80a20a84e495dc41f4ea799ba10ebb3abdb1af19f751877a419d04961f5b570f",
+  "videoSha256": "64ded1b1739479ac2c80f1b68d5d11e46776ec3021b783f405d10a84bb9a0025",
+  "videoFile": "v70-gait5-no-post-video/page@ac1faa4a2a961f7118e6b84d00cd0eb5.webm",
+  "rawTelemetryFile": "v70-gait5-no-post-capture.json",
+  "originalCaptureScriptSha256": "18c0412ae9a9b4372c38113824150b3721afdecaa02384410f2b99de79aae3a4",
+  "portableCaptureScriptSha256": "de0aa6e7ab1960f28a9969bf60fa68f4ccd0a5f872b2b9bbdf2d08cdb5dfc1eb",
+  "actualRafSamples": 1452,
+  "phaseSampleCounts": {
+    "no-post": 1413,
+    "baseline": 39
+  },
+  "sampleRangeSeconds": [
+    0.00010000000149011611,
+    58.382
+  ],
+  "medianIntervalSeconds": 0.033299999997019825,
+  "p95IntervalSeconds": 0.06020000000297898,
+  "stateTransitions": [
+    {
+      "t": 0.00010000000149011611,
+      "stage": 0,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0.7
+    },
+    {
+      "t": 22.53139999999851,
+      "stage": 1,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 24.73169999999553,
+      "stage": 2,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 27.016,
+      "stage": 0,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 27.12519999999553,
+      "stage": 0,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0.22158866840157332
+    },
+    {
+      "t": 27.43710000000149,
+      "stage": 1,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 29.63239999999851,
+      "stage": 2,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 31.93860000000149,
+      "stage": 0,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 32.0395,
+      "stage": 0,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0.21462452569795487
+    },
+    {
+      "t": 32.32810000000149,
+      "stage": 1,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 34.54419999999553,
+      "stage": 2,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 36.81219999999553,
+      "stage": 0,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 36.95089999999851,
+      "stage": 0,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0.29050000000000004
+    },
+    {
+      "t": 49.52919999999553,
+      "stage": 1,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 51.81119999999553,
+      "stage": 2,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 54.01739999999851,
+      "stage": 0,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    },
+    {
+      "t": 54.13679999999702,
+      "stage": 0,
+      "clock": 0.1,
+      "alive": true,
+      "hp": 45,
+      "speed": 0.2772000000104308
+    },
+    {
+      "t": 58.1535,
+      "stage": 1,
+      "clock": 0,
+      "alive": true,
+      "hp": 45,
+      "speed": 0
+    }
+  ],
+  "terminal": 0,
+  "coverage": "Cloud app-root / only; mounted Site prefix not covered",
+  "encodedFrameWarning": "Encoded video frames may repeat actual rendered poses; rAF samples are counted separately",
+  "visualAcceptance": false,
+  "phonePerformanceAcceptance": false
+}

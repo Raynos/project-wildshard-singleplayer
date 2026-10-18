@@ -1,0 +1,12 @@
+{
+  "status": "audit-only correction following actual preflight failure",
+  "previousSource": "art/driftwood-isle/approved-puffer/rejected_v71_component_percentage_guard.py",
+  "previousSha256": "b1f80eb618f218ebe0fe1eddecbafe9ef91df9e7b342ad7fe4a9f875ed52b37a",
+  "correctedSource": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v71_from_v9.py",
+  "correctedSha256": "653f2be77e3cd2302f7cbd4735e6d957ec97a722edfdf155b2dc659ffc0927ec",
+  "geometryChanged": false,
+  "replacement": "Exact frozen native main-core triangle count1018, bounds and signed volume replace invalid75% group-share assumption",
+  "sourceCoreVolume": 1.0561822674269123,
+  "expectedCoreTriangles": 1018,
+  "runtimeOrVisualValidated": false
+}

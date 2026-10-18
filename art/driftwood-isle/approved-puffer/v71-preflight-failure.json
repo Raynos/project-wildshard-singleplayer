@@ -1,0 +1,24 @@
+{
+  "status": "failed before native export, scene save or render",
+  "builderSha256": "b1f80eb618f218ebe0fe1eddecbafe9ef91df9e7b342ad7fe4a9f875ed52b37a",
+  "exitCode": 1,
+  "framesProduced": 0,
+  "guard": "Cannot identify baseline main hull component",
+  "cause": "Arbitrary75% triangle-share threshold invalid for native belly group containing separate socket supports and spines; main component1018/1470 triangles, remaining components192,192,20 and eight6-triangle spines",
+  "baselineHullNativeBounds": [
+    [
+      -0.5929591655731201,
+      0.5929591655731201
+    ],
+    [
+      0.07079359143972397,
+      1.25
+    ],
+    [
+      -0.5450000166893005,
+      0.9181897640228271
+    ]
+  ],
+  "proposedRepair": "Read-only component identity against frozen core bounds and volume; no geometry change or lowered geometric clearance guard",
+  "geometryAccepted": false
+}
