@@ -12,7 +12,7 @@
 
 **Lanes (G505: 5 Codex building + sp-x7 deploy; the next two finishers, likely sp-x6 and sp-x5, are not restarted; Opus 0 until Mon 10-19):** C1 Nine sp-x5 · C4/NM2 sp-x1 · C9 Nalati sp-x8 · C6 boss fights sp-x9 · C6-C8 + ruler sp-x6 · C2/C3 + P0 sp-x4 · maps sp-x10 · sp-x7 deploy only (G485/G493).
 
-**Pace (wildshard-v 10-18, decided rules):** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); per batch only quick checks of what it touched plus the push gate, heavy proofs at milestones (AGENTS.md, G415); a red gate gets sp-x7's fast revert (G493). Lane preamble updated.
+**Pace (wildshard-v 10-18, decided rules):** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); G506 (Jake): a batch lands on types + lint + focused tests + the push gate, nothing else; heavy proofs once per W3 milestone or grid deploy (lanes/common.md); a red gate gets sp-x7's fast revert (G493).
 
 **Perf:** drive fix e2141156c default-off until a device reading; Simulator p95 34–35 ms on all roads. PF1 closed: Pine 59.88 fps, p95 16.8 ms.
 
