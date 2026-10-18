@@ -41,7 +41,8 @@
     "behaviour/returns.as",
     "data/cargoScenes.generated.json",
     "data/cargoBlobs.generated.json",
-    "data/fixedBlobs.generated.json"
+    "data/fixedBlobs.generated.json",
+    "manifest.json"
   ],
   "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",
   "style": {

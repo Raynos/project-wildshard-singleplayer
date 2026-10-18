@@ -1,0 +1,194 @@
+{
+  "sourceTree": "8fe9b32e2f29e57a92dd5ff70e18795f717c3449",
+  "sourceParent": "019ee764b7f9903642f1b757fa2d61d19af2e948",
+  "commitParent": "019ee764b7f9903642f1b757fa2d61d19af2e948",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2559,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "1b7e6548364de9c9f1878f7357b9c7659a9b227af9d5e71daf641ac0016f6e9c",
+      "inputFiles": 290,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "1b7e6548364de9c9f1878f7357b9c7659a9b227af9d5e71daf641ac0016f6e9c",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "sunscar-dunes": {
+      "inputHash": "0100f68a5198596262f40ef7151e6613bcf5f83c7dd282d2dce1890848d86cf5",
+      "inputFiles": 123,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "0100f68a5198596262f40ef7151e6613bcf5f83c7dd282d2dce1890848d86cf5",
+        "pixelHash": "0ac8178b0a3fa38cd2c2a852d06456764fd3d2ec1606792c7b4bbfd5e4fa33dc",
+        "image": "/assets/sunscar-dunes/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 27322
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phoneProof": {
+    "bakeSource": "8fe9b32e2f29e57a92dd5ff70e18795f717c3449",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "driftwood-isle",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 7869,
+        "entryMs": 7903,
+        "gameplayMs": 8101,
+        "framesStartMs": 8102,
+        "framesCompleteMs": 8526
+      },
+      "gameplayFrames": {
+        "initial": 1,
+        "final": 13
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 8526,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 13,
+      "drawnFrame": 13,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "driftwood-isle",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 187,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "e2141156cd96a7dd2e5e1b007db9a8fae84b5324",
+      "owner": "sp-x6",
+      "summary": "Map-neutral drive resource preparation repair and owner label",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "4ed9c9a0fd1227e221cbfc4673fce06ddd10b05b",
+      "owner": "sp-x5",
+      "summary": "Map-neutral narrow source ruler correction",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "717aaf29ac17de60d6e0496743c0ed2d2e5ebe10",
+      "owner": "sp-x5",
+      "summary": "DW C9/C2 headless proof map and declared toon render binding",
+      "mapShards": [
+        "driftwood-isle"
+      ],
+      "newDirectFacts": {
+        "driftwood-isle": [
+          "manifest.json"
+        ]
+      }
+    },
+    {
+      "sha": "326442ec7199f00947b4e93788a2fce62ae8b70b",
+      "owner": "sp-x1",
+      "summary": "DW C5 Captain service effects and authored spots admission",
+      "mapShards": [
+        "driftwood-isle"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "987934f9f151d223da4b3dc06f1bc72ae30d68b3",
+      "owner": "sp-x8",
+      "summary": "Sunscar Z8 declared skirt scene replaces native glue",
+      "mapShards": [
+        "sunscar-dunes"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "019ee764b7f9903642f1b757fa2d61d19af2e948",
+      "owner": "sp-x7",
+      "summary": "Map-neutral required fifth grid smoke workflow leg",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "sunscar-dunes": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "manifest.json"
+    ],
+    "sunscar-dunes": []
+  }
+}
