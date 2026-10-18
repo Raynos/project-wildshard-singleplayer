@@ -23,13 +23,10 @@ export const LOD_NEAR = 35;
 /** (E283, Jake's pick: the distance LODs) past this a third draw, the 2 × 6 dot (24 tris, half the far one's) */
 export const LOD_DOT = 80;
 /** a 0.27 m × 0.48 m body hung 0.3 m under its hook, its red glow, the switches and its 0.5 m bound round a centre 0.1 m under the pivot */
-const LANTERN_ROW: HangingLanternRow = {
-  radius: 0.27, halfHeight: 0.24, drop: 0.3, glow: { color: 0xff4a4a, w: 0.5, h: 0.5, power: 0.18, spill: 0.3 },
-  near: LOD_NEAR, dot: LOD_DOT, bound: 0.5, boundDrop: 0.1, names: { near: 'lanterns-near', far: 'lanterns-far', dot: 'lanterns-dot' },
-};
+const LANTERN_SHAPE = { radius: 0.27, halfHeight: 0.24 };
 
 /** the lantern's lathe: `rings` bands down the body, `segs` around; caps + tassel only on the near one */
-export function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry { return lanternLathe(LANTERN_ROW, rings, segs, dressing); }
+export function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry { return lanternLathe(LANTERN_SHAPE, rings, segs, dressing); }
 
 /**
  * A lantern string strung from `a` to `b` (E281, the fabric pass): one hook every `spacing` metres (a region's density: the
@@ -46,7 +43,8 @@ export const lanternAudioPositions: typeof hangingLanternPositions = hangingLant
 
 /** the paper lanterns: their placements, seeds and glow emitters, culled into the model's near / far / dot draws */
 export class Lanterns extends HangingLanterns {
-  constructor() {
-    super(lentLook('nine-lantern'), LANTERN_ROW);
+  constructor(row: Pick<HangingLanternRow, 'glow' | 'drop'>) {
+    super(lentLook('nine-lantern'), { ...LANTERN_SHAPE, ...row, near: LOD_NEAR, dot: LOD_DOT, bound: 0.5, boundDrop: 0.1,
+      names: { near: 'lanterns-near', far: 'lanterns-far', dot: 'lanterns-dot' } });
   }
 }

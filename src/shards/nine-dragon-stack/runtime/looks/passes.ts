@@ -583,7 +583,7 @@ export const HAZE_PASS = {
   programs: {
     hazeMarch: {
       uniforms: { uNF: { v2: [0.1, 1000] }, uHz: { v4: [0, 0, 0, 1] }, uHz2: { v4: [0, 0, 0, 1] } },
-      links: ['uGroundY', 'uLpVolA', 'uLpMinA', 'uLpInvA', 'uLpVolB', 'uLpMinB', 'uLpInvB', 'uLpGain', 'uLpSky', 'uLpAmb', 'uLpSpec', 'uLpCut', 'uLpAmber'],
+      links: ['uGroundY', 'uLpMax', 'uLpVolA', 'uLpMinA', 'uLpInvA', 'uLpVolB', 'uLpMinB', 'uLpInvB', 'uLpGain', 'uLpSky', 'uLpAmb', 'uLpSpec', 'uLpCut', 'uLpAmber'],
       depth: 'tDepth',
       camera: { uInvProj: 'projectionInverse', uCamWorld: 'world', uNF: 'nearFar' },
       pack: { uHz: ['density', 'maxDist', 'height', 'drift'], uHz2: ['forward', { param: 'time' }, 'cap', 'thr'] },

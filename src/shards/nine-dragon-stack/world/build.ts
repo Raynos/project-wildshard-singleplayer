@@ -198,7 +198,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   }
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
-  const paper = new Lanterns();
+  const paper = new Lanterns(fixed.lantern);
   nd.look.mat = mat;
   nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
@@ -370,9 +370,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
   progress(0.9, 'light volume');
   const light = installLight({
-    pools: fixed.lightPools,
+    caps: entryCaps,
     u: shared.u, pipe: { glow: glowUniforms(), grade: gradeUniforms() }, lanterns: paper.emitters, ctxEmitters: ctx.emitters,
-    signs: [...neonSigns.emitters, ...signs.lights], windows: ctx.fd.windows,
+    signs: [...neonSigns.emitters, ...signs.lights],
   });
   await light.ready;
   progress(0.95, 'culling');

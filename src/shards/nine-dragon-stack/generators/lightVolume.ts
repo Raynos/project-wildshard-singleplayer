@@ -1,16 +1,4 @@
-// lightVolume — light pools baked into a small 3D irradiance texture (SHARD-PLATFORM M3, ex Nine Dragon's
-// look/light/lightvol.ts, lab P6 "light", E169): every architecture program samples it per pixel — one trilinear fetch
-// per volume, any number of lights, no per-pixel light loop, no extra draw. A light is { at, color, k, r, cut }:
-// irradiance k·color / (1 + d²/r²), tapered to 0 at cut·r (a smooth window, so the volume's bounds never show), colours
-// linear. Each cell is RGBA8: rgb = √(E / scale) (perceptual: the 8 bits go to the dim pool edges), a = the
-// luminance-weighted mean light direction's "up" share (0.5 + 0.5·ŷ). Every light splats only the cells within cut·r.
-// The shader's sampling GLSL and its uniforms are the caller's.
-//
-//   const { tex } = bakeLightVolume(lights, { min, max, cell: 1 }, 12, uMin.value, uInv.value);
 import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, RGBAFormat, UnsignedByteType, type Vector3 } from 'three';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { workSlice } from '@wildshard/engine/core/workSlice';
-
 /** A pool light: where, its linear colour, its strength k, its falloff radius r and its hard reach in units of r. */
 export interface PoolLight {
   at: Vector3;
@@ -30,36 +18,9 @@ export interface VolumeBox { min: Vector3; max: Vector3; cell: number }
 /** One bake's numbers: the lights that touched the box, its cells, its time (ms) and the brightest irradiance. */
 export interface BakeStats { lights: number; cells: number; ms: number; maxE: number }
 
-/** A 1³ placeholder volume (no light, "up" share ½) until the bake lands. */
-export function blankLightVolume(): Data3DTexture {
-  const t = new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1);
-  t.needsUpdate = true;
-  return t;
-}
-
-/** Bake `lights` into one volume (irradiance stored as √(E / scale)); returns the texture and fills min / inv (uvw = (p − min) · inv). */
-export function bakeLightVolume(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): { tex: Data3DTexture; stats: BakeStats } {
-  const steps = bakeSteps(lights, box, scale, min, inv);
-  for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
-}
-
-/**
- * `bakeLightVolume` in engine work slices (op-hitch29: Nine Dragon's two volumes were a ~55 ms task when a grid cell builds
- * them on the road, in play): the same texels in the same order, the stretch ended between lights, a light's z slabs and
- * the packing's rows whenever the slice is due. `stats.ms` is the wall time, yields included.
- */
-export async function bakeLightVolumeSliced(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): Promise<{ tex: Data3DTexture; stats: BakeStats }> {
-  const steps = bakeSteps(lights, box, scale, min, inv), slice = workSlice();
-  for (;;) {
-    const r = steps.next();
-    if (r.done === true) return r.value;
-    if (slice.due()) await slice.yield();
-  }
-}
-
 /** the bake, pausing (`yield`) after every light's z slab and every 4096 packed cells */
 function* bakeSteps(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): Generator<void, { tex: Data3DTexture; stats: BakeStats }> {
-  const t0 = diagnosticNow();
+  const t0 = 0;
   const nx = Math.ceil((box.max.x - box.min.x) / box.cell) + 1;
   const ny = Math.ceil((box.max.y - box.min.y) / box.cell) + 1;
   const nz = Math.ceil((box.max.z - box.min.z) / box.cell) + 1;
@@ -124,5 +85,11 @@ function* bakeSteps(lights: readonly PoolLight[], box: VolumeBox, scale: number,
   // texel centres: cell i sits at min + i·cell, so uvw = (p − min + cell/2) / (n·cell)
   min.copy(box.min).subScalar(c / 2);
   inv.set(1 / (nx * c), 1 / (ny * c), 1 / (nz * c));
-  return { tex, stats: { lights: used, cells: N, ms: diagnosticNow() - t0, maxE } };
+  return { tex, stats: { lights: used, cells: N, ms: 0 - t0, maxE } };
+}
+
+/** Run the unchanged splat and RGBA8 packing at author time. */
+export function bakeLightVolume(lights: readonly PoolLight[], box: VolumeBox, scale: number, min: Vector3, inv: Vector3): { tex: Data3DTexture; stats: BakeStats } {
+  const steps = bakeSteps(lights, box, scale, min, inv);
+  for (;;) { const result = steps.next(); if (result.done === true) return result.value; }
 }

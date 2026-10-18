@@ -15,21 +15,15 @@
 //  - GLSL (`LIGHTVOL_GLSL`): `vec3 poolLight(vec3 wp, vec3 n)` = the irradiance at wp, shaped by the normal. The
 //    material adds `albedo × poolLight × uLpGain.x` to its wash and, on wet ground, a broad glossy sheen
 //    `poolLight × wet × uLpGain.y` (the wet stone's blurred reflection of the pool's light).
-import { type Data3DTexture, Vector3 } from 'three';
-import { type VolumeBox, blankLightVolume } from '../../runtime/looks/lightVolume';
+import { Data3DTexture } from 'three';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { LIGHTVOL_UNIFORMS } from '../../runtime/looks/light';
-// SHARD-PLATFORM M3: the uniforms' rows, LP_MAX and the GLSL (`LIGHTVOL_GLSL`) are data (data/light.ts); the bake is the
-// SDK's light volume (@wildshard/sdk/looks/lightVolume, look/light/install.ts); this module keeps the two boxes and the uniforms.
-
-/** the square level and the Well shaft (Lantern Square's layout.ts: WELL x −28…0, z −44…16; Y0 = 125) */
-// (round 14) east to x 110: the stair-street's upper flights and its gate (x 22 … 102) were outside the pools
-export const SQUARE_BOX: VolumeBox = { min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 };
-export const WELL_BOX: VolumeBox = { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 };
+// The boxes and exact RGBA8 splat are offline in generators/lightVolumes.ts.
+// The page only lends the restored voxel textures and their transform uniforms.
 
 /** uniforms the architecture programs share (add them to the clean room's Shared.u): the two volumes and data/light.ts'
  *  rows (the min / inv vectors after their volume, in the old order) */
 export function lightVolUniforms(): { uLpVolA: { value: Data3DTexture }; uLpVolB: { value: Data3DTexture } } & UniformsOf<typeof LIGHTVOL_UNIFORMS> {
   const { uLpMinA, uLpInvA, ...rest } = uniformsFrom(LIGHTVOL_UNIFORMS);
-  return { uLpVolA: { value: blankLightVolume() }, uLpMinA, uLpInvA, uLpVolB: { value: blankLightVolume() }, ...rest };
+  return { uLpVolA: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, uLpMinA, uLpInvA, uLpVolB: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, ...rest };
 }

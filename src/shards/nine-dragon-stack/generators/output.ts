@@ -10,7 +10,8 @@ import { buildJianFallback } from './jianFallback';
 import { headlessConstants } from './headless';
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import fixedKits from '../data/fixedKits.generated.json' with { type: 'json' };
-import lightPools from '../data/lightPools.json' with { type: 'json' };
+import { lightVolumeBlobs } from './lightVolumes';
+import lantern from '../data/lantern.json' with { type: 'json' };
 import { CAST_CHANNELS } from '../data/casts';
 import { signAtlasBlobs } from './signAtlasOutput';
 
@@ -24,9 +25,9 @@ const viewmodel = buildViewmodelParts();
 const glyphBlobs = Object.entries(glyphs).flatMap(([tier, row]) => [
     nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS, parts: row.packed.length })),
   ].concat(row.packed.map((part, index) => nameBlob(`signs/glyphs-${tier}-${index}.rg8`, 'bin', Uint8Array.from(atob(part), byte => byte.codePointAt(0) ?? 0), { decoded: 2_097_152, gpu: Math.ceil(2_097_152 * 4 / 3) }))));
-const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), [
+const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBlobs(), [
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
-  nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lightPools })),
+  nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern })),
   nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),

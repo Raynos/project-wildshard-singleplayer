@@ -7,11 +7,10 @@ import type { ShaderProgramRow, UniformRows } from '@wildshard/game/plugin/shade
 import { EMIT_FOG, FOG_GLSL } from './look';
 
 // ── the light volume (look/light/lightvol.ts) ──
-/** E is stored as √(E / MAX): MAX is the brightest irradiance the volume holds */
-export const LP_MAX = 12;
-
+/** E is stored as √(E / MAX); the voxel header supplies MAX at load. */
 /** the light volume's uniforms as rows (look/light/lightvol.ts adds its two textures, uLpVolA / uLpVolB) */
 export const LIGHTVOL_UNIFORMS = {
+  uLpMax: 0,
   uLpMinA: { v3: [0, 0, 0] }, uLpInvA: { v3: [0, 0, 0] },
   uLpMinB: { v3: [0, 0, 0] }, uLpInvB: { v3: [0, 0, 0] },
   /** x: diffuse gain on the wash, y: wet sheen gain, z: underside keep (0 = light from above never reaches an underside), w: on / off */
@@ -49,6 +48,7 @@ export const LIGHTVOL_UNIFORMS = {
  * underside only uLpGain.z of the light that comes from above (an awning over a lit shop still glows from below).
  */
 export const LIGHTVOL_GLSL = /* glsl */ `
+uniform float uLpMax;
 uniform highp sampler3D uLpVolA;
 uniform highp sampler3D uLpVolB;
 uniform vec3 uLpMinA;
@@ -81,7 +81,7 @@ vec4 lpSample(highp sampler3D v, vec3 wp, vec3 mn, vec3 iv) {
 vec3 poolLight(vec3 wp, vec3 n) {
   if (uLpGain.w < 0.5) return vec3(0.0);
   vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
-  vec3 E0 = s.rgb * s.rgb * ${LP_MAX.toFixed(1)};
+  vec3 E0 = s.rgb * s.rgb * uLpMax;
   lpAmb = lpAmberness(E0);
   vec3 E = lpKnee(E0);
   float fromUp = s.a * 2.0 - 1.0;
@@ -96,7 +96,7 @@ vec3 poolLight(vec3 wp, vec3 n) {
 // (render) the raw irradiance at a point (no facing): what a glossy surface sees of the pools along its reflection
 vec3 lpRaw(vec3 wp) {
   vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
-  return lpKnee(s.rgb * s.rgb * ${LP_MAX.toFixed(1)});
+  return lpKnee(s.rgb * s.rgb * uLpMax);
 }
 // (render) the lamplight's glossy lobe: the light field read at two points along the reflection vector R. A lantern
 // above a wet flagstone lights the stone's sheen where the reflection points at it (the view-dependent specular the

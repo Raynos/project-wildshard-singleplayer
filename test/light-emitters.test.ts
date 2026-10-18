@@ -1,18 +1,27 @@
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
-import { Color, Group, Matrix4, MeshStandardMaterial, PointLight, Vector3, Vector4 } from 'three';
+import { expect, test, vi } from 'vitest';
+import { Color, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, PointLight, ShaderMaterial, Vector3, Vector4 } from 'three';
 import { LightEmitters } from '../src/engine/fx/lightEmitters';
 import { Scope } from '../src/engine/app/scope';
 import { applyGround, updateGround } from '../src/engine/render/families/ground';
 import { parseGroundLayer } from '../src/format/materialFamilies';
 import { parseLightEmitters } from '../src/format/lightEmitters';
-import { lightPoolRows } from '../src/shards/nine-dragon-stack/look/light/install';
+import { lightPoolRows, lightVolumeBlobs, volumeSources } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
+import { unzlibSync } from 'fflate';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import { bakeVolume } from '../src/shards/nine-dragon-stack-legacy/look/light/lightvol';
+import { loadLut, gradeUniforms } from '../src/shards/nine-dragon-stack/look/light/grade';
+import { loadLut as sealedLut, gradeUniforms as sealedGrade } from '../src/shards/nine-dragon-stack-legacy/look/light/grade';
 import { gatherPools } from '../src/shards/nine-dragon-stack-legacy/look/light/pools';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { sceneVectors } from '../src/game/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
+import { Shared } from '../src/shards/nine-dragon-stack/look/style';
+import { RowRenderPass } from '../src/shards/nine-dragon-stack/runtime/looks/renderPass';
+import { HAZE_PASS } from '../src/shards/nine-dragon-stack/runtime/looks/passes';
+import { PASS_FAMILY } from '../src/shards/nine-dragon-stack/look/render/family';
 import type { ShardContext } from '../src/game/plugin/context';
 
 test('Nine source order, linear colours and falloffs match its sealed volume inputs exactly', () => {
@@ -83,4 +92,71 @@ test('Signal generator admits every original fire graph and keeps the four pool 
   const shared = SIGNAL_EMITTERS.rows.find(row => row.light?.shared === true);
   if (shared?.light === undefined) throw new Error('Missing declared shared lamp');
   expect(() => parseLightEmitters({ ...SIGNAL_EMITTERS, rows: [{ ...shared, light: { ...shared.light, decay: 1 } }] })).toThrow();
+});
+
+
+test('Nine admitted volume bytes match the sealed live bake for both tiers and entry states', () => {
+  const blobs = lightVolumeBlobs();
+  expect(blobs).toHaveLength(8);
+  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
+    const sources = volumeSources(tier, caps);
+    expect(sources.lanterns.length).toBe(caps ? 2591 : 2583);
+    expect(sources.windows).toHaveLength(9912);
+    const lights = gatherPools({ ...sources, shops: sources.ctxEmitters.filter(e => e.w >= 0.5 || e.h >= 0.5),
+      lamps: sources.ctxEmitters.filter(e => e.w < 0.5 && e.h < 0.5).map(e => e.at) });
+    const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
+      { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
+    for (const [index, box] of boxes.entries()) {
+      const blob = blobs.find(b => b.file.name === `looks/volumes-${tier}-${caps ? 'capped' : 'open'}-${index}.bin`);
+      if (blob === undefined) throw new Error('Missing baked irradiance');
+      const bytes = blob.bytes, header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const min = new Vector3(), inv = new Vector3(), live = bakeVolume(lights, box, min, inv);
+      const expected = live.tex.image.data;
+      if (!(expected instanceof Uint8Array)) throw new Error('Sealed volume has no bytes');
+      expect(hashImmutableBytes(unzlibSync(bytes.subarray(108)))).toBe(hashImmutableBytes(expected));
+      expect([8, 12, 16].map(offset => header.getUint32(offset, true))).toEqual([live.tex.image.width, live.tex.image.height, live.tex.image.depth]);
+      expect(Array.from({ length: 11 }, (_, i) => header.getFloat64(20 + i * 8, true))).toEqual([
+        ...min, ...inv, live.stats.lights, live.stats.cells, live.stats.maxE, lights.length, POOL.maximum,
+      ]);
+      expect(bytes.length).toBeLessThan(1_000_000);
+      live.tex.dispose();
+    }
+  }
+}, 30_000);
+
+
+test('Nine uses the engine LUT with the sealed bytes and sampler', async () => {
+  const identity = gradeUniforms(), oldIdentity = sealedGrade();
+  const a = identity.uLut.value.image.data, b = oldIdentity.uLut.value.image.data;
+  if (!(a instanceof Uint8Array) || !(b instanceof Uint8Array)) throw new Error('Missing identity LUT');
+  expect(hashImmutableBytes(a)).toBe(hashImmutableBytes(b));
+  expect(identity.uLutAmt.value).toBe(oldIdentity.uLutAmt.value);
+  identity.uLut.value.dispose(); oldIdentity.uLut.value.dispose();
+  const bytes = Uint8Array.from({ length: 33 ** 3 * 4 }, (_, i) => i & 255);
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(bytes)));
+  try {
+    const actual = await loadLut('/grade.bin'), sealed = await sealedLut('/grade.bin');
+    if (sealed === null) throw new Error('Missing sealed LUT');
+    const data = actual.image.data, previous = sealed.image.data;
+    if (!(data instanceof Uint8Array) || !(previous instanceof Uint8Array)) throw new Error('Missing LUT bytes');
+    expect(hashImmutableBytes(data)).toBe(hashImmutableBytes(previous));
+    for (const field of ['type', 'format', 'colorSpace', 'minFilter', 'magFilter', 'wrapS', 'wrapT', 'wrapR', 'unpackAlignment'] as const) expect(actual[field]).toBe(sealed[field]);
+    expect([actual.image.width, actual.image.height, actual.image.depth]).toEqual([33, 33, 33]);
+    actual.dispose(); sealed.dispose();
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('', { status: 404 })));
+    await expect(loadLut('/missing.bin')).rejects.toThrow('Missing Nine grade LUT');
+  } finally { vi.unstubAllGlobals(); }
+});
+
+
+test('Nine haze borrows the same baked normalization as world materials', () => {
+  const shared = new Shared();
+  const pass = new RowRenderPass(HAZE_PASS, { family: PASS_FAMILY, camera: new PerspectiveCamera(), links: shared.u });
+  try {
+    const material: unknown = Reflect.get(pass, 'material:hazeMarch');
+    if (!(material instanceof ShaderMaterial)) throw new Error('Missing haze material');
+    expect(material.uniforms['uLpMax']).toBe(shared.u.uLpMax);
+    shared.u.uLpMax.value = POOL.maximum;
+    expect(material.uniforms['uLpMax']?.value).toBe(12);
+  } finally { pass.dispose(); }
 });

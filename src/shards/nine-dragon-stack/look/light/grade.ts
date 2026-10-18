@@ -6,16 +6,23 @@
 //    display sRGB out (scripts/fit-lut.py's format, fetched by the engine's one loader, `fetchLut`).
 //  - GLSL (data/light.ts `GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
-import type { Data3DTexture } from 'three';
-import { LUT_TEXEL_SPLICES, identityLutTexture, loadLutTexture } from '../../runtime/looks/lutTexture';
+import { type Data3DTexture, NoColorSpace } from 'three';
+import { LookupTexture } from 'postprocessing';
+import { loadCarriedLUT } from '@wildshard/engine/boot/bakedApi';
+import { LUT_SIZE } from '@wildshard/engine/render/lut';
 // SHARD-PLATFORM M3: the GLSL is data (data/light.ts: GRADE_GLSL).
 
 export function gradeUniforms(): { uLut: { value: Data3DTexture }; uLutAmt: { value: number } } {
-  return { uLut: { value: identityLutTexture() }, uLutAmt: { value: 0 } };
+  const texture = LookupTexture.createNeutral(LUT_SIZE).convertToUint8(); texture.colorSpace = NoColorSpace;
+  return { uLut: { value: texture }, uLutAmt: { value: 0 } };
 }
 
-/** fetch a fitted LUT (the SDK's LUT texture over the engine's one loader); null (and a warning) when it is missing or the wrong size */
-export const loadLut: typeof loadLutTexture = loadLutTexture;
+/** Use the existing engine LUT reader; a missing shipped grade refuses the build. */
+export async function loadLut(url: string): Promise<Data3DTexture> {
+  const texture = await loadCarriedLUT(url, 'nine-grade');
+  if (texture === null) throw new Error(`Missing Nine grade LUT: ${url}`);
+  return texture;
+}
 
 /** the LUT's texel-centre mapping, spliced into data/light.ts' GRADE_GLSL (`@{lutScale}`, `@{lutBias}`) */
-export const LUT_SPLICES: Readonly<Record<string, string>> = LUT_TEXEL_SPLICES;
+export const LUT_SPLICES: Readonly<Record<string, string>> = { lutScale: ((LUT_SIZE - 1) / LUT_SIZE).toFixed(6), lutBias: (0.5 / LUT_SIZE).toFixed(6) };

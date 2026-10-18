@@ -10,7 +10,9 @@ import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeomet
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { HALO, HALO_PROGRAMS } from '../../runtime/looks/light';
 import { LOOK_FRAGMENTS, type Shared } from '../style';
-import { type EmitterLike, isLamp } from './install';
+import type { EmitterLike } from './install';
+
+const isLamp = (e: EmitterLike): boolean => e.w < 0.5 && e.h < 0.5;
 
 // SHARD-PLATFORM M3: the halos' tuning, GLSL and program row are data (data/light.ts HALO, HALO_PROGRAMS)
 const HALO_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, HALO_PROGRAMS);
