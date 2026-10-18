@@ -1,3 +1,4 @@
+import { pufferPreviewPoseRoute } from './puffer-preview-pose-route';
 import { defineConfig } from 'vite';
 import { createHash } from 'node:crypto';
 import { copyFileSync, cpSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -28,8 +29,10 @@ export const pufferPreviewConfig = defineConfig(({ command }) => {
   if (typeof receiptPreview !== 'object' || receiptPreview === null || !('metadataSha256' in receiptPreview) || !('packedSha256' in receiptPreview) || typeof receiptPreview.packedSha256 !== 'string'
     || receiptPreview.metadataSha256 !== hash(join(preview, 'pack/metadata.json')) || receiptPreview.packedSha256 !== hash(join(preview, 'pack/payload.bin'))
     || !bake.file.includes(receiptPreview.packedSha256)) throw new Error('Native preview body receipt mismatch');
-  if (!('mode' in receiptPreview) || typeof receiptPreview.mode !== 'string' || !['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4'].includes(receiptPreview.mode)) throw new Error('Unknown Puffer preview mode');
+  if (!('mode' in receiptPreview) || typeof receiptPreview.mode !== 'string' || !['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4', 'gait5'].includes(receiptPreview.mode)) throw new Error('Unknown Puffer preview mode');
   const mode = receiptPreview.mode;
+  if (mode === 'gait5' && (!('visualAdapter' in receiptPreview) || receiptPreview.visualAdapter !== 'puffer-gait5-continuity'
+    || !('visualAdapterSha256' in receiptPreview) || receiptPreview.visualAdapterSha256 !== hash(resolve('src/pufferGaitContinuityPreview.ts')))) throw new Error('Preview visual adapter receipt mismatch');
   if (!('candidate' in receiptPreview) || typeof receiptPreview.candidate !== 'string' || !/^V[0-9]+(?: · UNACCEPTED WIP)?$/u.test(receiptPreview.candidate)) throw new Error('Invalid Puffer candidate identity');
   const candidate = receiptPreview.candidate.split(' ')[0];
   const bodyFile = bake.file.slice(1);
@@ -61,7 +64,9 @@ export const pufferPreviewConfig = defineConfig(({ command }) => {
       __SHARDFILE_VALIDATOR__: JSON.stringify(receipt.revision), __SHARDFILE_VERDICTS__: JSON.stringify([receipt]) },
     build: { outDir, target: 'es2022', sourcemap: false, cssCodeSplit: false,
       rolldownOptions: { input: resolve('practice.html') } },
-    plugins: [rapierPreviewPlugin(), {
+    plugins: [rapierPreviewPlugin(), { name: 'puffer-preview-pose-route', enforce: 'pre',
+      resolveId(source, importer) { return pufferPreviewPoseRoute(mode, source, importer, resolve('.')); },
+    }, {
       name: 'puffer-native-preview-asset-tables',
       resolveId(source, importer) {
         if (importer === undefined || !source.startsWith('.')) return null;

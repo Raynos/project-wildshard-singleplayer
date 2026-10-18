@@ -18,13 +18,13 @@ import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
 /** Pack one native source and compile one unchanged decision through the official SDK pipeline. */
 export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null) {
   assertHeavyLease('build');
-  if (!['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
+  if (!['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4', 'gait5'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
   if (typeof dimensions !== 'string') throw new Error('Supply an explicit dimensions JSON; collider tuning is unaccepted');
   const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
   // Refuse stale/foreign output rather than silently deleting data or leaving an invalid mixed inventory.
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Practice output must be a new or empty directory');
   const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = resolvePufferPreviewInput(root, descriptor, dimensions);
-  if (mode === 'gait4') {
+  if (mode === 'gait4' || mode === 'gait5') {
     const rig1Hash = '7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb';
     const dims = JSON.parse(dimensionBytes.toString('utf8'));
     if (createHash('sha256').update(sourceBytes).digest('hex') !== rig1Hash
@@ -63,6 +63,7 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
     schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
+    ...(mode === 'gait5' ? { visualAdapter: 'puffer-gait5-continuity', visualAdapterSha256: hash(readFileSync(resolve(root, 'src/pufferGaitContinuityPreview.ts'))) } : {}),
     source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     dimensionsSha256: hash(dimensionBytes), colliderAcceptance: false, visualAcceptance: false,
     rendering: 'Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof',

@@ -19,7 +19,7 @@ import { DRIFTWOOD_REGULAR_ACTORS, DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULA
   DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_REWARDS, DRIFTWOOD_REGULAR_SPECIES, DRIFTWOOD_REGULAR_STRIKES } from './driftwoodRegularCombat';
 
 
-export type PufferNativePreviewMode = PufferPreviewPose | 'gait4';
+export type PufferNativePreviewMode = PufferPreviewPose | 'gait4' | 'gait5';
 
 const decisions = DRIFTWOOD_REGULAR_DECISIONS.filter(row => row.id === 'driftwood.brine-puffer.decision');
 const strikes = DRIFTWOOD_REGULAR_STRIKES.filter(row => row.id === 'strike.brine-puffer.burst');
@@ -62,7 +62,7 @@ export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferN
     ['practice/looks.json', { ...practiceLooks, looks: practiceLooks.looks.filter(row => row.kind === 'brine-puffer') }],
     ['practice/bodies.json', creatureBodies],
     ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
-    ['poses/brine-puffer.json', mode === 'gait4' ? pufferNativeGait4Clips() : pufferNativeClips(mode)],
+    ['poses/brine-puffer.json', mode === 'gait4' || mode === 'gait5' ? pufferNativeGait4Clips() : pufferNativeClips(mode)],
   ].map(([name, value]) => {
     if (typeof name !== 'string') throw new Error('Preview requires a logical filename');
     return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(value)));
