@@ -18,8 +18,10 @@ const baseline=v.array(v.strictObject({wave:v.string(),revision:v.string(),recor
 
 /** Caller holds the heavy build lane (or measures the gate's exact HEAD output).
  * Each closed shard is copied strictly; an unclosed shard never gets a percent.
- * @param {string} root @param {{build?:boolean,products?:string,revision?:string|null,receipts?:readonly string[],scriptReceipts?:readonly string[]}} options */
-export async function outputReport(root,{build=true,products=resolve(root,'out'),revision=process.env.VERCEL_GIT_COMMIT_SHA??null,receipts=runtimeReceiptPaths(root),scriptReceipts=scriptReceiptPaths(root)}={}) {
+ * `sourceProgress` keeps the admin's historical source ruler in one unit even
+ * when some runtimes close. Output closure and canonical output credit do not change.
+ * @param {string} root @param {{build?:boolean,sourceProgress?:boolean,products?:string,revision?:string|null,receipts?:readonly string[],scriptReceipts?:readonly string[]}} options */
+export async function outputReport(root,{build=true,sourceProgress=false,products=resolve(root,'out'),revision=process.env.VERCEL_GIT_COMMIT_SHA??null,receipts=runtimeReceiptPaths(root),scriptReceipts=scriptReceiptPaths(root)}={}) {
   const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
   if(build) {
     if(products!==resolve(root,'out'))throw new Error('Build reports publish only to out/');
@@ -47,7 +49,7 @@ export async function outputReport(root,{build=true,products=resolve(root,'out')
     const measured=measures[slug];
     const content=outputContent(root,slug,products),customPercent=measured.conversion.runtimeShare===null?null:100*measured.conversion.runtimeShare;
     return [slug,{...state,...measured,customPercent,content,linesRemovedSince12Z:dailyLines.shards[slug]??null,port:portHeadline(customPercent,content),gridReady:ready,scriptMetrics,
-      m3:m3Progress(slug,{basis:'output',customLines:measured.conversion.customRuntimeLines,legacyLines:measured.conversion.legacyLines})}];
+      m3:m3Progress(slug,sourceProgress?source[slug]:{basis:'output',customLines:measured.conversion.customRuntimeLines,legacyLines:measured.conversion.legacyLines})}];
   }));
   const current=Object.fromEntries(Object.entries(rows).flatMap(([slug,row])=>row.m3===null?[]:[[slug,{customLines:row.m3.customLines,basis:row.m3.basis}]]));
   const baselines=v.parse(baseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'wave-line-baselines.json'),'utf8')));

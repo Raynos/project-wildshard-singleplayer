@@ -74,3 +74,38 @@ it('labels source progress without exposing an output percentage or executing so
   expect(sourceProgressLines(root)['pine-hollow']).not.toHaveProperty('runtimeShare');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('keeps admin source progress in one unit across closed and unclosed runtimes',async()=>{
+ const root=mkdtempSync(join(tmpdir(),'platform-source-report-'));
+ try{
+  const shard=emptyShardfile({slug:'far-reach',name:'Fixture',author:'Test',revision:1,seed:1});
+  platformOutput(root,'far-reach',{'runtime/index.ts':'export const value = 1;'},
+   Object.fromEntries([...outputSectionPayloads(shard)].map(([name,value])=>[name,JSON.stringify(value)])));
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import value from '../data/rows'; export const rows=value;"});
+  mkdirSync(join(root,'lint'),{recursive:true});
+  writeFileSync(join(root,'lint/ratchet.json'),JSON.stringify({allow:{},budgets:{}}));
+  const slugs=['far-reach','pine-hollow'];
+  writeFileSync(join(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,
+   shards:Object.fromEntries(slugs.map(primary=>[`${primary}-legacy`,{primary,source:'a'.repeat(40),
+    files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'b'.repeat(64)}}]))}));
+  writeFileSync(join(root,'lint/legacy-line-basis.json'),JSON.stringify({schema:'legacy-line-basis/1',revision:'a'.repeat(40),
+   shards:Object.fromEntries(slugs.map(slug=>[slug,{source:'a'.repeat(40),excluded:[],files:{'plugin.ts':100}}]))}));
+  const canonical=await outputReport(root,{build:false});
+  expect(canonical.rows['far-reach']?.status).toBe('closed');
+  expect(canonical.rows['pine-hollow']?.status).toBe('unclosed');
+  const source=await outputReport(root,{build:false,sourceProgress:true});
+  const expected=sourceProgressLines(root);
+  expect(canonical.rows['far-reach']?.m3?.basis).toBe('output');
+  expect(canonical.rows['pine-hollow']?.m3?.basis).toBe('source');
+  for(const slug of slugs){
+   const row=expected[slug];
+   if(row===undefined)throw new Error(`Missing source row ${slug}`);
+   expect(source.rows[slug]?.m3).toMatchObject(row);
+  }
+  // Both reports retain exactly the same output credit and closure evidence.
+  expect(source.measures).toEqual(canonical.measures);
+  expect(source.rows['far-reach']?.customPercent).toEqual(canonical.rows['far-reach']?.customPercent);
+  expect(source.dailyLines).toEqual(canonical.dailyLines);
+  expect(expected['far-reach']?.basis).toBe('source');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

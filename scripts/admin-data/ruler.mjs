@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The SHARD-PLATFORM ruler data for the admin Plan card (G458: outcome-only accounting). One committed file,
-// progress/shard-platform/ruler/ruler.json, refreshed from `node scripts/shard-platform.mjs --json` measured in the
+// progress/shard-platform/ruler/ruler.json, refreshed from `node scripts/shard-platform.mjs --json --source-progress` measured in the
 // build mirror on a commit (never the shared working tree). The admin build only reads the committed file.
 //
 //   node scripts/admin-data/ruler.mjs [--rev=HEAD]       measure <rev> in the `check` mirror slot, rewrite ruler.json
@@ -20,7 +20,7 @@ import { writePortShares } from '../gen-port-shares.mjs';
 
 export const RULER_PATH = 'progress/shard-platform/ruler/ruler.json';
 export const RULER_CHART = 'progress/shard-platform/ruler/custom-vs-hours.jpg';
-export const RULER_COMMAND = 'node scripts/shard-platform.mjs --json';
+export const RULER_COMMAND = 'node scripts/shard-platform.mjs --json --source-progress';
 export const RULER_SCHEMA = 'shard-platform-ruler/1';
 
 // Keep signed cuts: platform growth can exceed the custom shard reduction.
@@ -184,7 +184,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const git = (/** @type {string[]} */ ...args) => execFileSync('git', ['-C', repo, ...args]).toString('utf8').trim();
   const revision = git('rev-parse', '--verify', `${rev}^{commit}`);
   const committedAt = new Date(Number(git('show', '-s', '--format=%ct', revision)) * 1000).toISOString();
-  const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', 'check', '--', ...RULER_COMMAND.split(' ')],
+  // Take the mirror first, then the build lease. The CLI prepares all ten
+  // verified products (including _template) before reading section inventory.
+  const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', 'check', '--', 'python3', 'scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
     { cwd: repo, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
   const start = out.search(/^\{/mu);
   if (start === -1) throw new Error(`Ruler: ${RULER_COMMAND} printed no JSON`);

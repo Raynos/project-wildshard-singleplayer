@@ -10,6 +10,7 @@ import {componentWave,SHARD_WAVES} from './shard-components.mjs';
 const ROOT=resolve(import.meta.dirname,'..'),LIST='lint/shard-platform.json';
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const build = !process.argv.includes('--no-build');
+  const sourceProgress = process.argv.includes('--source-progress');
   if (build && !process.env.WS_HEAVY_TOKEN) {
     const {spawnSync} = await import('node:child_process');
     const result = spawnSync('python3', ['scripts/heavy-lane.py', 'build', '--', process.execPath, ...process.argv.slice(1)], {cwd:ROOT, stdio:'inherit'});
@@ -27,11 +28,11 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     let report;
     const receipts=process.argv.filter(value=>value.startsWith('--grid-receipt=')).map(value=>value.slice('--grid-receipt='.length));
     const scriptReceipts=process.argv.filter(value=>value.startsWith('--script-receipt=')).map(value=>value.slice('--script-receipt='.length));
-    try {report=await outputReport(ROOT,{build,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
+    try {report=await outputReport(ROOT,{build,sourceProgress,products,...(receipts.length===0?{}:{receipts}),...(scriptReceipts.length===0?{}:{scriptReceipts})});}
     finally {console.log=log;console.info=info;}
     const {rows,measures,failures,progress,netLines,dailyLines}=report;
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
