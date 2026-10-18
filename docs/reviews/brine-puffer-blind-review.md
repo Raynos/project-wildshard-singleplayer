@@ -177,3 +177,158 @@ the coordinator's request after reading repository instructions. No model,
 production asset, prior review, plan-state file, camera, or render was changed by
 the reviewer. No Blender, browser, image generation, or heavy validation job was
 started.
+
+## V69 follow-up review — 2026-10-18, 23:12 UTC
+
+The preceding sections remain the historical V67 blind review, including its
+score and then-current scope. This addendum separately reviews V69. It is an
+independent follow-up using the same rubric, **not a second blind experiment**:
+the reviewer knew the bounded change and the prior V67 judgment. No other
+reviewer's score was adopted or used as a target.
+
+### Evidence and comparison
+
+Inspected the actual V69 hero:
+
+- `tmp/puffer-lowpoly-v69-from-v9/matched-style.png`
+
+Inspected every actual V69 fixed-camera image in `tmp/puffer-v69-shared-4p2/`:
+
+1. `01-front.png`
+2. `02-left.png`
+3. `03-right.png`
+4. `04-back.png`
+5. `05-top.png`
+6. `06-elevated-front.png`
+7. `07-elevated-left.png`
+8. `08-elevated-right.png`
+9. `09-elevated-back.png`
+
+Compared with the previously inspected V67 hero and all-nine evidence, reopening
+V67 left, top, elevated-left and elevated-back for direct side-by-side-in-sequence
+checking. The authoritative original was also reopened with the two heroes.
+
+The builder reported posterior-only compression with fixed global crown height,
+face and pouch. Those implementation statements are context, not an independent
+mesh audit by this reviewer and not points added to visual resemblance.
+
+### Verdict
+
+**V69 is a modest visible improvement in posterior compactness.** Both side views,
+the top and the elevated-rear view show a shorter rear body and less elongated
+taper. The hero's rear shoulder is slightly tighter and more upright. The front,
+face, belly and distal feet appear substantially preserved.
+
+At the supplied capture resolution, there is no obvious new tail-root gap,
+floating spine, exposed fin cap or abrupt open seam. The posterior taper remains
+plausible rather than visibly pinched. This is a rendered-view observation, not
+a watertightness, clearance, rigging or animation certification.
+
+The crown spines crowd and overlap a little more in `06-elevated-front.png`.
+Their screen-space overlap should not be called a detached root or a proven mesh
+intersection; neither is established by the picture. It does slightly reduce the
+separation of their silhouettes in that view.
+
+The main remaining differences are:
+
+1. The brow wings and sharply triangular, relatively small mouth still give a
+   different face construction from the original.
+2. The broad upper roof and extended feet still limit the compact, chunky
+   impression, despite the improved posterior body.
+3. Regular horizontal facet bands and the thin, simply edged tail retain their
+   previous style/detail differences.
+
+### Unchanged rubric, separately scoped V69 score
+
+| Category | Weight | V69 score | Change justified by the images |
+| --- | ---: | ---: | --- |
+| Silhouette and proportions | 35% | 3.5/5 | Modestly improved posterior compactness, within the same half-point band; remaining roof and foot proportions do not justify a full move to 4. |
+| Face and expression | 30% | 3.5/5 | No material visible correction to the previously identified face mismatch. |
+| Defining details | 20% | 4/5 | Principal details remain; no clear loss or gain large enough for a category change. Attachment seating is not a resemblance bonus. |
+| Facets and style | 15% | 3.5/5 | Horizontal banding and regular large panels remain. |
+
+`3.5 × 0.35 + 3.5 × 0.30 + 4 × 0.20 + 3.5 × 0.15 = 3.60/5 = 72%`
+
+The useful shorthand is still **approximately 70% subjective resemblance**.
+An unchanged discrete score does not mean the pictures are unchanged: the
+improvement is real but smaller than this review's half-point category spacing.
+No finer decimal score is invented to advertise the progress.
+
+**Broadly faithful: yes. Close-match or owner acceptance: not established.**
+The original's camera and inconsistent/limited alternate views still prevent an
+exact hidden-anatomy target. Actual top/rear pictures demonstrate the candidate's
+shape, not a precise match to an unseen original.
+
+### Recommendation
+
+Retain the bounded V69 posterior compression for continued work rather than
+reverting that improvement. These views do not support further posterior
+compression or a global crown lift. The next higher-value isolated study would
+be the visibly protruding brow geometry: shorter, thicker, face-hugging wedges,
+with eye and mouth geometry held fixed for a clean comparison.
+
+This recommendation is not approval to replace the production asset, an owner
+taste decision, or a claim that the candidate passed a separate acceptance gate.
+No new render, model change, browser action or heavy process was run by the
+reviewer for this addendum.
+
+## V70 follow-up review — 2026-10-18, 23:21 UTC
+
+### Exact evidence and scope
+
+Inspected `tmp/puffer-lowpoly-v70-from-v9/matched-style.png` and every actual
+fixed-camera image in `tmp/puffer-v70-shared-4p2/`: `01-front.png`, `02-left.png`,
+`03-right.png`, `04-back.png`, `05-top.png`, `06-elevated-front.png`,
+`07-elevated-left.png`, `08-elevated-right.png`, and `09-elevated-back.png`.
+
+Compared directly with V69's actual hero and previously reviewed nine views,
+reopening its left, elevated-front and elevated-back images for the principal
+risk checks. Reopened the approved original alongside the V70 hero. This is a
+follow-up review with knowledge of the brow change, not a new blind review. The
+V67 blind score and the separate V69 result remain unchanged.
+
+### Verdict and profile risks
+
+**V70 is a small net brow improvement worth retaining for continued work.** The
+hero, front and elevated-front views show shorter, thicker orange wedges with
+less raised outer-wing emphasis. The eye hood, visible aperture and angry
+expression appear preserved. The brows still do not fully reproduce the
+original's squat, forehead-seated impression.
+
+Both side views retain a small **block-like top cap**. Elevated-back exposes
+broader orange corner faces than V69. These are visible tradeoffs, not features
+to hide behind the improved hero. They do not, at this scale, amount to a severe
+regression: no obvious detached rear tab, folded strip, thin splinter or open
+seating gap is visible. Render inspection cannot certify unseen internal
+topology or establish exact brow depth from the concept's mismatched camera.
+
+The posterior compactness gain from V69 remains. The broad pale face, sharp
+mouth construction, extended forefeet, regular mantle bands and simply edged
+tail retain their previously identified differences.
+
+### Separately scoped V70 score
+
+| Category | Weight | V70 score | Evidence-based change |
+| --- | ---: | ---: | --- |
+| Silhouette and proportions | 35% | 3.5/5 | V69's compactness gain retained; no new whole-body correction. |
+| Face and expression | 30% | 3.5/5 | Small brow improvement with profile-cap tradeoff, still within the same half-point band; the remaining face construction does not justify 4. |
+| Defining details | 20% | 4/5 | Principal details remain; no material category change. |
+| Facets and style | 15% | 3.5/5 | Local brow planes improve volume, but the dominant mantle-band mismatch remains. |
+
+`3.5 × 0.35 + 3.5 × 0.30 + 4 × 0.20 + 3.5 × 0.15 = 3.60/5 = 72%`
+
+This remains **approximately 70% subjective resemblance**, broadly faithful but
+not yet a close-match or owner-accepted result. The useful local improvement is
+smaller than the rubric's half-point category spacing; neither topology validity
+nor completing a render set supplies an automatic score increase.
+
+### Recommendation
+
+Keep V70 as the current controlled study and avoid another tiny brow-depth pass
+on this evidence. Regular mantle bands and extended forefeet are now clearer
+whole-character targets than further brow thickening. Do not deepen the cap or
+extend a rear tab in pursuit of a score threshold. Any next change should be
+visibly justified against the original and checked across the same actual views.
+
+No model, render, production asset or other review was changed by this reviewer;
+only this dated addendum was written. No heavy job was started.

@@ -1,0 +1,11 @@
+{
+  "method": "three bounded local shared-vertex smoothing passes",
+  "maximumDisplacement": 0.05999999881770538,
+  "changedVertices": 41,
+  "preservedRegion": "all vertices Z>=.93, central muzzle and vertices outside local cheek window",
+  "addedVertices": 0,
+  "facesBeforeTriangulation": 368,
+  "facesAfterTriangulation": 492,
+  "surfaceBaseline": "explicit fixed/ear-clip triangles after deformation, before Boolean and paint partition",
+  "addedBooleanOperations": 0
+}
