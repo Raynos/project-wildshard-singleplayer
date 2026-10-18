@@ -4,8 +4,10 @@ import { PhysicalLightingModel, TextureNode } from 'three/webgpu';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
+import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
 import { WATER_GRAPHS } from '../src/shards/pine-hollow/generators/waterGraphs';
+
+const { looks: WATER_LOOKS } = waterRows;
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

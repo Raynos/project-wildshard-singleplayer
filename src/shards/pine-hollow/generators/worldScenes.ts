@@ -6,7 +6,9 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
-import { WATER_SURFACES } from '../data/waterLook';
+import waterRows from '../data/waterLook.json' with { type: 'json' };
+
+const { surfaces: WATER_SURFACES } = waterRows;
 
 const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
 const count = spray.at.length / 3;

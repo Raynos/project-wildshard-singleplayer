@@ -17,10 +17,8 @@
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { groundCoverCells, type Placement as UnderPlacement } from '../looks/groundCover';
-import type { Undergrowth } from '../../world/undergrowth';
+import type { UnderPlacement, Undergrowth } from '../../world/undergrowth';
 import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
-import { PINE_TREE_SET as TREE_SPECS_V2 } from '../../world/treeSet';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
 import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';
@@ -35,10 +33,12 @@ const FLOOR_KINDS = 6;
 export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: () => Promise<void> | null): Promise<void> {
   const ctx = pineModels(h.sky, h);
   const { forest, under, registry } = h;
+  const treeVariants = forestTree.variants;
+  if (treeVariants === undefined) throw new Error('Forest model requires its variants');
   if (forest && forest.trees.length > 0) {
     // a build without the species set's files plants the runtime pines: the forest draws those itself (no model) and
     // they collide as its own capsules
-    if (forest.drawer !== 'model' || forest.factory.variants.length !== TREE_SPECS_V2.length) {
+    if (forest.drawer !== 'model' || forest.factory.variants.length !== treeVariants.length) {
       const own = forest.drawer === 'model';
       forest.drawItself();
       if (own) registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
@@ -46,7 +46,7 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
       useTreeFactory(ctx, forest.factory);
       // each tree's matrix composed as the forest's own drawing composed it (position, a turn about +Y, its scale)
       const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), at = new THREE.Vector3(), sc = new THREE.Vector3();
-      const pls = forest.trees.map((t): Placement<ForestTreeParams> => ({ x: t.x, y: t.y, z: t.z, variant: TREE_SPECS_V2[t.variant]?.name ?? 'pine-a', color: t.tint,
+      const pls = forest.trees.map((t): Placement<ForestTreeParams> => ({ x: t.x, y: t.y, z: t.z, variant: treeVariants[t.variant]?.id ?? 'pine-a', color: t.tint,
         params: { height: t.height, r: t.r, scale: t.scale },
         matrix: new THREE.Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }));
       await placeSliced(forestTree, pls, { ctx, draw: forest.path, registry, piece: { id: 'pine-hollow/forest-tree' }, sortObjects: false,
@@ -56,7 +56,7 @@ export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: 
   if (under) {
     useUndergrowth(ctx, { kinds: under.kinds, placements: under.layout });
     const kinds = UNDER_MODELS;
-    const cells = groundCoverCells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
+    const cells = under.cells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
     for (let i = 0; i < Math.min(kinds.length, FLOOR_KINDS); i++) {
       const entry = kinds[i];
       if (entry === undefined) continue;

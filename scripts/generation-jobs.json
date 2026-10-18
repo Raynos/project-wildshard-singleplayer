@@ -1374,7 +1374,7 @@
         "src/shards/pine-hollow/generators/lookMaterials.ts",
         "src/shards/pine-hollow/generators/waterGraphs.ts",
         "src/shards/pine-hollow/data/lookGraphs.json",
-        "src/shards/pine-hollow/data/waterLook.ts",
+        "src/shards/pine-hollow/data/waterLook.json",
         "src/format",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",

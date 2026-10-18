@@ -3,11 +3,13 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { WaterView } from '@wildshard/engine/world/water/view';
 import { WaterSurface } from '@wildshard/sdk/looks/waterSurface';
-import { WATER_LOOKS, WATER_SURFACES, type WaterLook } from '../data/waterLook';
+import waterRows from '../data/waterLook.json' with { type: 'json' };
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 
+const { looks: WATER_LOOKS, surfaces: WATER_SURFACES } = waterRows;
+
 /**
- * Pine Hollow's water at run time: the lent water looks (../data/waterLook.ts) and the live params they read: each fading
+ * Pine Hollow's water at run time: the lent water looks (../data/waterLook.json) and the live params they read: each fading
  * body's alpha, the rain's rings and Explore's top-down map shot.
  */
 const LOOKS = Object.values(WATER_LOOKS);
@@ -25,13 +27,13 @@ export function waterReflect(view: WaterView): void {
   for (const id of LOOKS) setLentParam(id, 'topDown', view === 'top-down' ? 1 : 0);
 }
 
-/** a drawn water surface (data/waterLook.ts WATER_SURFACES) of `geometry` on the water-surface host */
+/** a drawn water surface (data/waterLook.json WATER_SURFACES) of `geometry` on the water-surface host */
 export function pineWaterSurface(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry): THREE.Mesh {
   const row = WATER_SURFACES[kind];
   return new WaterSurface(row, { material: lentLook(row.look) }).draw(geometry).mesh;
 }
 /** scale a water look's alpha */
-export function setWaterFade(look: WaterLook, fade: number): void { setLentParam(WATER_LOOKS[look], 'fade', fade); }
+export function setWaterFade(look: keyof typeof WATER_LOOKS, fade: number): void { setLentParam(WATER_LOOKS[look], 'fade', fade); }
 
 function lendWaterRipples(ripples: THREE.Texture): void {
   for (const id of LOOKS) { setLentTexture(id, 'ripples', ripples); setLentParam(id, 'rain', rain); }

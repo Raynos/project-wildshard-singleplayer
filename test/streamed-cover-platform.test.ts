@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, expect, test } from 'vitest';
-import { BoxGeometry, Group, InstancedMesh, MeshBasicMaterial, Vector3 } from 'three';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { BoxGeometry, ClampToEdgeWrapping, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Texture, Vector3 } from 'three';
+import * as assets from '../src/engine/core/assets';
 import { Scope } from '../src/engine/app/scope';
 import { instanceTier } from '../src/engine/render/streamedInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
@@ -10,6 +11,10 @@ import { toonLighting } from '../src/game/looks/toonLighting';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { SceneResources } from '../src/game/shardfile/sceneResources';
 import authored from '../src/shards/driftwood-isle/data/groundCover.json';
+import { createCoverAppearance } from '../src/game/looks/coverAppearance';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { emptyShardfile } from '../src/sdk/author';
+import appearanceRows from '../src/shards/pine-hollow/data/coverAppearance.json';
 
 // A fictional second shard has different models, graph ids, capacities and bands.
 // It drives the actual decoder, instance buffers and graph uniform binding.
@@ -25,7 +30,7 @@ const row = {
 };
 let owner = new Scope('streamed-cover-fixture');
 beforeEach(() => { owner = new Scope('streamed-cover-fixture'); });
-afterEach(() => { owner.dispose(); setTerrainHeight(() => 0); });
+afterEach(() => { owner.dispose(); setTerrainHeight(() => 0); vi.restoreAllMocks(); });
 
 /** Version-1 cell bytes: two cells, one reed per cell, tint + normal + surface colour. */
 function cells(): Uint8Array {
@@ -50,7 +55,7 @@ function fixture() {
   const light = toonLighting({ id: row.lighting, initial: { uToonLift: [.1, .2, .3], uToonRim: [.3, .2, .1],
     uCloudShadow: .6, uToonNight: 0, uSeaLevel: 2, uCloudTime: 3 } });
   lendLooks(owner, { toon, materials: new Map(['marsh-cover-reed', 'marsh-cover-reed-far'].map(id => [id, new MeshBasicMaterial()])),
-    setParam: (id, key, value) => { params.set(`${id}/${key}`, value); }, setTexture: () => undefined, bindMeshMap: () => new MeshBasicMaterial() });
+    setParam: (id, key, value) => { params.set(`${id}/${key}`, typeof value === 'number' || typeof value === 'boolean' ? value : value.slice()); }, setTexture: () => undefined, bindMeshMap: () => new MeshBasicMaterial() });
   return { resources, toon, params, light };
 }
 
@@ -105,4 +110,53 @@ test('uploads only complete instances within a byte budget and swaps complete tw
   expect(tier.uploaded).toBe(true); tier.swap(); expect(tier.shown.count).toBe(3);
   tier.begin(); tier.n = 1; tier.upload(Infinity); tier.swap();
   expect(tier.shown.count).toBe(1); expect(tier.back.count).toBe(0);
+});
+
+test('binds fixed and streamed appearances through the same data-only host', () => {
+  const { params } = fixture();
+  const fixed = createCoverAppearance({ kinds: [{ id: 'tuft', graph: 'marsh-cover-reed', attributes: { aWind: .35 },
+    name: 'fern', properties: { alphaTest: .5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 } }],
+    params: { viewer: 'eye', shift: 'origin', sunTint: 'sun' } });
+  const geometry = new BoxGeometry(), material = fixed.material('tuft');
+  expect(fixed.geometry('tuft', geometry)).toBe(geometry);
+  expect(Array.from(geometry.getAttribute('aWind').array).every(value => Math.abs(value - .35) < 1e-7)).toBe(true);
+  expect(material.name).toBe('fern'); expect(material.alphaTest).toBe(.5);
+  expect(material.polygonOffset).toBe(true); expect(material.polygonOffsetFactor).toBe(-2);
+  fixed.update(new Vector3(1, 2, 3), new Matrix4().makeTranslation(10, 20, 30), new Color(.2, .3, .4));
+  expect(params.get('marsh-cover-reed/eye')).toEqual([11, 22, 33]);
+  expect(params.get('marsh-cover-reed/origin')).toEqual([10, 20, 30]);
+  expect(params.get('marsh-cover-reed/sun')).toEqual([.2, .3, .4]);
+  const stream = createCoverAppearance({ kinds: [{ id: 'reed', graph: 'marsh-cover-reed-far' }], params: { viewer: 'eye' } });
+  stream.update(new Vector3(7, 8, 9));
+  expect(params.get('marsh-cover-reed-far/eye')).toEqual([7, 8, 9]);
+  expect(() => createCoverAppearance({ ...appearanceRows, textures: {} })).toThrow('declared');
+  expect(() => createCoverAppearance({ kinds: [{ id: 'bad', graph: 'x', onBuild: () => 0 }] })).toThrow('plain JSON');
+  expect(() => fixed.material('missing')).toThrow('Missing cover kind');
+  geometry.dispose(); material.dispose();
+});
+
+test('preserves painted texture sampling, shares acquisition and retries retired resources', async () => {
+  lendLooks(owner, { materials: new Map([['painted-leaf', owner.own(new MeshStandardMaterial())]]), setParam: () => undefined, setTexture: () => undefined,
+    bindMeshMap: (_id, source) => { if (!(source instanceof Texture)) throw new Error('Leaf needs a texture'); return owner.own(new MeshStandardMaterial({ map: source })); } });
+  const field = createCoverAppearance({ textures: { leaf: { url: 'textures/leaf.webp', srgb: true, repeat: false } }, kinds: [{ id: 'leaf', graph: 'painted-leaf', texture: 'leaf' }] });
+  const product = createShardProduct({ slug: 'marsh', revision: 1, shardfile: emptyShardfile({ slug: 'marsh', name: 'Marsh', author: 'fixture', revision: 1, seed: 1 }),
+    sections: new Map(), files: new Map([['textures/leaf.webp', { hash: 'leaf', url: 'https://cover.invalid/textures/leaf.webp' }]]), read: () => Promise.resolve(new Uint8Array()) });
+  const loader = vi.spyOn(assets, 'loadTexture').mockImplementation((_url, _srgb, _repeat, _size, configure) => {
+    const texture = new Texture(); configure?.(texture); return Promise.resolve(texture);
+  });
+  const first = field.texture(product, 'leaf'), concurrent = field.texture(product, 'leaf');
+  expect(concurrent).toBe(first);
+  const texture = await first;
+  expect(texture.wrapS).toBe(ClampToEdgeWrapping); expect(texture.wrapT).toBe(ClampToEdgeWrapping);
+  expect(loader.mock.calls[0]?.slice(0, 4)).toEqual(['https://cover.invalid/textures/leaf.webp', true, 1, undefined]);
+  await field.prepare(product); const originalMaterial = field.mapped('leaf');
+  expect(originalMaterial.map).toBe(texture);
+  texture.dispose();
+  loader.mockRejectedValueOnce(new Error('offline'));
+  await expect(field.texture(product, 'leaf')).rejects.toThrow('offline');
+  const replacement = await field.texture(product, 'leaf');
+  expect(replacement).not.toBe(texture); expect(loader).toHaveBeenCalledTimes(3);
+  await field.prepare(product);
+  expect(field.mapped('leaf')).not.toBe(originalMaterial); expect(field.mapped('leaf').map).toBe(replacement);
+  replacement.dispose();
 });

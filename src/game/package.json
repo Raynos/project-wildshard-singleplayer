@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./looks/coverAppearance": "./looks/coverAppearance.ts",
     "./quest/eliteFeature": "./quest/eliteFeature.ts",
     "./quest/elitePage": "./quest/elitePage.ts",
     "./quest/eliteStreams": "./quest/eliteStreams.ts",

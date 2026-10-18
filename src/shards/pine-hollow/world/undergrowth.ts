@@ -1,46 +1,37 @@
+import { Group, type BufferGeometry, type Material, type Vector3 } from 'three';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { GroundCover, type GroundCoverDraw, type GroundCoverKind, type UnderPlacements } from '../runtime/looks/groundCover';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { productCoverAppearance, type CoverAppearance, type CoverMaterial } from '@wildshard/game/looks/coverAppearance';
 import type { UnderShapes } from '../runtime/world/undergrowthKit';
-import { UNDER_LOOK } from '../data/undergrowthLook';
 
-/**
- * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
- * goes, each kind's geometry, texture and material. Each kind is a model (src/shards/pine-hollow/runtime/models/fern.ts …) that
- * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `groundCoverMatrix`,
- * `groundCoverCells`; src/shards/pine-hollow/world/drawnModels.ts).
- *
- *   const under = await new Undergrowth(sky, forest, shapes, placements).buildAsync(macrotask);
- *   scene.add(under.group);
- *   game.onUpdate((dt) => under.update(dt, player.position));   // only feeds the viewer position uniform
- *
- * Everything is placed once, deterministically (Rng), chunk-wide:
- *  - ~6000 ferns (9 arched frond quads in a rosette, procedural pinnate-leaf alpha texture) in
- *    shaded forest floor, along trail verges (5.5–10 m from the centreline) and around the pond:
- *    not on rock / cabin pads / inside trunks / in the water. Cast + receive shadows.
- *  - ~1500 shrubs (4 crossed quads, round-leaf texture) at floor/grass edges.
- *  - ~5000 twig/needle-litter quads and ~3000 dark pebble clusters lying flat under the trees.
- *  - ~3000 moss patches (flat, soft mottled alpha) hugging the base of trunks.
- *  - ~1500 reed / sedge clumps (tall thin blades, 0.8–1.2 m) on the pond shore and in the shallows.
- * Six draw calls (+ fern, shrub & reed shadow passes). Instances scale to 0 beyond the tier's fade
- * in the graph's vertex stage so distant ones cost nothing in the fragment stage.
- *
- * The field is the shard's ground cover (runtime/looks/groundCover.ts): one graph program for every kind, the distance
- * fade and the wind; its look and graph are data/undergrowthLook.ts; its textures are baked at build time from
- * generators/undergrowthPaint.ts (canvas rows painted from the level seed by generators/bake-pine-painted.mjs).
- *
- * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `view`.
- */
+export interface UnderPlacement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number; matrix: readonly number[] }
+export type UnderKind = 'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds';
+export type UnderPlacements = Record<UnderKind, UnderPlacement[]>;
+export interface UnderKindDraw { readonly geometry: BufferGeometry; readonly material: CoverMaterial; readonly castShadow: boolean; readonly customDepthMaterial?: Material }
+const far = (): number => plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.undergrowthFar', 'number', TIER_CONFIG);
+const shadow = (): boolean => plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.undergrowthShadows', 'boolean', TIER_CONFIG);
 
-/** one kind as the field draws it: its geometry, its material (and its shadow's) — a model's parts (E315) */
-export type UnderKindDraw = GroundCoverDraw;
-/** one of the field's six kinds */
-export type UnderKind = GroundCoverKind;
-
-/** Pine Hollow's forest floor: the ground cover with its look, shapes and baked textures. */
-export class Undergrowth extends GroundCover {
-  /** the field over `forest`, lit by `sky` */
-  constructor(sky: Sky, forest: Forest, shapes: UnderShapes, placements: UnderPlacements) {
-    super({ sky, forest, look: UNDER_LOOK, shapes, placements });
+/** Pine's original model placement and forest culling law. Maps, materials,
+ * vertex channels and live bindings belong to the shared appearance host. */
+export class Undergrowth {
+  readonly group = new Group();
+  private drawn: Readonly<Record<UnderKind, UnderKindDraw>> | undefined;
+  get kinds(): Readonly<Record<UnderKind, UnderKindDraw>> {
+    if (this.drawn === undefined) throw new Error('Undergrowth is not built'); return this.drawn;
   }
+  private appearance: CoverAppearance | undefined;
+  constructor(private readonly sky: Sky, readonly view: Forest, private readonly shapes: UnderShapes, readonly layout: UnderPlacements) {}
+  cells(): { readonly size: 32; readonly pad: 2.5; readonly far: number } { return { size: 32, pad: 2.5, far: far() + 2 }; }
+  async buildAsync(pause: () => Promise<void>): Promise<this> {
+    const product = await loadFirstPartyProduct('pine-hollow'), appearance = await productCoverAppearance(product, 'look/cover-appearance.json');
+    const reach = far(); appearance.set('fade', [reach, Math.min(25, reach * 0.3)]);
+    await appearance.prepare(product); await pause(); this.appearance = appearance;
+    const draw = (id: UnderKind): UnderKindDraw => ({ geometry: appearance.geometry(id, this.shapes[id]), material: appearance.mapped(id), castShadow: appearance.row.kinds.find(row => row.id === id)?.shadow === true && shadow() });
+    this.drawn = { ferns: draw('ferns'), shrubs: draw('shrubs'), litter: draw('litter'), stones: draw('stones'), moss: draw('moss'), reeds: draw('reeds') };
+    return this;
+  }
+  update(_dt: number, viewer: Vector3): void { this.appearance?.update(viewer, this.group.matrixWorld, this.sky.sunColor); }
 }

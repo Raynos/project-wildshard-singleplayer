@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Scene, Texture } from 'three';
 import { dressPineWater } from '../src/shards/pine-hollow/world/water';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
-import { WATER_LOOKS } from '../src/shards/pine-hollow/data/waterLook';
+import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
 import { waterTexture } from '@wildshard/engine/world/water/ripples';
+
+const { looks: WATER_LOOKS } = waterRows;
 
 const textures = vi.fn((_id: string, _name: string, _texture: Texture): void => undefined);
 const materials = new Map(Object.values(WATER_LOOKS).map(id => [id, new MeshStandardMaterial()]));

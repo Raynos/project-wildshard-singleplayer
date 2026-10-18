@@ -1,7 +1,33 @@
+/**
+ * Pine Hollow's photoreal water (PINE-HOLLOW-REMASTER PH-L9; SHARD-PLATFORM W2 C2) as SF59 material graphs: the pond, the
+ * creek and beaver pool, the dam's trickle and the rain's puddles wear two programs (still and running water; otherwise the
+ * four ids differ only in their params), lent with Pine's other looks (built at build time: generators/lookMaterials.ts) and worn by world/water.ts. No extra render pass:
+ *
+ *   · REFLECTION = the scene's environment (the clock's sky) along the rippled reflected ray, Fresnel F0 0.02 (water's
+ *     ior 1.333). Where the reflected ray would hit the shore instead of the sky its radiance is the forest's: on the pond an
+ *     analytic SKYLINE probe (a lent 1-D texture round the pond's centre: per azimuth the height, distance and albedo of the
+ *     tallest thing on the horizon, intersected per pixel as a cylinder); on running water a plain elevation cutoff.
+ *   · RIPPLES: three scales of one lent tiling normal map drift downwind, their strength and the roughness follow the wind's
+ *     gusts; on running water the map rides the flow (uv.y is travel time, so it scrolls downstream at one rate everywhere).
+ *     Rain adds rings up close and a rougher surface far off (`rain`, 0 … 1).
+ *   · BODY: the per-vertex depth gives the opacity (Beer–Lambert, `kAbs` per metre) and tint (peaty shallow → dark deep);
+ *     blended as `a = F + aBody − F·aBody` so the Fresnel reflection is never scaled away by the alpha.
+ *   · FOAM: the map's alpha thresholded by a per-vertex amount (the dam, the fall, the plunge ring) plus a broken scum line
+ *     at the shore, lit as a white diffuse layer. WET LINE: vertices just above the water (depth < 0) draw a dark glossy film.
+ *
+ * The lighting stage owns the whole light: the sun's diffuse and GGX glint (shadowed), the sky's diffuse and its reflection
+ * (`radiance`, swapped for the forest where occluded, its crowns lit by the scene's sun light, `skyLightColour`); each term
+ * is divided by the alpha so the straight-alpha blend writes (spec + body · aBody) over the bed. Vertex data: `uv` (running
+ * water only: across metres, travel seconds; still water maps world x / z), `aWater` vec4 = (depth m (< 0 the wet film), flowing 0 | 1, foam 0..1, kAbs per m (< 0 a foam-only
+ * overlay)). Fogged half as much as the air (`vertex.scale.fog`).
+ */
 // Pine Hollow's water look graphs, built at build time (SHARD-PLATFORM W2c): emitted into
-// data/lookMaterials.generated.json by ./lookMaterials.ts; the ids and rows the play code reads stay in ../data/waterLook.ts.
+// data/lookMaterials.generated.json by ./lookMaterials.ts; the ids and rows the play code reads stay in ../data/waterLook.json.
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
-import { WATER_LOOKS, SKYLINE } from '../data/waterLook';
+import waterRows from '../data/waterLook.json' with { type: 'json' };
+
+// Skyline RGB stores occluder height / top, distance / dist and bank albedo / bank.
+const { looks: WATER_LOOKS, skyline: SKYLINE } = waterRows;
 
 /** linear colours: the forest's albedo in the reflection, the water's scatter colour shallow and deep */
 const FOREST = [0.035, 0.052, 0.03], SHALLOW = [0.042, 0.04, 0.02], DEEP = [0.005, 0.01, 0.008];

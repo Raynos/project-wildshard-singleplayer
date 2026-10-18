@@ -1,3 +1,4 @@
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 /**
  * PineLandmarks — Pine Hollow's landmarks (PINE-HOLLOW-REMASTER PH-B3 and the B6-adjacent buildings), every site from
  * src/shards/pine-hollow/data/layout.generated.ts:
@@ -34,7 +35,7 @@ import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as 
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins } from './homestead';
-import { loadPainted } from '../looks/paintedTextures';
+import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import { pineModels } from './context';
 import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
@@ -124,11 +125,12 @@ export class PineLandmarks {
   }
 
   private async buildProps(cabins: Cabins | null): Promise<void> {
+    const product = await loadFirstPartyProduct('pine-hollow');
     const stones = authored.landmarks.stones;
     if (stones.length > 16) throw new Error('Standing-stone row bound exceeded');
     for (let i = 0; i < Math.min(stones.length, 16); i++) { const row = stones[i]; if (row !== undefined) this.propColliders.push(...(await this.scenes.place(`heroes.${row.kind}`)).colliders); }
     this.propColliders.push(...(await this.scenes.place('heroes.waystone')).colliders);
-    this.lanterns(cabins, await loadPainted('glow'));
+    this.lanterns(cabins, await (await productCoverAppearance(product, 'look/cover-appearance.json')).texture(product, 'glow'));
     this.propColliders.push(...(await this.scenes.place('heroes.beaver-dam')).colliders);
     const drawnUp = await this.scenes.place('heroes.canoe'), canoePlace = authored.landmarks.canoe[0];
     this.propColliders.push(...drawnUp.colliders);

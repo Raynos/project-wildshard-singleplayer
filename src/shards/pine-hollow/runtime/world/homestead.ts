@@ -14,7 +14,7 @@ import type { SiteLightState } from '@wildshard/engine/fx/SiteLights';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
-import { loadPainted } from '../looks/paintedTextures';
+import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import * as v from 'valibot';
 import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, lentMappedLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -98,7 +98,8 @@ export function cabinMats(sky: Sky): Promise<Mats> {
 async function loadMats(sky: Sky): Promise<Mats> {
   const { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, HEARTH_LOOKS, CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE } = await loadCabinRows();
   const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
-  const [endGrain, glow] = await Promise.all([loadPainted('endGrain'), loadPainted('glow')]); // the log ends' and the lamps' (baked offline)
+  const product = await loadFirstPartyProduct('pine-hollow'), appearance = await productCoverAppearance(product, 'look/cover-appearance.json');
+  const [endGrain, glow] = await Promise.all([appearance.texture(product, 'endGrain'), appearance.texture(product, 'glow')]);
   const scans = new Map(await Promise.all(CABIN_PBR.map(async row => [row.key, pbrMaterial(await loadPBR(row.scan, 1, cap), {
     metalness: 0, color: new THREE.Color(...row.color), normalScale: new THREE.Vector2(...row.normal),
   })] as const)));

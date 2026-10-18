@@ -25,7 +25,7 @@ export const CabinAmbienceSchema = v.strictObject({ floors:v.pipe(v.array(v.stri
 export const SECTIONS = {
   'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
   'custom/ambientLife':ForestLifeSchema,
-  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,endGrain:texture,glow:texture,coatMap:texture,coatNormal:texture,ferns:texture,shrubs:texture,litter:texture,stones:texture,moss:texture,reeds:texture}),urls:strings,chalk:CollectionChalkSchema}),
+  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
   'custom/trophyMounts':CollectionMountPackSchema,
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;

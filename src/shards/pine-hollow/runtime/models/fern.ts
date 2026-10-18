@@ -1,6 +1,6 @@
 /**
  * The forest floor's kinds as rows (E315 M2, G465): ferns, bilberry shrubs, needle litter, pebbles, moss and reeds, drawn
- * by the ground cover's field in its own shader (geometry, texture and material: ../looks/groundCover.ts); `place` draws
+ * by the ground cover's field through the shared cover-appearance book; `place` draws
  * every copy of a kind in one InstancedMesh, culled per cell round the forest's view (../world/drawnModels.ts). The
  * Explorer's specimen wears a plain material. Walked through: no collider.
  */

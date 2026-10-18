@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { TIER } from '@wildshard/engine/core/tier';
-import { lentLook, lentToon, setLentParam } from '../shardfile/lentLooks';
+import { lentToon, setLentParam } from '../shardfile/lentLooks';
 import { followToonLighting } from './toonLighting';
+import { createCoverAppearance, type CoverAppearance } from './coverAppearance';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { parseStreamedCover, type StreamedCoverRow } from '@wildshard/format/streamedCover';
 import type { SceneResources } from '../shardfile/sceneResources';
@@ -86,13 +87,12 @@ class StreamedCover {
   private readonly row: StreamedCoverRow;
   private readonly farBudgetMs: number;
   private readonly kinds: Kind[] = [];
+  private readonly appearance: CoverAppearance;
   private readonly cells: CellWindow<Float32Array[]>;
   private readonly last = new THREE.Vector3(1e9, 0, 1e9);
   private readonly uniforms = { uPlayer: { value: new THREE.Vector3() }, uReachUp: { value: 1 } };
-  /** the graphs it draws in (their ids, lent by the runtime) and their toon look's follow; the viewer's position as a param */
+  /** The shared graph book owns the ids and view params; the live toon family still follows its lighting. */
   private follow: (() => void) | null = null;
-  private readonly ids: string[] = [];
-  private readonly player = [0, 0, 0];
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
   private rMax = 0;
   /** the far tier's rebuild: a job stepped within the budget a frame; where the shown / the next set were built from */
@@ -110,6 +110,10 @@ class StreamedCover {
   constructor(resources: SceneResources, row: StreamedCoverRow, cells: Uint8Array) {
     this.resources = resources;
     this.row = row;
+    this.appearance = createCoverAppearance({ params: { viewer: row.params.viewer }, kinds: row.kinds.flatMap(kind => {
+      const near = `${row.look}-${kind.name}`, far = `${near}-far`;
+      return [...(kind.far === undefined ? [] : [{ id: far, graph: far }]), { id: near, graph: near }];
+    }) });
     this.file = readCells(cells, row.cell);
     if (this.file.nk !== row.kinds.length) throw new Error('StreamedCover: baked kind count differs from rows');
     this.farBudgetMs = forTier(this.row.farBudgetMs);
@@ -128,12 +132,12 @@ class StreamedCover {
   build(): this {
     const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), sr = row.slopeReach;
     const material = (id: string, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.Material => {
-      const mat = lentLook(id);
+      const mat = this.appearance.material(id);
       setLentParam(id, row.params.reach, reach.toArray()); setLentParam(id, row.params.lodReach, far.toArray()); setLentParam(id, row.params.mode, mode); setLentParam(id, row.params.keep, keep);
-      this.ids.push(id); this.follow ??= followToonLighting(row.lighting, lentToon(id));
+      this.follow ??= followToonLighting(row.lighting, lentToon(id));
       return mat;
     };
-    const geometry = (key: string): THREE.BufferGeometry => this.resources.geometry(key);
+    const geometry = (key: string, id: string): THREE.BufferGeometry => this.appearance.geometry(id, this.resources.geometry(key));
     for (let ki = 0; ki < Math.min(row.kinds.length, 32); ki++) {
       const k = row.kinds[ki];
       if (k === undefined) continue;
@@ -146,9 +150,9 @@ class StreamedCover {
         const f = k.far, [fn, ff] = f.reach, fcap = Math.round(f.cap * f.keep * capK);
         farSpan.set(fn * K, ff * K, (ff - fn) * K * row.growShare);
         this.rFar = Math.max(this.rFar, farSpan.y * sr.up + row.farSlack + row.eyeSlack);
-        farTier = { set: instanceTier(this.group, `${row.meshPrefix}${k.name}-far`, geometry(f.geometry), material(`${row.look}-${k.name}-far`, reach, farSpan, MODE_FAR), fcap, ATTRS, { coloured: hasTint }), cap: fcap, reach: farSpan, keep: f.keep };
+        farTier = { set: instanceTier(this.group, `${row.meshPrefix}${k.name}-far`, geometry(f.geometry, `${row.look}-${k.name}-far`), material(`${row.look}-${k.name}-far`, reach, farSpan, MODE_FAR), fcap, ATTRS, { coloured: hasTint }), cap: fcap, reach: farSpan, keep: f.keep };
       }
-      const set = instanceTier(this.group, `${row.meshPrefix}${k.name}`, geometry(k.geometry), material(`${row.look}-${k.name}`, reach, farSpan, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, ATTRS, { coloured: hasTint });
+      const set = instanceTier(this.group, `${row.meshPrefix}${k.name}`, geometry(k.geometry, `${row.look}-${k.name}`), material(`${row.look}-${k.name}`, reach, farSpan, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, ATTRS, { coloured: hasTint });
       this.kinds.push({ set, cap, far: farTier, reach, scale: k.scale });
     }
     const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / row.cell) + 1;
@@ -305,13 +309,11 @@ class StreamedCover {
 
   /** the per-frame params into every graph: the viewer, the slope reach's strength, the far set's grow-in; the toon follow */
   private pushParams(): void {
-    const follow = this.follow, p = this.player, v = this.uniforms.uPlayer.value;
+    const follow = this.follow, v = this.uniforms.uPlayer.value;
     if (follow === null) return;
-    p[0] = v.x; p[1] = v.y; p[2] = v.z;
-    for (let i = 0; i < Math.min(this.ids.length, 32); i++) {
-      const id = this.ids[i];
-      if (id !== undefined) { setLentParam(id, this.row.params.viewer, p); setLentParam(id, this.row.params.slope, this.uniforms.uReachUp.value); setLentParam(id, this.row.params.growIn, this.farIn.value); }
-    }
+    this.appearance.update(v);
+    this.appearance.set(this.row.params.slope, this.uniforms.uReachUp.value);
+    this.appearance.set(this.row.params.growIn, this.farIn.value);
     follow();
   }
 }

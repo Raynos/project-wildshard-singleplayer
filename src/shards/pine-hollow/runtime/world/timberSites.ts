@@ -1,5 +1,5 @@
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { UnderPlacements } from '../looks/groundCover';
+import type { UnderPlacements } from '../../world/undergrowth';
 /**
  * Pine Hollow's two site-fitted timber landmarks, the zipline landing and the creek footbridge (E315 M2; PH-B3), where
  * they stand and their offline bake (G285, SF72 "bake the code-built worlds"). Each is fitted to the ground under it: the

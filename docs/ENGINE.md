@@ -9645,6 +9645,15 @@ as approval metadata in `lint/platform-pending-users.json`; a marsh fixture in
 `test/streamed-cover-platform.test.ts` drives different geometry/material ids,
 bands and capacities without adding a host branch.
 
+**Cover appearance rows.** `game/looks/coverAppearance#createCoverAppearance` is a
+client-only material/vertex-channel book shared by fixed and streamed cover.
+Rows name compiled graphs, immutable product textures, material properties,
+constant geometry attributes and viewer/origin/sun graph parameters. It keeps
+the drawing owner's placement, culling, upload and shadow policy. Texture
+acquisition shares resources until disposal and retries failures;
+`productCoverAppearance(product, file)` borrows one book per immutable product.
+The API accepts rows and ids, with no shard callbacks or constructor overrides.
+
 **Toon look host (G475).** `game/looks/toonLook#toonLook(product)` reads
 `look/toon` (`format/toonLook`), preparing a client-only look. Its rows name
 the lighting identity, ramp-fog colours and range, shadow policy, baked

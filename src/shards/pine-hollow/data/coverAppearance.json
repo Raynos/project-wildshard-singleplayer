@@ -1,0 +1,102 @@
+{
+  "params": {
+    "viewer": "viewer",
+    "shift": "shift",
+    "sunTint": "sunTint"
+  },
+  "kinds": [
+    {
+      "id": "ferns",
+      "graph": "pine-undergrowth",
+      "texture": "ferns",
+      "name": "under-fern",
+      "attributes": {
+        "aWind": 0.35
+      },
+      "shadow": true,
+      "properties": {
+        "alphaTest": 0.5,
+        "roughness": 0.8
+      }
+    },
+    {
+      "id": "shrubs",
+      "graph": "pine-undergrowth",
+      "texture": "shrubs",
+      "name": "under-shrub",
+      "attributes": {
+        "aWind": 0.25
+      },
+      "shadow": true,
+      "properties": {
+        "alphaTest": 0.5,
+        "roughness": 0.8
+      }
+    },
+    {
+      "id": "litter",
+      "graph": "pine-undergrowth",
+      "texture": "litter",
+      "name": "under-litter",
+      "attributes": {
+        "aWind": 0
+      },
+      "shadow": false,
+      "properties": {
+        "alphaTest": 0.35,
+        "roughness": 1,
+        "polygonOffset": true,
+        "polygonOffsetFactor": -2,
+        "polygonOffsetUnits": -2
+      }
+    },
+    {
+      "id": "stones",
+      "graph": "pine-undergrowth",
+      "texture": "stones",
+      "name": "under-stone",
+      "attributes": {
+        "aWind": 0
+      },
+      "shadow": false,
+      "properties": {
+        "alphaTest": 0.5,
+        "roughness": 0.75,
+        "polygonOffset": true,
+        "polygonOffsetFactor": -2,
+        "polygonOffsetUnits": -2
+      }
+    },
+    {
+      "id": "moss",
+      "graph": "pine-undergrowth",
+      "texture": "moss",
+      "name": "under-moss",
+      "attributes": {
+        "aWind": 0
+      },
+      "shadow": false,
+      "properties": {
+        "alphaTest": 0.4,
+        "roughness": 1,
+        "polygonOffset": true,
+        "polygonOffsetFactor": -2,
+        "polygonOffsetUnits": -2
+      }
+    },
+    {
+      "id": "reeds",
+      "graph": "pine-undergrowth",
+      "texture": "reeds",
+      "name": "under-reed",
+      "attributes": {
+        "aWind": 0.5
+      },
+      "shadow": true,
+      "properties": {
+        "alphaTest": 0.45,
+        "roughness": 0.8
+      }
+    }
+  ]
+}

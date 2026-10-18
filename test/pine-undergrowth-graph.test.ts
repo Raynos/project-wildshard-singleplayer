@@ -4,7 +4,7 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
 import { Scope } from '../src/engine/app/scope';
 import { validateGraph } from '../src/format/materialGraph';
-import { UNDER_LOOK } from '../src/shards/pine-hollow/data/undergrowthLook';
+import UNDER_LOOK from '../src/shards/pine-hollow/data/coverAppearance.json' with { type: 'json' };
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 
@@ -12,8 +12,8 @@ const UNDER_GRAPHS = authoredGraphs({ 'pine-undergrowth': lookGraphs.runtime['pi
 
 test("Pine's undergrowth graph validates in its budget and compiles a swaying, cut, shadow-casting foliage material", () => {
   // every kind borrows the same compiled graph
-  for (const [, row] of UNDER_LOOK.kinds) expect(UNDER_GRAPHS[row.graph]).toBeDefined();
-  const casting = UNDER_LOOK.kinds.filter(([, row]) => row.shadow).map(([, row]) => row.graph);
+  for (const row of UNDER_LOOK.kinds) expect(UNDER_GRAPHS[row.graph]).toBeDefined();
+  const casting = UNDER_LOOK.kinds.filter(row => row.shadow).map(row => row.graph);
   expect(new Set(casting).size).toBe(1);
   expect(Object.keys(UNDER_GRAPHS)).toHaveLength(1);
   const graph = UNDER_GRAPHS['pine-undergrowth'];

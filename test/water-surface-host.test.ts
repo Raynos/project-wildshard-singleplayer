@@ -3,7 +3,9 @@ import { DataTexture, DataUtils, MeshStandardMaterial, PlaneGeometry, type Textu
 import { WaterSurface } from '../src/sdk/looks/waterSurface';
 import type { GraphLiteral } from '../src/format/materialGraph';
 import { OCEAN_SURFACE } from '../src/shards/driftwood-isle/generators/oceanLook';
-import { WATER_SURFACES } from '../src/shards/pine-hollow/data/waterLook';
+import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
+
+const { surfaces: WATER_SURFACES } = waterRows;
 
 test('Driftwood ocean binds its floor, foam and dry sockets; Pine draws its plain surface rows', () => {
   for (const row of [OCEAN_SURFACE, ...Object.values(WATER_SURFACES)]) {

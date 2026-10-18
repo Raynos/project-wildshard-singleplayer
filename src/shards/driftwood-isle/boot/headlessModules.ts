@@ -6,7 +6,8 @@ import { installQuestKillSteps as module3InstallQuestKillSteps } from '@wildshar
 import { createMonkeyAnimation as module4CreateMonkeyAnimation } from '../species/monkeyPolicy';
 import { driftwoodSpots as module5DriftwoodSpots, installDriftwoodQuest as module5InstallDriftwoodQuest } from '../runtime/quest';
 import { DRIFTWOOD_SEA as module6DRIFTWOOD_SEA, LOWERED_SEA as module6LOWERED_SEA } from '../world/sea';
-import { DRIFTWOOD_DAY as module7DRIFTWOOD_DAY } from '../look/dayKeys';
+import { dayClock as declaredDayClock } from '@wildshard/game/looks/dayClock';
+import { TOON_DAY_PRESET as declaredDayPreset } from '@wildshard/format/toonLook';
 import { parseAchievementCounterData as module8ParseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { readNavmesh as module9ReadNavmesh } from '@wildshard/engine/physics/navmesh';
 import { DirectorScriptStageLane as module10DirectorScriptStageLane, readDirectorProduct as module10ReadDirectorProduct } from '@wildshard/game/plugin/director';
@@ -27,7 +28,8 @@ export const headlessModules = {
   'src/shards/driftwood-isle/species/monkeyPolicy': { createMonkeyAnimation: module4CreateMonkeyAnimation },
   'src/shards/driftwood-isle/runtime/quest': { driftwoodSpots: module5DriftwoodSpots, installDriftwoodQuest: module5InstallDriftwoodQuest },
   'src/shards/driftwood-isle/world/sea': { DRIFTWOOD_SEA: module6DRIFTWOOD_SEA, LOWERED_SEA: module6LOWERED_SEA },
-  'src/shards/driftwood-isle/look/dayKeys': { DRIFTWOOD_DAY: module7DRIFTWOOD_DAY },
+  '@wildshard/game/looks/dayClock': { dayClock: declaredDayClock },
+  '@wildshard/format/toonLook': { TOON_DAY_PRESET: declaredDayPreset },
   '@wildshard/format/achievementCounters': { parseAchievementCounterData: module8ParseAchievementCounterData },
   '@wildshard/engine/physics/navmesh': { readNavmesh: module9ReadNavmesh },
   '@wildshard/game/plugin/director': { DirectorScriptStageLane: module10DirectorScriptStageLane, readDirectorProduct: module10ReadDirectorProduct },

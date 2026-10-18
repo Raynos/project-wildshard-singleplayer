@@ -8,9 +8,8 @@
  */
 import * as THREE from 'three';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import type { UnderPlacements } from '../looks/groundCover';
 import { loadSiteTimbers } from './timberSites';
-import type { UnderKind, UnderKindDraw } from '../../world/undergrowth';
+import type { UnderPlacements, UnderKind, UnderKindDraw } from '../../world/undergrowth';
 /** The six original shapes are charged GLB library views, shared with the native world reader. */
 export type UnderShapes = Readonly<Record<UnderKind, THREE.BufferGeometry>>;
 export async function loadUnderShapes(ctx: ModelContext): Promise<UnderShapes> {

@@ -8,7 +8,7 @@
 // Math.random and runs the page on the capture clock (30 fps), so the one frame drawn before the harness gate holds the
 // world advances 1/30 s, not the wall-clock gap (Nalati's ed70f77d1). `--raw=<dir>` keeps each frame's RGBA so
 // `--compare` can count the differing pixels.
-//   scripts/browser-lane.sh node scripts/proof-pine-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>] [--textures=ktx2|img]
+//   scripts/browser-lane.sh node scripts/proof-pine-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>] [--textures=ktx2|img] [--phase=midday|night]
 //   node scripts/proof-pine-look-parity.mjs --compare=<base.json>,<candidate.json>
 import { chromium, devices } from 'playwright';
 import { createHash } from 'node:crypto';
@@ -16,7 +16,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
 import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
-import { harnessPins } from './debug-settings.mjs';
+import { developerSettings, harnessPins } from './debug-settings.mjs';
 
 /** Fixed world poses; x / z in metres, yaw 0 looks −z and +π/2 looks −x */
 const POSES = [
@@ -33,6 +33,7 @@ const compare = arg('compare');
 if (compare !== undefined) {
   const [a, b] = compare.split(',').map(path => JSON.parse(readFileSync(path, 'utf8')));
   const diffs = [];
+  if ((a.phase ?? 'midday') !== (b.phase ?? 'midday')) diffs.push('Day/night capture phase differs');
   for (const [i, row] of a.rows.entries()) {
     const other = b.rows[i];
     for (const key of ['tier', 'pose', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
@@ -44,6 +45,7 @@ if (compare !== undefined) {
         let n = 0;
         for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2]) n++;
         console.log(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
+        diffs.push(`${row.tier}/${row.pose}: pixels differ`);
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
@@ -51,7 +53,8 @@ if (compare !== undefined) {
   console.log(diffs.length === 0 ? `pine-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
-const url = arg('url'), output = arg('output'), raw = arg('raw'), textures = arg('textures');
+const url = arg('url'), output = arg('output'), raw = arg('raw'), textures = arg('textures'), phase = arg('phase') ?? 'midday';
+if (phase !== 'midday' && phase !== 'night') throw new Error('--phase=midday|night');
 if (textures !== undefined && textures !== 'ktx2' && textures !== 'img') throw new Error('--textures=ktx2|img');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 if (raw !== undefined) mkdirSync(raw, { recursive: true });
@@ -64,6 +67,7 @@ try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
     await installInit(context, { lane: 'pine-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
+    await developerSettings(context, { time: phase });
     // G386: --textures=ktx2|img pins the textures (a harness pin after the init's pins, never a setting or URL switch)
     if (textures !== undefined) await harnessPins(context, { textures });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
@@ -152,5 +156,5 @@ try {
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);
-  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: 'iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden', tiers, rows }, null, 2)}\n`);
+  writeFileSync(output, `${JSON.stringify({ build: version.build, phase, profile: 'iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden', tiers, rows }, null, 2)}\n`);
 } finally { await browser.close(); }

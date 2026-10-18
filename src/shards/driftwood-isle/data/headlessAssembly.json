@@ -27,9 +27,8 @@
       "DRIFTWOOD_SEA",
       "LOWERED_SEA"
     ],
-    "src/shards/driftwood-isle/look/dayKeys": [
-      "DRIFTWOOD_DAY"
-    ],
+    "@wildshard/game/looks/dayClock": ["dayClock"],
+    "@wildshard/format/toonLook": ["TOON_DAY_PRESET"],
     "@wildshard/format/achievementCounters": [
       "parseAchievementCounterData"
     ],
@@ -345,6 +344,34 @@
   ],
   "install": [
     {
+      "name": "dayLook",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/looks/dayClock",
+              "dayClock"
+            ]
+          },
+          {
+            "$ref": [
+              "@wildshard/format/toonLook",
+              "TOON_DAY_PRESET"
+            ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "dayStyle"
+            ]
+          },
+          {
+            "dusk": "dusk"
+          }
+        ]
+      }
+    },
+    {
       "name": "clock",
       "value": {
         "$new": [
@@ -356,9 +383,7 @@
               {
                 "$ref": ["assembly", "merge"]
               },
-              {
-                "$ref": ["src/shards/driftwood-isle/look/dayKeys", "DRIFTWOOD_DAY"]
-              },
+              {"$ref": ["dayLook", "spec"]},
               {
                 "start": 0.16666666666666669
               }

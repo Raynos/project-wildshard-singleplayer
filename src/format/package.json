@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./coverAppearance": "./coverAppearance.ts",
     "./eliteFeature": "./eliteFeature.ts",
     "./spawnCombat": "./spawnCombat.ts",
     "./clientPlan": "./clientPlan.ts",

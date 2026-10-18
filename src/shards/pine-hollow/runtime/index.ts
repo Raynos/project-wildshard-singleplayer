@@ -24,7 +24,6 @@ import { pineRifleFloor } from '../quest/rifleFloor';
 import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { admitPaintedTextures } from './looks/paintedTextures';
 import { Cabins, loadCabinRows } from './world/homestead';
 import { updatePineForest } from '../world/treeFactory';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
@@ -79,7 +78,6 @@ export class PineHollow extends ShardPlugin {
   private particles: Particles | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
-    admitPaintedTextures(ctx.product);
     const finishPack = ctx.product.section('held/finishes').source;
     if (finishPack === undefined) throw new Error('Held finishes require their declared geometry source');
     registerPackedGeometrySource(ctx.scope, 'held-finishes', { ...finishPack, label: 'held finishes' });

@@ -1,0 +1,38 @@
+{
+  "looks": {
+    "pond": "pine-water-pond",
+    "creek": "pine-water-creek",
+    "trickle": "pine-water-trickle",
+    "puddle": "pine-water-puddle"
+  },
+  "surfaces": {
+    "creek": {
+      "look": "pine-water-creek",
+      "name": "creek-waterfall",
+      "renderOrder": 6
+    },
+    "pool": {
+      "look": "pine-water-creek",
+      "name": "beaver-pool",
+      "renderOrder": 5
+    },
+    "trickle": {
+      "look": "pine-water-trickle",
+      "name": "beaver-pool-trickle",
+      "renderOrder": 6
+    },
+    "puddle": {
+      "look": "pine-water-puddle",
+      "name": "puddles",
+      "renderOrder": 4
+    }
+  },
+  "skyline": {
+    "top": 80,
+    "dist": 400,
+    "bins": 512,
+    "bank": 0.5,
+    "earth": 0.12,
+    "rock": 0.3
+  }
+}

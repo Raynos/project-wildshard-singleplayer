@@ -1,3 +1,4 @@
+import { parseCoverAppearance } from '../src/format/coverAppearance';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
@@ -26,9 +27,16 @@ test('Pine client reads resolve against the emitted output', async () => {
   expect(shots.length).toBe(new Set(shots).size);
   for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));
+  const coverFile = loaded.output.namedFiles?.find(row => row.name === 'look/cover-appearance.json');
+  const coverBytes = coverFile === undefined ? undefined : loaded.assets.get(coverFile.hash);
+  if (coverBytes === undefined) throw new Error('Pine output has no cover appearance');
+  const appearance = parseCoverAppearance(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(coverBytes)));
+  expect(Object.keys(appearance.textures).sort()).toEqual(['endGrain', 'ferns', 'glow', 'litter', 'moss', 'reeds', 'shrubs', 'stones']);
+  expect(Object.keys(value('custom/paintedTextures').textures).sort()).toEqual(['chalk', 'coatArm', 'coatMap', 'coatNormal']);
   const held = v.parse(HeldEquipmentSchema, outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
   const wanted = [held.firearm.pool.url, held.launcher.pool.url, value('custom/trophyMounts').url,
     ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
+    ...Object.values(appearance.textures).map(row => row.url),
     'world/ambience.json', 'actors/elites.json', ...['night', 'director'].map(stem => `behaviour/${stem}.wasm`),
     ...['ironhide', 'ghost-stag', 'blackpaw', 'imperial-bull'].map(stem => `behaviour/elites/${stem}.wasm`)];
   for (const name of wanted) expect(names.has(name), name).toBe(true);
