@@ -7534,6 +7534,21 @@ unsupported extensions refuse. No textual GLTF is emitted as JSON or bin.
 Simulation declarations belong to platform sections and hosts, not copied
 runtime code; custom-section policy and exit rows remain writer-owned.
 
+### Build-validated custom section types
+
+`ShardProduct.section<T>(name)` reads a custom section synchronously using
+its generated declaration type, without importing a runtime schema. The
+build-only `generators/sections.ts` registry owns validation; the section
+schema producer emits wire schemas and standalone
+`runtime/productSections.generated.d.ts` declarations from that same registry.
+Missing, streamed and absent-product reads keep the normal product refusals.
+Checked products deep-freeze these values; schema-backed reads remain
+available for external or unconverted readers. Immutable product content
+uses this path; saved state still validates at its continuation boundary.
+`ShardProduct.json<T>(name)` reads large build-validated named JSON with
+the same generated types, fatal UTF-8 decoding and verified file reader.
+Its defining schema parses the payload in the generator before emission.
+
 ### Product loading and build-pinned assembly (P2a)
 
 `game/shardfile/runtimeProduct.loadShardProduct(slug, options, scope)`

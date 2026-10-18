@@ -1,4 +1,7 @@
 import { InputActionSchema, InputKeysSchema } from '@wildshard/format/inputDeclarations';
+import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
+import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
@@ -119,6 +122,11 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'bodySlots.BodySlots': BodySlotsSchema,
+  'limbRig.LimbRig': LimbRigSchema,
+  'limbRig.LimbBlend': LimbBlendSchema,
+  'limbRig.BakedClipTable': BakedClipTable,
+  'limbCollision.LimbCollisionBake': LimbCollisionBake,
   'plumbing.Plumbing': PlumbingSchema,
   'heldArms.ToonArmsLook': ToonArmsLookSchema,
   'npcs.QuestNpcBinding': QuestNpcBindingSchema,

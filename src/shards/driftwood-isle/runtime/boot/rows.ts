@@ -1,9 +1,8 @@
 import { buildTier } from '@wildshard/engine/core/tier';
-import type * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { SECTIONS } from '../sections';
+import type { CustomSections } from '../productSections.generated.d.ts';
 
-type RowSection = keyof typeof SECTIONS;
+type RowSection = keyof CustomSections;
 let admitted: ShardProduct | null = null;
 
 /** The island's admitted product, for the model hooks that hold no product (Explorer cards, colliders, slot geometry):
@@ -17,10 +16,10 @@ export function driftwoodLaunch(name: string): NonNullable<ShardProduct['shardfi
   return row;
 }
 
-/** A client row section of the admitted product (runtime/sections.ts); throws before the product is admitted. */
-export function driftwoodRows<K extends RowSection>(name: K): v.InferOutput<(typeof SECTIONS)[K]> {
+/** A client row section of the admitted product (build-validated sections); throws before the product is admitted. */
+export function driftwoodRows<K extends RowSection>(name: K): CustomSections[K] {
   if (admitted === null) throw new Error(`Driftwood reads ${name} before its product is admitted`);
-  return admitted.section(name, SECTIONS);
+  return admitted.section<CustomSections[K]>(name);
 }
 
 /** Only live view shadow choices remain; geometry counts and dimensions compile offline. */

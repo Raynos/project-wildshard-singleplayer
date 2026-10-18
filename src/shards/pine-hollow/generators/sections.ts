@@ -1,8 +1,8 @@
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
-import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
+import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
 const text = v.pipe(v.string(), v.maxLength(512));
@@ -21,15 +21,6 @@ const pair = v.tuple([number, number]);
 /** Cabin spatial facts are checked at emission and when the play hook reads the named product. */
 export const CabinAmbienceSchema = v.strictObject({ floors:v.pipe(v.array(v.strictObject({ ...point, rot:finite, hw:finite, hd:finite })),v.maxLength(128)), firePits:v.pipe(v.array(v.strictObject(point)),v.maxLength(16)) });
 
-/** Checked against the build's emitted JSON before publication; client reads never import data/. */
-export const SECTIONS = {
-  'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
-  'custom/ambientLife':ForestLifeSchema,
-  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
-  'custom/trophyMounts':CollectionMountPackSchema,
-  'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
-} as const;
-
 /** World-only view rows: the reader checks the named product before any builder uses them. */
 export const NativeViewSchema = v.strictObject({
   QUADRUPED: v.strictObject({ spec: LimbRigSchema, blend: LimbBlendSchema, clips: BakedClipTable, collision: LimbCollisionBake,
@@ -43,3 +34,14 @@ export const NativeViewSchema = v.strictObject({
     drips:v.strictObject({ color:number, size:number, opacity:number, period:number, periodStep:number, kinds:number, phaseStep:number, gravity:number, hang:number, minDrop:number }) }),
   SPRAY_PUFFS:v.strictObject({ notice:text, at:v.array(number), seed:v.array(number), size:v.array(number) }),
 });
+
+/** Checked against the build's emitted JSON before publication; client reads never import data/. */
+export const SECTIONS = {
+  'custom/cabinAmbience': CabinAmbienceSchema,
+  'custom/questInventory':v.strictObject({feats:v.pipe(v.array(feat),v.maxLength(128)),items:v.pipe(v.array(bagItem),v.maxLength(128))}),
+  'custom/ambientLife':ForestLifeSchema,
+  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
+  'custom/trophyMounts':CollectionMountPackSchema,
+  'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
+} as const;
+

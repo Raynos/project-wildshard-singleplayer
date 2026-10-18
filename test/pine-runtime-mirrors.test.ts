@@ -8,7 +8,7 @@ import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'jso
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
-import { NativeViewSchema } from '../src/shards/pine-hollow/runtime/sections';
+import { NativeViewSchema } from '../src/shards/pine-hollow/generators/sections';
 import { admitPineView, pineView } from '../src/shards/pine-hollow/runtime/world/context';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

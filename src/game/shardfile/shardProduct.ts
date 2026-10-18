@@ -30,12 +30,17 @@ export interface ShardProduct {
   readonly hasFile: (name: string) => boolean;
   /** A blob's verified bytes by logical name (cached by the shard's asset reader). */
   readonly file: (name: string) => Promise<Uint8Array>;
+  /** Build-validated named JSON, typed by a generated declaration and decoded from verified bytes. */
+  readonly json: <T>(name: string) => Promise<T>;
   /** A blob's content-addressed URL by logical name, for loaders that only take a URL. Prefer `file()`. */
   readonly url: (name: string) => string;
 }
 
 /** `ShardProduct.section`. Values are shared between readers: treat them as read-only. */
 export interface SectionReader {
+  /** Build-validated custom data, typed by a generated declaration; no runtime schema is imported. */
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- The caller supplies its generated type because build validation erases the runtime schema argument.
+  <T>(name: CustomSectionName): T;
   /** A platform section's value, typed by `@wildshard/format/sections`. */
   <K extends PlatformSectionName>(name: K): PlatformSections[K];
   /**
@@ -106,6 +111,8 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     if (file === undefined) throw new ProductError(slug, name, 'missing-file', `the built shard names no file ${name}`);
     return file;
   };
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- Match the explicit generated-type overload without a runtime schema argument.
+  function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
   function section<R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
   function section(name: string, schemas?: CustomSectionSchemas): unknown {
@@ -119,8 +126,13 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     parsed.set(name, deepFreeze(result.output));
     return result.output;
   }
+  function json<T>(name: string): Promise<T>;
+  async function json(name: string): Promise<unknown> {
+    const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.read(named(name).hash)));
+    return input.check === true ? deepFreeze(decoded) : decoded;
+  }
   return {
-    slug, revision: input.revision, shardfile: input.shardfile, section,
+    slug, revision: input.revision, shardfile: input.shardfile, section, json,
     has: name => sections.has(name) || streamed.has(name),
     strings: <const K extends string>(keys: readonly K[]): ProductStrings<K> => {
       if (keys.length === 0) return Object.freeze({}) as ProductStrings<K>;
@@ -145,6 +157,8 @@ export function absentShardProduct(slug: string): ShardProduct {
   const absent = (item: string): never => {
     throw new ProductError(slug, item, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`);
   };
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- An absent product retains the same generated-type overload and always refuses.
+  function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
   function section<R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
   function section(name: string): never { return absent(name); }
@@ -153,6 +167,7 @@ export function absentShardProduct(slug: string): ShardProduct {
     has: () => false, hasFile: () => false,
     strings: keys => absent(keys.join(',')),
     file: name => Promise.reject(new ProductError(slug, name, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`)),
+    json: name => Promise.reject(new ProductError(slug, name, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`)),
     url: name => absent(name),
   };
 }

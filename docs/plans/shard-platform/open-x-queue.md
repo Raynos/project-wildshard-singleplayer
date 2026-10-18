@@ -302,6 +302,7 @@ that replaces it, and grants no extra section or byte headroom.
 | W2 Driftwood fixedLayouts section exit | `custom/fixedLayouts` | Move chime slots and hut / lookout colliders, anchors and floors into platform model-library and collider rows. | W2b client rewire |
 | W2 Driftwood questRows section exit | `custom/questRows` | Register bag items, feats, perks and trader goods from the platform item / achievement / effect / shop sections. | W2b client rewire |
 | W2 Driftwood trailside section exit | `custom/trailside` | Move the trail weld's placements and native colliders into platform model-library placement and collider rows. | W2b client rewire |
+| W2 immutable product sections exit | DW `custom/enemyPlacements`, Pine `custom/cabinAmbience` | The C9 build-only schemas validate existing immutable payloads. Finish their exits through the shared actor-placement and audio-floor section owners as those hosts adopt the same facts; preserve placement order and all floor/fire coordinates. No runtime schema registry returns. | W2 component owners |
 
 ## W2b Driftwood sim/ exit (G453)
 

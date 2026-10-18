@@ -11,7 +11,7 @@ import { installDriftwoodAudio } from './audio/install';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import type { Vector3 } from 'three';
-import { SECTIONS } from './sections';
+import type { CustomSections } from './productSections.generated.d.ts';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
@@ -67,7 +67,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const held = await HeldClaims.prepare(ctx);
     await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
     held.install();
-    const quest = ctx.product.section('custom/questRows', SECTIONS); // the kit's rows from the product (W2b)
+    const quest = ctx.product.section<CustomSections['custom/questRows']>('custom/questRows'); // the kit's rows from the product (W2b)
     ctx.rows.item(quest.items); ctx.rows.feat(quest.feats);
     const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
     ctx.rows.effect(economy.effects); ctx.rows.shop(economy.goods);

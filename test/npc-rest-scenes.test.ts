@@ -1,7 +1,7 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, ShaderMaterial } from 'three';
 import * as v from 'valibot';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
-import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { expect, test } from 'vitest';

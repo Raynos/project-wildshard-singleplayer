@@ -5,7 +5,7 @@ import { readAdventurePersistence } from '@wildshard/game/quest/persistence';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
-import { SECTIONS, CabinAmbienceSchema } from './sections';
+import type { CustomSections } from './productSections.generated.d.ts';
 import { preloadKingKit } from './models/antlerKing';
 import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
@@ -152,7 +152,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/creature-clips.json')))));
     ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
-    const inventory = ctx.product.section('custom/questInventory', SECTIONS);
+    const inventory = ctx.product.section<CustomSections['custom/questInventory']>('custom/questInventory');
     ctx.rows.item(inventory.items);
     ctx.rows.feat(inventory.feats);
     ctx.rows.compendium({ ...declaredProductCompendium(ctx.product, 'pine.journal'), id: 'pine.journal' });
@@ -186,7 +186,7 @@ export class PineHollow extends ShardPlugin {
     const { animals, weapons, inventory, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
-    const cabinAudio = v.parse(CabinAmbienceSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/ambience.json'))));
+    const cabinAudio = { ...ctx.product.section<CustomSections['custom/cabinAmbience']>('custom/cabinAmbience') };
     if (cabins?.kit === null || cabins === null) { cabinAudio.floors = []; cabinAudio.firePits = []; }
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof HeldFirearm) || !(longbow instanceof Bow) || !(crossbow instanceof HeldLauncher)) throw new Error('Pine ranged kit was not built');
@@ -244,9 +244,9 @@ export class PineHollow extends ShardPlugin {
     const fights = ctx.scope.run(() => installPineCombat({ eliteRows, pouchCapacity: ctx.product.section('held/loadout').pouch.capacity, persistenceRows, decisionProgram,decisions, context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
-    const trophyPack = ctx.product.section('custom/trophyMounts', SECTIONS);
+    const trophyPack = ctx.product.section<CustomSections['custom/trophyMounts']>('custom/trophyMounts');
     registerPackedGeometrySource(ctx.scope, 'collection-mounts', { url: ctx.product.url(trophyPack.url), rows: trophyPack.rows, label: 'trophy-wall' });
-    const compendium = installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock }]]), { mounts: 'collection-mounts', scope: ctx.scope, product: ctx.product, pack: trophyPack, chalk: ctx.product.section('custom/paintedTextures', SECTIONS).chalk, texture: ctx.product.section('custom/paintedTextures', SECTIONS).textures.chalk });
+    const compendium = installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock }]]), { mounts: 'collection-mounts', scope: ctx.scope, product: ctx.product, pack: trophyPack, chalk: ctx.product.section<CustomSections['custom/paintedTextures']>('custom/paintedTextures').chalk, texture: ctx.product.section<CustomSections['custom/paintedTextures']>('custom/paintedTextures').textures.chalk });
     const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
@@ -261,7 +261,7 @@ export class PineHollow extends ShardPlugin {
       roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     const wildlifeLibrary = await PosedDraw.library(ctx.product, 'look/wildlife-draw.json');
     await wildlifeLibrary.preload();
-    const lifeRows = ctx.product.section('custom/ambientLife', SECTIONS);
+    const lifeRows = ctx.product.section<CustomSections['custom/ambientLife']>('custom/ambientLife');
     const wildlife=wildlifeLibrary.draw(lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
     const life = installAmbientLife(lifeRows,{view:wildlife,knife:()=>HeldEquipment.current(ctx.manifest.slug).tool(ctx,lifeRows.harvest),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,

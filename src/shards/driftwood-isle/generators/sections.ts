@@ -1,7 +1,7 @@
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
-import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { WaterSurfaceSchema } from '@wildshard/format/water';
@@ -62,8 +62,32 @@ const foliageTier = v.strictObject({
 const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
 const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
+
+const placement = v.strictObject({
+  enemies: v.pipe(v.array(v.strictObject({ kind: v.picklist(['crab', 'monkey', 'sailor']), variant: v.nullable(text),
+    x: number, z: number, yaw: number, herd: number, practice: v.exactOptional(v.literal(true)) })), v.maxLength(64)),
+  herds: natural, centres: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(16)),
+  kinds: v.pipe(v.array(v.picklist(['crab', 'monkey'])), v.maxLength(16)),
+  stream: v.strictObject({ version: v.literal(1), state: natural, initial: natural, scrambledFork: v.boolean() }),
+});
+/** Named offline spawn rows; all sampling runs only in the author compiler. */
+export const EnemyPlacementsSchema = v.strictObject({ seed: natural, volley: BodySlotsSchema,
+  practice: v.strictObject({ x: number, z: number }), hold: v.strictObject({ x: number, z: number }),
+  page: v.strictObject({ phone: placement, desktop: placement }), native: placement });
+export type EnemyPlacements = v.InferOutput<typeof EnemyPlacementsSchema>;
+
+/** Named geometry bootstrap data; no private section or executable mirror is added. */
+export const FixedGeometryGroupsSchema = v.strictObject({
+    cargo: v.strictObject({ barrel: text, lying: text, crate: text, broken: text, coil: text }),
+    driftLogs: v.strictObject({ long: text, short: text, pale: text }),
+    npc: v.strictObject({ trader: v.strictObject({ body: text, head: text, upper: text, fore: text }), castaway: v.strictObject({ body: text, camp: text, head: text, arm: text, flames: text }) }),
+    entryDecks: v.strictObject({ world: text, deep: text, shallow: text }),
+    cover: v.record(text, text), piers: v.record(text, v.strictObject({ deck: text, cloth: v.nullable(text) })),
+});
+
 /** Product-owned logical names and the client's build-time rows (W2b, G449); runtime/ never imports data/. */
 export const SECTIONS = {
+  'custom/enemyPlacements': EnemyPlacementsSchema,
   'custom/collections': CollectionDisplaysSchema,
   'custom/assets': v.strictObject({
     byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
@@ -158,25 +182,3 @@ export const SECTIONS = {
   'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }) }),
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)) }),
 } as const;
-
-const placement = v.strictObject({
-  enemies: v.pipe(v.array(v.strictObject({ kind: v.picklist(['crab', 'monkey', 'sailor']), variant: v.nullable(text),
-    x: number, z: number, yaw: number, herd: number, practice: v.exactOptional(v.literal(true)) })), v.maxLength(64)),
-  herds: natural, centres: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(16)),
-  kinds: v.pipe(v.array(v.picklist(['crab', 'monkey'])), v.maxLength(16)),
-  stream: v.strictObject({ version: v.literal(1), state: natural, initial: natural, scrambledFork: v.boolean() }),
-});
-/** Named offline spawn rows; all sampling runs only in the author compiler. */
-export const EnemyPlacementsSchema = v.strictObject({ seed: natural, volley: BodySlotsSchema,
-  practice: v.strictObject({ x: number, z: number }), hold: v.strictObject({ x: number, z: number }),
-  page: v.strictObject({ phone: placement, desktop: placement }), native: placement });
-export type EnemyPlacements = v.InferOutput<typeof EnemyPlacementsSchema>;
-
-/** Named geometry bootstrap data; no private section or executable mirror is added. */
-export const FixedGeometryGroupsSchema = v.strictObject({
-    cargo: v.strictObject({ barrel: text, lying: text, crate: text, broken: text, coil: text }),
-    driftLogs: v.strictObject({ long: text, short: text, pale: text }),
-    npc: v.strictObject({ trader: v.strictObject({ body: text, head: text, upper: text, fore: text }), castaway: v.strictObject({ body: text, camp: text, head: text, arm: text, flames: text }) }),
-    entryDecks: v.strictObject({ world: text, deep: text, shallow: text }),
-    cover: v.record(text, text), piers: v.record(text, v.strictObject({ deck: text, cloth: v.nullable(text) })),
-});

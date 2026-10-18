@@ -16520,14 +16520,17 @@
         "src/format",
         "src/sdk/package.json",
         "src/sdk/formatJsonSchema.ts",
-        "src/shards/pine-hollow/runtime/sections.ts"
+        "src/shards/pine-hollow/generators/sections.ts",
+        "scripts/section-types.mjs"
       ],
       "outputs": [
-        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts"
+        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts"
+        "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
       ]
     },
     {
@@ -16548,14 +16551,17 @@
         "src/format",
         "src/sdk/package.json",
         "src/sdk/formatJsonSchema.ts",
-        "src/shards/driftwood-isle/runtime/sections.ts"
+        "src/shards/driftwood-isle/generators/sections.ts",
+        "scripts/section-types.mjs"
       ],
       "outputs": [
-        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
+        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
+        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
+        "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
+        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts"
       ]
     },
     {

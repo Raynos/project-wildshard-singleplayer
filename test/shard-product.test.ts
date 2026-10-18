@@ -51,6 +51,18 @@ test('a missing or streamed section refuses with its reason', () => {
   expect(refusal(() => p.section('world/tiles')).reason).toBe('stream-section');
 });
 
+test('generated custom types need no runtime registry and retain product refusals', () => {
+  type Trades = { id: string; give: number }[];
+  const checked = product({ check: true });
+  const trades = checked.section<Trades>('custom/trades');
+  expect(trades).toEqual([{ id: 'bolts', give: 2 }]);
+  expect(Object.isFrozen(trades) && Object.isFrozen(trades[0])).toBe(true);
+  expect(checked.section<Trades>('custom/trades')).toBe(trades);
+  expect(refusal(() => checked.section<Trades>('custom/missing')).reason).toBe('missing-section');
+  expect(refusal(() => product({ streamed: new Set(['custom/trades']) }).section<Trades>('custom/trades')).reason).toBe('stream-section');
+  expect(refusal(() => absentShardProduct('absent').section<Trades>('custom/trades')).reason).toBe('absent');
+});
+
 test('the trusted product never parses; a checked product parses custom sections and freezes them', () => {
   // the shipped page trusts the build's validation: a wrong value passes through untouched
   expect(product().section('custom/wind', SECTIONS)).toEqual({ gust: 'strong' });
@@ -81,6 +93,17 @@ test('files are read by logical name through the verified reader', async () => {
   expect(p.url('behaviour/director.wasm')).toMatch(/blobs\/wasm\/a{64}\.wasm$/u);
   await expect(p.file('models/missing.glb')).rejects.toMatchObject({ reason: 'missing-file' });
   expect(refusal(() => p.url('models/missing.glb')).reason).toBe('missing-file');
+});
+
+test('generated named-JSON types read verified bytes and reject malformed content', async () => {
+  interface Rig { bones: string[] }
+  const files = new Map([['rig.json', { hash: 'b'.repeat(64), url: '/rig.json' }]]);
+  const read = (text: string) => product({ files, read: () => Promise.resolve(new TextEncoder().encode(text)) });
+  expect(await read('{"bones":["root"]}').json<Rig>('rig.json')).toEqual({ bones: ['root'] });
+  await expect(read('{broken').json<Rig>('rig.json')).rejects.toThrow();
+  await expect(product({ files, read: () => Promise.resolve(new Uint8Array([255])) }).json<Rig>('rig.json')).rejects.toThrow();
+  await expect(read('{}').json<Rig>('missing.json')).rejects.toMatchObject({ reason: 'missing-file' });
+  await expect(absentShardProduct('absent').json<Rig>('rig.json')).rejects.toMatchObject({ reason: 'absent' });
 });
 
 test('an entry with no built output refuses every read with the fix', async () => {

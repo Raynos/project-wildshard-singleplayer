@@ -11,6 +11,7 @@ import { hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { runtimeMirrorIssues, type RuntimeMirror } from './runtimeMirrors';
 import type { OutputIndex } from '@wildshard/format/outputIndex';
+import { validateDefinedSection } from './sections';
 
 export interface RuntimeCopyFile { readonly path: string; readonly hash: string; readonly bytes: number; readonly lines: number }
 export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; readonly lines: number; readonly entry?: 'runtime/index.ts' }
@@ -34,9 +35,19 @@ function syncSchema(input: unknown): input is v.GenericSchema {
  * must have emitted data. Mirrors reuse the defining canonical comparer. */
 export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
   copiedSections: Readonly<Record<string, unknown>> | undefined,
-  mirrors: readonly RuntimeMirror[], copiedConstants: Readonly<Record<string, unknown>> | undefined): void {
+  mirrors: readonly RuntimeMirror[], copiedConstants: Readonly<Record<string, unknown>> | undefined,
+  builtSchemas?: ReadonlyMap<string, Uint8Array>): void {
   const custom = [...sections.keys()].filter(name => name.startsWith('custom/'));
   const registry = copiedSections?.['SECTIONS'];
+  if (copiedSections === undefined && builtSchemas !== undefined) {
+    for (const name of custom) {
+      const schema = builtSchemas.get(name);
+      if (schema === undefined) throw new Error(`Custom section has no built schema: ${name}`);
+      validateDefinedSection(schema, sections.get(name));
+    }
+    validateRuntimeData(new Map(), undefined, mirrors, copiedConstants);
+    return;
+  }
   if (custom.length > 0 && (typeof registry !== 'object' || registry === null || Array.isArray(registry))) throw new Error('Custom sections require runtime/sections.ts SECTIONS');
   const entries = typeof registry === 'object' && registry !== null && !Array.isArray(registry) ? Object.entries(registry) : [];
   for (const [name, schema] of entries) {
@@ -79,7 +90,13 @@ export async function proveRuntimeData(destination: string, index: OutputIndex, 
     if (typeof loaded !== 'object' || loaded === null) throw new Error('Runtime proof module has no namespace');
     return loaded as Readonly<Record<string, unknown>>;
   };
-  validateRuntimeData(sections, await namespace('runtime/sections.ts'), mirrors, await namespace('runtime/const.ts'));
+  const builtSchemas = new Map<string, Uint8Array>();
+  for (const section of index.sections.filter(row => row.name.startsWith('custom/'))) {
+    const schema = index.schemas.find(row => row.path === section.schema);
+    if (schema === undefined) throw new Error(`Missing built schema: ${section.name}`);
+    builtSchemas.set(section.name, read(schema));
+  }
+  validateRuntimeData(sections, await namespace('runtime/sections.ts'), mirrors, await namespace('runtime/const.ts'), builtSchemas);
 }
 
 /** Parser comment ranges preserve strings, regexes and template literal text.

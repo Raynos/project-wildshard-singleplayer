@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { validateDefinedSection } from '../src/sdk/sections';
-import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 
 test('Driftwood publishes every legacy alias as an admitted logical blob name', async () => {
   const loaded = await readProjectAssets('src/shards/driftwood-isle'), custom = loaded.output.custom;

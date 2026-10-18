@@ -1,10 +1,11 @@
-// A runtime registry is the sole declaration. Builders import its generated
-// validator copy and structural schemas, never the runtime source module.
+// Build-only registries produce validators, wire schemas and standalone types.
+// Runtime readers import only the generated declarations; schemas never ship.
 import {createHash} from 'node:crypto';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseSync} from 'vite';
+import {sectionType} from './section-types.mjs';
 import {formatJsonSchema} from '../src/sdk/formatJsonSchema.ts';
 
 /** @param {unknown} input @returns {input is import('valibot').GenericSchema} */
@@ -28,7 +29,7 @@ function structural(value) {
  * @param {string} root @param {string} slug */
 export async function writeSectionSchemaBridge(root,slug) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid section schema shard');
-  const sourcePath=resolve(root,'src/shards',slug,'runtime/sections.ts');
+  const sourcePath=resolve(root,'src/shards',slug,'generators/sections.ts');
   const source=readFileSync(sourcePath,'utf8'),tree=parseSync(sourcePath,source).program;
   const published=JSON.parse(readFileSync(resolve(root,'src/format/package.json'),'utf8')).exports;
   const visit=node=>{
@@ -47,7 +48,7 @@ export async function writeSectionSchemaBridge(root,slug) {
   visit(tree);
   const hash=createHash('sha256').update(source).digest('hex');
   const destination=resolve(root,'src/shards',slug,'generators/sectionSchemas.generated.ts');
-  const header=`// DO NOT EDIT: scripts/bake-section-schemas.mjs; runtime/sections.ts sha256:${hash}\n`;
+  const header=`// DO NOT EDIT: scripts/bake-section-schemas.mjs; generators/sections.ts sha256:${hash}\n`;
   mkdirSync(dirname(destination),{recursive:true});
   writeFileSync(destination,header+source);
   // Evaluate the copied validator, not a runtime/ import. The generation backend
@@ -62,6 +63,11 @@ export async function writeSectionSchemaBridge(root,slug) {
   }
   const generated=`${header}${source}\nimport type {DefinedSection} from '@wildshard/sdk/sections';\nexport const WIRE_SCHEMAS: Readonly<Record<string,DefinedSection['jsonSchema']>> = ${JSON.stringify(schemas)};\n`;
   writeFileSync(destination,generated);
+  const typesPath=resolve(root,'src/shards',slug,'runtime/productSections.generated.d.ts');
+  const declarations=Object.entries(namespace).filter(([name,schema])=>name.endsWith('Schema')&&syncSchema(schema))
+    .map(([name,schema])=>`export type ${name.slice(0,-6)} = ${sectionType(structural(formatJsonSchema(schema,'draft-07')))};`);
+  mkdirSync(dirname(typesPath),{recursive:true});
+  writeFileSync(typesPath,`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema)};`).join('\n')}\n}\n${declarations.join('\n')}\n`);
   return {path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)};
 }
 if(import.meta.url===pathToFileURL(process.argv[1]??'').href) {

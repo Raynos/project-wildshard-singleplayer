@@ -2,7 +2,7 @@ import { installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshar
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { driftwoodWorld } from '../../world/build';
-import { SECTIONS } from '../sections';
+import type { CustomSections } from '../productSections.generated.d.ts';
 
 /** Residual native floor/dusk loans; gameplay and cue policy are admitted DATA. */
 export async function installDriftwoodAudio(ctx:ShardContext):Promise<void> {
@@ -13,5 +13,5 @@ export async function installDriftwoodAudio(ctx:ShardContext):Promise<void> {
   const wreck=built.wreck===null?null:{holdBounds:built.wreck.holdBounds,floorHeightAt:built.wreck.floorHeightAt.bind(built.wreck)};
   const shrine=built.shrine===null?null:{floorHeightAt:built.shrine.floorHeightAt.bind(built.shrine),setDusk:built.shrine.setDusk.bind(built.shrine),group:{position:built.shrine.group.position}};
   const world={pier:floor(built.pier),jetties:built.jetties.map(floor),boat:floor(built.boat),hut:floor(built.hut),lookout:floor(built.lookout),bridge:floor(built.bridge),wreck,shrine,palmSpecs:built.palmSpecs};
-  await installRuntimeGameplayAudio(ctx,{audio,music,camera:game.camera,listener:player,objects:shell.objects,owners:{sky,world,cove:ctx.product.section('custom/fixedLayouts',SECTIONS).cove.spec,wind:windUniforms}});
+  await installRuntimeGameplayAudio(ctx,{audio,music,camera:game.camera,listener:player,objects:shell.objects,owners:{sky,world,cove:ctx.product.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').cove.spec,wind:windUniforms}});
 }

@@ -236,6 +236,18 @@
         "bytes": 527343
       },
       "why": "G463 reviewed C9: 12729 bytes of authored native view rows replace the deleted runtime/const.ts mirrors inside existing fixedLayouts. Seven sections total; no new section, host or raw escape. The same commit deletes runtimeMirrors and the dead island-cover baker."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 7,
+        "bytes": 527343
+      },
+      "to": {
+        "count": 9,
+        "bytes": 581770
+      },
+      "why": "C9 schemas-to-generators, approved by wildshard-new: adopt the existing eight-section output and move the existing 8572-byte enemy-placement payload to a build-validated section. Delete runtime/sections.ts in the same landing; no new authored data or gameplay."
     }
   ]
 }

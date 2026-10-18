@@ -6,13 +6,12 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createModelLibrary, type ModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import type { InferOutput } from 'valibot';
 import authoredLook from '../../data/antlerKingLook.json' with { type: 'json' };
 import { limbAnimation } from '@wildshard/game/animation/limbView';
 import { bindLimbQueryView } from '@wildshard/game/animation/limbQueryView';
 import { readLimbCollisionBake } from '@wildshard/format/limbCollision';
 import { pineView } from '../world/context';
-import { SECTIONS } from '../sections';
+import type { CustomSections } from '../productSections.generated.d.ts';
 
 const { KING_COAT, KING_DRESS, KING_OWN_RIG } = authoredLook;
 
@@ -59,12 +58,12 @@ const MAX_LANTERNS = 8, MAX_OWN = 9;
 /** the King's baked kit (generators/kingKit.ts → the product's `custom/kingKit`, a named blob): the lantern's frame and
  *  glass, the ribs and the core, one rest-geometry pool the shard's kit preloads (`preloadKingKit`) and the dressing
  *  borrows, and where his three lanterns hang off his hull's rack (head-bone local, model units, baked off the hull) */
-interface AdmittedKingKit { readonly library: ModelLibrary<never, never>; readonly lanterns: InferOutput<(typeof SECTIONS)['custom/kingKit']>['lanterns'] }
+interface AdmittedKingKit { readonly library: ModelLibrary<never, never>; readonly lanterns: CustomSections['custom/kingKit']['lanterns'] }
 let admittedKit: AdmittedKingKit | null = null;
 let kitAdmission: Promise<AdmittedKingKit> | null = null;
 async function admitKingKit(admitted: ShardProduct | undefined): Promise<AdmittedKingKit> {
   const product = admitted ?? await (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct('pine-hollow');
-  const rows = product.section('custom/kingKit', SECTIONS);
+  const rows = product.section<CustomSections['custom/kingKit']>('custom/kingKit');
   if (rows.lanterns.length > MAX_LANTERNS) throw new Error('antler-king: more lantern spots than the rack takes');
   const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {},
     geometryPools: [{ url: product.url(rows.pool.url), parts: rows.pool.parts }] }, '[pine-hollow king kit]');

@@ -9,7 +9,7 @@ import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/gr
 import { beachGullPerches } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { Gulls as OriginalGulls } from '../src/shards/driftwood-isle-legacy/world/Gulls';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
-import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import * as v from 'valibot';
 
 it('admits the whole perch list with its original wet-sand suffix', () => {

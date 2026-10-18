@@ -51,7 +51,8 @@ import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from './clientSections';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
-const values=[{name:'custom/assets',value:DRIFTWOOD_OUTPUT.custom},...DRIFTWOOD_CLIENT_SECTIONS];
+const placed = enemyPlacements();
+const values=[{name:'custom/assets',value:DRIFTWOOD_OUTPUT.custom},...DRIFTWOOD_CLIENT_SECTIONS, {name:'custom/enemyPlacements',value:placed}];
 if(values.length!==Object.keys(schemas).length)throw new Error('Incomplete Driftwood section inventory');
 const custom=emitDefinedSections(values.map(({name,value})=>{
  const schema=schemas[name],jsonSchema=WIRE_SCHEMAS[name];
@@ -60,7 +61,6 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 }));
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
   nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))),

@@ -6,7 +6,7 @@ import { afterEach, expect, it } from 'vitest';
 import * as v from 'valibot';
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
 import { runtimeCodeLines, validateRuntimeData, writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
-import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { hashImmutableBytes, encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { codeLines } from '../scripts/shard-platform.mjs';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 
@@ -77,4 +77,14 @@ it('checks copied custom registries and constants against the emitted data befor
   expect(() => validateRuntimeData(new Map(),registry,[],{})).toThrow('no emitted custom section');
   expect(() => validateRuntimeData(sections,registry,mirrors,{COUNT:3})).toThrow('COUNT');
   expect(() => validateRuntimeData(sections,registry,mirrors,undefined)).toThrow('runtime/const.ts');
+});
+
+it('admits immutable built schemas without shipping a registry and still checks mirrors', () => {
+  const sections = new Map<string, unknown>([['custom/probe', [1, 2]]]);
+  const bytes = new TextEncoder().encode(encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'array', items: { type: 'number' } }));
+  const schemas = new Map([['custom/probe', bytes]]);
+  expect(() => validateRuntimeData(sections, undefined, [], undefined, schemas)).not.toThrow();
+  expect(() => validateRuntimeData(new Map([['custom/probe', ['wrong']]]), undefined, [], undefined, schemas)).toThrow('refuses');
+  expect(() => validateRuntimeData(sections, undefined, [], undefined, new Map())).toThrow('no built schema');
+  expect(() => validateRuntimeData(sections, undefined, [defineMirror('COUNT', 2)], { COUNT: 3 }, schemas)).toThrow('COUNT');
 });

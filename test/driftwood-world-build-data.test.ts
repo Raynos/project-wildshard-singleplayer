@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
-import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
 import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryDecks';
 import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };

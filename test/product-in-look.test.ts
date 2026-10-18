@@ -28,6 +28,19 @@ const productOf = async (slug: string): Promise<ShardProduct> => createShardProd
   shardfile: emptyShardfile({ slug, name: slug, author: 'Wildshard', revision: 1, seed: 1 }),
   sections: await emittedSections(slug), files: new Map(), read: () => Promise.reject(new Error('no files in this fixture')) });
 
+test.each([
+  ['driftwood-isle', 'custom/enemyPlacements', 'sim/enemy-placement.json'],
+  ['pine-hollow', 'custom/cabinAmbience', 'world/ambience.json'],
+])('%s %s retains the original named payload exactly', async (slug, section, name) => {
+  const loaded = await readProjectAssets(`src/shards/${slug}`);
+  const entry = loaded.output.custom?.sections.find(row => row.name === section);
+  const named = loaded.output.namedFiles?.find(row => row.name === name);
+  const sectionBytes = entry === undefined ? undefined : loaded.output.custom?.files.get(entry.path);
+  const namedBytes = named === undefined ? undefined : loaded.assets.get(named.hash);
+  if (sectionBytes === undefined || namedBytes === undefined) throw new Error('Missing build-validated content');
+  expect(JSON.parse(new TextDecoder().decode(sectionBytes))).toEqual(JSON.parse(new TextDecoder().decode(namedBytes)));
+}, 30_000);
+
 describe('toLevelSpec binds the product', () => {
   const seen: { look: ShardProduct | null; roster: ShardProduct | null } = { look: null, roster: null };
   const manifest: ShardManifest = { ...driftwood,

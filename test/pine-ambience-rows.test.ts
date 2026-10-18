@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
 import * as v from 'valibot';
-import { CabinAmbienceSchema } from '../src/shards/pine-hollow/runtime/sections';
+import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import cabins from '../src/shards/pine-hollow/data/cabins.json' with { type: 'json' };
 import { floorAtRects } from '../src/engine/physics/box';

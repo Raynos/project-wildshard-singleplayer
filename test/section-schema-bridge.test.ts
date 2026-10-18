@@ -8,7 +8,8 @@ import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the fixture below the repository's ignored tmp/.
 import {join} from 'node:path';
 import {writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
-import {SECTIONS as runtime} from '../src/shards/pine-hollow/runtime/sections';
+import {sectionType} from '../scripts/section-types.mjs';
+import {SECTIONS as runtime} from '../src/shards/pine-hollow/generators/sections';
 import {SECTIONS as generated,WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
 
 function fixture():{root:string;source:string} {
@@ -16,8 +17,8 @@ function fixture():{root:string;source:string} {
   const root=mkdtempSync(join(cwd(),'tmp/section-schemas-'));
   mkdirSync(join(root,'src/format'),{recursive:true});
   writeFileSync(join(root,'src/format/package.json'),JSON.stringify({exports:{}}));
-  mkdirSync(join(root,'src/shards/sample/runtime'),{recursive:true});
-  return {root,source:join(root,'src/shards/sample/runtime/sections.ts')};
+  mkdirSync(join(root,'src/shards/sample/generators'),{recursive:true});
+  return {root,source:join(root,'src/shards/sample/generators/sections.ts')};
 }
 
 it('derives deterministic validator and disk schema bytes from the same registry',async()=>{
@@ -27,12 +28,22 @@ it('derives deterministic validator and disk schema bytes from the same registry
     writeFileSync(source,registry);
     const first=await writeSectionSchemaBridge(root,'sample'),bytes=readFileSync(first.path,'utf8');
     expect(first.schemas).toBe(1);expect(bytes).toContain(registry);expect(bytes).toContain('WIRE_SCHEMAS');
+    const declarations=readFileSync(join(root,'src/shards/sample/runtime/productSections.generated.d.ts'),'utf8');
+    expect(declarations).toContain('"custom/probe": { "n": number; };');
+    expect(declarations).not.toContain('valibot');
     expect(readFileSync((await writeSectionSchemaBridge(root,'sample')).path,'utf8')).toBe(bytes);
     writeFileSync(source,registry.replace('minValue(1)','minValue(2)'));
     const second=await writeSectionSchemaBridge(root,'sample');
     expect(second.sourceHash).not.toBe(first.sourceHash);
     expect(readFileSync(second.path,'utf8')).toContain('"minimum":2');
   }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('preserves tuple, optional and union shapes and refuses unresolved declaration types',()=>{
+  expect(sectionType({type:'object',properties:{at:{type:'array',items:[{type:'number'},{type:'number'}]},mode:{enum:['a','b']}},required:['at'],additionalProperties:false}))
+    .toBe('{ "at": [number, number]; "mode"?: "a" | "b"; }');
+  expect(()=>sectionType({$ref:'#/missing'})).toThrow('Unresolved');
+  expect(()=>sectionType({pattern:'unknown'})).toThrow('Unsupported');
 });
 
 it('refuses runtime dependencies and unknown custom predicates instead of dropping checks',async()=>{

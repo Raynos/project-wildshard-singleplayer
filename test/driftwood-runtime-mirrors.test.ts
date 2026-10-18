@@ -9,7 +9,7 @@ import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAM
 import { namedModelProduct } from './fixtures/namedModelProduct';
 import { prepareToonLook } from '../src/game/looks/toonLook';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
-import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
+import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { authoredRockGeometry } from '../src/shards/driftwood-isle/generators/rocks';
 import { Rng } from '../src/engine/core/rng';
 import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';

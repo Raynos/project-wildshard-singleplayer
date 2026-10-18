@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
-import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/runtime/sections';
+import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
 import { placeEnemies as legacyPlacement } from '../src/shards/driftwood-isle-legacy/runtime/placement';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import physics from '../src/shards/driftwood-isle/data/physics.generated.json' with { type: 'json' };

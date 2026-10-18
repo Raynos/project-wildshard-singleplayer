@@ -12,9 +12,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { PalmSpec } from '../world/Palms';
-import * as v from 'valibot';
-import { EnemyPlacementsSchema, type EnemyPlacements } from '../runtime/sections';
-import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
+import type { EnemyPlacements } from '../runtime/productSections.generated.d.ts';
 import { TIER } from '@wildshard/engine/core/tier';
 import { RowBodySlots } from '@wildshard/engine/physics/bodies';
 import { driftwoodLaunch, driftwoodProduct } from '../runtime/boot/rows';
@@ -110,8 +108,8 @@ export class Enemies {
     live();
     const { opts, animals } = this;
     const owner = opts.scope ?? resourceScope();
-    const [, bytes] = await Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]);
-    const placement = v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes)));
+    await preloadSailorHead();
+    const placement = driftwoodProduct().section<EnemyPlacements>('custom/enemyPlacements');
     live(); this.volleySlots = new RowBodySlots<Animal>(placement.volley, app.bodies, { kind: 'coconut' });
     // ── the pieces the AIs read (AnimalManager.habitat) ──
     const W = animals.habitat;

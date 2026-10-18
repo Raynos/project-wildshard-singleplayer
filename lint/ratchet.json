@@ -41,7 +41,9 @@
       "driftwood-isle/custom/cumulusPuffs": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood cumulusPuffs section exit",
       "driftwood-isle/custom/fixedLayouts": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood fixedLayouts section exit",
       "driftwood-isle/custom/questRows": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood questRows section exit",
-      "driftwood-isle/custom/trailside": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood trailside section exit"
+      "driftwood-isle/custom/trailside": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood trailside section exit",
+      "driftwood-isle/custom/enemyPlacements": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/cabinAmbience": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
     },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
@@ -78,8 +80,8 @@
     "custom-sections/_template/bytes": 0,
     "custom-sections/blender-template/count": 0,
     "custom-sections/blender-template/bytes": 0,
-    "custom-sections/driftwood-isle/count": 7,
-    "custom-sections/driftwood-isle/bytes": 527343,
+    "custom-sections/driftwood-isle/count": 9,
+    "custom-sections/driftwood-isle/bytes": 581770,
     "custom-sections/far-reach/count": 0,
     "custom-sections/far-reach/bytes": 0,
     "custom-sections/ink-cel-valley/count": 0,
