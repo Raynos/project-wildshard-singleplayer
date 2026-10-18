@@ -1,0 +1,10 @@
+{
+  "status": "source-only audit-placement repair before any V71 execution",
+  "previousSource": "art/driftwood-isle/approved-puffer/rejected_v71_audit_after_consolidation.py",
+  "previousSha256": "1cfd60f42a5879e18cf8aa5898a93c7b06d32eb5d8ce7e24930bcc621ae4f9df",
+  "correctedSource": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v71_from_v9.py",
+  "correctedSha256": "b1f80eb618f218ebe0fe1eddecbafe9ef91df9e7b342ad7fe4a9f875ed52b37a",
+  "geometryChangedByRepair": false,
+  "reason": "Run attachment queries before joint consolidation and exclude disconnected spine islands from frozen baseline hull; otherwise cap self-surfaces or removed object identities invalidate coverage",
+  "runtimeValidated": false
+}
