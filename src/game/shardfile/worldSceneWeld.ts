@@ -196,14 +196,21 @@ export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sou
 /** Deferred resident assembly; the single SceneHandles registry retains the final graph. */
 export class WorldSceneWeldAssembly {
   private pending: Promise<Object3D> | undefined;
-  constructor(private readonly row: WorldSceneWeld, private readonly handles: SceneHandles, private readonly sources: FrozenSceneSources,
-    private readonly owner: Scope, private readonly registry: WorldRegistry) {}
+  private readonly sources: FrozenSceneSources;
+  private readonly staging: Map<string, BufferGeometry>;
+  constructor(private readonly row: WorldSceneWeld, private readonly handles: SceneHandles, sources: FrozenSceneSources,
+    private readonly owner: Scope, private readonly registry: WorldRegistry) {
+    this.staging = new Map(sources.geometry);
+    this.sources = { ...sources, geometry: this.staging };
+  }
   assemble(): Promise<Object3D> {
     if (this.owner.disposed) return Promise.reject(new Error('Frozen scene owner is disposed'));
     this.pending ??= this.build(); return this.pending;
   }
   private async build(): Promise<Object3D> {
-    const root = hydrateWorldSceneWeld(this.row, this.handles, this.sources, this.owner, this.registry);
+    let root: Object3D;
+    try { root = hydrateWorldSceneWeld(this.row, this.handles, this.sources, this.owner, this.registry); }
+    finally { this.staging.clear(); }
     for (const id of this.row.placements) await this.handles.place(id);
     if (this.owner.disposed) throw new Error('Frozen scene owner is disposed');
     for (const row of this.row.sets) {

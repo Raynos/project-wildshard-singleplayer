@@ -249,7 +249,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         if (geometry.has(key)) continue;
         const shape = libraries.get(node.geometry.library)?.geometry(node.geometry.model);
         if (shape === undefined || shape === null) throw new Error('Missing frozen scene geometry');
-        geometry.set(key, shape); owner.onDispose(() => { shape.dispose(); });
+        // Decoder-only staging is adopted by the assembly, never uploaded.
+        geometry.set(key, shape);
       }
       handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, ctx.app.registry));
     }
@@ -328,6 +329,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       await buildYield(owner);
     }
+    // Every live/deferred consumer now owns a copy; retire decoder templates.
+    libraries.clear();
     return handles;
   } catch (error) { owner.dispose(); throw error; }
 }

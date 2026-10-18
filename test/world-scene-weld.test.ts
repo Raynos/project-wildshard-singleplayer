@@ -6,7 +6,7 @@ import { WeldBatch, WeldView } from '../src/engine/models/weld';
 import { parsePlumbing } from '../src/format/plumbing';
 import { TIER, TIER_CONFIG } from '../src/engine/core/tier';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { hydrateWorldSceneWeld, worldSceneWeldFile, admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
+import { hydrateWorldSceneWeld, worldSceneWeldFile, admitWorldSceneModelGraphs, WorldSceneWeldAssembly } from '../src/game/shardfile/worldSceneWeld';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
@@ -214,4 +214,21 @@ test('deferred world assembly publishes live seeds before borrowing the living r
     expect(context.app.registry.pieces).toHaveLength(1);
     owner.dispose(); expect(handles.object('living.root')).toBe(root);
   } finally { owner.dispose(); }
+});
+
+test('one-shot world assembly snapshots borrowed staging and keeps only its live clones', async () => {
+  const f = fixture();
+  const assembly = new WorldSceneWeldAssembly(parseWorldSceneWeld({ ...f.row, culls: [] }), f.handles, f.sources, f.owner, new WorldRegistry());
+  f.sources.geometry.clear();
+  try {
+    const pending = assembly.assemble();
+    expect(await pending).toBe(f.quay);
+    expect(assembly.assemble()).toBe(pending);
+    expect(f.sources.geometry.size).toBe(0);
+    const live = f.handles.object('walls');
+    if (!(live instanceof WeldBatch)) throw new Error('Missing live batch');
+    expect(live.geometry).not.toBe(f.geometry);
+    expect(Array.from(live.geometry.getAttribute('position').array)).toEqual(Array.from(f.geometry.getAttribute('position').array));
+    expect(f.sources.materials.get('wood')).toBe(f.material);
+  } finally { f.owner.dispose(); f.geometry.dispose(); f.material.dispose(); }
 });
