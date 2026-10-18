@@ -1,0 +1,26 @@
+{
+  "PROP_KINDS": [
+    "crate",
+    "barrel",
+    "bucket",
+    "hatchet"
+  ],
+  "PROP_BOXES": {
+    "crate": {
+      "hw": 0.265,
+      "hd": 0.583,
+      "h": 0.455
+    },
+    "barrel": {
+      "hw": 0.34,
+      "hd": 0.34,
+      "h": 0.872
+    },
+    "bucket": {
+      "hw": 0.17,
+      "hd": 0.17,
+      "h": 0.35
+    },
+    "hatchet": null
+  }
+}

@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import ORIGINAL from './fixtures/pine-trade-catalogue.json' with { type: 'json' };
 import { readProjectAssets } from '../src/sdk/project';
-import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hollow/quest/rows';
+import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hollow/generators/sections';
 import { Exchange, parseExchange } from '../src/game/loot/exchange';
 import type { ExchangeRows } from '../src/format/exchange';
 
@@ -9,8 +9,8 @@ let declared: TradeCatalogue | undefined;
 let exchangeRows: ExchangeRows | undefined;
 beforeAll(async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
-  const named = loaded.output.namedFiles?.find(file => file.name === 'quests/trades.json');
-  const bytes = named === undefined ? undefined : loaded.assets.get(named.hash);
+  const section = loaded.output.custom?.sections.find(row => row.name === 'custom/tradeCatalogue');
+  const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
   if (bytes === undefined) throw new Error('Missing emitted barter catalogue');
   const exchange = loaded.output.namedFiles?.find(file => file.name === 'quests/exchange.json');
   const exchangeBytes = exchange === undefined ? undefined : loaded.assets.get(exchange.hash);

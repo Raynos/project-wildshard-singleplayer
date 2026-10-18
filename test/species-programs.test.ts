@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
 import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
 import thrallLook from '../src/shards/pine-hollow/data/thrallLook.json' with { type: 'json' };
 import { expect, test } from 'vitest';
@@ -46,7 +48,7 @@ test('both emitted populations keep the original resolved visual variants', asyn
   registerKing();
   const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
   const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];
-  const looks = [...pineLooks({ pose: THRALL_CLIPS, ...thrallLook }), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK];
+  const looks = [...pineLooks(parse(ThrallLookSchema, { pose: THRALL_CLIPS, ...thrallLook })), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK];
   for (const [i, row] of programs.entries()) {
     const before = authored[i], look = looks.find(value => value.species === row.id);
     if (before === undefined || look === undefined) throw new Error(`Missing comparison: ${row.id}`);

@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { PineGrazersSchema } from '../src/shards/pine-hollow/generators/sections';
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { DEER } from '../src/shards/pine-hollow/generators/deerRows';
@@ -11,7 +13,7 @@ import { PINE_ELK_THRALL } from '../src/shards/pine-hollow/generators/speciesRow
 // species/bodies.ts, never lofting them. Those rows must stay what the offline lofts (generators/creatureLofts.ts) build,
 // for every variant: the hulls were skinned to that skeleton.
 test('the baked deer and elk bodies match their lofts for every variant', async () => {
-  await preparePineGrazers({ file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(grazers))) });
+  await preparePineGrazers({ section: () => parse(PineGrazersSchema, grazers) });
   for (const [kind, def] of [['deer', DEER], ['elk', ELK]] as const) {
     const first = def.variants[0];
     if (first === undefined) throw new Error('Missing grazer variant');

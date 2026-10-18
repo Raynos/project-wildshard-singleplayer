@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { TimberRowSchema } from '../src/shards/pine-hollow/world/timberBake';
+import { TimberRowSchema } from '../src/shards/pine-hollow/generators/timberSchema';
 import sites from '../src/shards/pine-hollow/data/siteTimbers.json';
 
 test('timber rows admit the authored box/tread families and own their native descriptors', () => {

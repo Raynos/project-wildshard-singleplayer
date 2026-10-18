@@ -1,5 +1,6 @@
+import * as v from 'valibot';
+import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
-import { PLACE_SETS } from './placeSets';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -19,7 +20,8 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'mesh', id: 'water', geometry: 'water', material: 'water', missing: 'empty', name: WATER_SURFACES.creek.name, receiveShadow: true, renderOrder: WATER_SURFACES.creek.renderOrder },
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count, matrices },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
-export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('world/place-sets.json', 'json', encode(PLACE_SETS)),
+v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
+export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
 export const SCENE_MODEL_BLOBS = [

@@ -5,6 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseSync} from 'vite';
+import {parse as parseValue} from 'valibot';
 import {sectionType} from './section-types.mjs';
 import {formatJsonSchema} from '../src/sdk/formatJsonSchema.ts';
 
@@ -16,7 +17,7 @@ function syncSchema(input) {
     &&'~run' in input&&typeof input['~run']==='function';
 }
 /** Remove only documented structural annotations. Defining checks still run in
- * the copied producer validator and client. Unknown checks/transforms refuse.
+ * the copied producer validator. Unknown checks/transforms refuse.
  * @param {unknown} value @returns {unknown} */
 function structural(value) {
   if(Array.isArray(value))return value.map(structural);
@@ -68,6 +69,17 @@ export async function writeSectionSchemaBridge(root,slug) {
     .map(([name,schema])=>`export type ${name.slice(0,-6)} = ${sectionType(structural(formatJsonSchema(schema,'draft-07')))};`);
   mkdirSync(dirname(typesPath),{recursive:true});
   writeFileSync(typesPath,`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema)};`).join('\n')}\n}\n${declarations.join('\n')}\n`);
+  // Imported immutable JSON uses the same build validator and tuple types as
+  // named products. No cast, validator, or dependency on generators ships.
+  const files=namespace.FILE_SCHEMAS;
+  if(files!==undefined&&(typeof files!=='object'||files===null||Array.isArray(files)))throw new Error('Typed JSON registry requires FILE_SCHEMAS object');
+  for(const [name,schema] of Object.entries(files??{})) {
+    if(!/^(?:data|boot)\/[a-zA-Z0-9_-]+(?:\.generated)?\.json$/u.test(name)||!syncSchema(schema))throw new Error(`Invalid typed JSON source: ${name}`);
+    const path=resolve(root,'src/shards',slug,name);
+    parseValue(schema,JSON.parse(readFileSync(path,'utf8')));
+    const type=sectionType(structural(formatJsonSchema(schema,'draft-07')));
+    writeFileSync(path.replace(/\.json$/u,'.d.json.ts'),`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`);
+  }
   return {path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)};
 }
 if(import.meta.url===pathToFileURL(process.argv[1]??'').href) {

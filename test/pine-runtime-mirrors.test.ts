@@ -1,3 +1,5 @@
+import { CRAG_CAVE_ROWS } from '../src/shards/pine-hollow/generators/cragSceneContribution';
+import logKit from '../src/shards/pine-hollow/data/logKit.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the diagnostic metadata with the shipping terrain bytes.
 import { readFileSync } from 'node:fs';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
@@ -8,7 +10,7 @@ import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'jso
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
-import { NativeViewSchema } from '../src/shards/pine-hollow/generators/sections';
+import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
 import { admitPineView, pineView } from '../src/shards/pine-hollow/runtime/world/context';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -32,8 +34,9 @@ test('world view rows come from the admitted named product', async () => {
     shardfile:emptyShardfile({ slug:'pine-hollow', name:'Pine', author:'Wildshard', revision:1, seed:1 }),
     sections:new Map(), files:new Map([['look/native-view.json', { hash:file.hash, url:file.path }]]), read:() => Promise.resolve(bytes) });
   await admitPineView(product);
-  expect(pineView()).toEqual(NATIVE_VIEW);
-  expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, KING_ARENA_FOG:'31' })).toThrow();
+  expect(pineView()).toEqual({ ...NATIVE_VIEW, ...logKit });
+  expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, KING_ARENA_FOG:'31' })).toThrow();
+  expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();
 });
 
 test('pre-admission metadata preserves Explorer identities and ordered boot recipes', () => {
@@ -65,4 +68,14 @@ test('generated diagnostic eyes retain the authored probes and native terrain he
     expect(row.yaw).toBe(-probe.yaw * 180 / Math.PI);
     expect(row.pitch).toBe(probe.pitch * 180 / Math.PI);
   }
+});
+
+test('the named cave and pool inputs retain exact values and refuse malformed vectors', () => {
+  const file = output.namedFiles.find(row => row.name === 'world/crag-cave.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing cave metadata');
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual(CRAG_CAVE_ROWS);
+  expect(() => v.parse(CaveRowsSchema, { ...CRAG_CAVE_ROWS, meta: { ...CRAG_CAVE_ROWS.meta, inside: [[1]] } })).toThrow();
+  expect(v.parse(PoolGroundSchema, authored.poolGround)).toEqual(authored.poolGround);
+  expect(() => v.parse(PoolGroundSchema, [Infinity])).toThrow();
 });

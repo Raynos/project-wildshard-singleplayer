@@ -10,8 +10,6 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import type { LaneState } from '@wildshard/game/boss/lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '@wildshard/game/plugin/bossPhase';
-import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
-import * as v from 'valibot';
 
 
 const contact = new StrikeRunner();
@@ -37,10 +35,7 @@ const kingStreams = (seed: number): { readonly call: Rng; readonly charge: Rng }
 
 /** The page's and the headless host's one fight: the admitted roaming boss profile on the host's ports. */
 export function kingFight<B extends KingBody>(env: KingCoreEnv<B>, host: KingHost<B>, seed: number, program: SpeciesProgramData, decisions: SpeciesDecisionAuthority): KingFight<B> {
-  const action=v.object({action:v.picklist(['roar','sweep','strike','brace'])});
-  const profile=v.parse(v.intersect([RoamingBossProfileSchema,v.object({fight:v.object({
-    adds:v.object({kinds:v.array(v.picklist(['elk','boar']))}),strike:action,burst:action,summon:action,lanes:action,
-  })})]),pineView().BOSS_ENCOUNTER.profile);
+  const profile = pineView().BOSS_ENCOUNTER.profile;
   const row=program.species.find(candidate=>candidate.kind==='antler-king');
   if(row?.brain?.archetype!=='decision'||row.body===undefined)throw new Error('King requires its admitted decision/body recipe');
   const declared=row.brain.data,recipe=row.body;

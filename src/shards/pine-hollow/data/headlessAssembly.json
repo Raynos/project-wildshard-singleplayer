@@ -2,7 +2,6 @@
   "version": 1,
   "modules": {
     "@wildshard/game/population/spawnScript": ["installNativeSpawnScript", "readSpawnScript"],
-    "src/shards/pine-hollow/quest/rows": ["parsePineQuestRows"],
     "src/shards/pine-hollow/runtime/baked": ["PINE_GROUND_RES", "pineBake"],
     "@wildshard/engine/physics/navmesh": ["readNavmesh"],
     "@wildshard/engine/world/BakedTerrain": ["bakedSamplers", "parseBakedTerrain"],
@@ -213,33 +212,7 @@
         ]
       }
     },
-    {
-      "name": "contentJson",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["assembly", "json"]
-          },
-          {
-            "$ref": ["product"]
-          },
-          "quests/native.json"
-        ]
-      }
-    },
-    {
-      "name": "content",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/pine-hollow/quest/rows", "parsePineQuestRows"]
-          },
-          {
-            "$ref": ["contentJson"]
-          }
-        ]
-      }
-    },
+    {"name":"content","value":{"$call":[{"$ref":["product","section"]},"custom/questRuntime"]}},
     {
       "name": "director",
       "value": {

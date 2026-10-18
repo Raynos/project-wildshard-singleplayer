@@ -141,7 +141,7 @@ export const PINE_SEED = 1337;
 
 /**
  * One log building, built where it stands (site-fitted: the mill's stilts reach the bank under them; its colliders are
- * world space), recorded as the page draws it (`BakedBuilding`, ../world/logKit.ts): its parts per material, its window
+ * world space), recorded as the page draws it (`BakedBuildingSchema`, ./sections.ts): its parts per material, its window
  * groups, what it adds to its root in order (the door on its pivot, glows, the fire pit, particles, the lantern, the
  * wheel, lights), its colliders, floors, rooms and props. Build-time only: the page assembles the record
  * (../world/cabinBake.ts).

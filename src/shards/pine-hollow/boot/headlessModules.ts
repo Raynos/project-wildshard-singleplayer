@@ -1,6 +1,5 @@
 import { installNativeEliteFeature, readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import type { HeadlessAssemblyModules } from '@wildshard/sdk/headlessAssembly';
-import { parsePineQuestRows as module0ParsePineQuestRows } from '../quest/rows';
 import { PINE_GROUND_RES as module1PINE_GROUND_RES, pineBake as module1PineBake } from '../runtime/baked';
 import { readNavmesh as module2ReadNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers as module3BakedSamplers, parseBakedTerrain as module3ParseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -30,7 +29,6 @@ import { isStandaloneEdgeWall as module26IsStandaloneEdgeWall } from '@wildshard
 /** Static trusted capabilities checked against the product at build time.
  * Only declared exports are lent; no runtime module string is loaded. */
 export const headlessModules = {
-  'src/shards/pine-hollow/quest/rows': { parsePineQuestRows: module0ParsePineQuestRows },
   'src/shards/pine-hollow/runtime/baked': { PINE_GROUND_RES: module1PINE_GROUND_RES, pineBake: module1PineBake },
   '@wildshard/engine/physics/navmesh': { readNavmesh: module2ReadNavmesh },
   '@wildshard/engine/world/BakedTerrain': { bakedSamplers: module3BakedSamplers, parseBakedTerrain: module3ParseBakedTerrain },

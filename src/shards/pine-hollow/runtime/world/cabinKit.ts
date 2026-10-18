@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import type { CabinPropKind } from './homestead';
 import type { ColliderSpec, ModelContext, ModelPart } from '@wildshard/engine/models/model';
 import { cabinsOf } from '../models/logCabin';
-import { PROP_BOXES } from '../../world/logKit';
+import { pineView } from './context';
 
 const KEY = 'pine-hollow/cabins';
 
@@ -21,7 +21,7 @@ export function propPart(ctx: ModelContext, kind: CabinPropKind): ModelPart[] {
 
 /** a prop kind's collider in its own frame: the scan's bounds as a box standing on its foot (none for the hatchet) */
 export function propBox(kind: CabinPropKind): ColliderSpec[] {
-  const d = PROP_BOXES[kind];
+  const d = pineView().PROP_BOXES[kind];
   return d === null ? [] : [{ kind: 'box', x: 0, y: d.h / 2, z: 0, hx: d.hw, hy: d.h / 2, hz: d.hd, surface: 'wood' }];
 }
 

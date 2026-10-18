@@ -1,3 +1,4 @@
+import logKit from '../data/logKit.json' with { type: 'json' };
 /** Authoring-only cabin shapes and plain records. No page services, schemas or trusted controller imports. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -17,9 +18,7 @@ export type LightKind = 'fire' | 'lamp';
 /** The four native prop references. */
 export type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
 /** Original captured prop model extents; hatchet keeps its host chopping-block owner. */
-export const PROP_BOXES: Readonly<Record<PropKind, { readonly hw: number; readonly hd: number; readonly h: number } | null>> = {
-  crate: { hw: 0.265, hd: 0.583, h: 0.455 }, barrel: { hw: 0.34, hd: 0.34, h: 0.872 }, bucket: { hw: 0.17, hd: 0.17, h: 0.35 }, hatchet: null,
-};
+export const PROP_BOXES: Readonly<Record<PropKind, { readonly hw: number; readonly hd: number; readonly h: number } | null>> = logKit.PROP_BOXES;
 type XYZ = [number, number, number];
 interface BoxRow { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw?: number; surface?: 'stone' | 'wood' }
 /** A native light record, without a live light object. */

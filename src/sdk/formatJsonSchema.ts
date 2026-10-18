@@ -12,6 +12,9 @@ import type { GenericSchema } from 'valibot';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
+import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
+import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
+import { BakedBuildingLookSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
@@ -202,6 +205,10 @@ const wireRoots = {
   'targets.Targets': TargetsSchema,
   'quests.QuestData': QuestDataSchema,
   'questGraph.QuestGraph': QuestGraphSchema,
+  'questSteps.QuestStepRows': QuestStepRowsSchema,
+  'speciesPrograms.Species': SpeciesSchema,
+  'buildings.BakedBuildingLook': BakedBuildingLookSchema,
+  'buildings.BuildingLifeLook': BuildingLifeLookSchema,
   'questInteractions.InteractionRows': InteractionRowsSchema,
   'rows.Rows': RowsSchema,
   'movers.Movers': MoversSchema,

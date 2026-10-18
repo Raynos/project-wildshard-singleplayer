@@ -42,8 +42,28 @@ it('derives deterministic validator and disk schema bytes from the same registry
 it('preserves tuple, optional and union shapes and refuses unresolved declaration types',()=>{
   expect(sectionType({type:'object',properties:{at:{type:'array',items:[{type:'number'},{type:'number'}]},mode:{enum:['a','b']}},required:['at'],additionalProperties:false}))
     .toBe('{ "at": [number, number]; "mode"?: "a" | "b"; }');
+  expect(sectionType({type:'array',items:{enum:['a','b']}})).toBe('("a" | "b")[]');
+  expect(sectionType({type:'array',items:{type:'array',items:{type:'number'}}})).toBe('number[][]');
   expect(()=>sectionType({$ref:'#/missing'})).toThrow('Unresolved');
   expect(()=>sectionType({pattern:'unknown'})).toThrow('Unsupported');
+});
+
+it('validates imported JSON and emits standalone tuple types without casts',async()=>{
+  const {root,source}=fixture();
+  try {
+    mkdirSync(join(root,'src/shards/sample/data'),{recursive:true});
+    const data=join(root,'src/shards/sample/data/points.json');
+    writeFileSync(data,'{"at":[1,2]}');
+    writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={}; export const FILE_SCHEMAS={'data/points.json':v.strictObject({at:v.tuple([v.number(),v.number()])})};");
+    await writeSectionSchemaBridge(root,'sample');
+    expect(readFileSync(data.replace('.json','.d.json.ts'),'utf8')).toContain('"at": [number, number]');
+    writeFileSync(data,'{"at":[1]}');
+    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow();
+    writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={}; export const FILE_SCHEMAS={'../outside.json':v.number()};");
+    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow('Invalid typed JSON');
+    writeFileSync(source,"export const SECTIONS={}; export const FILE_SCHEMAS=1;");
+    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow('FILE_SCHEMAS object');
+  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
 it('refuses runtime dependencies and unknown custom predicates instead of dropping checks',async()=>{

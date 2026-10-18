@@ -15,7 +15,8 @@ export function sectionType(schema) {
   if (schema.type === 'number' || schema.type === 'integer') return 'number';
   if (schema.type === 'array') {
     if (Array.isArray(schema.items)) return `[${schema.items.map(sectionType).join(', ')}]`;
-    return `Array<${sectionType(schema.items ?? true)}>`;
+    const item = schema.items ?? true, type = sectionType(item);
+    return `${typeof item === 'object' && item.enum !== undefined && item.enum.length > 1 ? `(${type})` : type}[]`;
   }
   if (schema.type === 'object') {
     const required = new Set(schema.required);

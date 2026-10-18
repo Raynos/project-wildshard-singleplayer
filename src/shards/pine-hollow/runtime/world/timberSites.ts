@@ -1,3 +1,4 @@
+import type { FloorRows } from '../productSections.generated.d.ts';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { UnderPlacements } from '../../world/undergrowth';
 /**
@@ -8,7 +9,6 @@ import type { UnderPlacements } from '../../world/undergrowth';
  * baked terrain. The combined timber Scene emits admitted world tiles and an Explorer-only library; the fact rows
  * remain unchanged. The shared reader reconstructs each original draw before the native material/shadow finisher.
  */
-import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
@@ -29,17 +29,9 @@ export async function loadSiteTimbers(ctx: ModelContext): Promise<Map<string, Wh
   return ready;
 }
 
-const num = v.pipe(v.number(), v.finite());
 
-const floorKinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
-const floorPlace = v.strictObject({ x: num, y: num, z: num, nx: num, ny: num, nz: num, rot: num, scale: num, r: num, g: num, b: num, matrix: v.pipe(v.array(num), v.length(16)) });
-const floorList = v.pipe(v.array(floorPlace), v.maxLength(40_000)), count = v.pipe(v.number(), v.integer(), v.minValue(0));
-/** Exact ordered layouts; malformed records, count mismatches and oversized floors refuse. */
-export const FloorRowsSchema = v.pipe(v.strictObject({ counts: v.tuple([count, count, count, count, count, count]),
-  layout: v.strictObject({ ferns: floorList, shrubs: floorList, litter: floorList, stones: floorList, moss: floorList, reeds: floorList }) }),
-  v.check(row => row.counts.reduce((total, n) => total + n, 0) <= 40_000 && floorKinds.every((kind, i) => row.layout[kind].length === row.counts[i])));
 /** Required named floor records, decoded during authoring rather than on the page. */
 export async function loadUnderPlacements(): Promise<UnderPlacements> {
   const product = await loadFirstPartyProduct('pine-hollow');
-  return v.parse(FloorRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/floor.json')))).layout;
+  return (await product.json<FloorRows>('world/floor.json')).layout;
 }

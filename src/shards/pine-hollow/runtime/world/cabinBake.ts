@@ -10,7 +10,6 @@ import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
  * handed them: the game's building assembly over the named building-look row.
  */
 import * as THREE from 'three';
-import * as v from 'valibot';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { loadSiteTimbers } from './timberSites';
 import { mossHint } from '../../world/timberBake';
@@ -19,19 +18,18 @@ import { BakedBuildingAssembly } from '@wildshard/game/shardfile/buildingAssembl
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import type { BakedBuildingLook, BakedBuildingRole, BuildingAssemblyRows } from '@wildshard/format/buildings';
 import rows from '../../data/cabins.json' with { type: 'json' };
-import { CabinRowsSchema, type CabinRows, type BakedBuilding } from '../../world/logKit';
+import type { BakedBuilding } from '../productSections.generated.d.ts';
 import type { Mats } from './homestead';
 
-/** Unchanged native owner rows, parsed strictly once. */
-export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);
+/** Unchanged native owner rows, validated by the generator. */
+export const CABIN_ROWS = rows;
 
-const Seed = v.strictObject({ ordinal: v.pipe(v.number(), v.integer(), v.minValue(0)), width: v.literal(4), values: v.array(v.pipe(v.number(), v.finite())) });
 /** Original meshes and particle seeds; each native building receives its own geometry copy. */
 export class CabinGeometries {
   private readonly views: Awaited<ReturnType<typeof loadSiteTimbers>>;
   private readonly seeds: ReadonlyMap<number, readonly number[]>;
-  constructor(views: Awaited<ReturnType<typeof loadSiteTimbers>>, seeds: unknown = authored.cabins.seeds) {
-    this.views = views; this.seeds = new Map(v.parse(v.array(Seed), seeds).map(seed => [seed.ordinal, seed.values]));
+  constructor(views: Awaited<ReturnType<typeof loadSiteTimbers>>) {
+    this.views = views; this.seeds = new Map(authored.cabins.seeds.map(seed => [seed.ordinal, seed.values]));
   }
   /** Preserve geometry ordinals, typed channels and the original particle seed blocks. */
   geometry(ordinal: number | string): THREE.BufferGeometry {

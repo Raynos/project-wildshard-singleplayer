@@ -49,7 +49,6 @@ import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 
 import { pineMemoryTrim } from './debug/options';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
-import * as v from 'valibot';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import * as audioTerrain from '@wildshard/engine/world/Heightfield';
 import { installWeather, loadPineRain } from '../world/weather';
@@ -58,7 +57,6 @@ import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
 import { installItemEffects, heldFinishEffect } from '@wildshard/game/loadout/effects';
 import type { SkinId } from '@wildshard/engine/player/Skins';
-import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
 /** Legacy v0 modules prepared by the play hook. Owned v1 guests are
@@ -85,7 +83,7 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
-    const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trades.json'))));
+    const trades = ctx.product.section<CustomSections['custom/tradeCatalogue']>('custom/tradeCatalogue');
     const packKinds = readItemInventory(ctx.product.section('combat/items').items).kinds;
     rt.menu = { skins: () => rt.play ? rt.play.skins.cardRows(HeldFinishes.current(ctx.manifest.slug).cards) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => packKinds.includes(id) ? trades.lines[id] ?? 'Mott has no use for it' : null } };
     const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
@@ -93,8 +91,7 @@ export class PineHollow extends ShardPlugin {
     const { trample, TRAMPLE_GLSL } = await import('@wildshard/game/systems/looks/trample');
     ctx.app.registerTrample(trample, ctx.scope);
     // The admitted graph list is author data; this scope still owns the compiled materials.
-    const graphNames = v.parse(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(128)),
-      JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/runtime-graphs.json'))));
+    const graphNames = ctx.product.section<CustomSections['custom/runtimeGraphs']>('custom/runtimeGraphs');
     lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, graphNames));
     await dressPineWater(game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
@@ -150,7 +147,7 @@ export class PineHollow extends ShardPlugin {
     await preparePineGrazers(ctx.product);
     registerKing();
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
-    ctx.rows.speciesLook(pineLooks(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('look/creature-clips.json')))));
+    ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
     ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
     const inventory = ctx.product.section<CustomSections['custom/questInventory']>('custom/questInventory');
     ctx.rows.item(inventory.items);
@@ -248,8 +245,7 @@ export class PineHollow extends ShardPlugin {
     const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
-    const placeSets = v.parse(v.array(v.strictObject({ id: v.string(), place: v.string(), name: v.string(), x: v.number(), z: v.number(), r: v.number() })),
-      JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('world/place-sets.json'))));
+    const placeSets = ctx.product.section<CustomSections['custom/placeSets']>('custom/placeSets');
     registerPlaceSets(placeSets, { file: 'generators/placeSets.ts', registry, centres: { placed: placedGroups(), point: row => row } });
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx);

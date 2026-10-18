@@ -1,9 +1,11 @@
+import spots from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
+import { pineSpots } from '../src/shards/pine-hollow/runtime/quest';
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestData } from '../src/sdk/quests';
 import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
-import { parsePineQuestRows } from '../src/shards/pine-hollow/quest/rows';
+import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 
 // Frozen canonical hashes of the original play-read authored declarations.
 const originals = {
@@ -20,15 +22,16 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const quests = parseQuestData(pinePeople.quests);
   expect(hash(loaded.shard.quests)).toBe(originals.quests);
   expect(hash(quests)).toBe(originals.quests);
-  const named = loaded.output.namedFiles?.find(file => file.name === 'quests/native.json');
-  const bytes = named === undefined ? undefined : loaded.assets.get(named.hash);
+  const section = loaded.output.custom?.sections.find(row => row.name === 'custom/questRuntime');
+  const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
   if (bytes === undefined) throw new Error('The product must publish its fixed quest rows');
   const rows = parsePineQuestRows(JSON.parse(new TextDecoder().decode(bytes)));
   expect(hash(rows.content)).toBe(originals.content);
   expect(rows.table.rows).toHaveLength(44);
   expect(rows.table.rows.filter(row => row.id.startsWith('resin-'))).toHaveLength(30);
   expect(rows.table.rows.filter(row => row.id.startsWith('token-'))).toHaveLength(8);
-  expect(Object.keys(rows.readings.speakers)).toEqual(['ranger', 'miller', 'trader']);
+  // Custom-section JSON canonicalizes record keys; continuation order is data.
+  expect(Object.keys(rows.readings.speakers).sort()).toEqual(['miller', 'ranger', 'trader']);
   expect(rows.readings.continuation).toEqual({ bare: 'ranger', wrapped: ['miller', 'trader'] });
   expect(rows.beats['hamlet']?.flags).toEqual([]);
   expect(rows.beats['done']?.flags).toEqual(['talked:ranger', 'lever:dam-log-a', 'lever:dam-log-b', 'open:dam-sluice', 'taken:pond-glass', 'lit:pond', 'taken:ridge-flint', 'lit:ridge', 'used:ph-zip', 'lit:den', 'followed:stag', 'dead:king', 'seen:dawn', 'quest:warden-done']);
@@ -43,3 +46,13 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   expect(loaded.shard.questNpcs?.map(row => row.npc.id)).toEqual(['ranger', 'miller', 'trader']);
   expect(quests.quests[0]?.steps.map(row => row.id)).toEqual(['pond', 'ridge', 'zip', 'den', 'stag', 'king', 'dawn']);
 }, 30_000);
+
+test('build-admitted quest spots retain the original read shape and unique speaker law', () => {
+  expect(pineSpots()).toEqual(parsePineSpots(spots));
+  expect(pineSpots().rows).not.toBe(spots.rows);
+  expect(Object.keys(pineSpots())).not.toContain('profile');
+  expect(Object.keys(pineSpots())).not.toContain('notice');
+  const speaker = spots.people?.[0];
+  if (speaker === undefined) throw new Error('Missing authored speaker');
+  expect(() => parsePineSpots({ ...spots, people: [speaker, speaker, speaker] })).toThrow();
+});

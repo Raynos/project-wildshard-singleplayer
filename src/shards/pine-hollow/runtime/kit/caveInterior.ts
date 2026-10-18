@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import * as v from 'valibot';
+import type { CaveRows, NativeView } from '../productSections.generated.d.ts';
 import { loadPBR, loadTexture, texUrl } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { Material as SurfaceMaterial } from '@wildshard/engine/physics/surface';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -26,59 +25,11 @@ import { pineSetCap } from '../debug/options';
  */
 
 /** The baked interior's meta file: everything in the cave's frame (lx across, lz in, y world height). */
-export interface CaveMeta {
-  version: number;
-  /** the render hole: drawn-terrain triangles whose box overlaps one of these (local, axis-aligned) are dropped */
-  holes: { lx: number; lz: number; hw: number; hd: number; y0: number; y1: number }[];
-  /** the physics heightfield is pushed below `below` inside these (local rects; grown a cell by cutTerrain) */
-  cuts: { lx: number; lz: number; hw: number; hd: number; below: number }[];
-  /** the cave reverb / bed: circles along the passage and the room */
-  spots: { lx: number; lz: number; r: number }[];
-  /** the footprint (rain never falls inside it) */
-  inside: [number, number][];
-  /** the crack's shaft of light: its top (at the crack) and its foot (on the floor), radii */
-  shaft: { top: [number, number, number]; foot: [number, number, number]; r0: number; r1: number };
-  /** drip points on the roof: lx, y, lz, and the floor's height under each */
-  drips: [number, number, number, number][];
-  /** the floor's height along the passage (lz → y), for the spawn / the test poses */
-  floor: [number, number][];
-}
-
-const finite = v.pipe(v.number(), v.finite()), pair = v.tuple([finite, finite]), triple = v.tuple([finite, finite, finite]);
-const rows = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T) => v.pipe(v.array(schema), v.maxLength(256));
-const CaveRowsSchema = v.strictObject({ meta: v.strictObject({ version: v.literal(1),
-  holes: rows(v.strictObject({ lx: finite, lz: finite, hw: finite, hd: finite, y0: finite, y1: finite })),
-  cuts: rows(v.strictObject({ lx: finite, lz: finite, hw: finite, hd: finite, below: finite })),
-  spots: rows(v.strictObject({ lx: finite, lz: finite, r: finite })), inside: rows(pair),
-  shaft: v.strictObject({ top: triple, foot: triple, r0: finite, r1: finite }),
-  drips: rows(v.tuple([finite, finite, finite, finite])), floor: rows(pair),
-  tris: v.strictObject({ cave: finite, far: finite, col: finite }),
-}), shell: v.unknown() });
-
-/** How a cave looks and behaves near its mouth (a shard's data row). */
-export interface CaveLookRow {
-  /** metres from the mouth within which the shaft and the drips draw and animate */
-  readonly near: number;
-  /** the eye is under the roof below the floor (at its depth, clamped to [lzMin, lzMax]) plus `height` */
-  readonly under: { readonly height: number; readonly lzMin: number; readonly lzMax: number };
-  /** the walls' fill uniform by day: base + gain × day */
-  readonly fill: readonly [number, number];
-  /** the surface the cave's colliders report */
-  readonly surface: SurfaceMaterial;
-  /** the shaft: its look (a lent look.materials graph with an `intensity` param), its cone's segments, its render order, and its intensity gain × day × min(1, sunBase + max(0, sun.y) × sunGain) + floor */
-  readonly shaft: {
-    readonly look: string;
-    readonly radialSegments: number; readonly heightSegments: number; readonly renderOrder: number;
-    readonly gain: number; readonly sunBase: number; readonly sunGain: number; readonly floor: number;
-  };
-  /** the drips: points falling from the roof, each forming for a while then falling under `gravity`; drip i's period is
-   *  period + (i mod kinds) × periodStep, its phase offset i × phaseStep; it hangs `hang` below its roof point */
-  readonly drips: {
-    readonly color: number; readonly size: number; readonly opacity: number;
-    readonly period: number; readonly periodStep: number; readonly kinds: number; readonly phaseStep: number;
-    readonly gravity: number; readonly hang: number; readonly minDrop: number;
-  };
-}
+export type CaveMeta = Omit<CaveRows['meta'], 'tris'>;
+/** The admitted cave look, also accepting the author's readonly fill tuple. */
+export type CaveLookRow = {
+  readonly [Key in keyof NativeView['CAVE_LOOK']]: Readonly<NativeView['CAVE_LOOK'][Key]>;
+};
 
 // Retain the native crag module's shared live fill across its resident views.
 const CAVE_FILL = { value: 1 };
@@ -104,7 +55,7 @@ export class CaveInterior {
     const [product, rock, map, normalMap] = await Promise.all([loadFirstPartyProduct('pine-hollow'),
       loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)),
       loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))]);
-    const data = v.parse(CaveRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/crag-cave.json'))));
+    const data = await product.json<CaveRows>('world/crag-cave.json');
     const view = pineView(), frame = view.BEAR_CAVE;
     const cave = new CaveInterior(data.meta, { x: frame.x, z: frame.z, yaw: frame.rot }, view.CAVE_LOOK, CAVE_FILL);
     cave.shell.push(...readColliderRows([data.shell], { kinds: ['trimesh'], surfaces: ['rock'], requireSurface: true }));

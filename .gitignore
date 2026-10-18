@@ -2016,3 +2016,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/assets/303ecc4de26a41d26858856033f57c36d06425ebdae7a11ca03663934f6dc025
 /src/shards/driftwood-isle/assets/b305b97bedf72b1bc4e504b3dcc9b22f600611a26a8240a569a767d44630ed33
 /src/shards/driftwood-isle/assets/bc225a74f0ad9f224255681f74c718408d037102c4cc7bcf3ee2d64025c3430a
+# Immutable JSON declarations emitted by the schema compiler.
+src/shards/pine-hollow/data/cabins.d.json.ts
+src/shards/driftwood-isle/data/bridgeRows.d.json.ts

@@ -5041,7 +5041,8 @@
         "public/assets/baked/pine-hollow/terrain.bin",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/cabins.bin",
@@ -5432,7 +5433,8 @@
         "src/shards/pine-hollow/ktx2.generated.ts",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators/materialGlb.mjs"
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/lookout.bin",
@@ -5601,7 +5603,8 @@
         "src/shards/pine-hollow/ktx2.generated.ts",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators/materialGlb.mjs"
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/site-timbers.bin",
@@ -5726,7 +5729,8 @@
         "src/shards/pine-hollow/ktx2.generated.ts",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators/materialGlb.mjs"
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/cabin-materials/02baca5fc1bbd43f87e08ee7ed3f57d27438c78106feef8b5584fdd01d2b9c23.gltf",
@@ -5871,7 +5875,8 @@
         "src/shards/pine-hollow/assets/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
         "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
-        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138"
+        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/timber-scenes/creek-footbridge-draw-0.glb",
@@ -6313,7 +6318,10 @@
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",
         "src/shards/pine-hollow/data/physicsRows.json",
-        "src/shards/pine-hollow/generators/physics.ts"
+        "src/shards/pine-hollow/generators/physics.ts",
+        "src/format",
+        "src/shards/pine-hollow/generators/sections.ts",
+        "src/shards/pine-hollow/data/terrainBindings.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/physics.generated.json"
@@ -6344,7 +6352,9 @@
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",
         "src/shards/pine-hollow/data/spotsRows.json",
-        "src/shards/pine-hollow/generators/spots.ts"
+        "src/shards/pine-hollow/generators/spots.ts",
+        "src/shards/pine-hollow/generators/sections.ts",
+        "src/format"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/spots.generated.json"
@@ -16772,16 +16782,25 @@
         "src/sdk/package.json",
         "src/sdk/formatJsonSchema.ts",
         "src/shards/pine-hollow/generators/sections.ts",
-        "scripts/section-types.mjs"
+        "scripts/section-types.mjs",
+        "src/shards/pine-hollow/data/cabins.json",
+        "src/shards/pine-hollow/data/physics.generated.json",
+        "src/shards/pine-hollow/data/spots.generated.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
-        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
+        "src/shards/pine-hollow/data/cabins.d.json.ts",
+        "src/shards/pine-hollow/data/physics.generated.d.json.ts",
+        "src/shards/pine-hollow/data/spots.generated.d.json.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
-        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
+        "src/shards/pine-hollow/data/cabins.d.json.ts",
+        "src/shards/pine-hollow/data/physics.generated.d.json.ts",
+        "src/shards/pine-hollow/data/spots.generated.d.json.ts"
       ]
     },
     {
@@ -16803,16 +16822,19 @@
         "src/sdk/package.json",
         "src/sdk/formatJsonSchema.ts",
         "src/shards/driftwood-isle/generators/sections.ts",
-        "scripts/section-types.mjs"
+        "scripts/section-types.mjs",
+        "src/shards/driftwood-isle/data/bridgeRows.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
-        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts"
+        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts",
+        "src/shards/driftwood-isle/data/bridgeRows.d.json.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
-        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts"
+        "src/shards/driftwood-isle/runtime/productSections.generated.d.ts",
+        "src/shards/driftwood-isle/data/bridgeRows.d.json.ts"
       ]
     },
     {
@@ -18706,7 +18728,8 @@
         "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts",
         "src/shards/pine-hollow/ktx2.generated.ts",
-        "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts"
+        "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
+        "src/shards/pine-hollow/data/logKit.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/prop-scenes/pine.props.log.0.glb",

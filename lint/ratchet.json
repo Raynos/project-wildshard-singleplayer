@@ -43,7 +43,14 @@
       "driftwood-isle/custom/questRows": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood questRows section exit",
       "driftwood-isle/custom/trailside": "docs/plans/shard-platform/open-x-queue.md#W2 Driftwood trailside section exit",
       "driftwood-isle/custom/enemyPlacements": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
-      "pine-hollow/custom/cabinAmbience": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
+      "pine-hollow/custom/cabinAmbience": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/questRuntime": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/tradeCatalogue": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/grazers": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/thrallLook": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/runtimeGraphs": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/placeSets": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
+      "pine-hollow/custom/cabinAppearance": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
     },
     "shardfile/sim-in-runtime": {
       "src/shards/driftwood-isle/runtime/quest.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",

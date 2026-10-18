@@ -8,7 +8,7 @@
  * draws it (`ModelDef.weld`, src/engine/models/weld.ts): the cabins' parts merged per building and their never-hidden
  * materials welded across the three, the hamlet's five welded into one set, the detail and far sets dropped with distance
  * (../world/cabins.ts). The Explorer's specimen is the building assembled alone and merged as the world merges a cabin
- * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts.
+ * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in generators/cabinShapes.ts.
  */
 import * as THREE from 'three';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -17,7 +17,7 @@ import { defineModel, type ModelBuild, type ModelContext, type ModelDef } from '
 import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins } from '../world/homestead';
 import { CABIN_ROWS, createLogBuilding } from '../world/cabinBake';
-import { PROP_KINDS } from '../../world/logKit';
+import { pineView } from '../world/context';
 
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
 export interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
@@ -49,7 +49,7 @@ export function builtBuilding(ctx: ModelContext, id: string): WeldBuild {
   return b.weld;
 }
 
-/** the specimen's prop loop caps: the four cabin props (../world/logKit PROP_KINDS) and a scan's few meshes each */
+/** the specimen's prop loop caps: the four cabin props (data/logKit.json PROP_KINDS) and a scan's few meshes each */
 const MAX_PROP_KINDS = 4, MAX_PROP_PARTS = 16;
 
 /**
@@ -62,6 +62,7 @@ export function buildingSpecimen(ctx: ModelContext, id: string): ModelBuild {
   if (b === undefined || kit === null || row === undefined) return new THREE.Group();
   const cb = createLogBuilding(new SceneHandles(ctx.sky), row, kit.geometries, kit.mats, kit, 'specimen', cabins.buildingLook);
   const props = cb.props;
+  const { PROP_KINDS } = pineView();
   const unit = new UnitParts();
   unit.add(cb.weldParts());
   const casters = cb.casters;
@@ -72,7 +73,6 @@ export function buildingSpecimen(ctx: ModelContext, id: string): ModelBuild {
   cb.root.position.set(0, 0, 0); cb.root.rotation.set(0, 0, 0);
   cb.root.updateMatrixWorld(true);
   const m = new THREE.Matrix4();
-  if (PROP_KINDS.length > MAX_PROP_KINDS) throw new Error('[cabins] more prop kinds than the specimen draws');
   for (let i = 0; i < Math.min(PROP_KINDS.length, MAX_PROP_KINDS); i++) {
     const k = PROP_KINDS[i];
     if (k === undefined) continue;

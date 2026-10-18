@@ -11,17 +11,16 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { BakedBuildingLookSchema, BuildingLifeLookSchema, emptyBuildingLifeRows, type BakedBuildingLook } from '@wildshard/format/buildings';
+import { emptyBuildingLifeRows, type BakedBuildingLook } from '@wildshard/format/buildings';
 import type { SiteLightState } from '@wildshard/engine/fx/SiteLights';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
-import * as v from 'valibot';
 import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import type { PropPart } from '../models/logCabin';
-import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
-import { pineModels } from './context';
+import type { PropKind, BakedBuilding, CabinAppearance, CustomSections } from '../productSections.generated.d.ts';
+import { pineModels, pineView } from './context';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import { CABIN_ROWS, createLogBuilding, loadCabinBake, type LogBuilding, type CabinGeometries } from './cabinBake';
 
@@ -62,32 +61,11 @@ export interface Mats {
 }
 export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
 
-const number = v.pipe(v.number(), v.finite()), pair = v.tuple([number, number]), triple = v.tuple([number, number, number]);
-const materialRow = v.strictObject({ color: number, roughness: number, metalness: number,
-  transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(number), envMapIntensity: v.exactOptional(number),
-  emissiveIntensity: v.exactOptional(number), emissive: v.exactOptional(number), side: v.exactOptional(v.picklist([0, 1, 2])),
-  depthWrite: v.exactOptional(v.boolean()), vertexColors: v.exactOptional(v.boolean()) });
-const timberDraw = v.strictObject({ depth: v.picklist(['proxy', 'near']), receiveShadow: v.boolean(),
-  castShadow: v.exactOptional(v.boolean()), until: v.exactOptional(number) });
-/** Client-only author rows: unknown fields, malformed vectors and unbounded lists refuse before construction. */
-export const CabinRowsSchema = v.strictObject({
-  BUILDING_LOOK: BakedBuildingLookSchema,
-  CABIN_DOOR_LOOK: v.string(), CABIN_MOSS_LOOKS: v.strictObject({ roof: v.string(), stone: v.string() }),
-  HEARTH_LOOKS: v.strictObject({ smoke: v.string(), flame: v.string(), ember: v.string() }),
-  CABIN_LIFE: BuildingLifeLookSchema,
-  CABIN_PBR: v.pipe(v.array(v.strictObject({ key: v.picklist(['log', 'roof', 'beam', 'deck', 'door', 'stone', 'bark']),
-    scan: v.string(), color: triple, normal: pair })), v.length(7)),
-  CABIN_MATERIALS: v.strictObject({ endGrain: materialRow, chink: materialRow, glass: materialRow, iron: materialRow, cloth: materialRow, char: materialRow }),
-  TIMBER_DRAWS: v.strictObject({ log: timberDraw, endGrain: timberDraw, chink: timberDraw, roof: timberDraw, beam: timberDraw, deck: timberDraw,
-    door: timberDraw, stone: timberDraw, bark: timberDraw, iron: timberDraw, cloth: timberDraw, char: timberDraw }),
-  TIMBER_GLASS: v.strictObject({ renderOrder: number, receiveShadow: v.boolean() }),
-  CABIN_GLASS_EMISSIVE: triple, CABIN_LIGHT: v.strictObject({ count: number, color: number, intensity: number, distance: number, decay: number }),
-});
-type CabinRows = v.InferOutput<typeof CabinRowsSchema>;
+type CabinRows = CabinAppearance;
 /** Read verified named JSON before the building or its materials are constructed. */
 export async function loadCabinRows(): Promise<CabinRows> {
   const product = await loadFirstPartyProduct('pine-hollow');
-  return v.parse(CabinRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/cabins.json'))));
+  return product.section<CustomSections['custom/cabinAppearance']>('custom/cabinAppearance');
 }
 
 const matsCache = new WeakMap<Sky, Promise<Mats>>();
@@ -208,6 +186,7 @@ export class Cabins {
    */
   async build(): Promise<{ group: THREE.Group; interactables: Interactable[] }> {
     const { CABIN_LIGHT } = this.rows;
+    const { PROP_KINDS } = pineView();
     // the seven PBR sets, the six models and the bake in one round of fetches
     const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky, this.resources), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),

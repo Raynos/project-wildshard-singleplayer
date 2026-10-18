@@ -182,3 +182,6 @@ export const SECTIONS = {
   'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }) }),
   'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)) }),
 } as const;
+
+const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number });
+export const FILE_SCHEMAS = { 'data/bridgeRows.json': v.strictObject({ world: bridgeSpan, specimen: bridgeSpan }) };

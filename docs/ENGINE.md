@@ -7566,6 +7566,13 @@ uses this path; saved state still validates at its continuation boundary.
 the same generated types, fatal UTF-8 decoding and verified file reader.
 Its defining schema parses the payload in the generator before emission.
 
+Build-only `generators/sections.ts` may also declare `FILE_SCHEMAS` for
+immutable `data/` or `boot/` JSON imports. The compiler validates those files
+and emits standalone `.d.json.ts` companions, including tuple shapes. Both
+the raw file and its companion are declared generation-job inputs/outputs;
+the runtime imports only JSON and generated types. Dynamic data and save
+continuations retain their boundary validators.
+
 ### Product loading and build-pinned assembly (P2a)
 
 `game/shardfile/runtimeProduct.loadShardProduct(slug, options, scope)`

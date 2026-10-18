@@ -1,5 +1,5 @@
 import { commitQuestEffects } from '@wildshard/game/quest/effects';
-import type { PineQuestRows, PineTradeSkin } from '../quest/rows';
+import type { PineQuestRows, PineTradeSkin, PineSpots as PineSpotRows } from './productSections.generated.d.ts';
 import { moversRiding } from '@wildshard/game/plugin/mover';
 import { cableModes } from '@wildshard/engine/player/modes';
 import * as v from 'valibot';
@@ -47,17 +47,10 @@ const NIGHT_PHASE = PINE_PHASES.night, SUNRISE_PHASE = PINE_PHASES.sunrise + 0.0
 const MAX_COMMANDS = 1024, MAX_SETS = 16;
 const QUEST_ROWS = ['dam-log-a', 'dam-log-b', 'dam-sluice', 'pond-glass', 'ridge-flint'] as const;
 
-const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
-const Point = v.strictObject(xyz), Prompt = v.strictObject({ ...xyz, radius: finite });
-const Spots = v.object({ version: v.literal(1),
-  rows: v.array(v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.nullable(Point) })),
-  people: v.exactOptional(v.pipe(v.array(v.strictObject({ kind: v.picklist(['ranger', 'miller', 'trader']), prompt: Prompt, at: Point })), v.length(3), v.check(people => new Set(people.map(person => person.kind)).size === 3))),
-  board: v.exactOptional(Prompt), talk: Prompt, lanterns: v.strictObject({ pond: Prompt, ridge: Prompt, den: Prompt }),
-  zip: v.strictObject({ prompt: Prompt, top: Point, bottom: Point, landing: Point }), rifle: Prompt });
-/** The quest placements (generators/spots.ts, G350-PH), strictly. */
-export type PineSpots = v.InferOutput<typeof Spots>;
-/** Pine's baked quest spots, parsed strictly. */
-export function pineSpots(): PineSpots { return v.parse(Spots, baked); }
+const finite = v.pipe(v.number(), v.finite());
+/** Pine's quest placements, checked by their generator. */
+export type PineSpots = PineSpotRows;
+export function pineSpots(): PineSpots { const { profile: _profile, notice: _notice, ...spots } = structuredClone(baked); return spots; }
 
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const TradeSaved = v.strictObject({ modal: v.strictObject({ version: v.literal(1), open: v.boolean() }),

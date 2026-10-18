@@ -1,17 +1,6 @@
 import * as v from 'valibot';
 
-const finite = v.pipe(v.number(), v.finite());
-/** A lead's native decision law. Actors, gait, particles and collision remain on their existing hosts. */
-export const QuestLeadRowsSchema = v.strictObject({
-  path: v.pipe(v.array(v.tuple([finite, finite])), v.minLength(1), v.maxLength(128)),
-  near: v.pipe(finite, v.minValue(0)), first: v.pipe(finite, v.minValue(0)),
-  trot: v.pipe(finite, v.minValue(0)), gone: v.pipe(finite, v.minValue(0)), past: v.pipe(finite, v.minValue(0)),
-});
-/** Authored lead/follow waypoints and timing, independent of any species. */
-export type QuestLeadRows = v.InferOutput<typeof QuestLeadRowsSchema>;
-
-/** Validate authored waypoint tuples before native or page code reads them. */
-export function parseQuestLeadRows(input: unknown): QuestLeadRows { return v.parse(QuestLeadRowsSchema, input); }
+import type { QuestLeadRows } from '../runtime/productSections.generated.d.ts';
 
 /** A row-authored lead/follow walk; actors and integration remain on their native owners. */
 export type QuestLeadMode = 'none' | 'stare' | 'trot' | 'gone';
@@ -24,7 +13,7 @@ const dist = (ax: number, az: number, bx: number, bz: number): number => Math.hy
 
 export class StagWalk {
   readonly rows: QuestLeadRows;
-  constructor(input: unknown) { this.rows = v.parse(QuestLeadRowsSchema, input); }
+  constructor(rows: QuestLeadRows) { this.rows = rows; }
   i = 0;
   mode: QuestLeadMode = 'none';
   t = 0;

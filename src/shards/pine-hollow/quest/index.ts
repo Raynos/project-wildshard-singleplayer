@@ -3,7 +3,7 @@ import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/que
 import { installQuestChapter, installQuestFlags } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
-import { parsePineQuestRows, parseTradeCatalogue, type TradeGood } from './rows';
+import type { CustomSections, TradeGood } from '../runtime/productSections.generated.d.ts';
 import type { Progress } from '@wildshard/game/Progress';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -131,11 +131,11 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const boardPanel = panels['board'], countPanel = panels['count'];
   if (boardPanel === undefined || countPanel === undefined) throw new Error('Pine requires its named quest panels');
   const story = await readQuestStory(h.ctx);
-  const native = parsePineQuestRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/native.json'))));
+  const native = h.ctx.product.section<CustomSections['custom/questRuntime']>('custom/questRuntime');
   const { resinCount: RESIN_COUNT, resinFlag: RESIN_FLAG, tokenFlag: TOKEN_FLAG, tokenNames: TOKEN_NAMES } = native.policy;
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/stall.json')));
   const exchangeRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/exchange.json')));
-  const trades = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/trades.json'))));
+  const trades = h.ctx.product.section<CustomSections['custom/tradeCatalogue']>('custom/tradeCatalogue');
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/contracts.json'))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));

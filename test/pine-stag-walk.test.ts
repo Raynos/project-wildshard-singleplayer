@@ -2,7 +2,8 @@ import { expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
 import { Puffs } from '../src/shards/pine-hollow/runtime/combat/fxKit';
 import { StagLead } from '../src/shards/pine-hollow/quest/stagLead';
-import { StagWalk, parseQuestLeadRows } from '../src/shards/pine-hollow/quest/stagWalk';
+import { StagWalk } from '../src/shards/pine-hollow/quest/stagWalk';
+import { parseQuestLeadRows } from '../src/shards/pine-hollow/generators/sections';
 import leadJson from '../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 
 const LEAD = parseQuestLeadRows(leadJson);

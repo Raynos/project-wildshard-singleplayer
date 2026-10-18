@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import { Color } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { bakedHuntGround, type HuntGround } from '@wildshard/engine/ai/huntPattern';
@@ -10,10 +9,9 @@ import baked from '../data/physics.generated.json' with { type: 'json' };
 /** The creature manager's stream: `Rng(SEED + 31)` with the level's seed (shard.config.ts `seed: 1337`). */
 export const PINE_HERD_STREAM = 1337 + 31;
 
-const finite = v.pipe(v.number(), v.finite());
 /** The forest's trunk circles as the page's hunting brain read them (data/physics.generated.json `trees`: x, z, r, generators/physics.ts). */
 export function pineTrees(): readonly TreeInstance[] {
-  return v.parse(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), baked.trees)
+  return baked.trees
     .map(([x, z, r]) => ({ x, y: 0, z, r, variant: 0, scale: 1, rot: 0, height: 0, tint: new Color() }));
 }
 

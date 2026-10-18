@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '../src/sdk/headlessRuntime';
 import { pineBake, parsePineSolid } from '../src/shards/pine-hollow/runtime/baked';
 import baked from '../src/shards/pine-hollow/data/physics.generated.json' with { type: 'json' };
+import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 
 const options = { label: 'Native test', resolution: 2, size: 4, parked: true,
   spec: nativeBodySpecSchema('segments'), solid: nativeColliderSchema([1, 2, 6, 9], 'piece'), extra: v.object({ tag: v.string() }) };
@@ -17,6 +18,7 @@ test('the full Pine product retains its ground, collider provenance, ordered rec
   expect(pineBake()).toBe(value);
   expect(value.ground.heights).toEqual(nativeBakeFloats(baked.ground.heights));
   expect(value.kingHit).toEqual(baked.kingHit); expect(value.shelterTrees).toEqual(baked.shelterTrees);
+  expect(value.kingHit).not.toBe(baked.kingHit); expect(value.shelterTrees).not.toBe(baked.shelterTrees);
   expect(value.herds).toEqual(baked.herds); expect(value.actors).toEqual(baked.actors); expect(value.parked).toEqual(baked.parked);
   const actor = value.actors[0]; if (actor === undefined) throw new Error('Missing actual Pine actor');
   expect(Object.keys(actor)).toEqual(['id', 'kind', 'variant', 'herd', 'spec', 'seed', 'scale', 'scripted']);
@@ -50,4 +52,13 @@ test('missing parked bodies, invalid lattices, actor identities and collider cha
   expect(() => createNativeBakeReader(input(), options).solid(solid)).toThrow('Unbuildable');
   expect(() => createNativeBakeReader(input(), options).solid({ ...solid, shape: 1, extra: true })).toThrow();
   expect(() => createNativeBakeReader(input(), { ...options, extra: v.object({ actors: v.array(v.unknown()) }) }).read()).toThrow('shadows');
+});
+
+test('generation refuses missing native rosters and malformed private King and shelter metadata', () => {
+  const missing = { ...baked }; Reflect.deleteProperty(missing, 'parked');
+  expect(() => v.parse(PinePhysicsSchema, missing)).toThrow();
+  expect(() => v.parse(PinePhysicsSchema, { ...baked, kingHit: { ...baked.kingHit, radius: 0 } })).toThrow();
+  expect(() => v.parse(PinePhysicsSchema, { ...baked, kingHit: { ...baked.kingHit, head: [Infinity, 0, 0] } })).toThrow();
+  expect(() => v.parse(PinePhysicsSchema, { ...baked, shelterTrees: [[0, 0, 1, 2, 1.1]] })).toThrow();
+  expect(() => v.parse(PinePhysicsSchema, { ...baked, kingHit: { ...baked.kingHit, ribs: [0, 1] } })).toThrow();
 });

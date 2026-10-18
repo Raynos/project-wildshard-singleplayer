@@ -1,3 +1,4 @@
+import type { QuestLeadRows } from '../runtime/productSections.generated.d.ts';
 /**
  * Quest beat 5 (PINE-HOLLOW-REMASTER PH-C1): "follow the Ghost Stag to the old-growth" — a scripted lead. After dark a
  * pale stag stands on the west road where it leaves the Hollow, staring back at you. Come within ~16 m and it turns,
@@ -24,7 +25,7 @@ export class StagLead {
   onDone?: () => void;
   onAppear?: (first: boolean) => void;
 
-  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, rows: unknown) {
+  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, rows: QuestLeadRows) {
     this.walk = new StagWalk(rows);
     this.puffs = new Puffs(scene, new THREE.Color(0.75, 1.6, 2.0), 3);
   }

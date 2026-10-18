@@ -18,7 +18,6 @@
  * bed is the terrain itself, so the drained pool is walked on like any ground (the heightfield collider).
  */
 import * as THREE from 'three';
-import * as v from 'valibot';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineWaterSurface, setWaterFade } from './water';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
@@ -97,7 +96,7 @@ export class BeaverPool {
 
   /** the pool's still surface on the pond surface's grid (baked: the cells in the pool's reach, not always above its water) */
   private buildStill(geo: THREE.BufferGeometry): THREE.Mesh {
-    this.ground = Float32Array.from(v.parse(v.array(v.pipe(v.number(), v.finite())), authored.poolGround));
+    this.ground = Float32Array.from(authored.poolGround);
     return pineWaterSurface('pool', geo); // with the pond
   }
 }

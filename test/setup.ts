@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { PineGrazersSchema, ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { installEngineStrings } from '../src/engine/strings';
 /**
@@ -84,8 +86,8 @@ registerSpecies(speciesWithLook(PINE_BOAR, { ...PINE_BOAR_LOOK, postPose: numeri
 const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { pineElkLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
 const { default: grazers } = await import('../src/shards/pine-hollow/data/grazers.generated.json');
-await preparePineGrazers({ file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(grazers))) });
-registerSpecies(speciesWithLook(pineElk(), pineElkLook({ pose: THRALL_CLIPS, ...thrallLook })));
+await preparePineGrazers({ section: () => parse(PineGrazersSchema, grazers) });
+registerSpecies(speciesWithLook(pineElk(), pineElkLook(parse(ThrallLookSchema, { pose: THRALL_CLIPS, ...thrallLook }))));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
 const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');
