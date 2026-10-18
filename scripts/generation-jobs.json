@@ -19803,6 +19803,33 @@
         "src/shards/pine-hollow/assets/cabin-living/desktop-true-true.json": "ecf48da3de812037adfe652231e879bb7c5adaacfab087401fd0a76202cb16fe",
         "src/shards/pine-hollow/data/cabinLivingScenes.generated.json": "1c2543b2c38c076730f3001334840c07033ee1ed76b2863be69f9835cce846ff"
       }
+    },
+    {
+      "id": "nalati-kokpar",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-kokpar.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/generators/bake-kokpar.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/kokpar.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/kokpar.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -4,6 +4,7 @@ import { QuestState, lineFor } from '../src/engine/quest/core';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
+import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 import source from '../src/shards/nalati-grasslands/shard.config';
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 
@@ -28,7 +29,10 @@ test('Nalati compiles the unchanged chapters, camp dialogues, placements and dis
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing compiled Nalati quest content');
-  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual(content);
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ ...content, kokpar });
+  const module = loaded.output.namedFiles?.find(row => row.name === 'behaviour/nalati.kokpar.wasm');
+  expect(module?.hash).toBe(kokpar.program.script.module.split('/').at(-1)?.slice(0, -5));
+  expect(module?.critical).toBe(true);
   const chapterFile = loaded.output.namedFiles?.find(row => row.name === 'quests/chapters.json');
   const chapterBytes = chapterFile === undefined ? undefined : loaded.assets.get(chapterFile.hash);
   if (chapterBytes === undefined) throw new Error('Missing compiled chapter presentation');

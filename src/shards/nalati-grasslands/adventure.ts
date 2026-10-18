@@ -14,12 +14,16 @@ import { bindStoryChapters, presentChapterStory } from '@wildshard/game/quest/st
 import source from './shard.config';
 import type { ShardContext } from '@wildshard/game/shard/context';
 
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import * as v from 'valibot';
 import { NpcDialogueRowSchema } from '@wildshard/game/plugin/quests';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
-import { buildKokparRound, KOKPAR_GOALS, type KokparMount, type KokparRound } from './kokpar';
+import type { KokparMount, KokparRound } from './kokpar';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { poiMaterial } from './world/modelView';
+import { bakedActorGeometry } from './world/placeBake';
 
 /** what the adventure reads of Nalati's bosses (src/shards/nalati-grasslands/kurganBoss.ts KurganBoss, stormTitan.ts StormTitan) — polled */
 export interface NalatiBosses {
@@ -62,9 +66,57 @@ export interface NalatiAdventure {
   markers: () => LiveMarker[];
 }
 
+const KokparRows = v.object({ program: v.unknown(), home: v.object({ x: v.number(), z: v.number() }),
+  goals: v.array(v.object({ x: v.number(), z: v.number() })), messages: v.record(v.string(), v.string()) });
+/** The guest owns round rules; this binding only applies its published pose and service effects. */
+export function kokparView(w: Pick<NalatiAdventureWorld, 'sky' | 'hud' | 'music' | 'player' | 'ride'> & {
+  ctx: Pick<ShardContext, 'scope'>; persistence: { flags: Pick<Flags, 'set'> };
+}, floorAt: (x: number, z: number) => number, kokparRows: v.InferOutput<typeof KokparRows>,
+goat: THREE.Mesh = new THREE.Mesh(bakedActorGeometry('goat'), poiMaterial(w.sky))): KokparRound {
+  goat.castShadow = true; goat.receiveShadow = true; goat.name = 'nalati-kokpar-goat';
+  const home = new THREE.Vector3(kokparRows.home.x, floorAt(kokparRows.home.x, kokparRows.home.z) + 0.16, kokparRows.home.z);
+  const lie = (): void => { goat.position.copy(home); goat.rotation.set(0, 0.7, Math.PI / 2 - 0.25); };
+  lie();
+  const brain = ReturnProgram.page(kokparRows.program, w.ctx.scope), state = { carrying: 0, left: 0, slow: 0, cheer: 0, warned: 0 };
+  const messages = new Map<string, string>(Object.entries(kokparRows.messages));
+  const carryPose = (horse: NonNullable<KokparMount['horse']>): void => {
+    goat.position.set(horse.position.x + Math.cos(horse.yaw) * 0.62, horse.position.y + 1.02, horse.position.z - Math.sin(horse.yaw) * 0.62);
+    goat.rotation.set(0, horse.yaw + Math.PI / 2, 0.35);
+  };
+  const project = (signal: string, dt: number, player: THREE.Vector3, mount: KokparMount | null): void => {
+    const horse = mount?.horse, out = brain.project(signal, { ...state, dt, playerX: player.x, playerZ: player.z,
+      goatX: goat.position.x, goatZ: goat.position.z, mounted: Number(mount?.mounted === true), horse: Number(horse !== null && horse !== undefined),
+      fast: Number(mount?.gait === 'canter' || mount?.gait === 'gallop'), practice: Number(practiceRoom.open), horseX: horse?.position.x ?? 0, horseZ: horse?.position.z ?? 0 });
+    for (const key of ['carrying', 'left', 'slow', 'cheer', 'warned'] as const) {
+      const value = out[key]; if (value === undefined) throw new Error('Missing kokpar state'); state[key] = value;
+    }
+    const notice = (id: string): void => { const text = messages.get(id); if (text === undefined) throw new Error('Missing kokpar notice'); w.hud.toast(text); };
+    if (out['warning'] === 1) notice('6');
+    if (out['pose'] === 1) lie();
+    else if ((out['pose'] === 2 || out['pose'] === 3) && horse !== null && horse !== undefined) carryPose(horse);
+    const event = out['event'];
+    if (event !== undefined && event > 0) {
+      notice(String(event)); w.music.sting(event === 1 ? 'pickup' : event === 7 ? 'chunk' : 'death');
+      if (event === 7) w.persistence.flags.set('won:kokpar');
+    }
+    if (out['pose'] === 3) {
+      const goal = kokparRows.goals[out['goal'] ?? -1]; if (goal === undefined) throw new Error('Missing kokpar goal');
+      goat.position.set(goal.x, floorAt(goal.x, goal.z) + 0.9, goal.z); goat.rotation.set(0, 0.3, Math.PI / 2 - 0.2);
+    }
+  };
+  let pending = 0;
+  return { object: goat, get carrying() { return state.carrying !== 0; },
+    win: () => { project('win', 0, w.player.position, w.ride?.mount ?? null); },
+    update: (dt, player, mount) => {
+      pending += dt;
+      if (pending >= 0.1) { const elapsed = pending; pending = 0; project('step', elapsed, player, mount); }
+      else if (state.carrying !== 0 && mount?.horse !== null && mount?.horse !== undefined) carryPose(mount.horse);
+    } };
+}
+
 const Content = v.object({ npcs: v.record(v.string(), NpcDialogueRowSchema), places: v.array(v.object({ id: v.string(), label: v.string(), x: v.number(), z: v.number(), r: v.number(), quiet: v.exactOptional(v.boolean()), y: v.exactOptional(v.number()) })),
   clueFlags: v.array(v.string()), carvings: v.array(v.array(v.string())), featherFlags: v.array(v.string()),
-  featherElites: v.array(v.object({ id: v.string() })) });
+  featherElites: v.array(v.object({ id: v.string() })), kokpar: KokparRows });
 /** Saved elite read failures are recoverable; quest/save listener failures must propagate. */
 export function syncFelledElites(flags: Pick<Flags, 'set'>, elites: readonly { id: string }[], read: () => ReturnType<NalatiPersistence['elites']['read']>): void {
   let savedElites: ReturnType<NalatiPersistence['elites']['read']> = {};
@@ -102,11 +154,7 @@ export async function installNalatiAdventure<A extends { kind: string; variant?:
   const { chip, markers, places, dialogue: currentDialogue } = presentation;
 
   // ── a round of kokpar (TULPAR step 2; open any time) ──
-  const kokpar = buildKokparRound(w.sky, floorAt, {
-    toast: (t) => { w.hud.toast(t); },
-    sting: (k) => { w.music.sting(k === 'lose' ? 'death' : k === 'win' ? 'chunk' : 'pickup'); },
-    onWin: () => { flags.set('won:kokpar'); },
-  });
+  const kokpar = kokparView(w, floorAt, content.kokpar);
   w.game.scene.add(kokpar.object);
 
   // ── the saved stores → flags (on load, then twice a second): the quest catches up with what you already did ──
@@ -169,7 +217,7 @@ export async function installNalatiAdventure<A extends { kind: string; variant?:
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, get dialogue() { return currentDialogue(); }, chip, markers };
   // Object spread would evaluate adventure.dialogue while road preparation still has no entered dialogue scope.
-  const debug = { flags, line, people, kokpar, places, chip, markers, get dialogue() { return currentDialogue(); }, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { presentation.talk(id); } };
+  const debug = { flags, line, people, kokpar, places, chip, markers, get dialogue() { return currentDialogue(); }, kokparGoals: content.kokpar.goals, carving, talk: (id: PersonId) => { presentation.talk(id); } };
   w.ctx.debug.expose('nalati.quest', debug);
   return adventure;
 }

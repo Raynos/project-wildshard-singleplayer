@@ -1,24 +1,8 @@
-/**
- * A round of kokpar (NALATI-MERGE Q3 — TULPAR's second step; there was no kokpar game, so this is the ride-through
- * challenge at the kokpar field, with its six galloping riders around you). The goat (the serke: a painterly carcass,
- * one merged mesh) lies in the middle of the trodden oval.
- *
- *   1. Ride in MOUNTED (any horse: Tulpar, Argymaq, a camp horse) and pass over the goat: you snatch it up (it hangs
- *      at the horse's flank).
- *   2. Drop it in either tai-qazan (the turf goal rings at the oval's ends) within 45 s.
- *   3. Keep moving: 2.5 s at a trot or slower and a rider snatches it back (to the middle). Dismounting drops it, and so
- *      does riding off the field.
- *
- * Open any time, quest or not (the bosses' rule: content stays open, the quest catches up) — `onWin` raises
- * `won:kokpar`. Dev: `win()` (window.__nalatiQuest.kokpar.win()).
- *
- *   const k = buildKokparRound(sky, floorAt, { toast, sting, onWin });
- *   k.update(dt, player.position, mount)       // every frame
- */
+// Frozen shipping round before the AS projection (2026-10-18).
 import * as THREE from 'three';
-import { poiMaterial } from './world/modelView';
-import { bakedActorGeometry } from './world/placeBake';
-import layoutRows from './boot/layout.generated.json' with { type: 'json' };
+import { poiMaterial } from '../../src/shards/nalati-grasslands/world/modelView';
+import { bakedActorGeometry } from '../../src/shards/nalati-grasslands/world/placeBake';
+import layoutRows from '../../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -62,8 +46,7 @@ function goatMesh(sky: Sky): THREE.Mesh {
   return m;
 }
 
-export function buildKokparRound(sky: Sky, floorAt: (x: number, z: number) => number, host: KokparHost): KokparRound {
-  const goat = goatMesh(sky);
+export function buildKokparRound(sky: Sky, floorAt: (x: number, z: number) => number, host: KokparHost, goat = goatMesh(sky)): KokparRound {
   const home = new THREE.Vector3(KOKPAR.x, 0, KOKPAR.z);
   home.y = floorAt(home.x, home.z) + 0.16;
   const lie = (): void => { goat.position.copy(home); goat.rotation.set(0, 0.7, Math.PI / 2 - 0.25); };
