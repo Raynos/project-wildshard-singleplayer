@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "e01216e632cacbfb06e497ffcbd8faa43e26cf77ec732c6baa7c5ec150ad14e0",
-  "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+  "tilesHash": "634f7e7b49879770975d318556d92197974da07270f4ce6ad81f4cedba8a2896",
+  "pixelHash": "aaba1d63419de3d21e6fca211df60238d7167587601f27a1bfa428cdb1f61479",
   "image": "/assets/nine-dragon-stack/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 13378
+  "bytes": 13474
 }

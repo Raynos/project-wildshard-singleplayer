@@ -28,7 +28,11 @@
     "behaviour/admission.as",
     "behaviour/titan.as",
     "data/ecology.json",
-    "data/ecology.generated.json"
+    "data/ecology.generated.json",
+    "data/placeholder.json",
+    "data/aqbarsProfile.json",
+    "data/kokboriProfile.json",
+    "behaviour/qaraCharge.as"
   ],
   "style": {
     "kind": "ground",
