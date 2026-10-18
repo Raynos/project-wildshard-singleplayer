@@ -6,11 +6,11 @@
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns a red gate; G496 shrink-only custom sections, attribution SHAs to the coordinator first; G498 legacy copies take crash fixes only.
 
-**Batches:** twentieth 9f77d61bd pushed and LIVE (9f77d61bd-mved29kd, 16:54 Cancun; CI, smoke, deploy green). Twenty-first all landed (B10 b4684bed9, B4 08ffac96d, B7 b8b5a6bbc, boss 22b54b699, C9 dda2b863a, canopy 5d380ae82, NM2 0a765219d closed) and baking; freeze until PUSHED. **Next:** sp-x1 Nalati native actors + spawn director (~1,800 gross) · sp-x4 Nine world rows B11/B12 (~630) · sp-x8 Nalati weapons on existing hosts · sp-x9 Nalati elites (~690).
+**Batches:** twentieth 9f77d61bd pushed and LIVE (9f77d61bd-mved29kd, 16:54 Cancun; CI, smoke, deploy green). Twenty-first all landed (B10 b4684bed9, B4 08ffac96d, B7 b8b5a6bbc, boss 22b54b699, C9 dda2b863a, canopy 5d380ae82, NM2 0a765219d closed) and baking; freeze until PUSHED. **Twenty-first:** sealed 2ba606e3d (Nine + Nalati maps), pushing (sp-x7); elites 062a09f731 (−204) + budget fix 1529554259 in it.
 
 **P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900), validated against the 9190f1569 GLSL (16 captures SSIM ≥ 0.9995). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
-**Lanes (G505: 5 Codex + sp-x7 deploy; sp-x5 and sp-x6 finished, idle; Opus 0 until Mon 10-19):** sp-x1 C4 · sp-x4 Nine C1 · sp-x8 + sp-x9 Nalati C6 · maps sp-x10 · sp-x7 deploy only.
+**Lanes (G505: 5 Codex builders + sp-x7 deploy + sp-x10 maps; Opus 0 until Mon 10-19):** sp-x1 Nalati native actors · sp-x9 Nalati B8 world · sp-x8 Nalati weapons · sp-x6 Nalati weather · sp-x5 Nalati cover/ambient life · sp-x4 holds Nine world rows (−335) for the release, then stops.
 
 **G507 mega-build (Jake):** lanes only cut and land code; no lane-to-lane messages, receipts, boards, captures or soaks; lanes message the coordinator only for blockers. **Pace:** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); G506 (Jake): a batch lands on types + lint + focused tests + the push gate, nothing else; heavy proofs once per W3 milestone or grid deploy (lanes/common.md); a red gate gets sp-x7's fast revert (G493).
 
