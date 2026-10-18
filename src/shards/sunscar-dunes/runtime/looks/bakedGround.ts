@@ -4,13 +4,10 @@
  *
  * - `CubeSkirt`: the baked skirt past the ground's edge (a geometry pack), cut back to a grid cell's cube, worn in the
  *   ground's material once the data client lends it.
- * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
  */
 import { Mesh, type BufferGeometry, type Material, type Object3D } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { runtimePresentation } from '@wildshard/game/shardfile/runtimeProduct';
-import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /**
  * G99 (every shard is a 500 m cube): the skirt past the ground's edge, baked as a geometry pack (geometry 0 the standalone
@@ -51,15 +48,4 @@ export class CubeSkirt {
     held.mesh.geometry = held.scope.own(held.cube);
     old.dispose();
   }
-}
-
-/**
- * The runtime's world stage: the built material `id` its data client lends (G345, `runtimePresentation`; in a grid cell the
- * region lends it), its look's curves reading the runtime's host fields through `state` while `scope` lives; null when
- * nothing lends this shard's presentation.
- */
-export function lentMaterial(source: Shardfile, id: string, scope: Scope, state: (scope: 'shared' | 'player', name: string) => number | undefined): Material | null {
-  const lent = runtimePresentation(source); if (lent === null) return null;
-  scope.onDispose(lent.bindState(state));
-  return lent.material(id);
 }

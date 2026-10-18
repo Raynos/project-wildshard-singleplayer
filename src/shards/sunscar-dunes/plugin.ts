@@ -1,29 +1,17 @@
 import SIGNAL_RUNTIME_ROWS from './data/runtimeRows.generated.json' with { type: 'json' };
-import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
+import { settleWeatherFields } from '@wildshard/game/plugin/weather';
+import { runtimePresentation } from '@wildshard/game/shardfile/runtimeProduct';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { lastLightAll } from './look/light';
-import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
-import flags from './data/flags.generated.json' with { type: 'json' };
 import { SAND, SKIRT } from './look/render';
-import { lentMaterial } from './runtime/looks/bakedGround';
 
 type ShardContext = Parameters<HybridRuntimePlugin['world']>[0];
-
-/** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
-function duskOf(places: SignalWorld): number {
-  const f = places.flags;
-  if (f.has(flags.FLAG.lit)) return 1;
-  const lit = places.braziers.filter((b) => b.lit).length;
-  if (lit > 0) return 0.5 + 0.12 * lit;
-  // round 9 (seat B R8B-9: the logbook step's 0.32 under Sefa's 0.5 brightened the sky again in play): never lighter than the step before
-  return f.has(flags.FLAG.oil) ? 0.56 : f.has(flags.FLAG.logbook) ? 0.52 : f.has(flags.SCOUT_FLAG) ? 0.5 : 0;
-}
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {
   declare readonly whip: Bullwhip | null;
@@ -40,8 +28,8 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked, this.keepClientChannels.bind(this, ctx)); this.fire = this.places.fire;
     // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
-    // its dusk curves read DUSK (the host field shared.dusk). In a grid cell the region lends it the same way.
-    const sand = lentMaterial(source, 'pbr', ctx.scope, (scope, name) => (scope === 'shared' && name === 'dusk' ? DUSK.value : undefined));
+    // its dusk curves read the declared host field. In a grid cell the region lends it the same way.
+    const sand = runtimePresentation(source)?.material('pbr') ?? null;
     if (sand !== null) {
       // the sky's cascades on the sand, as the level painter's terrain group had them (the data client's tiles have none)
       ctx.game.runtime?.world?.sky.setupMaterial(sand);
@@ -54,7 +42,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
   /** Settle the actual quest look for its declared capture checkpoint. */
-  settleQuestDusk(): void { const places = this.places; if (places !== null) setDusk(duskOf(places), true); }
+  settleQuestDusk(): void { const places = this.places; if (places !== null) settleWeatherFields('sunscar-dunes', places.flags.all); }
   protected override async install(ctx: ShardContext): Promise<void> {
     const source = ctx.product.shardfile;
     const places = this.places;
@@ -65,10 +53,6 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       await this.bindPageFight(ctx);
     }
     this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
-    // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
-    if (places) {
-      installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });
-      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
-    }
+
   }
 }

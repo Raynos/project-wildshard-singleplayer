@@ -1,3 +1,4 @@
+import { easeField } from '@wildshard/engine/world/easedFields';
 import { ScriptBossProfileSchema, type BossProfile } from '@wildshard/format/bossProfiles';
 import { EliteScriptLane } from './brain';
 import { createRoamingBossFight } from "../shardfile/phasedBossRoaming";
@@ -869,6 +870,7 @@ function bodyBossFight<B extends BodyBossActor>(profile: Extract<BossFightProfil
   if (profile.pattern === 'spawned' && 'rewardPoint' in ports) {
     const row = profile.fight, focus = new Vector3(), { spawn, retire } = ports.body, weather = { storm: 0 }, f = row.fields;
     let animal: B | null = null, invulnerable = false, stormGoal = 0;
+    const stormEase = { seconds: row.stormFade };
     const goal = (phase: number): number => row.stormPhases.includes(phase) ? 1 : 0;
     const fresh = (): B | null => {
       const previous = animal; if (previous) retire(previous);
@@ -887,7 +889,7 @@ function bodyBossFight<B extends BodyBossActor>(profile: Extract<BossFightProfil
       begin: (next) => { if (animal) { animal.mem[f.rise] = 1; animal.mem[f.fight] = 1; animal.mem[f.phase] = next; } stormGoal = goal(next); },
       enterPhase: (next) => { if (animal) animal.mem[f.phase] = next; stormGoal = goal(next); },
       update: (dt) => {
-        weather.storm += Math.sign(stormGoal - weather.storm) * Math.min(Math.abs(stormGoal - weather.storm), dt / row.stormFade);
+        weather.storm = easeField(weather.storm, stormGoal, dt, stormEase);
         ports.update?.(dt, weather.storm);
       },
       get hpFrac() { return animal ? Math.max(0, animal.hp / animal.maxHp) : 0; },

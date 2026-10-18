@@ -9839,17 +9839,9 @@ landing. No module path in a client plan selects JavaScript.
 page mode for cold tier rows without a constructor callback. Only page boot
 sets this mode through the internal `setPageMode` function.
 
-`ViewFieldHost` (`@wildshard/engine/script/viewFields`) is the isolated client-only
-ABI-v1 fallback for `view.field` 105: `[0, fieldId, value, 0]`. Numeric
-host-private shared presentation fields have their own storage, defaults and
-bounds. Every command validates before publication on the next fixed step.
-Public/player fields, authoritative commands, simulation reads and lists are
-refused. Local slots remain view-local; guest memory rewinds every call. No
-save, physics, replication or authoritative world port enters this host.
-`value(name)` reads a presentation number. Simulation scripts still refuse all
-view commands. The data client does not automatically execute view rows, and
-other v1 view commands still lack adapters. Signal dusk remains G484's row-first
-case; this API is its optional fallback.
+The unused `ViewFieldHost` fallback was retired with Z9 (G484/G486).
+`view.field` 105 stays reserved; the eased weather table is the primary
+presentation path and does not run a view guest.
 
 ### Quadruped rig and foot IK (G474/G477)
 
@@ -10061,3 +10053,24 @@ Dusk updates retain its identity without copying pools every frame or
 recompiling shaders. The old `setGroundPools` adapter is removed.
 Resident scope lookup lives in `game/shardfile/hybridPresentation`, so
 quest presentation does not import the runtime lifecycle.
+
+### Eased weather fields (G474, G484, G486)
+
+`format/easedFields` admits up to 24 numeric fields with a bounded
+first-match flag table, an else value and constant easing rate. Conditions
+support all/any/none facts and a bounded count threshold. Signal's dusk
+uses these rows; its original targets and 0.02 units/second rate are data.
+
+`client/plan` feature `{kind: "weather.fields", rows, quest}` runs at play
+rank 40 and borrows the entered quest's existing flag book by id.
+`game/plugin/weather.installWeatherFields` snaps saved/entered state, eases
+ordinary updates and resets only the presentation on exit. Graph and family
+curve readers resolve host-private scalar inputs without a runtime adapter.
+`settleWeatherFields` is the capture checkpoint over real quest facts.
+No new durable state, callback, AssemblyScript or simulation owner is added.
+
+`engine/world/easedFields.easeField` also preserves the spawned boss storm's
+original seconds-based interpolation. The shared primitive keeps multiplication
+and division order explicit, so native storm continuations remain exact.
+The unused `engine/script/viewFields` module and its pending-user claim are
+removed with Signal's `look/dusk.ts`.

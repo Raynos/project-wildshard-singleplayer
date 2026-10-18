@@ -1,3 +1,4 @@
+import { sceneScalarValue } from './sceneInputs';
 /**
  * The shardfile's graph materials on the client (SHARD-PLATFORM SF59 step 5): a `look.materials` (or skin binding) entry
  * `{ family: "graph", graph }` compiles to a node material through the engine's lazy graph back-end
@@ -103,11 +104,12 @@ export interface GraphParamFeeds {
  * hour (its own day clock until one is bound), a state binding reads the live state source or the field's declared
  * default. Shared by the material graphs and the shard's post stack (`clientPost.ts`), so both read one clock.
  */
-export function graphParamFeeds(source: Pick<Shardfile, 'look' | 'state'>): GraphParamFeeds {
+export function graphParamFeeds(source: Pick<Shardfile, 'identity' | 'look' | 'state'>): GraphParamFeeds {
   const feeds: Feed[] = [];
   let sources: GraphSources = {}, dayBound = false;
   const ownClock = source.look.keys.length > 0 ? dataLookClock(source.look.day ?? DATA_LOOK_DAY, source.look.dayOverride) : null;
   const sample: LookSample = lookSample();
+  const hostFields = new Set(source.state.shared.filter(field => field.privacy === 'host').map(field => field.name));
   const defaults = new Map<string, number>();
   for (const scope of ['shared', 'player'] as const) for (const field of source.state[scope]) if (typeof field.default === 'number') defaults.set(`${scope}.${field.name}`, field.default);
   const srgb = new Color();
@@ -116,7 +118,7 @@ export function graphParamFeeds(source: Pick<Shardfile, 'look' | 'state'>): Grap
       const key = bind.state, dot = key.indexOf('.'), scope = key.slice(0, dot), name = key.slice(dot + 1);
       const fallback = defaults.get(key) ?? 0, live = scope === 'shared' || scope === 'player' ? scope : null;
       if (live === null) throw new Error(`material graph: state binding ${key} has no scope`);
-      return { set: () => { setParam(param, sources.state?.(live, name) ?? fallback); } };
+      return { set: () => { setParam(param, sources.state?.(live, name) ?? (live === 'shared' && hostFields.has(name) ? sceneScalarValue(source.identity.slug, name) : undefined) ?? fallback); } };
     }
     dayBound = true;
     const channel = bind.day, out = [0, 0, 0];
@@ -175,7 +177,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided' 
  * `trustedGraphs` is host authority from an admitted runtime, never a field read from graph JSON.
  * An explicit budget refuses on admission failure instead of using a family material.
  */
-export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
   setParam: (material: Material, name: string, value: GraphLiteral) => void;
   /** Lend a compiled material's `role: 'lent'` texture param its texture; unknown/fallback materials refuse. */

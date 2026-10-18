@@ -20,7 +20,6 @@
   "test/ktx2-widen-etc2.test.ts": [],
   "test/client-plan-boundary.test.ts": [],
   "test/client-plan-platform.test.ts": [],
-  "test/view-field-host.test.ts": [],
   "test/pine-night-emits.test.ts": [
     "pine-hollow"
   ],
@@ -157,5 +156,6 @@
     "far-reach",
     "sunscar-dunes"
   ],
-  "test/light-emitters.test.ts": []
+  "test/light-emitters.test.ts": [],
+  "test/eased-weather-fields.test.ts": []
 }

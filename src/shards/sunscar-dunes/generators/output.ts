@@ -1,3 +1,4 @@
+import { SIGNAL_WEATHER_FIELDS } from './weatherFields';
 import { SIGNAL_EMITTERS } from './lightEmitters';
 import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
@@ -19,7 +20,7 @@ import { SKITTERER_DECISION, SKITTERER_MOVES } from './rows/skittererDecision';
 const sources = emitNamedBlobs(SIGNAL_SCENE_BLOBS);
 export const output = { namedFiles: sources.files, assets: sources.assets, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
   ['ui/strings', STRINGS],
-  ['client/plan', { version: 1, features: [{ kind: 'world.scenes' }, { kind: 'light.emitters', rows: SIGNAL_EMITTERS }] }],
+  ['client/plan', { version: 1, features: [{ kind: 'world.scenes' }, { kind: 'light.emitters', rows: SIGNAL_EMITTERS }, { kind: 'weather.fields', rows: SIGNAL_WEATHER_FIELDS, quest: 'sunscar.signal' }] }],
     ['explore/catalogue', parseExplorerCatalogue({"version": 1, "entries": [{"kind": "held", "item": WHIP_HELD_RECIPE.equipment.id}, {"kind": "rigs", "library": "models"}, {"kind": "npc", "npc": "sunscar.scout"}, {"kind": "scene", "part": "tower.root"}, {"kind": "scene", "part": "caravan.root"}, {"kind": "scene", "part": "well.root"}, {"kind": "scene", "part": "brazier.0.root"}]})],
     ['world/scenes', SIGNAL_WORLD_SCENES],
     ['actors/species-programs', { page: SIGNAL_PAGE_PROGRAM.species.page, native: [], program: SIGNAL_PAGE_PROGRAM.species.program }],

@@ -1,4 +1,4 @@
-import { sceneVectors } from './sceneInputs';
+import { sceneVectors, sceneScalarValue } from './sceneInputs';
 /**
  * The shardfile loader's materials (SHARD-PLATFORM SF15a): the look's material catalogue (`look.materials`, SF10a's
  * family entries) and its family looks compiled on the game's renderer, with every texture an admitted KTX2 file
@@ -157,11 +157,13 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   // state-bound curves (look.curves): compiled at the fields' values now, moved in `tick` when a field moves
   let stateOf = options.sources?.state;
+  const hostFields = new Set(shard.state.shared.filter(field => field.privacy === 'host').map(field => field.name));
   const fieldDefaults = new Map<string, number>();
   for (const part of ['shared', 'player'] as const) for (const field of shard.state[part]) if (typeof field.default === 'number') fieldDefaults.set(`${part}.${field.name}`, field.default);
   const fieldValue = (key: string): number => {
     const dot = key.indexOf('.'), part = key.slice(0, dot) === 'player' ? 'player' : 'shared';
-    return stateOf?.(part, key.slice(dot + 1)) ?? fieldDefaults.get(key) ?? 0;
+    const name = key.slice(dot + 1), presented = part === 'shared' && hostFields.has(name) ? sceneScalarValue(shard.identity.slug, name) : undefined;
+    return stateOf?.(part, name) ?? presented ?? fieldDefaults.get(key) ?? 0;
   };
   const moving: { material: Material; base: ReturnType<typeof parseFamilyMaterial>; rows: NonNullable<Shardfile['look']['curves']>[string]; seen: Map<string, number> }[] = [];
   for (const [id, entry] of Object.entries(shard.look.materials)) {

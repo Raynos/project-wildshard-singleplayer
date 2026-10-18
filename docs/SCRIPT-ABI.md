@@ -4,16 +4,17 @@ Reviewed against local `main` at `74cc3361d`, 2026-10-17, for G484(b).
 This is the executable contract, including its gaps. The design and future
 feature ownership are recorded in [G484](plans/shard-platform/decisions.md).
 Source links give the defining file and line at this revision; concurrent
-uncommitted work is excluded. Z1 adds the client-private field fallback below.
+uncommitted work is excluded. Z9 retires the unused client-field fallback;
+weather step rows supply eased presentation state (G484/G486).
 
 ## Authoring, compilation and admission
 
 A v1 row in `sim/scripts` declares `abi: "1.0"`, `side`, an authored
 `behaviour/*.as` source, a `blobs/wasm/<sha256>.wasm` module, binding, capabilities,
 state, parameters, pages and fallback. Only `side: "sim"` reaches `ShardDecisions`;
-the simulation owner rejects view bindings. Z1 adds an isolated client-only
-`ViewFieldHost` for the optional `view.field` fallback; it receives no simulation
-world. [ViewFieldHost](../src/engine/script/viewFields.ts)
+the simulation owner rejects view bindings. The unused client-only field
+fallback was retired with Z9. Weather field rows are ordinary presentation
+data and do not start a view script.
 
 Use `buildDecisionScripts(project, rows, registries, options)` (or
 `compileDecisionScripts` with in-memory sources). It inspects all authored AS,
@@ -202,23 +203,19 @@ this does not promise validation of every unused slot.
 | 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
 | 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
 | 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:32](../src/sdk/decisionScriptBindings.ts#L32) |
-| 105 | `view.field`: `[0, fieldId, value, 0]` | Client-only `ViewFieldHost`; writes declared numeric host-private shared presentation fields. Simulation bindings refuse it. | [ViewFieldHost](../src/engine/script/viewFields.ts) |
+| 105 | `view.field`: `[0, fieldId, value, 0]` | Reserved; no runtime adapter after Z9. Simulation bindings refuse it. | [eased weather fields](../src/engine/world/easedFields.ts) |
 
 These four refused sim commands fail even if never executed: listing the
 capability is sufficient to refuse `ShardDecisions` construction. There is no
 `mover` command. G484 keeps winch/well behavior in interaction rows; `view.field`
-105 is the optional isolated client fallback. G484 keeps Signal dusk on an
+105 remains the optional future fallback. G484 keeps Signal dusk on an
 eased-field row by preference.
 [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
 
-The explicit client host accepts at most 24 fields, each with an integer id,
-name, `privacy: "host"`, bool/i32/f64 type, default and optional numeric bounds.
-It accepts only view scripts, local state, random reads and `view.field`
-commands. It has no simulation reads, lists, save or replication port. A
-validated call stages all writes together for the next step; one invalid
-write discards the whole call. Presentation code reads `value(name)`.
-The data client does not automatically start these view scripts.
-[ViewFieldHost](../src/engine/script/viewFields.ts)
+Z9 removes the unused isolated `ViewFieldHost` and its tests. The approved
+weather field table selects first-match flag targets, snaps on loaded saves
+and eases during play. It does not own simulation flags, saves or replication.
+[Weather field rows](../src/format/easedFields.ts)
 
 ## Bindings: bodies, lifetimes and IDs
 
@@ -358,8 +355,8 @@ These are findings, not additional API promises or code changes:
 - **Refused operations:** generic decision rows still refuse spawn/despawn;
   owned population/elite programs bind them to concrete native/page bodies.
   Impulse and weather remain install-time refusals. No mover command exists. View
-  ids 100–104 lack adapters; `view.field` 105 has an isolated client host
-  through its explicit engine API. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+  ids 100–105 lack runtime adapters after Z9; weather field tables supply
+  eased presentation state without a view guest. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
 - **Saves:** migration chains are checked by format admission, but decision
   restore requires exact stateVersion; it does not run those migrations.
   Player-scoped state is per binding with owner validation, not a multiplayer

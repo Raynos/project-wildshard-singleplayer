@@ -48,7 +48,7 @@ function insertAt(composer: Pick<EffectComposer, 'passes'>): number {
  * `composer()` stops throwing (the page builds its composer after the world stage). `scene` / `camera` are what the
  * composer's render pass draws (the normal pre-pass draws them again).
  */
-export async function clientPostStack(shard: Pick<Shardfile, 'look' | 'state'>, assets: ReadonlyMap<string, Uint8Array>, page: { readonly compiler: () => Promise<GraphCompiler>; readonly composer: () => Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'>; readonly scene: Scene; readonly camera: Camera }, scope: Scope, options: { readonly enabled: boolean }): Promise<ClientPost | null> {
+export async function clientPostStack(shard: Pick<Shardfile, 'identity' | 'look' | 'state'>, assets: ReadonlyMap<string, Uint8Array>, page: { readonly compiler: () => Promise<GraphCompiler>; readonly composer: () => Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'>; readonly scene: Scene; readonly camera: Camera }, scope: Scope, options: { readonly enabled: boolean }): Promise<ClientPost | null> {
   const stack = shard.look.post ?? [];
   if (!options.enabled || stack.length === 0) return null;
   const compiler = await page.compiler();

@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { LightEmittersSchema } from './lightEmitters';
+import { EasedFieldsSchema } from './easedFields';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]*$/u));
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
@@ -8,6 +9,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
   v.strictObject({ kind: v.literal('world.scenes') }),
   v.strictObject({ kind: v.literal('light.emitters'), rows: LightEmittersSchema }),
+  v.strictObject({ kind: v.literal('weather.fields'), rows: EasedFieldsSchema, quest: id }),
   v.strictObject({ kind: v.literal('debug.expose'), name: id }),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */

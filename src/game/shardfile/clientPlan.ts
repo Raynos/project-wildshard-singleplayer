@@ -1,3 +1,4 @@
+import { installWeatherFields } from '../plugin/weather';
 import { installLightEmitters } from './lightEmitters';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -38,6 +39,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'light.emitters') throw new Error('Invalid emitter feature');
       await installLightEmitters(ctx, row.rows, clientSceneHandles(ctx.product, resident), resident);
     } },
+  'weather.fields': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
+    install: (ctx, row) => {
+      if (row.kind !== 'weather.fields') throw new Error('Invalid weather feature');
+      installWeatherFields(ctx, row.rows, row.quest);
+    } },
   'debug.expose': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     ctx.debug.expose(row.name, ctx.game.runtime);
@@ -49,6 +55,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
   try {
     const plan = parseClientPlan(input);
     if (plan.features.some(row => row.kind === 'light.emitters') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Emitters require the scene feature');
+    if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for (const row of plan.features) for (const name of CLIENT_FEATURES[row.kind].sections) {
       if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
       product.section(name); // A listed stream section is not an admitted boot dependency.

@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./script/viewFields": "./script/viewFields.ts",
     "./core/deflate": "./core/deflate.ts",
     "./world/weatherContinuation": "./world/weatherContinuation.ts",
     "./audio/declaredAmbience": "./audio/declaredAmbience.ts",
@@ -445,6 +444,7 @@
     "./models/nativeGeometry": "./models/nativeGeometry.ts",
     "./models/trainingDummy": "./models/trainingDummy.ts",
     "./models/hoverboard": "./models/hoverboard.ts",
-    "./fx/lightEmitters": "./fx/lightEmitters.ts"
+    "./fx/lightEmitters": "./fx/lightEmitters.ts",
+    "./world/easedFields": "./world/easedFields.ts"
   }
 }

@@ -3,7 +3,7 @@ import type { LookStrategy } from '@wildshard/engine/render/look';
 import { paintedLookFromRow, parsePaintedLookRow } from '@wildshard/engine/render/dataLook';
 import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
 import { CubeSkirt } from '../runtime/looks/bakedGround';
-import { DUSK } from './dusk';
+import { sceneScalar } from '@wildshard/game/shardfile/sceneInputs';
 import rows from '../data/paintedLook.generated.json' with { type: 'json' };
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 
@@ -21,13 +21,13 @@ export const SAND: { material: Material | null } = { material: null };
 export const SKIRT = new CubeSkirt();
 
 /**
- * Signal Dunes' look: its two painted strips on the dome, the key, fill, fog and haze riding the quest's dusk (look/dusk.ts)
+ * Signal Dunes' look: its two painted strips on the dome, the key, fill, fog and haze riding the quest's declared dusk field
  * on its curves, the clock held. The ground is the manifest's declared key, which the platform's required-ground loader
  * (`installProductGround`) reads from the shard's product; the look only holds the skirt, which the plugin dresses in
  * the lent sand. The ground material reads the emitter pool input directly.
  */
 export function signalDunesLook(): LookStrategy {
-  return paintedLookFromRow(parsePaintedLookRow(rows.look), { load: loadPaintedTexture, state: DUSK,
+  return paintedLookFromRow(parsePaintedLookRow(rows.look), { load: loadPaintedTexture, state: sceneScalar('sunscar-dunes', 'dusk'),
     terrain: {
       build: async (terrain, field, scope) => {
         await SKIRT.load(terrain.group, { url: rows.sand.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' }, scope);
