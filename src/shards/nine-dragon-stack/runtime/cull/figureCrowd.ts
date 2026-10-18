@@ -4,7 +4,7 @@
 // only the figures inside the view frustum, the near ones at full detail, middle levels (simplified copies, meshLod's
 // `simplifiedCopy`) from their distances, a far copy (meshLod's `clusterLod`) from `near`, none past `far`. A level with
 // no figure in view is hidden, so it costs no call: the same draws, the triangles of what is actually seen.
-import { type BufferGeometry, Color, Float32BufferAttribute, Frustum, type InstancedMesh, Matrix4, type PerspectiveCamera, Sphere, Vector3 } from 'three';
+import { Frustum, type InstancedMesh, Matrix4, type PerspectiveCamera, Sphere, Vector3 } from 'three';
 import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
 
 /** A crowd's levels as data: the far copy from `near` m, nothing past `far` m, the middle copies' starts (nearest first),
@@ -21,34 +21,6 @@ export interface FigureCrowdLevels {
 /** a colourway's levels and figures; `nm` the middle levels' figure counts, reused by every re-cull (nothing allocated per
  *  frame: the place contract, engine models/place) */
 interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: readonly Matrix4[]; at: Vector3[]; nm: number[] }
-
-/**
- * Recolour every vertex above `above` metres (a figure's umbrella, hat or canopy) to `color`, keeping its shading (the
- * vertex colours' luminance, relative to the brightest there); returns a new geometry.
- */
-export function tintAbove(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
-  const g = src.clone();
-  const pos = g.getAttribute('position'), col = g.getAttribute('color');
-  const tint = new Color(color);
-  let lmax = 1e-4;
-  for (let i = 0; i < col.count; i++) if (pos.getY(i) > above) lmax = Math.max(lmax, 0.2126 * col.getX(i) + 0.7152 * col.getY(i) + 0.0722 * col.getZ(i));
-  const out = new Float32Array(col.count * 3);
-  for (let i = 0; i < col.count; i++) {
-    const r = col.getX(i), gg = col.getY(i), b = col.getZ(i);
-    if (pos.getY(i) > above) {
-      const k = 0.7 + 0.45 * ((0.2126 * r + 0.7152 * gg + 0.0722 * b) / lmax);
-      out[i * 3] = tint.r * k;
-      out[i * 3 + 1] = tint.g * k;
-      out[i * 3 + 2] = tint.b * k;
-    } else {
-      out[i * 3] = r;
-      out[i * 3 + 1] = gg;
-      out[i * 3 + 2] = b;
-    }
-  }
-  g.setAttribute('color', new Float32BufferAttribute(out, 3));
-  return g;
-}
 
 /** show a level's first `n` figures (none: hidden) */
 function show(im: InstancedMesh, n: number): void {

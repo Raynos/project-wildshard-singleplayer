@@ -7,25 +7,25 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
-import { loadCast } from '../world/casts';
-import { PX_PER_M, simplifiedCopy } from '../runtime/cull/meshLod';
-import { SCULPT_PX } from '../data/lod';
+import { loadCast, loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/lion.ts';
 
 /** load the cast into the look (the fragment awaits it before placing: `place` is synchronous) */
 export async function loadLion(look: NdLook): Promise<void> {
-  look.geo.set('lion', await loadCast('lion'));
+  const geometry = await loadCast('lion');
+  look.geo.set('lion', geometry);
+  await loadCastLods(look.geo, 'lion', geometry, [10, 30]);
 }
 
 const cast = (ctx: ModelContext): BufferGeometry => need(ndLook(ctx).geo.get('lion'), 'the lion cast');
 const parts = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: need(ndLook(ctx).mat, 'the Jiehua program') }];
 
-/** a meshoptimizer copy from `d` m (placed at scale 1); the cast itself when the simplifier could not load */
+/** a meshoptimizer copy from `d` m (placed at scale 1); loaded from the admitted author output */
 const sculptLod = (d: number): ModelLod<object> => ({
   from: d,
-  build: (ctx) => parts(ctx, ctx.once(`nds:lion:lod${d}`, () => (ndLook(ctx).canLod ? simplifiedCopy(cast(ctx), d * PX_PER_M * SCULPT_PX) : cast(ctx)))),
+  build: (ctx) => parts(ctx, need(ndLook(ctx).geo.get(`lion:mid${d}`), 'the prepared lion LOD')),
 });
 
 export const guardianLion = defineModel({

@@ -10,11 +10,13 @@
 // footprint admits), and an end wall closes each deck.
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import { type EdgeFrame, type FrameBox as DeckBox, deckParts as sdkDeckParts, edgeFrame, inFrame as sdkInFrame, spanCollider } from './edgeDecks';
-import { DECK, DECK_CAP } from '../data/decks';
+import decks from './decks.json' with { type: 'json' };
+
+const { DECK, DECK_CAP } = decks;
 
 /** half the deck's opening: the canonical ENTRY_WIDTH (8 m) entry, centred on the edge's midpoint */
 export const OPENING_HALF = ENTRY_WIDTH / 2;
-/** how deep each deck runs in from the edge (data/decks.ts) */
+/** how deep each deck runs in from the edge (generators/decks.json) */
 export const DECK_DEPTH = DECK.depth;
 /** a floor slab's thickness under its top (the decks' and the fragment's floors) */
 export const SLAB = DECK.slab;
@@ -34,7 +36,7 @@ export const inFrame: typeof sdkInFrame = sdkInFrame;
 /** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
 export const deckParts = (f: Frame): { slab: FrameBox; rails: FrameBox[]; walls: FrameBox[] } => sdkDeckParts(f, SIZES);
 
-/** G200: the standalone balustrade across a deck's open end (world/entries.ts draws it): its sizes (data/decks.ts) */
+/** G200: the standalone balustrade across a deck's open end (world/entries.ts draws it): its sizes (generators/decks.json) */
 export const CAP: typeof DECK_CAP = DECK_CAP;
 /** the balustrade's colliding parts: its plinth, its top rail, the brazier's pedestal and the two lantern pillars */
 export function capParts(f: Frame): { plinth: FrameBox; rail: FrameBox; pedestal: FrameBox; pillars: FrameBox[] } {

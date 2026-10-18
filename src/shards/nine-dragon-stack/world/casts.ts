@@ -5,7 +5,7 @@ import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { PlacedSign } from '../runtime/signs/signModel';
 import type { Emitter } from '../runtime/looks/emitterCards';
-import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import { createModelLibrary, type ModelGeometryPool } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import * as v from 'valibot';
 import type { LayoutRows } from '../runtime/productSections.generated';
@@ -26,10 +26,11 @@ const SignCall = v.variant('k', [
 ]);
 
 /** Adopt the exact prepared prop at its former load phase; the caller owns this geometry. */
-export async function loadCast(name: string): Promise<BufferGeometry> {
+export async function loadCast(name: string, applicationChannels?: ModelGeometryPool['channels']): Promise<BufferGeometry> {
   const bytes = await (await loadFirstPartyProduct('nine-dragon-stack')).file('geometry/cast-channels.json');
-  const channels = v.parse(v.pipe(v.array(v.strictObject({ name: v.string(), source: v.string(), width: v.number() })), v.maxLength(16)),
+  const declared = v.parse(v.pipe(v.array(v.strictObject({ name: v.string(), source: v.string(), width: v.number() })), v.maxLength(16)),
     JSON.parse(new TextDecoder().decode(bytes)));
+  const channels = applicationChannels ?? declared;
   const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
     geometryPools: [{ url: `/assets/nine-dragon/baked/casts/${name}.glb`, parts: [name], channels }],
   }, `Nine ${name}`);
@@ -116,4 +117,23 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', renderer: Rendere
       return geometry;
     },
   };
+}
+
+/** Load exact prepared levels; middle levels retain the full cast's shared attribute buffers. */
+export async function loadCastLods(target: Map<string, BufferGeometry>, key: string, base: BufferGeometry, levels: readonly (number | 'far')[], channels?: ModelGeometryPool['channels']): Promise<void> {
+  await Promise.all(levels.map(async level => {
+    const suffix = level === 'far' ? 'far' : `mid${level}`;
+    target.set(`${key}:${suffix}`, castLod(base, await loadCast(`${key}-${suffix}`, channels), level !== 'far'));
+  }));
+}
+
+/** Prepared indices share the native full-detail attributes; compact far levels own their packed attributes. */
+export function castLod(base: BufferGeometry, prepared: BufferGeometry, middle: boolean): BufferGeometry {
+  if (middle) {
+    for (const [name, values] of Object.entries(base.attributes)) prepared.setAttribute(name, values);
+    if (prepared.index === null) throw new Error('Prepared middle LOD has no index');
+    prepared.setIndex(prepared.index.clone());
+    prepared.boundingBox = null;
+  }
+  return prepared;
 }

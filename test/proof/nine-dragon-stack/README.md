@@ -169,3 +169,61 @@ The boolean Developer fixture is now stored and compared as a boolean in that ha
 
 
 SF81 DIR5 portal order: deliberately re-recorded both ride (tick400) and crossing (tick940) checkpoint hash manifests for PortalRideState version2 and the complete stage cursor. A decoded full-wire comparison proves ONLY those two added fields change; every command byte and other native field is exact. The complete shipping-worker suffixes, real two-portal journey, Jian heavy, grapple/cap continuation, all entry lanes and durable Ledger outcomes match the predecessor. Official map pixels and actual Node physics payload are exact. Older/foreign ride snapshots refuse quietly. No source gzip payload is committed.
+
+## G504 B4: prepared LODs and entry floor rows
+
+The static mesh simplifier and clustering implementation now run only in
+`generators/`. The cast author emits 25 lossless LOD GLBs and three full dyed casts. The existing cast
+library reads them at the original load phase; middle levels share every
+full-detail attribute buffer and retain their independent index buffers.
+The three full colourways replace the client tint function and colour
+constant; their middle levels prove their native channel bytes too.
+Compact far levels keep their own attributes and native bounds. Four
+generated inclusive rectangles drive the existing `floorAtRects` query.
+The runtime `meshLod`, `edgeDecks`, `world/floorRows` and `data/decks`
+modules are deleted. The fixed-kits JSON book remains byte-identical.
+
+The parent-generated `test/fixtures/nine-lods.json` records all 25 native
+levels' channel/index bytes, typed storage and bounds. The existing cast
+test now checks those facts and middle-level sharing, alongside the nine
+original cast/fixed-kit cases and 100 inclusive floor boundary queries.
+All 37 cast cases and all 17 shard-headless cases pass. Root/layer types,
+typed lint and all ten products pass on the isolated candidate.
+The integrated check also includes the six traversal contracts: 60 cases
+pass in total. On admission repair `d36f4694b`, the unchanged full native
+witness reports `compatible: true`: both shipping-worker continuation
+suffixes (60 and 144 ticks), headless play and durable Ledger outcomes
+pass. No witness or checkpoint recording is changed by B4.
+
+The source ruler measures net -162 Nine shard lines (C1 -164, C9 +2),
+with AssemblyScript +0 and platform +0 across all four layers.
+
+The official native view proof compares the frozen eighteenth parent
+`cc2178c` against the isolated B4 candidate on phone/desktop poses A/B/C:
+all six pixel hashes, draws and triangle counts are exact. GPU allocation
+is unchanged (phone 277,928,459 bytes; desktop 519,643,151 bytes). Both
+tiers retain 23 pieces, 489 colliders and the exact collider hash. Observed
+CPU backing storage rises by 13,166,004 bytes per tier; this is the real
+GLB transport cost, while GPU allocation remains exact. The 28 generated
+GLBs total 14,625,652 bytes before HTTP transport compression. The
+official physics walk passes all 19 legs with zero stuck and zero page
+errors (iPhone 16 Pro, muted Chromium, the real served candidate).
+
+Repeated captures of unchanged build `740b8c3` also exposed capture
+variability: desktop A differed at 718 pixels and B at nine, with all
+other poses exact. The parent `95617e5` exhibited both historical hash
+variants too. A complete repeat matches that parent on all six strict
+pixel hashes and every draw/triangle/GPU/contact fact; no comparison
+threshold or checkpoint recording is changed. The proof bank retains the
+initial failures, matching repeat and same-build raw-difference receipt.
+
+What stays: the small client cast reader and live per-frame culling and
+motion remain counted presentation code. Nalati's analytic terrain
+queries, live dressing cull/motion and dungeon hazards stay in their
+existing owners; this batch changes none of their behaviour. No host,
+material, gameplay rule, AssemblyScript or missing-asset fallback is added.
+
+G490: this is a source-only landing for the twenty-first map window. The
+producer declares all 28 exact GLB outputs and the generated floor book.
+The map owner declares their direct input pins and performs the official
+map bake plus strict all-ten closure after the ordered source landings.

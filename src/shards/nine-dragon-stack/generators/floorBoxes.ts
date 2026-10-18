@@ -1,8 +1,10 @@
 import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
-import { DECK } from '../data/decks';
+import decks from './decks.json' with { type: 'json' };
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+
+const { DECK } = decks;
 
 const { datum: Y0, square: PLAZA, stair: STAIR, street: STREET, well: WELL, rim: RIM, balustrade } = NINE_FLOOR_PLAN;
 const STAIR_TOP = { x1: STAIR.x1 + 8, y: Y0 + STAIR.rise };

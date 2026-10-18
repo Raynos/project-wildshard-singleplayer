@@ -1,8 +1,10 @@
 import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
 import { readScene } from '@wildshard/sdk/scene';
-import { DECK, DECK_CAP } from '../data/decks';
+import decks from './decks.json' with { type: 'json' };
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
+
+const { DECK, DECK_CAP } = decks;
 
 // First Node physics slice: the floors declared in shard.config.ts. The remaining models,
 // crossings and the three tread flights remain open G320 migrations.

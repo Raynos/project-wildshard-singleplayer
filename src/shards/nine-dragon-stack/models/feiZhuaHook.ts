@@ -11,8 +11,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine/models/model';
-import { PX_PER_M, simplifiedCopy } from '../runtime/cull/meshLod';
-import { SCULPT_PX } from '../data/lod';
+import { loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/feiZhuaHook.ts';
@@ -60,6 +59,7 @@ export async function loadFeiZhuaHook(look: NdLook): Promise<void> {
   // (E264) the sculpt's decoded maps (two 1024² bitmaps, 4 MB each) are on the GPU after the first draw
   for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap]) if (t !== null) gpuOnlyTexture(t, 'the Fei Zhua sculpt maps (GPU only)');
   look.geo.set('dragon-hook', geo);
+  await loadCastLods(look.geo, 'dragon-hook', geo, [15, 40], []);
   look.hookMat = mat;
 }
 
@@ -67,10 +67,10 @@ const cast = (ctx: ModelContext): BufferGeometry => need(ndLook(ctx).geo.get('dr
 const brass = (ctx: ModelContext): Material => need(ndLook(ctx).hookMat, 'the Fei Zhua brass');
 const parts = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[] => [{ geometry, material: brass(ctx) }];
 
-/** a meshoptimizer copy from `d` m, its error measured at the cast's placed scale; the cast itself without the simplifier */
+/** a meshoptimizer copy from `d` m, its error measured at the cast's placed scale; loaded from the admitted author output */
 const sculptLod = (d: number): ModelLod<object> => ({
   from: d,
-  build: (ctx) => parts(ctx, ctx.once(`nds:hook:lod${d}`, () => (ndLook(ctx).canLod ? simplifiedCopy(cast(ctx), (d * PX_PER_M * SCULPT_PX) / FEI_ZHUA_SCALE) : cast(ctx)))),
+  build: (ctx) => parts(ctx, need(ndLook(ctx).geo.get(`dragon-hook:mid${d}`), 'the prepared hook LOD')),
 });
 
 export const feiZhuaHook = defineModel({

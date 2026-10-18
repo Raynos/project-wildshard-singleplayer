@@ -3,15 +3,19 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline proof reads retained GLBs and published layout inputs.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { BufferAttribute, type BufferGeometry } from 'three';
+import { BufferAttribute, Float32BufferAttribute, Mesh, type Object3D, type BufferGeometry } from 'three';
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { CASTS, FIXED_KITS, CAST_CHANNELS, type PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
-import { bakeCasts, bakeFixedKits } from '../../src/shards/nine-dragon-stack/generators/casts';
+import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
 import { layoutReviver, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/world/layoutBake';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
+import { castLod } from '../../src/shards/nine-dragon-stack/world/casts';
+import { floorAtRects } from '../../src/engine/physics/box';
+import deckFloors from '../../src/shards/nine-dragon-stack/data/deckFloors.generated.json' with { type: 'json' };
+import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
 import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
 
 let packs: Map<PreparedGeometry, Uint8Array>;
@@ -74,4 +78,66 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
   expect(floats.length).toBe(original.count);
   expect(floats.every((value, i) => Object.is(value, original.records[i]))).toBe(true);
   expect(rows.file.jsonSchema).toBeDefined();
+});
+
+
+const lodGeometries = new Map<string, BufferGeometry>();
+const lodBases = new Map<string, BufferGeometry>();
+beforeAll(async () => {
+  const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
+  for (const name of ['lion', 'walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) lodBases.set(name, await castGeometry(name, read));
+  for (const name of ['walker-oxblood', 'walker-paper', 'walker-blue']) {
+    const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+      geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+    }, 'test Nine baked dye', {}, async () => (await readSourceModel(read(`/assets/nine-dragon/baked/casts/${name}.glb`))).gltf);
+    await library.preload();
+    const geometry = library.geometry(name, { borrow: true });
+    if (geometry === null) throw new Error(`Missing baked dye ${name}`);
+    lodBases.set(name, geometry);
+  }
+  const { gltf } = await readSourceModel(read('/assets/nine-dragon/lab/grapple/dragon-hook.glb'));
+  gltf.scene.updateMatrixWorld(true);
+  const meshes: Mesh[] = [];
+  const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
+  gltf.scene.traverse(object => { if (isMesh(object)) meshes.push(object); });
+  const source = meshes[0];
+  if (source === undefined) throw new Error('Missing native hook');
+  const hook = source.geometry.clone();
+  for (const name of ['position', 'normal', 'tangent']) {
+    if (!hook.hasAttribute(name)) continue;
+    const a = hook.getAttribute(name);
+    if (a.array instanceof Float32Array && !a.normalized) continue;
+    const out = new Float32Array(a.count * a.itemSize);
+    for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
+    hook.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
+  }
+  hook.applyMatrix4(source.matrixWorld); lodBases.set('dragon-hook', hook);
+  for (const key of Object.keys(lodBasis)) {
+    const [name, suffix] = key.split(':'), base = lodBases.get(name ?? '');
+    if (base === undefined || suffix === undefined) throw new Error(`Missing native LOD base ${key}`);
+    const path = `${name}-${suffix}`;
+    const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+      geometryPools: [{ url: path, parts: [path], channels: name === 'dragon-hook' ? [] : CAST_CHANNELS }],
+    }, 'test Nine LOD casts', {}, async () => (await readSourceModel(read(`/assets/nine-dragon/baked/casts/${path}.glb`))).gltf);
+    await library.preload();
+    const prepared = library.geometry(path, { borrow: true });
+    if (prepared === null) throw new Error(`Missing packed LOD ${key}`);
+    lodGeometries.set(key, castLod(base, prepared, suffix !== 'far'));
+  }
+}, 30_000);
+
+test.each(Object.entries(lodBasis))('%s retains native bytes, bounds and buffer sharing', (key, expected) => {
+  const geometry = lodGeometries.get(key), base = lodBases.get(key.split(':')[0] ?? '');
+  if (geometry === undefined || base === undefined) throw new Error(`Missing prepared LOD ${key}`);
+  expect(channels(geometry)).toEqual(expected);
+  if (key.includes(':mid')) for (const [name, values] of Object.entries(base.attributes)) expect(geometry.getAttribute(name)).toBe(values);
+});
+
+test('all entry floors preserve inclusive native deck boundaries', () => {
+  const native = [ { x:0, z:242, sx:9.2, sz:16 }, { x:0, z:-242, sx:9.2, sz:16 }, { x:242, z:0, sx:16, sz:9.2 }, { x:-242, z:0, sx:16, sz:9.2 } ];
+  for (const slab of native) for (const dx of [-slab.sx/2-1e-7,-slab.sx/2,0,slab.sx/2,slab.sx/2+1e-7]) for (const dz of [-slab.sz/2-1e-7,-slab.sz/2,0,slab.sz/2,slab.sz/2+1e-7]) {
+    const x=slab.x+dx,z=slab.z+dz;
+    const expected=native.some(s => Math.abs(x-s.x)<=s.sx/2 && Math.abs(z-s.z)<=s.sz/2) ? 0 : undefined;
+    expect(floorAtRects(deckFloors,x,z,'first')).toBe(expected);
+  }
 });

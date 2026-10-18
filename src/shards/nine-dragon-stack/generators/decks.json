@@ -1,0 +1,18 @@
+{
+  "DECK": {
+    "depth": 16,
+    "slab": 1.2,
+    "railT": 0.6,
+    "railH": 1.1,
+    "wallT": 0.8,
+    "wallH": 6
+  },
+  "DECK_CAP": {
+    "depth": 0.7,
+    "rail": 1.15,
+    "pedestal": 0.6,
+    "pedestalH": 1.3,
+    "pillar": 0.8,
+    "pillarH": 3.4
+  }
+}

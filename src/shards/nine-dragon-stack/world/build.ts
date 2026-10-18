@@ -61,7 +61,6 @@ import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeo
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 import { SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
-import { lodReady } from '../runtime/cull/meshLod';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
@@ -213,8 +212,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
   // under SCULPT_PX px where each starts, data/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
   // they are ~half a pixel wide), handed to the culler with their batches
-  const canLod = await lodReady();
-  nd.look.canLod = canLod;
   const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root, due: slice.due });
   phaseDone('square props', phaseStart);
   await slice();

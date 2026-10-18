@@ -2042,3 +2042,5 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # Nine compile-time JSON row declarations.
 /src/shards/nine-dragon-stack/data/signView.d.json.ts
 /src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts
+
+/src/shards/nine-dragon-stack/data/deckFloors.generated.json

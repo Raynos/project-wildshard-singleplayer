@@ -7,10 +7,9 @@ import type { BufferGeometry, Matrix4 } from 'three';
  * E281, umbrella variety: the targets' crowd is a mix of black, dark blue, oxblood and paper umbrellas, about a
  * quarter each; the variants handed in are mostly the dark-coat walker's black one. When the crowd is built, the
  * dark-umbrella walker's figures are dealt out by a hash of where they stand (so the deal is stable): a quarter keep
- * black, a quarter go to a copy whose umbrella is `BLUE_UMBRELLA` (one more geometry and two meshes, once per crowd),
+ * black, a quarter go to a copy whose umbrella is the baked dark blue (one more geometry and two meshes, once per crowd),
  * and the rest join the variants already added with an oxblood umbrella and with a paper one (no geometry at all).
  */
-export const BLUE_UMBRELLA = 0x34507e;
 const SHARE = { blue: 0.25, oxblood: 0.5, paper: 0.72 } as const;
 
 interface Tone { lum: number; chroma: number; r: number; g: number; b: number }
@@ -47,7 +46,7 @@ export type SitterPick = 'dark' | 'light';
  * The crowd's colourways (E281), as the old `Crowd.add` / `build` dealt them — now the placement of the walker and sitter
  * models (world/build.ts): the walkers by their index (seven in ten dark coats, one red and one ochre oil-paper umbrella
  * in ten), the sitters two dark coats to one light; then the black-umbrella figures dealt by a hash of where they stand
- * (see BLUE_UMBRELLA): a quarter keep black, a quarter go blue, the rest join the oxblood and the paper ones. The tones
+ * (the baked dark blue): a quarter keep black, a quarter go blue, the rest join the oxblood and the paper ones. The tones
  * come from the colourways' own geometry (`geo`), as before. Each colourway's figures in the order the old deal left them,
  * the colourways in the order it built them (blue after the rest).
  */

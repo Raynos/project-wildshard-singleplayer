@@ -47,10 +47,10 @@ export async function bakeCasts(read: (url: string) => Uint8Array): Promise<Map<
 }
 
 /** Exact buffers and original bounds through the existing declared rest-pool format. */
-function packGeometry(name: PreparedGeometry, geometry: BufferGeometry): Uint8Array {
+export function packGeometry(name: string, geometry: BufferGeometry): Uint8Array {
   const sphere = geometry.boundingSphere, box = geometry.boundingBox;
   return staticGlb([{ name, geometry, material: new MeshStandardMaterial(),
-    customAttributes: Object.fromEntries(CAST_CHANNELS.map(row => [row.source.toUpperCase(), row.name])),
+    customAttributes: Object.fromEntries(CAST_CHANNELS.filter(row => geometry.hasAttribute(row.name)).map(row => [row.source.toUpperCase(), row.name])),
     extras: { restBox: box === null ? null : [box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z],
       restSphere: sphere === null ? null : [sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius], restGroups: [] },
   }], `nine-cast-${name}`);
