@@ -17,7 +17,7 @@
  */
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';

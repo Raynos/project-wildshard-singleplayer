@@ -1,3 +1,4 @@
+import slotMigrations from '../data/slotMigrations.json' with { type: 'json' };
 import { QUEST_HOST } from './questHost';
 import { QUEST_NPC } from './questNpc';
 import signalStages from '../data/signalStages.json' with { type: 'json' };
@@ -53,7 +54,7 @@ const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', autho
 const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + decisionMemory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels', 'movers'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   clientChannels: SIGNAL_BUCKET_CHANNELS, movers: SIGNAL_BUCKET_MOVERS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
-  state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }, { id: 4, name: 'burrow', type: 'f64', privacy: 'public', default: 1, min: 0, max: 1 }] },
+  migrations: slotMigrations, state: { ...base.state, version: 2, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }, { id: 4, name: 'burrow', type: 'f64', privacy: 'public', default: 1, min: 0, max: 1 }] },
   look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries({ ...STORM_GRAPHS, ...FIRE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [fireBook.hash]: { filter: 'linear', mips: 'gpu' }, [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
   terrain: { ...tiles.terrain, shadow: { cast: false, receive: false }, follow: 8, order: -1 }, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files, ...maps].sort((a, b) => a.hash.localeCompare(b.hash)), library: maps.map((file) => file.hash), critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });
 

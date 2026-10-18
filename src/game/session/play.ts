@@ -179,7 +179,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   if (boot.featTotal !== undefined) progress.setFeatTotal(boot.featTotal);
   applyTravelCarry(boot.handoff, inventory);
   game.levelScope.onDispose(bindTravelInventory({ shard: chunk.slug, inventory, rows: boot.items }));
-  const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
+  const skins = new SkinLocker(chunk.slug, boot.skins, ctx.product.has('state/migrations') ? ctx.product.section('state/migrations').migrations : []);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     levelName: chunk.name,
     fullMap,

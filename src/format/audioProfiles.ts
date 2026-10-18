@@ -1,4 +1,4 @@
-import { PlumbingSchema } from './plumbing';
+import { PlumbingAskSchema } from './plumbing';
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -43,7 +43,7 @@ export type AudioMixRecipe = v.InferOutput<typeof AudioMixSchema>;
 export const AudioScorePinSchema = v.pipe(v.strictObject({id, label:id,
   storage:id, legacy:v.exactOptional(id), initial:id,
   choices:v.pipe(v.array(v.strictObject({value:id,text:id})),v.minLength(2),v.maxLength(16)),
-  ask:PlumbingSchema.pipe[0].entries.debug.pipe[0].item.entries.ask,
+  ask:PlumbingAskSchema,
   reviewBy:v.pipe(v.string(),v.regex(/^\d{4}-\d{2}-\d{2}$/u)),note:id,
 }),v.check(row=>new Set(row.choices.map(choice=>choice.value)).size===row.choices.length&&row.choices.some(choice=>choice.value===row.initial),'unique score pins and declared default'));
 export type AudioScorePin = v.InferOutput<typeof AudioScorePinSchema>;

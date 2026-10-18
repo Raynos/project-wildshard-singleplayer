@@ -1,0 +1,37 @@
+{
+  "checkedTree": "01e24e8a97fcbe41d0a9445c3ebc5bdb2d935762",
+  "finished": "2026-10-18T01:02:24.225Z",
+  "rootTypes": true,
+  "layerTypes": true,
+  "typedLint": true,
+  "generation": true,
+  "products": 10,
+  "parent": "5aa159ca2cf0209394953fdbb472bddc47c11f19",
+  "basis": "source",
+  "focusedAndHeadlessTests": 50,
+  "headlessCases": 17,
+  "hostBar": {
+    "declaredInput": 6,
+    "savedSlots": 6,
+    "declaredQuality": 6
+  },
+  "mapPublication": {
+    "mode": "source-only G490",
+    "owner": "sp-x10",
+    "window": 5,
+    "shards": [
+      "pine-hollow",
+      "nine-dragon-stack",
+      "far-reach",
+      "sunscar-dunes"
+    ]
+  },
+  "measurementParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "parentRuntimeSourceUnchanged": true,
+  "preservedParentMapMetadata": [
+    "src/shards/driftwood-isle/look/map.baked.json",
+    "src/shards/driftwood-isle/look/map.json",
+    "src/shards/pine-hollow/look/map.baked.json",
+    "src/shards/pine-hollow/look/map.json"
+  ]
+}

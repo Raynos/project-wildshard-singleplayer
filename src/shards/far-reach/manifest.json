@@ -211,13 +211,11 @@
   },
   "tiers": {
     "phone": {
-      "far.meadowBlades": 1600,
       "godRays": true,
       "ao": false,
       "textures": "ktx2"
     },
     "desktop": {
-      "far.meadowBlades": 3200,
       "godRays": true,
       "ao": false
     }

@@ -1,5 +1,7 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import * as THREE from 'three';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { lentMappedLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
@@ -76,7 +78,7 @@ export interface GroundCoverOptions {
 /** how a field's copies are culled: 32 m cells, a copy reaches 2.5 m, gone 2 m past the tier's fade (read when asked: this
  *  module loads before the tier is known) */
 export function groundCoverCells(): { readonly size: 32; readonly pad: 2.5; readonly far: number } {
-  return { size: 32, pad: 2.5, far: TIER_CONFIG.undergrowthFar + 2 };
+  return { size: 32, pad: 2.5, far: plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.undergrowthFar', 'number', TIER_CONFIG) + 2 };
 }
 
 /** the most graphs a field wears (one per kind) */
@@ -104,7 +106,7 @@ export class GroundCover {
 
   /** The textures and materials, then (after `pause`, e.g. a macrotask, lets the event loop in) each kind's parts. */
   async buildAsync(pause: () => Promise<void>): Promise<this> {
-    const far = TIER_CONFIG.undergrowthFar, fade = [far, Math.min(25, far * 0.3)]; // the tier's, read at the build
+    const far = plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.undergrowthFar', 'number', TIER_CONFIG), fade = [far, Math.min(25, far * 0.3)]; // the tier's, read at the build
     this.graphs.forEach((id) => { setLentParam(id, 'fade', fade); });
     const maps = await Promise.all(this.o.look.kinds.map(([kind]) => loadPainted(kind)));
     const made = new Map(this.o.look.kinds.map(([kind, row], i) => [kind, { mat: this.makeMaterial(maps[i] ?? null, row), row }]));
@@ -115,7 +117,7 @@ export class GroundCover {
       const geometry = this.o.shapes[kind];
       // the kind's wind on every vertex: a shared program sways each kind by its own
       geometry.setAttribute('aWind', new THREE.BufferAttribute(new Float32Array(geometry.getAttribute('position').count).fill(m.row.wind), 1));
-      return { geometry, material: m.mat, castShadow: m.row.shadow && TIER_CONFIG.undergrowthShadows };
+      return { geometry, material: m.mat, castShadow: m.row.shadow && plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.undergrowthShadows', 'boolean', TIER_CONFIG) };
     };
     this.kinds = { ferns: draw('ferns'), shrubs: draw('shrubs'), litter: draw('litter'), stones: draw('stones'), moss: draw('moss'), reeds: draw('reeds') };
     return this;

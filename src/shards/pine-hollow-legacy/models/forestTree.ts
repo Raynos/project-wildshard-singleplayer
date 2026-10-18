@@ -12,7 +12,7 @@
  * visibility test (padded frustum, near, or casting its low-sun shadow into view), and sways them in the wind. Each trunk
  * collides as an upright capsule (`colliders`: the forest's `trunkCapsule`, in the copy's own frame).
  */
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { FOREST_BANDS, trunkCapsule } from '@wildshard/engine/world/forest/Forest';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';

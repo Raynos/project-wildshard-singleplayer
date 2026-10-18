@@ -1,0 +1,17 @@
+{
+  "namespace": "nine",
+  "input": [],
+  "knobs": [
+    {
+      "id": "nine.paintSize",
+      "phone": 512,
+      "desktop": 1024
+    },
+    {
+      "id": "nine.decalScale",
+      "phone": 0.5,
+      "desktop": 1
+    }
+  ],
+  "debug": []
+}

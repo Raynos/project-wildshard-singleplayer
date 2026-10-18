@@ -732,8 +732,8 @@
       "export": "PINE_BUDGET_INPUTS"
     },
     "runtimeCost": {
-      "module": "./data/runtimeCost",
-      "export": "PINE_RUNTIME_COST"
+      "module": "./data/runtimeCost.json",
+      "export": "default"
     },
     "spawns": {
       "module": "./data/fauna.generated",

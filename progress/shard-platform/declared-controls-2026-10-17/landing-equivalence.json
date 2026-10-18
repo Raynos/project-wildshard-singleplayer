@@ -1,0 +1,28 @@
+{
+  "checkedSourceTree": "01e24e8a97fcbe41d0a9445c3ebc5bdb2d935762",
+  "measuredParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "landingParent": "5aa159ca2cf0209394953fdbb472bddc47c11f19",
+  "integration": "fresh root/layer types, typed lint, generation, all ten products, 50 cases including 17 headless on body-volley and boot-smoke parent; fresh canonical rulers in the mirror for both parent and candidate",
+  "mapMetadata": "parent canonical third map bytes retained; fifth central batch follows source publication",
+  "parentChangedPaths": [
+    "docs/plans/shard-platform/open-x-queue.md",
+    "progress/shard-platform/maps-batch-2026-10-17-4/all10-source-ruler.json",
+    "progress/shard-platform/maps-batch-2026-10-17-4/clean-bake.json",
+    "progress/shard-platform/maps-batch-2026-10-17-4/driftwood-isle-inputs.json",
+    "src/shards/driftwood-isle/look/map.baked.json",
+    "src/shards/driftwood-isle/look/map.json",
+    "test/pine-crag-scenes.test.ts"
+  ],
+  "productionRuntimeSourceUnchanged": true,
+  "checkedSourceDiff": [
+    "src/shards/driftwood-isle/look/map.baked.json",
+    "src/shards/driftwood-isle/look/map.json"
+  ],
+  "preservedMapBlobs": {
+    "src/shards/driftwood-isle/look/map.baked.json": "8e1e630066739b55389274cdea4bf270137f4495",
+    "src/shards/driftwood-isle/look/map.json": "9e018fb6069893725bb37561a2d6c192b628420d",
+    "src/shards/pine-hollow/look/map.baked.json": "858ad4e0f93d8c4a316800dcf9651f1cac81d082",
+    "src/shards/pine-hollow/look/map.json": "cde33302c7ee316138f22b9e7953c77a8fc34cca"
+  },
+  "note": "Checked runtime source is unchanged. Preserve independent test/docs changes and canonical map metadata byte-for-byte; map metadata does not affect source-basis line counts."
+}

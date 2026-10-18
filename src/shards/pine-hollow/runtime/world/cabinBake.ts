@@ -1,3 +1,5 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 /**
  * Pine Hollow's log buildings drawn from their offline bake (G285, SF72 "bake the code-built worlds"). The shapes are built
  * at build time (`../generators/logCabin.ts`, `src/shards/pine-hollow/generators/bake-pine-cabins.mjs`): the binary holds every geometry (zlib, read
@@ -9,7 +11,7 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { loadSiteTimbers } from './timberSites';
 import { mossHint } from '../../world/timberBake';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
@@ -72,6 +74,6 @@ export function createLogBuilding(resources: SceneResources, b: BakedBuilding, g
     geometry: Object.fromEntries([...ordinals].map(ordinal => [String(ordinal), resources.lend(geometries.geometry(ordinal))])),
     materials: { parts, particles: { flame: material('flame'), ember: material('ember'), smoke: material('smoke') }, glass: material('glass'), glow: material('glow') },
     models: { firePit: resources.lend(models.firePit), lantern: resources.lend(models.lantern) },
-    role, look, tier: { detailDist: TIER_CONFIG.cabinDetailDist, detailShadows: TIER_CONFIG.cabinDetailShadows, sharedLights: TIER_CONFIG.sharedCabinLights } };
+    role, look, tier: { detailDist: plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG), detailShadows: plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailShadows', 'boolean', TIER_CONFIG), sharedLights: plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.sharedCabinLights', 'boolean', TIER_CONFIG) } };
   return Object.assign(new BakedBuildingAssembly(resources, input), { props: { crate: b.props.crate.map(matrix), barrel: b.props.barrel.map(matrix), bucket: b.props.bucket.map(matrix), hatchet: b.props.hatchet.map(matrix) } });
 }

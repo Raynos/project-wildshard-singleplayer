@@ -1,0 +1,42 @@
+{
+  "namespace": "pine",
+  "input": [],
+  "knobs": [
+    {
+      "id": "pine.cabinDetailDist",
+      "phone": 70,
+      "desktop": 160
+    },
+    {
+      "id": "pine.cabinDetailShadows",
+      "phone": false,
+      "desktop": true
+    },
+    {
+      "id": "pine.sharedCabinLights",
+      "phone": true,
+      "desktop": false
+    },
+    {
+      "id": "pine.undergrowthFar",
+      "phone": 60,
+      "desktop": 110
+    },
+    {
+      "id": "pine.undergrowthShadows",
+      "phone": false,
+      "desktop": true
+    },
+    {
+      "id": "pine.propsFar",
+      "phone": 220,
+      "desktop": 700
+    },
+    {
+      "id": "pine.propsMinAngular",
+      "phone": 0.004,
+      "desktop": 0.0012
+    }
+  ],
+  "debug": []
+}

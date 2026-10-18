@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';

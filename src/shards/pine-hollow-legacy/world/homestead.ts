@@ -5,7 +5,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '@wildshard/engine/core/assets';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';

@@ -14,7 +14,7 @@ export type Action = DeclaredAction | Extract<keyof ActionMap, string> | Equipme
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3'
-  | 'skip' | 'focus' | 'quickNote' | 'help' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+  | 'skip' | 'focus' | 'quickNote' | 'help';
 export interface TouchVerb { action: Action; label: string; icon: string; hold?: boolean; element?: HTMLButtonElement; show?: () => boolean }
 export type TouchVerbSpec = Action | TouchVerb;
 /** Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary. */

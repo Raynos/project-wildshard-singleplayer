@@ -1,0 +1,209 @@
+{
+  "basis": "source",
+  "parent": "5aa159ca2cf0209394953fdbb472bddc47c11f19",
+  "checkedTree": "01e24e8a97fcbe41d0a9445c3ebc5bdb2d935762",
+  "shards": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "delta": 0,
+      "assemblyScriptBefore": 119,
+      "assemblyScriptAfter": 119,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "delta": 0,
+      "assemblyScriptBefore": 23,
+      "assemblyScriptAfter": 23,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "driftwood-isle": {
+      "before": 4706,
+      "after": 4706,
+      "delta": 0,
+      "assemblyScriptBefore": 96,
+      "assemblyScriptAfter": 96,
+      "componentsBefore": {
+        "C1": 2012,
+        "C2": 248,
+        "C3": 0,
+        "C4": 768,
+        "C5": 773,
+        "C6": 205,
+        "C7": 0,
+        "C8": 17,
+        "C9": 683
+      },
+      "componentsAfter": {
+        "C1": 2012,
+        "C2": 248,
+        "C3": 0,
+        "C4": 768,
+        "C5": 773,
+        "C6": 205,
+        "C7": 0,
+        "C8": 17,
+        "C9": 683
+      }
+    },
+    "far-reach": {
+      "before": 528,
+      "after": 518,
+      "delta": -10,
+      "assemblyScriptBefore": 53,
+      "assemblyScriptAfter": 53,
+      "componentsBefore": {
+        "C1": 286,
+        "C2": 70,
+        "C3": 54,
+        "C4": 0,
+        "C5": 8,
+        "C6": 19,
+        "C7": 0,
+        "C8": 0,
+        "C9": 91
+      },
+      "componentsAfter": {
+        "C1": 284,
+        "C2": 70,
+        "C3": 54,
+        "C4": 0,
+        "C5": 8,
+        "C6": 19,
+        "C7": 0,
+        "C8": 0,
+        "C9": 83
+      }
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "delta": 0,
+      "assemblyScriptBefore": 94,
+      "assemblyScriptAfter": 94,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "nalati-grasslands": {
+      "before": 20345,
+      "after": 20345,
+      "delta": 0,
+      "assemblyScriptBefore": 162,
+      "assemblyScriptAfter": 162,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "nine-dragon-stack": {
+      "before": 11889,
+      "after": 11890,
+      "delta": 1,
+      "assemblyScriptBefore": 0,
+      "assemblyScriptAfter": 0,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "delta": 0,
+      "assemblyScriptBefore": 94,
+      "assemblyScriptAfter": 94,
+      "componentsBefore": null,
+      "componentsAfter": null
+    },
+    "pine-hollow": {
+      "before": 6043,
+      "after": 6034,
+      "delta": -9,
+      "assemblyScriptBefore": 433,
+      "assemblyScriptAfter": 433,
+      "componentsBefore": {
+        "C1": 1838,
+        "C2": 590,
+        "C3": 345,
+        "C4": 758,
+        "C5": 1273,
+        "C6": 396,
+        "C7": 7,
+        "C8": 32,
+        "C9": 804
+      },
+      "componentsAfter": {
+        "C1": 1845,
+        "C2": 592,
+        "C3": 345,
+        "C4": 758,
+        "C5": 1273,
+        "C6": 396,
+        "C7": 7,
+        "C8": 31,
+        "C9": 787
+      }
+    },
+    "sunscar-dunes": {
+      "before": 392,
+      "after": 392,
+      "delta": 0,
+      "assemblyScriptBefore": 96,
+      "assemblyScriptAfter": 96,
+      "componentsBefore": {
+        "C1": 152,
+        "C2": 123,
+        "C3": 50,
+        "C4": 0,
+        "C5": 7,
+        "C6": 12,
+        "C7": 0,
+        "C8": 0,
+        "C9": 48
+      },
+      "componentsAfter": {
+        "C1": 152,
+        "C2": 123,
+        "C3": 50,
+        "C4": 0,
+        "C5": 7,
+        "C6": 12,
+        "C7": 0,
+        "C8": 0,
+        "C9": 48
+      }
+    }
+  },
+  "netShardLines": -18,
+  "platform": {
+    "engine": {
+      "before": 75747,
+      "after": 75751,
+      "delta": 4
+    },
+    "game": {
+      "before": 57468,
+      "after": 57538,
+      "delta": 70
+    },
+    "sdk": {
+      "before": 10533,
+      "after": 10536,
+      "delta": 3
+    }
+  },
+  "netPlatformLines": 77,
+  "format": {
+    "before": 11575,
+    "after": 11651,
+    "delta": 76
+  },
+  "measurementParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "parentRuntimeSourceUnchanged": true,
+  "preservedParentMapMetadata": [
+    "src/shards/driftwood-isle/look/map.baked.json",
+    "src/shards/driftwood-isle/look/map.json",
+    "src/shards/pine-hollow/look/map.baked.json",
+    "src/shards/pine-hollow/look/map.json"
+  ]
+}

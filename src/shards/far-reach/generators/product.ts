@@ -1,3 +1,5 @@
+import plumbing from '../data/plumbing.json' with { type: 'json' };
+import slotMigrations from '../data/slotMigrations.json' with { type: 'json' };
 import { SKY_SECTIONS } from './sections';
 import { STORM_NOISE } from './rows/stormNoise';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from './rows/swardAtlas';
@@ -25,7 +27,7 @@ import { ISLE_MAPS } from './rows/isleLook';
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
-const product = parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS },
+const product = parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS },
   // the material graphs the runtime draws its own meshes in (authored SF59 graph JSON, data/lookGraphs.json), and the
   // samplers: the islands' and boulders' library maps tile, the sward atlas keeps its own
   look: { ...base.look, materials: { ...base.look.materials, ...lookGraphs }, samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },

@@ -22,7 +22,9 @@ import { viewmodelLook } from '../runtime/looks/vmLook';
 import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import decalRows from '../data/decals.json' with { type: 'json' };
-import { decalScale, type NdTier } from '../tier';
+import type { Tier as NdTier } from '@wildshard/engine/core/tier';
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
 const { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } = viewmodelLook(decalRows.classes);
 
@@ -33,7 +35,7 @@ export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
 /** The authored Jian atlas, painted at the tier's decal scale. */
 export function decalAtlas(tier: NdTier): Decals {
   const e = decalRows.JIAN_DECAL_UV.etch, f = decalRows.JIAN_DECAL_UV.fu;
-  return { tex: paintCanvasAtlas(decalRows.JIAN_DECALS as CanvasAtlasRow, decalScale(tier)), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
+  return { tex: paintCanvasAtlas(decalRows.JIAN_DECALS as CanvasAtlasRow, plumbingKnob(slugRuntimeProduct('nine-dragon-stack')?.source.plumbing, tier, 'nine.decalScale', 'number')), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
 }
 
 

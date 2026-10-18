@@ -3633,6 +3633,24 @@ three.js author project without drawing a frame.
 
 The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.
 
+**Declared controls and quality (G486).** `combat/items.contexts[].extra`
+adds action/key rows, blocks, relabels, two existing touch verbs,
+`hiddenWhen` and binding descriptions to a weapon's baseline context.
+`sim/plumbing.input` shares these rows, with optional scene actions and a
+closed AND `when` on player mode, held item and declared flag ids. The
+session reads its existing owners and synchronizes input before
+collection; author callbacks and property paths refuse. Plumbing knobs
+accept finite numbers or booleans with matching tier kinds.
+`@wildshard/game/shard/declaredPlumbing#plumbingKnob` resolves an admitted
+id/kind before world construction; plain namespaced tier overrides may
+replace only declared values. `state/migrations.equipmentSlots` renames
+old worn-slot keys before the existing cosmetics save filters them;
+canonical keys win and repeated loads are idempotent. Sky's fan controls
+and meadow count, Pine's seven original tier values, Nine's paint/decal
+values, Signal's saved whip alias, the templates and a fictional harbour
+fixture exercise these paths. Pine's phone GRID override stays 52.5;
+alternate-tier builds isolate and restore namespaced overrides. See [DECLARED-CONTROLS.md](DECLARED-CONTROLS.md).
+
 Game `./plugin/mover` defines the admitted static approach data used by native lift proofs; it does not install a service.
 
 ### Generated format JSON Schema (DS1.1)

@@ -1,3 +1,4 @@
+import { GUST_ICON, SWING_ICON } from './icons';
 import { SKY_MELEE_HOST } from './nativeMelee';
 import type { ConeWeaponProfile } from '@wildshard/format/weaponProfiles';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
@@ -24,4 +25,7 @@ export const SKY_ITEMS = { version: 1, rows: [{
     tags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], effect: null },
   heavy: { id: 'far.fan.heavy', damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach, width: FAN_SWING.halfAngle,
     tags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], effect: null }, charge: 0.6,
-}], contexts: [], runtimeContexts: ['far.fan'], loadout: { primary: 'weapon.far-reach.fan', secondary: null, tools: [] } } as const;
+}], contexts: [{ id: 'far.fan', keysFrom: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], touch: 'melee', lockable: true,
+  extra: { actions: [{ id: 'far.gust', keys: ['KeyG'] }], relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
+    verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON } }, hiddenWhen: { mode: 'board' },
+    describe: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] } }], loadout: { primary: 'weapon.far-reach.fan', secondary: null, tools: [] } } as const;

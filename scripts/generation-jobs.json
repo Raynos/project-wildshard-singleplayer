@@ -1659,7 +1659,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/driftwood-isle/assets/navigation-c5185248a44d1f5c20c129e6bc25785ff6c1a81206f19f162d32cfe77131b464",
-        "src/shards/driftwood-isle/generators/navigation.ts"
+        "src/shards/driftwood-isle/generators/navigation.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/navigation.generated.json",
@@ -2559,7 +2560,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/restScenes.generated.json"
@@ -2686,7 +2688,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/restPools.generated.json"
@@ -2814,7 +2817,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-winch.glb"
@@ -2942,7 +2946,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-0.glb"
@@ -3070,7 +3075,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-1.glb"
@@ -3198,7 +3204,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-2.glb"
@@ -3326,7 +3333,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-storm.glb"
@@ -3499,7 +3507,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restScenes.generated.json"
@@ -3673,7 +3682,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restPools.generated.json"
@@ -3848,7 +3858,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-well.glb"
@@ -4022,7 +4033,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-oil.glb"
@@ -4165,7 +4177,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/assets/navigation-2a8083c33ed009f7f1fa122cbec44a2b83e2c457ad8f4dde012736f9e512ea08",
-        "src/shards/nine-dragon-stack/generators/navigation.ts"
+        "src/shards/nine-dragon-stack/generators/navigation.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/navigation.generated.json",
@@ -4310,7 +4323,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/sunscar-dunes/assets/navigation-9922f620591f1a29bd42ace6bce7829eb54604f977dfb86ae3b18b383b06fbb6",
-        "src/shards/sunscar-dunes/generators/navigation.ts"
+        "src/shards/sunscar-dunes/generators/navigation.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/navigation.generated.json",
@@ -4456,7 +4470,8 @@
         "src/sdk/spawns.ts",
         "src/shards/far-reach/assets/navigation-97a29a22f3827e4103059929276b2e6a6831f50bd5fc3b121abc11252f774f26",
         "src/shards/far-reach/generators/navigation.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/navigation.generated.json",
@@ -4769,7 +4784,8 @@
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/decks.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
-        "src/shards/nine-dragon-stack/generators/portalFloors.ts"
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalFloors.generated.json"
@@ -4911,7 +4927,8 @@
         "src/shards/driftwood-isle/generators/groundRows.ts",
         "src/shards/driftwood-isle/generators/landscape.ts",
         "src/shards/driftwood-isle/generators/landscapeNoise.ts",
-        "src/shards/driftwood-isle/generators/physics.ts"
+        "src/shards/driftwood-isle/generators/physics.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/physics.generated.json"
@@ -6518,7 +6535,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/nalati-grasslands/assets/navigation-223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5",
-        "src/shards/nalati-grasslands/generators/navigation.ts"
+        "src/shards/nalati-grasslands/generators/navigation.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/navigation.generated.json",
@@ -6733,7 +6751,8 @@
         "src/shards/nalati-grasslands/generators/dressingGeometry.ts",
         "src/shards/nalati-grasslands/generators/dressingGeos.ts",
         "src/shards/nalati-grasslands/generators/dressingNoise.ts",
-        "src/shards/nalati-grasslands/generators/geometryWriter.ts"
+        "src/shards/nalati-grasslands/generators/geometryWriter.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/dressing.bin",
@@ -7262,7 +7281,8 @@
         "src/shards/sunscar-dunes/generators/manifestGround.ts",
         "src/shards/sunscar-dunes/generators/sand.ts",
         "src/shards/sunscar-dunes/generators/skirt.ts",
-        "src/shards/sunscar-dunes/generators/tiles.ts"
+        "src/shards/sunscar-dunes/generators/tiles.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/sand/skirt.bin",
@@ -7432,7 +7452,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rocks.glb",
@@ -7605,7 +7626,8 @@
         "src/shards/sunscar-dunes/generators/physicsPlacements.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/towerColliders.ts",
-        "src/shards/sunscar-dunes/generators/quests.ts"
+        "src/shards/sunscar-dunes/generators/quests.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/physics.generated.json"
@@ -7744,7 +7766,8 @@
         "src/shards/nine-dragon-stack/generators/fronts.ts",
         "src/shards/nine-dragon-stack/generators/physics.ts",
         "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
-        "src/shards/nine-dragon-stack/generators/portalFloors.ts"
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/physics.generated.json"
@@ -7939,7 +7962,8 @@
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
         "src/shards/nine-dragon-stack/data/portals.json",
-        "src/shards/nine-dragon-stack/generators/portalEntries.ts"
+        "src/shards/nine-dragon-stack/generators/portalEntries.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/portalEntries.generated.json"
@@ -8153,7 +8177,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
-        "src/shards/nine-dragon-stack/generators/fronts.ts"
+        "src/shards/nine-dragon-stack/generators/fronts.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/fronts.generated.json"
@@ -8288,7 +8313,8 @@
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/decks.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
-        "src/shards/nine-dragon-stack/generators/floorBoxes.ts"
+        "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/floorBoxes.generated.json"
@@ -8423,7 +8449,8 @@
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/decks.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
-        "src/shards/nine-dragon-stack/generators/portalFloors.ts"
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/deckCaps.generated.json"
@@ -9510,7 +9537,8 @@
         "src/shards/pastel-plain/generators/ground.ts",
         "src/shards/pastel-plain/generators/landscape.ts",
         "src/shards/pastel-plain/generators/landscapeNoise.ts",
-        "src/shards/pastel-plain/generators/terrain.ts"
+        "src/shards/pastel-plain/generators/terrain.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/pastel-plain/data/terrain.json",
@@ -9798,7 +9826,8 @@
         "src/shards/pastel-plain/generators/landscape.ts",
         "src/shards/pastel-plain/generators/landscapeNoise.ts",
         "src/shards/pastel-plain/generators/props.ts",
-        "src/shards/pastel-plain/generators/world.ts"
+        "src/shards/pastel-plain/generators/world.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/pastel-plain/assets/0179d1cdfa05d8a58f3a3d2c53c5f61b7ba672716c6f485d4ddc02c5f9d97882",
@@ -10113,7 +10142,8 @@
         "src/shards/_template/generators/ground.ts",
         "src/shards/_template/generators/landscape.ts",
         "src/shards/_template/generators/landscapeNoise.ts",
-        "src/shards/_template/generators/terrain.ts"
+        "src/shards/_template/generators/terrain.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/_template/assets/0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658",
@@ -10422,7 +10452,8 @@
         "src/shards/_template/generators/landscape.ts",
         "src/shards/_template/generators/landscapeNoise.ts",
         "src/shards/_template/generators/templatePropsSource.ts",
-        "src/shards/_template/generators/world.ts"
+        "src/shards/_template/generators/world.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/_template/assets/0179d1cdfa05d8a58f3a3d2c53c5f61b7ba672716c6f485d4ddc02c5f9d97882",
@@ -10984,7 +11015,8 @@
         "src/shards/nine-dragon-stack/generators/floorBoxes.ts",
         "src/shards/nine-dragon-stack/generators/fronts.ts",
         "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
-        "src/shards/nine-dragon-stack/generators/portalFloors.ts"
+        "src/shards/nine-dragon-stack/generators/portalFloors.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/physicsPlacements.generated.json"
@@ -11275,7 +11307,8 @@
         "src/shards/driftwood-isle/generators/groundField.ts",
         "src/shards/driftwood-isle/generators/groundRows.ts",
         "src/shards/driftwood-isle/generators/landscape.ts",
-        "src/shards/driftwood-isle/generators/landscapeNoise.ts"
+        "src/shards/driftwood-isle/generators/landscapeNoise.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/baked/driftwood-isle/terrain.bin"
@@ -11410,7 +11443,8 @@
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
         "src/shards/driftwood-isle/data/entryRows.json",
-        "src/shards/driftwood-isle/generators/entryFloors.ts"
+        "src/shards/driftwood-isle/generators/entryFloors.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/entryFloors.generated.json"
@@ -11538,7 +11572,8 @@
         "src/shards/driftwood-isle/generators/groundRows.ts",
         "src/shards/driftwood-isle/generators/groundSampling.ts",
         "src/shards/driftwood-isle/generators/landscape.ts",
-        "src/shards/driftwood-isle/generators/landscapeNoise.ts"
+        "src/shards/driftwood-isle/generators/landscapeNoise.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/entryDecks.generated.json"
@@ -11708,7 +11743,8 @@
         "src/shards/_template/data/ui.ts",
         "src/shards/_template/data/water.ts",
         "src/shards/_template/generators/build-product.mjs",
-        "src/shards/_template/generators/product.ts"
+        "src/shards/_template/generators/product.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/_template/.wildshard/product/0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658",
@@ -12216,7 +12252,8 @@
         "src/shards/pastel-plain/data/water.ts",
         "src/shards/pastel-plain/generators/build-product.mjs",
         "src/shards/pastel-plain/generators/product.ts",
-        "src/shards/pastel-plain/quests/adventure.ts"
+        "src/shards/pastel-plain/quests/adventure.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/pastel-plain/.wildshard/product/0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658",
@@ -12682,7 +12719,8 @@
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
         "src/shards/sunscar-dunes/generators/fireBook.ts",
-        "src/shards/sunscar-dunes/generators/fireBook.webp"
+        "src/shards/sunscar-dunes/generators/fireBook.webp",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/fireBook.generated.json",
@@ -12854,7 +12892,9 @@
         "src/shards/sunscar-dunes/generators/rows/whipContacts.ts",
         "src/shards/sunscar-dunes/generators/bucket.ts",
         "src/shards/sunscar-dunes/generators/product.ts",
-        "src/shards/sunscar-dunes/generators/quests.ts"
+        "src/shards/sunscar-dunes/generators/quests.ts",
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/data/slotMigrations.json"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/product.generated.json"
@@ -13045,7 +13085,9 @@
         "src/shards/sunscar-dunes/generators/bucket.ts",
         "src/shards/sunscar-dunes/generators/build-product.mjs",
         "src/shards/sunscar-dunes/generators/product.ts",
-        "src/shards/sunscar-dunes/generators/quests.ts"
+        "src/shards/sunscar-dunes/generators/quests.ts",
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/data/slotMigrations.json"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/.wildshard/product/039ebbc6d284b8ed27d1cda8d7c3ec4c5e724747188c31f151e445cc2c0f185b",
@@ -13722,7 +13764,8 @@
         "src/shards/far-reach/generators/isletMotion.ts",
         "src/shards/far-reach/generators/isletScene.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/isletScenes.generated.json"
@@ -13854,7 +13897,8 @@
         "src/shards/far-reach/generators/isletMotion.ts",
         "src/shards/far-reach/generators/isletScene.ts",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-islets.glb"
@@ -13981,7 +14025,8 @@
         "src/shards/far-reach/data/bridges.json",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/generators/bridgeRest.ts"
+        "src/shards/far-reach/generators/bridgeRest.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/bridgeRest.generated.json"
@@ -14107,7 +14152,8 @@
         "src/shards/far-reach/data/bridges.json",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/generators/bridgeRest.ts"
+        "src/shards/far-reach/generators/bridgeRest.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/bridge-rest.glb"
@@ -14266,7 +14312,8 @@
         "src/shards/far-reach/generators/rows/fanGeometry.ts",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/fan.ts",
-        "src/shards/far-reach/generators/modelIntake.ts"
+        "src/shards/far-reach/generators/modelIntake.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/fan.glb"
@@ -14409,7 +14456,8 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/mill-rest.glb"
@@ -14551,7 +14599,8 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/millRest.generated.json"
@@ -15125,7 +15174,8 @@
         "src/shards/sunscar-dunes/generators/rocks.ts",
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
-        "src/shards/sunscar-dunes/generators/tower.ts"
+        "src/shards/sunscar-dunes/generators/tower.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-fire.glb"
@@ -15310,7 +15360,11 @@
         "src/shards/far-reach/generators/rows/swardAtlas.ts",
         "src/shards/far-reach/generators/rows/windLook.ts",
         "src/shards/far-reach/generators/product.ts",
-        "src/shards/far-reach/data/flags.json"
+        "src/shards/far-reach/data/flags.json",
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/data/plumbing.json",
+        "src/shards/far-reach/data/slotMigrations.json",
+        "src/shards/far-reach/generators/rows/icons.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/product.generated.json"
@@ -15475,7 +15529,8 @@
         "src/shards/far-reach/generators/rows/storm.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-books.glb"
@@ -17159,7 +17214,8 @@
         "src/sdk/spawns.ts",
         "src/shards/nine-dragon-stack/data/floorPlan.ts",
         "src/shards/nine-dragon-stack/data/portals.json",
-        "src/shards/nine-dragon-stack/generators/portalEntries.ts"
+        "src/shards/nine-dragon-stack/generators/portalEntries.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/world/portalPlan.generated.json"
@@ -17394,7 +17450,8 @@
         "src/shards/nine-dragon-stack/generators/fronts.ts",
         "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
-        "src/shards/nine-dragon-stack/generators/stairPlan.ts"
+        "src/shards/nine-dragon-stack/generators/stairPlan.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/world/install.generated.json"
@@ -17535,7 +17592,8 @@
         "src/shards/nine-dragon-stack/generators/physicsPlacements.ts",
         "src/shards/nine-dragon-stack/generators/portalFloors.ts",
         "src/shards/nine-dragon-stack/generators/stairPlan.ts",
-        "src/shards/nine-dragon-stack/layout.ts"
+        "src/shards/nine-dragon-stack/layout.ts",
+        "src/format/inputDeclarations.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/world/stairPlan.generated.json"

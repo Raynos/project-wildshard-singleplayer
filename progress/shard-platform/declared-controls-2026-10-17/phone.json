@@ -1,0 +1,120 @@
+{
+  "checkedTree": "52a5f84b00e6c3b88602e250fb6025c99b8145fa",
+  "gateTree": "1559f3998f4e12331576c21b72fdfc4376ede621",
+  "c9RuntimeSourcesEquivalent": true,
+  "parentIntegrationDiff": [
+    ".gitignore",
+    "docs/DECLARED-CONTROLS.md",
+    "docs/ENGINE.md",
+    "lint/platform-pending-users.json",
+    "progress/shard-platform/declared-controls-2026-10-17/map-inputs.json",
+    "progress/shard-platform/declared-controls-2026-10-17/phone.json",
+    "progress/shard-platform/pine-crags-2026-10-17/all10-source-ruler-after.json",
+    "progress/shard-platform/pine-crags-2026-10-17/all10-source-ruler-before.json",
+    "progress/shard-platform/pine-crags-2026-10-17/frame-floor.json",
+    "progress/shard-platform/pine-crags-2026-10-17/look-parity.json",
+    "progress/shard-platform/pine-crags-2026-10-17/phone.json",
+    "progress/shard-platform/pine-crags-2026-10-17/source-checks.json",
+    "progress/shard-platform/pine-crags-2026-10-17/source-ruler.json",
+    "progress/shard-platform/pine-crags-2026-10-17/walk.json",
+    "scripts/blender/targets.json",
+    "scripts/check-models.mjs",
+    "scripts/gate-test-products.json",
+    "scripts/generation-jobs.json",
+    "src/format/package.json",
+    "src/format/worldSceneBatch.ts",
+    "src/format/worldSceneModels.ts",
+    "src/format/worldScenePlacement.ts",
+    "src/format/worldScenes.ts",
+    "src/game/models/worldSceneCatalogue.ts",
+    "src/game/shardfile/worldSceneBatch.ts",
+    "src/game/shardfile/worldScenePlacement.ts",
+    "src/game/shardfile/worldScenes.ts",
+    "src/shards/pine-hollow/generators/bake-crag-scenes.d.mts",
+    "src/shards/pine-hollow/generators/bake-crag-scenes.mjs",
+    "src/shards/pine-hollow/generators/bake-hero-scenes.mjs",
+    "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+    "src/shards/pine-hollow/generators/bake-prop-scenes.mjs",
+    "src/shards/pine-hollow/generators/bootFiles.ts",
+    "src/shards/pine-hollow/generators/cragSceneContribution.ts",
+    "src/shards/pine-hollow/generators/cragWorldScenes.ts",
+    "src/shards/pine-hollow/generators/outputInputs.ts",
+    "src/shards/pine-hollow/generators/sceneModelRows.ts",
+    "src/shards/pine-hollow/generators/timberWorld.ts",
+    "src/shards/pine-hollow/generators/worldScenes.ts",
+    "src/shards/pine-hollow/look/map.json",
+    "src/shards/pine-hollow/runtime/index.ts",
+    "src/shards/pine-hollow/runtime/kit/caveInterior.ts",
+    "src/shards/pine-hollow/runtime/world/crags.ts",
+    "src/shards/pine-hollow/runtime/world/heroFiles.ts",
+    "src/shards/pine-hollow/runtime/world/landmarks.ts",
+    "test/hybrid-inventory.test.ts",
+    "test/pine-crag-scenes.test.ts",
+    "test/pine-prop-product.test.ts",
+    "test/world-scene-batch.test.ts"
+  ],
+  "scope": "four-shard controls preflight; exact integrated HEAD phone follows landing",
+  "device": "iPhone 16 Pro",
+  "muted": true,
+  "build": {
+    "build": "52a5f84-mvd293a1",
+    "time": "2026-10-18T00:01:50.245Z"
+  },
+  "shards": [
+    {
+      "fatal": [],
+      "knobs": [
+        "pine-hollow.pine"
+      ],
+      "ready": true,
+      "renderFrame": 111,
+      "screen": [
+        402,
+        874,
+        3
+      ],
+      "shard": "pine-hollow"
+    },
+    {
+      "fatal": [],
+      "knobs": [
+        "nine-dragon-stack.nine"
+      ],
+      "ready": true,
+      "renderFrame": 46,
+      "screen": [
+        402,
+        874,
+        3
+      ],
+      "shard": "nine-dragon-stack"
+    },
+    {
+      "fatal": [],
+      "knobs": [
+        "far-reach.far"
+      ],
+      "ready": true,
+      "renderFrame": 71,
+      "screen": [
+        402,
+        874,
+        3
+      ],
+      "shard": "far-reach"
+    },
+    {
+      "fatal": [],
+      "knobs": [],
+      "ready": true,
+      "renderFrame": 75,
+      "screen": [
+        402,
+        874,
+        3
+      ],
+      "shard": "sunscar-dunes"
+    }
+  ],
+  "browserClosed": true
+}

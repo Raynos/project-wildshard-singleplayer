@@ -1,0 +1,14 @@
+{
+  "before": {
+    "pine": 21305,
+    "revision": "1258254a368566f52dac078512cf96095356a174",
+    "sha256": "fc239835ed5cbfc65a64052108eb583d56db71e6f430dda24029fb2733b3053e"
+  },
+  "after": {
+    "pine": 21305,
+    "revision": "1258254a368566f52dac078512cf96095356a174",
+    "sha256": "fc239835ed5cbfc65a64052108eb583d56db71e6f430dda24029fb2733b3053e"
+  },
+  "unchanged": true,
+  "planRequiredCutBasis": 80173.3
+}

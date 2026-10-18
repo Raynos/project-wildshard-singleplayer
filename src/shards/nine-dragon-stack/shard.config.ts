@@ -1,3 +1,4 @@
+import plumbing from './data/plumbing.json' with { type: 'json' };
 import declarations from './data/declarations.generated.json' with { type: 'json' };
 import { NINE_MODES } from './data/modes';
 import NINE_DRAGON_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
@@ -25,7 +26,7 @@ const navigationResident = navigation.files.reduce((sum, file) => sum + file.dec
 const budgets = { ...base.budgets, sim: { resident: navigationResident, compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) }, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) } };
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, budgets, navigation: navigation.navigation, critical: navigation.critical,
+export default parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident },
   files: [...world.shardfile.files, ...navigation.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: world.shardfile.library,
   accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: declarations.audio, clientChannels: declarations.clientChannels, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },

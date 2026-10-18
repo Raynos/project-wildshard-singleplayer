@@ -21,7 +21,7 @@ export let automaticTier: Tier = mobileUA ? 'phone' : 'desktop';
 export let TIER: Tier = automaticTier;
 
 
-export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
+export const TIER_CONFIG: EngineTierKnobs & Partial<Record<`${string}.${string}`, number | boolean>> = { ...TIER_TABLE[TIER] };
 
 let buildingAs: Tier | null = null;
 /** the tier a model builds at: TIER, or the one Explore's DETAIL TIERS builds it as (explore/tiers.ts `withTier`). A level's
@@ -65,9 +65,13 @@ export function initializeTier(tier?: Tier): void | Promise<void> {
     return undefined;
   });
 }
+function resetTierConfig(): void {
+  for (const key of Object.keys(TIER_CONFIG)) if (key.includes('.')) Reflect.deleteProperty(TIER_CONFIG, key);
+  Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
+}
 function configureTier(tier: Tier): void {
   TIER = tier;
-  Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
+  resetTierConfig();
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
   if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
@@ -76,11 +80,12 @@ function configureTier(tier: Tier): void {
 
 /** Resolve the numeric tier row before the level builds sky, forest and carpet. */
 export function applyLevelTier(knobs: TierKnobs | undefined): void {
-  Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
+  resetTierConfig();
   for (const key of Object.keys(TIER_TABLE[TIER]) as (keyof EngineTierKnobs)[]) {
     const value = knobs?.[key];
     if (value !== undefined) Reflect.set(TIER_CONFIG, key, value);
   }
+  for (const [key, value] of Object.entries(knobs ?? {})) if (key.includes('.') && (typeof value === 'boolean' || typeof value === 'number' && Number.isFinite(value))) Reflect.set(TIER_CONFIG, key, value);
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
   if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';

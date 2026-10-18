@@ -1,0 +1,25 @@
+{
+  "basis": "private-index declared map roots; central owner also checks post-generation inventory",
+  "shards": {
+    "far-reach": [
+      "src/shards/far-reach/generators/product.ts",
+      "src/shards/far-reach/generators/rows/equipment.ts",
+      "src/shards/far-reach/generators/rows/items.ts",
+      "src/shards/far-reach/generators/rows/runtimeBoot.ts",
+      "src/shards/far-reach/generators/rows/runtimeRows.ts"
+    ],
+    "nine-dragon-stack": [
+      "src/shards/nine-dragon-stack/shard.config.ts",
+      "src/shards/nine-dragon-stack/world/build.ts"
+    ],
+    "pine-hollow": [
+      "src/shards/pine-hollow/runtime/looks/groundCover.ts",
+      "src/shards/pine-hollow/shard.config.ts",
+      "src/shards/pine-hollow/world/terrain.ts"
+    ],
+    "sunscar-dunes": [
+      "src/shards/sunscar-dunes/generators/product.ts",
+      "src/shards/sunscar-dunes/generators/rows/equipment.ts"
+    ]
+  }
+}

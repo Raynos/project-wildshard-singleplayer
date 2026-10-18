@@ -297,7 +297,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
                 if (preparing) { weapons.enabled = false; weapons.visible = false; weapons.stowed = true; }
                 const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance);
-                const skins = new SkinLocker(request.cell.instance, skinRows);
+                const skins = new SkinLocker(request.cell.instance, skinRows, request.admitted.source.migrations);
                 // SF57: the page's maps reach this resident's hooks through owner facades, so what its play registers on
                 // them after an await (a quest card, its places, its marks) ends with the resident, not the page. (Not the
                 // HUD or menu: other services key on their identity, e.g. bag tabs by menu.)

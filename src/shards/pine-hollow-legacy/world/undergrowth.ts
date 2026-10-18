@@ -3,7 +3,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { bakedUndergrowth } from '@wildshard/engine/world/BakedTerrain';

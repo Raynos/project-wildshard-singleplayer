@@ -1,0 +1,95 @@
+{
+  "format": 11575,
+  "basis": "source",
+  "rows": {
+    "_template": {
+      "custom": 1000,
+      "as": 119
+    },
+    "blender-template": {
+      "custom": 106,
+      "as": 23
+    },
+    "driftwood-isle": {
+      "custom": 4706,
+      "as": 96,
+      "components": {
+        "C1": 2012,
+        "C2": 248,
+        "C3": 0,
+        "C4": 768,
+        "C5": 773,
+        "C6": 205,
+        "C7": 0,
+        "C8": 17,
+        "C9": 683
+      }
+    },
+    "far-reach": {
+      "custom": 528,
+      "as": 53,
+      "components": {
+        "C1": 286,
+        "C2": 70,
+        "C3": 54,
+        "C4": 0,
+        "C5": 8,
+        "C6": 19,
+        "C7": 0,
+        "C8": 0,
+        "C9": 91
+      }
+    },
+    "ink-cel-valley": {
+      "custom": 1105,
+      "as": 94
+    },
+    "nalati-grasslands": {
+      "custom": 20345,
+      "as": 162
+    },
+    "nine-dragon-stack": {
+      "custom": 11889,
+      "as": 0
+    },
+    "pastel-plain": {
+      "custom": 733,
+      "as": 94
+    },
+    "pine-hollow": {
+      "custom": 6043,
+      "as": 433,
+      "components": {
+        "C1": 1838,
+        "C2": 590,
+        "C3": 345,
+        "C4": 758,
+        "C5": 1273,
+        "C6": 396,
+        "C7": 7,
+        "C8": 32,
+        "C9": 804
+      }
+    },
+    "sunscar-dunes": {
+      "custom": 392,
+      "as": 96,
+      "components": {
+        "C1": 152,
+        "C2": 123,
+        "C3": 50,
+        "C4": 0,
+        "C5": 7,
+        "C6": 12,
+        "C7": 0,
+        "C8": 0,
+        "C9": 48
+      }
+    }
+  },
+  "platform": {
+    "engine": 75747,
+    "game": 57468,
+    "sdk": 10533
+  }
+}

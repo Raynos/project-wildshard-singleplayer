@@ -572,7 +572,9 @@ export interface HeldMeleeScenePorts {
 /** Construct the existing held owner directly from its rows and scene; no private subclass/controller. */
 export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, ports: HeldMeleeScenePorts): HeldMeleeWeapon<PageMeleeTarget, HeldPlayback> {
   const model = ports.presentation, caught = ports.caught;
-  return new HeldMeleeWeapon(app, row, phases, { model: model.root, parts: model, presentation: model, nodes: model.model?.parts ?? new Map(),
+  if (!row.id.startsWith('weapon.')) throw new Error('Held melee requires a weapon row');
+  const equipment: EquipmentRow = row.legacySlot === undefined ? { ...row, legacySlot: `declared.weapon.${row.id.slice(7)}` } : row;
+  return new HeldMeleeWeapon(app, equipment, phases, { model: model.root, parts: model, presentation: model, nodes: model.model?.parts ?? new Map(),
     ...(ports.tip === undefined ? {} : { tip: new Vector3(...ports.tip) }),
     ...(ports.restingGroup === undefined ? {} : { restingVisible: model.model?.group(ports.restingGroup) === null }),
     ...(caught === undefined ? {} : { caughtPart: () => { const mesh = model.createPart(caught.scene).mesh(caught.part); if (mesh === null) throw new Error('Declared caught part unavailable'); return mesh; } }),

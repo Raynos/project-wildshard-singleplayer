@@ -32,7 +32,7 @@ import { FpArmsRig, type FpArmsRig as FpArmsRigView, type FpArmsState, armRigBak
 import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '../runtime/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
-import type { NdTier } from '../tier';
+import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 
 const finite = v.number();
 const breeze = v.tuple([finite, finite, finite, finite, finite]);

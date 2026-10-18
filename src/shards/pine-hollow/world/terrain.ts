@@ -86,7 +86,7 @@ export const FOREST_QUERIES = { density: (x: number, z: number): number => fores
  * Trim off (standalone) keeps the phone row's reach.
  */
 const VIEW_B = {
-  treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, cabinDetailDist: 52.5,
+  treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, 'pine.cabinDetailDist': 52.5,
   animalHideDist: 112.5, animalShadowDist: 45, animalEyeDist: 33.75, animalOneDrawDist: 75,
   shadowFar: 45, pickupOrbDist: 90,
 } as const;

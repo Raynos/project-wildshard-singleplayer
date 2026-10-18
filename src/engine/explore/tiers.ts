@@ -16,6 +16,7 @@ export function withTier<T>(tier: Tier, fn: () => T): T {
   if (tier === TIER) return fn();
   const live = TIER_CONFIG as Record<string, unknown>;
   const saved = { ...live }, was = buildTier();
+  for (const key of Object.keys(live)) if (key.includes('.')) Reflect.deleteProperty(live, key);
   Object.assign(live, TIER_TABLE[tier]);
   _buildAs(tier); // a level's own knob tables follow too (core/tier.ts buildTier)
   try { return fn(); } finally {

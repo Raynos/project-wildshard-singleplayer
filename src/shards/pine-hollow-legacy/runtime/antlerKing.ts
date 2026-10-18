@@ -8,7 +8,7 @@ import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import type { FxMaterial } from '@wildshard/engine/fx/groundFx';

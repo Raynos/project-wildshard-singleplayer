@@ -1,0 +1,13 @@
+[
+  {
+    "from": 1,
+    "to": 2,
+    "fields": [],
+    "equipmentSlots": [
+      {
+        "from": "sunscar-whip",
+        "to": "declared.weapon.sunscar-whip"
+      }
+    ]
+  }
+]

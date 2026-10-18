@@ -1,3 +1,4 @@
+import { InputActionSchema, InputKeysSchema } from '@wildshard/format/inputDeclarations';
 import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
@@ -78,11 +79,12 @@ export interface FormatJsonSchema extends JsonSchema {
   'x-wildshard-string-length'?: 'utf16-code-units';
 }
 
-const plumbing = PlumbingSchema.pipe[0];
+const plumbing = PlumbingSchema.pipe[2];
 const input = plumbing.entries.input.pipe[0].item;
 const debug = plumbing.entries.debug.pipe[0].item;
 // These identities are the defining schemas, not message-based permissions for arbitrary author code.
 const customSchemas = new Map<object, JsonSchema>([
+  [InputActionSchema.options[1], { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9-]*(?:\\.[a-zA-Z0-9-]+)+$' }],
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
@@ -102,7 +104,7 @@ customSchemas.set(toolRow.entries.action.wrapped, { type: 'string', pattern: '^[
 customSchemas.set(RowsSchema.pipe[2].entries.strikes.pipe[0].item.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.-]+$' });
 const unicodeRegexes = new Set<object>([
   plumbing.entries.namespace.pipe[1],
-  input.entries.actions.pipe[0].item.entries.keys.pipe[0].item.pipe[1],
+  InputKeysSchema.pipe[0].item.pipe[1],
   debug.entries.reviewBy.pipe[1],
 ]);
 const stateField = StateSchema.pipe[0].entries.shared.pipe[0].item;
@@ -117,6 +119,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
+  'plumbing.Plumbing': PlumbingSchema,
   'heldArms.ToonArmsLook': ToonArmsLookSchema,
   'npcs.QuestNpcBinding': QuestNpcBindingSchema,
   'questHost.QuestHost': QuestHostSchema,
@@ -295,7 +298,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
           heights: { minItems: count, maxItems: count }, colours: { minItems: count, maxItems: count },
         } })) };
       }
-      if (valibotAction === PlumbingSchema.pipe[1]) {
+      if (valibotAction === PlumbingSchema.pipe[3]) {
         return { ...jsonSchema, 'x-wildshard-checks': ['@wildshard/format/plumbing#plumbingRules'] } satisfies FormatJsonSchema;
       }
       if (valibotAction === StateSchema.pipe[1]) {

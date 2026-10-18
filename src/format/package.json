@@ -182,7 +182,8 @@
     "./toonLook": "./toonLook.ts",
     "./worldScenePlacement": "./worldScenePlacement.ts",
     "./worldSceneBatch": "./worldSceneBatch.ts",
-    "./bodySlots": "./bodySlots.ts"
+    "./bodySlots": "./bodySlots.ts",
+    "./inputDeclarations": "./inputDeclarations.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -133,7 +133,7 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
   const inventory = runtimeWorld ? 0 : source.files.filter(file => shown(file.hash)).length + source.requires.commons.length
     + source.library.filter(shown).length + source.critical.filter(ref => ref !== source.navigation?.file).length;
   return (source.modes?.traverse.length ?? 0) + source.movers.length + source.crowds.length + source.clientScripts.bindings.length + inventory + source.requires.capabilities.length + source.tiles.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.groups.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
-    && source.terrain === null && propsEmpty && source.plumbing === null
+    && source.terrain === null && propsEmpty && (source.plumbing === null || source.plumbing.input.length + source.plumbing.debug.length === 0)
     && audioEmpty && source.look.grade.lut === null
     && source.look.day === undefined && source.look.dayOverride === null;
 }
@@ -208,6 +208,11 @@ export class ShardfileClient {
   }
 
   private async worldData(ctx: ShardContext): Promise<void> {
+    // Quality rows register with the existing tier owner without requesting another simulation.
+    const quality = this.source.plumbing;
+    if (quality !== null && quality.input.length + quality.debug.length === 0) ctx.tiers.knobs({
+      id: `${this.source.identity.slug}.${quality.namespace}`, defaults: Object.fromEntries(quality.knobs.map(row => [row.id, row[TIER]])),
+    });
     if (this.mode === 'empty') return;
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
@@ -316,7 +321,7 @@ export class ShardfileClient {
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
     };
     runtime.buildEquipment = () => {
-      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: this.bindings.items, models: this.itemModels, icon: this.bindings.icon,
+      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, bindings: ctx.app.input.bindings, observation: { get mode() { const actorPlayer = ctx.game.runtime?.world?.player; return actorPlayer === undefined ? 'foot' : playerModes(actorPlayer).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? []; } }, families: this.bindings.items, models: this.itemModels, icon: this.bindings.icon,
         aim: () => ({ origin: world.game.camera.getWorldPosition(new Vector3()), direction: world.game.camera.getWorldDirection(new Vector3()) }),
         runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
           targets: () => ctx.app.combat.targets().map(aimTarget),
@@ -498,9 +503,13 @@ export class ShardfileClient {
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
     const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
 
-    if (source.plumbing !== null) installDeclaredPlumbing(source.plumbing, { handledInput: handledItemInputs(source), instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
-      active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
-    });
+    if (source.plumbing !== null && source.plumbing.input.length + source.plumbing.debug.length > 0) {
+      const plumbing = installDeclaredPlumbing(source.plumbing, { handledInput: handledItemInputs(source), instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
+        active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
+        observation: { get mode() { return playerModes(world.player).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? sim.host.flags.all; } },
+      });
+      if (source.plumbing.input.some(row => row.when !== undefined)) ctx.system({ id: 'declared.input.conditions', phase: 'input', before: ['engine.input.contexts'], run: plumbing.update });
+    }
     installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
     for (const quest of sim.quest.quests) {
       const declaration = source.quests.quests.find((row) => row.id === quest.def.id);

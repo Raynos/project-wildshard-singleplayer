@@ -42,3 +42,31 @@ test('explicit runtime loot ownership leaves inventory alone and does not instal
   new ShardfileClient(stripped, assets, bindings); expect(expected).toBe(0);
   new ShardfileClient({ ...source, runtime: { ...source.runtime, binds: [] } }, assets, bindings); expect(expected).toBe(1);
 });
+
+test.each([false, true])('quality-only rows register once without a data simulation (runtime stages %s)', async runtimeStagesOnly => {
+  const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { absentShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
+    import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
+    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('../src/format/plumbing'),
+  ]);
+  const source = emptyShardfile({ slug: 'harbour', name: 'Harbour', author: 'Test', revision: 1, seed: 1 });
+  source.plumbing = parsePlumbing({ namespace: 'harbour', input: [], debug: [], knobs: [{ id: 'harbour.spray', phone: 0.5, desktop: 0.5 }, { id: 'harbour.shadows', phone: false, desktop: false }] });
+  const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/harbour/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('No asset read expected')), hash: () => Promise.resolve('a'.repeat(64)) });
+  let expected = 0;
+  const bindings = { instance: 'harbour', recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(),
+    icon: () => { throw new Error('No item read expected'); }, onSimulationExpected: () => { expected++; }, trustedRuntime: true, worldOwner: 'runtime' as const, runtimeStagesOnly };
+  const client = new ShardfileClient(source, assets, bindings), app = new App(), scope = new Scope('quality-only');
+  const level = createLevelInstallation(app, scope, {}, () => ({ set: () => { throw new Error('No progress expected'); }, detail: () => { throw new Error('No progress expected'); } }));
+  const manifest = MANIFEST; // Existing typed boot metadata; the admitted fixture stays fictional.
+  const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: {
+    tab: () => { throw new Error('No bag expected'); }, fragment: () => { throw new Error('No bag expected'); },
+  } }, absentShardProduct(source.identity.slug));
+  try {
+    expect(expected).toBe(0);
+    await client.world(ctx); await client.kit(ctx); await client.play(ctx);
+    expect(app.levelRegistrations.knobSchemas()).toEqual([{ id: 'harbour.harbour', defaults: { 'harbour.spray': 0.5, 'harbour.shadows': false } }]);
+    source.plumbing = parsePlumbing({ ...source.plumbing, input: [{ id: 'harbour.horn', priority: 1, actions: [{ id: 'harbour.horn', keys: ['KeyH'] }] }] });
+    new ShardfileClient(source, assets, { ...bindings, runtimeStagesOnly: false }); expect(expected).toBe(1);
+  } finally { scope.dispose(); }
+  expect(app.levelRegistrations.knobSchemas()).toEqual([]);
+});

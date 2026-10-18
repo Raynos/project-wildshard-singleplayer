@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';

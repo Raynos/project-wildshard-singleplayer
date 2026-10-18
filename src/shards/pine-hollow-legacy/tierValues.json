@@ -1,0 +1,20 @@
+{
+  "phone": {
+    "cabinDetailDist": 70,
+    "cabinDetailShadows": false,
+    "sharedCabinLights": true,
+    "undergrowthFar": 60,
+    "undergrowthShadows": false,
+    "propsFar": 220,
+    "propsMinAngular": 0.004
+  },
+  "desktop": {
+    "cabinDetailDist": 160,
+    "cabinDetailShadows": true,
+    "sharedCabinLights": false,
+    "undergrowthFar": 110,
+    "undergrowthShadows": true,
+    "propsFar": 700,
+    "propsMinAngular": 0.0012
+  }
+}

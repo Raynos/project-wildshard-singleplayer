@@ -1,0 +1,94 @@
+{
+  "runtimeCostExact": true,
+  "legacyAdapterCodeLines": 8,
+  "legacyImportCodeDelta": 1,
+  "qualityValuesExact": {
+    "pine": 7,
+    "nine": 2,
+    "sky": 1,
+    "tiers": [
+      "phone",
+      "desktop"
+    ]
+  },
+  "runtimeCostHash": "bb5427ffe18babdb6eb9cc091329255a272fd02a47f11fdbfc0f0a976757e6e0",
+  "legacyImportOnly": [
+    {
+      "path": "src/shards/pine-hollow-legacy/runtime/antlerKing.ts",
+      "original": "2a133099c3acd263eb72163de4678dadb3d29c4645e1a868f3de19a0e10d3433",
+      "redirected": "bbd9c2c16849bbace4439dc29028f190c7124c3b3d08b4bbfa03d2da3439dfde",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/crags.ts",
+      "original": "caec7728ba9a218451acf4a9cdf915d40df7e77a81e66f9a60f0db667ca22a24",
+      "redirected": "c24355c8fc8412ad1f2fef5cd72e3d528c8e9671fb8cccfd1e8ce514abd8a53e",
+      "bodiesIdentical": true,
+      "codeDelta": 1
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/props.ts",
+      "original": "b30fc1c1a17eace14c3bd21aa9f729c13a5232f6c27797e9b2a4df5c4cfce4a3",
+      "redirected": "03e62eb5049d2c04cd75fdab68e6d4be91023acd5760619e5291e80c740f73d2",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/cabins.ts",
+      "original": "e64526c3c2aaec8e88c1b461687d6190ac6de32f792df006a289d4b7fb961a2e",
+      "redirected": "c0530880cac4ea2622602876b2a90a02936558541cbd7d3a8194a52908ffb9c5",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/timber.ts",
+      "original": "6ceff2cde3301523de19985f9f237cbd33958213cf591018963497b98e4bbb42",
+      "redirected": "f009f40edcc239e84e35fb8ebe0a190b0f374f55eb6c9cd9423123d1a6c2c26c",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/homestead.ts",
+      "original": "29a8da8b658e5ea715e6d994ac7cde2090b6a84cde20191ecdacbd7978bd1c03",
+      "redirected": "87a28bfc25bf515af144b6faf6fefe081e1ea48d956a9728d89cd8d4ec118117",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/landmarks.ts",
+      "original": "7526558c2bad693e218ed3383d227112fe4cba4290e8756534690d3c7697a87c",
+      "redirected": "d13004576b6ac618bc543aa6e4bbbfedf00c5e9e45bfda48dd49061465f5f4b0",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/treeFactory.ts",
+      "original": "6897bb2aae744170f77d6d23684b8cca26704f68dbb1c2428c6361c95aaf3912",
+      "redirected": "a55a1b51bcb5240076572975c16f94dde108e6f908ccd658d053f0e74f6cd5f8",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/world/undergrowth.ts",
+      "original": "9a9e01a1c83a4b82108a91e374834a5b612e2a2bad36620ae78cbe310c018728",
+      "redirected": "dec06e46a0316cb5e8c3ba9573475dd5eee1bf691f54a8530f627d9b9b88bd2d",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/models/logCabin.ts",
+      "original": "1f2d460f651363185dd425c227d5014f83059164d202d74ab0fb5e6cef5e8ac9",
+      "redirected": "d7501c651e50f0d2be4fe41dedd9ff7ee3ce93e737df2e9766e0cd9cf42a8381",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    },
+    {
+      "path": "src/shards/pine-hollow-legacy/models/forestTree.ts",
+      "original": "90d97a0fa98f8190a2cb86c1a57bd91d5e7f71cfe43b891371a60949aa8d6ddd",
+      "redirected": "ac9c8ff232e31f57d799839be60e695145dfd46fbb1fceca7395915d85c9f75c",
+      "bodiesIdentical": true,
+      "codeDelta": 0
+    }
+  ]
+}

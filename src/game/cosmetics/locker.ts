@@ -1,3 +1,4 @@
+import { migrateEquipmentSlots, type DeclaredMigrations } from '@wildshard/format/migrations';
 import * as v from 'valibot';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
@@ -7,7 +8,7 @@ import type { SaveSlot } from '@wildshard/engine/saves/store';
 
 export interface CosmeticState { owned: string[]; worn: Record<string, string> }
 export interface CosmeticDef<Slot extends string> { id: string; slot: Slot }
-export interface CosmeticProfile<Slot extends string, Row extends { id: string }> { slot: (row: Row) => Slot; save: Pick<SaveSlot<CosmeticState>, 'read' | 'write'>; autoWear?: boolean }
+export interface CosmeticProfile<Slot extends string, Row extends { id: string }> { slot: (row: Row) => Slot; save: Pick<SaveSlot<CosmeticState>, 'read' | 'write'>; autoWear?: boolean; migrations?: DeclaredMigrations }
 
 const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1,
   schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }),
@@ -26,7 +27,9 @@ export class CosmeticsLocker<Slot extends string, Row extends { id: string }> {
     try {
       const state = profile.save.read(namespace);
       for (const id of state.owned) if (this.rows.has(id)) this.owned.add(id);
-      for (const [slot, id] of Object.entries(state.worn)) {
+      const worn = migrateEquipmentSlots(state.worn, profile.migrations ?? []);
+      if (JSON.stringify(worn) !== JSON.stringify(state.worn)) profile.save.write({ owned: state.owned, worn }, namespace);
+      for (const [slot, id] of Object.entries(worn)) {
         const row = this.rows.get(id);
         if (row !== undefined && profile.slot(row) === slot && this.owned.has(id)) this.worn[this.profile.slot(row)] = id;
       }
@@ -85,7 +88,7 @@ export class CosmeticsLocker<Slot extends string, Row extends { id: string }> {
 
 /** Weapon-material profile, with the original shard-scoped save and manual wear policy. */
 export class SkinLocker extends CosmeticsLocker<WeaponId, SkinDef> {
-  constructor(namespace: string, rows: readonly SkinDef[] = []) {
-    super(namespace, rows, { save: skinSave, slot: (row) => row.weapon });
+  constructor(namespace: string, rows: readonly SkinDef[] = [], migrations: DeclaredMigrations = []) {
+    super(namespace, rows, { save: skinSave, slot: (row) => row.weapon, migrations });
   }
 }

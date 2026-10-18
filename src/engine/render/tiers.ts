@@ -5,7 +5,7 @@ export const TIER_TABLE = {
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     // animals shadow as far as the cascade reaches (E90: at 30 m an animal's shadow switched on in plain view)
-    undergrowthShadows: false, animalShadowDist: 80, animalHideDist: 150, furShells: false,
+    animalShadowDist: 80, animalHideDist: 150, furShells: false,
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,
@@ -27,10 +27,7 @@ export const TIER_TABLE = {
     treeHiDist: 80, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
     grassRadius: 40, grassSlots: 56, grassQuads: 3,
-    undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m
-    // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
-    // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
-    cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
+    beaconLights: false,
     // item pickups (WeaponPickup): the floating item within this, the orb (sphere / rings / motes / sigil) within this
     pickupItemDist: 22, pickupOrbDist: 120,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
@@ -41,7 +38,7 @@ export const TIER_TABLE = {
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
     cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
-    undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
+    animalShadowDist: 90, animalHideDist: 400, furShells: true,
     // PH-P2: an eye is under a pixel past ~20 m at 1600×900 and a hoof tip past ~60 m, so the
     // phone's draw LOD at 1.3–1.5× its distances. ~150 animals × 3 draws were half of the desktop frame;
     // a same-instant A/B at the gate / cabin / lookout / shore (scripts: every rig forced to the LOD, then back) moved
@@ -54,8 +51,7 @@ export const TIER_TABLE = {
     animalShadowBatch: true,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
-    undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
-    cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
+    beaconLights: true,
     // PH-P2: a pickup floats inside cabin 1 and was ~20 draws + 10 shadow from anywhere in the chunk. A
     // same-instant A/B hiding the whole pickup at 26 / 74 / 165 / 253 m, day and night, moved no pixel past the noise
     // (the walls hide it); in the open a 1 m item is ~8 px at 90 m, and the orb stays a beacon to 200 m

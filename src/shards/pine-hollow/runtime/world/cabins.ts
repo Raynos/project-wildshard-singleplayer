@@ -1,3 +1,5 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 /**
  * Pine Hollow's homestead as models (E315 M2; E347: drawn by `place`): the three log cabins, the mill hamlet's five
  * buildings (the set `pine-hollow/mill-hamlet`), and the props, fire pits and lanterns their builders set about.
@@ -18,7 +20,7 @@
 import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import type { Placement } from '@wildshard/engine/models/model';
 import { finishWeld, place, weld, type Placed } from '@wildshard/engine/models/place';
@@ -43,10 +45,10 @@ export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: World
   const { cabins, registry } = h;
   const ctx = pineModels(h.sky);
   useCabins(ctx, cabins, h.scope);
-  const detail = TIER_CONFIG.cabinDetailDist;
+  const detail = plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG);
   // the cabins: each its own unit, their never-hidden materials welded across the three; on the desktop tier each draws its
   // depth near as one proxy (its detail and props included)
-  const cabinWeld = weld({ unit: 'copy', parent: cabins.group, detail, near: TIER_CONFIG.cabinDetailShadows });
+  const cabinWeld = weld({ unit: 'copy', parent: cabins.group, detail, near: plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailShadows', 'boolean', TIER_CONFIG) });
   // the hamlet: one unit, its five buildings in one set under its root
   const hamletWeld = cabins.cluster === null ? null : weld({ unit: 'whole', parent: cabins.group, root: cabins.cluster, pad: cabins.clusterPad, detail });
   const hamlet: Placed[] = [];

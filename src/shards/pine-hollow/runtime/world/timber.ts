@@ -1,3 +1,5 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 /**
  * The timber kit Pine Hollow's landmark models are drawn with (E315 M2; SHARD-PLATFORM W2, the game's library models
  * `@wildshard/game/models/libraryModel`): a copy's draws are its offline bake's rows (one whole geometry per material,
@@ -10,7 +12,7 @@
  * twice it (+ the pad). `place`'s single draw drops each with distance (`userData.until`).
  */
 import type * as THREE from 'three';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryModel';
 import { cabinMats, loadCabinRows, type CabinRowsSchema, type Mats, type MatKey } from './homestead';
@@ -58,8 +60,8 @@ function draws({ identity, row }: TimberCopy): LibraryDraw<MatKey | 'glass'>[] {
 /** A timber model's build and colliders: the copy its params name, its bands padded by `pad` metres (its size). */
 export function timberModel<P extends object>(copy: (params: P) => TimberCopy, pad: number): Pick<ModelDef<P>, 'build' | 'colliders'> {
   const band = (mesh: THREE.Object3D, until: number | undefined): void => {
-    const dd = TIER_CONFIG.cabinDetailDist;
-    if (until === DETAIL) { mesh.userData['until'] = dd + pad; if (!TIER_CONFIG.cabinDetailShadows) mesh.castShadow = false; }
+    const dd = plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG);
+    if (until === DETAIL) { mesh.userData['until'] = dd + pad; if (!plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.cabinDetailShadows', 'boolean', TIER_CONFIG)) mesh.castShadow = false; }
     else if (until === FAR) mesh.userData['until'] = dd * 2 + pad;
   };
   return libraryModel<P, MatKey | 'glass'>({

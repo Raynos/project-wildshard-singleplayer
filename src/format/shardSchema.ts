@@ -270,6 +270,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...nativeGroundRules(s), ...navigationRules(s));
   errors.push(...targetRules(s.targets, s, { panels: s.props?.panels ?? [], colliders: [...s.props?.colliders ?? [], ...s.meshCollision?.panels ?? []] }));
   errors.push(...itemRules(s.items, s.sim.scripts));
+  if (s.migrations.some(step => step.equipmentSlots?.some(rename => !s.items.rows.some(row => row.kind === 'weapon' && row.slot === rename.to)))) errors.push('migration equipment slots resolve declared weapons');
   if ((s.items.runtimeContexts?.length ?? 0) > 0 && s.runtime?.binds?.includes('items') !== true) errors.push('runtime input context references require runtime.binds items');
   if (s.items.rows.some((row) => row.kind === 'tool' && row.action === null) && s.runtime?.binds?.includes('items') !== true) errors.push('native tools require runtime.binds items');
   if (s.modes !== undefined && (s.modes.traverse.some(row => row.kind !== 'ladder') || (s.modes.ride?.length ?? 0) > 0 || (s.modes.grapple?.length ?? 0) > 0) && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require runtime.binds modes until the data client owns their player phase');
@@ -282,8 +283,10 @@ export function shardfileRules(s: Shardfile): string[] {
   }
   if (Math.abs(s.spawn.x) > CHUNK_HALF || Math.abs(s.spawn.z) > CHUNK_HALF || s.spawn.y < -CELL_BELOW || s.spawn.y > CELL_ABOVE) errors.push('player spawn in cell');
   const conditions = new Set(s.hooks.conditions.map((row) => row.id)), scenes = new Set(s.hooks.scenes.map((row) => row.id));
+  const inputConditions = [...(s.plumbing?.input.flatMap(row => [row.when, row.hiddenWhen]) ?? []), ...s.items.contexts.map(row => row.extra?.hiddenWhen)];
+  if (inputConditions.some(when => when !== undefined && (when.item !== undefined && !s.items.rows.some(row => row.id === when.item) || when.flag !== undefined && !s.quests.flags.includes(when.flag)))) errors.push('declared input item and flag observations');
   if (s.quests.triggers.some((row) => row.kind === 'script' && !conditions.has(row.condition)) || s.quests.quests.some((row) => row.onComplete?.scene !== undefined && !scenes.has(row.onComplete.scene)) || s.quests.dialogue.some((row) => row.nodes.some((node) => node.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared quest script hooks');
-  if (s.plumbing !== null && (s.plumbing.input.some((row) => row.actions.some((action) => !scenes.has(action.scene))) || s.plumbing.debug.some((row) => row.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared plumbing scene hooks');
+  if (s.plumbing !== null && (s.plumbing.input.some((row) => row.actions.some((action) => action.scene !== undefined && !scenes.has(action.scene))) || s.plumbing.debug.some((row) => row.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared plumbing scene hooks');
   if (s.hooks.scenes.length + s.hooks.conditions.length > 0 && s.sim.bindings.length === 0) errors.push('named hooks require script bindings');
   errors.push(...scriptBindingRules(s.sim.bindings, s.sim.scripts));
   if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');

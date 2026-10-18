@@ -24,7 +24,7 @@ export interface FightRules { input?: { bufferMs: number; coyoteMs: number }; te
 export interface Bounds { x0: number; x1: number; z0: number; z1: number; floor: number }
 // oxlint-disable-next-line typescript/no-empty-object-type, typescript/no-empty-interface -- Shards declare typed tier knobs through the public engine API.
 export interface TierKnobMap {}
-export interface TierKnobs extends Partial<EngineTierKnobs>, Partial<TierKnobMap> { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
+export interface TierKnobs extends Partial<EngineTierKnobs>, Partial<TierKnobMap>, Partial<Record<`${string}.${string}`, number | boolean>> { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export interface AudioSpec {
   bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean;

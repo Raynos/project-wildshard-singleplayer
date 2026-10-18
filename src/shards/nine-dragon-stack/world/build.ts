@@ -45,7 +45,7 @@ import { placeSquareProps } from './squareProps';
 import { SIGN_MODEL } from '../data/signs';
 import { Shared, jiehuaMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import type { NdTier } from '../tier';
+import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';

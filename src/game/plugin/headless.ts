@@ -1,7 +1,7 @@
 import { publishBoundQuest } from '../quest/boundState';
 import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { installCableModes } from '@wildshard/engine/player/modes';
+import { installCableModes, playerModes } from '@wildshard/engine/player/modes';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';
 import { floorBelow } from '@wildshard/engine/physics/query';
@@ -29,7 +29,7 @@ import { type ShardContext, ShardPlugin } from './context';
 import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
 import { Ledger, LedgerEmitter, type LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
-import { installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
+import { declaredItemContext, installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
 import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
 import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
 import type { ShardProduct } from '../shardfile/shardProduct';
@@ -307,9 +307,11 @@ export function bindRuntimeMelee<W extends ReturnType<RuntimeWeaponFamily['creat
 export function bindRuntimeItemContexts(ctx: ShardContext, source: Shardfile): void {
   requireBound(source, 'items');
   for (const row of source.items.contexts) {
-    const definition = { id: row.id, actions: row.actions, keysFrom: row.keysFrom, touch: { mode: row.touch, lockable: row.lockable, relabel: {} } };
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, { rows: [] });
-    else ctx.inputContext(definition);
+    const definition = declaredItemContext(row, { get mode() { const player = ctx.game.runtime?.world?.player; return player === undefined ? ctx.app.player?.mode ?? 'foot' : playerModes(player).current(); },
+      get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return ctx.game.runtime?.hooks.questFlags?.() ?? []; } });
+    const description = { rows: row.extra?.describe ?? [] };
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
+    else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
   }
 }
 
@@ -506,7 +508,6 @@ export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'run
   }, retire: (animal) => { animals?.retire(animal); } };
 }
 
-type InputDefinition = Parameters<ShardContext['inputContext']>[0];
 type BuildEquipment = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
 /** Existing equipment constructors run in declared order, with optional awaited
  * preparation and pauses. A single held item and a full ranged kit use one path.
@@ -619,7 +620,6 @@ export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0]
 type AnimalBody = NonNullable<Animal>;
 /** The combat targets `buildEquipment` lends a hybrid runtime's weapon. */
 export type HybridTargets = Parameters<BuildEquipment>[0];
-type InputDescription = Parameters<ShardContext['app']['input']['bindings']['describe']>[0];
 /** What a hybrid runtime declares (G345; Signal Dunes and Sky Reach): the host installs it in one fixed order. */
 export interface HybridRuntimeRows {
   /** the debug name captures read it under (`__wildshard.shard.<expose>`) */
@@ -641,7 +641,6 @@ export interface HybridRuntimeRows {
     readonly bounds?: { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number; readonly floor: number };
     readonly pitch?: number;
     readonly itemContexts?: Shardfile | 'source';
-    readonly input?: { readonly definition: InputDefinition; readonly description: InputDescription; readonly hiddenMode?: string };
   };
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
   readonly species: (() => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null }) | {
@@ -995,12 +994,6 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     }
     const contexts = boot?.itemContexts === 'source' ? this.runtimeSource : boot?.itemContexts;
     if (contexts !== undefined) bindRuntimeItemContexts(ctx, contexts);
-    if (boot?.input !== undefined) {
-      const { definition, description, hiddenMode } = boot.input;
-      const verbs = { ...definition.touch?.verbs };
-      for (const [key, verb] of Object.entries(verbs)) if (typeof verb !== 'string') Reflect.set(verbs, key, { ...verb, show: () => ctx.app.state === 'play' && (hiddenMode === undefined || ctx.app.player?.mode !== hiddenMode) });
-      this.input(ctx, { ...definition, ...(definition.touch === undefined ? {} : { touch: { ...definition.touch, verbs } }) }, description);
-    }
     const stowedMode = this.runtimeRows.melee?.stowedMode;
     if (stowedMode !== undefined && this.heldOwner !== null) this.heldOwner.stowed = () => ctx.app.player?.mode === stowedMode;
     this.enter(ctx);
@@ -1048,11 +1041,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   brainWitness(): { id: string; kind: string; family: string | null }[] {
     return this.witnessed().map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.witness?.(actor) ?? null }));
   }
-  /** A runtime's own input definition and key-binding rows: resolved in a retained home, else on the level scope. */
-  protected input(ctx: ShardContext, definition: InputDefinition, description: InputDescription): void {
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
-    else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
-  }
+
 }
 
 /** Bind a boss's original legacy seed once, retaining its admitted state or flag

@@ -123,5 +123,6 @@
   "test/world-scene-batch.test.ts": [],
   "test/pine-crag-scenes.test.ts": [
     "pine-hollow"
-  ]
+  ],
+  "test/declared-input-platform.test.ts": []
 }

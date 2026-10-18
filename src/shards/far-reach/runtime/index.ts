@@ -1,3 +1,4 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
 import SKY_RUNTIME_ROWS from '../data/runtimeRows.generated.json' with { type: 'json' };
 import preparation from '../boot/worldTextures.generated.json' with { type: 'json' };
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -22,15 +23,6 @@ import { bindRuntimeProductProps, prepareClientWorld, type ClientWorldPreparatio
 
 const { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } = windRows;
 
-declare module '@wildshard/engine/input/InputService' {
-  interface ActionMap { 'far.gust': true }
-}
-declare module '@wildshard/engine/level/spec' {
-  interface TierKnobMap { 'far.meadowBlades': number }
-}
-declare module '@wildshard/engine/combat/Equipment' {
-  interface EquipmentSlotMap { 'far-fan': true }
-}
 
 // The authored catalogue bounds both view rosters; each contains fewer than 64 rows.
 const MAX_RUNTIME_ROWS = 64;
@@ -71,9 +63,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
     const built = this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);
-    const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
-    ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
-    const field = meadow(skyMeadowBlades(), SKY_LIBRARY.look('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
+    const field = meadow(skyMeadowBlades(), SKY_LIBRARY.look('meadow'), plumbingKnob(source.plumbing, ctx.app.render?.tier ?? 'phone', 'far.meadowBlades', 'number'));
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');

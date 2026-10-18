@@ -1,3 +1,4 @@
+import plumbing from './data/plumbing.json' with { type: 'json' };
 import identity from './data/identity.json' with { type: 'json' };
 import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
 import skyChannels from './data/skyChannels.generated.json' with { type: 'json' };
@@ -10,7 +11,7 @@ import { parseQuestData } from '@wildshard/sdk/quests';
 import { PINE_RUNTIME_SPAWNS } from './generators/spawns';
 import { PINE_STATE } from './generators/state';
 import { PINE_EDGE_HEIGHTS } from './generators/edges';
-import { PINE_RUNTIME_COST } from './data/runtimeCost';
+import PINE_RUNTIME_COST from './data/runtimeCost.json' with { type: 'json' };
 import looks from './data/lookMaterials.generated.json' with { type: 'json' };
 import timbers from './data/timberWorld.generated.json' with { type: 'json' };
 import people from './data/questNpcs.generated.json' with { type: 'json' };
@@ -27,7 +28,7 @@ const row = (heights: readonly number[]): { heights: number[]; colours: [number,
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
-  ...base, ...timbers.shardfile, props: timbers.props,
+  ...base, ...timbers.shardfile, plumbing, props: timbers.props,
   files: [...timbers.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
   // Six admitted one-page v1 images reserve live and rewind copies.
   budgets: { ...base.budgets, sim: { resident: 12*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },

@@ -5,7 +5,7 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import { loadTexture, loadPBR, loadPBRArray } from '@wildshard/engine/core/assets';
 import { markGpuOnly } from '@wildshard/engine/core/gpuOnly';
 import { Rng } from '@wildshard/engine/core/rng';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG } from '../tier';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';

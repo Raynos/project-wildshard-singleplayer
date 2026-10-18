@@ -1,0 +1,12 @@
+{
+  "namespace": "far",
+  "input": [],
+  "knobs": [
+    {
+      "id": "far.meadowBlades",
+      "phone": 1600,
+      "desktop": 3200
+    }
+  ],
+  "debug": []
+}

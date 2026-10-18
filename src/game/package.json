@@ -189,7 +189,8 @@
     "./looks/streamedCover": "./looks/streamedCover.ts",
     "./looks/toonLighting": "./looks/toonLighting.ts",
     "./looks/toonLook": "./looks/toonLook.ts",
-    "./quest/effects": "./quest/effects.ts"
+    "./quest/effects": "./quest/effects.ts",
+    "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

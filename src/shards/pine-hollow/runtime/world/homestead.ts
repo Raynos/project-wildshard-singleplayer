@@ -1,9 +1,10 @@
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
 import { memoUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
@@ -15,7 +16,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { loadPainted } from '../looks/paintedTextures';
 import * as v from 'valibot';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, lentMappedLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
@@ -232,7 +233,7 @@ export class Cabins {
     lifeRows.lamps.push({ material: this.resources.lend(mats.glass), full: mats.glass.emissiveIntensity });
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < Math.min(CABIN_LIGHT.count, MAX_SHARED_LIGHTS); k++) lifeRows.shared.push(this.resources.lend(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay)));
+    if (plumbingKnob(slugRuntimeProduct('pine-hollow')?.source.plumbing, buildTier(), 'pine.sharedCabinLights', 'boolean', TIER_CONFIG)) for (let k = 0; k < Math.min(CABIN_LIGHT.count, MAX_SHARED_LIGHTS); k++) lifeRows.shared.push(this.resources.lend(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay)));
     this.life.add(lifeRows);
     if (geometries === null) return { group: this.group, interactables: this.interactables };
     const models = { firePit: rigRoot(firePitGltf), lantern: rigRoot(lanternGltf) };

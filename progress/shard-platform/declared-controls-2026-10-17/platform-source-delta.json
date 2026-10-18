@@ -1,0 +1,82 @@
+{
+  "basis": "canonical nonblank/comment-free tracked platform source delta; evaluated in exact candidate mirror",
+  "parent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "candidate": "01e24e8a97fcbe41d0a9445c3ebc5bdb2d935762",
+  "delta": {
+    "engine": 4,
+    "game": 70,
+    "sdk": 3
+  },
+  "files": [
+    {
+      "path": "src/engine/core/tier.ts",
+      "before": 66,
+      "after": 71
+    },
+    {
+      "path": "src/engine/explore/tiers.ts",
+      "before": 15,
+      "after": 16
+    },
+    {
+      "path": "src/engine/input/InputService.ts",
+      "before": 268,
+      "after": 268
+    },
+    {
+      "path": "src/engine/level/spec.ts",
+      "before": 100,
+      "after": 100
+    },
+    {
+      "path": "src/engine/render/tiers.ts",
+      "before": 33,
+      "after": 31
+    },
+    {
+      "path": "src/game/cosmetics/locker.ts",
+      "before": 82,
+      "after": 85
+    },
+    {
+      "path": "src/game/grid/regionalRuntime.ts",
+      "before": 287,
+      "after": 287
+    },
+    {
+      "path": "src/game/plugin/headless.ts",
+      "before": 923,
+      "after": 912
+    },
+    {
+      "path": "src/game/plugin/weaponFamily.ts",
+      "before": 564,
+      "after": 566
+    },
+    {
+      "path": "src/game/session/play.ts",
+      "before": 592,
+      "after": 592
+    },
+    {
+      "path": "src/game/shard/declaredPlumbing.ts",
+      "before": 30,
+      "after": 71
+    },
+    {
+      "path": "src/game/shardfile/client.ts",
+      "before": 475,
+      "after": 483
+    },
+    {
+      "path": "src/game/shardfile/items.ts",
+      "before": 107,
+      "after": 134
+    },
+    {
+      "path": "src/sdk/formatJsonSchema.ts",
+      "before": 381,
+      "after": 384
+    }
+  ]
+}

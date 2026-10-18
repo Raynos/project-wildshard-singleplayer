@@ -1,0 +1,13 @@
+[
+  {
+    "from": 1,
+    "to": 2,
+    "fields": [],
+    "equipmentSlots": [
+      {
+        "from": "far-fan",
+        "to": "declared.weapon.far-reach.fan"
+      }
+    ]
+  }
+]

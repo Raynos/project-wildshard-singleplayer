@@ -16,7 +16,9 @@
 import type { DataArrayTexture } from 'three';
 import { loadPaintArray, paintArrayPlaceholder } from '../runtime/looks/paintArray';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
-import { paintSize, type NdTier } from '../tier';
+import type { Tier as NdTier } from '@wildshard/engine/core/tier';
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { LAYERS, PAINT_UNIFORMS, SURF as PAINT_SURF } from '../runtime/looks/paint';
 
 // SHARD-PLATFORM M3: the layers, the surfaces, the flagstone layout, the uniforms' rows and the GLSL are data
@@ -33,7 +35,7 @@ export function paintPlaceholder(): DataArrayTexture { return paintArrayPlacehol
 
 /** load every layer (`base` = the folder URL) into one mipmapped RGBA8 array */
 export function loadPaint(base: string, anisotropy: number, tier: NdTier, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
-  return loadPaintArray(base, LAYERS, paintSize(tier), anisotropy, 'Nine Dragon paint array (GPU only)', onLayer);
+  return loadPaintArray(base, LAYERS, plumbingKnob(slugRuntimeProduct('nine-dragon-stack')?.source.plumbing, tier, 'nine.paintSize', 'number'), anisotropy, 'Nine Dragon paint array (GPU only)', onLayer);
 }
 
 /** the paint uniforms (merged into Shared.u so every world program sees one object): the array and data/paint.ts' rows */

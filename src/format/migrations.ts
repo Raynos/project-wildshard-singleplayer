@@ -1,3 +1,4 @@
+import { isJsonData } from './json';
 import * as v from 'valibot';
 
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
@@ -18,19 +19,37 @@ const operation = v.variant('op', [
   v.strictObject({ op: v.literal('map'), scope, id: positive, type: fieldType,
     values: v.pipe(v.array(v.strictObject({ from: scalar, to: scalar })), v.minLength(1), v.maxLength(256)), fallback: v.picklist(['keep', 'reject']) }),
 ]);
+const equipmentSlot = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(256));
+const slotRename = v.strictObject({ from: equipmentSlot, to: v.pipe(equipmentSlot, v.regex(/^declared\.weapon\.[a-z][a-zA-Z0-9.-]*$/u)) });
 /** Sequential state-version rows are pure data. asHook is reserved and must remain null until an admitted AS migration ABI exists. */
-export const MigrationsSchema = v.pipe(v.array(v.strictObject({ from: positive, to: positive,
-  fields: v.pipe(v.array(operation), v.maxLength(256)), asHook: v.optional(v.null(), null) })), v.maxLength(64),
+export const MigrationsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Migrations require plain JSON'), v.array(v.strictObject({ from: positive, to: positive,
+  fields: v.pipe(v.array(operation), v.maxLength(256)), equipmentSlots: v.exactOptional(v.pipe(v.array(slotRename), v.maxLength(64))), asHook: v.optional(v.null(), null) })), v.maxLength(64),
   v.check((rows) => new Set(rows.map((row) => row.from)).size === rows.length && rows.every((row) => row.to === row.from + 1), 'Unique consecutive migration versions'),
   v.check((rows) => rows.every((row) => {
     const identity = (field: v.InferOutput<typeof operation>) => `${field.scope}/${field.op === 'default' ? field.field.id : field.id}`;
     const keys = row.fields.map((field) => `${identity(field)}/${field.op}`);
-    return new Set(keys).size === keys.length && row.fields.every((field) => field.op !== 'map'
+    return new Set((row.equipmentSlots ?? []).map(slot => slot.from)).size === (row.equipmentSlots?.length ?? 0)
+      && (row.equipmentSlots ?? []).every(slot => slot.from !== slot.to)
+      && new Set(keys).size === keys.length && row.fields.every((field) => field.op !== 'map'
       || new Set(field.values.map((value) => JSON.stringify(value.from))).size === field.values.length)
       && row.fields.every((field) => (field.op !== 'drop' && field.op !== 'default') || row.fields.filter((other) => identity(other) === identity(field)).length === 1);
   }), 'Unique migration edits and value sources; drop/default cannot combine with other edits'));
 /** Author migration rows accepted by both build-time admission and browser loading. */
 export type DeclaredMigrations = v.InferOutput<typeof MigrationsSchema>;
+/** Rename persisted equipment-slot keys before the cosmetics owner filters them against current rows.
+ * Canonical keys win when an interrupted upgrade left both names. Repeated loads are idempotent. */
+export function migrateEquipmentSlots(input: Readonly<Record<string, string>>, migrations: DeclaredMigrations): Record<string, string> {
+  if (!isJsonData(input)) throw new Error('Saved slots require plain data');
+  const worn = { ...input };
+  for (const step of [...parseMigrations(migrations)].sort((a, b) => a.from - b.from)) for (const row of step.equipmentSlots ?? []) {
+    if (!Object.hasOwn(worn, row.from)) continue;
+    const value = worn[row.from];
+    if (value === undefined) continue;
+    if (!Object.hasOwn(worn, row.to)) worn[row.to] = value;
+    delete worn[row.from];
+  }
+  return worn;
+}
 /** Target declarations supply additive defaults and constrain every migrated value. */
 export interface MigrationFieldDeclaration {
   id: number; name: string; type: 'bool' | 'i32' | 'f64' | 'string'; default: number | boolean | string; min?: number | undefined; max?: number | undefined;

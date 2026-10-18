@@ -1,3 +1,6 @@
+import { isJsonData } from '@wildshard/format/json';
+import type { InputContextDef } from '@wildshard/engine/level/context';
+import { inputWhenMatches, inputExtraRules, type InputObservation } from '@wildshard/format/inputDeclarations';
 import * as v from 'valibot';
 import { ItemRuntime, type ItemPorts, type ItemSpec } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
@@ -10,7 +13,22 @@ import type { AimCommand } from '@wildshard/engine/input/commands';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ScriptEntity } from '@wildshard/engine/script/effects';
 
-import { ItemFamilyNameSchema as name, parseItems, type ShardItems } from '@wildshard/format/items';
+import { ItemContextSchema, ItemFamilyNameSchema as name, parseItems, type ShardItems } from '@wildshard/format/items';
+
+/** Extend an admitted weapon context with bounded author rows. Observations come from the session owner. */
+export function declaredItemContext(row: ShardItems['contexts'][number], observation?: InputObservation): InputContextDef {
+  if (!isJsonData(row)) throw new Error('Item input requires plain rows');
+  v.assert(ItemContextSchema, row);
+  if (inputExtraRules(row.extra, row.actions, row.id.split('.')[0] ?? row.id).length > 0) throw new Error('Invalid item input references');
+  const extra = row.extra;
+  if (extra?.hiddenWhen !== undefined && observation === undefined) throw new Error('Conditional item input requires host observations');
+  const show = (): boolean => extra?.hiddenWhen === undefined || observation !== undefined && !inputWhenMatches(extra.hiddenWhen, observation);
+  return { id: row.id, actions: [...row.actions, ...(extra?.actions ?? []).map(action => action.id)], keysFrom: row.keysFrom,
+    ...(extra?.actions === undefined ? {} : { keys: Object.fromEntries(extra.actions.filter(action => action.keys !== undefined).map(action => [action.id, action.keys])) }),
+    ...(extra?.blocks === undefined ? {} : { blocks: extra.blocks }),
+    touch: { mode: row.touch, lockable: row.lockable, relabel: extra?.relabel ?? {},
+      ...(extra?.verbs === undefined ? {} : { verbs: Object.fromEntries(Object.entries(extra.verbs).map(([slot, verb]) => [slot, { ...verb, show }])) }) } };
+}
 
 /** Build trusted item-handle aliases for the one script lane; actor identity comes from the host session. */
 export function declaredItemScriptEntities(input: unknown, actorId: string): { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> } {
@@ -34,6 +52,8 @@ export interface DeclaredItemPorts {
   shardFamilies?: { readonly slug: string; readonly families: ReadonlyMap<string, ItemFamily> };
   /** `runtime`: a hybrid runtime registers the declared input contexts through its own entered-input path (hybridRows.ts). */
   contexts?: 'install' | 'runtime';
+  observation?: InputObservation;
+  bindings?: Pick<InputService['bindings'], 'describe'>;
 }
 /** Merge a trusted shard's own item families over the kit's, refusing a foreign or shadowing name. */
 export function shardItemFamilies(kit: ReadonlyMap<string, ItemFamily>, shard: NonNullable<DeclaredItemPorts['shardFamilies']>): ReadonlyMap<string, ItemFamily> {
@@ -62,6 +82,12 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
   const data = parseItems(input);
   if (data.rows.some(nativeTool) && ports.contexts !== 'runtime') throw new Error('Native tools require runtime-owned items');
   const runtimeContexts = data.runtimeContexts ?? [];
+  if (ports.contexts !== 'runtime') {
+    for (const row of data.contexts) {
+      declaredItemContext(row, ports.observation);
+      if ((row.extra?.describe?.length ?? 0) > 0 && ports.bindings === undefined) throw new Error('Item binding descriptions require the session binding owner');
+    }
+  }
   if (runtimeContexts.length > 0 && ports.contexts !== 'runtime') throw new Error('Existing runtime input contexts require a runtime-owned items installer');
   for (const id of runtimeContexts) if (!ports.input.has(id)) throw new Error(`Unresolved runtime input context ${id}`);
   const resolved = ports.shardFamilies === undefined ? ports.families : shardItemFamilies(ports.families, ports.shardFamilies);
@@ -87,7 +113,10 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
   const scope = ports.scope.child('declared-items');
   const weapons = new Map<string, Weapon>(), tools = new Map<string, Tool>(), runtimes = new Map<string, ItemRuntime>();
   try {
-    if (ports.contexts !== 'runtime') for (const ctx of data.contexts) ports.input.register({ id: ctx.id, actions: ctx.actions, keysFrom: ctx.keysFrom, touch: { mode: ctx.touch, lockable: ctx.lockable, relabel: {} } }, scope);
+    if (ports.contexts !== 'runtime') for (const ctx of data.contexts) {
+      ports.input.register(declaredItemContext(ctx, ports.observation), scope);
+      if (ctx.extra?.describe !== undefined) ports.bindings?.describe({ rows: ctx.extra.describe }, scope);
+    }
     for (const [index, declaration] of data.rows.entries()) {
       const family = families[index], icon = icons[index]; if (family === undefined || icon === undefined) throw new Error('Missing resolved item');
       const deps = runtimePorts[index]; if (deps === undefined) throw new Error('Missing resolved runtime');

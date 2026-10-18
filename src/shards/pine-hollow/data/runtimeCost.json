@@ -1,0 +1,17 @@
+{
+  "webContentMB": 533.958808,
+  "glMB": 316.131094,
+  "engineBaseMB": 299,
+  "residentBaseMB": 670.843114,
+  "rev": "9f0245c60e20b30ac6200fee6c233e48a5052ac1",
+  "device": "iOS Simulator Safari compressed matched pre-entry increment, three cold runs",
+  "evidence": "progress/memory/g258-accounting/summary.json",
+  "imagesFirst": {
+    "webContentMB": 569.49544,
+    "glMB": 622.7,
+    "engineBaseMB": 299,
+    "rev": "6c0aaea4f",
+    "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+    "evidence": "progress/memory/sf22a-refresh-6c0aaea4f/summary.json"
+  }
+}

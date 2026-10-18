@@ -1,3 +1,4 @@
+import { InputExtraSchema, inputExtraRules } from './inputDeclarations';
 import { BodyLaunchSchema, NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
 import { ClaimedPickupSchema } from './lootEconomy';
 import * as v from 'valibot';
@@ -49,11 +50,12 @@ const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family:
   light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
-const context = v.variant('keysFrom', [
-  v.strictObject({ id: name, keysFrom: v.literal('weapon.melee'), actions: v.tuple([v.literal('attack'), v.literal('heavy'), v.literal('lock')]), touch: v.literal('melee'), lockable: v.boolean() }),
-  v.strictObject({ id: name, keysFrom: v.literal('weapon.ranged'), actions: v.tuple([v.literal('attack'), v.literal('aim'), v.literal('reload')]), touch: v.literal('ranged'), lockable: v.boolean() }),
-  v.strictObject({ id: name, keysFrom: v.literal('weapon.bow'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('bow'), lockable: v.boolean() }),
-  v.strictObject({ id: name, keysFrom: v.literal('weapon.spear'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('throwing'), lockable: v.boolean() }),
+/** The closed baseline weapon context with optional declared controls. */
+export const ItemContextSchema = v.variant('keysFrom', [
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.melee'), actions: v.tuple([v.literal('attack'), v.literal('heavy'), v.literal('lock')]), touch: v.literal('melee'), lockable: v.boolean(), extra: v.exactOptional(InputExtraSchema) }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.ranged'), actions: v.tuple([v.literal('attack'), v.literal('aim'), v.literal('reload')]), touch: v.literal('ranged'), lockable: v.boolean(), extra: v.exactOptional(InputExtraSchema) }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.bow'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('bow'), lockable: v.boolean(), extra: v.exactOptional(InputExtraSchema) }),
+  v.strictObject({ id: name, keysFrom: v.literal('weapon.spear'), actions: v.tuple([v.literal('attack'), v.literal('aim')]), touch: v.literal('throwing'), lockable: v.boolean(), extra: v.exactOptional(InputExtraSchema) }),
 ]);
 const baselineContexts = new Set(['weapon.melee', 'weapon.ranged', 'weapon.bow', 'weapon.spear']);
 /** Saved inventory policy consumed unchanged by the existing native stacking/trade owner. */
@@ -66,7 +68,7 @@ const inventory = v.pipe(v.strictObject({ kinds: v.pipe(v.array(name), v.minLeng
 const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
   launches: v.exactOptional(v.pipe(v.record(name, BodyLaunchSchema), v.maxEntries(64))),
   pickups: v.exactOptional(v.pipe(v.record(name, ClaimedPickupSchema), v.maxEntries(128))),
-  contexts: v.pipe(v.array(context), v.maxLength(64)),
+  contexts: v.pipe(v.array(ItemContextSchema), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
   loadout: v.strictObject({ runtime: v.exactOptional(v.strictObject({
     pause: v.boolean(), sliceMs: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(1000))),
@@ -162,6 +164,7 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
   if (weapons.some(row => row.ranged !== undefined && (row.native !== undefined || (row.profile?.family !== 'bow' && row.profile?.family !== 'firearm')))) errors.push('native ranged requires its admitted weapon profile');
   if (new Set(nativeSteps).size !== nativeSteps.length) errors.push('unique native melee steps');
   if (items.rows.some((row) => row.kind === 'tool' && row.action === null && row.hook !== null)) errors.push('native tools have no script hook');
+  for (const ctx of items.contexts) errors.push(...inputExtraRules(ctx.extra, ctx.actions, ctx.id.split('.')[0] ?? ctx.id));
   if (items.contexts.some((ctx) => baselineContexts.has(ctx.id))) errors.push('baseline context is referenced rather than redeclared');
   if (new Set(runtimeContexts).size !== runtimeContexts.length || runtimeContexts.some((id) => items.contexts.some((ctx) => ctx.id === id))) errors.push('unique runtime context references separate from declared contexts');
   if (new Set(ids).size !== ids.length || new Set(weapons.map((r) => r.slot)).size !== weapons.length
