@@ -56,30 +56,3 @@ export const ropeCoil = cargoModel<CoilParams>({
   build: (ctx, p) => cargoSpecimen(ctx, 'driftwood-isle/rope-coil', 'coil', p.r / 0.3),
 });
 
-export interface DriftLogParams {
-  /** length, metres */
-  readonly len: number;
-  /** radius at either end */
-  readonly r0: number;
-  readonly r1: number;
-  /** body tone (0–2) */
-  readonly tone: number;
-}
-
-/** each tone's baked template and the log it was baked at (generators/driftLogs.ts DRIFT_SPECIMENS) */
-const DRIFT_LOG_TEMPLATES = [
-  { kind: 'long', len: 4, r0: 0.26 }, { kind: 'short', len: 2.6, r0: 0.18 }, { kind: 'pale', len: 4, r0: 0.26 },
-] as const;
-
-export const driftLog = cargoModel<DriftLogParams>({
-  id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature',
-  defaults: { len: 4, r0: 0.26, r1: 0.19, tone: 0 },
-  variants: [
-    { id: 'long', label: 'Long', params: {} }, { id: 'short', label: 'Short', params: { len: 2.6, r0: 0.18, r1: 0.12, tone: 1 } },
-    { id: 'pale', label: 'Pale', params: { tone: 2 } },
-  ],
-  build: (ctx, p) => {
-    const t = DRIFT_LOG_TEMPLATES[((Math.round(p.tone) % 3) + 3) % 3] ?? DRIFT_LOG_TEMPLATES[0], sx = p.len / t.len, sr = p.r0 / t.r0;
-    return specimen(ctx, `driftwood-isle/drift-log:${t.kind}:${sx}:${sr}`, fixedDraw(fixedGeometryGroups().driftLogs[t.kind]), sx, sr, sr);
-  },
-});

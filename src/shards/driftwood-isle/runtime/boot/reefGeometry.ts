@@ -2,7 +2,6 @@ import { driftwoodRows } from './rows';
 import { Mesh, type Material } from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { decodeFoliageWorld } from './foliageGeometry';
 import { readDriftwoodBlob } from './blobAssets';
 import type { ReefKind, ReefParams } from '../models/reef';
 
@@ -19,8 +18,3 @@ export function reefSpecimen(kind: ReefKind, params: ReefParams, material: Mater
     const mesh = new Mesh(intake.take(), material); mesh.receiveShadow = true; return mesh;
   });
 }
-const layout = {magic: 0x31464552, channels: [['position', 3], ['color', 3], ['aSway', 2]]} as const;
-/** Retain the original full-copy boxes and independently disposable native wind channels. */
-export function decodeReefWorld(input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> { return decodeFoliageWorld(input, copies, layout); }
-/** A one-to-one owned replacement, with no retained geometry template. */
-export async function loadReefWorld(copies: number): Promise<ReturnType<typeof decodeReefWorld>> { return decodeReefWorld(await readDriftwoodBlob('draw:reef:world'), copies); }

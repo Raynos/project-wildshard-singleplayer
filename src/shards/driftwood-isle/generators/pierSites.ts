@@ -3,8 +3,8 @@ import {PIER,JETTIES} from '../world/sites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { LOWERED_SEA } from '../world/sea';
 import { PIER_START } from './sea';
-import authoredPierRows from '../data/pierRows.json' with { type: 'json' };
-import type {PierSpec,PierParams} from '../assets/contracts/pier';
+import authoredPierRows from './pierRows.json' with { type: 'json' };
+import type {PierSpec,PierParams} from './pierContract';
 
 const { PIER_PENNANT_AT } = authoredLayout;
 const { PENNANT_WIND } = authoredPierRows;

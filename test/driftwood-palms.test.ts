@@ -1,18 +1,12 @@
 // @vitest-environment happy-dom
-import { expect, it, vi } from 'vitest';
-import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
-import { TIER } from '@wildshard/engine/core/tier';
-import { Rng } from '@wildshard/engine/core/rng';
-import { modelContext, seedOf } from '@wildshard/engine/models/model';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { namedModelProduct } from './fixtures/namedModelProduct';
-import { palm } from '../src/shards/driftwood-isle/runtime/models/palm';
-import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
+import { expect, it } from 'vitest';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
-import { decodePalmWorld } from '../src/shards/driftwood-isle/runtime/boot/palmGeometry';
+import { decodePalmWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
+import { palm } from '../src/shards/driftwood-isle/generators/foliageModels';
+import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
+import { Rng } from '../src/engine/core/rng';
+import { seedOf } from '../src/engine/models/model';
 
-const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 
 it('owns compacted palm channels independently while retaining full picking bounds and refusing corrupt data', () => {
   const shape = palmGeometry(palm.defaults, new Rng(seedOf(palm))), vertices = shape.getAttribute('position').count;
@@ -35,30 +29,3 @@ it('owns compacted palm channels independently while retaining full picking boun
   } finally { geometry.dispose(); shape.dispose(); }
 });
 
-it('loads each authored Explorer palm with its swaying kit material', async () => {
-  const material = new MeshStandardMaterial(), ctx = modelContext(null);
-  ctx.once('driftwood-isle/palm:material', () => material);
-  const emitted = new Map<string, Uint8Array>();
-  for (const variant of palm.variants ?? []) {
-    if (variant.id !== 'tall' && variant.id !== 'young' && variant.id !== 'leaning') throw new Error('Unexpected palm');
-    const geometry = palmGeometry({...palm.defaults, ...variant.params}, new Rng(seedOf(palm)));
-    emitted.set(`draw:palms:${TIER === 'phone' ? 'phone' : 'desktop'}:${variant.id}`, staticGlb([{geometry, material, customAttributes: {_SWAY: 'sway'}, compactIndex: true}])); geometry.dispose();
-  }
-  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
-  try {
-    for (const variant of palm.variants ?? []) {
-      const ready = new Promise<void>(resolve => { document.addEventListener('ws:model-ready', () => resolve(), {once: true}); });
-      const built = palm.build(ctx, {...palm.defaults, ...variant.params}, new Rng(seedOf(palm)));
-      if (Array.isArray(built) || !('children' in built)) throw new Error('Palm must load its owned specimen');
-      await ready;
-      const mesh = built.children[0];
-      if (!(mesh instanceof Mesh)) throw new Error('Palm mesh absent');
-      const geometry: unknown = mesh.geometry;
-      if (!isGeometry(geometry)) throw new Error('Palm geometry absent');
-      expect(mesh.material).toBe(material);
-      expect(geometry.getAttribute('aSway').count).toBe(geometry.getAttribute('position').count);
-      geometry.dispose();
-    }
-    expect(() => palm.build(ctx, {...palm.defaults, h: 12}, new Rng(1))).toThrow('no authored geometry');
-  } finally { mocked.mockRestore(); material.dispose(); }
-});

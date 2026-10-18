@@ -7069,6 +7069,8 @@ content facts. G441's W3 match is Nalati's worn-skin grant selection in
 rectangles with x/z centre, half extents hw/hd, height y and optional rot (zero when absent). Rotation uses the
 BoxSpec negative-Y convention and the existing scalar inverse transform. `first` preserves authored priority;
 `highest` returns the uppermost matching floor; no match returns undefined. It creates no collision or clock.
+An optional `profile` supplies two to eight ordered `[localZ, halfWidth, relativeY]` knots.
+The contact evaluator interpolates width and height within the profile and returns no floor beyond either end.
 Pine keeps its floor rows and registration owners; Nine `world/floorRows.ts#entryDeckFloor` is the G441 W3
 adoption of its inclusive entry-slab loop, with first-match policy and the existing zero deck height.
 
@@ -9417,7 +9419,12 @@ named JSON blobs (`{ id, file }`), admitted independently before construction.
 the named row once, in the caller's world-build order, through the existing
 model placement host. It publishes `<id>.root` and `<id>.colliders` into the
 same SceneHandles registry. The `forest` cull view, numeric or per-tier distance and angular-size
-policies, and split-registration pacing are explicit row choices.
+policies, `piece.follows: 'copy'`, and split-registration pacing are explicit row choices.
+`handles.floorAt(id, x, z)` queries the same admitted floor the placement lends to its registry piece.
+Owned world-scene model files may be `{ phone, desktop }` references; only
+the active tier is decoded, including cold Explorer admission. A placement's
+`drawnInto: { part, boxes }` borrows a published SceneHandles object and its
+authored six-number box per copy. It performs no mesh rebuild or merge.
 Preplaced contacts replace model-contact calculation for that world placement;
 the model's original local contacts remain available to Explorer specimens.
 No shard callback, private owner path, geometry builder or gameplay rule enters

@@ -2003,3 +2003,16 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 /src/shards/pine-hollow/assets/timber-scenes/
 /src/shards/pine-hollow/data/timberScenes.generated.json
+
+# Native static world author outputs.
+/src/shards/driftwood-isle/assets/foliage-scenes/
+/src/shards/driftwood-isle/data/foliageScenes.generated.json
+/src/shards/driftwood-isle/data/pierScenes.generated.json
+
+# Native bridge instance units.
+/public/assets/driftwood-isle/baked/fixed-models/bridge-plank-unit.glb
+/public/assets/driftwood-isle/baked/fixed-models/bridge-rope-unit.glb
+/src/shards/driftwood-isle/assets/7f1f11186487f7923e3427f9cc12b2dbaeca82af51fbd206b891ddbb3a1d2d07
+/src/shards/driftwood-isle/assets/303ecc4de26a41d26858856033f57c36d06425ebdae7a11ca03663934f6dc025
+/src/shards/driftwood-isle/assets/b305b97bedf72b1bc4e504b3dcc9b22f600611a26a8240a569a767d44630ed33
+/src/shards/driftwood-isle/assets/bc225a74f0ad9f224255681f74c718408d037102c4cc7bcf3ee2d64025c3430a

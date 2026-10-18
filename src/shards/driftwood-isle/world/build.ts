@@ -1,5 +1,5 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct, driftwoodTierShadows } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot/blobAssets';
@@ -11,7 +11,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { barrel, crate, ropeCoil, driftLog } from '../runtime/models/cargo';
+import { barrel, crate, ropeCoil } from '../runtime/models/cargo';
 import { shipwreck, sites, fencePost, signpost, plankStep, shoreBoulder, reefRock } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -23,19 +23,21 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { JETTIES, BRIDGE } from '../world/sites';
 import manifest from '../discovery.generated';
 import { Ocean, loadOcean } from './Ocean';
-import { Pier } from './Pier';
-import { Boat } from './Boat';
+import { MooringLines } from '../runtime/props/mooringLines';
 import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { placeIslandBushes } from './Bushes';
+import { updateWind } from '@wildshard/engine/world/wind';
+import { reefMaterial } from '../runtime/models/reef';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
+import SEABED from '../data/seabedLook.json' with { type: 'json' };
+import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
-import { buildSeabed, type Seabed } from './Seabed';
-import { placeIslandPalms, type PalmSpec } from './Palms';
+import type { CustomSections } from '../runtime/productSections.generated.d.ts';
 import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import type { BlenderIsland } from './BlenderIsland';
@@ -45,6 +47,11 @@ import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
 import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
+interface Pier { placed: Placed; group: THREE.Object3D; colliders: Collider[]; floorHeightAt: (x: number, z: number) => number | undefined }
+interface Boat { placed: Placed; group: THREE.Object3D; ropes: THREE.Mesh; colliders: Collider[]; refreshPose: () => void; floorHeightAt: (x: number, z: number) => number | undefined }
+interface Seabed { mesh: THREE.Mesh; fish: THREE.InstancedMesh; tick: (dt: number) => void }
+type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
+
 const ENTRY_LANDINGS = entryLandingRows.rows;
 type EntryLanding = (typeof entryLandingRows.rows)[number];
 
@@ -53,9 +60,9 @@ type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
-  hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: Awaited<ReturnType<typeof placeIslandBushes>> | null;
+  hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
   gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
-  palmSpecs: PalmSpec[]; cove: Cove | null; palms: Awaited<ReturnType<typeof placeIslandPalms>> | null; cover: GroundCover | null;
+  palmSpecs: PalmSpec[]; cove: Cove | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
@@ -108,7 +115,13 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
-  const pier = new Pier(sky, 0).place(registry, 'pier');
+  const placePier = async (id: string): Promise<Pier> => {
+    const row = rockMetadata.piers.find(candidate => candidate.id === id);
+    if (row === undefined) throw new Error(`Missing authored pier: ${id}`);
+    const placed = await scenes.place(id);
+    return { placed, group: placed.object, colliders: structuredClone(row.boxes), floorHeightAt: (x, z) => scenes.floorAt(id, x, z) };
+  };
+  const pier = await placePier('piers.world-0');
   // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the
   // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'stone',
@@ -123,9 +136,11 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
-  const boat = new Boat(sky).place(registry);
+  const boatPlaced = await scenes.place('harbour.boat'), moorings = new MooringLines(scenes.mesh('moorings.mesh'), [fixed.boat.cleats[0], fixed.boat.cleats[1]]);
+  const boat = { placed: boatPlaced, group: boatPlaced.object, ropes: moorings.mesh, floorHeightAt: (x: number, z: number) => scenes.floorAt('harbour.boat', x, z), colliders: fixed.boat.walls.map(row => ({ ...row, rot: -0 })),
+    refreshPose: () => { moorings.lift(boatPlaced.object.position.y - fixed.boat.spec.waterY, Math.sin(boatPlaced.object.rotation.x)); } };
   statics.push(...boat.colliders);
-  if (boat.ropes) game.scene.add(boat.ropes);
+  game.scene.add(moorings.mesh);
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.
@@ -145,15 +160,15 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const lookout = await stages.build('Lookout', () => sites.site('lookout', 'world', sharedModelContext(sky, game), registry), { values: value => value.colliders });
   // E315 M1: the declared shipwreck model with the cove's cargo, drift logs and reef
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
-  const wreck = await stages.build('Wreck', () => {
+  const wreck = await stages.build('Wreck', async () => {
     const group = scenes.group('wreck.root'), row = wreckBake, ctx = modelContext(sky), floorHeightAt = (x: number, z: number) => floorAtRects(row.floors, x, z, 'first');
     const placed = [place(shipwreck, [{ x: row.spec.x, y: row.floorY, z: row.spec.z, yaw: row.spec.heading, params: { site: row.spec } }], { ctx, draw: 'merged', registry,
       drawnInto: { object: group, boxes: Float32Array.from(row.shipBox), colliders: readColliderRows(row.descs, { kinds: ['box', 'capsule', 'treads'], surfaces: [] }) }, piece: { id: 'wreck', floor: floorHeightAt, solidFloor: true } })];
-    const { barrels, crates, coils, logs, rocks: reefRocks } = row.catalogue;
+    const { barrels, crates, coils, rocks: reefRocks } = row.catalogue;
     placed.push(place(barrel, barrels.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(barrels.boxes) }, piece: { id: 'wreck-barrels' } }));
     placed.push(place(crate, crates.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(crates.boxes) }, piece: { id: 'wreck-crates' } }));
     placed.push(place(ropeCoil, coils.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(coils.boxes) }, piece: { id: 'wreck-coils' } }));
-    placed.push(place(driftLog, logs.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(logs.boxes) }, piece: { id: 'wreck-drift-logs' } }));
+    placed.push(await scenes.place('wreck.logs'));
     const { colliders: _reefHulls, ...reefMetadata } = reefRock;
     placed.push(place(reefMetadata, reefRocks.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(reefRocks.boxes) }, piece: { id: 'wreck-reef-rocks' } }));
     return { group, placed, colliders: structuredClone(row.colliders), anchors: structuredClone(row.anchors), holdBounds: { ...row.holdBounds }, floorHeightAt };
@@ -173,12 +188,16 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
   for (const [i] of JETTIES.entries()) {
-    const jetty = new Pier(sky, i + 1).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
+    const jetty = await placePier(`piers.world-${i + 1}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
   }
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage = fixed.foliage.tiers[game.tier];
-  const bushes = await stages.build('Bushes', () => placeIslandBushes(sky, foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
+  const bushes = await stages.build('Bushes', async () => {
+    const placed = await scenes.place(`foliage.bushes.${game.tier}`), mesh = scenes.mesh('hibiscus.mesh');
+    mesh.name = placed.model; mesh.castShadow = driftwoodTierShadows().bush; mesh.userData['islandDressingClipped'] = true;
+    return { placed, mesh };
+  }, { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
@@ -194,7 +213,15 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, BRIDGE, registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = await stages.build('Seabed', () => buildSeabed(sky), { objects: value => [value.mesh, value.fish] });
+  const seabed = await stages.build('Seabed', () => {
+    const mesh = scenes.mesh('reef.mesh'), { update } = reefMaterial(modelContext(sky));
+    const s = REEF_LAYOUT.school, swim = SEABED.swim, centre = { x: s.x, y: s.y, z: s.z };
+    const school = createAmbientFlock({ ...swim, count: s.n, wheeling: { ...swim.wheeling, centre: { x: s.x, z: s.z }, radius: s.r, altitude: [s.y, s.y] } },
+      { name: SEABED.fishMesh, geometry: fixedDraw('reefFish').copy().rotateY(Math.PI), material: lowPolyLookMaterial(sky, 'still') });
+    const tint = new THREE.Color();
+    for (const [i, fish] of s.fish.entries()) school.mesh.setColorAt(i, tint.setHex(fish.colour));
+    return { mesh, fish: school.mesh, tick: (dt: number) => { update?.(); school.update(dt, centre); } };
+  }, { objects: value => [value.mesh, value.fish] });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];
   await stages.next('Palm placement');
@@ -204,11 +231,12 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');
-  const palms = await placeIslandPalms(sky, foliage.palms, registry, slice.due);
+  const palms = { placed: await scenes.place(`foliage.palms.${game.tier}`), mesh: scenes.mesh('palms.mesh'), colliders: structuredClone(rockMetadata.foliage[game.tier].palms), update: updateWind };
+  palms.mesh.name = palms.placed.model; palms.mesh.userData['islandDressingClipped'] = true;
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { cells: coverCells }, scenes).build(); // its plants baked per cell (generators/coverCells.ts)
+  const cover = new GroundCover({ cells: coverCells }, scenes, await scenes.place('foliage.logs')).build(); // its plants baked per cell (generators/coverCells.ts)
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await stages.next('Palms and ground cover');

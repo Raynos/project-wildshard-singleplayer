@@ -1976,7 +1976,13 @@
         "src/shards/driftwood-isle/assets/5e50b60738712149a34a3c6d10c2fa14d5ae6c3845bd09f071f5b6a56d64eb03",
         "src/shards/driftwood-isle/assets/8447b41f537f6944333382a8c7b4538fc6749bfb426d15794b80c96696312896",
         "src/shards/driftwood-isle/assets/e247f29959c0db8add8413d518d6c001656025cdc010341a495d9d059a5920a6",
-        "src/shards/driftwood-isle/assets/e77237ab27d42e7bd15608edfc4f1813501e543a0fda1036a1433af3703e0bee"
+        "src/shards/driftwood-isle/assets/e77237ab27d42e7bd15608edfc4f1813501e543a0fda1036a1433af3703e0bee",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-plank-unit.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-rope-unit.glb",
+        "src/shards/driftwood-isle/assets/7f1f11186487f7923e3427f9cc12b2dbaeca82af51fbd206b891ddbb3a1d2d07",
+        "src/shards/driftwood-isle/assets/303ecc4de26a41d26858856033f57c36d06425ebdae7a11ca03663934f6dc025",
+        "src/shards/driftwood-isle/assets/b305b97bedf72b1bc4e504b3dcc9b22f600611a26a8240a569a767d44630ed33",
+        "src/shards/driftwood-isle/assets/bc225a74f0ad9f224255681f74c718408d037102c4cc7bcf3ee2d64025c3430a"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -2219,7 +2225,13 @@
         "src/shards/driftwood-isle/assets/5e50b60738712149a34a3c6d10c2fa14d5ae6c3845bd09f071f5b6a56d64eb03",
         "src/shards/driftwood-isle/assets/8447b41f537f6944333382a8c7b4538fc6749bfb426d15794b80c96696312896",
         "src/shards/driftwood-isle/assets/e247f29959c0db8add8413d518d6c001656025cdc010341a495d9d059a5920a6",
-        "src/shards/driftwood-isle/assets/e77237ab27d42e7bd15608edfc4f1813501e543a0fda1036a1433af3703e0bee"
+        "src/shards/driftwood-isle/assets/e77237ab27d42e7bd15608edfc4f1813501e543a0fda1036a1433af3703e0bee",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-plank-unit.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-rope-unit.glb",
+        "src/shards/driftwood-isle/assets/7f1f11186487f7923e3427f9cc12b2dbaeca82af51fbd206b891ddbb3a1d2d07",
+        "src/shards/driftwood-isle/assets/303ecc4de26a41d26858856033f57c36d06425ebdae7a11ca03663934f6dc025",
+        "src/shards/driftwood-isle/assets/b305b97bedf72b1bc4e504b3dcc9b22f600611a26a8240a569a767d44630ed33",
+        "src/shards/driftwood-isle/assets/bc225a74f0ad9f224255681f74c718408d037102c4cc7bcf3ee2d64025c3430a"
       ]
     },
     {
@@ -15867,7 +15879,8 @@
         "scripts/named-blob-output.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/shards/driftwood-isle/generators/foliageModels.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",
@@ -16059,6 +16072,109 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-foliage-scenes",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs",
+        "src/shards/driftwood-isle/generators/foliageModels.ts",
+        "src/shards/driftwood-isle/generators/foliageGeometry.ts",
+        "src/shards/driftwood-isle/data/dressingBlobs.generated.json",
+        "src/shards/driftwood-isle/data/reefBlobs.generated.json",
+        "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
+        "src/shards/driftwood-isle/data/reefLayout.generated.json",
+        "src/shards/driftwood-isle/data/duneLogsBake.json",
+        "src/shards/driftwood-isle/data/fixedGeometry.json",
+        "src/engine",
+        "src/sdk",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/driftwood-isle/assets/f3aa5483963c5000ead63cdb5e80b29ea862697b7cc9f71f74742fa955d25a6a",
+        "src/shards/driftwood-isle/assets/1ac4b986a648982c2ea67bf9f0190145c21ac38735a8c76ade68581ab7fab08a",
+        "src/shards/driftwood-isle/assets/c9b6eb32cfb3f315cc609a8f1c2061001befeefa6aadf871c982e5c24569a3c3",
+        "src/shards/driftwood-isle/assets/af19c5925055abf015db6d775eeb8d0c63ef027d1790decf057a0aa37978d5ee",
+        "src/shards/driftwood-isle/assets/38a4f8b6ba5c423dfa20a693ea244abf4f153305d869d71f22e2c2b2742af22d",
+        "src/shards/driftwood-isle/assets/3e1779a84ad4aaf5d2814319d916ca58a30a6c63aca6c0ebf83ef0ec14f6bae6",
+        "src/shards/driftwood-isle/assets/4a6d31124c14498f867d244c61c244b9855701711a051781f938e0a1df1a4e88",
+        "src/shards/driftwood-isle/assets/b215817e315b21685f4860a94a6e706466ffaf53ac9edc4d1c29fec3aa6f2392",
+        "src/shards/driftwood-isle/assets/2485e39982beb460e69e164562f178b6214cc080bedfa8e17281d8bd86a9f8f6",
+        "src/game",
+        "src/shards/driftwood-isle/data/wreckBake.json",
+        "src/shards/driftwood-isle/generators/driftLogs.ts"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/foliageScenes.generated.json",
+        "src/shards/driftwood-isle/assets/foliage-scenes/palms-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/hibiscus-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/reef-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/palms-desktop.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/hibiscus-desktop.glb"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/foliageScenes.generated.json",
+        "src/shards/driftwood-isle/assets/foliage-scenes/palms-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/hibiscus-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/reef-phone.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/palms-desktop.glb",
+        "src/shards/driftwood-isle/assets/foliage-scenes/hibiscus-desktop.glb"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
+      "id": "driftwood-pier-scenes",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs",
+        "src/shards/driftwood-isle/generators/pierContract.ts",
+        "src/shards/driftwood-isle/generators/pierColliders.ts",
+        "src/shards/driftwood-isle/generators/pierLayout.ts",
+        "src/shards/driftwood-isle/data/piers.generated.json",
+        "src/shards/driftwood-isle/generators/pierRows.json",
+        "src/shards/driftwood-isle/data/fixedGeometry.json",
+        "src/engine",
+        "src/sdk",
+        "scripts/bake-output.mjs",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/driftwood-isle/generators/staticWorld.ts",
+        "src/shards/driftwood-isle/generators/boatLayout.ts",
+        "src/shards/driftwood-isle/generators/lookout.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/entryDecks.ts",
+        "src/shards/driftwood-isle/data/zipline.generated.json",
+        "src/shards/driftwood-isle/data/layout.json",
+        "src/shards/driftwood-isle/data/shoreBoulders.generated.json",
+        "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
+        "src/shards/driftwood-isle/data/entryDecks.generated.json",
+        "src/shards/driftwood-isle/data/entryRows.json",
+        "src/game"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/pierScenes.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/pierScenes.generated.json"
+      ],
+      "platform": "native"
+    },
+    {
       "id": "trail-specimen-catalogue",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
@@ -16076,7 +16192,9 @@
         "src/shards/driftwood-isle/data/wreckSites.json",
         "src/shards/driftwood-isle/generators/trailParams.ts",
         "src/shards/driftwood-isle/generators/siteCatalogue.ts",
-        "src/shards/driftwood-isle/data/rockScenes.generated.json"
+        "src/shards/driftwood-isle/data/rockScenes.generated.json",
+        "src/shards/driftwood-isle/data/foliageScenes.generated.json",
+        "src/shards/driftwood-isle/data/pierScenes.generated.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",

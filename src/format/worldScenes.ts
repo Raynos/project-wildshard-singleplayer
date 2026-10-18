@@ -12,7 +12,7 @@ const bounded = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>
 const strings = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).length <= 128));
 const reference = v.strictObject({ library: id, model: id });
 const library = v.variant('kind', [
-  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, file: id, attributes: v.optional(strings, {}) }), 128) }),
+  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, file: v.union([id, v.strictObject({ phone: id, desktop: id })]), attributes: v.optional(strings, {}) }), 128) }),
   v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
 const material = v.variant('kind', [WorldSceneSurfaceSchema,

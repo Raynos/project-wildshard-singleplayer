@@ -245,11 +245,13 @@ class RopeBridgeBuilder {
     return out;
   }
   facts() {
-    const colour = new THREE.Color();
+    const colour = new THREE.Color(), ownDescs = this.colliderDescs();
+    for (const desc of ownDescs) if (desc.kind !== 'treads') { desc.x -= this.o.x; desc.y -= this.o.y; desc.z -= this.o.z; }
     return { origin:this.o, width:this.width, sag:this.sag, ya:this.ya, yb:this.yb, len:this.len,
       direction:{x:this.dir.x,z:this.dir.y}, segments:this.segs, planks:this.plankSpecs,
       colours:this.plankSpecs.map((_,i)=>{this.planks.getColorAt(i,colour);return {r:colour.r,g:colour.g,b:colour.b};}),
-      colliders:this.colliders, descs:this.colliderDescs(), deck:this.deckDescs() };
+      ropeColour:{r:C.rope.r,g:C.rope.g,b:C.rope.b}, ropeCapacity:this.ropes.instanceMatrix.count,
+      colliders:this.colliders, descs:this.colliderDescs(), ownDescs, deck:this.deckDescs() };
   }
 }
 
@@ -271,4 +273,11 @@ export function bridgePosts(spec:RopeBridgeSpec, ground:(x:number,z:number)=>num
     if(posts===undefined||!isMesh(posts))throw new Error('Rope bridge posts are missing');
     return posts.geometry.clone();
   } finally {made.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});}
+}
+
+/** Native white units for the live bridge instances; every vertex is authored offline. */
+export function bridgeUnitGeometries(): Record<string, THREE.BufferGeometry> {
+  const white = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3));
+  return { 'bridge-plank-unit': white(new THREE.BoxGeometry(1, 1, 1)),
+    'bridge-rope-unit': white(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0)) };
 }

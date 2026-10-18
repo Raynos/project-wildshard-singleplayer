@@ -6,7 +6,7 @@ import * as THREE from 'three';
  * bow cleat and with the stern cleat (1 at its cleat, 0 at its post), so `lift` raises each cleat end with the hull's
  * heave and pitch while the post end stays tied.
  *
- *   const lines = new MooringLines(MOORING_LINES_GEOMETRY.copy(), [bowZ, sternZ], material);
+ *   const lines = new MooringLines(mesh, [bowZ, sternZ]);
  *   scene.add(lines.mesh);
  *   lines.lift(hull.position.y - waterY, Math.sin(hull.rotation.x));   // after the hull rides the swell
  */
@@ -23,15 +23,14 @@ export class MooringLines {
   private readonly cleatZ: readonly [number, number];
 
   /** `cleatZ` is the bow and stern cleats' hull-local z (pitch lifts each by −z · sin). */
-  constructor(geometry: THREE.BufferGeometry, cleatZ: readonly [number, number], material: THREE.Material) {
-    const pos = geometry.getAttribute('position'), moor = geometry.getAttribute('aMoor');
+  constructor(mesh: THREE.Mesh, cleatZ: readonly [number, number]) {
+    const pos = mesh.geometry.getAttribute('position'), moor = mesh.geometry.getAttribute('aMoor');
     if (!(pos instanceof THREE.BufferAttribute) || !(pos.array instanceof Float32Array) || !(moor instanceof THREE.BufferAttribute) || !(moor.array instanceof Float32Array)
       || moor.itemSize !== 2 || pos.count > TOTAL_VERTICES) throw new Error('MooringLines: the baked lines lack their aMoor weights');
     this.rest = pos.array.slice();
     this.moor = moor.array;
     this.cleatZ = cleatZ;
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.castShadow = true;
+    this.mesh = mesh;
   }
 
   /** Lift each line's cleat end by the hull's heave (m over the still water) less its cleat's z times sin(pitch). */

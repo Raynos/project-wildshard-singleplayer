@@ -47,6 +47,12 @@ export class SceneHandles {
     if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
     return placed;
   }
+  /** Named placement floors use the admitted contact profile before or after drawing. */
+  floorAt(id: string, x: number, z: number): number | undefined {
+    const value = this.value(id);
+    if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
+    return value.floorAt(x, z);
+  }
   private value(id: string): Handle {
     const value = this.values.get(id);
     if (value === undefined) throw new Error(`Missing world scene handle: ${id}`);

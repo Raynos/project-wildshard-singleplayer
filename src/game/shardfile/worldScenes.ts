@@ -1,3 +1,4 @@
+import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
 import { type BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
@@ -58,7 +59,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (library === undefined || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.map(model => model.file) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
@@ -135,6 +136,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     }
     await buildYield(resident);
   }
+  for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   try {
@@ -142,8 +144,9 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       if (row.kind === 'owned') {
         const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
         for (const model of row.models) {
-          const geometry = createOwnedGeometry(product.url(model.file), model.attributes);
-          await geometry.load(await product.file(model.file)); models.set(model.id, geometry);
+          const file = typeof model.file === 'string' ? model.file : model.file[TIER];
+          const geometry = createOwnedGeometry(product.url(file), model.attributes);
+          await geometry.load(await product.file(file)); models.set(model.id, geometry);
           // Transfer on first use; later copies come from the independently owned original.
           await buildYield(owner);
         }
@@ -221,7 +224,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
         const sources = section.materials.filter((source): source is Extract<typeof source, { kind: 'source' }> => source.kind === 'source' && source.load === 'placement' && needed.has(source.id));
-        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, row.batch === undefined ? undefined : preparedBatches.get(row.batch)));
+        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles, row.batch === undefined ? undefined : preparedBatches.get(row.batch)));
       }
     }
     for (const step of section.steps) for (const instance of step.repeat ?? [{ id: '' }]) {

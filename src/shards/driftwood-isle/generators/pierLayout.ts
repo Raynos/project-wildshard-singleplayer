@@ -1,4 +1,4 @@
-import type { PierParams } from '../assets/contracts/pier';
+import type { PierParams } from './pierContract';
 
 /** the deck's top at `along` metres from the sea end, own y: flat, then the landing's step-down onto the sand */
 export function pierDeckAt(p: PierParams, along: number): number {

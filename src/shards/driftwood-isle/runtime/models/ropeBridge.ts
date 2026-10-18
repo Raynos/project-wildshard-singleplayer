@@ -34,9 +34,6 @@ export interface DeckPoses { pose: (i: number, alpha: number, p: { x: number; y:
 /** one deck segment at rest: centre, rotation (local +z along the span, +y up), half length */
 export interface DeckSegment { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number }; hz: number }
 
-const ROPE = new THREE.Color('#d2bd85');
-/** a white vertex colour, so the kit's vertex-coloured material shows each copy's own tint */
-const white = (g: THREE.BufferGeometry): THREE.BufferGeometry => g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
 const SEG_HY = 0.05, SEG_KG = 14;
 /** the most deck segments a baked span carries (the island span 25, the specimen 13); a longer bake is refused */
@@ -73,10 +70,8 @@ class RopeBridgeBuilder {
   private readonly facts: ReturnType<typeof admitBridgeFacts>;
   constructor(private sky: Sky, private spec: RopeBridgeSpec, ground: (x: number, z: number) => number) { this.facts = admitBridgeFacts(spec, ground); this.o = {...this.facts.origin};
     // own-space colliders for the model (the world's are these placed back at the origin); the rest plan alone, no drawing
-    const o = this.o;
-    this.descs = this.colliderDescs(); // fresh objects each call
+    this.descs = readColliderRows(this.facts.ownDescs, { kinds: ['box', 'treads'], surfaces: [] });
     if (this.facts.segments.length > MAX_SEGS || this.descs.length > MAX_DESCS) throw new Error('Rope bridge bake exceeds its segment or collider bound');
-    for (let i = 0; i < Math.min(this.descs.length, MAX_DESCS); i++) { const d = this.descs[i]; if (d !== undefined && d.kind !== 'treads') { d.x -= o.x; d.y -= o.y; d.z -= o.z; } }
   }
 
   build(): this {
@@ -99,11 +94,11 @@ class RopeBridgeBuilder {
     this.plankSpecs=structuredClone(facts.planks);
     // the planks and ropes wear the kit's still material (one shared graph toon material), their tints per copy
     const still = lowPolyLookMaterial(this.sky, 'still');
-    this.planks = new THREE.InstancedMesh(white(new THREE.BoxGeometry(1, 1, 1)), still, this.plankSpecs.length);
+    this.planks = new THREE.InstancedMesh(fixedDraw('bridgePlankUnit').copy(), still, this.plankSpecs.length);
     const col = new THREE.Color();
     facts.colours.forEach((c,i)=>{this.planks.setColorAt(i,col.setRGB(c.r,c.g,c.b));});
-    this.ropes = new THREE.InstancedMesh(white(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0)), still, 2 * (2 * n + Math.ceil(n / 2)));
-    for (let i = 0; i < Math.min(this.ropes.count, MAX_ROPES); i++) this.ropes.setColorAt(i, ROPE);
+    this.ropes = new THREE.InstancedMesh(fixedDraw('bridgeRopeUnit').copy(), still, facts.ropeCapacity);
+    for (let i = 0; i < Math.min(this.ropes.count, MAX_ROPES); i++) this.ropes.setColorAt(i, col.setRGB(facts.ropeColour.r, facts.ropeColour.g, facts.ropeColour.b));
     const live = (m: THREE.InstancedMesh): void => {
       m.castShadow = true; m.receiveShadow = true;
       m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

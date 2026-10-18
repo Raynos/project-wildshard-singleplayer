@@ -8,7 +8,7 @@ const point = v.strictObject({ x: finite, y: finite, z: finite });
 const surface = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
 const params = v.record(id, v.unknown());
 const box = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), rot: finite, yTop: finite, yBottom: finite });
-const floor = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), y: finite, rot: v.exactOptional(finite), slope: v.exactOptional(finite), tilt: v.exactOptional(finite) });
+const floor = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), y: finite, rot: v.exactOptional(finite), slope: v.exactOptional(finite), tilt: v.exactOptional(finite), profile: v.exactOptional(v.pipe(v.array(v.tuple([finite, v.pipe(finite, v.minValue(0)), finite])), v.minLength(2), v.maxLength(8), v.check(knots => knots.every((k, i) => i === 0 || k[0] > (knots[i - 1]?.[0] ?? Infinity))))) });
 const site = v.strictObject({ piece: v.exactOptional(id), origin: point, colliders: list(box, 2048), floors: list(floor, 4096), anchors: v.record(id, v.strictObject({ ...point.entries, yaw: finite })) });
 const distance = v.pipe(finite, v.minValue(0));
 const band = v.union([distance, v.strictObject({ phone: distance, desktop: distance })]);

@@ -11,13 +11,14 @@ import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { PalmSpec } from '../world/Palms';
-import type { EnemyPlacements } from '../runtime/productSections.generated.d.ts';
+import type { CustomSections, EnemyPlacements } from '../runtime/productSections.generated.d.ts';
 import { TIER } from '@wildshard/engine/core/tier';
 import { RowBodySlots } from '@wildshard/engine/physics/bodies';
 import { driftwoodLaunch, driftwoodProduct } from '../runtime/boot/rows';
 import { preloadSailorHead } from '../species/sailor';
 import { resourceScope } from '@wildshard/engine/app/resources';
+
+type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need

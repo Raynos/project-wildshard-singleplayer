@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
+import { Box3, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
@@ -47,6 +47,38 @@ function fixture(cell = false): ShardContext {
     product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
+
+test('fictional prewelded copies borrow named parts and keep independent contacts and picking boxes', async () => {
+  const { SkyRig } = await import('../src/engine/world/skyRig');
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const context = fixture(), rows = section();
+  const library = rows.libraries.find(row => row.kind === 'owned');
+  if (library?.kind !== 'owned' || library.models[0] === undefined) throw new Error('Missing fixture model');
+  library.models[0].file = { phone: 'models/stone.glb', desktop: 'models/stone.glb' };
+  Object.assign(context.game, { runtime: { world: { sky, game: context.game } } });
+  const catalogue = { product: 'fixture-harbour', models: [{ key: 'posts', id: 'fixture-harbour/posts', name: 'Posts', category: 'props', pipeline: 'code', file: 'posts.json', defaults: {},
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 99, hy: 99, hz: 99 }], draws: [{ id: 'post', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  const row = { id: 'posts', model: 'posts', draw: 'merged', drawnInto: { part: 'markers.east.stone', boxes: [3, 0, 0, 5, 1, 1] },
+    poses: [{ x: 4, y: 0, z: 0, params: { bakedWidth: 2 }, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 0, 0, 1] }],
+    colliders: [{ kind: 'box', x: 4, y: 0.5, z: 0.5, hx: 1, hy: 0.5, hz: 0.5 }], piece: { id: 'placed-posts' } };
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogue))) : file(name));
+  try {
+    const handles = await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [row,
+      { id: 'live', model: 'posts', draw: 'single', poses: row.poses.map(pose => ({ ...pose, params: {} })), piece: { id: 'live-post', follows: 'copy', solidFloor: true, floors: [{ x: 4, z: 0, hw: 2, hd: 2, y: 3, profile: [[-2, 2, -1], [2, 1, 1]] }] } },
+    ] }));
+    const mesh = handles.object('markers.east.stone'), placed = await handles.place('posts');
+    expect(placed.object).toBe(mesh); expect(placed.copyBox(0, new Box3())).toEqual(new Box3(new Vector3(3, 0, 0), new Vector3(5, 1, 1)));
+    expect(placed.colliders).toEqual(row.colliders); expect(await handles.place('posts')).toBe(placed);
+    expect(context.app.registry.pieces.filter(piece => piece.id === 'placed-posts')).toHaveLength(1);
+    const moving = await handles.place('live');
+    expect(context.app.registry.pieces.find(piece => piece.id === 'live-post')?.follows).toBe(moving.object);
+    expect(handles.floorAt('live', 4, 0)).toBe(3); expect(handles.floorAt('live', 40, 0)).toBeUndefined();
+    await expect(installWorldScenes(fixture(), parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [{ ...row, drawnInto: { ...row.drawnInto, boxes: [] } }] }))).rejects.toThrow();
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});
 
 test('fictional shard builds ordered, repeated, cube-selected rows and typed handles', async () => {
   const context = fixture(true), handles = await installWorldScenes(context, section());

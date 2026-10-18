@@ -1,0 +1,2489 @@
+{
+  "date": "2026-10-17",
+  "task": "C1 Driftwood mini-plan batches 7-8",
+  "parent": "62d4d3f96d7c761fd282fa0b8fe1fd286cdbb219",
+  "checkedSourceTree": "10aea1bbbac659ca4fb5c0392f4fb01266871b76",
+  "candidateTree": "39c9389b5c3d3b5ba0f9a726af9576523e4ee3d6",
+  "sourceByteIdentity": "Only coordinator STATE differs from the checked source tree; all source/script/test/package blobs are identical",
+  "ruler": {
+    "basis": "scripts/shard-platform.mjs sourceProgressInventory in the build mirror after generation and verified all-10 products",
+    "before": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 4234,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 5131,
+      "sunscar-dunes": 392
+    },
+    "after": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 3709,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 5131,
+      "sunscar-dunes": 392
+    },
+    "netShard": {
+      "driftwood-isle": -525
+    },
+    "netShardTotal": -525,
+    "components": {
+      "driftwood-isle": {
+        "C1": 1444,
+        "C2": 202,
+        "C3": 0,
+        "C4": 735,
+        "C5": 643,
+        "C6": 163,
+        "C7": 0,
+        "C8": 17,
+        "C9": 505
+      },
+      "pine-hollow": {
+        "C1": 1676,
+        "C2": 389,
+        "C3": 345,
+        "C4": 756,
+        "C5": 941,
+        "C6": 282,
+        "C7": 7,
+        "C8": 29,
+        "C9": 706
+      }
+    },
+    "platform": {
+      "parent": "3db466cbad9b6c75a480057454327b7f0f0bf13c",
+      "candidate": "10aea1bbbac659ca4fb5c0392f4fb01266871b76",
+      "unit": "source, nonblank and comment-free TypeScript",
+      "platform": 30,
+      "totals": {
+        "engine": 15,
+        "game": 15,
+        "sdk": 0,
+        "format": 1
+      },
+      "rows": [
+        {
+          "path": "src/engine/physics/box.ts",
+          "before": 29,
+          "after": 44,
+          "delta": 15
+        },
+        {
+          "path": "src/format/worldSceneModels.ts",
+          "before": 34,
+          "after": 34,
+          "delta": 0
+        },
+        {
+          "path": "src/format/worldScenePlacement.ts",
+          "before": 21,
+          "after": 22,
+          "delta": 1
+        },
+        {
+          "path": "src/format/worldScenes.ts",
+          "before": 50,
+          "after": 50,
+          "delta": 0
+        },
+        {
+          "path": "src/game/models/worldSceneCatalogue.ts",
+          "before": 169,
+          "after": 170,
+          "delta": 1
+        },
+        {
+          "path": "src/game/shardfile/sceneHandles.ts",
+          "before": 71,
+          "after": 76,
+          "delta": 5
+        },
+        {
+          "path": "src/game/shardfile/worldScenePlacement.ts",
+          "before": 65,
+          "after": 71,
+          "delta": 6
+        },
+        {
+          "path": "src/game/shardfile/worldScenes.ts",
+          "before": 266,
+          "after": 269,
+          "delta": 3
+        }
+      ]
+    }
+  },
+  "checks": {
+    "source": {
+      "id": "20261017T221413-c1-dw-static-land-source-41654",
+      "label": "c1-dw-static-land-source",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792293253,
+      "endedAt": 1792293686,
+      "command": "node scripts/build-mirror.mjs run 10aea1bbbac659ca4fb5c0392f4fb01266871b76 --slot check3 -- bash /Users/raynos/projects/games/wildshard-singleplayer/tmp/c1-dw-static/check-ordered.sh"
+    },
+    "parentRuler": {
+      "id": "20261017T221413-c1-dw-static-parent-ruler-41640",
+      "label": "c1-dw-static-parent-ruler",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792293254,
+      "endedAt": 1792293394,
+      "command": "node scripts/build-mirror.mjs run 3db466cbad9b6c75a480057454327b7f0f0bf13c --slot check2 -- bash /Users/raynos/projects/games/wildshard-singleplayer/tmp/c1-dw-static/measure-base.sh"
+    },
+    "focusedFiles": 12,
+    "focusedTests": 55,
+    "headlessCases": 17,
+    "includes": [
+      "generation --proof",
+      "root types",
+      "layer types",
+      "typed lint",
+      "all-10 product build",
+      "focused native-intake/floor/scene tests"
+    ]
+  },
+  "native": {
+    "checkedSourceTree": "82ad65fd9d7c964a763bd2b63c3bc4481d0d58d1",
+    "baselineCommit": "ee9f38578",
+    "baseline": {
+      "build": "ee9f385-mvd6l2sb",
+      "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "07157153a079907af50c1ef67f84fe71c1065cb8cf2e0cd3da27ba057f50a465",
+          "gpuBytes": 190220777,
+          "programs": 191,
+          "shaderCount": 323,
+          "shaders": "bb1ffb424b13e3d6764e8ba1649bccc8b684c8b91ea2347ff2054c55ccc32a08"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "531c44933f1e9f5c9ff636e77941dcfd2089b79a44eafaf414ea1202ea3f327c",
+          "gpuBytes": 380819586,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 113,
+          "triangles": 834738,
+          "lit": 1095048,
+          "pixels": "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 100,
+          "triangles": 777303,
+          "lit": 1095048,
+          "pixels": "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.5,
+            95.9
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 76,
+          "triangles": 677796,
+          "lit": 1095048,
+          "pixels": "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 94,
+          "triangles": 715464,
+          "lit": 1095048,
+          "pixels": "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 169,
+          "triangles": 887812,
+          "lit": 1095043,
+          "pixels": "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 168,
+          "triangles": 1577465,
+          "lit": 1095048,
+          "pixels": "d9300e27719bd0341f843e05d62571e28a27b309b07331865b52779e82fb6ade"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "hut-west",
+          "player": [
+            -34,
+            17.9,
+            -53.6
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 209,
+          "triangles": 1052502,
+          "lit": 1095042,
+          "pixels": "e302c79276d22241de5484f787451ab5cd82ee0640bbc51ac50ae89a97aaaa42"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "hut-east",
+          "player": [
+            -10,
+            18.1,
+            -53.6
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 206,
+          "triangles": 1009375,
+          "lit": 1095048,
+          "pixels": "385b459a113efa34274d53aaaec9b1e1f74fdbbef9d116dd8456d930759b7b95"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout-west",
+          "player": [
+            79.9,
+            36.2,
+            103
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 103,
+          "triangles": 722525,
+          "lit": 1095048,
+          "pixels": "cd7ba04fb1f0c6002504ff9507e654bb93677c0b0e3de1b3c3b9164fb67026ae"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout-east",
+          "player": [
+            103.9,
+            31.6,
+            103
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 159,
+          "triangles": 1289175,
+          "lit": 1095048,
+          "pixels": "f0604b1952d409d7808aa36caba136fc406d8523f8fcda0562135bdadc563f04"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "shrine-west",
+          "player": [
+            -110,
+            5.5,
+            120.5
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 173,
+          "triangles": 1561900,
+          "lit": 1095048,
+          "pixels": "dc507675cde7999ae1f6ea9a71562ed6757d495668b6ef4daea8a9895497cff3"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "shrine-east",
+          "player": [
+            -86,
+            7.4,
+            120.5
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 80,
+          "triangles": 1045879,
+          "lit": 1095048,
+          "pixels": "67b7d0fb0d6d97ba9727056cea18df7bff1a53033ee802004f9bbb41ea944af4"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck-west",
+          "player": [
+            135.3,
+            0.7,
+            12.8
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 103,
+          "triangles": 766539,
+          "lit": 1095048,
+          "pixels": "86452f2a3ff168feb5f1fdc91fc4c42eaf488b25c5e82318f8872f6687663cf1"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck-east",
+          "player": [
+            159.3,
+            -0.2,
+            12.8
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 216,
+          "triangles": 1413616,
+          "lit": 1095048,
+          "pixels": "ea4b7f35de58e2b1dca0077d52d9d3823be874855775da3f99ccca0ff199e3a3"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 188,
+          "triangles": 1275426,
+          "lit": 615663,
+          "pixels": "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 145,
+          "triangles": 1101304,
+          "lit": 615663,
+          "pixels": "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.5,
+            95.9
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 166,
+          "triangles": 1095553,
+          "lit": 615663,
+          "pixels": "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 194,
+          "triangles": 1139305,
+          "lit": 615663,
+          "pixels": "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 299,
+          "triangles": 1628125,
+          "lit": 614739,
+          "pixels": "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 467,
+          "triangles": 2825019,
+          "lit": 615663,
+          "pixels": "0b0fcdf630dce1c9984e61375b2c71784a4606c91427117f2a8e4d84f3d4e9c0"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "hut-west",
+          "player": [
+            -34,
+            17.9,
+            -53.6
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 399,
+          "triangles": 2203250,
+          "lit": 615659,
+          "pixels": "66a175d707b2adcfd00d8b4456861cafe85e99ef6798873e87b6afa12f652d71"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "hut-east",
+          "player": [
+            -10,
+            18.1,
+            -53.6
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 368,
+          "triangles": 1946712,
+          "lit": 615663,
+          "pixels": "9938d66648defeb72941555f0811004c3b9771f902ca468998375c2bdd61ee28"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout-west",
+          "player": [
+            79.9,
+            36.2,
+            103
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 267,
+          "triangles": 1355617,
+          "lit": 615663,
+          "pixels": "512014ab5b759fad707ea1ceea0af05bcb6eb6683a5b35912772c3fa2313f744"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout-east",
+          "player": [
+            103.9,
+            31.6,
+            103
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 494,
+          "triangles": 2502301,
+          "lit": 615663,
+          "pixels": "7de0a0e5fc912deca7f31cee05deed1c926c609a038d1e2eea107cf9960413f4"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "shrine-west",
+          "player": [
+            -110,
+            5.5,
+            120.5
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 498,
+          "triangles": 2869683,
+          "lit": 615663,
+          "pixels": "c6fe907d010cabb5bc50fbed84fe79b7c049df75da6e667c9230de3a65d3b1c4"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "shrine-east",
+          "player": [
+            -86,
+            7.4,
+            120.5
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 199,
+          "triangles": 1682675,
+          "lit": 615663,
+          "pixels": "0a074be556385b5e7b255534a956b8cf623187780be031063852b6b5eb2c95f1"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck-west",
+          "player": [
+            135.3,
+            0.7,
+            12.8
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 151,
+          "triangles": 1137643,
+          "lit": 615663,
+          "pixels": "4bcf48d166ad8abdd544a66194811d8348d7662085573804c08f08eb7a5b4f9c"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck-east",
+          "player": [
+            159.3,
+            -0.2,
+            12.8
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 587,
+          "triangles": 2791813,
+          "lit": 615663,
+          "pixels": "4cf1497de9e3a3529ce1dc15158f7ec1cfa0b002a4a3fe81837dfb162e71ae7c"
+        }
+      ]
+    },
+    "candidate": {
+      "build": "82ad65f-mvd8ii8k",
+      "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "d6a16fcd2148d3a87915b8bb439b935097c33f8c745e3f40ae891f9250af00f1",
+          "gpuBytes": 190220777,
+          "programs": 191,
+          "shaderCount": 323,
+          "shaders": "bb1ffb424b13e3d6764e8ba1649bccc8b684c8b91ea2347ff2054c55ccc32a08"
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "5967c9614674114283f4117b8bd3d51a093bba9a6425472f0fa744244d0968f5",
+          "gpuBytes": 380819586,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 113,
+          "triangles": 834738,
+          "lit": 1095048,
+          "pixels": "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 100,
+          "triangles": 777303,
+          "lit": 1095048,
+          "pixels": "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.5,
+            95.9
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 76,
+          "triangles": 677796,
+          "lit": 1095048,
+          "pixels": "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 94,
+          "triangles": 715464,
+          "lit": 1095048,
+          "pixels": "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 169,
+          "triangles": 887812,
+          "lit": 1095043,
+          "pixels": "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 168,
+          "triangles": 1577465,
+          "lit": 1095048,
+          "pixels": "d9300e27719bd0341f843e05d62571e28a27b309b07331865b52779e82fb6ade"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "hut-west",
+          "player": [
+            -34,
+            17.9,
+            -53.6
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 209,
+          "triangles": 1052502,
+          "lit": 1095042,
+          "pixels": "e302c79276d22241de5484f787451ab5cd82ee0640bbc51ac50ae89a97aaaa42"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "hut-east",
+          "player": [
+            -10,
+            18.1,
+            -53.6
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 206,
+          "triangles": 1009375,
+          "lit": 1095048,
+          "pixels": "385b459a113efa34274d53aaaec9b1e1f74fdbbef9d116dd8456d930759b7b95"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout-west",
+          "player": [
+            79.9,
+            36.2,
+            103
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 103,
+          "triangles": 722525,
+          "lit": 1095048,
+          "pixels": "cd7ba04fb1f0c6002504ff9507e654bb93677c0b0e3de1b3c3b9164fb67026ae"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "lookout-east",
+          "player": [
+            103.9,
+            31.6,
+            103
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 159,
+          "triangles": 1289175,
+          "lit": 1095048,
+          "pixels": "f0604b1952d409d7808aa36caba136fc406d8523f8fcda0562135bdadc563f04"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "shrine-west",
+          "player": [
+            -110,
+            5.5,
+            120.5
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 173,
+          "triangles": 1561900,
+          "lit": 1095048,
+          "pixels": "dc507675cde7999ae1f6ea9a71562ed6757d495668b6ef4daea8a9895497cff3"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "shrine-east",
+          "player": [
+            -86,
+            7.4,
+            120.5
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 80,
+          "triangles": 1045879,
+          "lit": 1095048,
+          "pixels": "67b7d0fb0d6d97ba9727056cea18df7bff1a53033ee802004f9bbb41ea944af4"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck-west",
+          "player": [
+            135.3,
+            0.7,
+            12.8
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 103,
+          "triangles": 766539,
+          "lit": 1095048,
+          "pixels": "86452f2a3ff168feb5f1fdc91fc4c42eaf488b25c5e82318f8872f6687663cf1"
+        },
+        {
+          "tier": "phone",
+          "phase": "midday",
+          "pose": "wreck-east",
+          "player": [
+            159.3,
+            -0.2,
+            12.8
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 216,
+          "triangles": 1413616,
+          "lit": 1095048,
+          "pixels": "ea4b7f35de58e2b1dca0077d52d9d3823be874855775da3f99ccca0ff199e3a3"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "beach-sea",
+          "player": [
+            100,
+            2.6,
+            1
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 188,
+          "triangles": 1275426,
+          "lit": 615663,
+          "pixels": "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck",
+          "player": [
+            130,
+            1.2,
+            10
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 145,
+          "triangles": 1101304,
+          "lit": 615663,
+          "pixels": "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout",
+          "player": [
+            93.6,
+            33.5,
+            95.9
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 166,
+          "triangles": 1095553,
+          "lit": 615663,
+          "pixels": "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "cave",
+          "player": [
+            142,
+            0.4,
+            14
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 194,
+          "triangles": 1139305,
+          "lit": 615663,
+          "pixels": "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "vista",
+          "player": [
+            -46,
+            17.2,
+            -100
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 299,
+          "triangles": 1628125,
+          "lit": 614739,
+          "pixels": "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "altar",
+          "player": [
+            -99,
+            7.1,
+            109
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 467,
+          "triangles": 2825019,
+          "lit": 615663,
+          "pixels": "0b0fcdf630dce1c9984e61375b2c71784a4606c91427117f2a8e4d84f3d4e9c0"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "hut-west",
+          "player": [
+            -34,
+            17.9,
+            -53.6
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 399,
+          "triangles": 2203250,
+          "lit": 615659,
+          "pixels": "66a175d707b2adcfd00d8b4456861cafe85e99ef6798873e87b6afa12f652d71"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "hut-east",
+          "player": [
+            -10,
+            18.1,
+            -53.6
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 368,
+          "triangles": 1946712,
+          "lit": 615663,
+          "pixels": "9938d66648defeb72941555f0811004c3b9771f902ca468998375c2bdd61ee28"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout-west",
+          "player": [
+            79.9,
+            36.2,
+            103
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 267,
+          "triangles": 1355617,
+          "lit": 615663,
+          "pixels": "512014ab5b759fad707ea1ceea0af05bcb6eb6683a5b35912772c3fa2313f744"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "lookout-east",
+          "player": [
+            103.9,
+            31.6,
+            103
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 494,
+          "triangles": 2502301,
+          "lit": 615663,
+          "pixels": "7de0a0e5fc912deca7f31cee05deed1c926c609a038d1e2eea107cf9960413f4"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "shrine-west",
+          "player": [
+            -110,
+            5.5,
+            120.5
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 498,
+          "triangles": 2869683,
+          "lit": 615663,
+          "pixels": "c6fe907d010cabb5bc50fbed84fe79b7c049df75da6e667c9230de3a65d3b1c4"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "shrine-east",
+          "player": [
+            -86,
+            7.4,
+            120.5
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 199,
+          "triangles": 1682675,
+          "lit": 615663,
+          "pixels": "0a074be556385b5e7b255534a956b8cf623187780be031063852b6b5eb2c95f1"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck-west",
+          "player": [
+            135.3,
+            0.7,
+            12.8
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 151,
+          "triangles": 1137643,
+          "lit": 615663,
+          "pixels": "4bcf48d166ad8abdd544a66194811d8348d7662085573804c08f08eb7a5b4f9c"
+        },
+        {
+          "tier": "desktop",
+          "phase": "midday",
+          "pose": "wreck-east",
+          "player": [
+            159.3,
+            -0.2,
+            12.8
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 587,
+          "triangles": 2791813,
+          "lit": 615663,
+          "pixels": "4cf1497de9e3a3529ce1dc15158f7ec1cfa0b002a4a3fe81837dfb162e71ae7c"
+        }
+      ]
+    },
+    "acceptance": {
+      "baseline": "ee9f385-mvd6l2sb",
+      "candidate": "82ad65f-mvd8ii8k",
+      "poses": 28,
+      "portRule": "G415, coordinator 2026-10-17: final-double trig ULP is acceptable when actual f32 contacts, counts, fields and order match",
+      "tiers": {
+        "phone": {
+          "pieces": 34,
+          "colliderCount": 1929,
+          "colliders": "d6a16fcd2148d3a87915b8bb439b935097c33f8c745e3f40ae891f9250af00f1",
+          "gpuBytes": 190220777,
+          "programs": 191,
+          "shaderCount": 323,
+          "shaders": "bb1ffb424b13e3d6764e8ba1649bccc8b684c8b91ea2347ff2054c55ccc32a08",
+          "f32Contacts": "22231bba653c455595b585403e20455276ed140dbff6924579e6a202f277984a",
+          "f32Exact": true,
+          "rawDoubleExact": false,
+          "differingCapsules": 47,
+          "differingLanes": 51,
+          "maxAbsolute": 4.440892098500626e-16,
+          "samples": [
+            {
+              "path": "palms/9/rot/z",
+              "before": -0.0011728749947760404,
+              "after": -0.0011728749947760406,
+              "absolute": 2.168404344971009e-19
+            },
+            {
+              "path": "palms/10/rot/z",
+              "before": -0.0625259782967543,
+              "after": -0.06252597829675431,
+              "absolute": 1.3877787807814457e-17
+            },
+            {
+              "path": "palms/11/rot/z",
+              "before": -0.12041187145225765,
+              "after": -0.12041187145225768,
+              "absolute": 2.7755575615628914e-17
+            }
+          ]
+        },
+        "desktop": {
+          "pieces": 34,
+          "colliderCount": 2082,
+          "colliders": "5967c9614674114283f4117b8bd3d51a093bba9a6425472f0fa744244d0968f5",
+          "gpuBytes": 380819586,
+          "programs": 202,
+          "shaderCount": 345,
+          "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0",
+          "f32Contacts": "ea3cc096a53bc1391b326aea3f1f182ab8b664740a69ceb64c47e57c3efe78fc",
+          "f32Exact": true,
+          "rawDoubleExact": false,
+          "differingCapsules": 57,
+          "differingLanes": 61,
+          "maxAbsolute": 4.440892098500626e-16,
+          "samples": [
+            {
+              "path": "palms/9/rot/z",
+              "before": -0.0011728749947760404,
+              "after": -0.0011728749947760406,
+              "absolute": 2.168404344971009e-19
+            },
+            {
+              "path": "palms/10/rot/z",
+              "before": -0.0625259782967543,
+              "after": -0.06252597829675431,
+              "absolute": 1.3877787807814457e-17
+            },
+            {
+              "path": "palms/11/rot/z",
+              "before": -0.12041187145225765,
+              "after": -0.12041187145225768,
+              "absolute": 2.7755575615628914e-17
+            }
+          ]
+        }
+      }
+    },
+    "integration": {
+      "checkedSourceTree": "10aea1bbbac659ca4fb5c0392f4fb01266871b76",
+      "result": {
+        "build": "10aea1b-mvd98vf9",
+        "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+        "tiers": {
+          "phone": {
+            "pieces": 34,
+            "colliderCount": 1929,
+            "colliders": "d6a16fcd2148d3a87915b8bb439b935097c33f8c745e3f40ae891f9250af00f1",
+            "gpuBytes": 190220777,
+            "programs": 191,
+            "shaderCount": 323,
+            "shaders": "bb1ffb424b13e3d6764e8ba1649bccc8b684c8b91ea2347ff2054c55ccc32a08"
+          },
+          "desktop": {
+            "pieces": 34,
+            "colliderCount": 2082,
+            "colliders": "5967c9614674114283f4117b8bd3d51a093bba9a6425472f0fa744244d0968f5",
+            "gpuBytes": 380819586,
+            "programs": 202,
+            "shaderCount": 345,
+            "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0"
+          }
+        },
+        "rows": [
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "beach-sea",
+            "player": [
+              100,
+              2.6,
+              1
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 113,
+            "triangles": 834738,
+            "lit": 1095048,
+            "pixels": "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "wreck",
+            "player": [
+              130,
+              1.2,
+              10
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 100,
+            "triangles": 777303,
+            "lit": 1095048,
+            "pixels": "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "lookout",
+            "player": [
+              93.6,
+              33.5,
+              95.9
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 76,
+            "triangles": 677796,
+            "lit": 1095048,
+            "pixels": "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "cave",
+            "player": [
+              142,
+              0.4,
+              14
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 94,
+            "triangles": 715464,
+            "lit": 1095048,
+            "pixels": "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "vista",
+            "player": [
+              -46,
+              17.2,
+              -100
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 169,
+            "triangles": 887812,
+            "lit": 1095043,
+            "pixels": "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "altar",
+            "player": [
+              -99,
+              7.1,
+              109
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 168,
+            "triangles": 1577465,
+            "lit": 1095048,
+            "pixels": "d9300e27719bd0341f843e05d62571e28a27b309b07331865b52779e82fb6ade"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "hut-west",
+            "player": [
+              -34,
+              17.9,
+              -53.6
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 209,
+            "triangles": 1052502,
+            "lit": 1095042,
+            "pixels": "e302c79276d22241de5484f787451ab5cd82ee0640bbc51ac50ae89a97aaaa42"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "hut-east",
+            "player": [
+              -10,
+              18.1,
+              -53.6
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 206,
+            "triangles": 1009375,
+            "lit": 1095048,
+            "pixels": "385b459a113efa34274d53aaaec9b1e1f74fdbbef9d116dd8456d930759b7b95"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "lookout-west",
+            "player": [
+              79.9,
+              36.2,
+              103
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 103,
+            "triangles": 722525,
+            "lit": 1095048,
+            "pixels": "cd7ba04fb1f0c6002504ff9507e654bb93677c0b0e3de1b3c3b9164fb67026ae"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "lookout-east",
+            "player": [
+              103.9,
+              31.6,
+              103
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 159,
+            "triangles": 1289175,
+            "lit": 1095048,
+            "pixels": "f0604b1952d409d7808aa36caba136fc406d8523f8fcda0562135bdadc563f04"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "shrine-west",
+            "player": [
+              -110,
+              5.5,
+              120.5
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 173,
+            "triangles": 1561900,
+            "lit": 1095048,
+            "pixels": "dc507675cde7999ae1f6ea9a71562ed6757d495668b6ef4daea8a9895497cff3"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "shrine-east",
+            "player": [
+              -86,
+              7.4,
+              120.5
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 80,
+            "triangles": 1045879,
+            "lit": 1095048,
+            "pixels": "67b7d0fb0d6d97ba9727056cea18df7bff1a53033ee802004f9bbb41ea944af4"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "wreck-west",
+            "player": [
+              135.3,
+              0.7,
+              12.8
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 103,
+            "triangles": 766539,
+            "lit": 1095048,
+            "pixels": "86452f2a3ff168feb5f1fdc91fc4c42eaf488b25c5e82318f8872f6687663cf1"
+          },
+          {
+            "tier": "phone",
+            "phase": "midday",
+            "pose": "wreck-east",
+            "player": [
+              159.3,
+              -0.2,
+              12.8
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 216,
+            "triangles": 1413616,
+            "lit": 1095048,
+            "pixels": "ea4b7f35de58e2b1dca0077d52d9d3823be874855775da3f99ccca0ff199e3a3"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "beach-sea",
+            "player": [
+              100,
+              2.6,
+              1
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 188,
+            "triangles": 1275426,
+            "lit": 615663,
+            "pixels": "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "wreck",
+            "player": [
+              130,
+              1.2,
+              10
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 145,
+            "triangles": 1101304,
+            "lit": 615663,
+            "pixels": "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "lookout",
+            "player": [
+              93.6,
+              33.5,
+              95.9
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 166,
+            "triangles": 1095553,
+            "lit": 615663,
+            "pixels": "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "cave",
+            "player": [
+              142,
+              0.4,
+              14
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 194,
+            "triangles": 1139305,
+            "lit": 615663,
+            "pixels": "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "vista",
+            "player": [
+              -46,
+              17.2,
+              -100
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 299,
+            "triangles": 1628125,
+            "lit": 614739,
+            "pixels": "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "altar",
+            "player": [
+              -99,
+              7.1,
+              109
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 467,
+            "triangles": 2825019,
+            "lit": 615663,
+            "pixels": "0b0fcdf630dce1c9984e61375b2c71784a4606c91427117f2a8e4d84f3d4e9c0"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "hut-west",
+            "player": [
+              -34,
+              17.9,
+              -53.6
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 399,
+            "triangles": 2203250,
+            "lit": 615659,
+            "pixels": "66a175d707b2adcfd00d8b4456861cafe85e99ef6798873e87b6afa12f652d71"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "hut-east",
+            "player": [
+              -10,
+              18.1,
+              -53.6
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 368,
+            "triangles": 1946712,
+            "lit": 615663,
+            "pixels": "9938d66648defeb72941555f0811004c3b9771f902ca468998375c2bdd61ee28"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "lookout-west",
+            "player": [
+              79.9,
+              36.2,
+              103
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 267,
+            "triangles": 1355617,
+            "lit": 615663,
+            "pixels": "512014ab5b759fad707ea1ceea0af05bcb6eb6683a5b35912772c3fa2313f744"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "lookout-east",
+            "player": [
+              103.9,
+              31.6,
+              103
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 494,
+            "triangles": 2502301,
+            "lit": 615663,
+            "pixels": "7de0a0e5fc912deca7f31cee05deed1c926c609a038d1e2eea107cf9960413f4"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "shrine-west",
+            "player": [
+              -110,
+              5.5,
+              120.5
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 498,
+            "triangles": 2869683,
+            "lit": 615663,
+            "pixels": "c6fe907d010cabb5bc50fbed84fe79b7c049df75da6e667c9230de3a65d3b1c4"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "shrine-east",
+            "player": [
+              -86,
+              7.4,
+              120.5
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 199,
+            "triangles": 1682675,
+            "lit": 615663,
+            "pixels": "0a074be556385b5e7b255534a956b8cf623187780be031063852b6b5eb2c95f1"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "wreck-west",
+            "player": [
+              135.3,
+              0.7,
+              12.8
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 151,
+            "triangles": 1137643,
+            "lit": 615663,
+            "pixels": "4bcf48d166ad8abdd544a66194811d8348d7662085573804c08f08eb7a5b4f9c"
+          },
+          {
+            "tier": "desktop",
+            "phase": "midday",
+            "pose": "wreck-east",
+            "player": [
+              159.3,
+              -0.2,
+              12.8
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 587,
+            "triangles": 2791813,
+            "lit": 615663,
+            "pixels": "4cf1497de9e3a3529ce1dc15158f7ec1cfa0b002a4a3fe81837dfb162e71ae7c"
+          }
+        ]
+      },
+      "receipt": {
+        "id": "20261017T221808-c1-dw-static-land-native-63841",
+        "label": "c1-dw-static-land-native",
+        "state": "passed",
+        "rc": 0,
+        "startedAt": 1792293488,
+        "endedAt": 1792293779,
+        "command": "node tmp/c1-dw-static/integration-native.mjs"
+      },
+      "verdict": "All 28 views and every raw GPU/program/shader/contact hash match the checked port exactly"
+    },
+    "rawComparator": {
+      "id": "20261017T215529-c1-dw-static-schema-native-56874",
+      "label": "c1-dw-static-schema-native",
+      "state": "failed",
+      "rc": 1,
+      "startedAt": 1792292130,
+      "endedAt": 1792292650,
+      "command": "node tmp/c1-dw-static/native-proof.mjs"
+    },
+    "physicalContacts": {
+      "id": "20261017T220623-c1-dw-static-f32-contacts-8122",
+      "label": "c1-dw-static-f32-contacts",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792292783,
+      "endedAt": 1792292824,
+      "command": "scripts/browser-lane.sh node tmp/c1-dw-static/collider-proof.mjs"
+    },
+    "trigProbe": {
+      "input": 0.6740376573568096,
+      "nodeCos": 0.7813079548674896,
+      "chromiumCos": 0.7813079548674895,
+      "explanation": "The pinned Node and Chromium Math trig implementations differ at the final double bit. Both tiers have exact float32 contact values, counts, fields and order. G415 coordinator accepted this native port; no rounding workaround or harness change shipped."
+    }
+  },
+  "physics": {
+    "build": "10aea1b-mvd98vf9",
+    "legs": [
+      {
+        "shard": "driftwood-isle",
+        "name": "pier",
+        "frames": 708,
+        "seconds": 23.6,
+        "end": {
+          "x": -19.715,
+          "y": 0.531,
+          "z": -150.685
+        },
+        "expectY": 1.325,
+        "maxY": 1.23,
+        "groundSpeedP50": 4.2,
+        "airFrames": 11,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "hut",
+        "frames": 306,
+        "seconds": 10.2,
+        "end": {
+          "x": -22,
+          "y": 18.911,
+          "z": -64.537
+        },
+        "expectY": 19.691,
+        "maxY": 18.91,
+        "groundSpeedP50": 4.27,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "bridge",
+        "frames": 366,
+        "seconds": 12.2,
+        "end": {
+          "x": 35.285,
+          "y": 12.268,
+          "z": 33.253
+        },
+        "expectY": 12.13,
+        "maxY": 12.27,
+        "groundSpeedP50": 4.22,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 1,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "lookout",
+        "frames": 123,
+        "seconds": 4.1,
+        "end": {
+          "x": 93.801,
+          "y": 40.529,
+          "z": 93.706
+        },
+        "expectY": 41.154,
+        "maxY": 40.53,
+        "groundSpeedP50": 3.66,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "wreck",
+        "frames": 128,
+        "seconds": 4.3,
+        "end": {
+          "x": 151.306,
+          "y": 3.805,
+          "z": 7.642
+        },
+        "expectY": 4.587,
+        "maxY": 3.81,
+        "groundSpeedP50": 4.12,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "cave",
+        "frames": 140,
+        "seconds": 4.7,
+        "end": {
+          "x": 142.006,
+          "y": 0.42,
+          "z": 18.58
+        },
+        "expectY": 1.2,
+        "maxY": 0.57,
+        "groundSpeedP50": 4.29,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "shrine",
+        "frames": 141,
+        "seconds": 4.7,
+        "end": {
+          "x": -96.898,
+          "y": 10.218,
+          "z": 106.495
+        },
+        "expectY": 10.998,
+        "maxY": 10.22,
+        "groundSpeedP50": 4.21,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "driftwood-isle",
+        "name": "boat",
+        "frames": 67,
+        "seconds": 2.2,
+        "end": {
+          "x": -4.331,
+          "y": 0.28,
+          "z": -202.307
+        },
+        "expectY": 1.12,
+        "maxY": 1.22,
+        "groundSpeedP50": 4.22,
+        "airFrames": 9,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      }
+    ],
+    "stuck": 0,
+    "errors": []
+  },
+  "desktopAndInitialSim": {
+    "sha": "82ad65fd9d7c964a763bd2b63c3bc4481d0d58d1",
+    "when": "2026-10-18T02:59:16.486Z",
+    "elapsedSeconds": 117.101,
+    "frames": 120,
+    "settleMs": 2000,
+    "surface": "both",
+    "settings": {
+      "tier": "desktop",
+      "fps": "auto"
+    },
+    "complete": true,
+    "pass": false,
+    "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+    "limitations": [
+      "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+      "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+      "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+    ],
+    "poses": [
+      {
+        "surface": "desktop",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.926377917684576e-06,
+              "y": 1.212999994061829,
+              "z": -194.00000301775654,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 33.3,
+            "maxMs": 33.3,
+            "gameP95Ms": 20.6,
+            "workP95Ms": 15.9,
+            "calls": 692,
+            "triangles": 3323621,
+            "maxFramePass": true,
+            "pass": true,
+            "miss": null
+          },
+          {
+            "pose": {
+              "name": "pier",
+              "x": 0,
+              "z": -194,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "gameP95Ms": 17.7,
+            "workP95Ms": 16.9,
+            "calls": 689,
+            "triangles": 3319013,
+            "maxFramePass": true,
+            "pass": true,
+            "miss": null
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 16.8,
+            "maxMs": 16.8,
+            "gameP95Ms": 17.5,
+            "workP95Ms": 15.6,
+            "calls": 650,
+            "triangles": 2822130,
+            "maxFramePass": true,
+            "pass": true,
+            "miss": null
+          }
+        ]
+      },
+      {
+        "surface": "sim",
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.8657464416225196e-06,
+              "y": 1.2118999941259971,
+              "z": -194.00000202114,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 30.303,
+            "p95Ms": 47,
+            "p99Ms": 58,
+            "maxMs": 59,
+            "gameP95Ms": 47,
+            "workP95Ms": 35,
+            "calls": 291,
+            "triangles": 1610318,
+            "maxFramePass": true,
+            "pass": false,
+            "miss": "frame cost / scheduling"
+          },
+          {
+            "pose": {
+              "name": "wreck",
+              "x": 105,
+              "z": 0,
+              "yaw": -1.5707963267948966,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 30.303,
+            "p95Ms": 47,
+            "p99Ms": 51,
+            "maxMs": 52,
+            "gameP95Ms": 47,
+            "workP95Ms": 39,
+            "calls": 248,
+            "triangles": 1091263,
+            "maxFramePass": true,
+            "pass": false,
+            "miss": "frame cost / scheduling"
+          },
+          {
+            "pose": {
+              "name": "beach",
+              "x": -10,
+              "z": -150,
+              "yaw": 4.3,
+              "pitch": 0
+            },
+            "frames": 120,
+            "medianFps": 31.25,
+            "p95Ms": 48,
+            "p99Ms": 54,
+            "maxMs": 92,
+            "gameP95Ms": 48,
+            "workP95Ms": 34,
+            "calls": 323,
+            "triangles": 1612011,
+            "maxFramePass": true,
+            "pass": false,
+            "miss": "frame cost / scheduling"
+          }
+        ]
+      }
+    ]
+  },
+  "simulatorABBA": {
+    "receipt": {
+      "id": "20261017T220722-c1-dw-static-paired-sim-12425",
+      "label": "c1-dw-static-paired-sim",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792292842,
+      "endedAt": 1792293048,
+      "command": "node tmp/c1-dw-static/paired-floor.mjs"
+    },
+    "runs": [
+      {
+        "label": "base-a",
+        "sha": "ee9f385789adafd8116d08611529b961719c762b",
+        "when": "2026-10-18T03:08:14.841Z",
+        "elapsedSeconds": 51.652,
+        "frames": 120,
+        "settleMs": 2000,
+        "surface": "sim",
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "complete": true,
+        "pass": false,
+        "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+        "limitations": [
+          "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+          "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+          "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+        ],
+        "poses": [
+          {
+            "surface": "sim",
+            "rows": [
+              {
+                "pose": {
+                  "name": "spawn",
+                  "x": -3.8657464416225196e-06,
+                  "y": 1.2116999941310496,
+                  "z": -194.00000202114,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 45,
+                "p99Ms": 48,
+                "maxMs": 48,
+                "gameP95Ms": 45,
+                "workP95Ms": 33,
+                "calls": 291,
+                "triangles": 1610318,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "wreck",
+                  "x": 105,
+                  "z": 0,
+                  "yaw": -1.5707963267948966,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 46,
+                "p99Ms": 49,
+                "maxMs": 50,
+                "gameP95Ms": 46,
+                "workP95Ms": 38,
+                "calls": 248,
+                "triangles": 1091263,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "beach",
+                  "x": -10,
+                  "z": -150,
+                  "yaw": 4.3,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 47,
+                "p99Ms": 51,
+                "maxMs": 52,
+                "gameP95Ms": 47,
+                "workP95Ms": 35,
+                "calls": 323,
+                "triangles": 1612011,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "candidate-a",
+        "sha": "82ad65fd9d7c964a763bd2b63c3bc4481d0d58d1",
+        "when": "2026-10-18T03:09:07.791Z",
+        "elapsedSeconds": 52.898,
+        "frames": 120,
+        "settleMs": 2000,
+        "surface": "sim",
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "complete": true,
+        "pass": false,
+        "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+        "limitations": [
+          "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+          "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+          "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+        ],
+        "poses": [
+          {
+            "surface": "sim",
+            "rows": [
+              {
+                "pose": {
+                  "name": "spawn",
+                  "x": -3.8657464416225196e-06,
+                  "y": 1.211999994123471,
+                  "z": -194.00000102562757,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 46,
+                "p99Ms": 50,
+                "maxMs": 51,
+                "gameP95Ms": 46,
+                "workP95Ms": 35,
+                "calls": 291,
+                "triangles": 1610318,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "beach",
+                  "x": -10,
+                  "z": -150,
+                  "yaw": 4.3,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 46,
+                "p99Ms": 50,
+                "maxMs": 50,
+                "gameP95Ms": 46,
+                "workP95Ms": 35,
+                "calls": 344,
+                "triangles": 1628887,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "pier",
+                  "x": 0,
+                  "z": -194,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 35,
+                "p99Ms": 44,
+                "maxMs": 44,
+                "gameP95Ms": 35,
+                "workP95Ms": 21,
+                "calls": 290,
+                "triangles": 1602838,
+                "maxFramePass": true,
+                "pass": true,
+                "miss": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "candidate-b",
+        "sha": "82ad65fd9d7c964a763bd2b63c3bc4481d0d58d1",
+        "when": "2026-10-18T03:09:57.764Z",
+        "elapsedSeconds": 49.931,
+        "frames": 120,
+        "settleMs": 2000,
+        "surface": "sim",
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "complete": true,
+        "pass": false,
+        "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+        "limitations": [
+          "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+          "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+          "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+        ],
+        "poses": [
+          {
+            "surface": "sim",
+            "rows": [
+              {
+                "pose": {
+                  "name": "spawn",
+                  "x": -3.8657464416225196e-06,
+                  "y": 1.2118999941259971,
+                  "z": -194.00000202114,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 43,
+                "p99Ms": 52,
+                "maxMs": 54,
+                "gameP95Ms": 43,
+                "workP95Ms": 26,
+                "calls": 291,
+                "triangles": 1610318,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "beach",
+                  "x": -10,
+                  "z": -150,
+                  "yaw": 4.3,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 49,
+                "p99Ms": 53,
+                "maxMs": 54,
+                "gameP95Ms": 49,
+                "workP95Ms": 37,
+                "calls": 322,
+                "triangles": 1629819,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "pier",
+                  "x": 0,
+                  "z": -194,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 46,
+                "p99Ms": 47,
+                "maxMs": 83,
+                "gameP95Ms": 46,
+                "workP95Ms": 28,
+                "calls": 290,
+                "triangles": 1602838,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "base-b",
+        "sha": "ee9f385789adafd8116d08611529b961719c762b",
+        "when": "2026-10-18T03:10:48.445Z",
+        "elapsedSeconds": 50.638,
+        "frames": 120,
+        "settleMs": 2000,
+        "surface": "sim",
+        "settings": {
+          "tier": "phone",
+          "fps": "auto"
+        },
+        "complete": true,
+        "pass": false,
+        "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+        "limitations": [
+          "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+          "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+          "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+        ],
+        "poses": [
+          {
+            "surface": "sim",
+            "rows": [
+              {
+                "pose": {
+                  "name": "spawn",
+                  "x": -3.8657464416225196e-06,
+                  "y": 1.2117999941285234,
+                  "z": -194.00000202114,
+                  "yaw": 3.141592653589793,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 37,
+                "p99Ms": 48,
+                "maxMs": 51,
+                "gameP95Ms": 37,
+                "workP95Ms": 15,
+                "calls": 291,
+                "triangles": 1610318,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "beach",
+                  "x": -10,
+                  "z": -150,
+                  "yaw": 4.3,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 42,
+                "p99Ms": 44,
+                "maxMs": 46,
+                "gameP95Ms": 42,
+                "workP95Ms": 16,
+                "calls": 345,
+                "triangles": 1629819,
+                "maxFramePass": true,
+                "pass": false,
+                "miss": "frame cost / scheduling"
+              },
+              {
+                "pose": {
+                  "name": "wreck",
+                  "x": 105,
+                  "z": 0,
+                  "yaw": -1.5707963267948966,
+                  "pitch": 0
+                },
+                "frames": 120,
+                "medianFps": 30.303,
+                "p95Ms": 34,
+                "p99Ms": 35,
+                "maxMs": 37,
+                "gameP95Ms": 34,
+                "workP95Ms": 16,
+                "calls": 248,
+                "triangles": 1089419,
+                "maxFramePass": true,
+                "pass": true,
+                "miss": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "verdict": "Every row holds 30.303 median fps; p95 varies within the recorded existing miss. The absolute 35 ms Simulator floor remains open; no new frame-floor pass is claimed."
+  },
+  "hostBar": {
+    "score": "5/6",
+    "test1": "G483 approved-platform exception; DW and an independent fictional harbour fixture, no second shipping shard claimed",
+    "evidence": {
+      "1": [
+        "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs:47",
+        "test/world-scenes-platform.test.ts:51"
+      ],
+      "2": [
+        "src/game/shardfile/worldScenePlacement.ts:40"
+      ],
+      "3": [
+        "src/format/worldScenePlacement.ts:19",
+        "src/format/worldScenes.ts:15"
+      ],
+      "4": [
+        "src/game/shardfile/worldScenePlacement.ts:22"
+      ],
+      "5": [
+        "test/world-scenes-platform.test.ts:51",
+        "test/floor-rects.test.ts:19"
+      ],
+      "6": [
+        "src/game/shardfile/sceneHandles.ts:51"
+      ]
+    }
+  },
+  "deletedOldPaths": [
+    "src/shards/driftwood-isle/assets/contracts/pier.ts",
+    "src/shards/driftwood-isle/data/pierRows.d.json.ts",
+    "src/shards/driftwood-isle/data/pierRows.json",
+    "src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts",
+    "src/shards/driftwood-isle/runtime/boot/hibiscusGeometry.ts",
+    "src/shards/driftwood-isle/runtime/boot/palmGeometry.ts",
+    "src/shards/driftwood-isle/runtime/models/boat.ts",
+    "src/shards/driftwood-isle/runtime/models/hibiscusBush.ts",
+    "src/shards/driftwood-isle/runtime/models/palm.ts",
+    "src/shards/driftwood-isle/runtime/models/pier.ts",
+    "src/shards/driftwood-isle/runtime/models/zipline.ts",
+    "src/shards/driftwood-isle/world/Boat.ts",
+    "src/shards/driftwood-isle/world/Bushes.ts",
+    "src/shards/driftwood-isle/world/Palms.ts",
+    "src/shards/driftwood-isle/world/Pier.ts",
+    "src/shards/driftwood-isle/world/Seabed.ts",
+    "src/shards/driftwood-isle/world/Zipline.ts",
+    "src/shards/driftwood-isle/world/pierLayout.ts"
+  ],
+  "maps": {
+    "mode": "Source-only sixth map window, G490; sp-x10 owns official refresh and strict stamp closure",
+    "inputsChanged": [
+      "src/shards/driftwood-isle/blender/export.mjs",
+      "src/shards/driftwood-isle/data/fixedGeometry.json",
+      "src/shards/driftwood-isle/data/pierRows.d.json.ts",
+      "src/shards/driftwood-isle/data/pierRows.json",
+      "src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs",
+      "src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs",
+      "src/shards/driftwood-isle/generators/bake-island-dressing.mjs",
+      "src/shards/driftwood-isle/generators/bake-pier-scenes.mjs",
+      "src/shards/driftwood-isle/generators/bake-specimens.mjs",
+      "src/shards/driftwood-isle/generators/driftwoodPiers.ts",
+      "src/shards/driftwood-isle/generators/foliageGeometry.ts",
+      "src/shards/driftwood-isle/generators/foliageModels.ts",
+      "src/shards/driftwood-isle/generators/hibiscus.ts",
+      "src/shards/driftwood-isle/generators/islandDressing.ts",
+      "src/shards/driftwood-isle/generators/mooringLines.ts",
+      "src/shards/driftwood-isle/generators/output.ts",
+      "src/shards/driftwood-isle/generators/palm.ts",
+      "src/shards/driftwood-isle/generators/pier.ts",
+      "src/shards/driftwood-isle/generators/pierColliders.ts",
+      "src/shards/driftwood-isle/generators/pierContract.ts",
+      "src/shards/driftwood-isle/generators/pierLayout.ts",
+      "src/shards/driftwood-isle/generators/pierRows.d.json.ts",
+      "src/shards/driftwood-isle/generators/pierRows.json",
+      "src/shards/driftwood-isle/generators/pierSites.ts",
+      "src/shards/driftwood-isle/generators/ropeBridge.ts",
+      "src/shards/driftwood-isle/generators/scene.ts",
+      "src/shards/driftwood-isle/generators/sections.ts",
+      "src/shards/driftwood-isle/generators/siteCatalogue.ts",
+      "src/shards/driftwood-isle/generators/worldScenes.ts",
+      "src/shards/driftwood-isle/look/map.json",
+      "src/shards/driftwood-isle/models/catalogue.ts",
+      "src/shards/driftwood-isle/world/BlenderIsland.ts",
+      "src/shards/driftwood-isle/world/Boat.ts",
+      "src/shards/driftwood-isle/world/Bushes.ts",
+      "src/shards/driftwood-isle/world/GroundCover.ts",
+      "src/shards/driftwood-isle/world/Palms.ts",
+      "src/shards/driftwood-isle/world/Pier.ts",
+      "src/shards/driftwood-isle/world/Seabed.ts",
+      "src/shards/driftwood-isle/world/Zipline.ts",
+      "src/shards/driftwood-isle/world/build.ts",
+      "src/shards/driftwood-isle/world/pierLayout.ts"
+    ]
+  },
+  "remains": [
+    "GroundCover wrapper; borrowed placement foliage.logs, mesh logs.mesh",
+    "Wreck static logs: placement wreck.logs, mesh wreck.root",
+    "Live bridge chain poses and mooring deformation remain counted client drawing",
+    "Batches9-10 cove, Blender island and world assembly are a fresh next task"
+  ]
+}

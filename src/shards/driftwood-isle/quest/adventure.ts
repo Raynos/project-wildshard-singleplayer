@@ -38,7 +38,9 @@ import { installDirectorFinale, type Finale } from '../runtime/finalePresentatio
 import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
 import { installPageReturns } from '@wildshard/game/population/pageReturns';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
-import { Zipline } from '../world/Zipline';
+import type { Placed } from '@wildshard/engine/models/place';
+
+interface Zipline { group: THREE.Object3D; placed: Placed; a: THREE.Vector3; b: THREE.Vector3; prompt: Interactable; cables: ReturnType<typeof cableModes>; mode: string }
 
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
@@ -188,17 +190,10 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,
   // down to the cove beach west of the cave mouth (the headland's 34 m shelf rules out a cable straight off the platform) ──
   {
-    const from = place({ poi: 'lookout', anchor: 'lookout.zipTop', x: 0, z: 0 }), cave = place({ poi: 'cave', anchor: 'cave.caveFloor', x: 0, z: 0 });
-    const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
-    const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }, cableModes(ctx.scope), 'driftwood.zipline', w.player).build();
-    // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
-    // E315 M1: the zipline model (src/shards/driftwood-isle/runtime/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
-    // SF57: the piece, its deck colliders and the group belong to this entry (after an await the ambient owner is the page's,
-    // and a re-entered borrowed home runs this install again)
-    const registry = w.registry;
-    if (registry) { scope.run(() => zip.place(registry)); w.game.scene.add(zip.group); }
-    else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
-    ownQuestTree(zip.group, scope);
+    const placed = await scenes.place('harbour.zipline'), cables = cableModes(ctx.scope), mode = 'driftwood.zipline';
+    const prompt = cables.bindView(mode, scenes.mesh('zipline.carriage'), w.player, { position: scenes.vector('zipline.prompt'), radius: 2.4, label: 'Ride the zipline' });
+    const zip = { group: placed.object, placed, prompt, cables, mode, a: scenes.vector('zipline.a'), b: scenes.vector('zipline.b') };
+    w.game.scene.add(zip.group);
     w.prompts.push(zip.prompt);
     w.game.onUpdate((dt) => {
       zip.cables.update(zip.mode, dt);
@@ -208,7 +203,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       }
     }, 'shard.driftwood.adventure.2');
     adventure.zipline = zip;
-    adventure.setAnchor('lookout.zipline', { x: lx, z: lz });
+    adventure.setAnchor('lookout.zipline', { x: scenes.vector('zipline.anchor').x, z: scenes.vector('zipline.anchor').z });
   }
 
   const places = chapter.discover(content.places.map(d => { const p = place(d.at);

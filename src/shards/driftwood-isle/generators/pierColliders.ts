@@ -1,5 +1,5 @@
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import type { PierParams } from '../assets/contracts/pier';
+import type { PierParams } from './pierContract';
 
 /**
  * PHYSICS P4, own space: the posts and bollards (the legacy boxes) and every floor the deck describes, as real geometry.

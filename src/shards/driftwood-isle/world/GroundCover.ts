@@ -16,15 +16,10 @@
  *
  * No URL switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
-import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
-import { driftLog } from '../runtime/models/cargo';
-import { modelContext } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
-import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { Placed } from '@wildshard/engine/models/place';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 
@@ -41,10 +36,10 @@ export class GroundCover {
   readonly stats: StreamedCoverHandle['stats'];
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
-  constructor(private readonly sky: Sky, opts: GroundCoverOpts, resources: SceneHandles) {
+  constructor(opts: GroundCoverOpts, private readonly resources: SceneHandles, logs: Placed) {
     for (const [kind, slot] of Object.entries(fixedGeometryGroups().cover)) resources.publish(kind, fixedDraw(slot).copy());
     this.stream = createStreamedCover(resources, GROUND_COVER, opts.cells);
-    this.group = this.stream.group; this.stats = this.stream.stats;
+    this.group = this.stream.group; this.stats = this.stream.stats; this.placed.push(logs);
   }
 
   build(): this {
@@ -57,13 +52,8 @@ export class GroundCover {
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
-    const geo = fixedDraw('duneLogs').take();
-    const mesh = new THREE.Mesh(geo, lowPolyLookMaterial(this.sky));
-    mesh.name = 'ground-cover-driftwood';
-    mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)
-    mesh.castShadow = true; mesh.receiveShadow = true;
+    const mesh = this.resources.mesh('logs.mesh');
+    mesh.userData['coverProp'] = true;
     this.group.add(mesh);
-    // E315 M1: each is the drift log model (src/shards/driftwood-isle/runtime/models/cargo.ts), placed drawnInto this mesh
-    if (duneLogs.placements.length > 0) this.placed.push(place(driftLog, duneLogs.placements, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(duneLogs.boxes) }, piece: { id: 'cover-drift-logs' } }));
   }
 }

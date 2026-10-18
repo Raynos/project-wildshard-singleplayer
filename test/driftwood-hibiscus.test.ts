@@ -1,14 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { MeshStandardMaterial } from 'three';
-import { TIER, initializeTier } from '@wildshard/engine/core/tier';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { namedModelProduct } from './fixtures/namedModelProduct';
-import { Rng } from '@wildshard/engine/core/rng';
-import { seedOf } from '@wildshard/engine/models/model';
-import { leafClump } from '../src/shards/driftwood-isle/generators/hibiscus';
-import { hibiscusBush } from '../src/shards/driftwood-isle/runtime/models/hibiscusBush';
-import { loadHibiscusVariants, copyHibiscusVariant, decodeHibiscusWorld } from '../src/shards/driftwood-isle/runtime/boot/hibiscusGeometry';
+import { describe, expect, it } from 'vitest';
+import { decodeHibiscusWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 
 const phone = (): Uint8Array => {
   const buffer = new ArrayBuffer(16 + (6 + 3 * 11) * 4), header = new DataView(buffer);
@@ -38,22 +29,3 @@ describe('the owned hibiscus world bake', () => {
   });
 });
 
-it('loads the three Explorer bakes through the native intake with their wind channels', async () => {
-  const tier = TIER, emitted = new Map<string, Uint8Array>();
-  for (const variant of hibiscusBush.variants ?? []) {
-    if (variant.id !== 'flowering' && variant.id !== 'leaf' && variant.id !== 'small') throw new Error('Unexpected specimen');
-    const geometry = leafClump({ ...hibiscusBush.defaults, ...variant.params }, new Rng(seedOf(hibiscusBush)));
-    emitted.set(`draw:hibiscus:${tier}:${variant.id}`, staticGlb([{ geometry, material: new MeshStandardMaterial(), customAttributes: { _SWAY: 'aSway' }, compactIndex: true }])); geometry.dispose();
-  }
-  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
-  initializeTier(tier === 'phone' ? 'desktop' : 'phone');
-  try {
-    await loadHibiscusVariants();
-    for (const variant of hibiscusBush.variants ?? []) {
-      const geometry = copyHibiscusVariant({ ...hibiscusBush.defaults, ...variant.params });
-      expect(geometry.getAttribute('aSway').count).toBe(geometry.getAttribute('position').count);
-      expect(geometry.getAttribute('position').count).toBeGreaterThan(0); geometry.dispose();
-    }
-    expect(() => copyHibiscusVariant({ r: 8, flowers: true, phase: 0 })).toThrow('no authored bake');
-  } finally { initializeTier(tier); mocked.mockRestore(); }
-});

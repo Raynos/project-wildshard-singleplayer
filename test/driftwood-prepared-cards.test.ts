@@ -9,12 +9,12 @@ import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { loadFixedGeometry, fixedGeometryReady, COLLECTIONS } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
-import { barrel, crate, ropeCoil, driftLog } from '../src/shards/driftwood-isle/runtime/models/cargo';
+import { barrel, crate, ropeCoil } from '../src/shards/driftwood-isle/runtime/models/cargo';
 import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
 import { castaway } from '../src/shards/driftwood-isle/runtime/models/people';
 import { trader, tradeCounter } from '../src/shards/driftwood-isle/runtime/models/trader';
 
-const entries = [live(barrel), live(crate), live(ropeCoil), live(driftLog), live(captainHat), live(sailclothCape), live(castaway), live(trader), live(tradeCounter)];
+const entries = [live(barrel), live(crate), live(ropeCoil), live(captainHat), live(sailclothCape), live(castaway), live(trader), live(tradeCounter)];
 
 it('forwards cold fixed preparation to the existing live roster', () => {
   expect(fixedGeometryReady()).toBe(false);
@@ -65,7 +65,7 @@ it('matches the original warm cards for every authored geometry and variant', as
     }
   }
   try {
-    await check(barrel); await check(crate); await check(ropeCoil); await check(driftLog);
+    await check(barrel); await check(crate); await check(ropeCoil);
     await check(captainHat); await check(sailclothCape); await COLLECTIONS.prepare(); await check(COLLECTIONS.model('chime')); await check(COLLECTIONS.model('plaques'));
     await check(castaway, false); await check(trader); await check(tradeCounter);
     expect(signatures).toMatchSnapshot();

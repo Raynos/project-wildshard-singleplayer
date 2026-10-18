@@ -7,7 +7,7 @@ const BEFORE = ['main.world'];
 interface Ticks { update: (dt: number) => void }
 /** what the systems tick: the world build's parts (./build.ts DriftwoodWorld), or none of one */
 export interface IslandParts<Deck extends { readonly awake: boolean }> {
-  ocean: Ticks | null; boat: (Ticks & { readonly group: Object3D }) | null; palms: Ticks | null; seabed: { tick: (dt: number) => void } | null; cove: Ticks | null; shrine: Ticks | null;
+  ocean: Ticks | null; boat: { readonly group: Object3D } | null; palms: Ticks | null; seabed: { tick: (dt: number) => void } | null; cove: Ticks | null; shrine: Ticks | null;
   bridge: { setPoses: (deck: Deck, alpha: number) => void } | null; bridgeDeck: Deck | null;
 }
 /** what they read off the bootstrapped world each frame: the player's position, the fixed step's interpolation */
@@ -20,9 +20,8 @@ export interface IslandView { readonly player: { readonly position: Vector3 }; r
  * (cover, Blender island), so the frame's order is unchanged.
  */
 export function islandSystems<Deck extends { readonly awake: boolean }>(ctx: ShardContext, view: IslandView, parts: IslandParts<Deck>): void {
-  const { ocean, boat, palms, bridge, bridgeDeck, seabed, cove, shrine } = parts;
+  const { ocean, palms, bridge, bridgeDeck, seabed, cove, shrine } = parts;
   if (ocean) ctx.system({ id: 'shard.driftwood.ocean', phase: 'update', before: BEFORE, run: (dt) => { ocean.update(dt); } });
-  if (boat && boat.group.userData['declaredMotion'] !== true) ctx.system({ id: 'shard.driftwood.boat', phase: 'update', before: BEFORE, run: (dt) => { boat.update(dt); } });
   if (palms) ctx.system({ id: 'shard.driftwood.palms', phase: 'update', before: BEFORE, run: (dt) => { palms.update(dt); } });
   if (bridge && bridgeDeck) ctx.system({ id: 'shard.driftwood.bridge.pose', phase: 'update', before: BEFORE, run: () => { if (bridgeDeck.awake) bridge.setPoses(bridgeDeck, view.game.alpha); } });
   if (seabed) ctx.system({ id: 'shard.driftwood.seabed', phase: 'update', before: BEFORE, run: (dt) => { seabed.tick(dt); } });

@@ -40,7 +40,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
 import { area, BLENDER_MODELS } from './blenderArea';
-import type { PalmSpec } from './Palms';
+import type { CustomSections } from '../runtime/productSections.generated.d.ts';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
 import { smallRock } from '../models/catalogue';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -60,6 +60,8 @@ import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+
+type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
 
 const { WORLD_DROP } = sea;
 

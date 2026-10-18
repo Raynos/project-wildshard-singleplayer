@@ -73,8 +73,9 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       if (library?.kind !== 'owned') throw new Error('Cold scene models require an owned product library');
       const model = library.models.find(row => row.id === draw.model);
       if (model === undefined) throw new Error('Missing declared scene model source');
-      const geometry = createOwnedGeometry(admitted.url(model.file), model.attributes);
-      await geometry.load(await admitted.file(model.file));
+      const file = typeof model.file === 'string' ? model.file : model.file[TIER];
+      const geometry = createOwnedGeometry(admitted.url(file), model.attributes);
+      await geometry.load(await admitted.file(file));
       requireLive(owner);
       const owned = geometry.take(); geometries.set(key, owned); owner.onDispose(() => { owned.dispose(); });
     }

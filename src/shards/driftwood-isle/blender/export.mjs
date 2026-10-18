@@ -24,14 +24,13 @@ export async function groundColor({ THREE, imp, hf, def }) {
   };
 }
 
-export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF, ROAD_LENGTH }) {
+export async function layout({ THREE, imp, def, addObject, tryBuild }) {
   const island = await imp('src/shards/driftwood-isle/world/sites.ts');
   const terrainLayout = (await imp('src/shards/driftwood-isle/data/layout.json')).default;
-  const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { originalTrailside } = await imp('src/shards/driftwood-isle/generators/driftwoodTrailside.mjs');
   const { islandTrailsideSpec } = await imp('src/shards/driftwood-isle/generators/trailsideLayout.ts');
-  const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
+  const { originalPiers } = await imp('src/shards/driftwood-isle/generators/driftwoodPiers.ts');
   const { originalHut } = await imp('src/shards/driftwood-isle/generators/driftwoodHut.mjs');
   const { HUT } = island;
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
@@ -42,8 +41,11 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const trailside = islandTrailsideSpec();
 
   // ── structures kept in blender mode, as bake occluders ──
-  const sky = { setupMaterial() { /* no CSM in Node */ }, viewCamera: new THREE.PerspectiveCamera() };
-  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
+  const madePiers = originalPiers(), site = madePiers.rows[0];
+  if (!site?.world) throw new Error('South pier is missing from the author bake');
+  const pier = { ...site.world, colliders: site.world.boxes, group: new THREE.Group() };
+  pier.group.position.set(site.world.x, site.world.deckY, site.world.z);
+  for (const part of ['deck', 'cloth']) { const geometry = madePiers.geometry.get(`pier-world-0-${part}`); if (geometry) pier.group.add(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ vertexColors: true }))); }
   addObject(pier.group);
   tryBuild('hut', () => { const row = originalHut(), group = new THREE.Group(), material = new THREE.MeshBasicMaterial({ vertexColors: true }); group.position.copy(row.layout.origin); group.add(new THREE.Mesh(row.kit, material), new THREE.Mesh(row.flames, material)); return group; });
   tryBuild('trailside', () => new THREE.Mesh(originalTrailside().geometry, new THREE.MeshBasicMaterial({ vertexColors: true })));

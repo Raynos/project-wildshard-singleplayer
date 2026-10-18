@@ -11,17 +11,17 @@ import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } fr
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import manifest from '../discovery.generated';
-import type { PalmSpec } from '../world/Palms';
-import type { BushSpec } from '../world/Bushes';
-import { palm, type PalmParams } from '../runtime/models/palm';
+import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams } from './foliageModels';
 import { palmGeometry } from './palm';
-import { hibiscusBush, type HibiscusBushParams } from '../runtime/models/hibiscusBush';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from '../world/blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
+
+export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
+export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
 /** The world's wet-sand perches, compiled under its original native height binding. */
 export function beachGullPerches(heightAt: (x: number, z: number) => number, seed: number): {x:number;y:number;z:number}[] {

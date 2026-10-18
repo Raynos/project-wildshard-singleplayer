@@ -17,3 +17,10 @@ export const shrine = sites.model('shrine');
 export const shoreBoulder = sites.model('shoreBoulder');
 export const smallRock = sites.model('smallRock');
 export const reefRock = sites.model('reefRock');
+
+export const palm = sites.model('palm');
+export const hibiscusBush = sites.model('hibiscus');
+export const driftLog = sites.model('driftLog');
+export const pier = sites.model('pier');
+export const boat = sites.model('boat');
+export const zipline = sites.model('zipline');

@@ -15,6 +15,7 @@ import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlaceme
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { WorldSceneBatch } from './worldSceneBatch';
+import type { SceneHandles } from './sceneHandles';
 
 function requireLive(owner: Scope): void { if (owner.disposed) throw new Error('Scene placement owner is disposed'); }
 
@@ -24,16 +25,20 @@ export class WorldScenePlacement {
   private pending: Promise<Placed> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: ReturnType<typeof defineWorldSceneCatalogue>, private readonly owner: Scope,
-    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly batch?: WorldSceneBatch) {}
+    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>, private readonly batch?: WorldSceneBatch) {}
 
   load(): Promise<Placed> {
     if (this.owner.disposed) return Promise.reject(new Error('Scene placement owner is disposed'));
     this.pending ??= this.build();
     return this.pending;
   }
+  /** Query the same authored floor the placement lends to its registry piece. */
+  floorAt(x: number, z: number): number | undefined { return floorAtRects(this.row.piece?.floors ?? [], x, z, this.row.piece?.floorPolicy ?? 'first'); }
   private async build(): Promise<Placed> {
     const world = this.ctx.game.runtime?.world, row = this.row;
     if (world === undefined || world === null || this.owner.disposed) throw new Error('Scene placement needs its resident world');
+    const borrowed = row.drawnInto === undefined ? undefined : this.handles?.object(row.drawnInto.part);
+    if (row.drawnInto !== undefined && borrowed === undefined) throw new Error('Scene placement needs its named part owner');
     await Promise.all(this.sources.map(async source => {
       if (this.materials.has(source.id)) return;
       const material = await worldSceneSourceMaterial(source, world.sky, this.owner);
@@ -57,12 +62,14 @@ export class WorldScenePlacement {
         return { ...pose, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
       }),
       { ctx: sharedModelContext(world.sky, world.game), registry: this.ctx.app.registry, draw: row.draw,
+        ...(row.drawnInto === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(row.drawnInto.boxes) } }),
         ...(this.batch === undefined ? {} : { batch: this.batch.reserve() }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
         ...(row.piece === undefined && preplaced === undefined ? {} : { piece: { ...(row.piece === undefined ? {} : { id: row.piece.id }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
           ...(preplaced === undefined ? {} : { colliders: preplaced }),
           ...(row.piece?.solidFloor === undefined ? {} : { solidFloor: row.piece.solidFloor }),
-          ...(row.piece?.floors === undefined ? {} : { floor: (x: number, z: number) => floorAtRects(row.piece?.floors ?? [], x, z, row.piece?.floorPolicy ?? 'first') }),
+          ...(row.piece?.follows === undefined ? {} : { follows: row.piece.follows }),
+          ...(row.piece?.floors === undefined ? {} : { floor: this.floorAt.bind(this) }),
           ...(row.piece?.split === undefined ? {} : { split: { every: row.piece.split, yieldTask: () => buildYield(this.owner) } }) } }) }));
     await placed.registered;
     await buildYield(this.owner);

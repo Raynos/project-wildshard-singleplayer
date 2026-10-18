@@ -1,3 +1,5 @@
+import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import authored from '../data/siteCatalogue.json' with { type: 'json' };
 import hut from '../data/hutBake.json' with { type: 'json' };
@@ -32,5 +34,5 @@ export function siteCatalogue(): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...rocks.catalogue] };
+  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline] };
 }

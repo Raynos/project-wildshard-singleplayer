@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { PalmParams } from '../runtime/models/palm';
+import type { PalmParams } from './foliageModels';
 import { islandKnobs } from './tiers';
 
 const C = {

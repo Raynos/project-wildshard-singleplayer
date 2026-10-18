@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { swayByHeight } from '@wildshard/engine/world/wind';
 import { islandKnobs } from './tiers';
-import type { HibiscusBushParams } from '../runtime/models/hibiscusBush';
+import type { HibiscusBushParams } from './foliageModels';
 
 const col = (h: string): THREE.Color => new THREE.Color(h);
 const LEAF = { deep: col('#2a5a24'), dark: col('#377a2e'), mid: col('#52a03a'), light: col('#7cc04a'), tip: col('#aad85c'), core: col('#1f3f1c') };

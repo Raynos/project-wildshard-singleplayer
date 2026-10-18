@@ -32,7 +32,7 @@ test('admitted scene rows retain every scatter copy and native Float32 upload', 
 test('built scene libraries retain every logical reference after hash deduplication', async () => {
   const product = await loadHeadlessProduct('out/pine-hollow'), scenes = product.section('world/scenes');
   for (const library of scenes.libraries) if (library.kind === 'owned') for (const model of library.models) {
-    expect(product.hasFile(model.file), `${library.id}/${model.id}: ${model.file}`).toBe(true);
+    expect(typeof model.file === 'string' ? product.hasFile(model.file) : product.hasFile(model.file.phone) && product.hasFile(model.file.desktop), `${library.id}/${model.id}`).toBe(true);
   }
   const timber = scenes.libraries.find(row => row.id === 'timbers');
   if (timber?.kind !== 'owned') throw new Error('Missing timber library');

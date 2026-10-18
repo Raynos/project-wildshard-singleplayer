@@ -1,3 +1,4 @@
+import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 import { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
 import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
@@ -21,6 +22,7 @@ export function admitDriftwoodFixtureAliases(byUrl: Readonly<Record<string, stri
   sections.set('custom/assets', { byUrl });
   const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 1 };
   const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups)), hash = hashImmutableBytes(bytes);
-  admitDriftwoodRows(createShardProduct({ slug: 'driftwood-isle', revision: 1, shardfile: emptyShardfile(identity), sections, files: new Map([['models/fixed-geometry.json', { hash, url: '/fixed-geometry.json' }]]),
-    read: name => name === hash ? Promise.resolve(bytes) : Promise.reject(new Error('no such file in this fixture')), check: true }));
+  const figures = new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE)), figureHash = hashImmutableBytes(figures);
+  admitDriftwoodRows(createShardProduct({ slug: 'driftwood-isle', revision: 1, shardfile: emptyShardfile(identity), sections, files: new Map([['models/fixed-geometry.json', { hash, url: '/fixed-geometry.json' }], ['people/catalogue.json', { hash: figureHash, url: '/people/catalogue.json' }]]),
+    read: name => name === hash ? Promise.resolve(bytes) : name === figureHash ? Promise.resolve(figures) : Promise.reject(new Error('no such file in this fixture')), check: true }));
 }

@@ -24,7 +24,7 @@ const material = new MeshStandardMaterial({ vertexColors: true });
 const emit = (name, geometry) => {
   const customAttributes = Object.fromEntries(Object.keys(geometry.attributes).filter((key) => !['position', 'normal', 'color', 'uv'].includes(key))
     .map((key) => [key === 'aSway' ? '_SWAY' : `_${key.toUpperCase()}`, key]));
-  const glb = staticGlb([{ geometry, material, customAttributes }], name);
+  const glb = staticGlb([{ geometry, material, customAttributes, ...(['bridge-plank-unit', 'bridge-rope-unit'].includes(name) ? { nativeAttributes: true, compactIndex: true } : {}) }], name);
   write(new URL(`${name}.glb`, assets), glb);
   blobOutput.add(`models/fixed/${name}.glb`, 'glb', glb, `/assets/driftwood-isle/baked/fixed-models/${name}.glb`);
   geometry.dispose();

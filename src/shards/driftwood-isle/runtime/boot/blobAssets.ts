@@ -35,12 +35,14 @@ export const FIGURES = new FigureCatalogue('driftwood-isle', 'people/catalogue.j
 
 const fixed = createOwnedGeometryBatch(), templates = new Map<string, OwnedGeometry>();
 let inventory: FixedGeometryGroups | null = null;
+/** The admitted fixed library stays bounded as authored units are added. */
+const MAX_FIXED_DRAWS = 128;
 let fixedReady = false;
 function prepareFixedTemplates(): void {
   if (templates.size > 0) return;
   const rows = driftwoodRows('custom/fixedLayouts').fixedDraws;
-  for (let i = 0; i < 86; i++) {
-    const row = rows[i]; if (row === undefined) throw new Error('Missing fixed geometry declaration');
+  for (let i = 0; i < MAX_FIXED_DRAWS; i++) {
+    const row = rows[i]; if (row === undefined) break;
     templates.set(row.slot, fixed.geometry(row.slot, Object.fromEntries(row.channels)));
   }
 }
@@ -67,7 +69,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   await FIGURES.admit(product);
   const rows = product.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').fixedDraws;
   const aliases = Object.entries(driftwoodRows('custom/assets').byUrl).filter(([key]) => key.startsWith('fixed:'));
-  if (rows.length !== 86 || aliases.length !== rows.length || aliases.some(([key]) => !rows.some(row => row.slot === key.slice(6)))) throw new Error('Undeclared fixed draw slots');
+  if (rows.length === 0 || rows.length > MAX_FIXED_DRAWS || aliases.length !== rows.length || aliases.some(([key]) => !rows.some(row => row.slot === key.slice(6)))) throw new Error('Undeclared fixed draw slots');
   inventory ??= await product.json<FixedGeometryGroups>('models/fixed-geometry.json');
   prepareFixedTemplates();
   const sources = new Map(aliases.map(([key, name]) => [key.slice(6), name]));
@@ -83,7 +85,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     })));
     if (assembled !== undefined && assembled.size !== admitted.size) throw new Error('Unexpected admitted Driftwood source draw');
     await fixed.load(admitted); fixedReady = true;
-  } finally { for (let i = 0, views = [...assembled?.values() ?? []]; i < 86; i++) { const view = views[i]; if (view === undefined) break; view.release?.(); } }
+  } finally { for (let i = 0, views = [...assembled?.values() ?? []]; i < MAX_FIXED_DRAWS; i++) { const view = views[i]; if (view === undefined) break; view.release?.(); } }
 }
 
 /** Inert collection binding shares the original fixed-draw intake without loading the live creature roster. */

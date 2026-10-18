@@ -135,7 +135,7 @@ export const SECTIONS = {
     WRECK_SITES: v.strictObject({"world": v.strictObject({"x": number, "z": number, "heading": number, "roll": number, "pitch": number, "floorY": number}), "specimen": v.strictObject({"x": number, "z": number, "heading": number, "roll": number, "pitch": number, "floorY": number})}),
     ZIPLINE_ROWS: v.strictObject({"world": text, "trolley": text, "specimen": text, "parked": text, "layout": v.strictObject({"top": v.strictObject({"x": number, "y": number, "z": number}), "bottom": v.strictObject({"x": number, "y": number, "z": number}), "sag": number, "prompt": v.strictObject({"x": number, "y": number, "z": number, "radius": number})}), "specimenLayout": v.strictObject({"top": v.strictObject({"x": number, "y": number, "z": number}), "bottom": v.strictObject({"x": number, "y": number, "z": number})})}),
     }),
-    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(86)),
+    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(88)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
     entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }) }),

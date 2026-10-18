@@ -533,6 +533,16 @@
       "slot": "entryDeckShallow",
       "channels": [],
       "source": "/assets/driftwood-isle/baked/fixed-models/entry-deck-shallow.glb"
+    },
+    {
+      "slot": "bridgePlankUnit",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-plank-unit.glb"
+    },
+    {
+      "slot": "bridgeRopeUnit",
+      "channels": [],
+      "source": "/assets/driftwood-isle/baked/fixed-models/bridge-rope-unit.glb"
     }
   ],
   "groups": {

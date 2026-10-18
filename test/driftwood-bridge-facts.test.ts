@@ -1,16 +1,25 @@
 import { beforeAll, expect, it } from 'vitest';
-import { Mesh, type Object3D } from 'three';
+import { BufferAttribute, Mesh, type Object3D } from 'three';
 import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
 import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
 import { fakeWorld } from './fake/world';
 import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { bridgePosts } from '../src/shards/driftwood-isle/generators/ropeBridge';
+import { bridgePosts, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
+
+import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { fixtureBytes } from './fixtures/nativeBytes';
+import fixedBlobs from '../src/shards/driftwood-isle/data/fixedBlobs.generated.json' with { type: 'json' };
 
 const span:RopeBridgeSpec={a:[0,0],b:[12,0],sag:0.9};
 const isMesh=(o:Object3D):o is Mesh=>o instanceof Mesh;
 // The page admits the baked posts before it builds; the author recipe stands in for the fixed-model bytes here.
-beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0)); });
+beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0));
+  const units = bridgeUnitGeometries();
+  const plank = units['bridge-plank-unit'], rope = units['bridge-rope-unit'];
+  if (plank === undefined || rope === undefined) throw new Error('Missing native bridge unit');
+  await fixedDraw('bridgePlankUnit').load(plank); await fixedDraw('bridgeRopeUnit').load(rope);
+});
 it('keeps deck owners and the walk floor on the live chain poses', () => {
   const bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
   try {
@@ -60,4 +69,22 @@ it('draws the baked anchor posts, painted, and refuses to draw before they load'
   fixedDraw('bridgeSpecimenPosts').take().dispose();
   expect(()=>ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0})).toThrow('not loaded');
   await fixedDraw('bridgeSpecimenPosts').load(bridgePosts(span,()=>0));
+});
+
+it('retains original native bridge units in named GLBs', async () => {
+  for (const [name, expected] of Object.entries(bridgeUnitGeometries())) {
+    const row = fixedBlobs.blobs.find(blob => blob.name === `models/fixed/${name}.glb`);
+    if (row === undefined) throw new Error('Missing native bridge unit blob');
+    const intake = createOwnedGeometry(row.name); await intake.load(fixtureBytes(new URL(`../src/shards/driftwood-isle/${row.source}`, import.meta.url)));
+    const actual = intake.take();
+    try {
+      expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
+      for (const key of Object.keys(expected.attributes)) {
+        const a = actual.getAttribute(key), b = expected.getAttribute(key);
+        if (!(a instanceof BufferAttribute) || !(b instanceof BufferAttribute)) throw new Error('Missing native bridge channel');
+        expect(a.array.constructor).toBe(b.array.constructor); expect(a.array).toEqual(b.array);
+      }
+      expect(actual.index?.array.constructor).toBe(expected.index?.array.constructor); expect(actual.index?.array).toEqual(expected.index?.array);
+    } finally { actual.dispose(); expected.dispose(); }
+  }
 });

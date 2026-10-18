@@ -26,3 +26,7 @@ export function decodeFoliageWorld(input: Uint8Array, copies: number, layout: Fo
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   return { geometry, boxes };
 }
+
+export const decodePalmWorld = (input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> => decodeFoliageWorld(input, copies, { magic: 0x314d4c50, channels: [['position', 3], ['color', 3], ['aSway', 2]] });
+export const decodeHibiscusWorld = (input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> => decodeFoliageWorld(input, copies, { magic: 0x31424948, channels: [['position', 3], ['normal', 3], ['color', 3], ['aSway', 2]] });
+export const decodeReefWorld = (input: Uint8Array, copies: number): ReturnType<typeof decodeFoliageWorld> => decodeFoliageWorld(input, copies, { magic: 0x31464552, channels: [['position', 3], ['color', 3], ['aSway', 2]] });

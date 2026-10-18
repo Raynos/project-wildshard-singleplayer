@@ -90,34 +90,6 @@ exports[`matches the original warm cards for every authored geometry and variant
       "receiveShadow": true,
     },
   ],
-  "driftwood-isle/drift-log/default": [
-    {
-      "castShadow": true,
-      "geometry": "4b67a8a7cda5c8aee4969f63e1322b15a123fc48170e8c1ad2fcb08e3af1dadc",
-      "receiveShadow": true,
-    },
-  ],
-  "driftwood-isle/drift-log/long": [
-    {
-      "castShadow": true,
-      "geometry": "4b67a8a7cda5c8aee4969f63e1322b15a123fc48170e8c1ad2fcb08e3af1dadc",
-      "receiveShadow": true,
-    },
-  ],
-  "driftwood-isle/drift-log/pale": [
-    {
-      "castShadow": true,
-      "geometry": "b695911eddca942355651608661ab2472d8fec7a209dc9ee73bdbe4811063d7c",
-      "receiveShadow": true,
-    },
-  ],
-  "driftwood-isle/drift-log/short": [
-    {
-      "castShadow": true,
-      "geometry": "e05a1f2f6a68f5d0115af5c1845847c1b67ddfff1d38d415ed65ab41d7b34fca",
-      "receiveShadow": true,
-    },
-  ],
   "driftwood-isle/rope-coil/default": [
     {
       "castShadow": true,
