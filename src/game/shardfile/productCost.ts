@@ -1,3 +1,5 @@
+import { parseImageAsset } from '@wildshard/format/stillImage';
+import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
@@ -78,6 +80,50 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'):
   return { ...source, library: source.library.filter(hash => !excluded.has(hash)), budgets: {
     ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) },
   } };
+}
+
+/** Immutable manifest/journal URLs never create the data-URL string charged by image intake.
+ * Keep one wire copy, CPU pixels and compositor pixels. Any other reader retains the full envelope. */
+export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Shardfile {
+  const descriptor = outputDescriptor(source);
+  if (descriptor === undefined) return source;
+  const names = new Map<string, string>();
+  for (const file of descriptor.index.files) if (file.kind === 'image') {
+    names.set(file.hash, file.hash); names.set(file.path, file.hash);
+    names.set(`/shardfiles/${source.identity.slug}/${file.path}`, file.hash);
+    if (file.name !== undefined) names.set(file.name, file.hash);
+  }
+  const eligible = new Set<string>(), other = new Set<string>();
+  const visit = (value: unknown, into: Set<string>): void => {
+    if (typeof value === 'string') { const hash = names.get(value); if (hash !== undefined) into.add(hash); }
+    else if (Array.isArray(value)) for (const child of value) visit(child, into);
+    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { visit(key, into); visit(child, into); }
+  };
+  visit(source.manifest, eligible);
+  const compendiums = source.rows.compendiums.map(row => {
+    if (!('kind' in row)) return row;
+    for (const ref of journalImageRefs(row)) { const hash = names.get(ref); if (hash !== undefined) eligible.add(hash); }
+    return { ...row, entries: row.entries.map(entry => {
+      const { sketch: _sketch, silhouette: _silhouette, ...plate } = entry.plate;
+      return { ...entry, plate };
+    }), ...(row.chalk === undefined ? {} : { chalk: { ...row.chalk, atlas: '' } }) };
+  });
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, rows, ...fields } = source;
+  visit({ ...fields, rows: { ...rows, compendiums } }, other);
+  // These two typed sections are already represented by source.manifest/source.rows.
+  for (const [name, section] of descriptor.sections) if (name !== 'ui/level' && name !== 'ui/compendium') visit(section, other);
+  for (const file of source.files) for (const ref of file.dependencies) other.add(ref);
+  const library = new Set(source.library);
+  let saving = 0;
+  for (const file of source.files) {
+    if (!library.has(file.hash) || !eligible.has(file.hash) || other.has(file.hash)) continue;
+    const bytes = assets.get(file.hash); if (bytes === undefined) continue;
+    const image = parseImageAsset(bytes);
+    saving += Math.max(0, Math.min(file.decoded, image.decoded) - image.gpu - bytes.length);
+  }
+  if (saving === 0) return source;
+  return { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library,
+    resident: Math.max(0, source.budgets.library.resident - saving) } } };
 }
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */

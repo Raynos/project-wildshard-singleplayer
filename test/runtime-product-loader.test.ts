@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
+import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import * as schema from '../src/format/shardSchema';
@@ -7,12 +9,15 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/product';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import metadata from '../src/shards/far-reach/manifest.json';
+import { parseManifestMetadata } from '../src/format/minimap';
+import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 
 const scopes: Scope[] = [];
@@ -38,7 +43,7 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
     sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(bytes({})), bytes: bytes({}).length }],
-    files: source.files.map(file => ({ ...file, kind: 'bin', name: file.hash === ref ? 'models/token.bin' : 'models/desktop.bin', path: `blobs/bin/${file.hash}.bin` })), runtime: null });
+    files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: file.hash === ref ? 'models/token.bin' : 'models/desktop.bin', path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: null });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
   const options: ProductOptions = { base, offline: false, firstParty: true,
@@ -264,4 +269,31 @@ test('a lower exact estimate clears a previous warning without changing the cap'
   expect(memory.reports()).toHaveLength(1);
   acceptValidatedCost(source, { playing: 1_100_000_000, loading: 1_180_000_000, accounted: 700_000_000, location: [0, 0] }, memory);
   expect(memory.reports()).toHaveLength(0);
+});
+
+test.each(['manifest', 'journal'])('%s URL images retain pixels/wire and protect shared readers', async consumer => {
+  const wire = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
+  const image = parseImageAsset(wire), ref = hashImmutableBytes(wire), cost = image.decoded + image.gpu;
+  const f = fixture(false, source => {
+    source.files.push({ hash: ref, kind: 'image', compressed: wire.length, decoded: image.decoded, gpu: image.gpu,
+      triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(ref); source.budgets.library.resident += cost;
+    const original = parseManifestMetadata(metadata);
+    if (consumer === 'manifest') source.manifest = { ...original, explore: { ...original.explore,
+      art: { ...original.explore.art, world: `/shardfiles/runtime-loader/blobs/image/${ref}.png` } } };
+    else source.rows.compendiums.push({ kind: 'journal', id: 'book', chunkId: 'book', className: 'book', title: 'Book',
+      tabs: [{ id: 'places', label: 'Places' }], stamp: { place: 'Seen', default: 'Seen' }, icons: [], stats: { place: [], default: [] },
+      entries: [{ id: 'point', kind: 'place', tab: 'places', name: 'Point', notes: '', place: { x: 0, z: 0, r: 1 }, plate: { sketch: ref } }] });
+    return new Map();
+  });
+  const raw = await resolveOutputDescriptor(f.index, { offline: false, hash: f.options.hash,
+    read: path => { const data = f.wires.get(path); if (data === undefined) throw new Error('Missing fixture'); return Promise.resolve(data); } });
+  const source = schema.parseShardfile(raw); carryOutputDescriptor(raw, source);
+  const assets = new Map([[ref, wire]]), before = source.budgets.library.resident;
+  expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before - (image.decoded - image.gpu - wire.length));
+  expect(source.budgets.library.resident).toBe(before);
+  source.map = { image: ref, tilesHash: ref };
+  expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before);
+  delete source.map; source.files[0]?.dependencies.push(ref);
+  expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before);
 });

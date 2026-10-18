@@ -2833,6 +2833,12 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 **Data-only catalogue cards.** `@wildshard/game/plugin/context` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
 
+Device admission projects image encoding costs through `urlImageLibrarySource`.
+Known immutable manifest and rich-journal URLs keep wire bytes, CPU pixels and
+compositor pixels, without charging a base64 string those readers never create.
+A card/map data-URL reader, another reference or a dependency retains the full
+image envelope. This projection changes no source ceiling or transport cost.
+
 ### Declared water (SHARD-PLATFORM SF9d)
 
 `@wildshard/engine/world/water/declared` compiles bounded local pools, seas and sloping stream paths into the existing `WaterBody` motor port. `@wildshard/game/shardfile/water` rejects nonfinite/out-of-cell data, duplicate ids, self-intersecting polygons and zero-length stream segments. The sea is last, preserving pool and stream surfaces in the registry. Each projection returns fresh bodies; normal level scopes own registration and unload. The real player fixture swims in a declared pool, wades on its shelf and leaves water at its boundary. No renderer or service is installed by importing these modules.
