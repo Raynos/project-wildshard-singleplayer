@@ -1,13 +1,15 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-18. Development work in progress.
+Updated 2026-10-18 13:00 UTC. Five drafts, zero quality-complete enemies.
 
-Scope: three regular enemies, one elite and one boss for Driftwood Isle. Build a selectable, isolated one-on-one practice mode, verify real combat and animation, then test natural map placements. Prefer the current shard-file implementation; legacy compatibility fixes and isolated prototypes are permitted where needed.
+Scope: three regular enemies, one elite and one boss for Driftwood Isle, selectable isolated arena combat, then natural map placement. Prefer shard-file content; owner permits legacy compatibility fixes and isolated prototypes when necessary. Work only on gamedev-dot.
 
-Six-shard source census and migration/API trace are recorded in the linked audit. The existing baseline built successfully and 17 focused baseline tests passed. Model Explorer displays four existing Driftwood enemy specimens and the Captain death pose. The unchanged three-dummy arena now renders successfully, including after four model visits. Combat, exit and selected-opponent integration remain unverified.
+Preserved source checkpoint: 18a7b31a3fd08664c2d342959efa43fe5cef31b6. Brine Puffer, Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus have real editable geometry, numeric animation poses, verified-guest source, strikes and coin rewards. Successor fixes improve timed attacks, stun cancellation, counters and root-slam reach. None has passed final graphics/gameplay acceptance.
 
-The initial isolated-opponent adapter is WIP. It admits declared grounded stalker/skirmisher action bodies, preserves default dummy mode and isolates encounter events. Focused post-edit tests pass. This does not establish complete player damage, item drops, broader behavior support, visual acceptance or physical-device performance.
+Baseline arena verified in the cloud browser: enter, sustain play, land touchscreen sword damage, exit. Source tree 658b994483b41293cc96a9c27d43298050680652. FreeCam lock ownership and touch-aware pointer-lock policy fix reproduced input defects. Captured 12-damage sword hit is real. Software renderer frame rate does not establish device performance.
 
-Five enemy designs are documented but unimplemented. No new enemy is complete or accepted. Next: verify arena combat and lifecycle, fix demonstrated defects, then implement and test the first enemy end to end. Keep world saves, quests and inventory isolated during practice.
+Selected-enemy integration is authored and undergoing focused tests: fresh decision authority, player health/hurt/death, visible local coin receipt, Retry, preload only the selected species, spawn ordering and disposal. All-five actual fight/death/reward verification remains open. Practice must never change persistent world health, inventory, quests or boss progress.
 
-Review: https://wildshard-enemy-lab.raynos.chatgpt.site
+Next: pass integration checks and real all-five arena smoke; fix observed defects; independently review and improve visuals and combat; verify Driftwood placements and six-shard Explorer/weapon coverage. Preserve WIP every fifteen minutes.
+
+Review: https://wildshard-enemy-lab.raynos.chatgpt.site — version 6 includes actual rig drafts and touch-hit evidence. Full typed checks remain pending after focused fixes; do not claim full-gate or human-fun acceptance.

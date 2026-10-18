@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Reads the two authored guest fixtures for real Wasm compilation.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { Bone, Vector3 } from 'three';
@@ -27,7 +28,7 @@ function scenario(index: number, hpShare = 1): ScriptScenario {
   if (row === undefined) throw new Error('Missing giant decision');
   const blob = compiled.blobs.find(b => b.file.path === row.module); if (blob === undefined) throw new Error('Missing Wasm');
   const generated = generateDecisionBindings(row, registries);
-  const script: DecisionScript = { ...row, reads: ['nearestPlayer', 'distance', 'hpShare', 'strikeState', 'stunned'], lists: [], ids: generated.map.ids };
+  const script: DecisionScript = { ...row, reads: ['nearestPlayer', 'distance', 'hpShare', 'strikeState', 'stunned', 'alive'], lists: [], ids: generated.map.ids };
   return createScriptScenario(DecisionHost, { bytes: blob.bytes, script, seed: 487,
     binding: { id: 1, script: row.id, self: actor, actors: [actor], instance: 0 },
     actors: [{ id: actor, at: [0, 0, 0], hpShare, fields: Object.fromEntries(TIDAL_GIANTS_FIELDS.map(f => [f.id, f.default])) }],
@@ -40,7 +41,7 @@ function start(s: ScriptScenario): void { s.send('start'); s.advance(1.2); expec
 function finish(s: ScriptScenario, strike: string): void { observation(s, { strikeState: 0 }); s.send('strike.done', 'self', strike, false); }
 
 test('giant metadata admits real distinct decision bodies and six bounded strikes', () => {
-  const program = readSpeciesProgram({ species: TIDAL_GIANTS_SPECIES.map(row => ({ ...bakeSpecies(row, row.id), brain: row.brain, body: row.body })), strikes: TIDAL_GIANTS_STRIKES });
+  const program = readSpeciesProgram({ species: TIDAL_GIANTS_SPECIES.map(row => Object.assign(bakeSpecies(row, row.id), { brain: row.brain, body: row.body })), strikes: TIDAL_GIANTS_STRIKES });
   expect(program.species.map(s => s.variants[0]?.hp)).toEqual([180, 480]);
   expect(program.strikes).toHaveLength(6); expect(TIDAL_GIANTS_BOUNTIES).toEqual({ bellback: 12, tideRootColossus: 35 });
   expect(program.species[1]?.brain).toMatchObject({ data: { guard: { field: 'tg-exposed', multiplier: 1.5 } } });
@@ -70,17 +71,19 @@ test('death clears pending echoes and heart exposure without rewards or adds in 
     const s = scenario(index); start(s); observation(s, { alive: false }); s.send('death', 'self', 99);
     expect(s.state()).toMatchObject({ step: 6 }); expect(s.commands()).toContainEqual(['field', 'self', 'awake', 0]);
     expect(s.commands().filter(c => ['strike', 'spawn', 'reward', 'grant'].includes(String(c[0])))).toEqual([]);
+    s.advance(3); expect(s.state()).toMatchObject({ step: 6 });
+    expect(s.commands().filter(c => c[0] === 'strike')).toEqual([]);
   }
 });
-function strike(id: string): StrikeSpec {
+function strikeSpec(id: string): StrikeSpec {
   const row = readSpeciesProgram({ species: [], strikes: TIDAL_GIANTS_STRIKES }).strikes.find(s => s.id === id);
   if (row === undefined) throw new Error('No strike'); return { ...row, weight: () => 1 };
 }
-function actor(): StrikeActor & { alive: boolean } { return { position: { x: 0, y: 0, z: 0 }, alive: true, yaw: 0, scale: 1,
+function makeActor(): StrikeActor & { alive: boolean } { return { position: { x: 0, y: 0, z: 0 }, alive: true, yaw: 0, scale: 1,
   startAttack: () => undefined, cancelAttack: () => undefined, setMotion: () => undefined }; }
 test('pulse and echo have different safe bands; cover, once-only impact and death cancellation use the real runner', () => {
   for (const [id, inside, outside] of [['pulse', 1, 3.5], ['echo', 3.5, 1]] as const) {
-    const spec = strike(`strike.bellback.${id}`), runner = new StrikeRunner(), a = actor(); let hits = 0;
+    const spec = strikeSpec(`strike.bellback.${id}`), runner = new StrikeRunner(), a = makeActor(); let hits = 0;
     const target = { x: 0, y: 0, z: inside }, context = { actor: a, target, canReach: () => true, hit: () => { hits++; } };
     expect(runner.contains(spec, context)).toBe(true); expect(runner.contains(spec, { actor: a, target: { x: 0, y: 0, z: outside } })).toBe(false);
     expect(runner.contact(spec, { ...context, canReach: () => false })).toBe(false);
@@ -89,12 +92,12 @@ test('pulse and echo have different safe bands; cover, once-only impact and deat
   }
 });
 test('aimed slam is committed and narrow; opposite root sweep has the opposite safe side', () => {
-  const runner = new StrikeRunner(), a = actor(), slam = strike('strike.colossus.slam'); runner.start(slam, a, { x: 0, y: 0, z: 4 });
+  const runner = new StrikeRunner(), a = makeActor(), slam = strikeSpec('strike.colossus.slam'); runner.start(slam, a, { x: 0, y: 0, z: 4 });
   expect(runner.contains(slam, { actor: a, target: { x: 0, y: 0, z: 4 } })).toBe(true);
   expect(runner.contains(slam, { actor: a, target: { x: 2, y: 0, z: 4 } })).toBe(false);
   const side = { actor: a, target: { x: 3, y: 0, z: 1 } };
-  expect(runner.contains(strike('strike.colossus.left'), side)).toBe(true);
-  expect(runner.contains(strike('strike.colossus.right'), side)).toBe(false);
+  expect(runner.contains(strikeSpec('strike.colossus.left'), side)).toBe(true);
+  expect(runner.contains(strikeSpec('strike.colossus.right'), side)).toBe(false);
 });
 function rig(body: ReturnType<typeof buildBellback>): AnimalRigContext {
   const mem = {}, position = new Vector3();
@@ -120,4 +123,31 @@ test('both bodies have finite bounded skinning, independent rigs, changing tells
     }
     for (const g of [...body.hardParts, ...body.eyeParts]) g.dispose();
   }
+});
+
+// The actual skeleton matrix must put the striking root tips inside the admitted narrow lane.
+test('Colossus active slam roots converge on the lane and reach its endpoint', () => {
+  const body = buildTideRootColossus(), c = rig(body), pose = numericCreaturePose(TIDE_ROOT_COLOSSUS_CLIPS);
+  const bones = Object.fromEntries(body.bones.map(def => [def.name, new Bone()]));
+  for (const def of body.bones) {
+    const bone = bones[def.name]; if (bone === undefined) throw new Error('Missing joint');
+    bone.position.set(...def.pos);
+    if (def.parent !== null) {
+      const parent = bones[def.parent], parentDef = body.bones.find(p => p.name === def.parent);
+      if (parent === undefined || parentDef === undefined) throw new Error('Missing parent');
+      bone.position.sub(new Vector3(...parentDef.pos)); parent.add(bone);
+    }
+  }
+  c.bones = bones; c.flinch = 0; c.brace = 0; c.speed = 0; c.deathT = -1;
+  Object.assign(c.mem, { 'tg-state': 3, 'tg-clock': 1.2, 'tg-exposed': 0 }); pose(c);
+  bones['body']?.updateMatrixWorld(true);
+  const runner = new StrikeRunner(), a = makeActor(), slam = strikeSpec('strike.colossus.slam'); runner.start(slam, a, { x: 0, y: 0, z: 6 });
+  for (const i of [0, 3]) {
+    const angle = Math.PI / 4 + i * Math.PI / 2;
+    const tip = bones[`tip${i}`]; if (tip === undefined) throw new Error('Missing slam root');
+    const end = new Vector3(Math.sin(angle) * .55, -.06, Math.cos(angle) * .55).applyMatrix4(tip.matrixWorld);
+    expect(Math.abs(end.x)).toBeLessThan(.8); expect(end.z).toBeGreaterThan(6); expect(end.z).toBeLessThan(6.25);
+    expect(runner.contains(slam, { actor: a, target: end })).toBe(true);
+  }
+  for (const g of [...body.hardParts, ...body.eyeParts]) g.dispose();
 });

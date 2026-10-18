@@ -36,7 +36,18 @@ function clip(id: string, rows: NumericChannelOutput[]) {
           const first = b.binary('gt', stage, b.constant(.5)), upper = b.binary('gt', b.constant(3.5), stage);
           const recovery = b.binary('gt', stage, b.constant(1.5));
           const active = b.select(second, upper, b.select(recovery, b.constant(0), first));
-          attack = b.select(active, b.binary('div', clock, total), b.constant(-1));
+          let progress = b.binary('div', clock, total);
+          if (id !== 'brine-puffer') {
+            const windup = b.select(second, b.constant(.45), b.constant(id === 'conch-duelist' ? .6 : .75));
+            const activeSeconds = b.constant(id === 'conch-duelist' ? .1 : .5);
+            const afterTell = b.binary('sub', clock, windup);
+            const telling = b.binary('mul', b.binary('div', clock, windup), b.constant(.42));
+            const striking = b.binary('add', b.constant(.42), b.binary('mul', b.binary('div', afterTell, activeSeconds), b.constant(.23)));
+            const recoverySeconds = b.binary('sub', b.binary('sub', total, windup), activeSeconds);
+            const recovering = b.binary('add', b.constant(.65), b.binary('mul', b.binary('div', b.binary('sub', afterTell, activeSeconds), recoverySeconds), b.constant(.35)));
+            progress = b.select(b.binary('gt', windup, clock), telling, b.select(b.binary('gt', activeSeconds, afterTell), striking, recovering));
+          }
+          attack = b.select(active, progress, read('frame', ['attack']));
           return attack;
         };
         return row.expr(b, observe);
@@ -52,6 +63,7 @@ for (const axis of ['x', 'y', 'z'] as const) puffer.push(output('belly', 'scale'
   const swell = e.mul(e.phase(0, .39), e.sub(e.n(1), e.phase(.43, .61)));
   return e.sub(e.add(e.n(1), e.mul(e.n(.57), swell)), e.mul(e.n(.55), e.dead));
 }));
+puffer.push(output('head', 'position', 'z', (b, r) => { const e = math(b, r); const swell = e.mul(e.phase(0, .39), e.sub(e.n(1), e.phase(.43, .61))); return e.add(e.n(.33), e.mul(e.n(.28), swell)); }));
 puffer.push(output('body', 'rotation', 'z', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(.10), e.walk), e.mul(e.n(1.30), e.dead)); }),
   output('body', 'position', 'y', (b, r) => { const e = math(b, r); return e.sub(e.n(.43), e.mul(e.n(.18), e.dead)); }),
   output('head', 'rotation', 'x', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(.08), b.unary('sin', e.mul(e.get('t'), e.n(3)))), e.mul(e.n(.35), e.get('flinch'))); }));
@@ -68,8 +80,9 @@ const conch: NumericChannelOutput[] = [
   output('shell', 'rotation', 'y', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(1.1), e.wind), e.mul(e.n(.7), e.dead)); }),
   output('shell', 'rotation', 'z', (b, r) => { const e = math(b, r); return e.mul(e.n(-1.1), e.dead); }),
   output('guard', 'rotation', 'x', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(-1.2), e.wind), e.mul(e.n(.5), e.dead)); }),
-  output('thrust', 'rotation', 'x', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(.7), e.wind), e.mul(e.n(-.65), e.thrust), e.mul(e.n(.7), e.get('flinch'))); }),
-  output('thrust', 'rotation', 'y', (b, r) => { const e = math(b, r); return e.mul(e.n(-.55), e.thrust); }),
+  output('thrust', 'rotation', 'x', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(.7), e.wind), e.mul(e.n(-.12), e.thrust), e.mul(e.n(.7), e.get('flinch'))); }),
+  output('thrust', 'scale', 'z', (b, r) => { const e = math(b, r); return e.add(e.n(1), e.mul(e.n(1.55), e.thrust)); }),
+  output('thrust', 'rotation', 'y', (b, r) => { const e = math(b, r); return e.mul(e.n(-.10), e.thrust); }),
   output('foot', 'scale', 'z', (b, r) => { const e = math(b, r); return e.add(e.n(1), e.mul(e.n(.12), e.walk)); }),
   output('head', 'rotation', 'x', (b, r) => { const e = math(b, r); return e.add(e.mul(e.n(-.18), e.wind), e.mul(e.n(.65), e.dead)); }),
 ];

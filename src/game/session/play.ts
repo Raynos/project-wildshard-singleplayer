@@ -1,3 +1,4 @@
+import { gameplayPointerLock } from './pointerLockPolicy';
 import { resolveLevelBounds } from '../shard/runtime';
 import { shardEntry } from '../shard/entryMode';
 import { SkinLocker } from '../cosmetics/locker';
@@ -234,7 +235,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       feedbackHeld = on; hud.holdPause = on;
       if (on) { weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
       weapons.setEnabled(!player.swimming);
-      if (nolock || touchUi()) return;
+      if (!gameplayPointerLock(nolock, touchControls.active)) return;
       player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
       game.levelScope.timeout(400, () => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); });
     },
@@ -431,7 +432,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     weapons.visible = true;
     perf.setActive(true);
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
-    if (!nolock) player.lock();
+    if (gameplayPointerLock(nolock, touchControls.active)) player.lock();
   };
   hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.activeTargets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
   hud.onResume = enter;

@@ -15,8 +15,8 @@ export const DRIFTWOOD_REGULAR_STRIKES = [
   { ...common, id: 'strike.brine-puffer.burst', shape: { kind: 'ring' as const, inner: 0, outer: 2.2 }, range: 2.2, damage: 12, windup: .9, recover: 1.1 },
   { ...common, id: 'strike.conch-duelist.thrust', shape: { kind: 'lane' as const, length: 2.4, width: .65 }, range: 2.4, damage: 14, windup: .6, recover: .9 },
   { ...common, id: 'strike.conch-duelist.counter', shape: { kind: 'lane' as const, length: 2.4, width: .65 }, range: 2.4, damage: 16, windup: .45, recover: .9 },
-  { ...common, id: 'strike.splinter-mantis.first', shape: { kind: 'lane' as const, length: 3.5, width: .70 }, range: 3.5, damage: 10, windup: .75, active: .5, recover: .12, motion: { speed: 7, track: 'none' as const, skid: .12 } },
-  { ...common, id: 'strike.splinter-mantis.second', shape: { kind: 'lane' as const, length: 3.5, width: .70 }, range: 3.5, damage: 10, windup: .45, active: .5, recover: 1.1, motion: { speed: 7, track: 'none' as const, skid: 1.1 } },
+  { ...common, id: 'strike.splinter-mantis.first', shape: { kind: 'lane' as const, length: 3.5, width: .70 }, range: .9, damage: 10, windup: .75, active: .5, recover: .12, motion: { speed: 7, track: 'none' as const, skid: .12 } },
+  { ...common, id: 'strike.splinter-mantis.second', shape: { kind: 'lane' as const, length: 3.5, width: .70 }, range: .9, damage: 10, windup: .45, active: .5, recover: 1.1, motion: { speed: 7, track: 'none' as const, skid: 1.1 } },
 ];
 export const DRIFTWOOD_REGULAR_MOVES = [
   ['brine-puffer', .70, 2.0], ['conch-duelist', .85, 2.1], ['splinter-mantis', 1.15, 3.0],

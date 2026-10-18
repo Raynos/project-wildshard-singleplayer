@@ -9,6 +9,7 @@ import { Actor, Move, Strike, Field, State, Do, Read } from './generated/driftwo
 }
 export function onStart(): void { rest(.8); }
 export function onTick(dt: f64): void {
+  if (!Read.alive(Actor.self)) { Do.stop(Actor.self); return; }
   State.elapsed = Math.min(600, State.elapsed + dt);
   State.cooldown = Math.max(0, State.cooldown - dt);
   Do.field(Actor.self, Field.clock, State.elapsed);
@@ -28,6 +29,7 @@ export function onTick(dt: f64): void {
   } else { State.sequence = 1; attack(1, Strike.pulse, target); }
 }
 export function onStrikeDone(strike: i32, hit: bool): void {
+  if (!Read.alive(Actor.self)) { Do.stop(Actor.self); return; }
   if (Read.stunned(Actor.self)) { Do.stop(Actor.self); pose(4); State.sequence = 0; return; }
   if (State.step == 1 && strike == Strike.pulse) {
     const target = Read.nearestPlayer(Actor.self);

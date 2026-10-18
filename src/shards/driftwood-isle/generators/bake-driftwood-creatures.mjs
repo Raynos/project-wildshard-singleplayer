@@ -31,7 +31,9 @@ if (meshes.length !== 1) throw new Error(`${HEAD} must hold one mesh`);
 const headMesh = meshes.at(0);
 if (headMesh === undefined) throw new Error('Missing sailor head');
 const captain = await readSourceModel(new Uint8Array(readFileSync(resolve(root, 'public/assets/models/driftwood-hero/captain/captain.glb'))));
-const mergeNew = parts => { if (parts.length === 0) return null; const merged = mergeGeometries(parts, false); if (merged === null) throw new Error('New enemy geometry mismatch'); for (const part of parts) part.dispose(); merged.deleteAttribute('normal'); return merged; };
+/** @type {(parts: import('three').BufferGeometry[]) => import('three').BufferGeometry | null} */
+const mergeParts = parts => mergeGeometries(parts, false);
+const mergeNew = parts => { if (parts.length === 0) return null; const merged = mergeParts(parts); if (merged === null) throw new Error('New enemy geometry mismatch'); for (const part of parts) part.dispose(); merged.deleteAttribute('normal'); return merged; };
 const regulars = DRIFTWOOD_REGULAR_BODY_BUILDERS.map(({kind, variant, build}) => { const body = build(); return {kind, variant, bones: body.bones, dims: body.dims, fur: mergeNew(body.furParts), hard: mergeNew(body.hardParts), eye: mergeNew(body.eyeParts)}; });
 const bodies = [...regulars, ...bakeTidalGiantsBodies(), ...bakeCreatureBodies(faceHeadOf(headMesh.geometry.clone().applyMatrix4(headMesh.matrixWorld))), bakeCaptainBody(captain.gltf.scene)];
 

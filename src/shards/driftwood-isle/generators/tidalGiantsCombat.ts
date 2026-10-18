@@ -25,7 +25,7 @@ export const TIDAL_GIANTS_MOVES = [
 const zero = '0'.repeat(64);
 const fieldAliases = { pose: 'tg-state', clock: 'tg-clock', awake: 'tg-awake', phase: 'tg-phase', exposed: 'tg-exposed' };
 const common = { abi: '1.0', side: 'sim', module: `blobs/wasm/${zero}.wasm`, binding: { shard: true }, pages: 1, onFail: 'hold', tick: 10,
-  on: ['start', 'tick', 'hit', 'strike.done', 'death', 'stop'], reads: ['nearestPlayer', 'distance', 'hpShare', 'strikeState', 'stunned'],
+  on: ['start', 'tick', 'hit', 'strike.done', 'death', 'stop'], reads: ['nearestPlayer', 'distance', 'hpShare', 'strikeState', 'stunned', 'alive'],
   commands: ['move', 'stop', 'strike', 'field'], fields: fieldAliases, params: {}, timers: [], stateVersion: 1,
   state: [
     { name: 'step', type: 'i32', default: 0, min: 0, max: 6, scope: 'binding' },

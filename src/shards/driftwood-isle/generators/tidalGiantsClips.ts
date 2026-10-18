@@ -51,10 +51,11 @@ function clips(kind: 'bellback' | 'colossus') {
       const isFront = i === 0 || i === 3;
       const sweepStep = i === 0 ? 1 : i === 3 ? 2 : -1;
       out(`root${i}`, 'rotation', 'y', e => e.add(e.scale(e.dead, i % 2 === 0 ? .8 : -.8),
-        e.choose(e.eq(sweepStep), e.scale(e.sub(e.n(1), e.scale(e.progress(1.15), 2)), i === 0 ? -1 : 1), e.scale(e.wave(1.1, i), .035))));
+        e.choose(e.eq(sweepStep), e.scale(e.sub(e.n(1), e.scale(e.progress(1.15), 2)), i === 0 ? -1 : 1),
+          isFront ? e.choose(e.eq(3), e.scale(e.progress(.4), i === 0 ? -Math.PI / 4 : Math.PI / 4), e.scale(e.wave(1.1, i), .035)) : e.scale(e.wave(1.1, i), .035))));
       out(`root${i}`, 'rotation', 'x', e => e.add(e.scale(e.dead, -.3), isFront ? e.choose(e.eq(3), e.scale(e.wind(1.1), -1.1), e.n(0)) : e.n(0)));
       for (const axis of ['x', 'z'] as const) out(`root${i}`, 'scale', axis, e => e.mul(e.sub(e.n(1), e.scale(e.dead, .55)),
-        e.add(e.n(1), e.choose(e.eq(sweepStep), e.scale(e.progress(.9), .65), isFront ? e.choose(e.eq(3), e.scale(e.progress(1.1), .9), e.n(0)) : e.n(0)))));
+        e.add(e.n(1), e.choose(e.eq(sweepStep), e.scale(e.progress(.9), .65), isFront ? e.choose(e.eq(3), e.scale(e.progress(1.1), 1.8), e.n(0)) : e.n(0)))));
       out(`bend${i}`, 'rotation', 'x', e => e.add(e.scale(e.dead, .7), isFront ? e.choose(e.eq(3), e.scale(e.wind(1.1), -.65), e.scale(e.wave(1.3, i), .03)) : e.scale(e.wave(1.3, i), .03)));
       out(`tip${i}`, 'rotation', 'y', e => e.add(e.scale(e.wave(1.5, i), .08), e.scale(e.dead, i % 2 === 0 ? 1 : -1)));
     }

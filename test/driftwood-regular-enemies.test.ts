@@ -1,6 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the authored guest sources, never substitute a JS policy.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
+import { Bone, Vector3 } from 'three';
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
+import { StrikeRunner, type StrikeActor } from '@wildshard/engine/ai/strikes';
+import { BRINE_PUFFER_CLIPS, CONCH_DUELIST_CLIPS, SPLINTER_MANTIS_CLIPS } from '../src/shards/driftwood-isle/generators/driftwoodRegularClips';
 import { DRIFTWOOD_REGULAR_BODY_BUILDERS } from '../src/shards/driftwood-isle/generators/driftwoodRegularBodies';
 import { DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULAR_FIELDS, DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_STRIKES } from '../src/shards/driftwood-isle/generators/driftwoodRegularCombat';
 import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
@@ -59,10 +64,22 @@ test('puffer commits burst, waits recovery completion then cooldown and cancels 
   s.advance(1);expect(s.state()['stage']).toBe(2);s.send('death', 'enemy', 99);s.advance(4);
   expect(s.state()['cancelled']).toBe(true);expect(s.state()['stage']).toBe(5);
 });
-test('conch brace hit starts a separately told counter and subsequent hits cannot chain counters', () => {
-  const s = scenario(1);s.send('start');s.advance(.1);s.send('hit', 'enemy', 99, 3, .95);
-  expect(s.state()['stage']).toBe(3);expect(s.commands()).toContainEqual(['strike', 'enemy', 'counter', 99]);
+test('conch retains a guarded counter through real stagger ordering and ignores cancelled thrust completion', () => {
+  const s = scenario(1);s.send('start');s.advance(.1);
+  // Weapon damage publishes hit, then the surviving body is staggered before the guest consumes its inbox.
+  s.world.setActor({ id: 2, at: [0, 0, 0], stunned: true, hpShare: .95,
+    fields: Object.fromEntries(DRIFTWOOD_REGULAR_FIELDS.map(field => [field.id, field.default])) });
+  s.send('hit', 'enemy', 99, 3, .95);
+  expect(s.state()['stage']).toBe(4);expect(s.commands().filter(command => command[0] === 'strike')).toHaveLength(0);
+  s.send('strike.done', 'enemy', 'thrust', false);expect(s.state()['stage']).toBe(4);
+  s.advance(.5);expect(s.state()['stage']).toBe(4);
+  s.world.setActor({ id: 2, at: [0, 0, 0], stunned: false, hpShare: .95,
+    fields: Object.fromEntries(DRIFTWOOD_REGULAR_FIELDS.map(field => [field.id, field.default])) });
+  s.advance(.2);expect(s.state()['stage']).toBe(3);
+  expect(s.commands()).toContainEqual(['strike', 'enemy', 'counter', 99]);
+  s.send('strike.done', 'enemy', 'thrust', false);expect(s.state()['stage']).toBe(3);
   s.send('hit', 'enemy', 99, 3, .9);expect(s.commands().filter(command => command[0] === 'strike')).toHaveLength(0);
+  s.send('strike.done', 'enemy', 'counter', false);expect(s.state()['stage']).toBe(2);
 });
 test('mantis second attack requires first completion, death clears the queued beat', () => {
   const s = scenario(2);s.send('start');s.advance(.2);expect(s.state()['stage']).toBe(1);
@@ -70,4 +87,47 @@ test('mantis second attack requires first completion, death clears the queued be
   expect(s.commands()).toContainEqual(['strike', 'enemy', 'second', 99]);
   s.send('death', 'enemy', 99);s.send('strike.done', 'enemy', 'first', false);
   expect(s.commands().filter(command => command[0] === 'strike')).toHaveLength(0);
+});
+
+test('actual stunned observation clears the mantis combo before it can request its second strike', () => {
+  const s = scenario(2);s.send('start');s.advance(.2);
+  s.world.setActor({ id: 3, at: [0, 0, 0], stunned: true, fields: Object.fromEntries(DRIFTWOOD_REGULAR_FIELDS.map(field => [field.id, field.default])) });
+  s.advance(.2);expect(s.state()['stage']).toBe(2);
+  s.send('strike.done', 'enemy', 'first', false);expect(s.commands().filter(command => command[0] === 'strike')).toHaveLength(0);
+});
+
+function rig(index: number): AnimalRigContext {
+  const builder = DRIFTWOOD_REGULAR_BODY_BUILDERS[index]; if (builder === undefined) throw new Error('Missing body');
+  const body = builder.build(), mem = {}, position = new Vector3();
+  for (const g of [...body.furParts, ...body.hardParts, ...body.eyeParts]) g.dispose();
+  return { bones: Object.fromEntries(body.bones.map(bone => [bone.name, new Bone()])), dims: body.dims,
+    dt: 1 / 60, t: 1, seed: .7, scale: 1, speed: 0, strafe: 0, phase: .3, state: 'attack', alive: true,
+    deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: new Vector3(0, 0, 2), lookWeight: 1,
+    position, yaw: 0, mem, animal: { mem, position, yOffset: 0 } };
+}
+test('puffer actually inflates until the burst and deflates for the punish window', () => {
+  const c = rig(0), pose = numericCreaturePose(BRINE_PUFFER_CLIPS);
+  Object.assign(c.mem, { 'puffer-st': 1, 'puffer-clock': .85 });pose(c);
+  expect(c.bones['belly']?.scale.x).toBeGreaterThan(1.5);
+  c.mem['puffer-clock'] = 1.4;pose(c);expect(c.bones['belly']?.scale.x).toBeCloseTo(1);
+  c.deathT = 1;pose(c);expect(c.bones['belly']?.scale.x).toBeLessThan(.5);expect(c.bones['body']?.rotation.z).toBeGreaterThan(1);
+});
+test('counter and second lunge poses align with their shorter tells and use distinct limbs', () => {
+  const c = rig(1), pose = numericCreaturePose(CONCH_DUELIST_CLIPS);
+  Object.assign(c.mem, { 'conch-st': 3, 'conch-clock': .50 });pose(c);
+  expect(c.bones['thrust']?.scale.z).toBeGreaterThan(2);expect(c.bones['guard']?.rotation.z).toBeLessThan(-1);
+  const m = rig(2), mantis = numericCreaturePose(SPLINTER_MANTIS_CLIPS);
+  Object.assign(m.mem, { 'mantis-st': 3, 'mantis-clock': .7, 'mantis-beat': 2 });mantis(m);
+  expect(Math.abs(m.bones['armR']?.rotation.x ?? 0)).toBeGreaterThan(Math.abs(m.bones['armL']?.rotation.x ?? 0));
+});
+test('moving mantis lane only hits when the lunging body reaches the target, once per beat', () => {
+  const row = readCreatureStrikes(DRIFTWOOD_REGULAR_STRIKES)[3];if (row === undefined) throw new Error('Missing lunge');
+  if (row.range === null) throw new Error('Lunge range is required');
+  const spec = { ...row, range: row.range, weight: () => 1 }, runner = new StrikeRunner();let hits = 0;
+  const actor: StrikeActor = { position: { x: 0, y: 0, z: 0 }, alive: true, scale: 1, yaw: 0,
+    startAttack: () => undefined, cancelAttack: () => undefined, setMotion: () => undefined };
+  const context = { actor, target: { x: 0, y: 0, z: 3 }, canReach: () => true, hit: () => {hits++;} };
+  runner.start(spec, actor, context.target);runner.update(.76, context);runner.update(.02, context);expect(hits).toBe(0);
+  actor.position.z = 2.3;runner.update(.02, context);runner.update(.02, context);expect(hits).toBe(1);
+  expect(runner.yaw).toBe(0);
 });
