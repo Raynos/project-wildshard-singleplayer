@@ -1,4 +1,5 @@
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { monkeyCallbacks } from '../species/monkey';
@@ -7,5 +8,7 @@ import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 /** Bind admitted metadata at kit, preserving the existing monkey and captain body adapters. */
 export function driftwoodSpeciesRows(program: SpeciesProgramData, decisions?: SpeciesDecisionAuthority): SpeciesRow[] {
   const brains = speciesBrains(program.species, program.strikes, program.modules);
-  return program.species.map(row => ({ ...row, ...(row.kind === 'monkey' ? monkeyCallbacks(brains) : brains.bind(row.kind,undefined,undefined,undefined,decisions)) }));
+  const bite = program.strikes.find(row => row.id === 'strike.monkey.bite');
+  if (bite === undefined) throw new Error('Driftwood requires its admitted monkey bite');
+  return program.species.map(row => ({ ...row, ...(row.kind === 'monkey' ? monkeyCallbacks(brains, strikeFromData(bite)) : brains.bind(row.kind,undefined,undefined,undefined,decisions)) }));
 }

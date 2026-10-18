@@ -3,8 +3,13 @@ import physics from '../data/physics.generated.json' with { type: 'json' };
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/engine/core/rng';
+import volleyData from '../data/coconutSlots.json' with { type: 'json' };
+import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { parse } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { ENEMY_COUNTS } from './fauna';
+
+const volley = parse(BodySlotsSchema, volleyData);
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
  *  spelled here because the manifest imports views; test/shards/driftwood-isle/physics-bake.test.ts holds them equal. */
@@ -90,7 +95,7 @@ export function holdCentre(): { x: number; z: number } {
 
 /** Offline policy execution only; play consumes rows and the post-placement RNG continuation. */
 type ColdPlacement = Omit<ReturnType<typeof placeEnemies>, 'stream'> & { stream: ReturnType<Rng['snapshot']> };
-export function enemyPlacements(): { seed: number; practice: typeof PRACTICE_AT; hold: ReturnType<typeof holdCentre>; page: Record<'phone' | 'desktop', ColdPlacement>; native: ColdPlacement } {
+export function enemyPlacements(): { seed: number; volley: typeof volley; practice: typeof PRACTICE_AT; hold: ReturnType<typeof holdCentre>; page: Record<'phone' | 'desktop', ColdPlacement>; native: ColdPlacement } {
   const seed = foliage.seed, waterLevel = 0;
   const pack = (inputs: EnemyPlacementInputs) => {
     const { stream, ...rows } = placeEnemies(inputs);
@@ -105,6 +110,6 @@ export function enemyPlacements(): { seed: number; practice: typeof PRACTICE_AT;
   const heights = new Float32Array(bytes.buffer);
   const nativeHeight = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights }, x, z,
     { layout: 'column-major', boundary: 'clamp' });
-  return { seed, practice: PRACTICE_AT, hold: holdCentre(), page: { phone: page('phone'), desktop: page('desktop') },
+  return { seed, volley, practice: PRACTICE_AT, hold: holdCentre(), page: { phone: page('phone'), desktop: page('desktop') },
     native: pack({ seed, waterLevel, heightAt: nativeHeight, crabSites: physics.habitat.crabSites, palms: physics.habitat.perchBases }) };
 }

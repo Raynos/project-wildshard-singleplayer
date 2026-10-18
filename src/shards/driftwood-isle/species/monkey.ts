@@ -1,4 +1,5 @@
 import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
+import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -37,7 +38,7 @@ const { MONKEY_ACTIONS } = authoredSpeciesActions;
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-export function monkeyCallbacks(brains: SpeciesBrains): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
+export function monkeyCallbacks(brains: SpeciesBrains, bite: StrikeSpec): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
   if (decision.archetype !== 'perch-hunter') throw new Error('Driftwood monkey requires its authored perch guardian row');
   if (ctx === undefined) throw new Error('Driftwood monkey requires its first callback context');
   let current = ctx;
@@ -48,7 +49,7 @@ export function monkeyCallbacks(brains: SpeciesBrains): ReturnType<SpeciesBrains
   };
   return createMemoryActionBrain<Animal, ThinkCtx>(actor, MONKEY_ACTIONS, { decide: (_actor, context) => {
     current = context; Object.assign(ports, context); decision.policy.think(ports);
-  }, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) });
+  }, effects: new Map([['bite', (a: Animal, c: ThinkCtx) => { biteMonkey(a, c, bite); }], ['throw', throwMonkeyCoconut]]) });
 }); }
 
 export const MONKEY_LOOK: SpeciesLook = {

@@ -4,7 +4,7 @@ import { parse, tuple, unknown } from 'valibot';
 import { MathUtils, Vector3 } from 'three';
 import { selectCreatureSites } from '@wildshard/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
+import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 
 /**
  * The Coconut Monkey's renderer-free policy pieces (./monkey.ts has the rig, the look, the species row and the shipping
@@ -31,7 +31,10 @@ export interface MonkeyPerchPorts<A extends AnimalSim> {
   heightAt: (x: number, z: number) => number;
 }
 /** What the strike reads: the contact ports, the sound and the coconut lob (the shard's projectile owner). */
-export interface MonkeyStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> {
+export interface MonkeyStrikePorts<A extends AnimalSim> {
+  readonly player: A['position'];
+  reach: (actor: A) => boolean;
+  hurt: (damage: number) => void;
   sound: (name: string) => void;
   readonly world: { readonly throwCoconut?: ((from: A['position'], target: A['position'], thrower: A) => void) | undefined };
 }
@@ -53,9 +56,12 @@ export function setPerch<A extends AnimalSim>(a: A, c: MonkeyPerchPorts<A>, i: n
 }
 
 const _from = new Vector3(), _to = new Vector3();
+const contact = new StrikeRunner();
 /** Existing bite contact; the caller's declared memory gate claims the strike first. */
-export function biteMonkey<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>): void {
-  if (driftwoodContact(a, c, DRIFTWOOD_STRIKES.bite)) c.sound('monkey_shriek');
+export function biteMonkey<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>, bite: StrikeSpec): void {
+  if (contact.contains(bite, { actor: { position: a.position, scale: a.scale, yaw: a.yaw }, target: c.player }) && (bite.tags.includes('cover.exempt') || c.reach(a))) {
+    c.hurt(bite.damage); c.sound('monkey_shriek');
+  }
 }
 /** Existing coconut owner and target heights; no random draw or projectile clock is added. */
 export function throwMonkeyCoconut<A extends AnimalSim>(a: A, c: MonkeyStrikePorts<A>): void {

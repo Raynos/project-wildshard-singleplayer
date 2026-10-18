@@ -41,5 +41,5 @@ export function keeperRows(placement: ReturnType<typeof enemyPlacements>): Omit<
   });
   placement.native.centres.forEach((at, i) => { herds.push({ kind: physics.herds[fauna.centres.length + i]?.kind ?? 'crab', x: at.x, z: at.z }); });
   if (herds.length !== physics.herds.length || bodies.length !== 34 || bodies.filter(row => row.practice).length !== 1) throw new Error('Divergent keeper boot roster');
-  return { seed: fauna.seed, ecology, fauna, variants, herds, bodies };
+  return { seed: fauna.seed, volley: placement.volley, ecology, fauna, variants, herds, bodies };
 }

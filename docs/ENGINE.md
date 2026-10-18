@@ -6239,6 +6239,20 @@ The optional contact port also borrows the current step's player pose (or
 null). A specialized volley may extend this owner directly and keep only its
 launch/contact policy, inheriting disposal and native continuation unchanged.
 
+`physics/bodies.RowBodySlots` is the data-only ball-body binding used by
+creature volleys and pickup drops. `format/bodySlots.BodySlotsSchema` admits
+slot bounds, retirement/landing coefficients, body material and radius,
+optional capsule contact/rebound, spin ranges, sea float and floor settlement.
+The constructor takes those rows and concrete Bodies/Physics/SimHost services.
+It accepts no content callbacks. Contact and landing observations drain once
+in slot order; rendering reads its retained pose table. `throw` consumes the
+existing Rng's phase and angular draws only when the body service exists.
+Snapshots retain the historical slot/handle/source-index wire. `restore`
+loads counters silently; `bind` adopts saved handles after physics restore.
+Page float reads the installed terrain/water services; native float reads
+the simulation ground and clock. `Drop` uses the same owner with settlement
+rows, including immediate settlement if the physics cap removes its body.
+
 ### Graph shadow-depth warm-up (E435)
 
 A graph material that moves its vertices (`graphShadowDepth`) draws its

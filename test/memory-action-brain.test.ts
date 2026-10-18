@@ -6,6 +6,7 @@ import authoredSpeciesActions from '../src/shards/driftwood-isle/data/speciesAct
 import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyPolicy';
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
+import { DRIFTWOOD_STRIKES } from './fixtures/species/driftwood';
 
 const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
@@ -42,7 +43,7 @@ test('monkey rows select one existing bite or coconut owner and retain restored 
       expect(to.y).toBeCloseTo(target.y + .9); effects.push('throw');
     } } };
   const brain = createMemoryActionBrain<AnimalSim, MonkeyStrikePorts<AnimalSim>>(a, MONKEY_ACTIONS,
-    { decide: () => undefined, effects: new Map([['bite', biteMonkey], ['throw', throwMonkeyCoconut]]) });
+    { decide: () => undefined, effects: new Map([['bite', (body: AnimalSim, ports: MonkeyStrikePorts<AnimalSim>) => { biteMonkey(body, ports, DRIFTWOOD_STRIKES.bite); }], ['throw', throwMonkeyCoconut]]) });
   a.mem['st'] = 2; a.mem['hit'] = 0; a.mem['bite'] = 0; a.startAttack(1); a.step(.7);
   const before = a.snapshot(); brain.act(context); brain.act(context); expect(effects).toEqual(['throw']);
   a.restore(before); brain.act(context); expect(effects).toEqual(['throw', 'throw']);

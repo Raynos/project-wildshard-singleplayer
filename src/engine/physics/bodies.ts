@@ -25,6 +25,12 @@ import { tagCollider, untagCollider, type Material } from './surface';
 import { overlapBox as queryOverlapBox } from './overlap';
 import { floorBelow } from './query';
 import { Euler, Quaternion } from 'three';
+import { BodySlotsSchema, type BodySlotsData } from '@wildshard/format/bodySlots';
+import { parse } from 'valibot';
+import type { SimHost } from '../sim';
+import type { Rng } from '../core/rng';
+import { terrainHeight, terrainWaterLevel } from '../world/terrainHeight';
+import { waveHeight } from '../world/waves';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -457,6 +463,104 @@ export class DynamicBodySlots<T> {
   }
 }
 
+/** A contact/landing observation, consumed once in slot traversal order. Mechanics never call content. */
+export interface BodySlotEvent<T> { readonly kind: 'contact' | 'land'; readonly source: T | null; readonly at: Vec3; readonly age: number; readonly wet: number }
+/** Row-owned ball volleys and settling drops over the existing native Bodies authority.
+ * Page water uses the installed terrain/sea services; native water uses the actual simulation ground and clock.
+ * Restore rebinds existing handles after world replacement, without drawing or creating new bodies. */
+export class RowBodySlots<T extends { readonly entityId: string } = never> {
+  readonly row: BodySlotsData;
+  readonly poses: readonly { readonly at: Vec3; readonly rotation: Quaternion; visible: boolean }[];
+  readonly floor: Vec3 = { x: 0, y: 0, z: 0 };
+  settled = false;
+  private readonly slots: DynamicBodySlots<T>;
+  private readonly at: Vec3 = { x: 0, y: 0, z: 0 };
+  private readonly rotation = new Quaternion();
+  private events: BodySlotEvent<T>[] = [];
+  private changed = false;
+  private reattach: (() => void) | null = null;
+  private service: Bodies | null;
+  private readonly physics: Physics | null;
+  constructor(input: unknown, service: Bodies | null, owner: unknown,
+    physics: Physics | null = service?.physics ?? null, host?: SimHost) {
+    this.service = service; this.physics = physics;
+    this.row = parse(BodySlotsSchema, input);
+    const row = this.row;
+    if (row.settle !== undefined && row.count !== 1) throw new Error('Settling body requires one slot');
+    this.poses = Array.from({ length: row.count }, () => ({ at: { x: 0, y: 0, z: 0 }, rotation: new Quaternion(), visible: false }));
+    const emit = (kind: BodySlotEvent<T>['kind'], source: T | null, at: Vec3, age: number, wet: number): void => {
+      this.events.push({ kind, source, at: { ...at }, age, wet });
+    };
+    this.slots = new DynamicBodySlots<T>(row, {
+      bodies: () => this.service,
+      spec: () => ({ shape: { ball: row.body.radius }, owner, ...row.body,
+        ...(row.float === undefined ? {} : { float: { buoyancy: row.float.buoyancy, drag: row.float.drag, surface: (x: number, z: number) => {
+          const level = host === undefined ? terrainWaterLevel() : row.float?.level ?? 0;
+          const ground = host === undefined ? terrainHeight(x, z) : host.groundHeightAt(x, z);
+          return ground >= level ? undefined : level + (row.float?.waves === true ? waveHeight(x, z, host?.clock.now) : 0);
+        } } }),
+      }),
+      contact: (body, source, at, player) => {
+        const contact = row.contact;
+        if (contact === undefined) return false;
+        if (player === null) throw new Error('Body contact requires the current player pose');
+        const y = Math.max(player.y, Math.min(player.y + contact.height, at.y));
+        if (!((at.x - player.x) ** 2 + (y - at.y) ** 2 + (at.z - player.z) ** 2 < contact.radius ** 2)) return false;
+        emit('contact', source, at, 0, body.wet);
+        const velocity = body.rb.linvel(); body.launch({ x: velocity.x * contact.horizontalBounce, y: contact.up, z: velocity.z * contact.horizontalBounce });
+        return true;
+      },
+      landed: (body, at, age) => { emit('land', null, at, age, body.wet); },
+      removed: (_slot, body) => { if (row.settle !== undefined && !this.settled) this.settle(body.curr, body); },
+      retired: (_slot, body) => { if (row.settle !== undefined) this.settle(body.curr, body); },
+    });
+  }
+  bodyAt(slot: number): Body | null { return this.slots.bodyAt(slot); }
+  /** Direct velocity is used by existing tossed pickups; it consumes no random draw. */
+  spawn(from: Vec3, velocity: Vec3): Body | null {
+    const body = this.slots.spawn(from, velocity);
+    this.floor.x = from.x; this.floor.y = from.y - this.row.body.radius; this.floor.z = from.z;
+    if (body === null && this.row.settle !== undefined) this.settle(from);
+    return body;
+  }
+  /** The existing stream owns the phase and angular draws, in that order, and only while bodies are available. */
+  throw(launch: BodyLaunchRow, from: Vec3, to: Vec3, source: T | null, rng: Rng): void {
+    if (this.service === null) return;
+    const spin = this.row.spin, phase = spin === undefined ? 0 : rng.range(spin.phase[0], spin.phase[1]);
+    const body = this.slots.launch(launch, from, to, phase, source);
+    if (body !== null && spin !== undefined) body.rb.setAngvel({ x: rng.range(spin.x[0], spin.x[1]), y: rng.range(spin.y[0], spin.y[1]), z: rng.range(spin.z[0], spin.z[1]) }, true);
+  }
+  update(dt: number, alpha: number, player: Vec3 | null): boolean {
+    const drew = this.slots.step(dt, alpha, player, this.at, this.rotation, (slot, at) => {
+      const pose = this.poses[slot]; if (pose === undefined) throw new Error('Missing body pose slot');
+      pose.visible = at !== null;
+      if (at !== null) {
+        Object.assign(pose.at, at); pose.rotation.copy(this.rotation);
+        if (this.row.settle !== undefined) { this.floor.x = at.x; this.floor.y = at.y - this.row.body.radius; this.floor.z = at.z; }
+      }
+    });
+    const changed = this.changed; this.changed = false; return drew || changed;
+  }
+  takeEvents(): readonly BodySlotEvent<T>[] { const events = this.events; this.events = []; return events; }
+  snapshot(sources: readonly string[]): ReturnType<DynamicBodySlots<T>['snapshot']> { return this.slots.snapshot(source => sources.indexOf(source.entityId)); }
+  restore(saved: Parameters<DynamicBodySlots<T>['restore']>[0], sources: readonly (T | null)[]): void {
+    this.reattach = this.slots.restore(saved, index => sources[index] ?? null);
+    this.events = []; this.changed = true; for (const pose of this.poses) pose.visible = false;
+  }
+  bind(service: Bodies | null): void { this.service = service; this.reattach?.(); this.reattach = null; }
+  dispose(): void {
+    if (this.row.settle !== undefined && !this.settled) this.settle(this.bodyAt(0)?.curr ?? this.floor);
+    else this.slots.dispose();
+  }
+  private settle(at: Vec3, removed?: Body): void {
+    this.settled = true;
+    const body = removed ?? this.bodyAt(0), { x, y, z } = at;
+    this.slots.dispose();
+    const below = this.physics === null ? undefined : floorBelow(this.physics, x, z, y, this.row.settle?.depth ?? 0);
+    this.floor.x = x; this.floor.z = z; this.floor.y = below ?? (body === null ? y : y - this.row.body.radius);
+  }
+}
+
 /** a dropped item's body: a small ball that bounces a little and stops rolling soon (DEBRIS: the player walks through
  *  it, it never shoves you); removed by the cap before anything that lasts */
 export const DROP_BODY = {
@@ -464,7 +568,10 @@ export const DROP_BODY = {
   angularDamping: 2, rolling: 0.3, ccd: true, expendable: true,
 } as const satisfies Omit<BodySpec, 'owner'>;
 /** below this speed (m/s) for DROP_REST_T (s) it has landed; after DROP_MAX_T (s) it has landed whatever it is doing */
-const DROP_SLOTS = {count:1,clocks:'number',initial:2,restSpeed:.1,restTime:.3,maxAge:5,inclusive:true} as const;
+const DROP_SLOTS: BodySlotsData = { count: 1, clocks: 'number', initial: 2, restSpeed: .1, restTime: .3, maxAge: 5, inclusive: true,
+  body: { radius: DROP_BODY.shape.ball, material: DROP_BODY.material, group: DROP_BODY.group, density: DROP_BODY.density,
+    friction: DROP_BODY.friction, restitution: DROP_BODY.restitution, angularDamping: DROP_BODY.angularDamping,
+    rolling: DROP_BODY.rolling, ccd: DROP_BODY.ccd, expendable: DROP_BODY.expendable }, settle: { depth: 60 } };
 
 /**
  * A short-lived body for something dropped into the world (a legendary's loot popping out of the carcass): it flies
@@ -479,44 +586,26 @@ const DROP_SLOTS = {count:1,clocks:'number',initial:2,restSpeed:.1,restTime:.3,m
  */
 export class Drop {
   /** the point under the thing: the ball's lowest point in flight, the surface it rests on once landed */
-  readonly floor = { x: 0, y: 0, z: 0 };
-  landed = false;
-  private readonly slots: DynamicBodySlots<never>;
+  readonly floor: Vec3;
+  get landed(): boolean { return this.slots.settled; }
+  private readonly slots: RowBodySlots;
   get body(): Body | null { return this.slots.bodyAt(0); }
-  private readonly at = { x: 0, y: 0, z: 0 };
-  private readonly r: number = DROP_BODY.shape.ball;
-
   private readonly bodies: Bodies | null;
-  private readonly physics: Physics | null;
   constructor(bodies: Bodies | null, owner: unknown, from: Vec3, vel: Vec3, physics: Physics | null = bodies?.physics ?? null) {
-    this.bodies = bodies; this.physics = physics;
-    this.slots = new DynamicBodySlots(DROP_SLOTS,{bodies:()=>this.bodies,spec:()=>({...DROP_BODY,owner}),removed:(_k,body)=>{if(!this.landed)this.land(body.curr,body);},retired:(_k,body)=>this.land(body.curr,body)});
-    if (bodies === null) { this.land(from); return; }
+    this.bodies = bodies;
+    this.slots = new RowBodySlots(DROP_SLOTS, bodies, owner, physics); this.floor = this.slots.floor;
     this.slots.spawn(from,vel);
-    this.floor.x = from.x; this.floor.y = from.y - this.r; this.floor.z = from.z;
   }
 
   /** per frame: follow the body; land once it has come to rest (or flown too long). True on the frame it lands. */
   update(dt: number): boolean {
     const b = this.body;
     if (this.landed || b === null) return false;
-    this.slots.step(dt,this.bodies?.alpha??1,null,this.at,undefined,(_k,at)=>{
-      if(at===null)return;this.floor.x=at.x;this.floor.y=at.y-this.r;this.floor.z=at.z;
-    });
+    this.slots.update(dt,this.bodies?.alpha??1,null);
     return this.landed;
   }
 
   /** stop now (picked up in flight, the owner disposed) — the body goes */
-  dispose(): void { if (!this.landed) this.land(this.body?.curr ?? this.floor); }
-
-  /** it lies at the first surface under `p` (its centre); the body, if any, is removed */
-  private land(p: Vec3, removed?: Body): void {
-    this.landed = true;
-    const b = removed ?? this.body, x = p.x, y = p.y, z = p.z;
-    this.slots.dispose();
-    const below = this.physics ? floorBelow(this.physics, x, z, y, 60) : undefined;
-    this.floor.x = x; this.floor.z = z;
-    this.floor.y = below ?? (b !== null ? y - this.r : y);
-  }
+  dispose(): void { if (!this.landed) this.slots.dispose(); }
 }
 

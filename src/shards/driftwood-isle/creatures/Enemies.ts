@@ -10,15 +10,14 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
-import { waveHeight } from '@wildshard/engine/world/waves';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { PalmSpec } from '../world/Palms';
 import * as v from 'valibot';
 import { EnemyPlacementsSchema, type EnemyPlacements } from '../runtime/sections';
 import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
 import { TIER } from '@wildshard/engine/core/tier';
-import { COCONUT_R, COCONUTS, CoconutVolley } from '../combat/strikes';
-import { driftwoodLaunch } from '../runtime/boot/rows';
+import { RowBodySlots } from '@wildshard/engine/physics/bodies';
+import { driftwoodLaunch, driftwoodProduct } from '../runtime/boot/rows';
 import { preloadSailorHead } from '../species/sailor';
 import { resourceScope } from '@wildshard/engine/app/resources';
 
@@ -61,12 +60,6 @@ export interface EnemiesOpts {
 
 
 const G = 9.81;
-/** the sea surface a coconut floats on: the still level + the swell, where the ground is under water */
-const seaSurface = (x: number, z: number): number | undefined => {
-  const lvl = waterLevel();
-  if (heightAt(x, z) >= lvl) return undefined;
-  return lvl + waveHeight(x, z);
-};
 const DROPS = 240;
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
@@ -79,17 +72,9 @@ export class Enemies {
   private coconutMesh: THREE.InstancedMesh | null = null;
   private get coconuts(): THREE.InstancedMesh { if (this.coconutMesh === null) throw new Error('Enemies not built'); return this.coconutMesh; }
   /** the coconuts' bodies and rules (combat/coconuts.ts, shared with the renderer-free runtime); this draws them */
-  private readonly volley = new CoconutVolley<Animal>({
-    bodies: () => app.bodies, rng: this.rng, surface: seaSurface, owner: this,
-    hit: (th, amount, moveId) => {
-      if (app.player !== null) app.combat.hit({
-        source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: app.player,
-        amount, moveId, point: th.position.clone(), dir: new THREE.Vector3(), cause: { kind: th.kind, label: th.label },
-      });
-    },
-    sound: (name, at) => { this.animals.onSound?.(name, at); },
-    splash: (at, strength) => { this.splash(at, strength); },
-  }, driftwoodLaunch('coconut'));
+  private volleySlots: RowBodySlots<Animal> | null = null;
+  private get volley(): RowBodySlots<Animal> { if (this.volleySlots === null) throw new Error('Enemies not built'); return this.volleySlots; }
+  private readonly contact = driftwoodProduct().section('actors/species-programs').program?.strikes.find(row => row.id === 'strike.monkey.coconut');
   /** the splash droplets (E357 X5: on the one ParticlePool) */
   private dropPool: ParticlePool | null = null;
   private get drops(): ParticlePool { if (this.dropPool === null) throw new Error('Enemies not built'); return this.dropPool; }
@@ -105,12 +90,13 @@ export class Enemies {
   private disposed = false;
   private readonly creatures: ReturnType<typeof createCreatureSpawner<Animal>>;
   constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) {
+    if (this.contact === undefined) throw new Error('Driftwood requires its admitted coconut contact');
     this.creatures = createCreatureSpawner(animals); this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
   }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.volley.dispose();
+    this.volleySlots?.dispose();
     this.creatures.dispose(); this.group.removeFromParent();
     if (this.opts.scope === undefined) {
       this.coconutMesh?.geometry.dispose(); // the kit's shared still material stays with the kit
@@ -124,6 +110,9 @@ export class Enemies {
     live();
     const { opts, animals } = this;
     const owner = opts.scope ?? resourceScope();
+    const [, bytes] = await Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]);
+    const placement = v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes)));
+    live(); this.volleySlots = new RowBodySlots<Animal>(placement.volley, app.bodies, { kind: 'coconut' });
     // ── the pieces the AIs read (AnimalManager.habitat) ──
     const W = animals.habitat;
     if (opts.palms?.length) {
@@ -138,13 +127,13 @@ export class Enemies {
     W.splash = (at, strength) => { this.splash(at, strength); };
     // ── coconuts: one InstancedMesh in the kit's still look, the husk's brown as its vertex paint ──
     {
-      const g = new THREE.IcosahedronGeometry(COCONUT_R, 0), husk = new THREE.Color('#5a3d22').toArray(), n = g.getAttribute('position').count;
+      const g = new THREE.IcosahedronGeometry(this.volley.row.body.radius, 0), husk = new THREE.Color('#5a3d22').toArray(), n = g.getAttribute('position').count;
       g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from({ length: n * 3 }, (_, i) => husk[i % 3] ?? 0), 3));
       opts.scope?.own(g);
-      this.coconutMesh = new THREE.InstancedMesh(g, lowPolyLookMaterial(opts.sky, 'still'), COCONUTS);
+      this.coconutMesh = new THREE.InstancedMesh(g, lowPolyLookMaterial(opts.sky, 'still'), this.volley.row.count);
       opts.scope?.own(this.coconuts);
       this.coconuts.castShadow = true; this.coconuts.frustumCulled = false;
-      for (let i = 0; i < COCONUTS; i++) this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0));
+      for (let i = 0; i < this.volley.row.count; i++) this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0));
       this.coconuts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       this.group.add(this.coconuts);
     }
@@ -158,8 +147,6 @@ export class Enemies {
     }
     // the baked bodies first (AnimalFactory builds each model once, at its first spawn; the adventure's install already
     // waited on the same ~45 KB file behind the loading screen), then the placements in their order
-    const [, bytes] = await Promise.all([preloadSailorHead(), readDriftwoodBlob('sim/enemy-placement.json')]);
-    const placement = v.parse(EnemyPlacementsSchema, JSON.parse(new TextDecoder().decode(bytes)));
     await owner.run(() => animals.factory.prepareModels(placement.page[TIER].enemies));
     live();
     owner.run(() => { this.placeAuthoredEnemies(placement); opts.scene.add(this.group); });
@@ -219,7 +206,7 @@ export class Enemies {
   // ── projectiles + fx ───────────────────────────────────────────────────────────────────
 
   /** lob a coconut from `from` to land on `to` in 0.8–1.5 s (the flight time grows with the range) */
-  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void { this.volley.throw(from, to, thrower); }
+  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void { this.volley.bind(app.bodies); this.volley.throw(driftwoodLaunch('coconut'), from, to, thrower, this.rng); }
 
   /** a burst of water droplets at `at` (strength 1 = the sailor surfacing) */
   splash(at: THREE.Vector3, strength = 1): void {
@@ -256,11 +243,24 @@ export class Enemies {
     }
 
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; the volley reads them, this draws them ──
-    const drew = this.volley.update(dt, app.bodies?.alpha ?? 1, playerPos, (k, at, rot) => {
-      if (at === null) this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
-      else this.coconuts.setMatrixAt(k, _m.compose(at, rot, _s.set(1, 1, 1)));
-    });
-    if (drew) this.coconuts.instanceMatrix.needsUpdate = true;
+    this.volley.bind(app.bodies);
+    const drew = this.volley.update(dt, app.bodies?.alpha ?? 1, playerPos);
+    if (drew) {
+      for (const [k, pose] of this.volley.poses.entries()) this.coconuts.setMatrixAt(k, pose.visible ? _m.compose(_v.copy(pose.at), pose.rotation, _s.set(1, 1, 1)) : _m.makeScale(0, 0, 0));
+      this.coconuts.instanceMatrix.needsUpdate = true;
+    }
+    for (const effect of this.volley.takeEvents()) {
+      _v.copy(effect.at);
+      if (effect.kind === 'contact') {
+        const th = effect.source;
+        if (th !== null && app.player !== null && this.contact !== undefined) app.combat.hit({ source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: app.player,
+          amount: this.contact.damage, moveId: this.contact.id, point: th.position.clone(), dir: new THREE.Vector3(), cause: { kind: th.kind, label: th.label } });
+        this.animals.onSound?.('coconut_hit', _v);
+      } else {
+        if (effect.age <= 3) this.animals.onSound?.('coconut_land', _v);
+        if (effect.wet > 0) this.splash(_v, .3);
+      }
+    }
     // ── droplets ──
     if (this.dActive) {
       const rdt = worldTime.realDt || dt; // droplets keep falling through a hit-stop

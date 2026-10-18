@@ -1,6 +1,7 @@
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
+import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { WaterSurfaceSchema } from '@wildshard/format/water';
@@ -166,7 +167,7 @@ const placement = v.strictObject({
   stream: v.strictObject({ version: v.literal(1), state: natural, initial: natural, scrambledFork: v.boolean() }),
 });
 /** Named offline spawn rows; all sampling runs only in the author compiler. */
-export const EnemyPlacementsSchema = v.strictObject({ seed: natural,
+export const EnemyPlacementsSchema = v.strictObject({ seed: natural, volley: BodySlotsSchema,
   practice: v.strictObject({ x: number, z: number }), hold: v.strictObject({ x: number, z: number }),
   page: v.strictObject({ phone: placement, desktop: placement }), native: placement });
 export type EnemyPlacements = v.InferOutput<typeof EnemyPlacementsSchema>;

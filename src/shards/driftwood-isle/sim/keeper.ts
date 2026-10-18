@@ -15,11 +15,10 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
-import { Bodies, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
-import { waveHeight } from '@wildshard/engine/world/waves';
+import { Bodies, RowBodySlots, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { COCONUTS, CoconutVolley } from '../combat/strikes';
+import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '@wildshard/sdk/populationRespawn';
@@ -74,17 +73,19 @@ const Point = v.tuple([finite, finite, finite]);
 const Memory = v.strictObject({ timer: finite, tx: finite, tz: finite, fleeT: finite, fleeUntil: finite, chargeCd: finite, callT: finite, awareness: finite,
   freeze: finite, spooked: v.boolean(), wary: finite, sensed: v.boolean(), windup: finite, backoff: finite, side: finite, committed: v.boolean(),
   path: v.array(Point), pathI: finite, goalX: finite, goalZ: finite, repathAt: finite });
-const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), state: v.picklist([1, 2]), rest: finite, age: finite,
-  thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(ROSTER - 1)), handle: finite, wet: finite });
 /** a coconut collider's owner tag (plain data: the host's snapshot encodes collider owners) */
 const COCONUT_OWNER = { kind: 'coconut' } as const;
 const Respawn = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite, x: finite, z: finite, due: finite, night: v.boolean(), id: v.string() });
-const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.strictObject({ now: finite, check: finite, pending: v.pipe(v.array(Respawn), v.maxLength(ROSTER)) }),
-  coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(COCONUTS - 1)), slots: v.array(Slot) }),
+const savedSchema = (count: number) => {
+  const Slot = v.strictObject({ k: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(count - 1)), state: v.picklist([1, 2]), rest: finite, age: finite,
+    thrower: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(ROSTER - 1)), handle: finite, wet: finite });
+  return v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.strictObject({ now: finite, check: finite, pending: v.pipe(v.array(Respawn), v.maxLength(ROSTER)) }),
+  coconuts: v.strictObject({ rng: Stream, next: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(count - 1)), slots: v.array(Slot) }),
   fauna: v.strictObject({ clock: finite, speed: finite, prev: v.nullable(Point), memories: v.array(v.nullable(Memory)), sight: v.array(v.nullable(v.boolean())) }), tokens: v.array(v.string()), herds: v.array(v.tuple([finite, finite])),
   bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), pose: v.nullable(v.string()), policy: v.nullable(v.string()) })),
   captain: v.nullable(v.strictObject({ id: v.string(), pose: v.string(), policy: v.union([v.boolean(),v.string()]) })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
+};
 
 /**
  * Driftwood Isle's creatures in a renderer-free host (SF72), as the shipping AnimalManager and creatures/Enemies.ts keep
@@ -143,9 +144,13 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   publishPoses: () => void;
 } {
   const { program, hunt: settings, spawns } = ports.population;
+  const Saved = savedSchema(ports.keeper.volley.count);
   const practiceRule = spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
   if (program === undefined || settings === undefined || practiceRule === undefined) throw new Error('Driftwood requires its admitted creature recipes');
   const brains = speciesBrains(program.species, program.strikes, program.modules);
+  const contact = program.strikes.find(row => row.id === 'strike.monkey.coconut'), bite = program.strikes.find(row => row.id === 'strike.monkey.bite');
+  if (contact === undefined || bite === undefined) throw new Error('Driftwood requires its admitted monkey contacts');
+  const biteStrike = strikeFromData(bite);
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
   const { bake, specs, keeper: roster } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
@@ -172,22 +177,12 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the coconuts (combat/coconuts.ts, as Enemies.ts throws them): bodies in the host's world, spun from the placement
   // stream past placement, floating on the sea's swell at the host's clock; a hit is the thrower's blow on the player
   let service = new Bodies(host.physics, player);
-  const volley = new CoconutVolley<HuntBody>({
-    bodies: () => service, rng: placed.stream, owner: COCONUT_OWNER,
-    surface: (x, z) => heightAt(x, z) >= ports.waterLevel ? undefined : ports.waterLevel + waveHeight(x, z, host.clock.now),
-    hit: (th, amount, moveId) => {
-      host.combat.hit({ source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: host.player.health, amount, moveId,
-        point: th.position.clone(), dir: new Vector3(), cause: { kind: th.kind, label: th.label } });
-    },
-    // the hit / landing voices and the splash are presentation
-    sound: () => undefined, splash: () => undefined,
-  }, ports.launch);
-  let reattach: (() => void) | null = null;
+  const volley = new RowBodySlots<HuntBody>(roster.volley, service, COCONUT_OWNER, host.physics, host);
   const world = {
     perches: habitat.perches.map(p => new Vector3(p.x, p.y, p.z)), perchBases: habitat.perchBases.map(p => new Vector3(p.x, p.y, p.z)),
     hold: { x: habitat.hold.x, z: habitat.hold.z, r: habitat.hold.r, guardR: habitat.hold.guardR, floorAt: bake.holdFloorAt },
     // a monkey's lob releases a real coconut from the volley
-    throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(from, to, thrower); },
+    throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(ports.launch, from, to, thrower, placed.stream); },
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
   const callbacks = new Map(POSE_CALLBACKS); callbacks.set('monkey', ports.monkeyPose);
@@ -203,7 +198,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
   const join = (body: IslandBody, actor: HuntBody): void => {
     if (body.kind === 'sailor' && actor.levelGround) actor.groundHeight = holdFloor;
-    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains, ports.decisions);
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains, ports.decisions, biteStrike);
   };
   const { draw } = intake;
   const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };
@@ -316,6 +311,11 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     cadence.observe(dt); cadence.decide();
     // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
     volley.update(dt, 1, player);
+    for (const effect of volley.takeEvents()) if (effect.kind === 'contact' && effect.source !== null) {
+      const th = effect.source;
+      host.combat.hit({ source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: host.player.health,
+        amount: contact.damage, moveId: contact.id, point: th.position.clone(), dir: new Vector3(), cause: { kind: th.kind, label: th.label } });
+    }
     service.pre(dt);
     respawns(dt);
     const crab = practice.body?.actor ?? null;
@@ -327,7 +327,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
   }, {
     snapshot: () => { const common = continuation.snapshot(); return ({ version: 8, rng: common.rng, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
-      coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) },
+      coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(bodies.map(b => b.actor?.entityId ?? '')) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: common.clock, speed: common.noise.speed, prev: common.noise.seen ? common.noise.prev : null,
         memories: common.memories, sight: common.sight },
@@ -341,7 +341,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         || state.bodies.some((b, i) => { const body = bodies.at(i); return body === undefined || b.id !== body.id || b.live !== (body.actor !== null); })) throw new Error('Incompatible Driftwood island continuation');
       const holders = state.tokens.map(id => { const a = (captain?.id === id ? captain : bodies.find(b => b.id === id))?.actor ?? null; if (a === null) throw new Error('Unknown Driftwood token holder'); return a; });
       placed.stream.restore(state.coconuts.rng);
-      reattach = volley.restore(state.coconuts, i => bodies[i]?.actor ?? null);
+      volley.restore(state.coconuts, bodies.map(b => b.actor));
       ecology.now = state.ecology.now; ecology.check = state.ecology.check; queue.pending.length = 0; pendingIds.clear();
       state.ecology.pending.forEach(({ id, ...entry }) => { queue.pending.push(entry); pendingIds.set(entry, id); });
       practice.dead = state.practice.dead; practice.fade = state.practice.fade; entityIds.restoreAllocator(state.ids);
@@ -354,7 +354,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
         prev: state.fauna.prev ?? [0, 0, 0] }, sight: state.fauna.sight, memories: state.fauna.memories, herds: state.herds });
     },
     // the restored world holds the coconuts' native bodies: a body service over it adopts them by handle
-    physicsRestored: () => { service = new Bodies(host.physics, player); reattach?.(); reattach = null; },
+    physicsRestored: () => { service = new Bodies(host.physics, player); volley.bind(service); },
   }); };
   const spawnCaptain = (): HuntBody => {
     if (captain !== null) throw new Error('The Driftwood captain is spawned once');
