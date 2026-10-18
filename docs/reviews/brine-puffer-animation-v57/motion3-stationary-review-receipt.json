@@ -1,0 +1,24 @@
+{
+  "source_sha256": "05db9adf015c886b489a8284e6f7397a08298e9334b67ef34be1e37cd394f76c",
+  "fps": 25,
+  "interpolation": false,
+  "speed_change": false,
+  "clips": [
+    {
+      "path": "public/review-evidence/puffer-animation-v57/motion3-stationary-release.mp4",
+      "source_frames": [
+        405,
+        505
+      ],
+      "bytes": 237270,
+      "sha256": "0d45a27129aec50168f957994913ef742af399f546fe0a37be2e53491c25b635",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "4.040000",
+        "nb_read_frames": "101"
+      },
+      "label": "DIAGNOSTIC | 1x cloud | post and shadows OFF"
+    }
+  ]
+}

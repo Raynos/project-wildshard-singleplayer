@@ -1,0 +1,32 @@
+{
+  "status": "numeric alternatives only, larger excursions not admitted to runtime",
+  "results": {
+    "0.12": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3482,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7150883144068939,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 3.6166666666666667
+    },
+    "0.18": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3506,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7130507332692292,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 2.411111111111111
+    },
+    "0.24": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3512,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7111378266420034,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 1.8083333333333333
+    }
+  }
+}

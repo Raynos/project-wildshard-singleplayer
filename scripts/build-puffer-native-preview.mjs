@@ -18,12 +18,18 @@ import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
 /** Pack one native source and compile one unchanged decision through the official SDK pipeline. */
 export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null) {
   assertHeavyLease('build');
-  if (!['rest', 'inflate-105', 'inflate-110', 'attack'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
+  if (!['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
   if (typeof dimensions !== 'string') throw new Error('Supply an explicit dimensions JSON; collider tuning is unaccepted');
   const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
   // Refuse stale/foreign output rather than silently deleting data or leaving an invalid mixed inventory.
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Practice output must be a new or empty directory');
   const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = resolvePufferPreviewInput(root, descriptor, dimensions);
+  if (mode === 'gait4') {
+    const rig1Hash = '7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb';
+    const dims = JSON.parse(dimensionBytes.toString('utf8'));
+    if (createHash('sha256').update(sourceBytes).digest('hex') !== rig1Hash
+      || Math.abs(dims.legLen - .24 / (2 * Math.sin(.36))) > 1e-9) throw new Error('gait4 requires pinned rig1 and explicit phase calibration');
+  }
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });

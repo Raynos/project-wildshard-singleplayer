@@ -11,12 +11,15 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 import { readSpeciesProgram } from '@wildshard/format/speciesPrograms';
 import practiceLooks from '../data/practiceLooks.json' with { type: 'json' };
 import { pufferNativeClips, type PufferPreviewPose } from './pufferNativeClips';
+import { pufferNativeGait4Clips } from './pufferNativeGait4Clips';
 import pickupCatalogue from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import authoredGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import heldArms from '../data/heldArms.json' with { type: 'json' };
 import { DRIFTWOOD_REGULAR_ACTORS, DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULAR_FIELDS,
   DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_REWARDS, DRIFTWOOD_REGULAR_SPECIES, DRIFTWOOD_REGULAR_STRIKES } from './driftwoodRegularCombat';
 
+
+export type PufferNativePreviewMode = PufferPreviewPose | 'gait4';
 
 const decisions = DRIFTWOOD_REGULAR_DECISIONS.filter(row => row.id === 'driftwood.brine-puffer.decision');
 const strikes = DRIFTWOOD_REGULAR_STRIKES.filter(row => row.id === 'strike.brine-puffer.burst');
@@ -54,12 +57,12 @@ export function createPufferPreviewSource(): Shardfile {
 }
 
 /** Separate product only: never reads or writes the rejected multi-creature generated bake. */
-export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferPreviewPose): ProjectOutput {
+export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode): ProjectOutput {
   const poses = emitNamedBlobs([
     ['practice/looks.json', { ...practiceLooks, looks: practiceLooks.looks.filter(row => row.kind === 'brine-puffer') }],
     ['practice/bodies.json', creatureBodies],
     ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
-    ['poses/brine-puffer.json', pufferNativeClips(mode)],
+    ['poses/brine-puffer.json', mode === 'gait4' ? pufferNativeGait4Clips() : pufferNativeClips(mode)],
   ].map(([name, value]) => {
     if (typeof name !== 'string') throw new Error('Preview requires a logical filename');
     return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(value)));
@@ -83,7 +86,7 @@ export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferP
 }
 
 /** Recompile the one Puffer guest against this exact catalogue, then emit and re-read the real SDK product and receipt. */
-export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferPreviewPose): Promise<ReturnType<typeof validateOutputProduct>> {
+export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode): Promise<ReturnType<typeof validateOutputProduct>> {
   const source = createPufferPreviewSource();
   const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode), { source, options });
   const merged = mergeProjectBlobs(source, prepared.assets, prepared.blobs, prepared.options.namedFiles);

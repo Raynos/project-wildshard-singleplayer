@@ -1,0 +1,44 @@
+{
+  "status": "isolated numerical prototype only; no planted-foot video acceptance",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "duty": 0.62,
+  "stanceStroke": 0.12,
+  "swingLift": 0.06,
+  "calibratedWalkLegLen": 0.17032185250161674,
+  "scope": "straight forward movement, flat ground, no torso rotation or inflation; phase is integrated actual displacement; scale1",
+  "caveats": [
+    "3.617Hz at0.7m/s is fast for this short stroke",
+    "swing/stance velocity is discontinuous; visual review required",
+    "turns, terrain, attacks, stop-to-rest and gait blending are unimplemented",
+    "shared phase minimum0.6Hz needs low-speed compensation or dedicated displacement phase"
+  ],
+  "results": {
+    "constantPoint7": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3482,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7150883144068939,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 3.6166666666666667
+    },
+    "accelerateDecelerate": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3484,
+      "maximumSupportDisplacementPerFrame": 4.440892098500626e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7171996346474921,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 3.6166666666666667
+    },
+    "stopResume": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3280,
+      "maximumSupportDisplacementPerFrame": 4.440892098500626e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7171512523135773,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 3.6166666666666667
+    }
+  }
+}

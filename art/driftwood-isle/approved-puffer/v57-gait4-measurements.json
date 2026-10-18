@@ -1,0 +1,148 @@
+{
+  "schema": "wildshard.puffer.preview-dimensions.v1",
+  "candidate": "V57 rig1 gait4 UNACCEPTED WIP",
+  "sourceSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "colliderAcceptance": false,
+  "visualAcceptance": false,
+  "scope": "Conservative rest-geometry inputs for local actual-engine diagnostics only",
+  "method": {
+    "bodyY": "Actual body absolute bind Y",
+    "bodyHalfLen": "Half of maximum absolute hull Z offset from body pivot",
+    "bodyRadius": "Maximum body/belly-influenced vertex distance to symmetric Z segment plus 0.001 m; includes every positive influence across merged parts",
+    "headRadius": "Maximum head-influenced vertex distance to head pivot plus 0.001 m; merged head envelope, not eye-only or anatomical fit",
+    "legLen": "Body pivot Y minus lowest fin/toe vertex Y",
+    "feet": "AABB X/Z centres of all positively fin-weighted vertices, ordered finL, finR, rearL, rearR",
+    "halfWidth": "Maximum absolute X of all actual parts"
+  },
+  "bounds": {
+    "hull": {
+      "min": [
+        -0.7599999904632568,
+        0.07079359143972397,
+        -0.7599999904632568
+      ],
+      "max": [
+        0.7599999904632568,
+        1.4559999704360962,
+        0.9181897640228271
+      ]
+    },
+    "eyes": {
+      "min": [
+        -0.46000000834465027,
+        0.6766172647476196,
+        0.5299999713897705
+      ],
+      "max": [
+        0.46000000834465027,
+        1.084999918937683,
+        0.934999942779541
+      ]
+    },
+    "limbs": {
+      "finL": {
+        "min": [
+          0.30000001192092896,
+          0.004000000189989805,
+          0.30000001192092896
+        ],
+        "max": [
+          0.9789999723434448,
+          0.18000000715255737,
+          0.9581454992294312
+        ]
+      },
+      "finR": {
+        "min": [
+          -0.9789999723434448,
+          0.004000000189989805,
+          0.30000001192092896
+        ],
+        "max": [
+          -0.30000001192092896,
+          0.18000000715255737,
+          0.9581454992294312
+        ]
+      },
+      "rearL": {
+        "min": [
+          0.31299999356269836,
+          0.004000000189989805,
+          -0.2791999876499176
+        ],
+        "max": [
+          0.7908999919891357,
+          0.147599995136261,
+          0.18570184707641602
+        ]
+      },
+      "rearR": {
+        "min": [
+          -0.7908999919891357,
+          0.004000000189989805,
+          -0.2791999876499176
+        ],
+        "max": [
+          -0.31299999356269836,
+          0.147599995136261,
+          0.18570184707641602
+        ]
+      }
+    },
+    "all": {
+      "min": [
+        -0.9789999723434448,
+        0.004000000189989805,
+        -1.2899999618530273
+      ],
+      "max": [
+        0.9789999723434448,
+        1.4559999704360962,
+        0.9581454992294312
+      ]
+    }
+  },
+  "restHullOutsideCapsule": 0,
+  "limitations": [
+    "Rest only; 1.05/1.10 inflation containment and collider response untested",
+    "Conservative capsule includes empty space and may feel oversized",
+    "Eye sphere is not a full head hit-volume design",
+    "No visual, fight, terrain, balance or phone acceptance",
+    "Weight-based envelopes can include non-anatomical regions; rest bind weights do not prove inflation containment"
+  ],
+  "dimensions": {
+    "bodyY": 0.6000000238418579,
+    "bodyHalfLen": 0.4590948820114136,
+    "bodyRadius": 0.8693322053090293,
+    "headRadius": 0.553743141541536,
+    "legLen": 0.5960000236518681,
+    "feet": [
+      [
+        0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        -0.6394999921321869,
+        0.62907275557518
+      ],
+      [
+        0.551949992775917,
+        -0.04674907028675079
+      ],
+      [
+        -0.551949992775917,
+        -0.04674907028675079
+      ]
+    ],
+    "halfWidth": 0.9789999723434448
+  },
+  "dimensionsSha256": "db0f22fede2b76d739ecd3bf995600514855e9ef1e185d0c6bc8447f6a22ccb9",
+  "gaitCalibration": {
+    "measuredLegLen": 0.5960000236518681,
+    "phaseLegLen": 0.3406437050032335,
+    "method": "legLen drives existing walk phase; .24m stroke / (2*sin(.36)). Other measured dimensions preserved. Approximate phase-based gait, no displacement planting or stop-transition guarantee.",
+    "stance": 0.62,
+    "stroke": 0.24,
+    "isolatedTrial": true
+  }
+}

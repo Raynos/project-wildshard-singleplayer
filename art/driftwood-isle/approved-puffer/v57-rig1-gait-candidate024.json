@@ -1,0 +1,44 @@
+{
+  "status": "isolated numerical prototype only; no planted-foot video acceptance",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "duty": 0.62,
+  "stanceStroke": 0.24,
+  "swingLift": 0.06,
+  "calibratedWalkLegLen": 0.3406437050032335,
+  "scope": "straight forward movement, flat ground, no torso rotation or inflation; phase is integrated actual displacement; scale1",
+  "caveats": [
+    "0.24m stroke gives1.808Hz at0.7m/s; visual deformation/cadence unaccepted",
+    "swing/stance velocity is discontinuous; visual review required",
+    "turns, terrain and attack blending remain unimplemented; .22s stop/.12s resume are non-planted transition intervals",
+    "shared phase minimum0.6Hz needs low-speed compensation or dedicated displacement phase"
+  ],
+  "results": {
+    "constantPoint7": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3512,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7111378266420034,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 1.8083333333333333
+    },
+    "accelerateDecelerate": {
+      "sampledFrames": 1441,
+      "supportIntervals": 3430,
+      "maximumSupportDisplacementPerFrame": 8.881784197001252e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7099732794535809,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 1.8083333333333333
+    },
+    "stopResume": {
+      "sampledFrames": 1441,
+      "supportIntervals": 2282,
+      "maximumSupportDisplacementPerFrame": 4.440892098500626e-16,
+      "minimumLocalFloorY": 0.004000000189989805,
+      "minimumTriangleAreaRatio": 0.7100230535883288,
+      "maximumRootAttachmentError": 0.0,
+      "cycleHzAtPoint7": 1.8083333333333333
+    }
+  }
+}
