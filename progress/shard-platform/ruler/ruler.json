@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "8ac7104000e6ba13c3c87e82349c3adcd83af7c6",
- "committedAt": "2026-10-18T19:34:09.000Z",
- "measuredAt": "2026-10-18T19:43:10.658Z",
+ "revision": "05fdd69fe9b0d08e84955971d1fed3c066361974",
+ "committedAt": "2026-10-18T21:07:21.000Z",
+ "measuredAt": "2026-10-18T21:18:18.476Z",
  "basis": "source",
  "plan": {
-  "lower": 0.45856164084551837,
-  "upper": 0.725228307512185
+  "lower": 0.46100135581297014,
+  "upper": 0.7276680224796368
  },
  "m3": {
-  "cut": 61274,
+  "cut": 61600,
   "mustGo": 80173.3,
-  "fraction": 0.7642694014091973
+  "fraction": 0.7683355930216169
  },
  "m2": {
   "ready": 0,
@@ -158,9 +158,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 18738,
+   "custom": 18615,
    "legacy": 28370,
-   "pct": 66,
+   "pct": 65.6,
    "grid": "fail",
    "criteria": {
     "bakedTiles": "fail",
@@ -176,9 +176,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 11463,
+   "custom": 11260,
    "legacy": 21111,
-   "pct": 54.3,
+   "pct": 53.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -205,7 +205,7 @@
    "nalati-grasslands",
    "nine-dragon-stack"
   ],
-  "pct": 8.7
+  "pct": 10.4
  },
  "waves": [
   {
@@ -989,6 +989,19 @@
     "sunscar-dunes": 0,
     "nalati-grasslands": 66.04864293267536,
     "nine-dragon-stack": 54.298706835299136
+   }
+  },
+  {
+   "revision": "05fdd69fe9b0d08e84955971d1fed3c066361974",
+   "at": "2026-10-18T21:07:21.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 19.286552452475945,
+    "driftwood-isle": 19.048173821867536,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 65.61508635882976,
+    "nine-dragon-stack": 53.33712282696224
    }
   }
  ],
