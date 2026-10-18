@@ -24,7 +24,8 @@
     "assets/world-terrain/water.generated.glb",
     "behaviour/chapter.as",
     "data/chapterStory.json",
-    "boot/poiPaint.json"
+    "boot/poiPaint.json",
+    "behaviour/admission.as"
   ],
   "style": {
     "kind": "ground",

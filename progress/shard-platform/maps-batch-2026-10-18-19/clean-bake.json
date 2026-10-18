@@ -1,0 +1,160 @@
+{
+  "sourceTree": "8a9621acc8ccd2d0150da194dcc256b243d4ae12",
+  "sourceParent": "ea28c0bd628c75e6f2528cd9d4df50e1b06c8d5a",
+  "commitParent": "6589a50d1eb973f5e0c875f9801399a1c10911fd",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2559,
+  "shards": {
+    "nalati-grasslands": {
+      "inputHash": "e0b330d0ee8253d7557bb93b82a4bf264b148599c10dbdf51f9b1911ad176276",
+      "inputFiles": 187,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "e0b330d0ee8253d7557bb93b82a4bf264b148599c10dbdf51f9b1911ad176276",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "ea28c0bd628c75e6f2528cd9d4df50e1b06c8d5a",
+    "through": "6589a50d1eb973f5e0c875f9801399a1c10911fd",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "d36f4694b70f3588fbcb6d8711b373283bcc06de",
+      "75822faabc6b5db2f5dd225153796c1c4edecd99",
+      "6589a50d1eb973f5e0c875f9801399a1c10911fd"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phoneProof": {
+    "bakeSource": "8a9621acc8ccd2d0150da194dcc256b243d4ae12",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "nalati-grasslands",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 3998,
+        "entryMs": 4039,
+        "gameplayMs": 4223,
+        "framesStartMs": 4224,
+        "framesCompleteMs": 4642
+      },
+      "gameplayFrames": {
+        "initial": 2,
+        "final": 14
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 4642,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 14,
+      "drawnFrame": 14,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "nalati-grasslands",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 56,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "8ac7104000e6ba13c3c87e82349c3adcd83af7c6",
+      "owner": "sp-x1",
+      "summary": "NM2 Nalati native creature admission guest and rows",
+      "phoneReceipt": ".git/proofs/sp-x1-8ac710400/phone-validation.json",
+      "phoneNote": "Saved capture revalidated against installed iPhone 16 Pro viewport 402x681, screen 402x874, DPR3 after runner rejected stale hardcoded 874 viewport",
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "mappedPaths": [
+        "src/shards/nalati-grasslands/generators/bake-admission.mjs",
+        "src/shards/nalati-grasslands/generators/output.ts",
+        "src/shards/nalati-grasslands/shard.config.ts"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "behaviour/admission.as"
+        ]
+      },
+      "sourceRulerReceipt": ".git/proofs/sp-x1-8ac710400/candidate-ruler.json"
+    },
+    {
+      "sha": "1a4c0de8f3c50d8cb19ae61a9f3db1be17c5d025",
+      "owner": "sp-x7",
+      "summary": "Map-neutral cold native recording fixture repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "nalati-grasslands": [
+      "behaviour/admission.as"
+    ]
+  }
+}
