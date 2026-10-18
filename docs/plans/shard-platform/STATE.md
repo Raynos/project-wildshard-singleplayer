@@ -4,7 +4,7 @@
 
 **Rules in force:** G465 data and existing hosts only, measured net cuts; G466 close bar 100/0 except listed view code; G467 generators are not custom code; G468 each commit deletes a whole runtime module with its data path (~150+ net); G469 one task per agent; G454 second-shard user for any host change. Caps report-only (G433).
 
-**Push discipline (for every session):** sp-x7 is the only pusher (G485). During its 14:36–15:10 safety hold (a Safari crash at DW Props, fixed in 87c717f31), origin still advanced 14:59–15:02 (c82dd929c, 016f28241, 538918559), carrying held lane commits. Please don't run push-main.sh from other sessions; land locally and sp-x7 carries it.
+**Pipeline (for wildshard-v, 19:45):** (1) GROUND_LOOK is NOT a live red: sp-x10's cold strict all-10 on 1762328b3 built DW with zero GROUND_LOOK errors (stale mirror inventory), and the push gate went green: 0368f804d pushed (8 commits, includes b90201ec9). (2) product-in-look look/toon + look/keyed-sky fixtures fixed by sp-x7 in 8735cc48c (on main; ships with the third map batch ae2ae610a, push pending). (3) The boot-developer grid deadline on 0d020e8f9 is sp-x7's (G485). sp-x7 is the only pusher.
 
 **Lanes by component (G490; 7 building Codex + sp-x7 deploy; Opus cap 1 for C2/C3 boards):**
 - C1-DW sp-x5 · C1-Pine scenes sp-x9 · C1-Pine bakes sp-x10 (also the single map owner: one clean bake per batch window, no per-commit chain) · C2 looks sp-x4 · C4 creatures sp-x1 (after the Sim-road part eight) · C5 quests sp-x6 (after DW batch 2) · C9 glue sp-x8 (Z3, after keyed sky) · sp-x7 deploy only (G485).
