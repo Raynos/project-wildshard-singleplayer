@@ -9,7 +9,7 @@ import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
 /** Native spawn/population rows; encounter behaviour remains with the existing elite and King owners. */
 export const POPULATION_ROSTER = populationRoster({
   limbPose: { step: 'pine.king.pose', limit: 512, near: 140, head: 'head', collision, blend, clips },
-  version: 1, step: 'pine.roster', seed: 1368, bodyCount: 164, limit: 512,
+  version: 1, environment: 'pine.habitat', step: 'pine.roster', seed: 1368, bodyCount: 164, limit: 512,
   scripted: 'sidestep', encounter: 'antler-king', poseKinds: ['antler-king'],
   fauna: PINE_FAUNA, spawn: { x: LAYOUT.SPAWN.x, z: LAYOUT.SPAWN.z },
   identities: Object.values(PINE_ELITE_ANIMALS).map(({ kind, variant }) => ({ kind, variant })),

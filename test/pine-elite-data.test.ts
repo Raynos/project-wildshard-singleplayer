@@ -1,3 +1,4 @@
+import { flatPopulationEnvironment } from './fixtures/population-environment';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real v1 guests and native body authority.
 import { readFileSync } from 'node:fs';
@@ -14,12 +15,8 @@ import { PINE_DAY, PINE_PHASES } from '../src/shards/pine-hollow/look/dayKeys';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import data from '../src/shards/pine-hollow/behaviour/elites.generated.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import type { HuntGround } from '../src/engine/ai/hunt';
 import { Rng } from '../src/engine/core/rng';
 
-const ground: HuntGround = { heightAt: () => 0, normalY: () => 1, trailDistance: () => 0, cabinMask: () => 0,
-  inChunk: () => true, streamAt: () => null, waterLevel: () => -3, pond: () => null, sea: () => false,
-  wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => false, chunkHalf: 250 };
 async function fixture() {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const host = createSimHost({ ...SIM_LEVEL, id: 'pine-hollow', seed: 1337, ground: { size: 500, height: 0 }, entities: [] }, { rapier });
@@ -27,8 +24,9 @@ async function fixture() {
   const species = new Map(data.fights.flatMap(fight => fight.program.species).map(row => [`${row.kind}.${row.variant}`, row]));
   const parked = [...species.values()].map((row, i) => ({ seed: sample.seed, scale: sample.scale, id: `recipe.${i}`, kind: row.kind, variant: row.variant,
     spec: { ...sample.spec, kind: row.kind, variant: row.variant }}));
-  installPopulationRoster(host, { population: readSpeciesPrograms(PINE_SPECIES_PROGRAMS), ground, nav: null, spawnY: 20,
-    bake: { actors: [], parked, herds: [] } }, { version: 1, step: 'pine.roster', seed: 1368, bodyCount: 0, limit: 512,
+  flatPopulationEnvironment(host);
+  installPopulationRoster(host, { population: readSpeciesPrograms(PINE_SPECIES_PROGRAMS), nav: null, spawnY: 20,
+    bake: { actors: [], parked, herds: [] } }, { version: 1, environment: 'fixture.habitat', step: 'pine.roster', seed: 1368, bodyCount: 0, limit: 512,
     scripted: 'sidestep', encounter: 'test', poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
   const day = new DayCycle(PINE_DAY); await day.set(PINE_PHASES.night);
   const feature = installNativeEliteFeature(host, day, data); feature.initialize();

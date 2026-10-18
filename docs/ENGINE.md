@@ -9245,6 +9245,20 @@ use the existing shared roster. Pose attachment is a native service; fight
 decisions remain in their own encounter owner. The existing v3 roster wire,
 entity ids, saved actor registration order and RNG continuation are retained.
 
+`game/population/environment.installPopulationEnvironment` admits
+`format/populationEnvironment` rows against a concrete native lattice.
+Named habitats own height/normal sampling, ordered trunk queries, trails,
+cabin pads, ponds, projected piecewise water surfaces and plain wander goals.
+Triangle and bilinear sampling retain their original arithmetic and boundary
+laws. The installer takes data only and refuses duplicate or missing ids.
+Native population rows reference an `environment` id and accept no shard
+ground or wander-goal callback. Native shelter rows reference the built-in
+environment, roster and weather cadence ids. The shelter keeps its v1 wire
+and original step before the roster, publishing plain goals after update
+and restore. This preserves boot, actor-registration and restore order.
+`game/plugin/weather.nativeWeatherContinuation` resolves only weather
+instances installed by the native weather owner on that same host.
+
 Pine's counted `quest/waves.PopulationWaveDirector` runs its phase ABI:
 clock, roam actors, sentries, periodic gate, sentry group completion/spawn,
 far-roamer retirement, then new roamers. The admitted director script owns

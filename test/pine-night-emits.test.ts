@@ -1,3 +1,4 @@
+import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Scenario uses the shipped Rapier binary.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
@@ -13,12 +14,8 @@ import { parseSpawnScript } from '../src/format/spawnScripts';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
-import type { HuntGround } from '../src/engine/ai/hunt';
 
 const active = { draws: 0, created: [] as AnimalSim[] };
-const ground: HuntGround = { heightAt: () => 0, normalY: () => 1, trailDistance: () => 0, cabinMask: () => 0,
-  inChunk: () => true, streamAt: () => null, waterLevel: () => -3, pond: () => null, sea: () => false,
-  wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => false, chunkHalf: 250 };
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 function scenario(rosterStep = 'pine.roster') {
@@ -32,9 +29,10 @@ function scenario(rosterStep = 'pine.roster') {
     if (kind === undefined || variant === undefined) throw new Error('Missing species recipe');
     return Object.assign(structuredClone(sample), { id: `recipe.${String(i)}`, kind, variant, spec: { ...sample.spec, kind, variant } });
   });
-  const step = rosterStep; installPopulationRoster(host, { population, ground, nav: null,
+  flatPopulationEnvironment(host);
+  const step = rosterStep; installPopulationRoster(host, { population, nav: null,
     spawnY: 20, bake: { actors: [], parked, herds: [] } }, {
-    version: 1, step, seed: 1368, bodyCount: 0, limit: 512, scripted: 'sidestep', encounter: 'test', poseKinds: [],
+    version: 1, environment: 'fixture.habitat', step, seed: 1368, bodyCount: 0, limit: 512, scripted: 'sidestep', encounter: 'test', poseKinds: [],
     spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [],
   });
   const spawn = host.spawn.bind(host);

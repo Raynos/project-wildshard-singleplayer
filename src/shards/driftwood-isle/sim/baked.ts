@@ -1,3 +1,4 @@
+import { PopulationEnvironmentSchema } from '@wildshard/format/populationEnvironment';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
@@ -99,7 +100,7 @@ export type NativeEnemyPlacements = v.InferOutput<typeof EnemyPlacements>;
 export function readEnemyPlacements(input: unknown): NativeEnemyPlacements { return v.parse(EnemyPlacements, input); }
 
 const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });
-const keeperRows = v.strictObject({ seed: finite,
+const keeperRows = v.strictObject({ environment: PopulationEnvironmentSchema, seed: finite,
   volley: BodySlotsSchema,
   ecology: v.strictObject({ program: v.unknown(), outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
     delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) }),

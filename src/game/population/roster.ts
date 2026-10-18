@@ -1,10 +1,11 @@
+import { populationEnvironment } from './environment';
 import { installNativeLimbPoses } from '../animation/limbPopulation';
 import * as v from 'valibot';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { Vector3 } from 'three';
 import { fnv1a32, Rng } from '@wildshard/engine/core/rng';
 import { ANIMAL_STATES, type AnimalSim, type AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { spawnRolls, type HuntBody, type HuntNav, type HuntGround } from '@wildshard/engine/ai/hunt';
+import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { createNativeHunt, huntRosterContinuation } from '../plugin/brain';
 import { createNativeCreatureRoster, type NativeCreatureSlot, type NativeRosterSaved } from '../shardfile/homeKeeper';
 import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
@@ -19,8 +20,6 @@ interface BakedActor { readonly id: string; readonly kind: string; readonly vari
 export interface PopulationRosterPorts {
   readonly population: SpeciesPrograms;
   readonly bake: { readonly actors: readonly BakedActor[]; readonly parked: readonly BakedActor[]; readonly herds: readonly { readonly members: readonly string[] }[] };
-  readonly ground: HuntGround;
-  readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
   readonly nav: HuntNav | null;
   readonly spawnY: number;
   readonly saved?: NativeRosterSaved | undefined;
@@ -72,8 +71,9 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   // spawn, and on a restoring host before the host restores its clocks.
   if (rows.reserves.some(row => !bake.parked.some(actor => actor.kind === row.kind))) throw new Error('Missing native dormant recipe');
   const species = new Map(ports.population.native.map(row => [row.kind, row]));
-  const { hunt, reach } = createNativeHunt(host, settings, { rng, ground: ports.ground, nav: ports.nav, species,
-    ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => !('hidden' in body) || body.hidden !== true });
+  const environment = populationEnvironment(host, rows.environment);
+  const { hunt, reach } = createNativeHunt(host, settings, { rng, ground: environment, nav: ports.nav, species,
+    wanderGoal: (herd: number) => environment.wanderGoals[herd] ?? null, present: body => !('hidden' in body) || body.hidden !== true });
   // the shared native roster (G454 rows): the bake's first spec per kind.variant, the manager's spawn ray and creature floor
   // over the page's terrain grid (the host's ground), every kind adopted by the hunting brain, no turn cap, a restoring
   // host's saved floor flags

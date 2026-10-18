@@ -1,3 +1,4 @@
+import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the real native body/physics fixture without a renderer.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -69,12 +70,10 @@ test('a made-up reed guardian drives different species, slots and laws through t
   const population = readSpeciesPrograms({ page: [], native: [{ id: 'heron', kind: 'heron', label: 'Heron',
     variants: variants.map(id => ({ id, label: id, weight: 1, rarity: 'common', scale: [1, 1] })) }],
     hunt: { limit: 8, player: 'host', fight: {}, bands: { states: [], legacyKinds: [] }, hit: { namespace: 'marsh', tags: [] } } });
-  const ground = { heightAt: () => 0, normalY: () => 1, waterLevel: () => -10, chunkHalf: 100, inChunk: () => true,
-    trailDistance: () => 50, cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => false,
-    wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => true };
-  installPopulationRoster(host, { population, ground, nav: null, spawnY: 10, bake: { actors: [], herds: [], parked:
+  flatPopulationEnvironment(host);
+  installPopulationRoster(host, { population, nav: null, spawnY: 10, bake: { actors: [], herds: [], parked:
     variants.map((variant, i) => ({ ...sample, id: `recipe.${i}`, kind: 'heron', variant, spec: { ...sample.spec, kind: 'heron', variant } })) } },
-  { version: 1, step: 'marsh.flock', seed: 91, bodyCount: 0, limit: 8, scripted: 'sidestep', encounter: 'reed.guard',
+  { version: 1, environment: 'fixture.habitat', step: 'marsh.flock', seed: 91, bodyCount: 0, limit: 8, scripted: 'sidestep', encounter: 'reed.guard',
     poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
   const program = parseSpawnScript({ step: 'reed.guard', roster: 'marsh.flock', seed: 17, maximum: 3, controlState: 'sidestep', bytes: '',
     slots: slots.map((id, i) => ({ id, handle: i + 1, release: i === 0 ? 'retain' : 'detach' })),

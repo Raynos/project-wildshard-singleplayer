@@ -150,5 +150,6 @@
   "test/world-scene-weld.test.ts": [],
   "test/pine-building-owner.test.ts": [
     "pine-hollow"
-  ]
+  ],
+  "test/population-environment.test.ts": []
 }

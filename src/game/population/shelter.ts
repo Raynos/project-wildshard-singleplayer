@@ -1,5 +1,7 @@
 import type { SimHost } from '@wildshard/engine/sim';
-import type { HuntBody, HuntHerd } from '@wildshard/engine/ai/hunt';
+import { populationRoster } from './roster';
+import { populationEnvironment } from './environment';
+import { nativeWeatherContinuation } from '../plugin/weather';
 import { parsePopulationShelter, type HerdShelterRows } from '@wildshard/format/herdShelter';
 import * as v from 'valibot';
 
@@ -115,17 +117,25 @@ export class HerdShelter<T extends Tree> {
 /** Native tree tuples are the page's exact crown-cover samples, kept in forest order. */
 export type NativeShelterTree = readonly [x: number, z: number, radius: number, height: number, cover: number];
 
-/** Install one shelter continuation on the supplied native weather and herd authorities. */
-export function installNativeHerdShelter(host: SimHost, herds: () => readonly HuntHerd<HuntBody>[], trees: readonly NativeShelterTree[], rain: () => number,
-  input: unknown): HerdShelter<{ x: number; z: number; r: number; height: number; cover: number }> {
-  const rows = parsePopulationShelter(input);
+/** Install shelter over concrete roster, environment and weather ids. No shard
+ * callback or deferred shard resolver is retained. Goals are plain observations,
+ * published at the existing shelter step before the roster's AI decisions. */
+export function installNativeHerdShelter(host: SimHost, trees: readonly NativeShelterTree[], input: unknown): HerdShelter<{ x: number; z: number; r: number; height: number; cover: number }> {
+  const rows = parsePopulationShelter(input), environment = populationEnvironment(host, rows.environment);
   if (trees.length > 16384) throw new Error('Shelter tree bound exceeded');
   const source = { get herds() {
-    const current = herds();
+    const current = populationRoster(host, rows.roster).hunt.herds;
     if (current.length > rows.herdLimit) throw new Error('Shelter herd bound exceeded');
     return current;
   } };
   const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look);
-  host.onStep(rows.step, dt => { shelter.update(dt, rain()); }, { snapshot: () => shelter.snapshot(), restore: value => { shelter.restore(value); } });
+  const publish = (): void => {
+    const rain = nativeWeatherContinuation(host, rows.weather).rain, goals = environment.wanderGoals;
+    goals.length = source.herds.length;
+    for (let i = 0; i < goals.length; i++) goals[i] = shelter.wanderGoal(i, rain);
+  };
+  host.onStep(rows.step, dt => { shelter.update(dt, nativeWeatherContinuation(host, rows.weather).rain); publish(); }, {
+    snapshot: () => shelter.snapshot(), restore: value => { shelter.restore(value); publish(); },
+  });
   return shelter;
 }

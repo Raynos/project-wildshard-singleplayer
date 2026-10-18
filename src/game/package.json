@@ -199,7 +199,8 @@
     "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
     "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts",
     "./shardfile/worldSceneSurface": "./shardfile/worldSceneSurface.ts",
-    "./shardfile/worldSceneWeld": "./shardfile/worldSceneWeld.ts"
+    "./shardfile/worldSceneWeld": "./shardfile/worldSceneWeld.ts",
+    "./population/environment": "./population/environment.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

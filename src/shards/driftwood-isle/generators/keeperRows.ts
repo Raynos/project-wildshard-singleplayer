@@ -1,3 +1,4 @@
+import { DECLARED_SEA } from './sea';
 import { Rng } from '@wildshard/engine/core/rng';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { ENEMY_SPECIES_METADATA } from './enemySpecies';
@@ -42,5 +43,6 @@ export function keeperRows(placement: ReturnType<typeof enemyPlacements>): Omit<
   });
   placement.native.centres.forEach((at, i) => { herds.push({ kind: physics.herds[fauna.centres.length + i]?.kind ?? 'crab', x: at.x, z: at.z }); });
   if (herds.length !== physics.herds.length || bodies.length !== 34 || bodies.filter(row => row.practice).length !== 1) throw new Error('Divergent keeper boot roster');
-  return { seed: fauna.seed, volley: placement.volley, ecology: { ...ecology, program: RETURN_PROGRAM }, fauna, variants, herds, bodies };
+  return { environment: { id: 'island.habitat', seed: fauna.seed, chunkHalf: 250, normalEpsilon: .6, sampling: 'column-triangles',
+    water: DECLARED_SEA.level, sea: true, trails: null, cabins: [], pond: null, trees: [], stream: null }, seed: fauna.seed, volley: placement.volley, ecology: { ...ecology, program: RETURN_PROGRAM }, fauna, variants, herds, bodies };
 }

@@ -17,7 +17,7 @@
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands", "installNativeCollision"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
     "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
-    "src/shards/pine-hollow/runtime/herds": ["pineHuntGround"],
+    "@wildshard/game/population/environment": ["installPopulationEnvironment"],
     "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
@@ -1057,34 +1057,60 @@
       }
     },
     {
+      "name": "environment",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/population/environment",
+              "installPopulationEnvironment"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "grid"
+            ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "environment"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "shelter",
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/sdk/populationShelter", "installNativeHerdShelter"]
+            "$ref": [
+              "@wildshard/sdk/populationShelter",
+              "installNativeHerdShelter"
+            ]
           },
           {
-            "$ref": ["host"]
+            "$ref": [
+              "host"
+            ]
           },
           {
-            "$fn": {
-              "$coalesce": [
-                {
-                  "$ref": ["roster", "hunt", "herds"]
-                },
-                []
-              ]
-            }
+            "$ref": [
+              "bake",
+              "shelterTrees"
+            ]
           },
           {
-            "$ref": ["bake", "shelterTrees"]
-          },
-          {
-            "$fn": {
-              "$ref": ["air", "weather", "rain"]
-            }
-          },
-          { "$ref": ["shelterRows"] }
+            "$ref": [
+              "shelterRows"
+            ]
+          }
         ]
       }
     },
@@ -1105,7 +1131,6 @@
             "bake": {
               "$ref": ["bake"]
             },
-            "ground": { "$call": [{ "$ref": ["src/shards/pine-hollow/runtime/herds", "pineHuntGround"] }, { "$ref": ["grid"] }] },
             "nav": {
               "$ref": ["nav"]
             },
@@ -1114,21 +1139,6 @@
             },
             "saved": {
               "$ref": ["context", "snapshot"]
-            },
-            "wanderGoal": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": ["shelter", "wanderGoal"]
-                  },
-                  {
-                    "$ref": ["args", 0]
-                  },
-                  {
-                    "$ref": ["air", "weather", "rain"]
-                  }
-                ]
-              }
             }
           },
           { "$ref": ["populationRoster"] }

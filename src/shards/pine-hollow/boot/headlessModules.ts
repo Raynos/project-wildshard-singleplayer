@@ -16,7 +16,7 @@ import { parseWeatherProgram as module13ParseWeatherProgram } from '@wildshard/f
 import { bindHeadlessCommands as module14BindHeadlessCommands, installNativeCollision as module14InstallNativeCollision } from '@wildshard/sdk/headlessRuntime';
 import { nativeDecisionAuthority as module15NativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { installPopulationRoster as module16InstallPopulationRoster } from '@wildshard/sdk/populationRoster';
-import { pineHuntGround as populationGround } from '../runtime/herds';
+import { installPopulationEnvironment } from '@wildshard/game/population/environment';
 import { installGroundBoss as module18InstallPineKing } from '@wildshard/game/boss/native';
 import { DayCycle as module19DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY as module20PINE_DAY } from '../look/dayKeys';
@@ -45,7 +45,7 @@ export const headlessModules = {
   '@wildshard/sdk/headlessRuntime': { bindHeadlessCommands: module14BindHeadlessCommands, installNativeCollision: module14InstallNativeCollision },
   '@wildshard/game/shardfile/borrowedDecisions': { nativeDecisionAuthority: module15NativeDecisionAuthority },
   '@wildshard/sdk/populationRoster': { installPopulationRoster: module16InstallPopulationRoster },
-  'src/shards/pine-hollow/runtime/herds': { pineHuntGround: populationGround },
+  '@wildshard/game/population/environment': { installPopulationEnvironment },
   '@wildshard/game/boss/native': { installGroundBoss: module18InstallPineKing },
   '@wildshard/engine/world/dayCycle': { DayCycle: module19DayCycle },
   'src/shards/pine-hollow/look/dayKeys': { PINE_DAY: module20PINE_DAY },

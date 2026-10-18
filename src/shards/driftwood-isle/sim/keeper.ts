@@ -1,3 +1,4 @@
+import { installPopulationEnvironment, populationEnvironment } from '@wildshard/game/population/environment';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { createNativeHunt, huntRosterContinuation, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
@@ -12,9 +13,8 @@ import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntBody, type HuntNav, type HuntSpecies } from '@wildshard/engine/ai/hunt';
 import { Bodies, RowBodySlots, type BodyLaunchRow } from '@wildshard/engine/physics/bodies';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -37,8 +37,6 @@ const ROSTER = 256; // bounded native ecology roster, captain fixed in slot 34
 export const CAPTAIN_SCALE: readonly [number, number] = [1.35, 1.35];
 /** AnimalView.fadeOut: a dead practice crab's shell fades 1.5 s before the new one is placed (Enemies.tickPractice). */
 const SHELL_FADE = 1.5;
-/** terrainField.normalAt's central-difference step (m). */
-const NORMAL_EPS = 0.6;
 /** AnimalManager ANIM_LOD: the shipping rig leaves its pose/root transition frozen beyond this range. */
 const ANIM_LOD = 140;
 /** The island's fauna kinds: the manager's hunting brain decides for them (the enemies run their own policies). */
@@ -159,18 +157,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
   // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
   // species with no `tick`: 10 Hz decisions, the body every frame at any distance); and the creature body LOD. Before any spawn.
-  const normalY = (x: number, z: number): number => {
-    const nx = heightAt(x - NORMAL_EPS, z) - heightAt(x + NORMAL_EPS, z), nz = heightAt(x, z - NORMAL_EPS) - heightAt(x, z + NORMAL_EPS);
-    return 2 * NORMAL_EPS / Math.hypot(nx, 2 * NORMAL_EPS, nz);
-  };
-  const ground: HuntGround = {
-    heightAt, normalY, waterLevel: () => ports.waterLevel, chunkHalf: CHUNK_HALF,
-    inChunk: (x, z, margin) => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin,
-    // the herd placer's trail clearance: the fauna's placement is baked, so nothing here asks it
-    trailDistance: () => { throw new Error('Driftwood headless has no trail field (its fauna placement is baked)'); },
-    cabinMask: () => 0, streamAt: () => null, pond: () => null, sea: () => true, wetAt: () => false,
-    trees: () => [], treeless: () => true, terrain: () => true,
-  };
+  installPopulationEnvironment(host, { res: Math.sqrt(bake.ground.heights.length), size: bake.ground.scale.x, heights: bake.ground.heights }, roster.environment);
+  const ground = populationEnvironment(host, roster.environment.id);
   const { hunt, reach } = createNativeHunt(host, settings, { rng, ground, nav: ports.nav, species: ports.fauna });
   const habitat = bake.habitat;
   if (ports.seed !== ports.placement.seed) throw new Error('Enemy placements require their authored seed');

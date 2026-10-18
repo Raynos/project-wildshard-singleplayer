@@ -190,7 +190,8 @@
     "./sceneRefs": "./sceneRefs.ts",
     "./worldSceneSurface": "./worldSceneSurface.ts",
     "./pageLife": "./pageLife.ts",
-    "./worldSceneWeld": "./worldSceneWeld.ts"
+    "./worldSceneWeld": "./worldSceneWeld.ts",
+    "./populationEnvironment": "./populationEnvironment.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

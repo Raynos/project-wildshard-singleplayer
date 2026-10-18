@@ -15,6 +15,7 @@ import { HELD_GEAR, HELD_FINISHES, HELD_TOOL_LIFETIME } from './heldGear';
 import heldLoadout from '../data/loadout.json' with { type: 'json' };
 import heldTuning from '../data/heldTuning.json' with {type:'json'};
 import shelterLook from '../data/populationShelter.json' with { type: 'json' };
+import { POPULATION_ENVIRONMENT } from './populationEnvironment';
 import { POPULATION_ROSTER } from './population';
 import nightModule from '../behaviour/night.generated.json' with { type: 'json' };
 import persistence from '../data/persistence.json' with {type:'json'};
@@ -90,10 +91,10 @@ const clientJson=emitNamedBlobs([LIFE_WASM, nameBlob('actors/page-life.json', 'j
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit })))),
-  nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries } }))),
+  nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
-  nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', herdLimit: 512, look: shelterLook }))),
+  nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook }))),
   nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER))),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows())))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),

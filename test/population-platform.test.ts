@@ -1,23 +1,22 @@
+import { populationEnvironment } from '../src/game/population/environment';
+import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual shipped native physics owner, without a browser.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import type { HuntGround, HuntBody } from '../src/engine/ai/hunt';
+import type { HuntBody } from '../src/engine/ai/hunt';
 import { Rng, RngService } from '../src/engine/core/rng';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { installPopulationRoster } from '../src/game/population/roster';
-import { HerdShelter } from '../src/game/population/shelter';
+import { installNativeHerdShelter, HerdShelter } from '../src/game/population/shelter';
+import { installWeatherContinuation } from '../src/game/plugin/weather';
+import { parseWeatherProgram } from '../src/format/weatherProgram';
+import weatherRows from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { RespawnQueue } from '../src/game/population/respawn';
 import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-
-const ground: HuntGround = {
-  heightAt: () => 0, normalY: () => 1, waterLevel: () => -10, chunkHalf: 100,
-  inChunk: () => true, trailDistance: () => 50, cabinMask: () => 0, streamAt: () => null,
-  pond: () => null, sea: () => false, wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => true,
-};
 
 test('native dormant bodies detach from physics and herds, then rematerialize without a draw or new identity', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -58,13 +57,13 @@ test('made-up salt-marsh roster reserves and adopts a body without draws and res
   const population = readSpeciesPrograms({ page: [], native: [{ id: spec.kind, kind: spec.kind, label: 'Marsh Beast',
     variants: [{ id: spec.variant, label: 'Reed', weight: 1, rarity: 'common', scale: [1, 2] }] }],
     hunt: { limit: 8, player: 'host', fight: {}, bands: { states: [], legacyKinds: [] }, hit: { namespace: 'marsh', tags: [] } } });
-  const rows = { version: 1, step: 'marsh.roster', seed: 87, bodyCount: 1, limit: 8, scripted: 'sidestep', encounter: 'dusk.guard',
+  const rows = { version: 1, environment: 'fixture.habitat', step: 'marsh.roster', seed: 87, bodyCount: 1, limit: 8, scripted: 'sidestep', encounter: 'dusk.guard',
     poseKinds: [], fauna: [], spawn: { x: 0, z: 0 }, identities: [], ordinary: {},
     reserves: [{ kind: spec.kind, variant: spec.variant }], homes: [{ kind: spec.kind, variant: spec.variant, x: 8, z: 8, stream: 'marsh.guard' }] };
-  const make = () => createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  const make = () => { const native = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }); flatPopulationEnvironment(native); return native; };
   const host = make();
   try {
-    const ports = { population, bake: { actors: [home], parked: [reserved], herds: [] }, ground, spawnY: 10, nav: null };
+    const ports = { population, bake: { actors: [home], parked: [reserved], herds: [] }, spawnY: 10, nav: null };
     const roster = installPopulationRoster(host, ports, rows);
     expect(roster.bodies().map(body => body.id)).toEqual(['creature:1']);
     const before = snapshotSimHost(host), own = before.adapters.find(adapter => adapter.id === 'marsh.roster');
@@ -75,6 +74,7 @@ test('made-up salt-marsh roster reserves and adopts a body without draws and res
     const saved = snapshotSimHost(host);
     let continued: ReturnType<typeof installPopulationRoster> | undefined;
     const restored = restoreSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }, saved, native => {
+      flatPopulationEnvironment(native);
       continued = installPopulationRoster(native, { ...ports, saved }, rows);
     });
     try {
@@ -109,4 +109,32 @@ test('population return facts leave named entropy with the owner and preserve ab
   expect(authority.snapshot().streams).toEqual([]);
   if (queue.accepts('heron')) queue.add('heron', 'reed', 0, 20, 0, 0, authority.stream('spawn').next());
   expect(authority.snapshot().streams.map(row => row.name)).toEqual(['spawn']);
+});
+
+
+test('native shelter resolves its actual roster and weather without ports, preserving its v1 step and wire', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  flatPopulationEnvironment(host);
+  const weather = parseWeatherProgram(weatherRows), step = weather.air?.step;
+  if (step === undefined) throw new Error('Missing native weather cadence');
+  const air = installWeatherContinuation(host, weather, { phase: 0 }, 'rain');
+  const look = { kinds: ['marsh-beast'], bigTree: 5, reach: 20, homeHold: 3, clear: 1, spotR: 2, homeR: 6, wet: .3, dry: .1, heightBias: 0, coverBias: 0 };
+  const rows = { environment: 'fixture.habitat', step: 'marsh.shelter', roster: 'marsh.roster', weather: step, herdLimit: 8, look };
+  const shelter = installNativeHerdShelter(host, [[0,0,1,8,1]], rows);
+  try {
+    expect(() => shelter.snapshot()).toThrow('Missing native population service');
+    const population = readSpeciesPrograms({ page: [], native: [], hunt: { limit: 8, player: 'host', fight: {}, bands: { states: [], legacyKinds: [] }, hit: { namespace: 'marsh', tags: [] } } });
+    const roster = installPopulationRoster(host, { population, bake: { actors: [], parked: [], herds: [] }, spawnY: 0, nav: null },
+      { version: 1, environment: 'fixture.habitat', step: rows.roster, seed: 71, bodyCount: 0, limit: 8,
+        scripted: 'sidestep', encounter: 'marsh', poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
+    roster.hunt.addHerd('marsh-beast', 4, 0);
+    host.step();
+    expect(populationEnvironment(host, rows.environment).wanderGoals[0]).toEqual(shelter.wanderGoal(0,air.rain));
+    const before = shelter.snapshot();
+    expect(before.version).toBe(1); expect(before.shelters).toHaveLength(1);
+    shelter.restore(before); expect(shelter.snapshot()).toEqual(before);
+    const ids = snapshotSimHost(host).adapters.map(row => row.id);
+    expect(ids.indexOf(rows.step)).toBeLessThan(ids.indexOf(rows.roster));
+  } finally { host.dispose(); }
 });

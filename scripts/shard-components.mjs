@@ -32,7 +32,6 @@ const roles = [
 // W2 reviewed ownership: native animal keepers are creature managers, not quest NPCs.
 const creatureOwners=new Set([
   'src/shards/driftwood-isle/sim/keeper.ts',
-  'src/shards/pine-hollow/runtime/herds.ts',
   'src/shards/pine-hollow/runtime/antlerKing.ts',
   'src/shards/pine-hollow/combat/kingFight.ts',
 ]);

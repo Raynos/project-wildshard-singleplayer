@@ -9,7 +9,7 @@ const identity = v.strictObject({ kind: key, variant: key });
 /** Ordered native population boot program: herds, reserved-identity replacements, dormant recipes, then scripted homes.
  * All rows are data. Fight decisions and pose implementation remain owned by their existing services. */
 export const NativePopulationRowsSchema = v.strictObject({
-  version: v.literal(1), step: key, seed: finite, bodyCount: count, limit: v.pipe(count, v.minValue(1)),
+  version: v.literal(1), environment: key, step: key, seed: finite, bodyCount: count, limit: v.pipe(count, v.minValue(1)),
   limbPose: v.exactOptional(LimbPopulationSchema),
   scripted: key, encounter: key, poseKinds: v.array(key), spawn: point,
   fauna: v.array(v.strictObject({ kind: key, count,
