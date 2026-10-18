@@ -12,7 +12,6 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { barrel, crate, ropeCoil } from '../runtime/models/cargo';
 import { shipwreck, sites, fencePost, signpost, plankStep, shoreBoulder, reefRock } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -174,9 +173,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     const placed = [place(shipwreck, [{ x: row.spec.x, y: row.floorY, z: row.spec.z, yaw: row.spec.heading, params: { site: row.spec } }], { ctx, draw: 'merged', registry,
       drawnInto: { object: group, boxes: Float32Array.from(row.shipBox), colliders: readColliderRows(row.descs, { kinds: ['box', 'capsule', 'treads'], surfaces: [] }) }, piece: { id: 'wreck', floor: floorHeightAt, solidFloor: true } })];
     const { barrels, crates, coils, rocks: reefRocks } = row.catalogue;
-    placed.push(place(barrel, barrels.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(barrels.boxes) }, piece: { id: 'wreck-barrels' } }));
-    placed.push(place(crate, crates.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(crates.boxes) }, piece: { id: 'wreck-crates' } }));
-    placed.push(place(ropeCoil, coils.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(coils.boxes) }, piece: { id: 'wreck-coils' } }));
+    placed.push(place(sites.model('barrel'), barrels.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(barrels.boxes) }, piece: { id: 'wreck-barrels' } }));
+    placed.push(place(sites.model('crate'), crates.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(crates.boxes) }, piece: { id: 'wreck-crates' } }));
+    placed.push(place(sites.model('ropeCoil'), coils.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(coils.boxes) }, piece: { id: 'wreck-coils' } }));
     placed.push(await scenes.place('wreck.logs'));
     const { colliders: _reefHulls, ...reefMetadata } = reefRock;
     placed.push(place(reefMetadata, reefRocks.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(reefRocks.boxes) }, piece: { id: 'wreck-reef-rocks' } }));

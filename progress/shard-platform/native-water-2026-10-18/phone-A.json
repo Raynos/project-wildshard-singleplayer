@@ -1,0 +1,26 @@
+{
+  "sha": "b136d98311347c9ecf8948b5822d4caa2907c88e",
+  "profile": "muted iPhone 16 Pro; primary Developer; render scale2",
+  "passed": true,
+  "build": {
+    "build": "b136d98-mvdkvf71",
+    "time": "2026-10-18T08:43:05.295Z"
+  },
+  "viewport": [
+    402,
+    874
+  ],
+  "dpr": 3,
+  "developer": true,
+  "touch": true,
+  "canvas": [
+    804,
+    1748
+  ],
+  "animals": 34,
+  "physics": true,
+  "draws": 207,
+  "frame": 121,
+  "contextLost": false,
+  "loading": false
+}

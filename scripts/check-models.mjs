@@ -253,7 +253,6 @@ const MODEL_RELOCATIONS = new Map([
   ['pine-hollow', 'runtime/models/treeStump.ts', 'treeStump.ts'],
   ['pine-hollow', 'runtime/models/waystone.ts', 'waystone.ts'],
   ['driftwood-isle', 'generators/trailsideModels.ts', 'trailside.ts'],
-  ['pine-hollow', 'roster.ts', 'creatures.ts'],
 ].map(([slug, source, name]) => [`src/shards/${slug}/${source}`, `src/shards/${slug}/models/${name}`]));
 const modelPath = file => MODEL_RELOCATIONS.get(file) ?? MODEL_RELOCATIONS.get(`${file}.ts`) ?? file;
 const SHARD_FILE = /^src\/shards\/([^/]+)\//;

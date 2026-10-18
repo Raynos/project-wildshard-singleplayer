@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "build": "87b4d5d-mvdn3acw",
+  "tier": "phone",
+  "date": "2026-10-18T09:51:07.409Z",
+  "walkCpu": 1,
+  "passed": true,
+  "stuck": 0,
+  "legs": [
+    {
+      "shard": "driftwood-isle",
+      "name": "pier",
+      "frames": 708,
+      "seconds": 23.6,
+      "end": {
+        "x": -19.715,
+        "y": 0.531,
+        "z": -150.685
+      },
+      "expectY": 1.325,
+      "maxY": 1.23,
+      "groundSpeedP50": 4.18,
+      "airFrames": 11,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "hut",
+      "frames": 306,
+      "seconds": 10.2,
+      "end": {
+        "x": -22,
+        "y": 18.911,
+        "z": -64.537
+      },
+      "expectY": 19.691,
+      "maxY": 18.91,
+      "groundSpeedP50": 4.28,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "bridge",
+      "frames": 366,
+      "seconds": 12.2,
+      "end": {
+        "x": 35.277,
+        "y": 12.262,
+        "z": 33.245
+      },
+      "expectY": 12.13,
+      "maxY": 12.26,
+      "groundSpeedP50": 4.2,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 1,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "lookout",
+      "frames": 123,
+      "seconds": 4.1,
+      "end": {
+        "x": 93.801,
+        "y": 40.529,
+        "z": 93.706
+      },
+      "expectY": 41.154,
+      "maxY": 40.53,
+      "groundSpeedP50": 3.7,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "wreck",
+      "frames": 128,
+      "seconds": 4.3,
+      "end": {
+        "x": 151.306,
+        "y": 3.805,
+        "z": 7.642
+      },
+      "expectY": 4.587,
+      "maxY": 3.81,
+      "groundSpeedP50": 4.12,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "cave",
+      "frames": 140,
+      "seconds": 4.7,
+      "end": {
+        "x": 142.006,
+        "y": 0.42,
+        "z": 18.58
+      },
+      "expectY": 1.2,
+      "maxY": 0.57,
+      "groundSpeedP50": 4.26,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "shrine",
+      "frames": 141,
+      "seconds": 4.7,
+      "end": {
+        "x": -96.898,
+        "y": 10.218,
+        "z": 106.495
+      },
+      "expectY": 10.998,
+      "maxY": 10.22,
+      "groundSpeedP50": 4.21,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "boat",
+      "frames": 67,
+      "seconds": 2.2,
+      "end": {
+        "x": -4.331,
+        "y": 0.277,
+        "z": -202.307
+      },
+      "expectY": 1.12,
+      "maxY": 1.22,
+      "groundSpeedP50": 4.22,
+      "airFrames": 9,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    }
+  ]
+}

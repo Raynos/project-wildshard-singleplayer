@@ -5,12 +5,13 @@ import { HIBISCUS_FILES } from './hibiscusFiles';
 import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES } from './modelFiles';
 import fixed from '../data/fixedBlobs.generated.json' with { type: 'json' };
+import cargo from '../data/cargoBlobs.generated.json' with { type: 'json' };
 import reef from '../data/reefBlobs.generated.json' with { type: 'json' };
 import ground from '../data/groundBlobs.generated.json' with { type: 'json' };
 import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
 import zipline from '../data/ziplineBlobs.generated.json' with { type: 'json' };
 
-const manifests = [fixed, reef, ground, dressing, zipline];
+const manifests = [fixed, reef, ground, dressing, zipline, cargo];
 const blobs = manifests.flatMap(row => row.blobs);
 const canonical = new Map<string, (typeof blobs)[number]>();
 const names = new Map<string, string>();
@@ -23,7 +24,7 @@ for (const row of blobs) {
   names.set(row.name, name);
 }
 const byUrl: Record<string, string> = {};
-for (const manifest of manifests) for (const [url, declared] of Object.entries(manifest.byUrl)) {
+for (const manifest of manifests) for (const [url, declared] of Object.entries<string>(manifest.byUrl)) {
   const name = names.get(declared), previous = byUrl[url];
   if (name === undefined || (previous !== undefined && previous !== name)) throw new Error('Asset URL has conflicting or missing content');
   byUrl[url] = name;

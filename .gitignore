@@ -2027,3 +2027,12 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/pine-hollow/assets/cabin-living/
 /src/shards/pine-hollow/data/cabinLivingScenes.generated.json
+
+# Cheap cargo choice bakes are restored by their declared producer.
+/src/shards/driftwood-isle/assets/208b81e4adeac3d501de37ca3dd3d85ffd4dafe4bd234f78163d1823a4c9e518
+/src/shards/driftwood-isle/assets/23f13d82076cf32ccbb09ff86125cea218388b226246209f9aff2c319df42bec
+/src/shards/driftwood-isle/assets/6a3579648c2713dfd849e98435dcf355840e8d84e8fd2b9ff5559b678f5153da
+/src/shards/driftwood-isle/assets/fd29975cccac62a53e30f583bfa274b3df2cfd094340cef43e6df0f312b9c7f7
+/src/shards/driftwood-isle/assets/cb114848756320d3e26db39748218134326ce8434ec629cf14ddd4b4ce696a21
+/src/shards/driftwood-isle/assets/11c666dddb798ab141815e4d9af7d3b41c692bf9a749c2f9a49305f199eadc98
+/src/shards/driftwood-isle/assets/74fa856743fc5ffd8075f3687cc0d9e21d0950494c2565199381ccbde67b3794

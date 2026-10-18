@@ -124,5 +124,209 @@
     ],
     "platform": 2,
     "generators": 24
+  },
+  "orderedCut": {
+    "parent": "e2428c1cf532cb7cce8c23e3b62973ac2369def6",
+    "candidate": "0d20ad79b23ba9db4185f16a482ecd5d33446782",
+    "rows": [
+      {
+        "slug": "pine-hollow",
+        "custom": 4011,
+        "components": {
+          "C1": 1070,
+          "C2": 342,
+          "C3": 172,
+          "C4": 649,
+          "C5": 784,
+          "C6": 225,
+          "C7": 7,
+          "C8": 24,
+          "C9": 738
+        }
+      },
+      {
+        "slug": "driftwood-isle",
+        "custom": 3309,
+        "components": {
+          "C1": 1138,
+          "C2": 174,
+          "C3": 0,
+          "C4": 729,
+          "C5": 589,
+          "C6": 145,
+          "C7": 0,
+          "C8": 29,
+          "C9": 505
+        }
+      }
+    ]
+  },
+  "cargoCut": {
+    "parent": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+    "candidate": "466cff029fcb1ac537a370a5fb271b0750bdd3fc",
+    "basis": "source; all10 generated in locked check mirror",
+    "rows": [
+      {
+        "slug": "pine-hollow",
+        "before": 4011,
+        "after": 4011,
+        "net": 0,
+        "componentsBefore": {
+          "C1": 1070,
+          "C2": 342,
+          "C3": 172,
+          "C4": 649,
+          "C5": 784,
+          "C6": 225,
+          "C7": 7,
+          "C8": 24,
+          "C9": 738
+        },
+        "componentsAfter": {
+          "C1": 1070,
+          "C2": 342,
+          "C3": 172,
+          "C4": 649,
+          "C5": 784,
+          "C6": 225,
+          "C7": 7,
+          "C8": 24,
+          "C9": 738
+        }
+      },
+      {
+        "slug": "driftwood-isle",
+        "before": 3309,
+        "after": 3267,
+        "net": -42,
+        "componentsBefore": {
+          "C1": 1138,
+          "C2": 174,
+          "C3": 0,
+          "C4": 729,
+          "C5": 589,
+          "C6": 145,
+          "C7": 0,
+          "C8": 29,
+          "C9": 505
+        },
+        "componentsAfter": {
+          "C1": 1099,
+          "C2": 172,
+          "C3": 0,
+          "C4": 729,
+          "C5": 589,
+          "C6": 145,
+          "C7": 0,
+          "C8": 29,
+          "C9": 504
+        }
+      }
+    ],
+    "platform": 0,
+    "deleted": [
+      "src/shards/driftwood-isle/runtime/models/cargo.ts"
+    ],
+    "portability": {
+      "arm": "Node v24.18.1; gen --proof then declared producer --check",
+      "x64": "Node v24.18.1 darwin-x64; gen --proof then same declared producer --check",
+      "passed": true,
+      "outputs": 9,
+      "proof": "20261018T050347-sp-x5-cargo-x64-v2-80097",
+      "firstAttempt": "Mirror lacked generated wreckBake.json; producer never ran. Corrected setup performs gen first."
+    }
+  },
+  "orderedCargoCut": {
+    "parent": "5b21ba2d3123095943045dcf4a38115fb4a0c43d",
+    "candidate": "f47a3ea0fc78361907543067d4c97ebcf9dba225",
+    "rows": [
+      {
+        "slug": "pine-hollow",
+        "before": 4004,
+        "after": 4004,
+        "net": 0,
+        "componentsBefore": {
+          "C1": 1067,
+          "C2": 343,
+          "C3": 173,
+          "C4": 643,
+          "C5": 784,
+          "C6": 225,
+          "C7": 7,
+          "C8": 23,
+          "C9": 739
+        },
+        "componentsAfter": {
+          "C1": 1067,
+          "C2": 343,
+          "C3": 173,
+          "C4": 643,
+          "C5": 784,
+          "C6": 225,
+          "C7": 7,
+          "C8": 23,
+          "C9": 739
+        }
+      },
+      {
+        "slug": "driftwood-isle",
+        "before": 3279,
+        "after": 3237,
+        "net": -42,
+        "componentsBefore": {
+          "C1": 1136,
+          "C2": 174,
+          "C3": 0,
+          "C4": 715,
+          "C5": 589,
+          "C6": 142,
+          "C7": 0,
+          "C8": 29,
+          "C9": 494
+        },
+        "componentsAfter": {
+          "C1": 1097,
+          "C2": 172,
+          "C3": 0,
+          "C4": 715,
+          "C5": 589,
+          "C6": 142,
+          "C7": 0,
+          "C8": 29,
+          "C9": 493
+        }
+      }
+    ],
+    "platform": 0,
+    "generators": 79,
+    "sourceChanges": [
+      {
+        "kind": "runtime-ts",
+        "ownerPath": "src/shards/driftwood-isle/world/build.ts",
+        "path": "src/shards/driftwood-isle/world/build.ts",
+        "before": 236,
+        "after": 235,
+        "net": -1
+      },
+      {
+        "kind": "runtime-ts",
+        "ownerPath": "src/shards/driftwood-isle/runtime/models/cargo.ts",
+        "path": "src/shards/driftwood-isle/runtime/models/cargo.ts",
+        "before": 41,
+        "after": 0,
+        "net": -41
+      }
+    ],
+    "parentReceipt": {
+      "source": "5b21ba2d3123095943045dcf4a38115fb4a0c43d",
+      "parent": "c5ef46054fb1c95efff6ed522d1b7904f4a87c2e",
+      "tree": "5ff7c302d4830875d4e0cad7dcd2b341e1e02efa",
+      "provedTree": "5ff7c302d4830875d4e0cad7dcd2b341e1e02efa",
+      "proof": ".git/proofs/20261018T051013-sp-x1-c4-final-z9-12240.json",
+      "basis": "source; measured after generation and all-ten product build; strict G490 pending map stamps",
+      "inventory": ".git/proofs/source-rulers/5b21ba2d3123095943045dcf4a38115fb4a0c43d-source-ruler.json"
+    },
+    "proof": "20261018T052336-sp-x5-cargo-final-74284",
+    "checkerCorrection": "Retire only stale Pine roster MODEL_RELOCATIONS literal left by Z10; ratio and product outputs unaffected."
   }
 }

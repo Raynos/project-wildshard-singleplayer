@@ -1,4 +1,5 @@
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import cargo from '../data/cargoScenes.generated.json' with { type: 'json' };
 import { reefCatalogue } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
@@ -35,5 +36,5 @@ export function siteCatalogue(): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue()] };
+  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...cargo.models] };
 }

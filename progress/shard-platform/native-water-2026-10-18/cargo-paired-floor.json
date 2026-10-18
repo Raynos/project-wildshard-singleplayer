@@ -1,0 +1,216 @@
+{
+  "schema": 1,
+  "status": "complete; timing diagnostic only",
+  "condition": "Serial baseline then candidate; other lanes source/build jobs active; no exclusive CPU quiet.",
+  "decision": "G415 exact-native cut, no timing win or regression claimed. Both desktop floors pass; Simulator absolute floors miss.",
+  "runs": {
+    "base": {
+      "sha": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "device": "iPhone 16 Pro",
+      "complete": true,
+      "absoluteFloorPassed": false,
+      "frames": 120,
+      "when": "2026-10-18T09:53:58.471Z",
+      "surfaces": {
+        "desktop": [
+          {
+            "shard": "driftwood-isle",
+            "errors": [],
+            "poses": [
+              {
+                "pose": "spawn",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.8,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 692,
+                "triangles": 3323621,
+                "contextLost": false,
+                "pass": true
+              },
+              {
+                "pose": "wreck",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.8,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 381,
+                "triangles": 1777744,
+                "contextLost": false,
+                "pass": true
+              },
+              {
+                "pose": "beach",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.7,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 651,
+                "triangles": 2823526,
+                "contextLost": false,
+                "pass": true
+              }
+            ]
+          }
+        ],
+        "sim": [
+          {
+            "shard": "driftwood-isle",
+            "errors": [],
+            "poses": [
+              {
+                "pose": "spawn",
+                "frames": 120,
+                "medianFps": 27.778,
+                "p50Ms": 36,
+                "p95Ms": 89,
+                "p99Ms": 94,
+                "maxMs": 101,
+                "calls": 291,
+                "triangles": 1610318,
+                "contextLost": false,
+                "pass": false
+              },
+              {
+                "pose": "pier",
+                "frames": 120,
+                "medianFps": 32.258,
+                "p50Ms": 31,
+                "p95Ms": 65,
+                "p99Ms": 80,
+                "maxMs": 80,
+                "calls": 290,
+                "triangles": 1603338,
+                "contextLost": false,
+                "pass": false
+              },
+              {
+                "pose": "wreck",
+                "frames": 120,
+                "medianFps": 33.333,
+                "p50Ms": 30,
+                "p95Ms": 75,
+                "p99Ms": 84,
+                "maxMs": 88,
+                "calls": 247,
+                "triangles": 1087447,
+                "contextLost": false,
+                "pass": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "candidate": {
+      "sha": "87b4d5df0143c8c3c103b23c0bfc4f315d1244d1",
+      "device": "iPhone 16 Pro",
+      "complete": true,
+      "absoluteFloorPassed": false,
+      "frames": 120,
+      "when": "2026-10-18T09:55:33.572Z",
+      "surfaces": {
+        "desktop": [
+          {
+            "shard": "driftwood-isle",
+            "errors": [],
+            "poses": [
+              {
+                "pose": "spawn",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.7,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 692,
+                "triangles": 3323621,
+                "contextLost": false,
+                "pass": true
+              },
+              {
+                "pose": "beach",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.7,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 652,
+                "triangles": 2829342,
+                "contextLost": false,
+                "pass": true
+              },
+              {
+                "pose": "wreck",
+                "frames": 120,
+                "medianFps": 59.88,
+                "p50Ms": 16.7,
+                "p95Ms": 16.8,
+                "p99Ms": 16.8,
+                "maxMs": 16.8,
+                "calls": 380,
+                "triangles": 1773330,
+                "contextLost": false,
+                "pass": true
+              }
+            ]
+          }
+        ],
+        "sim": [
+          {
+            "shard": "driftwood-isle",
+            "errors": [],
+            "poses": [
+              {
+                "pose": "spawn",
+                "frames": 120,
+                "medianFps": 28.571,
+                "p50Ms": 35,
+                "p95Ms": 87,
+                "p99Ms": 94,
+                "maxMs": 98,
+                "calls": 291,
+                "triangles": 1610318,
+                "contextLost": false,
+                "pass": false
+              },
+              {
+                "pose": "pier",
+                "frames": 120,
+                "medianFps": 30.303,
+                "p50Ms": 33,
+                "p95Ms": 63,
+                "p99Ms": 67,
+                "maxMs": 69,
+                "calls": 290,
+                "triangles": 1603338,
+                "contextLost": false,
+                "pass": false
+              },
+              {
+                "pose": "beach",
+                "frames": 120,
+                "medianFps": 32.258,
+                "p50Ms": 31,
+                "p95Ms": 64,
+                "p99Ms": 67,
+                "maxMs": 69,
+                "calls": 323,
+                "triangles": 1613991,
+                "contextLost": false,
+                "pass": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

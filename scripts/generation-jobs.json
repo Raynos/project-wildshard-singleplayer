@@ -16696,6 +16696,57 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-cargo-scenes",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-cargo-scenes.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-cargo-scenes.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-cargo-scenes.mjs",
+        "src/shards/driftwood-isle/generators/cargoCatalogue.ts",
+        "src/shards/driftwood-isle/data/wreckBake.json",
+        "src/shards/driftwood-isle/data/fixedBlobs.generated.json",
+        "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/driftwood-isle/assets/c15329ac98d96632142b200cd2251f45d3030322552c4f7197547aea94825802",
+        "src/shards/driftwood-isle/assets/32effebc6968e9cac94608900deb35033341b762057dcf04834c65734ab8960f",
+        "src/shards/driftwood-isle/assets/92f8b6b043e54b98bf0a2aaffb0c738cfc7f08f4ddbad8e2302aea888d1216e7",
+        "src/shards/driftwood-isle/assets/5ef410b0bd8b70b7bb24457609bc92416d53460e4d07a3dc382ab6d953c2abcd",
+        "src/shards/driftwood-isle/assets/de5d3bf6bf4a22d6294f8c2e1d4974e24223818ed695384e412c895437ec00af",
+        "src/sdk",
+        "src/format"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/cargoScenes.generated.json",
+        "src/shards/driftwood-isle/data/cargoBlobs.generated.json",
+        "src/shards/driftwood-isle/assets/208b81e4adeac3d501de37ca3dd3d85ffd4dafe4bd234f78163d1823a4c9e518",
+        "src/shards/driftwood-isle/assets/23f13d82076cf32ccbb09ff86125cea218388b226246209f9aff2c319df42bec",
+        "src/shards/driftwood-isle/assets/6a3579648c2713dfd849e98435dcf355840e8d84e8fd2b9ff5559b678f5153da",
+        "src/shards/driftwood-isle/assets/fd29975cccac62a53e30f583bfa274b3df2cfd094340cef43e6df0f312b9c7f7",
+        "src/shards/driftwood-isle/assets/cb114848756320d3e26db39748218134326ce8434ec629cf14ddd4b4ce696a21",
+        "src/shards/driftwood-isle/assets/11c666dddb798ab141815e4d9af7d3b41c692bf9a749c2f9a49305f199eadc98",
+        "src/shards/driftwood-isle/assets/74fa856743fc5ffd8075f3687cc0d9e21d0950494c2565199381ccbde67b3794"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/cargoScenes.generated.json",
+        "src/shards/driftwood-isle/data/cargoBlobs.generated.json",
+        "src/shards/driftwood-isle/assets/208b81e4adeac3d501de37ca3dd3d85ffd4dafe4bd234f78163d1823a4c9e518",
+        "src/shards/driftwood-isle/assets/23f13d82076cf32ccbb09ff86125cea218388b226246209f9aff2c319df42bec",
+        "src/shards/driftwood-isle/assets/6a3579648c2713dfd849e98435dcf355840e8d84e8fd2b9ff5559b678f5153da",
+        "src/shards/driftwood-isle/assets/fd29975cccac62a53e30f583bfa274b3df2cfd094340cef43e6df0f312b9c7f7",
+        "src/shards/driftwood-isle/assets/cb114848756320d3e26db39748218134326ce8434ec629cf14ddd4b4ce696a21",
+        "src/shards/driftwood-isle/assets/11c666dddb798ab141815e4d9af7d3b41c692bf9a749c2f9a49305f199eadc98",
+        "src/shards/driftwood-isle/assets/74fa856743fc5ffd8075f3687cc0d9e21d0950494c2565199381ccbde67b3794"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "trail-specimen-catalogue",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
@@ -16722,7 +16773,8 @@
         "src/shards/driftwood-isle/generators/reefSpecimenRows.ts",
         "src/shards/driftwood-isle/generators/reefFiles.ts",
         "src/shards/driftwood-isle/data/reefBlobs.generated.json",
-        "src/sdk/bake/source-loader.mjs"
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/data/cargoScenes.generated.json"
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",

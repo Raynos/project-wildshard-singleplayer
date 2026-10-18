@@ -65,12 +65,19 @@ describe('model contract after client relocation', () => {
     expect(checkModels({ 'src/shards/far-reach/models/gear.ts': 'modelCatalogue(rows, owners);' }).violations).toEqual([]);
   });
 
-  it.each(['src/shards/pine-hollow/roster.ts', 'src/shards/pine-hollow-legacy/models/creatures.ts'])('keeps the exact shared deer specialization at %s', (file) => {
+  it.each(['src/shards/pine-hollow-legacy/models/creatures.ts'])('keeps the exact shared deer specialization at %s', (file) => {
     expect(checkModels({ [file]: "defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts' });" }).violations).toEqual([]);
     expect(checkModels({ [file]: "defineModel({ id: 'shared/deer', file: 'other.ts' });" }).violations)
       .toEqual([expect.stringContaining("must start with 'pine-hollow/'")]);
     expect(checkModels({ [file]: "defineModel({ id: 'shared/bear', file: 'src/game/models/creatures.ts' });" }).violations)
       .toEqual([expect.stringContaining("must start with 'pine-hollow/'")]);
+  });
+
+  it('keeps the retired native roster outside the model-definition contract', () => {
+    const file = 'src/shards/pine-hollow/roster.ts';
+    expect(checkModels({ [file]: 'export const roster = () => rows.map(live);' }).violations).toEqual([]);
+    expect(checkModels({ [file]: "defineModel({ id: 'pine-hollow/new-native' });" }).violations)
+      .toEqual([expect.stringContaining('defineModel outside')]);
   });
 
   it.each([
