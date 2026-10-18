@@ -7,7 +7,10 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource } from '../src/game/shardfile/productCost';
+import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { MemoryAdmission } from '../src/format/product';
+import { acceptValidatedCost } from '../src/format/assetAdmission';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';
@@ -16,12 +19,14 @@ const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
 const own = (): Scope => { const scope = new Scope('loader-test'); scopes.push(scope); return scope; };
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
-function fixture(platformRef = false) {
+function fixture(platformRef = false, extra?: (source: schema.Shardfile) => ReadonlyMap<string, unknown>) {
   const source = emptyShardfile({ slug: 'runtime-loader', name: 'Loader', author: 'Test', revision: 1, seed: 1 });
   const blob = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(blob);
   source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
   source.library.push(ref); source.budgets.library = { compressed: 3, resident: 3 };
+  const added = extra?.(source);
   const values = new Map(outputSectionPayloads(source)); values.set('custom/facts', { count: 3 });
+  for (const [name, value] of added ?? []) values.set(name, value);
   if (platformRef) values.set('ui/strings', { file: `blobs/bin/${ref}.bin` });
   const wires = new Map<string, Uint8Array>(); let descriptors = 0;
   const sections = [...values].map(([name, value]) => {
@@ -33,7 +38,7 @@ function fixture(platformRef = false) {
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
     sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(bytes({})), bytes: bytes({}).length }],
-    files: source.files.map(file => ({ ...file, kind: 'bin', name: 'models/token.bin', path: `blobs/bin/${ref}.bin` })), runtime: null });
+    files: source.files.map(file => ({ ...file, kind: 'bin', name: file.hash === ref ? 'models/token.bin' : 'models/desktop.bin', path: `blobs/bin/${file.hash}.bin` })), runtime: null });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
   const options: ProductOptions = { base, offline: false, firstParty: true,
@@ -227,4 +232,36 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   expect(() => claim.shrink(11)).toThrow('shrink'); expect(() => claim.shrink(-1)).toThrow('shrink');
   claim.shrink(4); expect(allocator.cost().input.products).toBe(4);
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
+});
+
+test('tier residency excludes only a typed alternative with no other live reference', async () => {
+  const desktop = hashImmutableBytes(new Uint8Array([9]));
+  const f = fixture(false, source => {
+    source.files.push({ hash: desktop, kind: 'binary', compressed: 1, decoded: 700, gpu: 300, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(desktop); source.budgets.library.resident += 1000;
+    return new Map([['world/scenes', { version: 1, libraries: [{ id: 'trees', kind: 'owned', models: [
+      { id: 'tree', file: { phone: 'models/token.bin', desktop: 'models/desktop.bin' } },
+    ] }], materials: [], steps: [] }]]);
+  });
+  const resolved = await resolveOutputDescriptor(f.index, { offline: false, hash: f.options.hash,
+    read: path => { const wire = f.wires.get(path); if (wire === undefined) throw new Error('Missing fixture section'); return Promise.resolve(wire); } });
+  const source = schema.parseShardfile(resolved);
+  carryOutputDescriptor(resolved, source);
+  const admitted = source;
+  expect(tierLibrarySource(admitted, 'phone').budgets.library.resident).toBe(3);
+  expect(tierLibrarySource(admitted, 'desktop').budgets.library.resident).toBe(1000);
+  expect(tierLibrarySource(admitted, 'phone').library).not.toContain(desktop);
+  expect(source.budgets.library.resident).toBe(1003);
+  const token = admitted.files.find(file => file.hash === f.ref); if (token === undefined) throw new Error('Missing token');
+  token.dependencies.push(desktop);
+  expect(tierLibrarySource(admitted, 'phone').budgets.library.resident).toBe(1003);
+});
+
+test('a lower exact estimate clears a previous warning without changing the cap', () => {
+  const source = emptyShardfile({ slug: 'cost-test', name: 'Cost', author: 'Test', revision: 1, seed: 1 });
+  const memory = new MemoryAdmission(() => true);
+  acceptValidatedCost(source, { playing: 1_300_000_000, loading: 1_380_000_000, accounted: 900_000_000, location: [0, 0] }, memory);
+  expect(memory.reports()).toHaveLength(1);
+  acceptValidatedCost(source, { playing: 1_100_000_000, loading: 1_180_000_000, accounted: 700_000_000, location: [0, 0] }, memory);
+  expect(memory.reports()).toHaveLength(0);
 });

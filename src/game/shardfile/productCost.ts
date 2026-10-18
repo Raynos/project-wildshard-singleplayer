@@ -3,6 +3,72 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputIndex';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+
+/** Project only exclusive alternatives selected by existing typed presentation hosts.
+ * Transport stays fully charged. References elsewhere or dependencies keep an asset resident;
+ * arbitrary runtime names and unselected scene batches are never treated as tier selectors. */
+export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'): Shardfile {
+  const descriptor = outputDescriptor(source);
+  if (descriptor === undefined) return source;
+  const names = new Map<string, string>();
+  for (const file of descriptor.index.files) {
+    for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`]) names.set(name, file.hash);
+    if (file.name !== undefined) names.set(file.name, file.hash);
+  }
+  const inactive = new Set<string>(), used = new Set(source.critical);
+  const alternative = (selected: string, other: string): void => {
+    const off = names.get(other); if (off !== undefined) inactive.add(off);
+    const on = names.get(selected); if (on !== undefined) used.add(on);
+  };
+  const sections = new Map(descriptor.sections);
+  const metadata = source.manifest;
+  let manifest = source.manifest;
+  if (metadata?.horizonStrips?.phone !== undefined) {
+    const horizon = metadata.horizonStrips, selected = tier === 'phone' ? horizon.phone : horizon;
+    const other = tier === 'phone' ? horizon : horizon.phone;
+    if (selected !== undefined && other !== undefined) {
+      alternative(selected.day, other.day); alternative(selected.night, other.night);
+      const { phone: _phone, ...base } = horizon;
+      manifest = { ...metadata, horizonStrips: { ...base, day: selected.day, night: selected.night } };
+      sections.set('ui/level', { manifest });
+    }
+  }
+  const scenes = sections.get('world/scenes');
+  if (scenes !== undefined) {
+    const row = parseWorldScenes(scenes);
+    const libraries: typeof row.libraries = [];
+    for (const library of row.libraries) {
+      if (library.kind !== 'owned') { libraries.push(library); continue; }
+      const models: typeof library.models = [];
+      for (const model of library.models) {
+        if (typeof model.file === 'string') models.push(model);
+        else {
+          alternative(model.file[tier], model.file[tier === 'phone' ? 'desktop' : 'phone']);
+          models.push({ ...model, file: model.file[tier] });
+        }
+      }
+      libraries.push({ ...library, models });
+    }
+    sections.set('world/scenes', { ...row, libraries });
+  }
+  if (inactive.size === 0) return source;
+  const visit = (input: unknown): void => {
+    if (typeof input === 'string') { const hash = names.get(input); if (hash !== undefined) used.add(hash); }
+    else if (Array.isArray(input)) for (const value of input) visit(value);
+    else if (typeof input === 'object' && input !== null) for (const [key, value] of Object.entries(input)) { visit(key); visit(value); }
+  };
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
+  visit({ ...fields, manifest });
+  for (const value of sections.values()) visit(value);
+  for (const file of source.files) for (const ref of file.dependencies) used.add(ref);
+  const excluded = new Set([...inactive].filter(hash => !used.has(hash)));
+  const library = new Set(source.library), saving = source.files.reduce((sum, file) =>
+    sum + (library.has(file.hash) && excluded.has(file.hash) ? file.decoded + file.gpu : 0), 0);
+  return { ...source, library: source.library.filter(hash => !excluded.has(hash)), budgets: {
+    ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) },
+  } };
+}
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {

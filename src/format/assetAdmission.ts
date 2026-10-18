@@ -32,9 +32,9 @@ import { validateNearPlaceholderAssets } from '@wildshard/format/nearPlaceholder
 
 
 function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {
-  if (cost.playing <= C.playing && cost.loading <= C.loading) return true;
-  return memory?.accept({ stage, owner: source.identity.slug, id: `${source.identity.slug}:worst-location`,
-    claimedBytes: cost.accounted, accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading }) ?? false;
+  if (memory === undefined) return cost.playing <= C.playing && cost.loading <= C.loading;
+  return memory.accept({ stage, owner: source.identity.slug, id: `${source.identity.slug}:worst-location`,
+    claimedBytes: cost.accounted, accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading });
 }
 
 /** Reapply the current trusted memory policy to a previously validated exact declaration. */

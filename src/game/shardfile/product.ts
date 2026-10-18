@@ -13,7 +13,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFiles, runtimeOnlyProductFiles } from './productCost';
+import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -40,6 +40,8 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
+  /** Trusted renderer tier; only typed host alternatives affect resident estimates. */
+  tier?: 'phone' | 'desktop';
   /** Trusted probe-filtered device support; authored content cannot select its charge. */
   textures?: TextureTranscodeSupport;
   /** Optional catalogue SHA-256 of the exact format-2 index wire bytes. */
@@ -252,7 +254,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
   if (receipt !== null && options.textures !== undefined) acceptValidatedCost(source,
-    deviceLibraryCost(source, assets, options.textures), options.memory);
+    deviceLibraryCost(options.tier === undefined ? source : tierLibrarySource(source, options.tier), assets, options.textures), options.memory);
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
     const cache = options.cache, descriptor = outputDescriptor(source);
