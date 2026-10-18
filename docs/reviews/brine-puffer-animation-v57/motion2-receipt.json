@@ -1,0 +1,30 @@
+{
+  "schema": "wildshard.puffer.motion-review.v1",
+  "candidate": "V57",
+  "motion": "motion2",
+  "sourceCommit": "07e88721a8ff7283e16b71f4b2d7a1b02b95dfa3",
+  "nativeCommit": "d416b961d57f70a5d6a77753a72aba0b2d19db12",
+  "engineBaseline": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "configCommit": "d940e51eec5090e10ecbb815db6dbfe6feae554b",
+  "sourceSha256": "73eb5a123aa55fd5a358f893d6fb05fbe87d87a92ba13ba76231264757230b02",
+  "video": {
+    "file": "page@8f962476bf502c3178b5bb21ba6f2788.webm",
+    "bytes": 6190128,
+    "sha256": "0957b7d0bb584db4b41daf80547b662ca376f8bfb1035144f4801a1994664ccd",
+    "seconds": 59.2,
+    "encodedFps": 25,
+    "width": 390,
+    "height": 844,
+    "medianObservedFrameIntervalSeconds": 0.2233
+  },
+  "tests": "Six focused tests pass; typed lint passed before numeric .08-to-.09 death-lift correction; final tests cover correction.",
+  "independentFrameReview": "Pending; no animation-quality acceptance.",
+  "visualAcceptance": false,
+  "phonePerformanceClaim": false,
+  "timingCaveat": "Low software-WebGL cadence repeats encoded frames and slows simulation clock relative to wall time; no speed setting changed.",
+  "captureFiles": [
+    "motion2-telemetry.json",
+    "motion2-visible-telemetry.json",
+    "motion2-visible-standoff.png"
+  ]
+}
