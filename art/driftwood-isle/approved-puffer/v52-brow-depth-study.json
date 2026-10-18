@@ -1,0 +1,13 @@
+{
+  "base": "V51",
+  "frontFourVerticesUnchanged": true,
+  "eyeGeometryUnchanged": true,
+  "lowerRearDepth": 0.14,
+  "upperRearDepthBefore": 0.14,
+  "upperRearDepthAfter": 0.24,
+  "upperRearDropBefore": 0.015,
+  "upperRearDropAfter": 0.005,
+  "topRearwardSpanIncrease": 0.714285714285714,
+  "pouchCheekFeetAndPaletteChanged": false,
+  "status": "unaccepted; actual top-plane exposure and intersection review required"
+}

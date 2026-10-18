@@ -1,0 +1,36 @@
+{
+  "status": "pure source preflight passed; actual Blender union/render pending",
+  "source": "build_puffer_lowpoly_v53_from_v9.py",
+  "sourceSha256": "97d082c8c108df00fb75ace381d5300e9b5fc1132f23c9de60576eb6db14dd4c",
+  "argparseNamespacePreserved": true,
+  "receipt": {
+    "signedVolume": 0.48862164771700545,
+    "maximumDihedralDegrees": 35.46944787888973,
+    "triangles": 216,
+    "verticesUsed": 110,
+    "supportPlaneTolerance": 1e-07,
+    "status": "mapped-subset structural study; visual acceptance pending",
+    "referenceSampleCount": 112,
+    "retainedSampleCount": 110,
+    "outputSampleCount": 110,
+    "protectedAnchorCount": 98,
+    "explicitlyRemovedOldIds": [
+      58,
+      68
+    ],
+    "hullDiscardedOldIds": [],
+    "maximumRetainedSampleDisplacement": 0.03899244446580281,
+    "maximumSampledSilhouetteDrift": 0.012582951076645088,
+    "silhouetteDirectionCount": 1080,
+    "referenceConvexVolume": 0.4933453899582132,
+    "volumeFractionChange": 0.009574919189186848,
+    "comparisonBasis": "Full original reference, including all explicitly removed samples",
+    "limits": {
+      "maxDisplacement": 0.04,
+      "silhouetteTolerance": 0.015,
+      "maxVolumeFraction": 0.02,
+      "maxDihedralDegrees": 60
+    },
+    "caveat": "Sampled convex envelope only; actual raster silhouette, post-union topology, colors and skinning remain unverified"
+  }
+}
