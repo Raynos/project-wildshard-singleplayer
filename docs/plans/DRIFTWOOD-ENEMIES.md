@@ -48,3 +48,15 @@ Canonical checkpoint `18a7b31a3fd08664c2d342959efa43fe5cef31b6` preserves the fi
 The baseline arena passed real cloud-browser entry, sustained play, touchscreen sword damage and exit at source tree `658b994483b41293cc96a9c27d43298050680652`. Explicit FreeCam lock ownership and touch-aware gameplay pointer-lock policy address the reproduced input failures. Software rendering is not physical-device performance evidence.
 
 Selected-enemy admission now has an authored integration for verified decision guests, fresh bout-local player health, retry and visible authored coin receipts. Focused checks and all-five browser smoke are in progress. This is not yet proof of all-five fights, loot collection, map placements or completion. The public review Site includes the actual rig/pose board and baseline touch-hit screenshot.
+
+## 2026-10-18 owner visual rejection and concept reset
+
+All five existing enemy visuals, including V2 alternatives, were rejected by the owner. Keep them as rejected WIP and mechanics fixtures. Five new OpenAI-generated concept pairs show proposed Explorer and first-person HUD presentation; they are not game captures or approved models. The original concept-art catalog and approval context now accompany them on the existing public review Site. Further geometry follows the stronger art direction and owner feedback.
+
+The owner reaffirmed normal writable checkout restoration and branch read/write work. This does not grant main-branch or production deployment permission. Root continues connector checkpoints. The memory-accounting fix is protected at b72c9079e2c6dd1494288ecae06ea301fd4b9137; actual assembled build and admission tests pass, while all-five browser acceptance remains open.
+
+## 2026-10-18 14:19 UTC concept approval
+
+The owner explicitly approved all five new image-generated pairs as visual build targets and requires close fidelity, with no rough approximation counted as completion. The prior V1/V2 meshes remain rejected. Compare actual Explorer and first-person game views against the approved anatomy, silhouettes, materials and detail. Separately, create20 additional ranked enemy/miniboss/boss concepts with mockups.
+
+The public Site must have five tabs: Overview (brief), Review/Audit/Research, Mockup Catalog (all ideas including rejected), Approved Mockups (explicit owner picks only), and In-Game Footage (actual evidence only). A standalone playable Three.js arena in that review Site is authorized as a bonus, using real isolated systems and no persistent world mutation.

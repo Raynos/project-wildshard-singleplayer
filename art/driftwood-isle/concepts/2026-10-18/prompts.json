@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-10-18T14:08:00Z",
+  "generator": "OpenAI built-in image generation",
+  "status": "Owner-approved visual targets; not actual game captures or completed models",
+  "common_prompt": "Create a polished game art-direction CONCEPT mockup, not a photograph or actual gameplay capture. One two-panel diptych, two tall portrait mobile-game views side by side, no phone bezels. Left: WILDSHARD MODEL EXPLORER with the full redesigned creature standing on a cyan-rimmed circular turntable, dark navy floor grid, clean cyan/amber compact interface, tabs MODELS / SOLID / IDLE, subject large enough to judge anatomy and materials. Right: the SAME EXACT creature design in a first-person Driftwood Isle encounter, player hands and wooden sword in lower right, small center reticle, circular island minimap upper right, pause upper left, concise enemy name and health bar, bottom VITALS and touch controls MOVE / LOOK / ATTACK / DODGE. Keep UI behind the visual hierarchy and make the enemy clearly readable. At top mark AI CONCEPT \u2022 NOT GAME CAPTURE. Use references: image1 is the original Driftwood first-person island concept for environment, palette and HUD; image2 is original crab concept for the polished faceted creature art direction and combat readability; image3 is an actual Model Explorer screenshot for turntable/interface layout only. Keep bright tropical turquoise water, warm ivory sand, sculpted slate-grey rocks, rich palms, sunlit wood and a painterly blue sky with pale ringed planet. Premium stylized faceted 3D game art with deliberate large/medium/small forms, convincing anatomy, carved readable plane changes, subtle hand-painted material color variation, expressive but dangerous personality. No primitive sphere/cylinder assemblage, no googly toy eyes, no rubber/plastic toy finish, no wireframe lines, no photoreal gore, no generic random spikes. Concept should be achievable as a coherent sculpted game mesh. Do not copy the old rejected enemy models. Preserve exactly the same anatomical and material details between both panels. No FPS, triangle counts or fabricated performance measurements. Image4 is the real later combat HUD; prioritize its layout over historical concept UI: PAUSE and VITALS upper left, minimap/bag upper right, LOCK/DODGE/JUMP controls, MOVE/ATTACK HOLD=HEAVY/LOOK at bottom. Omit HOVER entirely. Use refined painted textures if useful; current art direction is Toon lighting, Clean post, Stylized sky, restrained color grading.",
+  "references": [
+    "art/driftwood-isle/round-2-first-person/driftwood-fp-spawn.png",
+    "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+    "Enemy Lab existing Model Explorer Reef Crab capture",
+    "art/hud-explorer/round-8-arena-motion/still-driftwood-isle.jpg"
+  ],
+  "designs": [
+    {
+      "id": "brine-puffer",
+      "file": "brine-puffer-explorer-gameplay.webp",
+      "prompt": "BRINE PUFFER \u2014 regular reef ambusher. A stout amphibious puffer fish with a powerful low-slung body, broad articulated fin-feet, deep-set cunning amber eyes under a heavy brow, an expressive beak-like mouth, a sculpted ivory belly with gill folds, overlapping moss-teal dorsal plates and sparse stout ivory defensive spines following anatomy. Warm ochre face, deep petrol/teal back, weathered coral accents. Clearly organic silhouette with head, shoulders and purposeful fins, not a ball with eyes. Left neutral partially deflated stance. Right the same creature inflates its ribbed throat/body and raises spines to telegraph a pressure burst at the edge of a turquoise tide pool; a subtle circular sand disturbance marks attack radius. Knee-high to player, readable at 3 metres.",
+      "bytes": 245736,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "conch-duelist",
+      "file": "conch-duelist-explorer-gameplay.webp",
+      "prompt": "CONCH DUELIST \u2014 regular tactical shell fighter. An elegant predatory reef gastropod warrior, with a coiled conch shell anchored naturally to its mantle, ridged ivory-and-salmon spiral shell with worn lip and barnacle accents, deep plum muscular body with articulated forelimbs, alert narrow golden eyes on sturdy short stalks, a distinctive asymmetric silhouette. A broad shell-claw forms its defensive shield and the opposite elongated pointed conch-claw forms a thrusting rapier; these must feel anatomically grown, not loose props or generic human armor. Purposeful foot/mantle posture and clean blade silhouette. Left poised guarded stance. Right same creature side-on preparing its counter thrust on warm wet sand beside a wrecked wooden hull, player's sword raised. Waist-high enemy, ominous intelligent expression rather than cute snail.",
+      "bytes": 216938,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "splinter-mantis",
+      "file": "splinter-mantis-explorer-gameplay.webp",
+      "prompt": "SPLINTER MANTIS \u2014 regular coastal forest ambush predator. A lean, dangerous orchid-mantis-like creature camouflaged as driftwood and palm fronds. Strong triangular head, focused small emerald compound eyes, expressive antennae, long segmented thorax with layered bark-like chitin, four articulated load-bearing legs and TWO powerful folded raptorial forearms with curved serrated ivory edges. Camouflage wings form a coherent layered leaf silhouette rather than two flat circles. Subtle amber sap seams and jade leaf accents on warm dark bark. Anatomically believable, sculpted forearms, readable joint hierarchy, no stick-insect toy. Left crouched stalking pose. Right same creature lunging along a sunlit palm path, telegraphed white sweep at forearm, enemy full body visible, first-person sword defensive.",
+      "bytes": 228496,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "bellback",
+      "file": "bellback-explorer-gameplay.webp",
+      "prompt": "BELLBACK \u2014 elite wreck guardian. A powerful crouching hermit-crab/bull-like four-legged coastal guardian carrying an antique verdigris ship bell as its naturally integrated back armor. Heavy forward shoulders, expressive carved prow-like brow/head with inset amber eyes and tusk-like broken wood horns, muscular root-and-rope articulated legs ending in split coral-encrusted hooves. Its arched wreckwood ribs emerge organically around the bell like a carapace, NOT a chair, gazebo, roof or wooden table. The cracked bronze bell and suspended ivory/bronze clapper remain a clean readable focal point. Material hierarchy: warm worn ship timber, dark wet roots, blue-green patinated bell, restrained coral-orange accents. Left low territorial stance. Right same elite raises its clapper and braces before an expanding shockwave on a wreck-strewn beach; player first-person at 5 metres, large shoulder-high threat, visibly larger than regular enemies.",
+      "bytes": 246924,
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "tide-root-colossus",
+      "file": "tide-root-colossus-explorer-gameplay.webp",
+      "prompt": "TIDE-ROOT COLOSSUS \u2014 major Driftwood boss. An ancient sentient mangrove guardian with an imposing asymmetrical trunk torso, four powerful articulated root-limbs, irregular broken branch crown and a deeply carved expressive face. A luminous sea-glass turquoise heart sits in a recessed chest cavity guarded by interlocking wooden ribs; visual focus on the eye line and exposed heart, with negative space readable from distance. Rich large sculpted bark plates, smooth worn driftwood edges, tangled small roots, sparse moss and shells; restrained detail, not random ornament. Powerful raised root-arm can clearly slam forward, broad root-feet support weight. NOT a simple stump with a crown or flat plank tentacles. Left full-body regal threatening stance on turntable. Right same boss towering at 7 metres ahead in a bright coastal mangrove clearing near tidewater, raising one root for a clearly telegraphed slam while chest ribs begin opening; player hands/wooden sword and boss health bar visible. Preserve visibility of creature form despite scale.",
+      "bytes": 222126,
+      "width": 1024,
+      "height": 1536
+    }
+  ],
+  "approved_at": "2026-10-18T14:19:31Z",
+  "acceptance": "Actual models must match the approved concept silhouettes, anatomy, materials and detail in both Model Explorer and first-person gameplay. A rough approximation is not accepted."
+}
