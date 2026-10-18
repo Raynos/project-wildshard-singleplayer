@@ -1,0 +1,123 @@
+{
+  "sourceTree": "a222412bb122fcb9d38d97acf75ba90ca0e0f776",
+  "sourceParent": "8735cc48c79684bbad05085bc4a52ad1bd8f7531",
+  "commitParent": "8735cc48c79684bbad05085bc4a52ad1bd8f7531",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2254,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "b8d1684bc8bcce9bc18e982a3349123ffc51cfae7f6407d6ecef732529cc6ad7",
+      "inputFiles": 263,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "b8d1684bc8bcce9bc18e982a3349123ffc51cfae7f6407d6ecef732529cc6ad7",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "4c9168b4258803b484f03ddcb05c87b6d88ce75c592be24ff3c56449379f5995",
+      "inputFiles": 260,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "4c9168b4258803b484f03ddcb05c87b6d88ce75c592be24ff3c56449379f5995",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "sourceRuler": "all10-source-ruler.json",
+  "tailRecovery": {
+    "source": "a222412bb122fcb9d38d97acf75ba90ca0e0f776",
+    "coldBakeStrictLease": "20261017T192024-sp-x10-central-maps-third-23955",
+    "failure": "Phone samples completed; saving JSON failed because mirror progress directory did not exist",
+    "recovery": "Create output directory, repeat phone and remaining type/lint/headless/ruler tail with exact original post-gen inventory",
+    "passed": true
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "75aa5c92fcf6457e4a2d3c0c33242bf641467309",
+      "owner": "sp-x9",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "named static scene placements and shared source decoder"
+    },
+    {
+      "sha": "eeb9da351c8bc3f0568b9613346125c732116742",
+      "owner": "sp-x10",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "native shared crag batch rows and source geometry hashes"
+    },
+    {
+      "sha": "8735cc48c79684bbad05085bc4a52ad1bd8f7531",
+      "owner": "sp-x7",
+      "shards": [],
+      "change": "test-only platform look fixture forward fix"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [],
+    "pine-hollow": [
+      "data/heroRows.json",
+      "data/heroScenes.generated.json",
+      "data/propScenes.generated.json",
+      "data/npcSkins.generated.json",
+      "data/codeParts.json",
+      "data/paintedTextures.generated.json"
+    ]
+  }
+}

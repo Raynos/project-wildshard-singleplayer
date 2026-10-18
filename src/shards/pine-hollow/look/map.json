@@ -91,6 +91,12 @@
     "runtime/cull",
     "data/creatureHulls.json",
     "runtime/items",
-    "runtime/brains"
+    "runtime/brains",
+    "data/heroRows.json",
+    "data/heroScenes.generated.json",
+    "data/propScenes.generated.json",
+    "data/npcSkins.generated.json",
+    "data/codeParts.json",
+    "data/paintedTextures.generated.json"
   ]
 }
