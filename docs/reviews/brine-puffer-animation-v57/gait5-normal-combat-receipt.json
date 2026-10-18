@@ -1,0 +1,26 @@
+{
+  "status": "normal renderer combat regression passed; frame review pending",
+  "wrapperSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+  "videoSha256": "7a8d17f6ae0bdc37b03ddc429d90f07142f5751a50e50ee20a1d18ebf5ed4e25",
+  "rawTelemetrySha256": "c25a50d66b98ecfa0a77c9f3aa03c0a17603dc531cb05a27d15bcd3202a78439",
+  "errors": [],
+  "httpErrors": [],
+  "enemyHP": [
+    45,
+    33,
+    21,
+    9,
+    0
+  ],
+  "risingFlinchObserved": true,
+  "collectedCoinsStatus": "Collected 2 local practice coins.",
+  "retryStatus": "Fresh practice bout.",
+  "retryHealth": [
+    "100/ 100"
+  ],
+  "rendererUnchanged": true,
+  "storageUnchanged": true,
+  "start": "2026-10-18T22:01:11.967Z",
+  "end": "2026-10-18T22:01:38.757Z",
+  "scope": "Actual real-input normal-renderer combat; enemy hits, death, local coins and Retry. No phone-performance or planted-foot claim."
+}

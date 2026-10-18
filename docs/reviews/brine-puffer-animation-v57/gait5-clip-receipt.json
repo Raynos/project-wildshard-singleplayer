@@ -1,0 +1,24 @@
+{
+  "source_sha256": "a95d8667d5b0d45a53bb7e9ccdea3c0b8d2ce1214cfd19cfa250d6d27a2a6c2e",
+  "fps": 25,
+  "interpolation": false,
+  "speed_change": false,
+  "clips": [
+    {
+      "path": "public/review-evidence/puffer-animation-v57/gait5-stop-attack-alert.mp4",
+      "source_frames": [
+        600,
+        745
+      ],
+      "bytes": 444434,
+      "sha256": "fe3c29dc0e928de3c3c7fca775fd4f009504e79978a89ca8074f36586f49269c",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "5.840000",
+        "nb_read_frames": "146"
+      },
+      "label": "DIAGNOSTIC | 1x cloud | post and shadows OFF"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "status": "capture terminal; independent review pending",
+  "start": "2026-10-18T21:53:30.363Z",
+  "end": "2026-10-18T21:54:35.052Z",
+  "sampleCount": 1448,
+  "errors": [],
+  "httpErrors": [],
+  "rawTelemetrySha256": "5b68b6e2f22345f37a5d4fcc885c2847e3b93d0aa4c314762bb4cb4bed661127",
+  "rawTelemetryBytes": 8928253,
+  "videoSha256": "a95d8667d5b0d45a53bb7e9ccdea3c0b8d2ce1214cfd19cfa250d6d27a2a6c2e",
+  "videoBytes": 7353737,
+  "wrapperSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+  "scope": "Actual input gait5 continuity diagnostic; postprocessing/shadows disabled after baseline, unchanged render buffer. No hit/death covered. Visual and normal mounted regression acceptance separate.",
+  "rendererBefore": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "op",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ],
+    "camera": [
+      -9.158606562899296e-07,
+      901.6802999916105,
+      -0.3369401420664396
+    ],
+    "t": 0.01730000000074506
+  },
+  "rendererAfter": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "canvas": [
+      390,
+      844
+    ],
+    "shadows": false,
+    "passes": [
+      {
+        "name": "Bh",
+        "enabled": true,
+        "renderToScreen": true
+      },
+      {
+        "name": "op",
+        "enabled": false,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": false,
+        "renderToScreen": false
+      },
+      {
+        "name": "Ot",
+        "enabled": false,
+        "renderToScreen": false
+      }
+    ],
+    "camera": [
+      -3.1419686746490816e-06,
+      901.6903033877926,
+      -0.3369447559880006
+    ],
+    "t": 8.41410000000149
+  },
+  "transitions": [
+    {
+      "kind": "stop",
+      "t": [
+        22.6376,
+        22.6709
+      ],
+      "maxLocalFootDeltaM": 0.001140921
+    },
+    {
+      "kind": "resume",
+      "t": [
+        36.4484,
+        36.4769
+      ],
+      "maxLocalFootDeltaM": 0.00015321
+    }
+  ]
+}

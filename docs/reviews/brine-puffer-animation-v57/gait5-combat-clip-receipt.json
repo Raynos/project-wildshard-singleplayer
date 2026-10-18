@@ -1,0 +1,24 @@
+{
+  "source_sha256": "7a8d17f6ae0bdc37b03ddc429d90f07142f5751a50e50ee20a1d18ebf5ed4e25",
+  "fps": 25,
+  "interpolation": false,
+  "speed_change": false,
+  "clips": [
+    {
+      "path": "public/review-evidence/puffer-animation-v57/gait5-normal-hits-death-settle.mp4",
+      "source_frames": [
+        285,
+        559
+      ],
+      "bytes": 596541,
+      "sha256": "38b956d913af0eb2f43bb5b7cac430fbd5e326714efba487c9cd5f486225110e",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "11.000000",
+        "nb_read_frames": "275"
+      },
+      "label": "NORMAL | 1x cloud | low rendered cadence"
+    }
+  ]
+}
