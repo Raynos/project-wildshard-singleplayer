@@ -2,6 +2,8 @@
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify static shape bytes against their map-input hashes.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete geometry byte ranges without per-byte matcher overhead.
+import { Buffer } from 'node:buffer';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { Matrix4, type BufferGeometry } from 'three';
@@ -22,11 +24,12 @@ function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   for (const name of Object.keys(expected.attributes)) {
     const a = actual.getAttribute(name), b = expected.getAttribute(name);
     expect([a.itemSize, a.normalized, a.array.constructor.name], name).toEqual([b.itemSize, b.normalized, b.array.constructor.name]);
-    expect(bytes(a.array), name).toEqual(bytes(b.array));
+    expect(Buffer.compare(bytes(a.array), bytes(b.array)), name).toBe(0);
   }
   const a = actual.getIndex(), b = expected.getIndex();
+  expect(a === null).toBe(b === null);
   expect(a?.array.constructor.name).toBe(b?.array.constructor.name);
-  expect(a === null ? null : bytes(a.array)).toEqual(b === null ? null : bytes(b.array));
+  if (a !== null && b !== null) expect(Buffer.compare(bytes(a.array), bytes(b.array))).toBe(0);
 }
 
 test('offline kit projection keeps every native GLB node byte', async () => {
