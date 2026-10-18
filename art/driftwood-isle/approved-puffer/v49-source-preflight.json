@@ -1,0 +1,60 @@
+{
+  "status": "pure source geometry preflight passed; Blender export/render pending",
+  "source": "build_puffer_lowpoly_v49_from_v9.py",
+  "sha256": "c6cad0ccbaf491542b913f013217d6cf24df7e46b1e230aec5bf5d35ef98df24",
+  "method": "Extract analytic pouch construction and connectivity guards before mesh() call; execute using numpy-backed Vector equivalent cross/dot/normalization. No Blender run.",
+  "diamondChanges": [
+    {
+      "removedLatitudeEdge": [
+        42,
+        43
+      ],
+      "crossStripDiagonal": [
+        29,
+        57
+      ],
+      "firstPlaneNormalChangeDegrees": 33.81251303394415
+    },
+    {
+      "removedLatitudeEdge": [
+        44,
+        45
+      ],
+      "crossStripDiagonal": [
+        31,
+        59
+      ],
+      "firstPlaneNormalChangeDegrees": 39.75235513709258
+    },
+    {
+      "removedLatitudeEdge": [
+        52,
+        53
+      ],
+      "crossStripDiagonal": [
+        39,
+        67
+      ],
+      "firstPlaneNormalChangeDegrees": 42.36535796590774
+    },
+    {
+      "removedLatitudeEdge": [
+        54,
+        55
+      ],
+      "crossStripDiagonal": [
+        41,
+        69
+      ],
+      "firstPlaneNormalChangeDegrees": 37.33966687862545
+    }
+  ],
+  "signedVolumeBefore": 0.4899835148965448,
+  "signedVolumeAfter": 0.4866189069140209,
+  "volumeRelativeChange": -0.006866777922588496,
+  "minimumTriangleArea": 5.95795820378316e-05,
+  "triangles": 220,
+  "nonmanifoldEdges": 0,
+  "vertexPositionsUnchanged": true,
+  "renderedSilhouetteAndFinalUnionPending": true
+}

@@ -1,0 +1,10 @@
+{
+  "status": "pure source preflight passed; actual Blender render pending",
+  "source": "build_puffer_lowpoly_v50_from_v9.py",
+  "sourceSha256": "67ceb31002b042621e4ffb62591fcf695f7ec2c4aef8ed645b74765de4d5acc1",
+  "method": "V49 analytic geometry extraction with numpy-backed equivalent Vector; argparse namespace a seeded with sentinel and asserted unchanged after extraction. Same four diamond flips and guards.",
+  "argparseNamespacePreserved": true,
+  "geometryUnchangedFromV49": true,
+  "signedPouchVolume": 0.4866189069140209,
+  "nonmanifoldEdges": 0
+}

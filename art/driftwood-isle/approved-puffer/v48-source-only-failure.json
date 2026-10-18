@@ -1,0 +1,8 @@
+{
+  "status": "failed source-only preflight; zero Blender frames",
+  "source": "build_puffer_lowpoly_v48_from_v9.py",
+  "sha256": "c9af9e9e1e67b7f57f3400904e13bdfa0d29c546ba56d960c4074da969bc2218",
+  "method": "Extracted pouch vertex/projection construction before bmesh operations and executed using numpy-backed Vector with equivalent dot/cross/normalization. All four intended row-3 hubs were pinned in at least one non-top diagnostic silhouette. changes=[]; guard raised Insufficient unconstrained frontal diamond hubs.",
+  "cause": "Exact multi-view silhouette vertex constraints overconstrain proposed hub displacement.",
+  "next": "V49 preserves all vertex positions and changes selected noncoplanar central-strip edge connectivity."
+}

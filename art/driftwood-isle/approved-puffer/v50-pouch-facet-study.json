@@ -1,0 +1,59 @@
+{
+  "scope": "four central latitude edges replaced with noncoplanar cross-strip diamond diagonals",
+  "diamondChanges": [
+    {
+      "removedLatitudeEdge": [
+        42,
+        43
+      ],
+      "crossStripDiagonal": [
+        29,
+        57
+      ],
+      "firstPlaneNormalChangeDegrees": 33.812522627984784
+    },
+    {
+      "removedLatitudeEdge": [
+        44,
+        45
+      ],
+      "crossStripDiagonal": [
+        31,
+        59
+      ],
+      "firstPlaneNormalChangeDegrees": 39.75235047508572
+    },
+    {
+      "removedLatitudeEdge": [
+        52,
+        53
+      ],
+      "crossStripDiagonal": [
+        39,
+        67
+      ],
+      "firstPlaneNormalChangeDegrees": 42.36539016888872
+    },
+    {
+      "removedLatitudeEdge": [
+        54,
+        55
+      ],
+      "crossStripDiagonal": [
+        41,
+        69
+      ],
+      "firstPlaneNormalChangeDegrees": 37.33967073002803
+    }
+  ],
+  "allVertexPositionsUnchanged": true,
+  "surfaceVertices": 112,
+  "surfaceTriangles": 220,
+  "signedVolumeBefore": 0.4899835306744838,
+  "signedVolumeAfter": 0.4866189260495351,
+  "nonmanifoldEdges": 0,
+  "projectedPointEnvelopeUnchanged": true,
+  "actualRasterSilhouetteRequiresRenderReview": true,
+  "newRaisedTiles": 0,
+  "mouthAndEyeTransformsChanged": false
+}

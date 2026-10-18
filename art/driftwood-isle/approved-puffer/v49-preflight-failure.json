@@ -1,0 +1,8 @@
+{
+  "status": "export completed; render dispatch failed; zero frames",
+  "source": "build_puffer_lowpoly_v49_from_v9.py",
+  "failure": "AttributeError: int object has no attribute render at if a.render; new global edge variable shadowed argparse namespace a",
+  "geometryFailure": false,
+  "exportedArtifacts": "tmp/puffer-lowpoly-v49-from-v9 (GLB and inspection.blend)",
+  "repair": "V50 renames edge locals edge_a/edge_b and corrects stale facet description; geometry unchanged"
+}
