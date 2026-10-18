@@ -16,6 +16,6 @@
 
 **Perf:** drive fix e2141156c default-off until a device reading; Simulator p95 34–35 ms on all roads. PF1 closed: Pine 59.88 fps, p95 16.8 ms.
 
-**Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d (Nalati/Nine path rules, totals unchanged).
+**Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d; G478 feature keys c9cb5d2b8 (mounts-riding-taming), c208e4ce4 (grapple-traversal, practice-courses).
 
 Rows: [open-x-queue](open-x-queue.md). Paused: SF22 SF57 SF67. G495–G504 in the lane preamble.
