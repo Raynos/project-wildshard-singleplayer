@@ -1,3 +1,4 @@
+import species from '../data/species.generated.json' with { type: 'json' };
 import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
 import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
@@ -7,7 +8,7 @@ import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** URLs needed before product admission by both boot and creature readers. */
-export const assetFiles = { coats: '/assets/nalati/models/coats/', bodies: '/assets/nalati/baked/bodies.bin' };
+export const assetFiles = { coats: '/assets/nalati/models/coats/', bodies: species.packedBodies.file };
 
 const models = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'];
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];

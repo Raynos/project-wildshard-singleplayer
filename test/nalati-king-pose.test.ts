@@ -1,8 +1,12 @@
+import speciesRows from '../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
+import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
+import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Bone, Vector3 } from 'three';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
-import { animateGoldenKing } from '../src/shards/nalati-grasslands/species/rows';
+import { Rng } from '../src/engine/core/rng';
+import { NALATI_DEFINITIONS, animateGoldenKing } from '../src/shards/nalati-grasslands/species/rows';
 import { animateKing } from './fixtures/nalati-king-pose';
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>
@@ -33,4 +37,70 @@ test('King pose rows retain every joint through the full fight and its reset', (
       expect(actual.animal.yOffset).toBe(expected.animal.yOffset);
       for (const key of ['floorS', 'kneelS', 'raiseS', 'deadT']) expect(actual.mem[key]).toBe(expected.mem[key]);
     }
+});
+
+test('species channels drive the original joints without writing actor memory', () => {
+  const c = context();
+  for (const name of ['neck1', 'neck2', 'jaw', 'tail', 'tail2', 'earL', 'earR', 'neck', 'wingL1', 'wingL2', 'wingR1', 'wingR2', 'legL', 'legR',
+    ...['L', 'R'].flatMap(s => [`F${s}_shoulder`, `F${s}_carpus`, `B${s}_hip`, `B${s}_stifle`])]) c.bones[name] = new Bone();
+  Object.assign(c.mem, { low: .8, snarl: .5, leap: .8, fold: .9, ground: .1, bank: .3, field: 1, rise: .5 });
+  const retained = { ...c.mem };
+  for (const key of ['canid', 'leopard', 'eagle', 'balbal'] as const) {
+    const animate = numericCreaturePose(speciesRows.poses[key]);
+    for (const bone of Object.values(c.bones)) { bone.position.set(0, 0, 0); bone.rotation.set(0, 0, 0); }
+    c.attack = .48; animate(c);
+    expect(transforms(c).every(Number.isFinite)).toBe(true);
+    expect(transforms(c).some(value => Math.abs(value) > .01 && value !== 1)).toBe(true);
+    expect(c.mem).toEqual(retained);
+    if (key === 'canid') expect(c.bones['jaw']?.rotation.x).toBeGreaterThan(0);
+    if (key === 'leopard') expect(c.bones['FR_shoulder']?.rotation.x).toBeLessThan(-.8);
+    if (key === 'eagle') expect(c.bones['wingL1']?.rotation.y).toBeGreaterThan(1);
+    if (key === 'balbal') expect(c.bones['armR_sh']?.rotation.x).toBeLessThan(-2);
+  }
+  c.alive = false; c.deathT = 1; numericCreaturePose(speciesRows.poses.canidDead)(c);
+  expect(c.bones['jaw']?.rotation.x).toBe(.25);
+});
+
+test('balbal decisions rise, strike once, return and sink on the bounded guest tick', () => {
+  const program = ReturnProgram.page(speciesRows.program);
+  const fields: Record<string, number> = { bearing: 0, homeBearing: 0, homeOff: 0, hitOff: 0, dt: .1, field: 1, px: 0, py: 0, pz: 2, x: 0, ay: 0, z: 0, yaw: 0,
+    st: 0, t: 0, cd: 0, rise: 0, emerge: 1, hit: 0, gone: 0, slamT: 0, state: 0, init: 0,
+    homeX: 0, homeZ: 0, homeYaw: 0, calm: 0, dawn: 0, emergeT: 1.6, attack: -1,
+    bounds: 0, minX: 0, maxX: 0, minZ: 0, maxZ: 0, scale: 1.18, dmg: 30 };
+  const tick = () => {
+    const answer = program.project('think', fields);
+    for (const key of ['st', 't', 'cd', 'rise', 'emerge', 'hit', 'gone', 'slamT', 'state', 'x', 'z']) {
+      const value = answer[key]; if (value === undefined) throw new Error('Missing species channel'); fields[key] = value;
+    }
+    fields['init'] = 1; return answer;
+  };
+  for (let i = 0; i < 34; i++) tick();
+  expect(fields['rise']).toBe(1); expect(fields['st']).toBe(1);
+  tick(); expect(fields['st']).toBe(2);
+  expect(tick()['start']).toBe(1); expect(fields['st']).toBe(3);
+  fields['attack'] = .6; expect(tick()['strike']).toBe(1); expect(tick()['strike']).toBe(0);
+  fields['attack'] = -1; expect(tick()['cancel']).toBe(1);
+  fields['dawn'] = 1; tick(); expect(fields['st']).toBe(5);
+  for (let i = 0; i < 31; i++) tick();
+  expect(fields['gone']).toBe(1); expect(fields['rise']).toBe(0);
+  const damage = (overrides: Record<string, number>) => program.project('damage', { field: 1, rise: 1, open: 0, range: 0, piercing: 0, crack: 0, ...overrides })['damage'];
+  expect(damage({ rise: .2 })).toBe(.25); expect(damage({ range: 5 })).toBe(.5);
+  expect(damage({ piercing: 1, crack: 1, open: 1 })).toBe(3.125);
+});
+
+test('packed species bodies lend owned indexed geometry for every family', () => {
+  for (const def of NALATI_DEFINITIONS) {
+    const variant = def.variants[0]; if (variant === undefined) throw new Error('Missing species variant');
+    const first = def.build(variant, new Rng(1)), second = def.build(variant, new Rng(1));
+    expect(first.bones.length).toBeGreaterThan(0);
+    const parts = [...first.furParts, ...first.hardParts, ...first.eyeParts], copies = [...second.furParts, ...second.hardParts, ...second.eyeParts];
+    expect(parts.length).toBeGreaterThan(0);
+    for (const [i, part] of parts.entries()) {
+      expect(part).not.toBe(copies[i]);
+      const positions = part.getAttribute('position'); expect(positions.count).toBeGreaterThan(0);
+      const indices = part.index; if (indices === null) throw new Error('Missing body indices');
+      expect(Array.from(indices.array).every(index => index < positions.count)).toBe(true);
+      part.dispose(); copies[i]?.dispose();
+    }
+  }
 });

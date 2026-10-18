@@ -2058,3 +2058,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /public/assets/nalati/baked/cover-boulder-1.webp
 /public/assets/nalati/baked/cover-boulder-2.webp
 /public/assets/nalati/baked/cover-boulder-3.webp
+
+# Nalati species build outputs.
+/src/shards/nalati-grasslands/data/species.generated.json
+/public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin

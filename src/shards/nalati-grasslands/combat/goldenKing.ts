@@ -20,8 +20,7 @@ import type { Bow } from '@wildshard/game/weapons/Bow';
 import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KurganEntrance } from '../world/types';
-import { GOLDEN_KING, bindGoldenKing } from '../species/rows';
-import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
+import { GOLDEN_KING, bindGoldenKing, BALBAL as KURGAN_BALBAL } from '../species/rows';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
@@ -751,4 +750,3 @@ export class KurganBoss {
 export function wireKurgan(ctx: KurganCtx): KurganBoss { return new KurganBoss(ctx).build(); }
 /** `wireKurgan`, its hidden static interior built a task apart per part (SF67: the load's long task) */
 export function wireKurganSliced(ctx: KurganCtx, yieldTask: () => Promise<void>): Promise<KurganBoss> { return new KurganBoss(ctx).buildSliced(yieldTask); }
-

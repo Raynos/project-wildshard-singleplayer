@@ -67,13 +67,21 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
+const { prepareNalatiSpecies } = await import('../src/shards/nalati-grasslands/species/presentation');
 const { installNalatiSpeciesForTests, prepareGoldenKing } = await import('../src/shards/nalati-grasslands/species/rows');
 prepareGoldenKing((await import('../src/shards/nalati-grasslands/data/goldenKingPose.generated.json')).default.programs);
+const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
+await prepareNalatiSpecies(speciesPresentation.presentation, Object.values(speciesPresentation.poses).flatMap(pose => pose.programs), Uint8Array.from(speciesPresentation.crackBytes));
 installNalatiSpeciesForTests();
-// Nalati's species bodies are an offline bake the page fetches: tests read the committed file (species/bodies.ts)
-const { provideNalatiBodies } = await import('../src/shards/nalati-grasslands/species/bodies');
+// Production uses the packed-body host; preload its exact binary through its normal fetch port.
+const { preloadNalatiBodies } = await import('../src/shards/nalati-grasslands/species/presentation');
+const speciesBodies = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default.packedBodies;
+const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
+  if (input !== speciesBodies.file) throw new Error('Unexpected packed-body preload');
+  return Promise.resolve(new Response(new Uint8Array(readFileSync(`public${speciesBodies.file}`))));
+});
+try { await preloadNalatiBodies(); } finally { bodyFetch.mockRestore(); }
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
-provideNalatiBodies(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')))));
 // and its camps' and bridge's places bake (world/placeBake.ts)
 const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shards/nalati-grasslands/world/places');
 provideNalatiPlaces(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));

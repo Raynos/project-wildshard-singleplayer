@@ -13,7 +13,7 @@ import * as THREE from 'three';
 
 import { thinkHorse, actHorse, horseDamageMul } from '../runtime/groupDispatch';
 
-import { nalatiBody } from './bodies';
+import { nalatiBody } from './presentation';
 import { wildEnv } from '../creatures/env';
 
 /**

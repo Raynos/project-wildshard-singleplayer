@@ -1,3 +1,4 @@
+import { prepareNalatiSpecies } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareSabre } from './weapons/mountedSword';
 import { prepareSpear } from './weapons/javelinSpear';
@@ -90,6 +91,8 @@ export class NalatiPlugin extends ShardPlugin {
     shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
     if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
+    const actorRows = await ctx.product.json<{ species: unknown }>('actors/sheep.json');
+    await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     await prepareStormTitan(ctx.product);
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));

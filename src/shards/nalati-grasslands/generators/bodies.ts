@@ -1,8 +1,8 @@
 import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
-import bodyRows from '../data/bodies.json' with { type: 'json' };
+import rowsJson from '../data/bodies.json' with { type: 'json' };
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { AnimalDims, AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { buildHorse } from './horseBody';
 import { buildCanid } from './canidBody';
 import { buildFelid } from './leopardBody';
@@ -15,7 +15,7 @@ import { KOKBORI_SPECIES } from '../species/kokbori';
 import { GHOSTRIDER_SPECIES } from '../species/ghostRider';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { EAGLE_SPECIES } from '../species/eagle';
-import { BALBAL_SPECIES } from '../species/balbal';
+import { BALBAL_SPECIES } from '../species/rows';
 import { argymaqDefinition } from '../combat/eliteRoster';
 import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRow, type BodyRows } from '../species/bodyKey';
 
@@ -102,9 +102,27 @@ export function bakeNalatiBodies(): { rows: Omit<BodyRows, 'bin' | 'bytes'>; bin
   return { rows: { bodies }, bin };
 }
 
+const tuple3 = (p: readonly number[]): [number, number, number] => [p[0] ?? 0, p[1] ?? 0, p[2] ?? 0];
+/** a body's capsule axis as its type (the upright rigs': the Golden King, the balbals) */
+const capsuleAxis = (axis: string | undefined): Pick<AnimalDims, 'capsuleAxis'> => {
+  if (axis === undefined) return {};
+  if (axis !== 'y' && axis !== 'z') throw new Error(`[nalati-grasslands] a baked body's capsule axis is ${axis}`);
+  return { capsuleAxis: axis };
+};
+/** The rows as their types: the bones' and feet's JSON arrays as the tuples the lofts made. */
+export const NALATI_BODY_ROWS: BodyRows = {
+  bin: rowsJson.bin, bytes: rowsJson.bytes,
+  bodies: rowsJson.bodies.map((b) => {
+    const { capsuleAxis: axis, ...dims } = b.dims;
+    return { key: b.key, bones: b.bones.map((x) => ({ name: x.name, parent: x.parent, pos: tuple3(x.pos) })),
+      dims: { ...dims, feet: dims.feet.map((f): [number, number] => [f[0] ?? 0, f[1] ?? 0]), ...capsuleAxis(axis) }, fur: b.fur, hard: b.hard, eye: b.eye };
+  }),
+};
+
+
 /** Native taming joints derived offline through the existing body/variant bake owner. */
 export const tamingPoses = HORSE_SPECIES.variants.flatMap(variant => {
-  const body = bodyRows.bodies.find(row => row.key === bodyKey('horse', variant));
+  const body = NALATI_BODY_ROWS.bodies.find(row => row.key === bodyKey('horse', variant));
   if (body === undefined || body.bones.length > 32) throw new Error('Missing taming horse hierarchy');
   const pose: NativeCreaturePoseRecipe = { custom: false, deathSplay: false,
     ...(HORSE_SPECIES.gait === undefined ? {} : { gait: HORSE_SPECIES.gait }),
@@ -114,10 +132,11 @@ export const tamingPoses = HORSE_SPECIES.variants.flatMap(variant => {
       if (bone.parent !== null && (parent < 0 || parent >= index)) throw new Error('Taming joints must follow parent order');
       const at = body.bones[parent]?.pos;
       return { name: bone.name, parent,
-        position: [(bone.pos[0] ?? 0) - (at?.[0] ?? 0), (bone.pos[1] ?? 0) - (at?.[1] ?? 0), (bone.pos[2] ?? 0) - (at?.[2] ?? 0)],
+        position: [bone.pos[0] - (at?.[0] ?? 0), bone.pos[1] - (at?.[1] ?? 0), bone.pos[2] - (at?.[2] ?? 0)],
         order: 'XYZ', scale: [1, 1, 1] };
     }) };
   const entries = [{ kind: 'horse', variant: variant.id, pose }];
   if (variant.id === 'stallion') entries.push({ kind: 'argymaq', variant: variant.id, pose });
   return entries;
 });
+

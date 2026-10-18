@@ -8,7 +8,7 @@ import type { NalatiGroups } from './groups';
 import type { NalatiHostCreatures } from './headlessCreatures';
 import type { NalatiMountedPlayer } from './headlessMounted';
 import { NalatiTamingLaw } from './tamingLaw';
-import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
+import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { WildEnv } from '../creatures/env';
@@ -38,12 +38,11 @@ export function installNalatiTaming(host: SimHost, ports: {
   if (installed.has(host)) throw new Error('Nalati taming already installed');
   let bond: '1' | 'argymaq' | null = null, pitch = 0, offer = false, lean = 0, shake = 0, roll = 0;
   const camera = new Vector3(), eye = new Vector3(), hurtDir = new Vector3();
-  const poses = new Map<string, NativeCreaturePose>(), poseRows: { actor: AnimalSim; pose: NativeCreaturePose }[] = [];
+  const poses = createNativeCreaturePoses(ports.poses, 64), poseRows: AnimalSim[] = [];
   const addPose = (a: AnimalSim): void => {
-    if (poses.size >= 64 || poses.has(a.entityId) || (a.kind !== 'horse' && a.kind !== 'argymaq')) throw new Error('Invalid Nalati taming pose roster');
-    const recipe = ports.poses.find(row => row.kind === a.kind && row.variant === a.variant)?.pose;
-    if (recipe === undefined) throw new Error('Missing admitted taming pose recipe');
-    const pose = new NativeCreaturePose(a, recipe); pose.publish(); poses.set(a.entityId, pose); poseRows.push({ actor: a, pose });
+    if (poseRows.length >= 64 || poses.get(a.entityId) !== undefined || (a.kind !== 'horse' && a.kind !== 'argymaq')) throw new Error('Invalid Nalati taming pose roster');
+    poses.binding.preflight(a); poses.binding.attach(a, { id: a.entityId, kind: a.kind, variant: a.variant });
+    const pose = poses.get(a.entityId); if (pose === undefined) throw new Error('Missing taming pose'); pose.publish(); poseRows.push(a);
     a.headWorld = out => { pose.headWorld(out); return out; };
     // Manager samples pose terrain before its own decision, never at a second independent clock.
     const managed = ports.creatures.bodies.find(body => body === a); if (managed === undefined) throw new Error('Foreign Nalati taming body');
@@ -66,7 +65,7 @@ export function installNalatiTaming(host: SimHost, ports: {
     spawnBonded: (x, z, yaw, argymaq) => { const a = ports.creatures.spawnBondedHorse(x, z, yaw, argymaq); addPose(a); return a; },
     hideStallion: a => { ports.creatures.hideTamedStallion(a); }, retireBonded: a => {
       ports.creatures.retireBondedHorse(a); poses.delete(a.entityId);
-      const at = poseRows.findIndex(row => row.actor === a); if (at === -1) throw new Error('Missing bonded pose'); poseRows.splice(at, 1);
+      const at = poseRows.indexOf(a); if (at === -1) throw new Error('Missing bonded pose'); poseRows.splice(at, 1);
     }, hurt: amount => {
       host.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: host.player.health, amount, throughWalls: true,
         point: host.player.position, dir: hurtDir, cause: { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' } });
@@ -130,20 +129,21 @@ export function installNalatiTaming(host: SimHost, ports: {
   host.onStep('nalati.taming', () => {
     for (let i = 0; i < 64; i++) {
       const row = poseRows[i]; if (row === undefined) break;
-      const bodyDt = host.bodyDt(row.actor.entityId); if (bodyDt <= 0) continue;
-      const near = row.actor.position.distanceToSquared(host.player.position) < 140 * 140;
-      row.pose.advance(bodyDt, host.clock.now, near); if (near) ports.animate(row.pose.context); row.pose.publish();
+      const pose = poses.get(row.entityId); if (pose === undefined) throw missingPose;
+      const bodyDt = host.bodyDt(row.entityId); if (bodyDt <= 0) continue;
+      const near = row.position.distanceToSquared(host.player.position) < 140 * 140;
+      pose.advance(bodyDt, host.clock.now, near); if (near) ports.animate(pose.context); pose.publish();
     }
   }, {
-    snapshot: (): SimValue => ({ version: 1, law: law.snapshot(), bond, pitch, shake, roll, poses: [...poses].map(([id, pose]) => [id, pose.snapshot('local')]) }),
+    snapshot: (): SimValue => ({ version: 1, law: law.snapshot(), bond, pitch, shake, roll, poses: poseRows.map(actor => { const pose = poses.get(actor.entityId); if (pose === undefined) throw missingPose; return [actor.entityId, pose.snapshot('local')]; }) }),
     restore: value => {
       const saved = v.parse(Saved, value);
-      if (saved.poses.length !== poses.size || new Set(saved.poses.map(([id]) => id)).size !== poses.size) throw new Error('Invalid Nalati taming pose identities');
+      if (saved.poses.length !== poseRows.length || new Set(saved.poses.map(([id]) => id)).size !== poseRows.length) throw new Error('Invalid Nalati taming pose identities');
       for (let i = 0; i < 64; i++) { const row = saved.poses[i]; if (row === undefined) break; const [id, wire] = row; const pose = poses.get(id); if (pose === undefined) throw missingPose; pose.restore(wire); }
       law.restore(saved.law, ports.creatures.bodies.filter(a => a.kind === 'horse' || a.kind === 'argymaq'));
       bond = saved.bond; pitch = saved.pitch; shake = saved.shake; roll = saved.roll;
     },
   }, 'afterBodies');
-  host.scope.onDispose(() => { poses.clear(); poseRows.length = 0; installed.delete(host); });
+  host.scope.onDispose(() => { for (let i = 0; i < 64; i++) { const actor = poseRows[i]; if (actor === undefined) break; poses.delete(actor.entityId); } poseRows.length = 0; installed.delete(host); });
   installed.set(host, law); return law;
 }

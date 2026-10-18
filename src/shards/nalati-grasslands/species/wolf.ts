@@ -1,15 +1,14 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { engineString } from '@wildshard/engine/strings';
 
-import * as THREE from 'three';
 
 
 
 
-import { nalatiBody } from './bodies';
+import { nalatiBody, poseNalatiCreature } from './presentation';
 import { thinkWolf, actWolf } from '../runtime/groupDispatch';
 
 /**
@@ -55,52 +54,7 @@ export const SHEEPDOG_VARIANTS: VariantDef[] = [{ id: 'collie', label: engineStr
  */
 export const buildCanid = (v: VariantDef): AnimalSpecies => nalatiBody('canid', v);
 
-const _e = new THREE.Euler();
-
-/**
- * The canid's own motion on top of Animal.ts' quadruped pose (SpeciesDef.postPose): the stalking crouch, the snarl,
- * the lunge (coil → spring → snap), the howl, the jaw, the brush swinging behind.
- */
-export function canidPostPose(c: RigAnimCtx): void {
-  const b = c.bones;
-  const body = b['body'], n1 = b['neck1'], n2 = b['neck2'], head = b['head'], jaw = b['jaw'], t1 = b['tail'], t2 = b['tail2'];
-  if (body === undefined || n1 === undefined || n2 === undefined || head === undefined || jaw === undefined || t1 === undefined || t2 === undefined) return;
-  const m = c.mem;
-  if (!c.alive) { jaw.rotation.x = 0.25 * smooth01(Math.max(0, c.deathT)); return; }
-  const low = clamp(m['low'] ?? 0, 0, 1), snarl = clamp(m['snarl'] ?? 0, 0, 1), howl = clamp(m['howl'] ?? 0, 0, 1);
-  const a = c.attack;
-  // the lunge: coil (body drops, head low) → spring (body pitches up, forelegs reach) → snap (jaw)
-  const coil = a >= 0 ? bump(a, 0, 0.42) : 0, spring = a >= 0 ? bump(a, 0.3, 0.8) : 0, snap = a >= 0 ? bump(a, 0.62, 1) : 0;
-  const crouch = Math.max(low * 0.7, coil);
-  body.position.y += -0.12 * crouch - 0.02 * snarl + 0.28 * spring * spring;   // the spring leaves the ground
-  body.rotation.x += 0.06 * crouch - 0.22 * spring;
-  // head: level and forward when stalking, thrown back to howl
-  n1.rotation.x += 0.25 * crouch - 0.9 * howl;
-  n2.rotation.x += 0.08 * crouch - 0.35 * howl;
-  head.rotation.x += -0.2 * crouch - 0.5 * howl - 0.25 * spring;
-  // forelegs reach during the spring
-  for (const s of ['L', 'R'] as const) {
-    const sh = b[`F${s}_shoulder`], ca = b[`F${s}_carpus`];
-    if (sh !== undefined) sh.rotation.x -= 0.9 * spring;
-    if (ca !== undefined) ca.rotation.x += 0.3 * spring + 0.35 * crouch;
-    const hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`];
-    if (hp !== undefined) hp.rotation.x += 0.35 * crouch - 0.4 * spring;
-    if (stf !== undefined) stf.rotation.x -= 0.3 * crouch;
-  }
-  // jaw: a crack open when snarling, wide in the howl, a snap at the bite, the odd pant at speed
-  const pant = c.speed > 3 ? 0.12 + 0.06 * Math.sin(c.t * 9 + c.seed * 5) : 0.02 * Math.max(0, Math.sin(c.t * 0.9 + c.seed * 3));
-  jaw.rotation.x = Math.max(pant, 0.22 * snarl, 0.6 * howl, 0.55 * snap);
-  // ears flat for the snarl and the lunge
-  const flat = Math.max(snarl, coil, spring) * 0.9;
-  const eL = b['earL'], eR = b['earR'];
-  if (eL !== undefined) eL.rotation.x += flat * 0.9;
-  if (eR !== undefined) eR.rotation.x += flat * 0.9;
-  // the brush: low and straight when stalking, streaming at a run, a slow lagging swing
-  const run = clamp((c.speed - 4) / 5, 0, 1);
-  t1.rotation.x += 0.25 * run - 0.25 * low + 0.35 * howl * 0;
-  _e.set(0.35 * run + 0.1 * Math.sin(c.t * 1.3 + c.seed), 0, 0.22 * Math.sin(c.phase * Math.PI * 2 - 0.9) * (0.4 + run) + 0.08 * Math.sin(c.t * 0.8 + c.seed * 2));
-  t2.rotation.copy(_e);
-}
+export function canidPostPose(c: RigAnimCtx): void { poseNalatiCreature(c.alive ? 'canid' : 'canidDead', c); }
 
 export const WOLF_SPECIES: SpeciesDef = {
   ...ecology.gameplay.wolf,
