@@ -2,7 +2,7 @@
 
 **Running net (fifteenth receipt a3159ab5b, four layers incl. format):** W1 net +40,019 lines, W2 net +7,363 (shard cuts minus platform growth, growth charged once).
 
-**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,101 (target 4,261), DW 3,279 (target 3,433), Sky 313 / Signal 143 (Z1 candidate: 0 / 0), Nalati 19,592, Nine 12,144. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
+**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,101 (target 4,261), DW 3,279 (target 3,433), **Sky 0 / Signal 0** (Z1 af0fee112: both runtimes + HybridRuntimePlugin deleted, net −456 shard, platform +806), Nalati 19,592, Nine 12,144. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6 per platform commit; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns unblocking a red gate/CI/smoke (fix forward or revert, no waiting on the owner).
 
