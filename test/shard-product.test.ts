@@ -115,3 +115,12 @@ test('an entry with no built output refuses every read with the fix', async () =
   expect(refusal(() => p.strings(['raised'])).reason).toBe('absent');
   await expect(p.file('models/roc.glb')).rejects.toMatchObject({ reason: 'absent' });
 });
+
+test('named JSON with an authored schema refuses wrong types even on unchecked products', async () => {
+  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { bones: { type: 'array', items: { type: 'string' } } }, required: ['bones'], additionalProperties: false };
+  const files = new Map([['rig.json', { hash: 'b'.repeat(64), url: '/rig.json', jsonSchema }]]);
+  const read = (value: unknown) => product({ files, check: false, read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(value))) }).json<{ bones: string[] }>('rig.json');
+  await expect(read({ bones: ['root'] })).resolves.toEqual({ bones: ['root'] });
+  await expect(read({ bones: [2] })).rejects.toThrow('refuses its schema');
+  await expect(read({})).rejects.toThrow('refuses its schema');
+});

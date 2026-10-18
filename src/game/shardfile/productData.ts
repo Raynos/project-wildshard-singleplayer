@@ -9,6 +9,7 @@ export function shardProductData(source: Shardfile, base: string, read: (hash: s
   const files = new Map(descriptor?.index.files.flatMap(file => file.name === undefined ? [] : [[file.name, {
     hash: file.commons === true ? `commons:${file.hash}` : file.hash,
     url: outputBlobUrl(source, file.commons === true ? `commons:${file.hash}` : file.hash, base),
+    ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }),
   }] as const]));
   // Native APIs may supply an already checked in-memory Shardfile. This does
   // not read an older disk format or fabricate custom sections/logical names.

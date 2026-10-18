@@ -9,11 +9,13 @@ export function namedBlobOutput(project, label, directory = 'assets') {
   if (!/^assets(?:\/[A-Za-z0-9_-]+)*$/u.test(directory) || directory.length > 120) throw new Error('Invalid blob source directory');
   const writer = byteWriter(process.argv.includes('--check'), label), rows = new Map(), aliases = new Map();
   return {
-    add(name, kind, bytes, url, script) {
-      const blob = nameBlob(name, kind, bytes, script === undefined ? {} : { script }), old = rows.get(blob.file.hash);
+    add(name, kind, bytes, url, script, jsonSchema) {
+      const options = { ...(script === undefined ? {} : { script }), ...(jsonSchema === undefined ? {} : { jsonSchema }) };
+      const blob = nameBlob(name, kind, bytes, options), old = rows.get(blob.file.hash);
       if (old !== undefined && old.kind !== kind) throw new Error('Blob source changes kind');
       if (old !== undefined && JSON.stringify(old.options?.script) !== JSON.stringify(blob.script)) throw new Error('Blob source changes script contract');
-      const row = old ?? { name, kind, source: `${directory}/${blob.file.hash}`, ...(blob.script === undefined ? {} : { options: { script: blob.script } }) };
+      if (old !== undefined && JSON.stringify(old.options?.jsonSchema) !== JSON.stringify(blob.file.jsonSchema)) throw new Error('Blob source changes JSON schema');
+      const row = old ?? { name, kind, source: `${directory}/${blob.file.hash}`, ...(Object.keys(options).length === 0 ? {} : { options }) };
       if (old === undefined && [...rows.values()].some(value => value.name === name)) throw new Error('Duplicate logical blob source name');
       if (url !== undefined && aliases.has(url) && aliases.get(url) !== row.name) throw new Error('Blob URL changes content');
       rows.set(blob.file.hash, row);

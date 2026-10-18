@@ -54,3 +54,19 @@ test('producer Wasm contracts survive generated declarations and source readmiss
     expect(prepared.blobs[0]?.script).toEqual({ abi: 0 });
   } finally { rmSync(project, { recursive: true }); }
 });
+
+test('producer JSON schemas survive source declarations and readmission', async () => {
+  mkdirSync(resolve('tmp'), { recursive: true });
+  const project = mkdtempSync(resolve('tmp/blob-output-schema-')), root = pathToFileURL(`${project}/`);
+  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'number' };
+  try {
+    const output = namedBlobOutput(root, 'schema-source-test');
+    output.add('data/n.json', 'json', new TextEncoder().encode('1'), undefined, undefined, jsonSchema);
+    output.finish(new URL('blobs.json', root));
+    const metadata: unknown = JSON.parse(readFileSync(new URL('blobs.json', root), 'utf8'));
+    if (typeof metadata !== 'object' || metadata === null || !('blobs' in metadata)) throw new Error('Missing generated declarations');
+    const prepared = await prepareProjectOutput(project, { blobs: metadata.blobs });
+    expect(prepared.blobs[0]?.file.jsonSchema).toEqual(jsonSchema);
+    expect(() => output.add('data/bad.json', 'json', new TextEncoder().encode('"bad"'), undefined, undefined, jsonSchema)).toThrow('refuses its schema');
+  } finally { rmSync(project, { recursive: true }); }
+});

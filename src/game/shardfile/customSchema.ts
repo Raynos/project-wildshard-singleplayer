@@ -2,7 +2,8 @@ import Ajv from 'ajv';
 import { isJsonData } from '@wildshard/format/json';
 
 /** Check authored draft-07 schemas without coercion, defaults, property removal,
- * remote references or async validation. Shared by build and load admission. */
+ * remote references or async validation. Runtime counterpart of SDK section
+ * admission, using the same pinned Ajv policy without a build dependency. */
 export function validateCustomSchema(schema: unknown, value: unknown): unknown {
   if (!isJsonData(schema) || typeof schema !== 'object' || schema === null
     || !('$schema' in schema) || schema.$schema !== 'http://json-schema.org/draft-07/schema#'

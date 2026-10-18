@@ -51,6 +51,7 @@ function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
   return kind;
 }
 function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContract): void {
+  if (file.jsonSchema !== undefined) validateDefinedSection(jsonBytes(file.jsonSchema), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
   const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
   if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
   const cost = assetCost(legacy,bytes,script);
@@ -131,7 +132,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     emitted.set(path,bytes);
     files.push({hash,kind,path,compressed:bytes.length,decoded:declaration?.decoded ?? pinned?.decoded ?? 0,gpu:declaration?.gpu ?? pinned?.gpu ?? 0,triangles:declaration?.triangles ?? pinned?.triangles ?? 0,draws:declaration?.draws ?? pinned?.draws ?? 0,dependencies:commons ? [] : declaration?.dependencies ?? [],critical:commons ? false : declaration?.critical ?? false,...(commons ? {commons:true as const} : {})});
   }
-  for(const file of files){const named=names.get(file.hash);if(named!==undefined){const {name,...metadata}=named;if(encodeCanonicalJson(metadata)!==encodeCanonicalJson(file))throw new Error('Named blob differs from its admitted declaration');if(name!==undefined)file.name=name;names.delete(file.hash);}}
+  for(const file of files){const named=names.get(file.hash);if(named!==undefined){const {name,jsonSchema,...metadata}=named;if(encodeCanonicalJson(metadata)!==encodeCanonicalJson(file))throw new Error('Named blob differs from its admitted declaration');if(name!==undefined)file.name=name;if(jsonSchema!==undefined)file.jsonSchema=jsonSchema;names.delete(file.hash);}}
   if(names.size>0)throw new Error('Unadmitted named blob');
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,

@@ -7,8 +7,10 @@ import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob } from '../src/sdk/blobs';
 import { mergeProjectBlobs, prepareProjectOutput, projectMirrors } from '../src/sdk/projectOutput';
 import { readProjectAssets, buildProject } from '../src/sdk/project';
-import { validateOutputProduct } from '../src/sdk/outputProduct';
+import { validateOutputProduct, writeOutputProduct } from '../src/sdk/outputProduct';
 import { compileScript } from '@wildshard/sdk/compileScript';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 
 const directories: string[] = [];
 function directory(): string {
@@ -18,6 +20,23 @@ function directory(): string {
 const source = () => emptyShardfile({ slug: 'output-test', name: 'Output', author: 'Test', revision: 1, seed: 3 });
 const binary = new Uint8Array([1, 2, 3]);
 afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true }); });
+
+test('named JSON schemas survive merging and run during disk and runtime validation', async () => {
+  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false };
+  const blob = nameBlob('data/checked.json', 'json', new TextEncoder().encode('{"n":1}'), { jsonSchema });
+  const merged = mergeProjectBlobs(source(), new Map(), [blob]);
+  const path = directory();
+  const index = writeOutputProduct(merged.shard, merged.assets, path, { namedFiles: merged.namedFiles });
+  expect(index.files[0]?.jsonSchema).toEqual(jsonSchema);
+  expect(validateOutputProduct(path).shard).toEqual(merged.shard);
+  expect(await (await loadHeadlessProduct(path)).json<{ n: number }>('data/checked.json')).toEqual({ n: 1 });
+  const file = index.files[0];
+  if (file === undefined) throw new Error('Missing named JSON');
+  file.jsonSchema = { ...jsonSchema, properties: { n: { type: 'string' } } };
+  writeFileSync(resolve(path, 'shard.json'), encodeCanonicalJson(index));
+  expect(() => validateOutputProduct(path)).toThrow('refuses its schema');
+  await expect((await loadHeadlessProduct(path)).json('data/checked.json')).rejects.toThrow('refuses its schema');
+});
 
 test('blob admission charges new content once, preserves conservative declarations/names and owns bytes', () => {
   const blob = nameBlob('models/body.bin', 'bin', binary, { decoded: 100, gpu: 100 });

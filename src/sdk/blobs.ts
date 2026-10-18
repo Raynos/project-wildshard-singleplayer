@@ -4,13 +4,14 @@ import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
+import { validateDefinedSection } from './sections';
 import { compileGltfSource } from './bake/gltfSource';
 import { compressGlb } from './bake/glbCompression';
 
 /** Named assets, including lazily read JSON bakes, occupy kind-specific content-addressed paths. */
 export type NamedBlobKind = OutputFile['kind'];
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
-export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[] }
+export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: Readonly<Record<string, unknown>> }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */
@@ -51,13 +52,18 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
   const bytes = Uint8Array.from(input), suffix = extension(kind, bytes);
   if ((kind === 'bin' || kind === 'json') && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a JSON or binary blob');
   if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
+  if (options.jsonSchema !== undefined) {
+    if (kind !== 'json') throw new Error('JSON schema requires a named JSON blob');
+    validateDefinedSection(new TextEncoder().encode(encodeCanonicalJson(options.jsonSchema)), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  }
   const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes, options.script);
   const costs = { decoded: options.decoded ?? actual.decoded, gpu: options.gpu ?? actual.gpu, triangles: options.triangles ?? actual.triangles, draws: options.draws ?? actual.draws };
   for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) if (!Number.isSafeInteger(costs[key]) || costs[key] < actual[key]) throw new Error('Blob costs cannot understate actual bytes or geometry');
   const dependencies = [...options.dependencies ?? []];
   if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
   const hash = hashImmutableBytes(bytes);
-  const file: OutputFile = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies };
+  const file: OutputFile = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
+    ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(options.jsonSchema) }) };
   outputBlobPath(file);
   return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
 }

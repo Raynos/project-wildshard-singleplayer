@@ -16,7 +16,7 @@ const sectionName = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*\/[a-zA-Z][a-
 const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
 const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
 const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
-const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), commons: v.exactOptional(v.literal(true)) });
+const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
 const runtime = v.strictObject({ ...v.omit(RuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema });
 /** Format 2 inventories every emitted byte except its index and validation receipt. */
 export const OutputIndexSchema = v.strictObject({
@@ -96,6 +96,7 @@ export function parseOutputIndex(input: unknown): OutputIndex {
   const refs = new Set<string>(), logical = new Set<string>();
   for (const entry of index.files) {
     outputBlobPath(entry);
+    if (entry.jsonSchema !== undefined && (entry.kind !== 'json' || entry.name === undefined)) throw new Error('JSON schema requires a named JSON blob');
     const ref = `${entry.commons === true ? 'commons:' : ''}${entry.hash}`;
     if (refs.has(ref)) throw new Error('Duplicate output blob reference'); refs.add(ref);
     if (entry.name !== undefined) { if (logical.has(entry.name)) throw new Error('Duplicate logical blob name'); logical.add(entry.name); }
@@ -144,7 +145,7 @@ export function parseOutputSection(name: string, input: unknown): Record<string,
  * validation receipt may bypass section parsing; untrusted readers use the
  * checked wrapper below, which also parses the complete host model. */
 export function assembleOutputFields(index: OutputIndex, sections: ReadonlyMap<string, unknown>, checkSections = true): Record<string, unknown> {
-  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {entry:index.runtime.entry,...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
+  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {entry:index.runtime.entry,...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {

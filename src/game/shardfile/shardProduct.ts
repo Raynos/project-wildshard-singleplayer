@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
+import { validateCustomSchema } from './customSchema';
 
 /**
  * The runtime data API (SHARD-PLATFORM P2a, spec progress/shard-platform/p2a-runtime-data-api/README.md): what a shard's
@@ -70,7 +71,7 @@ export class ProductError extends Error {
 }
 
 /** One named blob: its content hash (what the reader verifies) and its content-addressed URL. */
-export interface ProductFile { readonly hash: string; readonly url: string }
+export interface ProductFile { readonly hash: string; readonly url: string; readonly jsonSchema?: Readonly<Record<string, unknown>> }
 /** What the loader (browser or Node) gives `createShardProduct`. */
 export interface ShardProductInput {
   readonly slug: string;
@@ -128,7 +129,9 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
   }
   function json<T>(name: string): Promise<T>;
   async function json(name: string): Promise<unknown> {
-    const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.read(named(name).hash)));
+    const file = named(name);
+    const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.read(file.hash)));
+    if (file.jsonSchema !== undefined) validateCustomSchema(file.jsonSchema, decoded);
     return input.check === true ? deepFreeze(decoded) : decoded;
   }
   return {

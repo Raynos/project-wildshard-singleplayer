@@ -21,6 +21,15 @@ const gltf = (uri = 'geometry.bin') => ({ asset: { version: '2.0' }, scene: 0, s
   accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }, { bufferView: 1, componentType: 5123, count: 3, type: 'SCALAR' }] });
 const jsonBytes = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
+test('declared named JSON schemas survive admission and reject malformed values', () => {
+  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false };
+  const blob = nameBlob('data/checked.json', 'json', jsonBytes({ n: 1 }), { jsonSchema });
+  expect(emitNamedBlobs([blob]).files[0]?.jsonSchema).toEqual(jsonSchema);
+  expect(() => nameBlob('data/bad.json', 'json', jsonBytes({ n: 'bad' }), { jsonSchema })).toThrow('refuses its schema');
+  expect(() => nameBlob('data/bad.json', 'json', jsonBytes({}), { jsonSchema })).toThrow('refuses its schema');
+  expect(() => nameBlob('data/raw.bin', 'bin', new Uint8Array([1]), { jsonSchema })).toThrow('JSON schema requires');
+});
+
 test('named blobs derive hash paths/costs, own their bytes and refuse ambiguous or changed entries', () => {
   const source = Uint8Array.from(wasm), blob = nameBlob('behaviour/director.bin', 'bin', source, { critical: true });
   source.fill(255);

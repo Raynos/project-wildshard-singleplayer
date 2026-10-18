@@ -18,6 +18,7 @@ const options = v.strictObject({
   decoded: v.exactOptional(ShardNaturalSchema), gpu: v.exactOptional(ShardNaturalSchema),
   triangles: v.exactOptional(ShardNaturalSchema), draws: v.exactOptional(ShardNaturalSchema),
   script: v.exactOptional(ScriptContractSchema),
+  jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())),
   meshopt: v.exactOptional(v.boolean()), critical: v.exactOptional(v.boolean()), dependencies: v.exactOptional(v.array(v.string())),
 });
 const declaration = v.strictObject({
@@ -138,13 +139,13 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     let overlay: OutputFile;
     if (existing !== undefined) {
       if (existing.kind !== (file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind) || existing.compressed !== blob.bytes.length) throw new Error('Blob kind or size differs from admitted declaration');
-      overlay = nameBlob(name, file.kind, blob.bytes, { ...existing, ...(blob.script === undefined ? {} : { script: blob.script }) }).file;
+      overlay = nameBlob(name, file.kind, blob.bytes, { ...existing, ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }), ...(blob.script === undefined ? {} : { script: blob.script }) }).file;
     } else if (common) {
       const cost = source.requires.commonsCosts[file.hash];
       if (cost === undefined || source.requires.commonsWire[file.hash] !== blob.bytes.length) throw new Error('Blob differs from admitted commons');
-      overlay = { ...nameBlob(name, file.kind, blob.bytes, { ...cost, ...(blob.script === undefined ? {} : { script: blob.script }) }).file, commons: true };
+      overlay = { ...nameBlob(name, file.kind, blob.bytes, { ...cost, ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }), ...(blob.script === undefined ? {} : { script: blob.script }) }).file, commons: true };
     } else {
-      const { name: _name, path: _path, kind, ...metadata } = file;
+      const { name: _name, path: _path, jsonSchema: _schema, kind, ...metadata } = file;
       const added = { ...metadata, kind: kind === 'bin' || kind === 'tile' ? 'binary' as const : kind };
       source.files.push(added); files.set(file.hash, added);
       if (file.critical) {

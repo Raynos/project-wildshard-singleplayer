@@ -2,9 +2,22 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { defineSection, emitDefinedSections, validateDefinedSection } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { validateCustomSchema } from '../src/game/shardfile/customSchema';
 
 const schema = v.strictObject({ label: v.string(), enabled: v.optional(v.boolean(), false), rows: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) });
 const bytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
+
+test('runtime and authoring validators share strict draft-07 refusal semantics', () => {
+  const section = defineSection('custom/probe', schema, { label: 'Camp', rows: [2] });
+  const validateBuild = (value: unknown) => validateDefinedSection(bytes(section.jsonSchema), value);
+  const validateRuntime = (value: unknown) => validateCustomSchema(section.jsonSchema, value);
+  const good = { label: 'Camp', enabled: false, rows: [2] };
+  expect(validateBuild(good)).toEqual(validateRuntime(good));
+  for (const bad of [{ ...good, rows: ['2'] }, { ...good, rows: [-1] }, { ...good, extra: true }, { rows: [] }]) {
+    expect(() => validateBuild(bad)).toThrow();
+    expect(() => validateRuntime(bad)).toThrow();
+  }
+});
 
 test('custom sections emit independently validated canonical files', () => {
   const section = defineSection('custom/example', schema, { label: 'Camp', rows: [2, 3] });

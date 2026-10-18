@@ -12,6 +12,7 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | P1 | Output v2 writer `out/<slug>/` + validator §2.8 1–4 (A); loader adapter + blob URLs (B) | M | sp-x5 (A), sp-x8 (B) | in flight |
 | P2a | Runtime data API `product.section/strings/file` spec + skeleton | S | sp-o258 designs, Codex builds | in flight |
 | P2b | `defineSection`, `schemas/custom/`, named blobs, first W1 platform sections | M | sp-x6 | in flight |
+| G491J | Named-JSON schema remainder (G491/G496): each producer attaches its defining draft-07 `jsonSchema` to every named JSON blob with its next change; loader/disk checks must refuse malformed schema/value. No inferred or permissive schema earns coverage. Producer list below; tooling/format path lands in the switch-point guard task. | M | each component owner on its next producer edit | open |
 | P3 | Runtime copy, `import.meta.glob` registry (carries runtime.files hash), `out/catalog.json` (one-pass regen), level section, code loaders into the registry, async boot (spike first) (review §2, §4, §6). Activation checklist: delete Template's temporary root `manifest.json` and generated discovery bridge; use its emitted `ui/level` from build-time `data/card.ts` | L | sp-x1 | in flight |
 | P4 | Ruler on the output via heavy-lane or the gate's HEAD build, temp dir + rename; drop `runtimeExcludedFolders` and the G445 clause; custom-section count+bytes shrink-only ratchet (review §4, §5) | S | sp-x7 | in flight |
 | S1 / S1b / S2 / S3 | Sky and Signal rewire to sections, play folders into runtime/, private assets into blobs | M / S / S / S | Codex after P1–P3 | open |
@@ -328,3 +329,31 @@ counted as custom code, and shrink-only: no other shard may add one.
 | Exit row | Current home | Retirement | Owner |
 |---|---|---|---|
 | W2 Driftwood sim folder exit | `sim/headless.ts`, `keeper`, `fauna`, `enemyBrains`, `captainEncounter`, `kills`, `baked` | Creatures, brains, the captain and kills become platform spawn / brain rows and KS `.as` scripts (KA5/KA6); the entry becomes the W1 script entry; delete the folder and its legacy entry once it is empty. | W3 |
+
+## G491 named-JSON validation remainder (10-18 switch point)
+
+The wire `files[].jsonSchema` and strict build/disk/`product.json()` checks
+accept an explicit authored draft-07 schema. An absent field is **unvalidated
+named JSON**, not schema coverage. The coordinator split this remainder from
+the guard task: each owner adds its defining schema with its next producer
+change, with a malformed-value refusal test and that shard's official map
+bake when a declared map input changes. Existing custom sections are checked
+at load immediately; the named-JSON debt below remains open. No inferred or
+permissive schemas count, and the sealed count/byte limit still includes all
+these blobs.
+
+Inventory: source `d88331a34`, exact all-10 product build; 329 named JSON
+blobs currently have no wire schema. All paths below are within their
+shard's `generators/` folder. `output.ts` is the final assembly producer,
+including JSON carried by its imported generated blob declarations.
+
+| Shard | Missing blobs | Producers to finish |
+|---|---:|---|
+| Driftwood | 46 | `output.ts` (world, quest, headless, director, pose and catalogue JSON); `bake-cargo-scenes.mjs`, `bake-island-dressing.mjs`, `bake-zipline.mjs` imported scene/placement rows |
+| Pine | 213 | `output.ts` (look, wildlife, quest, director, roster, weather and headless rows); `cabinLivingContribution.ts`, `cabinSceneContribution.ts`, `worldScenes.ts`; `bake-journal.mjs`, `clientBlobs.mjs`, `creatureBlobs.mjs`, `rigBlobs.mjs`, `birdBlobs.mjs` imported catalogues/recipes |
+| Sky (`far-reach`) | 12 | `worldScenes.ts`, `sceneSources.ts` |
+| Signal (`sunscar-dunes`) | 12 | `worldScenes.ts`, `sceneSources.ts`, `skirtScenes.ts` |
+| Nalati | 33 | `output.ts` and its generated dressing, weapons, combat, weather and headless JSON inputs |
+| Nine | 13 | `output.ts`, `signAtlasOutput.ts` and their generated fixed-kit, cast, weapon, atlas and headless inputs |
+
+The four template products have no named JSON debt at this inventory.

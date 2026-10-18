@@ -7695,14 +7695,20 @@ The loader fetches and hash-checks every custom section's emitted draft-07
 schema and validates its value before the first hook, including first-party
 receipts and offline cache reads (G491). Missing or malformed schemas and
 invalid values fail the load. `game/shardfile/customSchema.validateCustomSchema`
-shares the build validator's strict, non-coercing admission with the loader.
+uses the same pinned Ajv policy as the SDK's `validateDefinedSection`: strict
+and non-coercing. Build validators stay in the SDK's authoring-only closure.
 Missing, streamed and absent-product reads keep the normal product refusals.
 Checked products deep-freeze these values; schema-backed reads remain
 available for external or unconverted readers. Immutable product content
 uses this path; saved state still validates at its continuation boundary.
 `ShardProduct.json<T>(name)` reads large build-validated named JSON with
 the same generated types, fatal UTF-8 decoding and verified file reader.
-Its defining schema parses the payload in the generator before emission.
+A producer may declare `BlobOptions.jsonSchema` (canonical draft-07 shape)
+or the matching author blob `options.jsonSchema`; the writer preserves it
+as `files[].jsonSchema`. `nameBlob`, disk admission and `product.json()`
+validate against it without coercion or defaults. The metadata is not part
+of the source asset-cost row. Missing wire schemas remain explicit migration
+debt in SHARD-PLATFORM's G491J queue row; a typed generic alone is no proof.
 
 Build-only `generators/sections.ts` may also declare `FILE_SCHEMAS` for
 immutable `data/` or `boot/` JSON imports. The compiler validates those files
