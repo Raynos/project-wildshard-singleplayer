@@ -1,6 +1,5 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, ShaderMaterial } from 'three';
 import * as v from 'valibot';
-import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
@@ -56,8 +55,8 @@ test('plain scenes refuse collider bindings without actual baked metadata and mi
 test('the admitted product preserves both rest scenes and refuses invalid scene ports', () => {
   admitDriftwoodFixtureRows();
   const rows = driftwoodRows('custom/fixedLayouts');
-  expect(rows.npcScenes).toEqual({castaway:{recipe:parsePrivateScene(CASTAWAY_SCENE),parts:CASTAWAY_PARTS,bindings:CASTAWAY_BINDINGS},
-    trader:{recipe:parsePrivateScene(TRADER_SCENE),parts:TRADER_PARTS,bindings:TRADER_BINDINGS}});
+  expect(rows.npcScenes).toEqual({castaway:{recipe:CASTAWAY_SCENE,parts:CASTAWAY_PARTS,bindings:CASTAWAY_BINDINGS},
+    trader:{recipe:TRADER_SCENE,parts:TRADER_PARTS,bindings:TRADER_BINDINGS}});
   expect(Object.isFrozen(rows.npcScenes.castaway.recipe.nodes)).toBe(true);
   const invalid = structuredClone(rows);
   invalid.npcScenes.trader.recipe.root = 'missing';
