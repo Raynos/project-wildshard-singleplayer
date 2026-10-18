@@ -227,3 +227,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 20:59 · wT:p6 · `python3 - <<'PY' from pathlib import Path p=Path('test/effect-grant-rows.test.ts');s=p.read_text().replace("items.rows.map(row => ({ ...row, equipment: undefined }))", "items.rows.map(row => Object.as`
 - 2026-10-17 21:08 · wT:p6 · `python3 - <<'PY' from pathlib import Path p=Path('.git/c6-items-message');s=p.read_text().replace('src/shards/pine-hollow/runtime/index.ts:229','src/shards/pine-hollow/runtime/index.ts:231');p.write_t`
 - 2026-10-17 22:02 · wT:p6 · `cat > tmp/sp-x6-entry/land.py <<'PY' from pathlib import Path import subprocess,os,json root=Path.cwd();s=root/'tmp/sp-x6-entry';env=os.environ.copy();env['GIT_INDEX_FILE']=str(s/'landing-index') def `
+- 2026-10-17 22:54 · wT:p3 · `GIT_INDEX_FILE="$PWD/tmp/sp-x1-c4/index" SKIP_SWEEPGUARD=1 bash .githooks/pre-commit > tmp/sp-x1-c4/precommit.log 2>&1`
