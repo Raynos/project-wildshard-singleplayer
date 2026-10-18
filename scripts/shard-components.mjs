@@ -52,9 +52,6 @@ const reviewedW2Owners = new Map([
   ['src/game/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
   ['src/engine/models/ownedGeometry.ts', 'C1'],
   // Native geometry admission and owned static batch/specimen buffers.
-  ['src/shards/driftwood-isle/runtime/boot/hibiscusGeometry.ts', 'C1'],
-  ['src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts', 'C1'],
-  ['src/shards/driftwood-isle/runtime/boot/palmGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/boot/reefGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
   ['src/game/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
@@ -91,7 +88,6 @@ const reviewedW2Owners = new Map([
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
   ['src/sdk/kit/mergedPrimitives.ts', 'C1'],
   ['src/engine/physics/box.ts#FloorRect', 'C1'],
-  ['src/shards/driftwood-isle/assets/contracts/pier.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
   ['src/shards/pine-hollow/runtime/kit/caveInterior.ts', 'C1'],
   // Material/rig look decoding and authored appearance rows.
@@ -230,9 +226,8 @@ function runtimeTags(source, path, fallback) {
       // Shared cable construction is quest binding or static rest geometry, not a private mover law.
       const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
         && node.source.value === '@wildshard/sdk/movers';
-      const bindingOwner = path === 'src/shards/driftwood-isle/runtime/models/zipline.ts' ? 'C1'
-        : ['src/shards/pine-hollow/runtime/quest.ts',
-          'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
+      const bindingOwner = ['src/shards/pine-hollow/runtime/quest.ts',
+        'src/shards/driftwood-isle/runtime/quest.ts'].includes(path) ? 'C5' : null;
       const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';
       const owner = admittedBoot ? 'C9' : cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;
       imports.set(spec.local.name, owner);
