@@ -1,6 +1,21 @@
 import * as THREE from 'three';
 import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
-import type { QaraPorts } from '../../../src/shards/nalati-grasslands/runtime/qaraKeeper';
+/** The actual night roster owns these actors, its kill counter and its line/arrow policy. */
+export interface QaraCrew<A extends Animal> {
+  readonly killsTonight: number;
+  readonly spawnLine: (count: 3) => readonly A[];
+  readonly dissolve: (a: A) => void;
+}
+export interface QaraPorts<A extends Animal> {
+  readonly player: { readonly position: THREE.Vector3 }; readonly lair: { readonly x: number; readonly z: number };
+  readonly awareRadius: number; readonly phase2: () => boolean; readonly heightAt: (x: number, z: number) => number;
+  readonly crew: QaraCrew<A> | null; readonly resolve: (id: string) => A | null;
+  readonly lane: { readonly setTime: (t: number) => void; readonly hide: () => void;
+    readonly lane: (x0: number, z0: number, x1: number, z1: number, width: number, alpha: number) => void };
+  readonly hurt: (a: A, amount: number) => void; readonly knock: (dx: number, dz: number) => void;
+  readonly feed: (text: string) => void; readonly sound: (cue: 'horse_squeal', at: THREE.Vector3) => void; readonly signature: () => void;
+}
+
 /** Authenticated shipping method bodies; visual attachment is absent, while lane/crew events stay observable. */
 export class QaraOracle {
   private st: 'wait' | 'circle' | 'wheel' | 'charge' | 'open' | 'home' = 'wait';

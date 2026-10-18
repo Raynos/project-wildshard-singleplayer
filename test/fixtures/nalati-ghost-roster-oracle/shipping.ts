@@ -1,6 +1,27 @@
 import * as THREE from 'three';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import type { GhostRosterMember, GhostRosterPorts } from '../../../src/shards/nalati-grasslands/runtime/ghostRosterKeeper';
+/** Body allocation, line steering and projectile flight have separate real owners. These are the roster's own clocks. */
+export interface GhostRosterMember<A extends AnimalSim> {
+  readonly a: A; readonly quiet: boolean;
+  readonly line: { readonly mode: 'patrol' | 'engage' } | null;
+  fade: number; fadeTarget: number; dying: number; fireT: number; dead: boolean;
+}
+export interface GhostRosterLine<A extends AnimalSim> { readonly riders: readonly GhostRosterMember<A>[] }
+export interface GhostRosterPorts<A extends AnimalSim> {
+  readonly player: { readonly position: THREE.Vector3 };
+  readonly phase: () => string;
+  readonly riders: GhostRosterMember<A>[];
+  readonly lines: GhostRosterLine<A>[];
+  readonly hidden: (a: A) => boolean;
+  readonly random: () => number;
+  readonly spawnLine: () => void;
+  readonly steer: (line: GhostRosterLine<A>, dt: number) => void;
+  readonly shoot: (r: GhostRosterMember<A>) => void;
+  readonly retire: (r: GhostRosterMember<A>) => void;
+  readonly killed: (a: A, killsTonight: number) => void;
+  readonly arrows: (dt: number) => void;
+}
+
 export type Animal = AnimalSim & {hidden: boolean};
 export interface Rider extends GhostRosterMember<Animal> { readonly mats: readonly {fade: {value: number}}[] }
 export interface Line { readonly riders: Rider[] }

@@ -1,6 +1,16 @@
 import * as THREE from 'three';
 import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import type { GhostVolleyPorts } from '../../../src/shards/nalati-grasslands/runtime/ghostVolleyKeeper';
+export interface GhostVolleyPorts<A extends AnimalSim> {
+  readonly player: { readonly position: THREE.Vector3 };
+  /** The real published horse-body socket, before the shipping shoulder offset. Never infer it from feet. */
+  readonly seat: (a: A, out: THREE.Vector3) => void;
+  readonly random: () => number;
+  /** Borrows the two reused vectors; a projectile owner copies them synchronously. */
+  readonly launch: (origin: THREE.Vector3, velocity: THREE.Vector3) => void;
+  readonly resolve: (id: string) => A | null;
+}
+
+
 const ARROW_SPEED = 34, ARROW_G = 5;
 const MIST: readonly [number, number, number] = [0.18, 0.75, 0.85];
 const FLAG_GROW = 1;
