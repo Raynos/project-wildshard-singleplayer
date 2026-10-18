@@ -51,6 +51,7 @@ import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
+import { skinDirection } from '../nodes/skinDirection';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
 import { instanceTransformNode, instanceColourNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
@@ -822,6 +823,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
       case 'instanceOrigin': return { t: 'vec3', n: instanceTransformNode(vec4(0, 0, 0, 1)).xyz };
       case 'instanceColour': return { t: 'vec3', n: instanceColourNode() };
+      case 'skinDirection': return { t: 'vec3', n: skinDirection(new ConvertNode<'vec3'>(one().n, 'vec3')) };
       case 'localToWorldVector': return { t: 'vec3', n: modelWorldMatrix.mul(instanceTransformNode(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 0))).xyz };
       case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };
       case 'cross': { const [x, y] = two(); return { t: 'vec3', n: new MathNode('cross', x.n, y.n) }; }

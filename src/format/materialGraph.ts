@@ -458,6 +458,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // `vertex.offset` is added in (the transpose of the model's 3 × 3 world matrix, unnormalised, as the families do it)
   viewToWorld: { arity: [1, 1], rule: 'dir3', cost: 6, places: MESH },
   // Full local direction through object and instance scale/rotation (no translation).
+  // A custom local direction through the mesh's current skeleton; rigid draws retain it.
+  skinDirection: { arity: [1, 1], rule: 'dir3', cost: 64, places: VERT },
   localToWorldVector: { arity: [1, 1], rule: 'dir3', cost: 8, places: VERT },
   // The renderer's instance tint, or white for an ordinary/uncoloured instance.
   instanceOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },

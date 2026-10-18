@@ -6,13 +6,13 @@
 //
 //   const look = { body: (maps, nrm, rot) => toon(u, maps, nrm, rot), hull: (k) => ink(u, k) };
 //   new FpArmsRig(scene, clips, ROW, contract, bake, { mesh: (o, ud, rig) => dressInkedMesh(o, ud, rig, look, maps), dress });
-import { type BufferGeometry, DoubleSide, Matrix3, Mesh, type Object3D, type ShaderMaterial, SkinnedMesh, type Texture } from 'three';
+import { type BufferGeometry, DoubleSide, Matrix3, Mesh, type Object3D, type Material, SkinnedMesh, type Texture } from 'three';
 import { type FpArmsRig, type FpMeshData, sharedRigMaps } from './fpArmsRig';
 
 /** A rig's two programs: the toon body (a part's maps, normals and asset rotation, or none) and the ink hull at a width factor. */
 export interface InkedRigLook {
-  readonly body: (maps: Texture | null, nrm: Texture | null, assetRot: Matrix3 | null) => ShaderMaterial;
-  readonly hull: (k: number) => ShaderMaterial;
+  readonly body: (maps: Texture | null, nrm: Texture | null, assetRot: Matrix3 | null) => Material;
+  readonly hull: (k: number) => Material;
 }
 
 /** A rig's part maps by name: each part's `[maps, normals]` pair (either may be missing). */
@@ -38,7 +38,7 @@ export function dressInkedMesh(o: Mesh, ud: FpMeshData, rig: FpArmsRig, look: In
 }
 
 /** A body mesh and its ink hull over one geometry under `parent` (the hull drawn first, neither culled); `hullNormals` copies the normals the hull pushes along (`aHullN`). */
-export function addInkedPair(parent: Object3D, g: BufferGeometry, body: ShaderMaterial, hull: ShaderMaterial, hullNormals: boolean): void {
+export function addInkedPair(parent: Object3D, g: BufferGeometry, body: Material, hull: Material, hullNormals: boolean): void {
   if (hullNormals) {
     const nor = g.getAttribute('normal');
     g.setAttribute('aHullN', nor.clone());

@@ -5,7 +5,7 @@ import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import { ClothSheet, StrandTassel } from '../src/shards/nine-dragon-stack/runtime/looks/strandCloth';
 import { Tassel as OriginalTassel, Talisman as OriginalTalisman } from '../src/shards/nine-dragon-stack-legacy/vm/cloth';
 import { TALISMAN, TASSEL } from '../src/shards/nine-dragon-stack/data/cloth';
-import { viewmodelLook } from '../src/shards/nine-dragon-stack/runtime/looks/vmLook';
+import vmRows from '../src/shards/nine-dragon-stack/data/viewmodelUniforms.json' with { type: 'json' };
 import viewmodel from '../src/shards/nine-dragon-stack/data/decals.json' with { type: 'json' };
 import baseline from './fixtures/nine-cloth-buffers.json' with { type: 'json' };
 
@@ -73,15 +73,8 @@ test('separate rigs retain independent mutable cloth buffers', () => {
   expect(a.geo.getAttribute('uv').array).not.toBe(b.geo.getAttribute('uv').array);
 });
 
-test('the shared class table preserves every shader byte and material value', async () => {
-  const look = viewmodelLook(viewmodel.classes);
+test('the held class table retains its authored palette and tuning', () => {
   expect(viewmodel.classes).toEqual(baseline.look.classes);
-  expect(look.PALETTE).toEqual(baseline.look.palette);
-  expect(look.NPAL).toBe(baseline.look.npal);
-  expect(look.VM_PAL).toEqual(baseline.look.vmPalette);
-  expect(look.VM_UNIFORMS).toEqual(baseline.look.uniforms);
-  for (const key of ['VM_VS', 'VM_FS', 'VM_HULL_VS', 'VM_HULL_FS'] as const) {
-    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(look[key])));
-    expect(Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('')).toBe(baseline.look.shaders[key]);
-  }
+  expect(vmRows.uPal.rgbs).toEqual(baseline.look.vmPalette);
+  expect(vmRows).toEqual(baseline.look.uniforms);
 });

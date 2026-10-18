@@ -1,8 +1,10 @@
+import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
 import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
@@ -19,7 +21,7 @@ function renderer(): THREE.WebGLRenderer {
   if (!(result instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
   const fields: Record<string, unknown> = {
     getDrawingBufferSize: (target: THREE.Vector2) => target.set(400, 800), getViewport: (target: THREE.Vector4) => target.set(0, 0, 400, 800),
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
+    extensions: { has: () => false, get: () => null }, getContext: () => ({ getParameter: () => 65536 }), getRenderTarget: () => null,
     toneMapping: THREE.NoToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
     coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
     debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
@@ -28,13 +30,18 @@ function renderer(): THREE.WebGLRenderer {
   return result;
 }
 
-function build(graph: GraphIr, instanced: boolean): { vertex: string; fragment: string } {
+function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: string; fragment: string } {
   const fogGraph = compileGraph(fog['nine-silk-fog'], { trustedBudget: true });
   const compiled = compileGraph(graph, { trustedBudget: true, fog: () => { if (fogGraph.fog === null) throw new Error('Missing silk fog'); return fogGraph.fog; } });
   const geometry = new THREE.PlaneGeometry(1, 1);
-  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
+  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3));
-  const mesh = instanced ? new THREE.InstancedMesh(geometry, compiled.material, 2) : new THREE.Mesh(geometry, compiled.material);
+  if (skinned) {
+    geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(geometry.getAttribute('position').count * 4), 4));
+    geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(Array.from({ length: geometry.getAttribute('position').count * 4 }, (_, i) => i % 4 === 0 ? 1 : 0), 4));
+  }
+  const mesh = skinned ? new THREE.SkinnedMesh(geometry, compiled.material) : instanced ? new THREE.InstancedMesh(geometry, compiled.material, 2) : new THREE.Mesh(geometry, compiled.material);
+  if (mesh instanceof THREE.SkinnedMesh) { const bone = new THREE.Bone(); mesh.add(bone); mesh.bind(new THREE.Skeleton([bone])); }
   if (mesh instanceof THREE.InstancedMesh) { mesh.setMatrixAt(0, new THREE.Matrix4().makeScale(2, 3, 1)); mesh.setColorAt(0, new THREE.Color(1, 0.5, 0.2)); }
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), handler = new EngineNodesHandler();
   scene.fog = new THREE.Fog(0x8899aa, 5, 300); scene.add(mesh); handler.setRenderer(renderer()); handler.renderStart(scene, camera); handler.updateLights([]);
@@ -91,7 +98,7 @@ test('existing uniform handles feed initial colours, texture swaps and Explorer 
   const volume = new THREE.Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1), replacement = volume.clone();
   const shared = { u: { uLinePx: { value: 2.1 }, uShade: { value: new THREE.Color(0.5, 0.6, 0.7) }, uLpVolA: { value: volume } } } as Shared;
   try {
-    const catalogue = Object.fromEntries(Object.entries(graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }]));
+    const catalogue = Object.fromEntries(Object.entries({ ...graphs, 'nine-halo': haloGraph() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }]));
     syncArchitecture(facadeUniforms(shared), catalogue);
     expect(writes.get('nine-facade:uFacadeWash')).toEqual(new THREE.Color(0xe0e3ef).toArray());
     expect(writes.get('nine-windows:uSky')).toEqual(new THREE.Color(0xbcc4d2).toArray());
@@ -101,4 +108,21 @@ test('existing uniform handles feed initial colours, texture swaps and Explorer 
     expect(writes.get('nine-facade:uLinePx')).toBe(3);
     expect(textures.get('nine-architecture:uLpVolA')).toBe(replacement);
   } finally { for (const cleanup of cleanups) cleanup(); for (const material of materials.values()) material.dispose(); volume.dispose(); replacement.dispose(); }
+});
+
+
+test('held toon and hull graphs compile rigid and skinned without adding draws', () => {
+  for (const [id, graph] of Object.entries(viewmodelGraphs())) {
+    expect(Object.keys(graph.nodes).length, id).toBeLessThanOrEqual(4096);
+    expect(new TextEncoder().encode(JSON.stringify(graph)).length, id).toBeLessThanOrEqual(64000);
+    expect(graph.stages.outline, id).toBeUndefined();
+    for (const skinned of [false, true]) {
+      let shader: ReturnType<typeof build>;
+      try { shader = build(graph, false, skinned); } catch (cause) { throw new Error(`${id} skinned=${skinned}`, { cause }); }
+      expect(shader.fragment, id).not.toContain('sRGBTransferOETF');
+      expect(shader.vertex.includes('skinWeight'), id).toBe(skinned);
+      if (id === 'nine-vm-body' && skinned) expect(shader.vertex).toContain('aNs');
+      if (id === 'nine-vm-hull') expect(shader.vertex).toContain('aHullN');
+    }
+  }
 });

@@ -14,7 +14,7 @@ import type { FpArmsRow, Vec3, FpCapsuleEnd } from "../../data/arms";
 //   every frame: rig.update(dt, { speed, walkPhase?, lookVel, gravity });
 import {
   type AnimationAction, type AnimationClip, BufferAttribute, type BufferGeometry, Group, LinearMipmapLinearFilter,
-  Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, type ShaderMaterial, SkinnedMesh, type Texture, TextureLoader,
+  Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, ShaderMaterial, type Material, SkinnedMesh, type Texture, TextureLoader,
   Vector2, Vector3,
 } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -212,7 +212,7 @@ const vec = (at: readonly number[]): Vector3 => new Vector3(at[0] ?? 0, at[1] ??
 /** A first-person arm rig: the GLB's arms on two channels, the pendants, the trail, the framing fit. */
 export class FpArmsRig {
   readonly root = new Group();
-  readonly materials: ShaderMaterial[] = [];
+  readonly materials: Material[] = [];
   readonly moves: Record<string, MoveInfo> = {};
   readonly trail = new BrushTrail();
   /** triangles in the rig's meshes (bodies, hulls) */
@@ -326,7 +326,9 @@ export class FpArmsRig {
 
   /** every material's `uRes` (buffer size) and `uPx` (7 px at the ratio) */
   resizeMaterials(bw: number, bh: number, pr: number): void {
-    for (const m of this.materials) {
+    for (let i = 0; i < Math.min(this.materials.length, 4096); i++) {
+      const m = this.materials[i];
+      if (!(m instanceof ShaderMaterial)) continue;
       const res = m.uniforms['uRes'];
       if (res !== undefined && res.value instanceof Vector2) res.value.set(bw, bh);
       const px = m.uniforms['uPx'];

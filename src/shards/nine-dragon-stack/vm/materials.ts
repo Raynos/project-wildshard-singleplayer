@@ -17,68 +17,62 @@
 // - Built parts keep ruled lines (aFace/aMat.w edge bits); living parts get their outline from the hull's brush.
 // - The hull (inkHullMaterial): back faces pushed out a constant pixel width along an averaged normal; living classes
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
-import { BackSide, DataTexture, Matrix3, ShaderMaterial, type Texture, Vector4 } from 'three';
-import { viewmodelLook } from '../runtime/looks/vmLook';
+import { BackSide, Color, DataTexture, type Material, type Matrix3, Texture, Vector2, Vector3, Vector4 } from 'three';
+import { loadGraphCompiler, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import decalRows from '../data/decals.json' with { type: 'json' };
+import type { VmUniformRows } from './uniformTypes';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
-import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
-const { VM_FS, VM_HULL_FS, VM_HULL_VS, VM_UNIFORMS, VM_VS } = viewmodelLook(decalRows.classes);
+let compiler: GraphCompiler | null = null;
+let vmRows: VmUniformRows | null = null;
+/** Arms may load before the resident world lends its own graphs. */
+export async function prepareVmGraphs(renderer: Renderer): Promise<void> {
+  compiler = await loadGraphCompiler(renderer);
+  vmRows = (await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly vm: VmUniformRows } }>('weapons/jian-row.json')).look.vm;
+}
 
-
-/** the decal atlas: the blade etch strip (top 256 px of 2048) and the fu talisman cell */
 export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
-
-/** The authored Jian atlas, painted at the tier's decal scale. */
 export function decalAtlas(tier: NdTier): Decals {
   const e = decalRows.JIAN_DECAL_UV.etch, f = decalRows.JIAN_DECAL_UV.fu;
   return { tex: paintCanvasAtlas(decalRows.JIAN_DECALS as CanvasAtlasRow, plumbingKnob(slugRuntimeProduct('nine-dragon-stack')?.source.plumbing, tier, 'nine.decalScale', 'number')), etch: new Vector4(e[0], e[1], e[2], e[3]), fu: new Vector4(f[0], f[1], f[2], f[3]) };
 }
-
-
-
-/** the viewmodel program's live uniforms: runtime/looks/vmLook.ts, the silk and the decal atlas */
-export type VmUniforms = UniformsOf<typeof VM_UNIFORMS> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
-
+export type VmUniforms = UniformsOf<VmUniformRows> & { uSilk: { value: Texture }; uDecal: { value: Texture }; uEtch: { value: Vector4 }; uFu: { value: Vector4 } };
 export function vmUniforms(silk: Texture, decals: Decals): VmUniforms {
-  return { uSilk: { value: silk }, uDecal: { value: decals.tex }, uEtch: { value: decals.etch }, uFu: { value: decals.fu }, ...uniformsFrom(VM_UNIFORMS) };
+  if (vmRows === null) throw new Error('Held graph uniforms have not loaded');
+  return { uSilk: { value: silk }, uDecal: { value: decals.tex }, uEtch: { value: decals.etch }, uFu: { value: decals.fu }, ...uniformsFrom(vmRows) };
 }
-
 const BLACK = new DataTexture(new Uint8Array([255, 128, 128, 255]), 1, 1);
 BLACK.needsUpdate = true;
+function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
 
-/**
- * the program; `maps` / `nrm` given = a textured asset (its own material instance sharing every other uniform).
- * (E283, Jake's pick: the lighter viewmodel) one pass: the sleeves and the gauntlet are double-sided and transparent, so
- * three drew their back faces and then their front faces — two passes over a fifth of the phone frame (forceSinglePass
- * only acts on a double-sided material: the parts made double-sided after this keep it)
- */
-export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null): ShaderMaterial {
-  return new ShaderMaterial({
-    forceSinglePass: true,
-    uniforms: {
-      uPal: u.uPal, uSilk: u.uSilk, uDecal: u.uDecal, uEtch: u.uEtch, uFu: u.uFu, uKey: u.uKey, uInk: u.uInk, uLinePx: u.uLinePx,
-      uSutra: u.uSutra, uGold: u.uGold, uEnvHi: u.uEnvHi, uEnvLo: u.uEnvLo, uBladeA: u.uBladeA, uBladeB: u.uBladeB, uSpill: u.uSpill,
-      uTune: u.uTune, uExposure: u.uExposure, uDetail: u.uDetail,
-      uMapsTex: { value: maps ?? BLACK }, uNrmTex: { value: nrm ?? BLACK }, uTexOn: { value: maps === null ? 0 : 1 },
-      uAssetRot: { value: assetRot ?? new Matrix3() },
-    },
-    vertexShader: VM_VS,
-    fragmentShader: VM_FS,
-    vertexColors: true,
-  });
+/** Existing part draws retain independent maps and the rig's live tuning handles. */
+function graphMaterial(id: string, u: VmUniforms, maps: Texture | null, nrm: Texture | null, rotation: Matrix3 | null, width: number): Material {
+  const entry = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials[id];
+  if (compiler === null || entry?.family !== 'graph' || !('graph' in entry)) throw new Error(`Missing held graph ${id}`);
+  const graph = compiler.compileGraph(entry.graph, { trustedBudget: true });
+  const material = graph.material, names = Object.keys(entry.graph.params ?? {}), scratch: number[] = [];
+  const links: Record<string, { readonly value: unknown }> = { ...u, uMapsTex: { value: maps ?? BLACK }, uNrmTex: { value: nrm ?? BLACK }, uTexOn: { value: maps === null ? 0 : 1 }, uHullK: { value: width } };
+  if (rotation !== null) for (const [i, axis] of ['X', 'Y', 'Z'].entries()) graph.setParam(`asset${axis}`, rotation.elements.slice(i * 3, i * 3 + 3));
+  material.onBeforeRender = (_renderer, _scene, camera) => {
+    for (const name of names) {
+      const value: unknown = links[name]?.value;
+      scratch.length = 0;
+      if (value instanceof Color || value instanceof Vector2 || value instanceof Vector3 || value instanceof Vector4) graph.setParam(name, value.toArray(scratch));
+      else if (isTexture(value)) graph.setTexture(name, value);
+      else if (typeof value === 'number') graph.setParam(name, value);
+    }
+    if (names.includes('projection')) { const p = camera.projectionMatrix.elements; graph.setParam('projection', [p[0], p[5], p[10], p[14]]); }
+  };
+  return material;
 }
-
-
-/** the ink hull; `k` scales the width for one group (a fine part such as the tassel wants a thinner line) */
-export function inkHullMaterial(u: VmUniforms, k = 1): ShaderMaterial {
-  return new ShaderMaterial({
-    uniforms: { uRes: u.uRes, uHullPx: u.uHullPx, uInk: u.uInk, uSutra: u.uSutra, uGold: u.uGold, uHullK: { value: k } },
-    vertexShader: VM_HULL_VS,
-    fragmentShader: VM_HULL_FS,
-    side: BackSide,
-  });
+export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null): Material {
+  return graphMaterial('nine-vm-body', u, maps, nrm, assetRot, 1);
+}
+export function inkHullMaterial(u: VmUniforms, k = 1): Material {
+  const material = graphMaterial('nine-vm-hull', u, null, null, null, k); material.side = BackSide; return material;
 }

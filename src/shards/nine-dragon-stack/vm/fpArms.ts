@@ -27,7 +27,7 @@ import { restoreWeave } from '../look/style';
 import * as v from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
-import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms } from './materials';
+import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, prepareVmGraphs } from './materials';
 import { FpArmsRig, type FpArmsRig as FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '../runtime/viewmodel/fpArmsRig';
 import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '../runtime/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
@@ -167,6 +167,9 @@ export class NineDragonArms extends FpArmsRig {
   }
 
   static async load(tier: NdTier = app.render?.tier ?? 'desktop', url = RIG_URL): Promise<NineDragonArms> {
+    const render = app.render;
+    if (render === null) throw new Error('Held graphs require the render service');
+    await prepareVmGraphs(render.renderer);
     const product = await loadFirstPartyProduct('nine-dragon-stack');
     const halo = v.parse(v.strictObject({ geometry: v.unknown(), material: v.record(v.string(), v.unknown()) }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-halo.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const parts = v.parse(v.strictObject({ rows: ClothRows, knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-cloth.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
