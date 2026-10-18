@@ -1,3 +1,5 @@
+import aim from '../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
+import bursts from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the original authored rows before deleting their producers.
 import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
@@ -44,7 +46,7 @@ test('Nine play admits the complete primary/tool set before installing the nativ
   for (const input of INPUT_CONTEXTS.filter(row => row.id === 'weapon.melee')) app.input.register(input, scope);
   const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
-    sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('Item admission reads no scene assets')) });
+    sections: new Map(), files: new Map([['weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' }]]), read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({ portraitFov: 78, aim, bursts }))) });
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
   const primary = new NativeWeapon(readItemEquipment(items, 'weapon.jian')), equipment = new EquipmentService(primary, { scope });
   app.registerEquipment(equipment, scope);

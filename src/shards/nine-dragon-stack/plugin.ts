@@ -1,3 +1,4 @@
+import type { GrappleRows } from './data/grappleTypes';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
@@ -56,7 +57,7 @@ export class NdPlugin extends ShardPlugin {
     await installAudio(ctx);
     const support = v.parse(v.strictObject({ sword: v.unknown(), arms: v.unknown(), material: v.unknown(), tipY: v.number(), baseY: v.number() }),
       JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-support.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
-    const view = v.parse(v.strictObject({ portraitFov: v.number() }), JSON.parse(new TextDecoder().decode(await ctx.product.file('weapons/jian-row.json'))));
+    const view = await ctx.product.json<GrappleRows>('weapons/jian-row.json');
     const item = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
     const profile = v.parse(MeleeWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
     this.profile = profile;
@@ -82,14 +83,14 @@ export class NdPlugin extends ShardPlugin {
       return Promise.resolve({ primary, rifle: null, secondary: null });
     };
   }
-  override play(ctx: ShardContext): Promise<void> {
+  override async play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     const primary = this.primary;
     if (primary === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = bindNineFacts(ctx, this.shell?.play?.progress);
-    const grapple = new FeiZhua(ctx, undefined, facts);
+    const grapple = new FeiZhua(ctx, await ctx.product.json<GrappleRows>('weapons/jian-row.json'), undefined, facts);
     const source = ctx.product.shardfile, items = source.items, tool = grapple.row;
     bindRuntimeEquipment(ctx, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
       [{ id: primary.row.id, weapon: primary, profile: this.profile }]);
@@ -102,7 +103,6 @@ export class NdPlugin extends ShardPlugin {
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     const world = this.shell?.world, slot = this.ndWorld?.portal;
     if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics, source), source, facts);
-    return Promise.resolve();
   }
   /** G224: the portals while they run (captures read them through the shard handle) */
   portals: PortalRide | null = null;

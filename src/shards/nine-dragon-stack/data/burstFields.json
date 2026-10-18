@@ -1,0 +1,26 @@
+{
+  "muzzle": {
+    "name": "fei-zhua:muzzle-flash",
+    "shape": "flake",
+    "count": 1,
+    "life": 0.13
+  },
+  "bite": {
+    "name": "fei-zhua:bite-flash",
+    "shape": "flake",
+    "count": 1,
+    "life": 0.24
+  },
+  "dock": {
+    "name": "fei-zhua:dock-flash",
+    "shape": "flake",
+    "count": 1,
+    "life": 0.12
+  },
+  "sparks": {
+    "name": "fei-zhua:bite-sparks",
+    "shape": "streak",
+    "count": 24,
+    "life": 0.7
+  }
+}

@@ -1,3 +1,7 @@
+import * as v from 'valibot';
+import type { GrappleRows } from '../data/grappleTypes';
+import aim from '../data/grapple.json' with { type: 'json' };
+import bursts from '../data/burstFields.json' with { type: 'json' };
 import { layoutBlobs } from './layoutBlobs';
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
@@ -17,6 +21,10 @@ import { signAtlasBlobs } from './signAtlasOutput';
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
 
+const burstSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
+const effectRows = v.parse(v.strictObject({ muzzle: burstSchema, bite: burstSchema, dock: burstSchema, sparks: burstSchema }), bursts);
+const equipmentRows = { portraitFov: 78, aim, bursts: effectRows } satisfies GrappleRows;
+
 // JSON numbers erase -0; the numeric reviver restores its original float32 sign bit.
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
 const halo = buildHalo(), support = buildSword('wood');
@@ -35,7 +43,7 @@ const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBl
   nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),
-  nameBlob('weapons/jian-row.json', 'json', json({ portraitFov: 78 })),
+  nameBlob('weapons/jian-row.json', 'json', json(equipmentRows), { jsonSchema: { type: 'object', required: ['portraitFov', 'aim', 'bursts'], additionalProperties: false, properties: { portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
   nameBlob('weapons/jian-support.json', 'json', json({ sword: { ...support.sword.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000003' }, arms: { ...support.arms.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000004' }, tipY: support.tipY, baseY: support.baseY, material: { ...material.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000005' } })),
 ]));

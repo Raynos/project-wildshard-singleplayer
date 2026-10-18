@@ -1,3 +1,4 @@
+import { burstGraphs } from './burstGraphs';
 import { streakGraph } from './streakGraph';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
@@ -34,5 +35,5 @@ export default parseShardfile({ ...base, plumbing, budgets, navigation: navigati
   accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: declarations.audio, clientChannels: declarations.clientChannels, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nine-streaks': streakGraph() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nine-streaks': streakGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });

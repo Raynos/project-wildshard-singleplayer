@@ -66,7 +66,7 @@ export function streakGraph(): GraphIr {
   const dash = mul(mul(mix(1, smooth(0.15, 0.75, noise(vec(mul(along, 17), add(mul(x, 2.5), mul(seed, 9))))), mul(sw(vk, 'y'), sub(1, mul(vd, 0.7)))), stria), add(0.72, mul(noise(mul(p, 97)), 0.28)));
   const view = op('normalize', [sub(cam, v(wp))]), fresnel = add(0.3, mul(op('pow', [clamp(sub(1, op('dot', [view, v(n)]))), 3]), 0.7));
   const course = op('floor', [div(sw(p, 'y'), 0.62)]);
-  const h11 = (input: string): string => op('fract', [mul(op('sin', [mul(input, 127.1)]), 43758.5453123)]);
+  const h11 = (input: string): string => { const a = op('fract', [mul(input, 0.1031)]), b = mul(a, add(a, 33.33)); return op('fract', [mul(b, add(b, b))]); };
   const length = add(0.64, mul(h11(add(mul(course, 9.1), 2)), 0.28)), offset = mul(h11(mul(course, 3.7)), 1.1);
   const cx = op('floor', [div(add(sw(p, 'x'), offset), length)]), local = vec(sub(add(sw(p, 'x'), offset), mul(cx, length)), sub(sw(p, 'y'), mul(course, 0.62)));
   const pixelWidth = max(op('fwidth', [p]), [1e-5, 1e-5]), lw = max(min(mul(pixelWidth, 1.1), [0.012, 0.012]), g.p('flagJoint', 'float', 0.004));

@@ -1,3 +1,6 @@
+import { burstGraphs } from '../src/shards/nine-dragon-stack/generators/burstGraphs';
+import { effectField } from '../src/engine/fx/effectField';
+import burstRows from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
@@ -49,5 +52,29 @@ test('wet receivers compile within both caps and retain their plane channels', (
   } finally {
     handler.renderEnd(); for (const mesh of [square, ...stairs]) mesh.geometry.dispose(); compiled.material.dispose();
     for (const cleanup of cleanups) cleanup();
+  }
+});
+
+
+test('grapple bursts use the field clock and hide at their declared lifetimes', () => {
+  const graphs = burstGraphs();
+  for (const [id, row] of Object.entries(burstRows)) {
+    const graph = graphs[`nine-grapple-${id}`];
+    if (graph === undefined) throw new Error('Missing grapple effect graph');
+    if (row.shape !== 'flake' && row.shape !== 'streak') throw new Error('Unexpected burst shape');
+    const compiled = compileGraph(graph, { trustedBudget: true }), field = effectField({ ...row, shape: row.shape }, compiled.material);
+    try {
+      expect(field.object.visible).toBe(false);
+      field.burst(new THREE.Vector3(2, 3, 4), new THREE.Vector3(0, 1, 0), 0.125);
+      expect(field.object.position.toArray()).toEqual([2, 3, 4]);
+      expect(field.geometry.getAttribute('aBurst').getX(0)).toBe(0);
+      field.update(row.life / 2);
+      expect(field.object.visible).toBe(true);
+      expect(field.geometry.getAttribute('aBurst').getX(0)).toBeCloseTo(row.life / 2);
+      field.update(row.life);
+      expect(field.object.visible).toBe(false);
+      expect(graph.budget?.nodes).toBeLessThanOrEqual(4096);
+      expect(JSON.stringify(graph).length).toBeLessThanOrEqual(64000);
+    } finally { field.geometry.dispose(); compiled.material.dispose(); }
   }
 });

@@ -22,7 +22,7 @@ import { ndRuntime } from '../runtime/state';
 import { wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
 import { traverseFeats, type NineFacts } from '../world/feats';
-import FEI_ZHUA_AIM from '../data/grapple.json' with { type: 'json' };
+import type { GrappleRows } from '../data/grappleTypes';
 
 export class FeiZhua extends Tool {
   readonly id = 'tool.fei-zhua' as const;
@@ -35,7 +35,7 @@ export class FeiZhua extends Tool {
   private readonly fact: NineFacts;
   private courseSetter: ((course: GrappleCourse | null) => void) | undefined;
   /** `fact`: where the Well crossing's gameplay fact goes (world/feats.ts; the page's bound ledger) */
-  constructor(shard: ShardContext, course?: GrappleCourse, fact: NineFacts = () => { /* no ledger */ }) { super(FEI_ZHUA_ROW); this.shard = shard; this.course = course; this.fact = fact; }
+  constructor(shard: ShardContext, private readonly rows: GrappleRows, course?: GrappleCourse, fact: NineFacts = () => { /* no ledger */ }) { super(FEI_ZHUA_ROW); this.shard = shard; this.course = course; this.fact = fact; }
   override install(equip: EquipContext): void {
     super.install(equip);
     const host = this.shard.app.equipmentHost;
@@ -51,7 +51,7 @@ export class FeiZhua extends Tool {
     const ports: GrapplePorts = { get physics() { return host.physics; }, get body() { return host.player; } };
     const fact = this.fact;
     const mode = fragment.mode ?? DEFAULT_GRAPPLE_MODE;
-    this.courseSetter = installGrappleAim<GrappleCourse, GrappleTarget, Side, GrappleSim>(host, this.shard, equip.scope, FEI_ZHUA_AIM, {
+    this.courseSetter = installGrappleAim<GrappleCourse, GrappleTarget, Side, GrappleSim>(host, this.shard, equip.scope, this.rows.aim, this.rows.bursts, {
       fragment,
       law: (course, events) => new GrappleSim(ports, course, events),
       visible: (course, eye, hook) => hookVisible(ports, course, eye, hook),

@@ -1,4 +1,4 @@
-import type aim from '../../data/grapple.json';
+import type { GrappleRows } from '../../data/grappleTypes';
 import * as v from 'valibot';
 
 // grappleAim — a grapple tool's aim, line and zip view (SHARD-PLATFORM M3, ex Nine Dragon's grapple/FeiZhua.ts). Nothing
@@ -17,7 +17,7 @@ import * as v from 'valibot';
 //   setCourse(playgroundCourse);   // a playground opens: only its hooks
 //   setCourse(null);               // the caller's own course again
 import {
-  AdditiveBlending, Color, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
+  AdditiveBlending, CustomBlending, OneFactor, ZeroFactor, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { inState } from '@wildshard/engine/app/systems';
@@ -27,9 +27,10 @@ import { playerModes } from '@wildshard/engine/player/modes';
 import type { DiscSpot, TouchRelabel } from '@wildshard/engine/ui/hudSlots';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { Filament, Rope } from '../looks/ropeFilament';
-import { Flash, Sparks } from '../looks/burstFx';
+import { effectField } from '@wildshard/engine/fx/effectField';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 
-type GrappleAimRow = typeof aim;
+type GrappleAimRow = GrappleRows['aim'];
 const hintRow = v.object({ label: v.string(), icon: v.exactOptional(v.string()), tone: v.exactOptional(v.picklist(['rest', 'ready', 'active'])), accent: v.exactOptional(v.string()) });
 const hints = v.object({ rest: hintRow, ready: hintRow, locked: hintRow, zip: hintRow, armed: hintRow, fire: hintRow });
 
@@ -167,7 +168,7 @@ class Pin {
  * Install a grapple tool's aim, line and zip view on the page's equipment host (`ctx`) for as long as `scope` lives; returns
  * the course setter (null: the rules' own course again). The law, its sight / landing tests and its traversal are `rules`'.
  */
-export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleAimTarget, S, L extends GrappleAimLaw<C, T>>(ctx: EquipmentHost, shard: ShardContext, scope: Scope, row: GrappleAimRow, rules: GrappleAimRules<C, T, S, L>): (course: C | null) => void {
+export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleAimTarget, S, L extends GrappleAimLaw<C, T>>(ctx: EquipmentHost, shard: ShardContext, scope: Scope, row: GrappleAimRow, burstData: GrappleRows['bursts'], rules: GrappleAimRules<C, T, S, L>): (course: C | null) => void {
   const fragment = rules.fragment;
   const { min: MIN_RANGE, max: MAX_RANGE, winX: WIN_X, winY: WIN_Y } = rules.reach;
   const { fire: FIRE_TIME, reel: REEL_TIME } = rules.timing;
@@ -206,39 +207,41 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   const ndc = new Vector3();
 
   let time = 0;
-  let muzzleAge = Infinity, biteAge = Infinity, dockAge = Infinity;
+  let biteAge = Infinity;
   let hintShown: TouchRelabel | null | undefined; // the LOCK hint last handed to the touch layer (undefined: none yet)
   const up = new Vector3();
-  const muzzle = new Vector3(), tip = new Vector3();
-  const screen = new Vector2();
-  const muzzleFlash = new Flash(new Color(row.flashes.muzzle));
-  const biteFlash = new Flash(new Color(row.flashes.bite));
-  const dockFlash = new Flash(new Color(row.flashes.dock));
-  const sparks = new Sparks(row.sparks);
-  muzzleFlash.mesh.name = `${row.name}:muzzle-flash`;
-  biteFlash.mesh.name = `${row.name}:bite-flash`;
-  dockFlash.mesh.name = `${row.name}:dock-flash`;
-  sparks.mesh.name = `${row.name}:bite-sparks`;
+  const muzzle = new Vector3(), tip = new Vector3(), screen = new Vector2();
+  const fields = Object.fromEntries(Object.entries(burstData).map(([id, data]) => {
+    const material = lentLook(`nine-grapple-${id}`);
+    material.blending = CustomBlending; material.blendSrc = OneFactor; material.blendDst = OneFactor;
+    material.blendSrcAlpha = ZeroFactor; material.blendDstAlpha = OneFactor; material.depthTest = id === 'sparks';
+    const field = effectField(data, material); field.object.renderOrder = id === 'sparks' ? 11 : 12;
+    scope.own(field.geometry);
+    return [id, field];
+  }));
+  const muzzleFlash = fields['muzzle'], biteFlash = fields['bite'], dockFlash = fields['dock'], sparks = fields['sparks'];
+  if (muzzleFlash === undefined || biteFlash === undefined || dockFlash === undefined || sparks === undefined) throw new Error('Missing grapple burst rows');
+  const bursts = [muzzleFlash, biteFlash, dockFlash, sparks];
   const lockHalo = new Mesh(new RingGeometry(0.18, 0.25, 24), new MeshBasicMaterial({
     color: row.halo, transparent: true, opacity: 0.72, depthWrite: false, side: DoubleSide, blending: AdditiveBlending,
   }));
   lockHalo.name = `${row.name}:lock-halo`;
   lockHalo.visible = false;
   ctx.game.scene.add(lockHalo);
-  ctx.game.scene.add(muzzleFlash.mesh, biteFlash.mesh, dockFlash.mesh, sparks.mesh);
+  ctx.game.scene.add(...bursts.map(field => field.object));
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   // the law (the caller's); the view draws, sounds and animates what it does
   const sim = rules.law(fragment, {
-    fire: () => { muzzleAge = 0; rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
+    fire: () => { muzzleFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
     miss: () => { ctx.toast(row.toasts.miss); },
-    bite: () => { biteAge = 0; rules.cue('bite'); ctx.arms?.playLeft?.('grapple_hold'); },
+    bite: () => { biteAge = 0; biteFlash.burst(sim.target?.hook ?? sim.missEnd, up.set(0, 1, 0), 0); sparks.burst(sim.target?.hook ?? sim.missEnd, up, 0); rules.cue('bite'); ctx.arms?.playLeft?.('grapple_hold'); },
     zip: () => { rules.cue('zip'); },
     reel: () => { rules.cue('reel'); },
-    dock: () => { dockAge = 0; rules.cue('dock'); },
+    dock: () => { dockFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('dock'); },
     release: (active) => {
       if (active) rules.cue('dock');
       tracer.hide(); hideCues();
-      lockHalo.visible = muzzleFlash.mesh.visible = biteFlash.mesh.visible = dockFlash.mesh.visible = sparks.mesh.visible = false;
+      lockHalo.visible = false; for (let i = 0; i < 4; i++) { const field = bursts[i]; if (field !== undefined) field.object.visible = false; }
       ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
     },
   });
@@ -333,9 +336,9 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   }
 
   shard.app.addSystem({ id: row.systems.rope, phase: 'fixed.post', run: (dt) => {
+    for (let i = 0; i < 4; i++) { const field = bursts[i]; if (field !== undefined) field.update(dt); }
     if (sim.phase === 'idle') return;
-    time += dt;
-    muzzleAge += dt; biteAge += dt; dockAge += dt;
+    time += dt; biteAge += dt;
     tipAt();
     const slack = sim.phase === 'fire' ? row.slack.fire : sim.phase === 'reel' ? row.slack.reel : row.slack.hold;
     tracer.step(dt, muzzle, tip, slack);
@@ -443,15 +446,10 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     tipAt();
     tracer.draw(tip, sim.phase === 'fire' || sim.phase === 'miss' || sim.phase === 'reel', biteAge < 0.4 ? 1 - biteAge / 0.4 : -1, time);
     ctx.game.renderer.getDrawingBufferSize(screen);
-    sparks.u.uRes.value.copy(screen);
-    muzzleFlash.mesh.position.copy(muzzle);
-    muzzleFlash.set(muzzleAge / 0.13, 0.34, 0);
-    biteFlash.mesh.position.copy(target?.hook ?? sim.missEnd);
-    biteFlash.set(biteAge / 0.24, 0.75, time * 5);
-    dockFlash.mesh.position.copy(muzzle);
-    dockFlash.set(dockAge / 0.12, 0.2, 0);
-    sparks.update(biteAge, target?.hook ?? sim.missEnd, up.set(0, 1, 0), 0.55);
+    setLentParam('nine-grapple-sparks', 'pixelScale', 3 / Math.max(screen.y * ctx.game.camera.projectionMatrix.elements[5], 1));
+    muzzleFlash.object.position.copy(muzzle);
+    dockFlash.object.position.copy(muzzle);
   } }, scope);
-  scope.onDispose(() => { sim.release(); input.pop('grapple'); });
+  scope.onDispose(() => { sim.release(); input.pop('grapple'); for (let i = 0; i < 4; i++) bursts[i]?.object.removeFromParent(); });
   return setCourse;
 }
