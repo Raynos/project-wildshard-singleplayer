@@ -3,7 +3,7 @@ import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { createNativeHunt, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { NativeManager } from '@wildshard/game/population/nativeManager';
-import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
+import { admitNativeRosterServices, createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import { createNativeCreaturePoses, stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
@@ -184,7 +184,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // fauna adopted by the hunting brain, every body on the native pose roster
   const intake = createNativeCreatureRoster<IslandBody>(host, {
     specs: specs.values(), variants: new Map(roster.variants.map(row => [row.kind, row.rows])),
-    rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', hunt, hunted: [...FAUNA], poses });
+    rng, spawnY: ports.spawnY, attackTurnCap: ATTACK_TURN, heightfield: 'any', services: admitNativeRosterServices(host, ISLAND_STEP, hunt, poses), hunted: [...FAUNA] });
   const entityIds = intake.identities;
   for (let i = 0; i < BODY_COUNT; i++) entityIds.allocate();
   /** a body the roster made: a sailor on a deck keeps the hold's floor under his feet; an enemy takes its shipping policy */
@@ -226,12 +226,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (practice.body === null) throw new Error('Missing practice body');
   }
 
-  /** the manager's own entity ids (EntityIds('creature')): the load-time roster took creature:0–33, each later spawn the next */
-  const allocateId = (): string => entityIds.allocate();
   /** Enemies.placePracticeCrab: a fresh small crab in the practice slot at the pier's foot, facing down the path, a herd of
    *  one, under the manager's next entity id. */
   const replacePractice = (body: IslandBody): void => {
-    join(body, intake.refill(body, allocateId, PRACTICE_AT));
+    join(body, intake.refill(body, PRACTICE_AT));
     // its band clocks start fresh under the new id (host.retire forgot the old one's)
     const i = bodies.indexOf(body); sight[i] = null;
     practice.dead = 0; practice.fade = -1;
@@ -243,9 +241,6 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
   // Reusable native recipe slots are cold-allocated; only host.spawn materializes an entity on a due event.
   const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', 'crab', 'small', -1, { x: 0, z: 0 }, 0));
-  const spawnRandom = (): number => host.rng.stream('spawn').next();
-  const allocated = { id: '', yaw: 0 };
-  const allocateRespawn = (): typeof allocated => { allocated.id = entityIds.allocate(); allocated.yaw = spawnRandom() * Math.PI * 2; return allocated; };
   const queue = new RespawnQueue(roster.ecology.rules, roster.ecology.outOfSight, undefined, ReturnProgram.native(host, roster.ecology.program)), ecology = { now: 0, check: 0 };
   const pendingIds = new Map<(typeof queue.pending)[number], string>();
   host.events.on('actor.died', ({ actor }) => {
@@ -267,7 +262,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (at === null) continue;
       const { x, z } = at;
       if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
-      const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, allocateRespawn);
+      const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, 'spawn');
       draw(body, !FAUNA.has(body.kind));
       if (body.kind === 'sailor') { body.recipe.at.y = bake.holdFloorAt(x, z) ?? heightAt(x, z); join(body, intake.materialize(body, body.recipe, true)); } else place(body);
       if (FAUNA.has(body.kind)) intake.remember(body);

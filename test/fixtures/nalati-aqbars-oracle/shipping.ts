@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
-import type { AqbarsPorts, AqbarsContext as ThinkCtx, AqbarsLedge as Ledge } from '../../../src/shards/nalati-grasslands/runtime/aqbarsKeeper';
+import type { PouncerContext as ThinkCtx, PouncerLedge as Ledge, PouncerPorts } from '../../../src/engine/ai/stalker';
+type AqbarsPorts<A> = Omit<PouncerPorts<A>, 'opened' | 'growl'> & { feed: (text: string) => void; sound: (name: 'leopard_growl', at: THREE.Vector3) => void };
 /** Frozen page decisions, with their native body and authored input/output ports. No renderer stands in for a world. */
 export class AqbarsOracle {
   private st: 'lurk' | 'stalk' | 'tell' | 'leap' | 'open' | 'swipe' | 'perch' | 'home' = 'lurk';

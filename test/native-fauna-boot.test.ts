@@ -1,6 +1,7 @@
+import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native roster runs the actual shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
@@ -38,10 +39,12 @@ test('native adoption preflights identities and complete owned streams before an
   let expectAdopt = (_actor: HuntBody, _x: number, _z: number): void => undefined;
   const adopt = (actor: HuntBody, x: number, z: number): void => { expectAdopt(actor, x, z); effects.push('adopt'); rng.next(); rng.next(); rng.next(); };
   const recipe = SIM_LEVEL.entities[0]; if (recipe === undefined) throw new Error('Missing native recipe');
+  const { hunt, services } = fixtureNativeRoster(host, rng);
+  vi.spyOn(hunt, 'adopt').mockImplementation(adopt);
   const intake = createNativeCreatureRoster(host, { specs: [recipe.spec],
     variants: new Map([[recipe.spec.kind, [{ id: recipe.spec.variant, scale: [1, 1] as const }]]]),
     rng, spawnY: 10, attackTurnCap: 1, hunted: 'every',
-    hunt: { herds: [], addHerd: () => 0, adopt, forget: () => undefined } });
+    services });
   try {
     const body: Parameters<typeof intake.arrive>[0] = intake.body('fauna', recipe.spec.kind, recipe.spec.variant, 0, { x: 8, z: 8 }, 0, [1, 1], { seed: .25, scale: 1 });
     intake.arrive(body);

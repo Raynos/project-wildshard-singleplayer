@@ -11,7 +11,8 @@ import { productRiggedHulls, type RiggedHullAsset } from '@wildshard/sdk/looks/r
 import { modelsOn } from '../world/modelView';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
-import { setDogFlock } from './sheepdogBrain';
+import type { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { setDogFlock } from '../species/sheepdog';
 
 
 /**
@@ -98,10 +99,10 @@ export class Flock extends GroupBrain<SheepPrey> {
 
   static ofDog(dog: Animal): Flock | null { return flockOfDog.get(dog) ?? null; }
   /** make `dog` this flock's sheepdog */
-  setDog(dog: Animal): void {
+  setDog(dog: Animal, author: ReturnProgram): void {
     this.dog = dog; flockOfDog.set(dog, this);
-    // the dog's brain (creatures/sheepdogBrain.ts, the host's too) reads this flock, the living wolves and the app's 'ai' stream
-    setDogFlock(dog, { flock: this, wolves: dogWolves, ai: () => app.rng.stream('ai').next(), bark: (x, z) => { this.onSound?.('dog_bark', x, z); } });
+    // the dog's brain (species/sheepdog.ts, the host's too) reads this flock, the living wolves and the app's 'ai' stream
+    setDogFlock(dog, { flock: this, wolves: dogWolves, rng: app.rng.stream('ai'), bark: (x, z) => { this.onSound?.('dog_bark', x, z); } }, author);
   }
 
   build(): this {

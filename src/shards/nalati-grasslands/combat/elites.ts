@@ -1,7 +1,5 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { AqbarsKeeper } from '../runtime/aqbarsKeeper';
 import { QyranKeeper } from '../runtime/qyranKeeper';
-import { KokboriKeeper } from '../runtime/kokboriKeeper';
 import { ArgymaqKeeper } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
@@ -46,7 +44,7 @@ import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, ty
 
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { bakedActorGeometry } from '../world/placeBake';
-import { argymaqDefinition, eliteRuleHolds } from './eliteRoster';
+import { argymaqDefinition, eliteRuleHolds, NativePouncerKeeper, NativeHowlerKeeper } from './eliteRoster';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { EAGLE_ROCK } = poiLayoutRows;
@@ -176,13 +174,13 @@ abstract class Base extends EliteBrain<Animal> implements EliteScript {
 
 class Aqbars extends Base {
   private readonly ring: GroundTell;
-  private readonly keeper: AqbarsKeeper<Animal>;
+  private readonly keeper: NativePouncerKeeper<Animal>;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.ring = new GroundTell(env.game.scene, 'ring', new THREE.Color(2.4, 0.9, 0.35));
-    this.keeper = new AqbarsKeeper({ player: env.player, lair: def.lair, awareRadius: def.awareR,
+    this.keeper = new NativePouncerKeeper({ player: env.player, lair: def.lair, awareRadius: def.awareR,
       ledges: env.ledges, heightAt, phase2: () => this.p2, isHead, ring: this.ring,
-      hurt: env.hurt, knock: env.knock, feed: env.feed, sound: env.sound, signature: () => { this.sig(); } });
+      hurt: env.hurt, knock: env.knock, opened: () => { env.feed(ecology.profiles.aqbars.opened); }, growl: at => { env.sound('leopard_growl', at); }, signature: () => { this.sig(); } });
   }
   override spawn(): void {
     const c = this.def.lair, a = this.spawnAt(LEOPARD, 'aqbars', c.x, c.z, 0);
@@ -203,12 +201,13 @@ class Aqbars extends Base {
 class Kokbori extends Base {
   private pack: PackController | null = null;
   private readonly rings: GroundTell;
-  private readonly keeper: KokboriKeeper<Animal>;
+  private readonly keeper: NativeHowlerKeeper<Animal>;
   constructor(def: EliteDef, env: Env) {
     super(def, env); this.rings = new GroundTell(env.game.scene, 'ring', new THREE.Color(0.9, 1.15, 1.4));
-    this.keeper = new KokboriKeeper({ player: env.player, lair: def.lair, phase2: () => this.p2, pack: () => this.pack,
+    this.keeper = new NativeHowlerKeeper({ player: env.player, lair: def.lair, phase2: () => this.p2, pack: () => this.pack,
       environment: () => wildEnv, random: () => app.rng.stream('ai').next(), rings: this.rings,
-      hurt: env.hurt, feed: env.feed, sound: env.sound, signature: () => { this.sig(); } });
+      hurt: env.hurt, regrouped: () => { env.feed(ecology.profiles.kokbori.regrouped); }, interrupted: () => { env.feed(ecology.profiles.kokbori.interrupted); },
+      closed: () => { env.feed(ecology.profiles.kokbori.closed); }, howl: at => { env.sound('wolf_howl', at); }, signature: () => { this.sig(); } });
   }
   override spawn(): void {
     const c = this.def.lair, a = this.spawnAt(KOKBORI, 'kokbori', c.x, c.z, Math.PI);

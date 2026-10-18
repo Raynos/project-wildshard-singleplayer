@@ -1,3 +1,4 @@
+import { fixtureNativeRoster } from './fixtures/native-roster';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 import { populationEnvironment } from '../src/game/population/environment';
@@ -8,7 +9,6 @@ import { expect, test } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import type { HuntBody } from '../src/engine/ai/hunt';
 import { Rng, RngService } from '../src/engine/core/rng';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { installPopulationRoster } from '../src/game/population/roster';
@@ -24,9 +24,11 @@ test('native dormant bodies detach from physics and herds, then rematerialize wi
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(17);
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native fixture body');
-  const herd = { members: [] as HuntBody[] };
+  const { hunt, services } = fixtureNativeRoster(host, rng);
+  hunt.addHerd(sample.spec.kind, 0, 0);
+  const herd = hunt.herds[0]; if (herd === undefined) throw new Error('Missing herd');
   const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng, spawnY: 0,
-    hunted: 'every', hunt: { herds: [herd], addHerd: () => 0, adopt: () => undefined, forget: () => undefined } });
+    hunted: 'every', services });
   try {
     const id = intake.identities.allocate(), body: Parameters<typeof intake.arrive>[0] = intake.body(id, sample.spec.kind, sample.spec.variant, 0, { x: 4, z: 4 }, 0, [1, 1], { seed: .25, scale: 1 });
     const actor = intake.arrive(body), before = rng.snapshot();

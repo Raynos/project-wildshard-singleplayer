@@ -178,7 +178,7 @@ export class Wildlife {
       const plan = v.parse(v.object({ ...point.entries, radius: v.number() }), this.placement.project('dogPlan', { x, z }));
       const at = this.spot(plan.x, plan.z, plan.radius), d = this.animals.spawn('sheepdog', at.x, at.z, 0, 'collie');
       d.herd = this.animals.addHerd('sheepdog', x, z);
-      f.setDog(d);
+      f.setDog(d, this.placement);
     }
     this.flocks.push(f);
     return f;

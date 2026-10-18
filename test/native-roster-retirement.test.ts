@@ -1,6 +1,7 @@
+import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native ownership tests use the actual shipped Rapier binary.
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { HuntBrain, type HuntBody } from '../src/engine/ai/hunt';
 import { NativeManager } from '../src/game/population/nativeManager';
@@ -10,40 +11,45 @@ import { BOAR } from '../src/game/systems/species/boar';
 import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
-import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
+import { admitNativeRosterServices, createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 test('native replacement retains the recipe slot, herd/identity order and six spawn draws', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(53), control = new Rng(53);
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing real native recipe');
-  const order: string[] = [], rows: { members: HuntBody[] }[] = [{ members: [] }];
-  const hunt = { herds: rows, addHerd: (kind: string, x: number, z: number): number => {
-    expect(kind).toBe(sample.spec.kind); expect([x, z]).toEqual([8, 8]); order.push('herd'); rows.push({ members: [] }); return rows.length - 1;
-  }, adopt: (): void => { order.push('adopt'); }, forget: (actor: HuntBody): void => {
+  const order: string[] = [], { hunt, services } = fixtureNativeRoster(host, rng), rows = hunt.herds;
+  hunt.addHerd(sample.spec.kind, 8, 8);
+  const addHerd = hunt.addHerd.bind(hunt);
+  vi.spyOn(hunt, 'addHerd').mockImplementation((kind, x, z) => {
+    expect(kind).toBe(sample.spec.kind); expect([x, z]).toEqual([8, 8]); order.push('herd'); return addHerd(kind, x, z);
+  });
+  vi.spyOn(hunt, 'forget').mockImplementation(actor => {
     expect(host.entities.has(actor.entityId)).toBe(true); order.push(`retire:${actor.entityId}`);
-  } };
+  });
   const intake = createNativeCreatureRoster(host, { specs: [sample.spec],
     variants: new Map([[sample.spec.kind, [{ id: sample.spec.variant, scale: [1, 2] as const }]]]),
-    rng, hunt, hunted: 'every', spawnY: 10, attackTurnCap: 1 });
+    rng, services, hunted: 'every', spawnY: 10, attackTurnCap: 1 });
   try {
     const body: Parameters<typeof intake.arrive>[0] = intake.body('old', sample.spec.kind, sample.spec.variant, 0, { x: 8, z: 8 }, 0);
     intake.arrive(body); const original = body.actor, recipe = body.recipe; order.length = 0;
-    const joined = intake.refill(body, () => {
-      expect(rows[0]?.members).toContain(original); expect(body.actor).toBeNull(); expect(host.entities.has('old')).toBe(false); order.push('allocate'); return 'next';
-    }, { x: 8, z: 8 });
+    const allocate = intake.identities.allocate.bind(intake.identities);
+    vi.spyOn(intake.identities, 'allocate').mockImplementation(() => {
+      expect(rows[0]?.members).toContain(original); expect(body.actor).toBeNull(); expect(host.entities.has('old')).toBe(false); order.push('allocate'); return allocate();
+    });
+    const joined = intake.refill(body, { x: 8, z: 8 });
     expect(order).toEqual(['retire:old', 'allocate', 'herd']); expect(rows[1]?.members).toContain(joined); expect(joined).toBe(body.actor);
-    expect(body.recipe).toBe(recipe); expect(body.id).toBe('next'); expect(recipe.id).toBe('next');
+    expect(body.recipe).toBe(recipe); expect(body.id).toBe('creature:0'); expect(recipe.id).toBe('creature:0');
     expect(rows[0]?.members).toEqual([]); expect(rows[1]?.members).toEqual([body.actor]); expect(body.actor).not.toBe(original);
     const scale = control.range(1, 2); control.next(); const seed = control.next(); control.next(); control.next(); control.next();
     expect([recipe.scale, recipe.seed]).toEqual([scale, seed]); expect(rng.snapshot()).toEqual(control.snapshot());
     const before = rng.snapshot(), actor = body.actor; order.length = 0;
     expect(() => intake.retire({ ...body })).toThrow('Foreign');
-    expect(() => intake.refill(body, () => 'bad', { x: Infinity, z: 0 })).toThrow('Invalid');
+    expect(() => intake.refill(body, { x: Infinity, z: 0 })).toThrow('Invalid');
     expect(order).toEqual([]); expect(body.actor).toBe(actor); expect(rng.snapshot()).toEqual(before);
-    expect(intake.retireDead('missing')).toBeNull(); expect(intake.retireDead('next')).toBeNull(); expect(body.actor).toBe(actor);
+    expect(intake.retireDead('missing')).toBeNull(); expect(intake.retireDead('creature:0')).toBeNull(); expect(body.actor).toBe(actor);
     if (actor === null) throw new Error('Missing replacement actor'); actor.alive = false;
-    expect(intake.retireDead('next')).toBe(body); expect(body.actor).toBeNull(); expect(rows[1]?.members).toEqual([]); expect(host.entities.has('next')).toBe(false);
+    expect(intake.retireDead('creature:0')).toBe(body); expect(body.actor).toBeNull(); expect(rows[1]?.members).toEqual([]); expect(host.entities.has('creature:0')).toBe(false);
     expect(() => intake.retire(body)).toThrow('Foreign'); expect(rng.snapshot()).toEqual(before);
   } finally { host.dispose(); }
 });
@@ -59,7 +65,8 @@ test('native continuation resolves real identities and preserves detached ordere
     nav: () => null, reach: () => true, wanderGoal: () => null, unaware: () => false,
     now: () => 0, sound: () => undefined, charge: () => undefined,
   }, host.player.position);
-  const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng, hunt, hunted: 'every', spawnY: 10 });
+  const services = admitNativeRosterServices(host, 'fixture.roster', hunt);
+  const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng, services, hunted: 'every', spawnY: 10 });
   try {
     const body = intake.body('first', sample.spec.kind, sample.spec.variant, 0, { x: 2, z: 3 }, 0, [1, 1]);
     const actor = intake.arrive(body); intake.remember(body);
@@ -86,10 +93,11 @@ test('native admission attaches existing actors and preserves release ordering',
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(37), before = rng.snapshot();
   const recipe = SIM_LEVEL.entities[0]; if (recipe === undefined) throw new Error('Missing native recipe');
-  const members: HuntBody[] = [], observed: unknown[] = [];
-  const hunt = { herds: [{ members }], addHerd: (): number => 0, adopt: (): void => undefined,
-    forget: (actor: HuntBody): void => { observed.push([host.entities.has(actor.entityId), actor.alive, actor.position.y, actor.hidden]); } };
-  const intake = createNativeCreatureRoster(host, { specs: [recipe.spec], variants: new Map(), rng, hunt, hunted: 'every', spawnY: 10 });
+  const observed: unknown[] = [], { hunt, services } = fixtureNativeRoster(host, rng);
+  hunt.addHerd(recipe.spec.kind, 0, 0);
+  const members = hunt.herds[0]?.members;
+  vi.spyOn(hunt, 'forget').mockImplementation(actor => { observed.push([host.entities.has(actor.entityId), actor.alive, actor.position.y, actor.hidden]); });
+  const intake = createNativeCreatureRoster(host, { specs: [recipe.spec], variants: new Map(), rng, services, hunted: 'every', spawnY: 10 });
   try {
     const actor = host.spawn({ ...recipe, id: 'creature:7' });
     const body = intake.body(actor.entityId, actor.kind, actor.variant, 0, actor.position, actor.yaw, [actor.scale, actor.scale], actor);
@@ -132,4 +140,47 @@ test('AS admission preserves placement draws and ordered herd recipes', () => {
   expect(program.project('pack', { elite: 1, packs: 2, groups: 7, variants: 5, bodies: 60 })).toEqual({ accept: 0 });
   expect(program.project('bond', { x: 250, z: -250, bonds: 0, elite: 1 })).toEqual({ accept: 1, scale: 1.3 });
   expect(program.project('bond', { x: 0, z: 0, bonds: 1, elite: 0 })).toEqual({ accept: 0, scale: 0 });
+});
+
+
+test('native roster rows refuse fabricated, foreign and disposed services before effects', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), other = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(19);
+  const { hunt, services } = fixtureNativeRoster(host, rng), before = rng.snapshot();
+  const rows = { specs: [], variants: new Map(), rng, services, hunted: 'every' as const, spawnY: 0 };
+  try {
+    const fake = { herds: [], adopt: () => { rng.next(); }, forget: () => undefined, addHerd: () => 0 };
+    expect(() => { Reflect.apply(admitNativeRosterServices, undefined, [host, 'fabricated', fake]); }).toThrow('built-in');
+    expect(() => { Reflect.apply(admitNativeRosterServices, undefined, [host, 'fabricated.pose', hunt, { binding: fake }]); }).toThrow('built-in');
+    expect(() => admitNativeRosterServices(host, services, hunt)).toThrow('Duplicate');
+    expect(() => createNativeCreatureRoster(other, rows)).toThrow('Missing');
+    expect(() => createNativeCreatureRoster(host, { ...rows, services: 'missing' })).toThrow('Missing');
+    expect(host.entities.size).toBe(0); expect(rng.snapshot()).toEqual(before);
+    host.dispose();
+    expect(() => createNativeCreatureRoster(host, rows)).toThrow('Missing');
+    expect(() => admitNativeRosterServices(host, 'disposed', hunt)).toThrow('built-in');
+  } finally { if (!host.scope.disposed) host.dispose(); other.dispose(); }
+});
+
+
+test('AS sheepdog retains guard, fetch and rest behaviour on the 10 Hz decision step', () => {
+  const program = ReturnProgram.page(admission), rng = new Rng(241), oracle = new Rng(241);
+  const observed = { px: 0, py: 0, pz: 0, cx: 0, cz: 0, dt: 0.1, bark: 0, rest: 0,
+    wolf: 1, distance: 20, wx: 20, wy: 2, wz: 0, straggler: 0, sx: 0, sy: 0, sz: 0,
+    playerX: 2, playerY: 0, playerZ: 0 };
+  expect(program.project('dog', observed, rng)).toMatchObject({ state: 1, x: 10, z: 0, path: 0.8,
+    speed: 7.5, lookX: 20, lookY: 2, snarl: 1, low: 0.4, emit: 1, bark: 0.5 + oracle.next() * 0.6 });
+  expect(rng.snapshot()).toEqual(oracle.snapshot());
+  const before = rng.snapshot();
+  expect(program.project('dog', { ...observed, wolf: 0, straggler: 1, sx: 20 }, rng)).toMatchObject({
+    state: 2, x: 23.5, z: 0, path: 1, speed: 7.5, snarl: 0, low: 0.8, emit: 0 });
+  expect(program.project('dog', { ...observed, wolf: 0, rest: 4 }, rng)).toMatchObject({
+    state: 0, speed: 0, path: -1, turn: 2, rest: 3.9, emit: 0 });
+  expect(program.project('dog', { ...observed, wolf: 0 }, rng)).toMatchObject({
+    state: 3, speed: 3.4, path: 2, turn: 3, rest: -0.1, emit: 0 });
+  expect(rng.snapshot()).toEqual(before);
+  expect(program.project('restorePack', { herd: 4, expected: 4, variants: 5, elite: 1 })).toEqual({ accept: 1 });
+  expect(program.project('restorePack', { herd: 4, expected: 4, variants: 3, elite: 1 })).toEqual({ accept: 0 });
+  expect(program.project('restoreBody', { id: 35, initial: 35, nextId: 40, retired: 0 })).toEqual({ accept: 1 });
+  expect(program.project('restoreBody', { id: 40, initial: 35, nextId: 40, retired: 0 })).toEqual({ accept: 0 });
 });

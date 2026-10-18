@@ -7,7 +7,7 @@ import { ANIMAL_STATES, type AnimalSim, type AnimalSimSpec } from '@wildshard/en
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { createNativeHunt } from '../plugin/brain';
 import { NativeManager } from './nativeManager';
-import { createNativeCreatureRoster, type NativeCreatureSlot, type NativeRosterSaved } from '../shardfile/homeKeeper';
+import { admitNativeRosterServices, createNativeCreatureRoster, type NativeCreatureSlot, type NativeRosterSaved } from '../shardfile/homeKeeper';
 import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
 import type { SimHost } from '@wildshard/engine/sim';
 
@@ -78,7 +78,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   // over the page's terrain grid (the host's ground), every kind adopted by the hunting brain, no turn cap, a restoring
   // host's saved floor flags
   const intake = createNativeCreatureRoster<NativeCreatureSlot>(host, { specs: [...bake.actors, ...bake.parked].map(row => row.spec), duplicates: 'first',
-    variants: new Map(), rng, spawnY: ports.spawnY, hunt, hunted: 'every', ...(ports.saved === undefined ? {} : { saved: ports.saved }) });
+    variants: new Map(), rng, spawnY: ports.spawnY, services: admitNativeRosterServices(host, rows.step, hunt), hunted: 'every', ...(ports.saved === undefined ? {} : { saved: ports.saved }) });
   /** Every body this roster made, listed or kept out of the list by a fight, by entity id. */
   const made = (id: string): NativePopulationActor | null => intake.byId.get(id)?.actor ?? null;
   const list: PopulationBody[] = [], parked: DormantPopulationActor[] = [];

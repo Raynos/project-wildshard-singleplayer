@@ -65,12 +65,6 @@
       "eliteBindings",
       "installEliteEncounters"
     ],
-    "src/shards/nalati-grasslands/runtime/aqbarsKeeper": [
-      "AqbarsKeeper"
-    ],
-    "src/shards/nalati-grasslands/runtime/kokboriKeeper": [
-      "KokboriKeeper"
-    ],
     "src/shards/nalati-grasslands/runtime/argymaqKeeper": [
       "ArgymaqKeeper"
     ],
@@ -81,6 +75,10 @@
     "src/shards/nalati-grasslands/creatures/knockdown": [
       "knockdownDash",
       "KNOCKDOWN_TIME"
+    ],
+    "src/shards/nalati-grasslands/combat/eliteRoster": [
+      "NativePouncerKeeper",
+      "NativeHowlerKeeper"
     ]
   },
   "constants": {},
@@ -1021,14 +1019,14 @@
               "keepers": {
                 "pouncer": {
                   "$ref": [
-                    "src/shards/nalati-grasslands/runtime/aqbarsKeeper",
-                    "AqbarsKeeper"
+                    "src/shards/nalati-grasslands/combat/eliteRoster",
+                    "NativePouncerKeeper"
                   ]
                 },
                 "howler": {
                   "$ref": [
-                    "src/shards/nalati-grasslands/runtime/kokboriKeeper",
-                    "KokboriKeeper"
+                    "src/shards/nalati-grasslands/combat/eliteRoster",
+                    "NativeHowlerKeeper"
                   ]
                 },
                 "herd": {

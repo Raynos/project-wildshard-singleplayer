@@ -1,3 +1,5 @@
+import type AqbarsProfile from './aqbarsProfile.json';
+import type KokboriProfile from './kokboriProfile.json';
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesData } from '@wildshard/sdk/species';
 import type { Mount } from '@wildshard/sdk/modes';
@@ -23,6 +25,7 @@ interface EliteRow {
 /** JSON is the only runtime declaration; flock seeds are offsets until entry. */
 export interface Ecology {
   argymaq: string;
+  profiles: { aqbars: typeof AqbarsProfile; kokbori: typeof KokboriProfile };
   elites: Record<string, EliteRow>;
   wildlife: WildlifeLayout;
   mareVariants: string[];

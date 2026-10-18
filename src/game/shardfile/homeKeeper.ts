@@ -6,8 +6,9 @@ import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { castRay } from '@wildshard/engine/physics/query';
-import type { HuntBody } from '@wildshard/engine/ai/hunt';
-import type { createNativeCreaturePoses } from '../plugin/animation';
+import { HuntBrain, type HuntBody } from '@wildshard/engine/ai/hunt';
+import { isNativeCreaturePoseService, type createNativeCreaturePoses } from '../plugin/animation';
+import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 
 /**
  * A creature's floor in a renderer-free host (the creature manager's `creatureFloor`; Pine Hollow, Sky Reach): the first
@@ -209,13 +210,18 @@ export interface NativeCreatureSlot {
   range: readonly [number, number]; actor: HuntBody | null;
 }
 
-/** The hunting brain a native roster joins (`createNativeHunt`'s hunt, on the roster's own stream): herd membership, a
- *  body's memory (three draws) and its release. */
-export interface NativeRosterHunt {
-  readonly herds: readonly { readonly members: HuntBody[] }[];
-  addHerd: (kind: string, x: number, z: number) => number;
-  adopt: (actor: HuntBody, x: number, z: number) => void;
-  forget: (actor: HuntBody) => void;
+const nativeRosterServices = new WeakMap<SimHost, Map<string, { hunt: StalkerBrain<HuntBody>; poses?: ReturnType<typeof createNativeCreaturePoses> }>>();
+/** Admit concrete built-in services at setup, never structural adopt/forget or pose ports.
+ * Roster rows resolve this scope-owned id; registration neither schedules nor draws. */
+export function admitNativeRosterServices(host: SimHost, id: string, hunt: StalkerBrain<HuntBody>, poses?: ReturnType<typeof createNativeCreaturePoses>): string {
+  const prototype: unknown = Object.getPrototypeOf(hunt);
+  if (host.scope.disposed || !/^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/u.test(id) || !(hunt instanceof StalkerBrain)
+    || (prototype !== StalkerBrain.prototype && prototype !== HuntBrain.prototype)
+    || (poses !== undefined && !isNativeCreaturePoseService(poses))) throw new Error('Invalid built-in native roster services');
+  const services = nativeRosterServices.get(host) ?? new Map<string, { hunt: StalkerBrain<HuntBody>; poses?: ReturnType<typeof createNativeCreaturePoses> }>();
+  if (services.has(id)) throw new Error('Duplicate native roster service');
+  services.set(id, { hunt, ...(poses === undefined ? {} : { poses }) }); nativeRosterServices.set(host, services);
+  host.scope.onDispose(() => { services.delete(id); }); return id;
 }
 
 /** Immutable baked kind/variant lookup and the existing dynamic-actor placement wire.
@@ -262,12 +268,10 @@ export interface NativeRosterRows {
   readonly heightfield?: 'ground' | 'any';
   /** Offset above a moving actor's reported feet for its later floor rays. */
   readonly floorOffset?: number;
-  /** The hunting brain (herds, memories) on `rng`. */
-  readonly hunt: NativeRosterHunt;
+  /** Scope-owned built-in hunt/pose service id, admitted during setup. */
+  readonly services: string;
   /** The kinds whose memory the hunting brain adopts at spawn (`remember`); every other kind skips its three draws. */
   readonly hunted: readonly string[] | 'every';
-  /** The platform pose roster (`createNativeCreaturePoses`) every body attaches to; absent: a bare body (no tilt). */
-  readonly poses?: Pick<ReturnType<typeof createNativeCreaturePoses>, 'binding' | 'delete'>;
   /** A restoring host's decoded entities: a body it holds keeps its saved floor flag over a fresh install's sample. */
   readonly saved?: Pick<NativeRosterSaved, 'entities'>;
 }
@@ -315,15 +319,17 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   /** Retire a pending predecessor only when its owned actor is still present and dead; returns the retired body. */
   retireDead: (id: string | undefined) => B | null;
   /** Refill the same recipe slot: retire, allocate, replace its herd, draw, then arrive. */
-  refill: (body: B, allocate: () => string, home: { readonly x: number; readonly z: number }) => HuntBody;
+  refill: (body: B, home: { readonly x: number; readonly z: number }) => HuntBody;
   /** Replay authored memory-adoption checkpoints into the hunting brain, then continue at the declared stream. Preflight is effect-free. */
   adopt: (rows: readonly { readonly id: string; readonly x: number; readonly z: number; readonly seed?: number; readonly stream: Readonly<RngState> }[],
     stream: Readonly<RngState>) => void;
   retarget: (body: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
-    x: number, z: number, allocate: () => { id: string; yaw: number }) => B & { herd: number };
+    x: number, z: number, yawStream: Parameters<SimHost['rng']['stream']>[0]) => B & { herd: number };
   reinstall: (body: B, saved: NativeRosterSaved) => HuntBody;
 } {
-  const recipes = nativeCreatureRecipes(rows.specs, rows.duplicates), byId = new Map<string, B>(), { hunt, poses } = rows;
+  const service = nativeRosterServices.get(host)?.get(rows.services);
+  if (service === undefined) throw new Error('Missing built-in native roster service');
+  const recipes = nativeCreatureRecipes(rows.specs, rows.duplicates), byId = new Map<string, B>(), { hunt, poses } = service;
   const identities = new NativeActors<HuntBody>('creature', 16384);
   const hunted = rows.hunted === 'every' ? null : new Set(rows.hunted);
   const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), rows.heightfield);
@@ -390,10 +396,10 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     if (item?.actor === null || item?.actor === undefined || item.actor.alive) return null;
     retire(item); return item;
   };
-  const refill = (item: B, allocate: () => string, home: { readonly x: number; readonly z: number }): HuntBody => {
+  const refill = (item: B, home: { readonly x: number; readonly z: number }): HuntBody => {
     if (!Number.isFinite(home.x) || !Number.isFinite(home.z) || (hunt.herds[item.herd]?.members.length ?? 0) > 1) throw new Error('Invalid native roster replacement');
     poses?.binding.preflight(item); release(item, false);
-    const id = allocate();
+    const id = identities.allocate();
     if (id.length === 0 || id.length > 128 || byId.has(id)) throw new Error('Invalid native replacement identity');
     item.id = id; item.recipe.id = id;
     const old = hunt.herds[item.herd]; if (old !== undefined) old.members.length = 0;
@@ -419,12 +425,13 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     rows.rng.restore(stream);
   };
   const retarget = (item: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
-    x: number, z: number, allocate: () => { id: string; yaw: number }): B & { herd: number } => {
+    x: number, z: number, yawStream: Parameters<SimHost['rng']['stream']>[0]): B & { herd: number } => {
     if (variant === undefined) throw new Error('Missing native creature variant');
     if (item === undefined) throw new Error('Missing native creature recipe slot');
     const range = rows.variants.get(kind)?.find(row => row.id === variant)?.scale, native = spec(kind, variant);
     if (range === undefined) throw new Error(`Missing native creature scale: ${kind}.${variant}`);
-    const { id, yaw } = allocate();
+    if (!/^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/u.test(yawStream)) throw new Error('Invalid native yaw stream');
+    const id = identities.allocate(), yaw = host.rng.stream(yawStream).next() * Math.PI * 2;
     item.id = id; item.kind = kind; item.variant = variant; item.herd = herd; item.range = range;
     item.recipe.id = id; item.recipe.spec = native; item.recipe.at.x = x; item.recipe.at.z = z; item.recipe.yaw = yaw;
     return item;

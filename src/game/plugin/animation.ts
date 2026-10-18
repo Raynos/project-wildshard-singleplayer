@@ -693,6 +693,12 @@ export function attachNativeCreaturePose(actor: AnimalSim, recipe: NativeCreatur
   return { pose, body: Object.assign(actor, { hidden: false, sampleTerrain: (): void => { pose.sampleTerrain(); } }) };
 }
 
+const nativePoseServices = new WeakSet();
+/** Only the built-in pose factory can admit a roster attachment service. */
+export function isNativeCreaturePoseService(value: unknown): value is ReturnType<typeof createNativeCreaturePoses> {
+  return typeof value === 'object' && value !== null && nativePoseServices.has(value);
+}
+
 /**
  * Bounded native pose ownership for an existing creature roster. Recipe rows retain last-match order;
  * attachment, retirement and publication happen only when the caller's roster asks. No clock or save owner is added.
@@ -720,7 +726,7 @@ export function createNativeCreaturePoses(rows: readonly { readonly kind: string
     if (value === undefined) throw new Error('Missing native creature pose recipe');
     return value;
   };
-  return {
+  const service: ReturnType<typeof createNativeCreaturePoses> = {
     binding: { preflight: body => { recipe(body); }, attach: (actor, body) => {
       if (!poses.has(body.id) && poses.size >= limit) throw new RangeError('Native pose roster exceeds its bound');
       const attached = attachNativeCreaturePose(actor, recipe(body), animations.get(body.kind));
@@ -729,4 +735,5 @@ export function createNativeCreaturePoses(rows: readonly { readonly kind: string
     get: id => poses.get(id), delete: id => { poses.delete(id); },
     publish: at => { for (let i = 0; i < limit; i++) { const id = at(i); if (id !== null && id !== undefined) poses.get(id)?.publish(); } },
   };
+  nativePoseServices.add(service); return service;
 }
