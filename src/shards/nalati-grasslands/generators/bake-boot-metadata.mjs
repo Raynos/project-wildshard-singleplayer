@@ -1,4 +1,5 @@
 import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
+import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { NALATI_MAP } from './layout.ts';
 import { nalatiDayClockRow } from './dayClock.ts';
@@ -49,4 +50,5 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generate
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
   boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
 }, ['load', 'ground', 'seed', 'spawn', 'slug']));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes(paintedTextures));
 writer.finish();

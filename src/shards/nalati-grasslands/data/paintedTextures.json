@@ -1,0 +1,69 @@
+{
+  "metres": {
+    "meadow": 2.5,
+    "path": 2.0,
+    "gravel": 1.6,
+    "rock": 4.0,
+    "snow": 3.0,
+    "bark": 1.6,
+    "felt": 1.8
+  },
+  "mean": {
+    "meadow": [
+      0.25,
+      0.245,
+      0.056
+    ],
+    "path": [
+      0.457,
+      0.274,
+      0.116
+    ],
+    "gravel": [
+      0.324,
+      0.268,
+      0.212
+    ],
+    "rock": [
+      0.297,
+      0.247,
+      0.181
+    ],
+    "snow": [
+      0.607,
+      0.665,
+      0.798
+    ],
+    "bark": [
+      0.216,
+      0.139,
+      0.097
+    ],
+    "felt": [
+      0.564,
+      0.397,
+      0.295
+    ]
+  },
+  "panorama": {
+    "desktop": "/assets/nalati/panorama.webp",
+    "phone": "/assets/nalati/panorama.phone.webp"
+  },
+  "cards": {
+    "url": "/assets/nalati/cards.webp",
+    "phoneUrl": "/assets/nalati/cards.phone.webp",
+    "name": "nalati-cards"
+  },
+  "zenith": {
+    "desktop": [
+      0.05629749129431427,
+      0.17555542553901884,
+      0.505691390218936
+    ],
+    "phone": [
+      0.056167464031425245,
+      0.17578286028364296,
+      0.505691390218936
+    ]
+  }
+}

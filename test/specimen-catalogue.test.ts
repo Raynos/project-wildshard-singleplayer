@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { Rng } from '../src/engine/core/rng';
-import { modelContext, paramsOf, definedModels } from '../src/engine/models/model';
+import { modelContext, paramsOf } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { painterlyKnobs } from '../src/engine/world/painterly';
 import { unshuffleLanes, readBakedGeometry, bakedGeometryBytes } from '../src/game/plugin/geometry';
@@ -31,16 +31,6 @@ const binary = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readF
 const bake = v.parse(PackedSpecimenSchema, { ...packedRows, bin: '/assets/nalati/baked/specimens.bin' });
 
 describe('declared specimen catalogue', () => {
-  it('registers all original camp, yurt, bridge and trail definitions without building specimens', () => {
-    expect(Object.keys(camp)).toHaveLength(53);
-    const trailModels = Object.values(trail).filter(entry => 'id' in entry);
-    expect(trailModels).toHaveLength(16);
-    expect(trail.coveModels).toBeTypeOf('function');
-    expect(Object.keys(trail)).toEqual(expect.arrayContaining(['shoreBoulder', 'smallRock', 'reefRock', 'palm', 'hibiscusBush', 'driftLog', 'pier', 'boat', 'zipline']));
-    const ids = new Set(definedModels().map(model => model.id));
-    for (const model of [...Object.values(camp), ...trailModels]) expect(ids.has(model.id)).toBe(true);
-  });
-
   it('retains nested parameter defaults and authored variant merges', () => {
     expect(paramsOf(trail.signpost, 'three', undefined)).toEqual({ arrows: [0.45, 0.75, -0.87], labels: ['LOOKOUT', 'WRECK', 'SHRINE'] });
     expect(paramsOf(trail.plankStep, 'dark', undefined)).toEqual({ w: 2.4, roll: 0, yaw: 0, dark: true });

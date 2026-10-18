@@ -48,7 +48,8 @@ import { trample } from '@wildshard/game/systems/looks/trample';
 import { PLAYER_TRAMPLE_RADIUS, pushPlayerTrail, type PlayerTrail } from './trampleMovers';
 import { dressingCover } from '../world/dressing/index';
 import { bakeUniforms } from './bake';
-import { loadGrassCardAtlas } from './nalatiTextures';
+import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
+import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { tileFieldGeometry, tileOrigin, type TileCardRow } from '@wildshard/sdk/looks/tileField';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -274,7 +275,7 @@ export class GrassV2 {
     draw(CLUMPS, geo, 'grass-v2-cards');
     this.cards = { geo, tiles: geo.instanceCount, origin: new THREE.Vector2() };
     void (async (): Promise<void> => {
-      try { setLentTexture(CLUMPS, 'tCards', await loadGrassCardAtlas()); } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
+      try { const atlas = await loadSpecimenTexture(paintedTextures.cards); atlas.wrapS = atlas.wrapT = THREE.ClampToEdgeWrapping; setLentTexture(CLUMPS, 'tCards', atlas); } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
     })();
     void this.bakeMask();
     return this;

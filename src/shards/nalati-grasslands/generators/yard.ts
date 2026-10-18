@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
-import { TEX_METRES } from '../look/nalatiTextures';
+import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import type { Ground } from '../world/types';
 
 const edge = new Noise2D(0x7a2d);
@@ -35,7 +35,7 @@ export function wearPath(ax: number, az: number, bx: number, bz: number, w: numb
 export function yardGeometry(ground: Ground, area: { x: number; z: number; half: number }, wear: (x: number, z: number) => number, cell = 0.8): THREE.BufferGeometry {
   const n = Math.ceil((area.half * 2) / cell);
   const pos: number[] = [], col: number[] = [], uv: number[] = [], idx: number[] = [];
-  const x0 = area.x - area.half, z0 = area.z - area.half, tm = TEX_METRES.path * 1.3;
+  const x0 = area.x - area.half, z0 = area.z - area.half, tm = paintedTextures.metres.path * 1.3;
   const keep: boolean[] = [];
   for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {
     const x = x0 + i * cell, z = z0 + j * cell;

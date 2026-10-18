@@ -12,6 +12,7 @@ import portalStages from '../data/portalStages.json' with { type: 'json' };
 import portalEntries from '../data/portalEntries.generated.json' with { type: 'json' };
 import portalFloors from '../data/portalFloors.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
+import presentationGraphs from '../data/scrollGraph.json' with { type: 'json' };
 
 // The trusted runtime preserves today's fragment geometry; audio is selected by its declared section. G285: its two feats
 // are ledger rows (data/ledger.ts) the runtime emits as they are played (world/feats.ts); the platform grants each once.
@@ -32,5 +33,5 @@ export default parseShardfile({ ...base, plumbing, budgets, navigation: navigati
   accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: declarations.audio, clientChannels: declarations.clientChannels, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });

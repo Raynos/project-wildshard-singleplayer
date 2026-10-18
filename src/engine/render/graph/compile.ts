@@ -572,7 +572,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
   // Implicit texture derivatives need coherent execution on both sides of a select.
   // Follow references in their lexical scope, including a loop's actual output.
-  const sampleOps = new Set(['texture', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
+  const sampleOps = new Set(['texture', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
   function samples(r: GraphRef | undefined, scope: Scope, seen = new Set<GraphNode>()): boolean {
     if (typeof r !== 'string') return false;
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
@@ -866,7 +866,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         })() };
       }
       case 'textureArray':
+      case 'textureLod':
+      case 'textureGrad':
       case 'texture': {
+        const sampling = (sample: TextureNode): Node<'vec4'> => {
+          if (n.op === 'textureLod') return sample.level(asFloat(ref(n.in?.[1] ?? 0, scope)));
+          if (n.op === 'textureGrad') return sample.grad(asVec2(ref(n.in?.[1] ?? [0, 0], scope)), asVec2(ref(n.in?.[2] ?? [0, 0], scope)));
+          return stagedTexture(sample);
+        };
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file?.role === 'lent' && n.param !== undefined) {
           const array = n.op === 'textureArray';
@@ -874,10 +881,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
           list.push(sample.retarget); lent.set(n.param, list);
           if (!(sample.node instanceof TextureNode)) throw new Error('material graph: lent sample is not a texture node');
           const sampled = array ? sample.node.depth(new MathNode('floor', asFloat(two()[1]).add(0.5))) : sample.node;
-          return { t: 'vec4', n: stagedTexture(sampled) };
+          return { t: 'vec4', n: sampling(sampled) };
         }
         if (file === undefined || file.role === 'lent' || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
-        return { t: 'vec4', n: stagedTexture(texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n)) };
+        return { t: 'vec4', n: sampling(texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n)) };
       }
       case 'acc': if (scope.acc !== null) return scope.acc; break;
       case 'index': if (scope.index !== null) return scope.index; break;

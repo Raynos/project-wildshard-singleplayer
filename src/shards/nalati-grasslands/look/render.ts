@@ -24,15 +24,18 @@ import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { bakeUniforms } from './bake';
-import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
+import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
+import type { NalatiTexName } from './nalatiTextures';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 
 const { SNOW_LINE, GLACIER } = layoutRows;
 const SURFACE = parsePaintedTerrain({
   maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' },
-  metres: { base: TEX_METRES.meadow, track: TEX_METRES.path, gravel: TEX_METRES.gravel, rock: TEX_METRES.rock, snow: TEX_METRES.snow },
-  means: { base: [...TEX_MEAN.meadow], rock: [...TEX_MEAN.rock] },
+  metres: { base: paintedTextures.metres.meadow, track: paintedTextures.metres.path, gravel: paintedTextures.metres.gravel, rock: paintedTextures.metres.rock, snow: paintedTextures.metres.snow },
+  means: { base: [...paintedTextures.mean.meadow], rock: [...paintedTextures.mean.rock] },
   snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
   ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half },
 });
@@ -46,11 +49,11 @@ function terrainMesh(value: THREE.Object3D | undefined): value is THREE.Mesh<THR
 
 /** Painterly appearance stays live; terrain and slab topology are authored scene data. */
 const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: async (terrain, field) => {
-  const [, textures, product] = await Promise.all([field.ready(), loadNalatiTextures(LAYERS), loadFirstPartyProduct('nalati-grasslands')]);
+  const [, textures, product] = await Promise.all([field.ready(), Promise.all(LAYERS.map(name => loadSpecimenTexture(specimenData.materials[name].texture))), loadFirstPartyProduct('nalati-grasslands')]);
   const material = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 });
   const colour = product.section('look/colour-functions')['terrain'];
   if (colour === undefined) throw new Error('Missing terrain colour graph');
-  applyPaintedTerrain(material, SURFACE, textures);
+  applyPaintedTerrain(material, SURFACE, Object.fromEntries(LAYERS.map((name, index) => { const texture = textures[index]; if (texture === undefined) throw new Error(`Missing painted tile ${name}`); return [name, texture]; })));
   materialColourGraph(material, 'terrain.colour', colour, true);
   bindPaintedTerrainBake(material, {
     famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,

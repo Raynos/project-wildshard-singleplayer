@@ -10,7 +10,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 // the instanced ones are handed to the fragment's own cullers (the SDK's instance culler and figure crowd, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
+  ClampToEdgeWrapping, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import type { InKit, Piece } from './ctx';
 import { inkFigure } from '../models/inKit';
@@ -28,7 +28,7 @@ import { facadeUniforms } from '../look/facadeMaterial';
 import { STAIR, WELL, Y0 } from '../layout';
 import stairPlan from './stairPlan.generated.json' with { type: 'json' };
 import { loadPaint } from '../look/paint';
-import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
+import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
@@ -317,8 +317,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   sky.renderOrder = -10;
   sky.frustumCulled = false;
   root.add(named(sky, 'sky'));
-  const scrollTex = await loadScroll('/assets/nine-dragon/lab/organic/scroll.webp');
-  const screen = new Mesh(new PlaneGeometry(58, 80), scrollMaterial(shared, scrollTex, 58, 80, SCROLL).mat);
+  const scrollTex = opts.scope.own(await loadTextureRow({ url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: ClampToEdgeWrapping, anisotropy: 4 }));
+  setLentTexture('nine-scroll', 'scroll', scrollTex);
+  const screen = new Mesh(new PlaneGeometry(58, 80), lentLook('nine-scroll'));
   screen.rotation.x = Math.PI / 2;
   screen.position.set(1, Y0 + 29.85, -64);
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal

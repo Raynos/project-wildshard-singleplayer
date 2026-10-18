@@ -1,33 +1,21 @@
-/**
- * The Nalati look (docs/design/nalati/handoff/port-v2.md, NALATI.md Phase A2; "v2" — the painterly v1 it replaced is
- * gone, E136). The shard's only look.
- *
- * The engine reaches it through the look strategy (render.ts, the manifest's `render`; E357 S3.2):
- *   fog                   `installPaintedAir()` + `installLookV2Fog()`          (air.ts, fog.ts — Game.buildSky, before anything compiles)
- *   compose ('replace')   `lookV2Passes(c)`                                     (grade.ts)
- *   terrainPainter        the painted ground                                    (terrainPainter.ts)
- *   grass                 `new GrassV2(…)`                                      (grass.ts)
- *   Horizon               the def's `horizon` comes from bootMetadata.horizon       (generators/horizon.ts)
- *   wireNalati            `await wireLookV2({ game, sky, weather, updates })`
- *
- * wireLookV2: the panorama sky dome (sky.ts) in place of the sky's painted clouds / planet / sun disc (the rig's star
- * dome and the moon stay for the night; Horizon rings 0 + 1 and the cloud sea stay in front), and one updater after the
- * weather rig that re-tints the painting and the fog for the hour and the storm, then applies the lighting cheat
- * (light.ts) and keeps the static bake (bake.ts) on the key.
- */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../world/installWeather';
-import { SkyDomeV2 } from './sky';
+import { loadTextureRow } from '@wildshard/engine/core/assets';
+import { TIER } from '@wildshard/engine/core/tier';
+import { headingTexture } from '@wildshard/engine/render/dataLook';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
+import { PANO_RIDGE_V } from './panoramaData';
+import { gradeUniforms } from './grade';
+import { tintUniforms, updateTint } from './tint';
 import { fogLut, syncPaintedFog } from './fog';
-import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { setModelShade } from '../world/modelView';
-import { applyCloudSeaV2 } from './cloudSea';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface LookV2Ctx {
@@ -43,18 +31,31 @@ export interface LookV2Ctx {
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx;
   const scope = game.levelScope;
-  const dome = await SkyDomeV2.load(game.renderer, fogLut, scope);
+  const panorama = scope.own(await loadTextureRow({ url: paintedTextures.panorama[TIER], srgb: true, wrapT: THREE.ClampToEdgeWrapping, anisotropy: Math.min(8, game.renderer.capabilities.getMaxAnisotropy()) }));
   if (scope.disposed) return;
-  if (dome === null) { console.warn('[look v2] no panorama: the plain sky stays'); return; }
-  game.scene.add(dome.mesh);
-  ctx.groups['skyV2'] = dome.mesh;
-  // the painting is the sky, the clouds, the planet, the sun and the far range: the sky's own layers stand down (it builds no
-  // cloud layer and no planet: air.ts NALATI_SKY)
-  // A3: the cloud sea rises to hug the slab's rocky wall — a painted cumulus deck, not a pale panel (cloudSea.ts)
+  const ridge = scope.own(headingTexture({ samples: PANO_RIDGE_V, stride: 1, half: true }));
+  setLentTexture('nalati-panorama', 'tPano', panorama);
+  setLentTexture('nalati-panorama', 'tRidge', ridge);
+  setLentTexture('nalati-panorama', 'tFogLut', fogLut);
+  const size: unknown = panorama.image;
+  const width = typeof size === 'object' && size !== null && 'width' in size && typeof size.width === 'number' ? size.width : 6176;
+  setLentParam('nalati-panorama', 'uPad', 16 / Math.max(1, width));
+  setLentParam('nalati-panorama', 'uZenith', paintedTextures.zenith[TIER]);
+  const dome = new THREE.Mesh(scope.own(new THREE.SphereGeometry(2300, 96, 48)), lentLook('nalati-panorama'));
+  dome.name = 'sky-dome-v2'; dome.frustumCulled = false; dome.renderOrder = -90;
+  dome.material.depthTest = false;
+  dome.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(dome.position); game.scene.worldToLocal(dome.position); dome.updateMatrixWorld(); };
+  game.scene.add(dome);
+  ctx.groups['skyV2'] = dome;
   const sea = game.scene.getObjectByName('cloud-sea');
-  if (sea) applyCloudSeaV2(sea, grassV2Uniforms.uSunView);
+  if (sea instanceof THREE.Mesh) {
+    const old: unknown = sea.material;
+    sea.material = lentLook('nalati-cloud-sea'); sea.position.y = -68;
+    setLentTexture('nalati-cloud-sea', 'tFogLut', fogLut);
+    if (old instanceof THREE.Material) old.dispose();
+  }
   const rigDome = weather.rig.dome;
-  const u = dome.uniforms;
+  const graphUniforms = Object.entries({ ...gradeUniforms, ...tintUniforms }).filter(([key]) => key !== 'uV2LookSat');
   const cheat = new LightCheat(sky, game.level.grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
   const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture(), scope);
@@ -76,11 +77,15 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     syncPaintedFog(); // the look graphs' painted fog (data/lookGraphs.json 'nalati-fog') takes the same air and tint
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
-    u.uSunNow.value.copy(look.sunDir);
+    setLentParam('nalati-panorama', 'uSunNow', look.sunDir.toArray());
+    setLentParam('nalati-cloud-sea', 'uSunView', look.sunDir.toArray());
+    for (const id of ['nalati-panorama', 'nalati-cloud-sea']) for (const [key, uniform] of graphUniforms) {
+      const value = uniform.value; setLentParam(id, key, typeof value === 'number' ? value : value.toArray());
+    }
     grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
     const night = smoothstep(2, -9, weather.clock.sunElevation);
-    u.uNight.value = night;
+    setLentParam('nalati-panorama', 'uNight', night);
     grassMood(night, smoothstep(12, 0, weather.clock.sunElevation) * (1 - night), w.overcast); // the grass darkens + greys with the hour / storm
     rigDome.visible = night > 0.001;
     // the sun is painted; the rig's disc stays only as the moon

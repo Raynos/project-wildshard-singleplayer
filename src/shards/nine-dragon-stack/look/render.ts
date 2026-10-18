@@ -41,6 +41,7 @@ const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner'] as c
 const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
 function syncSilkFog(shared: Shared): void {
   const u = shared.u, o = silkOut;
+  setLentParam('nine-scroll', 'linePx', u.uLinePx.value);
   for (const id of SILK_MATERIALS) {
     if (!hasLentLook(id)) continue;
     setLentParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));

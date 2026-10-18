@@ -6,9 +6,47 @@ import { frontFacing } from 'three/tsl';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import paintedGraphs from '../src/shards/nalati-grasslands/data/painterlyGraphs.json' with { type: 'json' };
+import scrollGraphs from '../src/shards/nine-dragon-stack/data/scrollGraph.json' with { type: 'json' };
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
+
+test('explicit mip and gradient samples retain their live texture loan', () => {
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+    params: { painting: { type: 'texture', value: 'painting', role: 'lent' } },
+    nodes: { uv: { op: 'uv' }, dx: { op: 'dFdx', in: ['uv'] }, dy: { op: 'dFdy', in: ['uv'] },
+      mip: { op: 'textureLod', param: 'painting', in: ['uv', 3.5] },
+      grad: { op: 'textureGrad', param: 'painting', in: ['uv', 'dx', 'dy'] },
+      mixed: { op: 'mix', in: ['mip', 'grad', .5] }, rgb: { op: 'swizzle', in: ['mixed'], mask: 'xyz' } },
+    stages: { surface: { colour: 'rgb' } } };
+  const compiled = compileGraph(graph), painting = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  try {
+    const shader = program(compiled), version = compiled.material.version;
+    expect(shader.fragmentShader).toContain('textureLod(');
+    expect(shader.fragmentShader).toContain('textureGrad(');
+    compiled.setTexture('painting', painting);
+    const samplers = Object.entries(shader.uniforms).filter(([, uniform]) => uniform instanceof TextureNode && uniform.value === painting);
+    expect(samplers.some(([name]) => shader.fragmentShader.includes(`textureLod( ${name},`))).toBe(true);
+    expect(samplers.some(([name]) => shader.fragmentShader.includes(`textureGrad( ${name},`))).toBe(true);
+    expect(compiled.material.version).toBe(version);
+    expect(validateGraph({ ...graph, nodes: { ...graph.nodes, grad: { op: 'textureGrad', param: 'painting', in: ['uv', 1, 'dy'] } } }).ok).toBe(false);
+  } finally { compiled.material.dispose(); painting.dispose(); }
+});
+
+test('both painted sky users compile their declared sampling graphs', () => {
+  for (const graph of [...Object.values(paintedGraphs), ...Object.values(scrollGraphs)]) {
+    const checked = validateGraph(graph, { trustedBudget: true });
+    expect(checked.ok ? [] : checked.errors).toEqual([]);
+    if (!checked.ok) throw new Error('Painted graph refused');
+    const compiled = compileGraph({ ...checked.graph, effectState: { ...checked.graph.effectState, fog: false } }, { trustedBudget: true });
+    try {
+      const shader = program(compiled);
+      expect(shader.fragmentShader).not.toContain('undefined');
+      expect(shader.fragmentShader.length).toBeGreaterThan(1000);
+    } finally { compiled.material.dispose(); }
+  }
+});
 function program(compiled: ReturnType<typeof compileGraph>): THREE.WebGLProgramParametersWithUniforms {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');

@@ -15,7 +15,10 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
+import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import cragRows from '../boot/cragRock.generated.json' with { type: 'json' };
 import { assetBytes } from '@wildshard/sdk/assets';
@@ -44,11 +47,11 @@ export function cragMaterial(sky: Sky): THREE.MeshLambertMaterial {
   white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
   const uniforms = {
     tCragRock: { value: white as THREE.Texture }, tCragSnow: { value: white as THREE.Texture },
-    uCragRockMean: { value: new THREE.Vector3(...TEX_MEAN.rock) },
-    uCragScale: { value: new THREE.Vector2(1 / TEX_METRES.rock, 1 / TEX_METRES.snow) },
+    uCragRockMean: { value: new THREE.Vector3(...paintedTextures.mean.rock) },
+    uCragScale: { value: new THREE.Vector2(1 / paintedTextures.metres.rock, 1 / paintedTextures.metres.snow) },
   };
-  loadNalatiTextures(['rock', 'snow']).then((t) => { uniforms.tCragRock.value = t.rock; uniforms.tCragSnow.value = t.snow; return t; }).catch(() => null);
-  const phone = isPhoneTier();
+  Promise.all([loadSpecimenTexture(specimenData.materials.rock.texture), loadSpecimenTexture(specimenData.materials.snow.texture)]).then(([rock, snow]) => { uniforms.tCragRock.value = rock; uniforms.tCragSnow.value = snow; return uniforms; }).catch(() => null);
+  const phone = TIER_CONFIG.maxTexture <= 1024;
   patchShader(mat, 'nalati.crag-rock', PATCH_ORDER.decorate, (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader

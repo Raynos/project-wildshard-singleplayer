@@ -481,6 +481,9 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   meshMap: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec4', places: ['fragment'] },
   texture: { arity: [1, 1], rule: 'texture', cost: 4 },
   textureArray: { arity: [2, 2], rule: 'texture', cost: 6 },
+  // Explicit mip and screen gradients keep painted panoramas continuous at a wrap.
+  textureLod: { arity: [2, 2], rule: 'texture', cost: 4, places: MESH },
+  textureGrad: { arity: [3, 3], rule: 'texture', cost: 4, places: FRAG },
   // the constant-count loop
   loop: { arity: [1, 1], rule: 'loop', cost: 1 },
   acc: { arity: [0, 0], rule: 'acc', cost: 0 },
@@ -832,6 +835,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         const name = raw.param;
         if (typeof name !== 'string' || paramTypes.get(name) !== 'texture') return fail(`${at}: texture names a texture param`);
         if (ins[0] !== 'vec2') return fail(`${at}: texture samples at a vec2`);
+        if (op === 'textureLod' && ins[1] !== 'float') return fail(`${at}: textureLod needs a numeric mip`);
+        if (op === 'textureGrad' && (ins[1] !== 'vec2' || ins[2] !== 'vec2')) return fail(`${at}: textureGrad needs two vec2 gradients`);
         const dimension = op === 'textureArray' ? 'array' : '2d';
         if (dimension === 'array') {
           const param = isRecord(rawParams) ? rawParams[name] : undefined;

@@ -4,7 +4,7 @@ import type { ModelDef } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { M, v3, type ColorLike, type Painter, type PaintOpts } from './paint';
 import { pole, lathe, blob } from './smoothGeometry';
-import { TEX_MEAN } from '../look/nalatiTextures';
+import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import { painted, type Kit, type Paint, boardSpots } from './painted';
 import type { SignpostParams, BarrelParams, CorralParams, HitchingRailParams, PalsParams, RugLineParams, RugParams, SpanParams } from './campParams';
 import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, tetherLine, kurtBoard, ribbonPost, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter, fence, graniteOutcrop, roundedBoulder, kokparGoal, kokparPost, stoneStep, signpostBaked as signpost } from './catalogue';
@@ -43,8 +43,8 @@ export const PC = {
  * laid as grain along each pole (paint.ts woodPole), × the painted wood colour over the tile's mean (paint.ts woodPainter).
  * Every builder that paints timber with it finishes the layer: `kit.texturedMesh(sky, 'rock', …)`.
  */
-const ROCK_MEAN = TEX_MEAN.rock;
-export const GRAIN = woodPainter(PC.woodGrey, '#b3a792', new THREE.Color(1 / ROCK_MEAN[0], 1 / ROCK_MEAN[1], 1 / ROCK_MEAN[2]));
+const ROCK_MEAN = new THREE.Color().fromArray(paintedTextures.mean.rock);
+export const GRAIN = woodPainter(PC.woodGrey, '#b3a792', new THREE.Color(1 / ROCK_MEAN.r, 1 / ROCK_MEAN.g, 1 / ROCK_MEAN.b));
 export const WOOD: PaintOpts = { uv: true, tex: 'rock', brush: 0.1 };
 
 // ── felt rugs ────────────────────────────────────────────────────────────────────────────────────────

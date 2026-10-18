@@ -9,7 +9,8 @@
 import * as THREE from 'three';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { loadNalatiTexture } from '../look/nalatiTextures';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
+import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
 
 /** a camp decal's material: the painterly look, transparent, polygon-offset over the ground, the path tile when it lands */
 export function yardMaterial(sky: Sky): THREE.MeshLambertMaterial {
@@ -18,6 +19,6 @@ export function yardMaterial(sky: Sky): THREE.MeshLambertMaterial {
   const white = new THREE.DataTexture(new Uint8Array([200, 160, 120, 255]), 1, 1);
   white.colorSpace = THREE.SRGBColorSpace; white.needsUpdate = true;
   mat.map = white;
-  loadNalatiTexture('path').then((t) => { mat.map = t; return t; }).catch(() => null);
+  loadSpecimenTexture(specimenData.materials.path.texture).then((t) => { mat.map = t; return t; }).catch(() => null);
   return mat;
 }

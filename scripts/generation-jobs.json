@@ -1070,15 +1070,18 @@
         "src/shards/nalati-grasslands/data/discovery.json",
         "src/shards/nalati-grasslands/explore",
         "src/shards/nalati-grasslands/thumbs",
-        "src/shards/nalati-grasslands/generators/layout.ts"
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/data/paintedTextures.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
-        "src/shards/nalati-grasslands/boot/declaration.generated.ts"
+        "src/shards/nalati-grasslands/boot/declaration.generated.ts",
+        "src/shards/nalati-grasslands/boot/paintedTextures.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
-        "src/shards/nalati-grasslands/boot/declaration.generated.ts"
+        "src/shards/nalati-grasslands/boot/declaration.generated.ts",
+        "src/shards/nalati-grasslands/boot/paintedTextures.generated.json"
       ],
       "platform": "portable"
     },

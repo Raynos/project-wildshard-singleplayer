@@ -22,6 +22,26 @@ export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAni
  *  a no-op before boot and headless. Shard code warms a texture through this, never its own renderer handle. */
 export function uploadTexture(texture: THREE.Texture): void { gpu?.initTexture(texture); }
 
+/** Client-only image and sampler declaration. Omitted maxSize retains the authored dimensions. */
+export interface TextureLoadRow {
+  readonly url: string;
+  readonly srgb?: boolean;
+  readonly repeat?: number;
+  readonly maxSize?: number;
+  readonly wrapS?: THREE.Wrapping;
+  readonly wrapT?: THREE.Wrapping;
+  readonly anisotropy?: number;
+}
+
+/** The existing tier/KTX2/decode owner with its final sampler installed before upload; accepts data only. */
+export function loadTextureRow(row: TextureLoadRow): Promise<THREE.Texture> {
+  return loadTexture(row.url, row.srgb ?? false, row.repeat ?? 1, row.maxSize ?? Infinity, texture => {
+    if (row.wrapS !== undefined) texture.wrapS = row.wrapS;
+    if (row.wrapT !== undefined) texture.wrapT = row.wrapT;
+    if (row.anisotropy !== undefined) texture.anisotropy = row.anisotropy;
+  });
+}
+
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
  * rubble) is fetched and decoded once. Decoding goes through fetch → createImageBitmap (off the main
