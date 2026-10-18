@@ -25,7 +25,9 @@ Jake (G506): *"What the fuck is all that proof work? … I don't know why you're
 - Heavy proofs run only at a W3 milestone or before a grid deploy, once, by one lane.
 - Commit bodies say what changed and the line count (`net -N shard lines (<shard> -N, ...)`), nothing more.
 - Cuts are big (G468): the largest uncut mini-plan batch first; no sub-200 cuts while big ones remain.
-- Landings are source-only (G490); never bake maps yourself.
+- Landings are source-only (G490); never bake maps yourself. In an open map window the push gate's strict build refuses
+  a stale baked map (SF66) for a shard whose inputs landed source-only: that refusal alone is expected until sp-x10
+  seals the window, and your batch counts as done. Any other gate failure is yours.
 - **No messages between lanes** (G506 follow-up, Jake): sp-x10 (bakes) and sp-x7 (push) read `git log` and
   `STATE.md` to see what landed. Nobody sends them SHAs or 'ready' notes, and they never reply 'confirmed'. A lane
   messages only wildshard-new, and only for a blocker. No landing reports: the coordinator reads `git log`.
