@@ -12,7 +12,5 @@
 
 **Perf:** drive fix e2141156c (default-off until one device reading): desktop worst 16.8/33.4/33.4 ms, Simulator worst 78–85 ms and p95 34–35 ms on all three roads (meets the floor). PF1 closed: Pine spawn/cabin/pond 59.88 fps, p95 16.8 (one 283 ms cabin outlier unexplained).
 
-**G499/G500 (10-18 switch point):** 9 approvedFeature tags removed; waterSurface stays in the engine until the legacy copy goes; Builder-Call only for steers and rule-bending ratifies. **G495–G498:** Builder-Call trailers; no new approvedFeature tags without a G-row; custom-section limit only shrinks; legacy crash-fix only; no fallbacks. **Overnight (G494):** no mid-task re-briefs; at Pine ≤ 4,261 and DW ≤ 3,433 Pine/DW lanes keep closing components (C1; C7/C8 near 100/0) and freed lanes take Sky/Signal to zero (Z10, light emitters, eased-field dusk, then the Z1 lockstep); W3 only after that. Claude 92 %: lean; Opus 0 at 95 %.
-
-**Order (G471/G483/G486/G487):** W2 Pine/DW ≤ 20 %; Sky/Signal-to-zero then the Z1 lockstep deleting both runtimes after W2; W3 Nalati/Nine. Rows: [open-x-queue](open-x-queue.md).
-Paused: SF22 SF57 SF67.
+**Attribution before landing (G496), for wildshard-v:** sp-x1 G499 tag strikes d5a456d5e: Pine 3,962 → 4,128 (+166), DW 3,146 → 3,276 (+130), other shards 0, net +296 (audit estimated +450). **G501:** once Pine/DW hold under 20 % after G499, component lanes take their own component across Sky/Signal (to zero) first, then Nalati/Nine (W3) when none is left. **G499/G500 (10-18 switch point):** 9 approvedFeature tags removed; waterSurface stays in the engine until the legacy copy goes; Builder-Call only for steers and rule-bending ratifies. **Order (G471/G483/G486/G487):** W2 Pine/DW ≤ 20 %; Sky/Signal-to-zero then the Z1 lockstep deleting both runtimes after W2; W3 Nalati/Nine. Rows: [open-x-queue](open-x-queue.md).
+Paused: SF22 SF57 SF67. G495–G498 rules in the lane preamble.
