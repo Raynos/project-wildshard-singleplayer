@@ -1,10 +1,10 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 DONE. W2: Pine target met, DW next.** Rulers (10-18 02:15 Cancun, lane post-gen): Pine 4,072 (target 4,261), DW 3,553 (target 3,433; x5 batch 9 −160 lands next → ~3,393). Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
+**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,072 (target 4,261), DW 3,393 (target 3,433) after x5 batch 9 365e08532. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6 per platform commit; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns unblocking a red gate/CI/smoke (fix forward or revert, no waiting on the owner).
 
-**Tenth map window (open):** landed fe47dd742 cabins (Pine −302), x8 memory f4351303c/1e871584a/8c2692f2d/8fc8afa15 (Pine phone backing −203 MB), 6322000c2 C5 chapter (Pine −29, DW −51), 316b73248 TX1 (all 24 road crossings fault-free), be3924670 living + CM1 (Pine −138, DW +8). Next: x5 batch 9, x1 habitat. Pine estimate chip +140.8 MB (Explorer worst case; CM1 open).
+**Tenth map window (open):** landed fe47dd742 cabins (Pine −302), x8 memory f4351303c/1e871584a/8c2692f2d/8fc8afa15 (Pine phone backing −203 MB), 6322000c2 C5 chapter (Pine −29, DW −51), 316b73248 TX1 (all 24 road crossings fault-free), be3924670 living + CM1 (Pine −138, DW +8). 365e08532 x5 batch 9 (DW −160). Next: x1 habitat, then sp-x10 bakes. Pine estimate chip +140.8 MB (Explorer worst case; CM1 open).
 
 **Lanes (7 Codex + sp-x7 deploy; Opus cap 1 until Mon):**
 - C2 Pine looks sp-x9 · C1-Pine bakes + map owner sp-x10 · C4 creatures sp-x1 · Sky/Signal light emitters + dusk sp-x4 · drive hitches + memory chip label sp-x6 (DW drive max 566 ms) · Sky/Signal Z2 steps + Z10 sp-x8 · C1-DW sp-x5 (GroundCover, batch 10, cove) · sp-x7 deploy only (G485).
