@@ -9868,3 +9868,8 @@ beside its page, so the artifact can mount at `/practice/` without global fetch
 interception. A failed disposed Game receives a fresh page-owned canvas before
 retry; normal engine context teardown is unchanged. The supported preview's
 `--practice-demo` mode serves that same mounted path.
+
+`packedCreatureBodies(input, decode?, load?)` optionally accepts a byte loader.
+The loader receives the validated authored `/assets/` archive path; compositions
+may resolve it within their page mount without rewriting or weakening metadata
+admission. Ordinary callers retain `fetchBuildFile` and the existing decode.

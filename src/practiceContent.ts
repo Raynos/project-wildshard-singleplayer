@@ -13,7 +13,7 @@ import type { Material } from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import type { SpeciesLook } from './engine/entities/species/look';
 import { NO_FUR } from './engine/entities/species/rigs';
-import { packedCreatureBodies } from './game/plugin/geometry';
+import { fetchBuildFile, packedCreatureBodies } from './game/plugin/geometry';
 import { numericCreaturePose } from './game/plugin/channelPrograms';
 import * as v from 'valibot';
 
@@ -38,8 +38,9 @@ export async function preparePracticeContent(game: Game, product: ShardProduct):
   const presentation = v.parse(presentationSchema, await json('practice/looks.json'));
   const ids = presentation.materials;
   lendLooks(owner, await runtimeLookMaterials({ scope: owner, renderer: game.renderer }, product.shardfile, true, Object.values(ids)));
-  const bodyData = v.parse(v.looseObject({ file: v.string() }), await json('practice/bodies.json'));
-  const bodies = packedCreatureBodies({ ...bodyData, file: practiceAssetUrl(bodyData.file) }); await bodies.preload();
+  const bodies = packedCreatureBodies(await json('practice/bodies.json'), undefined,
+    url => fetchBuildFile(practiceAssetUrl(url)));
+  await bodies.preload();
   const looks: SpeciesLook[] = await Promise.all(presentation.looks.map(async (row): Promise<SpeciesLook> => {
     const clips: unknown = JSON.parse(new TextDecoder().decode(await product.file(row.pose)));
     return { id: row.id, species: row.species, kind: row.kind, rigContract: row.rigContract,

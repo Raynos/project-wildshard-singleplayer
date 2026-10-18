@@ -1307,8 +1307,10 @@ export interface PackedCreatureBodies {
  * Admit offset-addressed typed geometry blocks, bones and dimensions without changing their packed representation.
  * The compressed bytes are retained once; each copy inflates and copies its parts, never sharing mutable geometry.
  * Missing keys, early copies, unsafe paths, truncated blocks and incompatible metadata refuse before handing out a body.
+ * A composition may lend a byte loader to resolve the validated authored asset path within its own mount.
  */
-export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync): PackedCreatureBodies {
+export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync,
+  load: (url: string) => Promise<Uint8Array> = fetchBuildFile): PackedCreatureBodies {
   const PackedBodyNumber = wholeV.pipe(wholeV.number(), wholeV.finite());
   const PackedBodyWhole = wholeV.pipe(PackedBodyNumber, wholeV.integer(), wholeV.minValue(0), wholeV.maxValue(268435456));
   const PackedBodyPart = wholeV.strictObject({ indexEncoding: wholeV.optional(wholeV.picklist(['delta', 'raw'])),
@@ -1340,7 +1342,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
   }
   let compressed: Uint8Array | null = null, loading: Promise<void> | null = null;
   return {
-    preload: () => { loading ??= fetchBuildFile(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
+    preload: () => { loading ??= load(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
     copy: (kind, variant) => {
       const body = bake.bodies.find(row => row.kind === kind && row.variant === variant);
       if (body === undefined) throw new Error(`no baked creature body ${kind}.${variant}`);

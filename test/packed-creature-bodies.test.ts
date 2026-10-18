@@ -1,6 +1,7 @@
 import { zlibSync } from 'fflate';
 import { afterAll, expect, test, vi } from 'vitest';
-import { packedCreatureBodies } from '../src/game/plugin/geometry';
+import { fetchBuildFile, packedCreatureBodies } from '../src/game/plugin/geometry';
+import { practiceAssetUrl } from '../src/practiceAssets';
 
 const file = `/assets/test/bodies-${'a'.repeat(64)}.bin`;
 const row = () => ({ file, bytes: 36, bodies: [{ kind: 'bird', variant: 'small',
@@ -54,4 +55,20 @@ test('accepts normalized contiguous parts with raw indices, draw groups and a le
   if (first === undefined || second === undefined) throw new Error('Missing normalized parts');
   expect(first).not.toBe(second); expect(first.index?.getX(1)).toBe(1);
   expect(first.groups.some(group => group.materialIndex === 1)).toBe(true);
+});
+
+
+test('lends a mounted byte loader without weakening authored path admission', async () => {
+  const bytes = zlibSync(new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer));
+  const fetcher = vi.fn(() => Promise.resolve(new Response(bytes)));
+  vi.stubGlobal('fetch', fetcher);
+  const load = vi.fn((url: string) => fetchBuildFile(practiceAssetUrl(url, 'https://example.test/practice/')));
+  const bodies = packedCreatureBodies(row(), undefined, load);
+  await Promise.all([bodies.preload(), bodies.preload()]);
+  expect(load).toHaveBeenCalledExactlyOnceWith(file);
+  expect(fetcher).toHaveBeenCalledExactlyOnceWith(`https://example.test/practice${file}`);
+  expect(bodies.copy('bird', 'small').hardParts[0]?.getAttribute('position').count).toBe(3);
+  expect(() => packedCreatureBodies({ ...row(), file: `https://example.test${file}` }, undefined, load)).toThrow();
+  expect(() => packedCreatureBodies({ ...row(), file: '/assets/../outside.bin' }, undefined, load)).toThrow();
+  expect(load).toHaveBeenCalledOnce();
 });

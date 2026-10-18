@@ -132,3 +132,21 @@ permissions. Browser closes and owned HTTP servers stop after each capture.
 Do not regenerate the refined factory from the spec alone: V3 custom surfaces
 are the explicit `refine-code` artifact in `refine_geometry.py` and the factory.
 The upstream pass remains blockout; no fabricated pass advancement is claimed.
+
+## Extended trial: V4 and V5 (16:38 UTC)
+
+The owner-directed extended experiment has an explicit eight-correction bound,
+recorded in workflow-state-v5.json; five corrections are recorded. No pass has
+advanced, and diagnostics/review remain failed. V4 closed the feet and deepened
+the face but exposed a reversed face-winding error. V5 corrected that error;
+the actual geometry still has rectangular orange eye surrounds, an overly tall
+peaked mouth, flat trapezoid feet and a spherical body. Both failures are retained
+with five-view boards, editable factory source, static GLBs and measured metrics.
+
+V5 additionally renders Blender V9 with the same camera, renderer and lights in
+comparison-v5-blender-v9.webp (front-axis rotation pi). No mesh normalization
+was applied; bounds are recorded in comparison-v5-baseline-metrics.json.
+V5 visible geometry is 2,825 triangles, 3,561 vertices, 45 meshes, zero skinned
+meshes. Only the intentionally open mouth interior has boundary edges under
+position-weld topology inspection. These are structural findings, not likeness
+or animation acceptance. V6 source work continues separately.

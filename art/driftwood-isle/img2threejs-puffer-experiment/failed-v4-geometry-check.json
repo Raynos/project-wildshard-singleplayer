@@ -1,0 +1,414 @@
+{
+  "meshes": [
+    {
+      "name": "body",
+      "vertices": 468,
+      "triangles": 156,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "pouch",
+      "vertices": 408,
+      "triangles": 136,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "mouth",
+      "vertices": 15,
+      "triangles": 5,
+      "finite": true,
+      "boundaryEdges": 5,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "upper-face",
+      "vertices": 108,
+      "triangles": 36,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "tongue",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "eye-patch-l",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "eye-l",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "pupil-l",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "glint-l",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "brow-l",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-front-l",
+      "vertices": 42,
+      "triangles": 14,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-band-front-l",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-l0",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-l1",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-l2",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-rear-l",
+      "vertices": 42,
+      "triangles": 14,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-band-rear-l",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-l0",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-l1",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-l2",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "eye-patch-r",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "eye-r",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "pupil-r",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "glint-r",
+      "vertices": 187,
+      "triangles": 288,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "brow-r",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-front-r",
+      "vertices": 42,
+      "triangles": 14,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-band-front-r",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-r0",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-r1",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-front-r2",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-rear-r",
+      "vertices": 42,
+      "triangles": 14,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "fin-band-rear-r",
+      "vertices": 36,
+      "triangles": 12,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-r0",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-r1",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "toe-rear-r2",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine0",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine1",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine2",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine3",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine4",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine5",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "spine6",
+      "vertices": 43,
+      "triangles": 20,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "tail-root",
+      "vertices": 16,
+      "triangles": 24,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "tail-border",
+      "vertices": 96,
+      "triangles": 32,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "name": "tail-fan",
+      "vertices": 96,
+      "triangles": 32,
+      "finite": true,
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    }
+  ],
+  "finite": true,
+  "vertices": 3789,
+  "triangles": 2969,
+  "visibleMeshes": 45,
+  "skinnedMeshes": 0
+}

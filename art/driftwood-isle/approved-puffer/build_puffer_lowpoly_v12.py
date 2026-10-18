@@ -116,7 +116,9 @@ mesh('Tongue behind mouth',[(-.10,.77,.855),(.10,.77,.855),(.07,.71,.87),(-.07,.
 def fin(sign,rear=False):
     joint=('rearL'if sign>0 else'rearR')if rear else('finL'if sign>0 else'finR')
     centers=[(sign*.46,-.36 if rear else .22,.40),(sign*.54,-.35 if rear else .33,.23),(sign*.66,-.31 if rear else .43,.105),(sign*.72,-.23 if rear else .53,.055)]
-    widths=[.17,.20,.26,.29];heights=[.15,.12,.065,.03];vs=[]
+    widths=[.17,.20,.26,.29];heights=[.15,.12,.065,.03]
+    if rear:widths=[w*.70 for w in widths];heights=[h*.8 for h in heights]
+    vs=[]
     for side in[1,-1]:
         for j,(cx,cy,z)in enumerate(centers):
             for k in range(7):
@@ -137,8 +139,8 @@ def fin(sign,rear=False):
     mesh(f'Broad connected {joint}',vs,fs,'teal',joint,.035,colors)
     # Three broad ivory terminal wedges resolve the fan silhouette at phone distance.
     cx,cy,z=centers[-1]
-    for i in range(3):
-        x=cx+sign*(i-1)*.155
+    for i in range(4):
+        x=cx+sign*(i-1.5)*(.10 if rear else .145)
         mesh(f'{joint} cream toe {i}',[(x-.076,cy-.01,.086),(x+.076,cy-.01,.086),(x,cy+.09,.025),(x,cy-.015,.035)],[(0,1,2),(0,3,1),(1,3,2),(2,3,0)],'ivory',joint,.04)
 for sign in[-1,1]:fin(sign);fin(sign,True)
 
@@ -191,4 +193,4 @@ if a.render:
     def light(name,xyz,power,size,color):
         d=bpy.data.lights.new(name,'AREA');d.energy=power;d.shape='DISK';d.size=size;d.color=color;o=bpy.data.objects.new(name,d);bpy.context.collection.objects.link(o);o.location=xyz;o.rotation_euler=(Vector((0,0,.7))-o.location).to_track_quat('-Z','Y').to_euler()
     light('Warm key',(-3,4,5),650,4,(1,.90,.76));light('Cool fill',(4,1,3),360,4,(.73,.87,1));light('Rim',(0,-4,4),500,3,(.66,.87,1))
-    d=bpy.data.cameras.new('Matched style camera');cam=bpy.data.objects.new('Matched style camera',d);bpy.context.collection.objects.link(cam);scene.camera=cam;d.type='ORTHO';d.ortho_scale=3.2;cam.location=(4.6,3.0,1.80);cam.rotation_euler=(Vector((0,-.03,.84))-cam.location).to_track_quat('-Z','Y').to_euler();scene.render.filepath=str(out/'matched-style.png');bpy.ops.render.render(write_still=True)
+    d=bpy.data.cameras.new('Matched style camera');cam=bpy.data.objects.new('Matched style camera',d);bpy.context.collection.objects.link(cam);scene.camera=cam;d.type='ORTHO';d.ortho_scale=3.2;cam.location=(4.0,4.0,2.0);cam.rotation_euler=(Vector((0,-.03,.84))-cam.location).to_track_quat('-Z','Y').to_euler();scene.render.filepath=str(out/'matched-style.png');bpy.ops.render.render(write_still=True)
