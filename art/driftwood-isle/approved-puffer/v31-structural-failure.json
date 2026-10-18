@@ -1,0 +1,21 @@
+{
+  "status": "STRUCTURAL FAILURE; no visual score or acceptance",
+  "processExit": 130,
+  "stoppedByOperatorAfterHeroInspection": true,
+  "completedFrames": [
+    "01-front.png",
+    "02-left.png",
+    "03-right.png",
+    "04-back.png",
+    "05-top.png",
+    "06-elevated-front.png",
+    "matched-style.png"
+  ],
+  "completeTenViewRun": false,
+  "failure": "Boolean rebuild erased most core; pupils remained visible because surrounding hull disappeared. Eye guards did not prove body integrity.",
+  "likelyCauses": [
+    "Front/back mesh layers collapsed onto same Y plane during cheek deformation",
+    "Cheek back vertices could lie ahead of fixed front vertices, creating inverted closed wedge"
+  ],
+  "preservedBest": "V29 full-view3.37/5; unaccepted"
+}

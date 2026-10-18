@@ -1,0 +1,186 @@
+{
+  "-1": {
+    "front": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          -0.3394204080104828,
+          0.7311911582946777,
+          0.8309300541877747
+        ],
+        "faceIndex": 183
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          -0.4131592810153961,
+          0.7466936111450195,
+          0.8746230006217957
+        ],
+        "faceIndex": 183
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    },
+    "hero": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          -0.28661417961120605,
+          0.7859528064727783,
+          0.8536808490753174
+        ],
+        "faceIndex": 199
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          -0.4122352600097656,
+          0.7311348915100098,
+          0.8761131763458252
+        ],
+        "faceIndex": 197
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    },
+    "elevated-front": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          -0.3365554213523865,
+          0.7552647590637207,
+          0.8625991344451904
+        ],
+        "faceIndex": 199
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          -0.4147881269454956,
+          0.7295732498168945,
+          0.8765695095062256
+        ],
+        "faceIndex": 197
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    }
+  },
+  "1": {
+    "front": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          0.3353962302207947,
+          0.781120777130127,
+          0.8304448127746582
+        ],
+        "faceIndex": 494
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          0.41463688015937805,
+          0.7316875457763672,
+          0.8749256134033203
+        ],
+        "faceIndex": 494
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    },
+    "hero": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          0.3662073612213135,
+          0.7621879577636719,
+          0.8449805974960327
+        ],
+        "faceIndex": 494
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          0.416642427444458,
+          0.7304604053497314,
+          0.8758735656738281
+        ],
+        "faceIndex": 494
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    },
+    "elevated-front": {
+      "pupil": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      },
+      "irisLower": {
+        "blockedByHull": true,
+        "hit": [
+          0.3365553915500641,
+          0.7552649974822998,
+          0.8625993728637695
+        ],
+        "faceIndex": 498
+      },
+      "irisOuter": {
+        "blockedByHull": true,
+        "hit": [
+          0.4147881865501404,
+          0.7295727729797363,
+          0.8765692710876465
+        ],
+        "faceIndex": 498
+      },
+      "irisInner": {
+        "blockedByHull": false,
+        "hit": null,
+        "faceIndex": null
+      }
+    }
+  }
+}

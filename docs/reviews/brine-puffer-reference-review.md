@@ -297,3 +297,16 @@ Hidden-view coherence is judged against the approved original's small side/rear 
 Reviewed all ten PNGs in `tmp/puffer-lowpoly-v29-from-v9/`. **Overall 3.37/5:** silhouette/proportions 3.4, face/expression 3.25, details 3.6, facet/style 3.2; total computed using decimal arithmetic with the unchanged 35/30/20/15 weights. This is a modest stance improvement over V28, not a major fidelity jump. Lower body and shorter wider feet reduce the elevated belly gap and improve squatness. Rear feet remain nearly as prominent as forefeet in the hero, and tall conical shoulders still differ from the original's low sloping fan silhouette. Existing long orbital sidewalls, cream shelf and black gap above the nose remain unchanged.
 
 Next three priorities: repair connected nasal bridge and reduce orbital projection without sacrificing visible rounded amber lobes or thick brows; subordinate rear supports while retaining stable real depth; replace conspicuous mantle layering with coherent broad facets without deleting the crown detail. V30 remains unscored before actual images. All scores refer to the approved original, with derived hidden-view art treated as approximate.
+
+
+## 2026-10-18: V30 face regression
+
+All ten actual PNGs in `tmp/puffer-lowpoly-v30-from-v9/` reviewed. **Overall 2.92/5**, computed from silhouette 3.2, face 2.3, details 3.2, facets 3.1 at unchanged 35/30/20/15 weights. V29 remains the best reviewed multiview candidate at 3.37.
+
+The socket transplant is a direct character regression: the near eye is enlarged and recessed into an oversized brown hanging cavity; far-eye readability is poor in the hero; elevated-front loses both irises entirely; orange cheek/brow geometry becomes thin straight bars/cards rather than the approved substantial sloping wedges. The connected cream bridge closes the prior gap but expands into a broad white central slab. Body, feet, spines and tail remain recognizable, so the failure is specifically facial rather than detail deletion across the whole model.
+
+Next priorities: restore V9 visible eye coordinates/aperture and projected iris area; sculpt surrounding hull forward around that stable eye placement, keeping rounded amber lower lobes visible from front and hero; retain a compact peaked cream bridge with nostrils and a true mouth beneath, avoiding a broad central visor. Native diagnostics reportedly trace a 24 cm rearward eye relocation, which is a builder/helper diagnosis rather than a measurement inferred from these images. V31 remains unscored until actual render evidence.
+
+## 2026-10-18: V31 rejected structural failure
+
+Independently inspected `tmp/puffer-lowpoly-v31-from-v9/matched-style.png`: the body and pouch are missing, leaving floating face pieces/spines and exposed fin-root caps. Seven frames existed when checked, but the builder stopped the run before completing the nine-view set (reported exit 130). This is a rejected structural failure, not a valid new candidate; no complete-view resemblance score is assigned. V29 remains best reviewed at 3.37. Builder reports a malformed cheek-patch rear closure causing a destructive Boolean and is adding volume/manifold/bounds checks; eye visibility against an emptied hull is not sufficient validation.
