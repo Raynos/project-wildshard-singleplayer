@@ -2,7 +2,7 @@
 // SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { Color, type ShaderMaterial, type Texture, type IUniform, Vector2, Vector3, Vector4 } from 'three';
+import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type ShaderMaterial, type Texture, type IUniform, Vector2, Vector3, Vector4 } from 'three';
 import { ShaderFamily, uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
@@ -11,7 +11,6 @@ import { FLAG, PAINT_GLSL } from '../runtime/looks/paint';
 import { lightVolUniforms } from './light/lightvol';
 import { LIGHTVOL_GLSL } from '../runtime/looks/light';
 import { METAL, SUTRA } from '../util';
-import { silkWeaveTexture } from '../runtime/looks/weave';
 import { fogBandWindow } from '../runtime/looks/fogBands';
 import { PROGRAMS, SHARED_UNIFORMS } from '../runtime/looks/look';
 
@@ -24,7 +23,18 @@ const c = (hex: number): Color => new Color(hex);
 
 export type Uniforms = Record<string, IUniform>;
 
-function sharedUniforms(): UniformsOf<typeof SHARED_UNIFORMS> & {
+/** Restore an exact baked R8 weave, retaining the original sampler and mip generation. */
+export function restoreWeave(data: Uint8Array): DataTexture {
+  if (data.length !== 256 * 256) throw new Error('Nine silk weave must contain 256 × 256 R8 texels');
+  const texture = new DataTexture(data, 256, 256, RedFormat, UnsignedByteType);
+  texture.wrapS = texture.wrapT = RepeatWrapping;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function sharedUniforms(silk: Texture): UniformsOf<typeof SHARED_UNIFORMS> & {
   uSilver: { value: Color }; uGold: { value: Color }; uPaper: { value: Color }; uPaperDeep: { value: Color }; uSilk: { value: Texture };
 } & ReturnType<typeof paintUniforms> & ReturnType<typeof lightVolUniforms> {
   return {
@@ -33,7 +43,7 @@ function sharedUniforms(): UniformsOf<typeof SHARED_UNIFORMS> & {
     uGold: { value: c(METAL.gold) },
     uPaper: { value: c(SUTRA.indigo) },
     uPaperDeep: { value: c(SUTRA.deep) },
-    uSilk: { value: silkWeaveTexture() },
+    uSilk: { value: silk },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths
     ...paintUniforms(),
     ...lightVolUniforms(),
@@ -42,7 +52,8 @@ function sharedUniforms(): UniformsOf<typeof SHARED_UNIFORMS> & {
 
 /** uniforms every world program shares (one object each, so a write reaches every material) */
 export class Shared {
-  readonly u = sharedUniforms();
+  readonly u;
+  constructor(silk: Texture) { this.u = sharedUniforms(silk); }
 
   /**
    * (E283) the silk fog's band window for the eye at uCam (call it after every uCam write): the bands run top to bottom,

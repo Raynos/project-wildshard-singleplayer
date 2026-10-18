@@ -17,7 +17,8 @@ import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
 import { lookV2Passes, ungrade } from '../../src/shards/nalati-grasslands/look/grade';
-import { Shared } from '../../src/shards/nine-dragon-stack/look/style';
+import { Shared, restoreWeave } from '../../src/shards/nine-dragon-stack/look/style';
+import { silkWeaveBytes } from '../../src/shards/nine-dragon-stack/generators/silkWeave';
 import { GlyphAtlas } from '../../src/shards/nine-dragon-stack/look/glyphs';
 import { NeonSigns, NEON_LOOK } from '../../src/shards/nine-dragon-stack/look/neonsigns';
 import { chars } from '../../src/shards/nine-dragon-stack/util';
@@ -127,7 +128,7 @@ export function part2(renderer, size) {
 
   /** Nine Dragon: a neon calligraphy sign's tubes, its own SDF program, then the emissive family's tube (the board stays its own) */
   function neon() {
-    const shared = new Shared();
+    const shared = new Shared(restoreWeave(silkWeaveBytes()));
     const atlas = new GlyphAtlas(chars('重慶小麵'), 'phone');
     const signs = new NeonSigns(shared, atlas);
     const gain = (5 / 4.4) * 4.2;

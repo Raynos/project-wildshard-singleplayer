@@ -23,7 +23,7 @@
 import { type AnimationClip, type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, Group, type Matrix3, Mesh, type Texture, Vector3 } from 'three';
 import { ClothSheet, StrandTassel, clothPenetration } from '../runtime/looks/strandCloth';
 import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
-import { plainWeaveTexture } from '../runtime/looks/weave';
+import { restoreWeave } from '../look/style';
 import * as v from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
@@ -174,7 +174,7 @@ export class NineDragonArms extends FpArmsRig {
     const geometry = { rows: parts.rows, knot: loader.parse(parts.knot), tassel: loader.parse(parts.tassel), sheet: loader.parse(parts.sheet), cord: loader.parse(parts.cord) };
     const gltf = await takeRigScene(url);
     const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
-    return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, plainWeaveTexture(), tier, halo, geometry);
+    return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, restoreWeave(await product.file('looks/plain-weave.r8')), tier, halo, geometry);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */

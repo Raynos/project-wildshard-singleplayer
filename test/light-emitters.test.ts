@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Color, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, PointLight, ShaderMaterial, Vector3, Vector4 } from 'three';
+import { Color, DataTexture, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, PointLight, ShaderMaterial, Vector3, Vector4 } from 'three';
 import { LightEmitters } from '../src/engine/fx/lightEmitters';
 import { Scope } from '../src/engine/app/scope';
 import { applyGround, updateGround } from '../src/engine/render/families/ground';
@@ -18,7 +18,10 @@ import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { sceneVectors } from '../src/game/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
-import { Shared } from '../src/shards/nine-dragon-stack/look/style';
+import { Shared, restoreWeave } from '../src/shards/nine-dragon-stack/look/style';
+import { Shared as SealedShared } from '../src/shards/nine-dragon-stack-legacy/look/style';
+import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
+import { weaveTexture as sealedPlainWeave } from '../src/shards/nine-dragon-stack-legacy/world/hero/vm-material';
 import { RowRenderPass } from '../src/shards/nine-dragon-stack/runtime/looks/renderPass';
 import { HAZE_PASS } from '../src/shards/nine-dragon-stack/runtime/looks/passes';
 import { PASS_FAMILY } from '../src/shards/nine-dragon-stack/look/render/family';
@@ -149,8 +152,19 @@ test('Nine uses the engine LUT with the sealed bytes and sampler', async () => {
 });
 
 
+test('Nine weave bakes retain every texel and the sealed samplers', () => {
+  for (const [original, restored] of [[new SealedShared().u.uSilk.value, restoreWeave(silkWeaveBytes())], [sealedPlainWeave(), restoreWeave(plainWeaveBytes())]]) {
+    if (!(original instanceof DataTexture) || !(original.image.data instanceof Uint8Array) || !(restored instanceof DataTexture) || !(restored.image.data instanceof Uint8Array)) throw new Error('Missing weave bytes');
+    try {
+      expect(hashImmutableBytes(restored.image.data)).toBe(hashImmutableBytes(original.image.data));
+      for (const key of ['format', 'type', 'colorSpace', 'wrapS', 'wrapT', 'minFilter', 'magFilter', 'generateMipmaps'] as const) expect(restored[key]).toBe(original[key]);
+    } finally { original.dispose(); restored.dispose(); }
+  }
+  expect(() => restoreWeave(new Uint8Array(1))).toThrow('256 × 256');
+});
+
 test('Nine haze borrows the same baked normalization as world materials', () => {
-  const shared = new Shared();
+  const shared = new Shared(restoreWeave(silkWeaveBytes()));
   const pass = new RowRenderPass(HAZE_PASS, { family: PASS_FAMILY, camera: new PerspectiveCamera(), links: shared.u });
   try {
     const material: unknown = Reflect.get(pass, 'material:hazeMarch');

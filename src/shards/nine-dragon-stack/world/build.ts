@@ -37,7 +37,8 @@ import { CROWD_LEVELS } from '../data/lod';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
 import signRows from '../data/signView.json' with { type: 'json' };
-import { Shared, jiehuaMaterial } from '../look/style';
+import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
@@ -111,7 +112,7 @@ export interface NineDragonWorld {
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
-  const shared = new Shared();
+  const shared = new Shared(restoreWeave(await (await loadFirstPartyProduct('nine-dragon-stack')).file('looks/silk-weave.r8')));
   const root = new Group();
   root.name = 'nine-dragon-stack';
   const phaseProfile: { name: string; ms: number }[] = [];
