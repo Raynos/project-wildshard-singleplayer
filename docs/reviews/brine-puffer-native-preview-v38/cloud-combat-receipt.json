@@ -1,0 +1,203 @@
+{
+  "candidate": "V38 UNACCEPTED WIP",
+  "sourceCommit": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "previewConfigSha256": "28321f9df9c27f4b785ea53975dba1608662ac0bbee60eda460073de94cf1c63",
+  "environment": "Cloud Chromium software WebGL, 390x844 portrait; not phone performance",
+  "inflate110": {
+    "mode": "inflate-110",
+    "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+    "errors": [],
+    "httpErrors": [],
+    "console": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "type": "warning",
+        "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+      }
+    ],
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "phonePerformanceClaim": false,
+    "interactionSamples": [],
+    "opponents": [
+      "Brine Puffer Native \u00b7 UNACCEPTED WIP"
+    ],
+    "storage": {
+      "local": 0,
+      "session": 0,
+      "serviceWorker": false
+    }
+  },
+  "attack": {
+    "mode": "attack",
+    "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+    "errors": [],
+    "httpErrors": [],
+    "console": [
+      {
+        "type": "warning",
+        "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      },
+      {
+        "type": "warning",
+        "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+      }
+    ],
+    "status": "Practice bout. Health and rewards stay in this page.",
+    "phonePerformanceClaim": false,
+    "interactionSamples": [
+      {
+        "label": "initial",
+        "status": "Practice bout. Health and rewards stay in this page.",
+        "health": [
+          "100/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\nLOCK\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nPractice bout. Health and rewards stay in this page."
+      },
+      {
+        "label": "approach",
+        "status": "Practice bout. Health and rewards stay in this page.",
+        "health": [
+          "100/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\nLOCK\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nPractice bout. Health and rewards stay in this page."
+      },
+      {
+        "label": "after enemy opportunity",
+        "status": "Practice bout. Health and rewards stay in this page.",
+        "health": [
+          "100/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\nLOCK\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nPractice bout. Health and rewards stay in this page."
+      },
+      {
+        "label": "after twelve player taps",
+        "status": "Collected 2 local practice coins.",
+        "health": [
+          "88/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\n88\nVITALS\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nCollected 2 local practice coins."
+      },
+      {
+        "label": "collection approach",
+        "status": "Collected 2 local practice coins.",
+        "health": [
+          "95/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\n95\nVITALS\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nCollected 2 local practice coins."
+      },
+      {
+        "label": "retry",
+        "status": "Fresh practice bout.",
+        "health": [
+          "96/ 100"
+        ],
+        "text": "V38 UNACCEPTED WIP \u00b7 attack \u00b7 actual-engine arena \u00b7 collider tuning unaccepted\n\n96\nVITALS\nDODGE\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\nATTACK\nHOLD = HEAVY\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND \u00b7 NOTHING HAS BEEN GENERATED HERE\nPuffer V38 \u00b7 UNACCEPTED WIP \nBrine Puffer Native \u00b7 UNACCEPTED WIP\n Retry\nFresh practice bout."
+      }
+    ],
+    "opponents": [
+      "Brine Puffer Native \u00b7 UNACCEPTED WIP"
+    ],
+    "storage": {
+      "local": 0,
+      "session": 0,
+      "serviceWorker": false
+    }
+  },
+  "products": {
+    "inflate-110": {
+      "schema": "wildshard.puffer.native-preview.v1",
+      "candidate": "V38",
+      "mode": "inflate-110",
+      "source": "art/driftwood-isle/approved-puffer/unaccepted-native-v38.json",
+      "measurementSha256": "feeb806c01d57d467d8249feec9a97a4f0a1b62b8d6975130b8a783e241b0369",
+      "sourceSha256": "34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b",
+      "metadataSha256": "0933191b6f61f8024b5892278d4a942837ef8f47b7921dc80ffe40ef03714793",
+      "dimensionsSha256": "53f6fa3379f231cadd710ae234974f796f50963ce689f3bf1303ae09d301fb9d",
+      "colliderAcceptance": false,
+      "visualAcceptance": false,
+      "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+      "packedSha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487",
+      "bodyFile": "/assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+      "sourceHash": "2320bcaf102d08a12dfa999e9561952c02e951b715642467500cc43591b4ec23"
+    },
+    "attack": {
+      "schema": "wildshard.puffer.native-preview.v1",
+      "candidate": "V38",
+      "mode": "attack",
+      "source": "art/driftwood-isle/approved-puffer/unaccepted-native-v38.json",
+      "measurementSha256": "feeb806c01d57d467d8249feec9a97a4f0a1b62b8d6975130b8a783e241b0369",
+      "sourceSha256": "34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b",
+      "metadataSha256": "0933191b6f61f8024b5892278d4a942837ef8f47b7921dc80ffe40ef03714793",
+      "dimensionsSha256": "53f6fa3379f231cadd710ae234974f796f50963ce689f3bf1303ae09d301fb9d",
+      "colliderAcceptance": false,
+      "visualAcceptance": false,
+      "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+      "packedSha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487",
+      "bodyFile": "/assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+      "sourceHash": "aa840d61cffecbb4ad53b7bdbdf6d336a88a8fdbc29a081499686e973f7b51d5"
+    }
+  },
+  "observations": [
+    "1.10 and attack modes booted with zero JS/HTTP errors",
+    "Real keyboard approach and twelve touch attack taps used; no gameplay-state injection or timer acceleration",
+    "Player health fell from 100 to 88, establishing enemy damage occurred",
+    "Local reward status reported collected 2 practice coins after the player attacks",
+    "Retry reported a fresh bout; later screenshot visibly shows health 100 and respawned opponent",
+    "No obvious gross rig separation in sampled front views; weapon/UI occlude the close view"
+  ],
+  "limits": [
+    "No per-frame bone-scale or attack-clock telemetry: complete animation cycle timing/containment is not certified",
+    "Player death was not reached; opponent reward path does not validate authored death animation",
+    "Storage and service-worker samples were taken before the combat sequence, not after rewards",
+    "Optional video unavailable because installed Playwright FFmpeg was absent; sequential screenshots retained",
+    "Fixed-light empty look with AgX/grade and no LUT; not full Driftwood Noon or Explorer proof",
+    "No human-playtest, all-angle visual acceptance or phone-performance claim"
+  ],
+  "screenshots": [
+    {
+      "file": "inflate-110-cloud-portrait.png",
+      "sha256": "68b955cacfb35563b7d8e9ac8222c25682e0d27beb2e00aa99c54140760a6781"
+    },
+    {
+      "file": "attack-close-cloud-portrait.png",
+      "sha256": "dffffc127c188b7edef347d7f8afde0424cf1bb46acd7043d764b16b8ee0e3f1"
+    },
+    {
+      "file": "local-reward-cloud-portrait.png",
+      "sha256": "7ff6b0be9fd7fa82cb83e6fafe8268725dad1a17a17235fe2d5857c6004607e1"
+    },
+    {
+      "file": "retry-cloud-portrait.png",
+      "sha256": "3d8aad060e9a1dbe68a64a441408cb3c76db91ae819f06dcf93bec7f0500d245"
+    }
+  ],
+  "inputTimeline": {
+    "timingKind": "Ordered actions with requested wall-clock waits; screenshots and browser scheduling add variable elapsed time. Per-action timestamps were not sampled.",
+    "runnerSha256": "6251831a8ff01f0b4b17ccc0c7da6d6b3094ae3f8add869590a1027c50ee8c4b",
+    "attackSteps": [
+      "Navigate to isolated app; tap Start practice; wait for bout status (maximum 40 seconds).",
+      "Capture initial portrait; sample opponent list and local/session storage plus service-worker controller.",
+      "Sample initial HUD/status; hold keyboard W for 1200 ms then release; capture approach portrait and sample HUD/status.",
+      "Wait 4000 ms; capture attack-close portrait; sample HUD/status.",
+      "Tap .ws-touch-attack twelve times, with 350 ms wait after each tap; sample HUD/status and capture local-reward portrait.",
+      "Hold W for 700 ms then release; wait 1000 ms; sample HUD/status.",
+      "Tap Retry; immediately sample HUD/status (this immediate HUD sample can precede repaint).",
+      "Wait 1000 ms; capture retry portrait; close browser and server."
+    ],
+    "inflate110Steps": [
+      "Navigate and start; capture initial portrait; sample opponent/storage; wait 1000 ms; capture later portrait; close."
+    ]
+  },
+  "storageComparison": {
+    "beforeCombat": {
+      "local": 0,
+      "session": 0,
+      "serviceWorker": false
+    },
+    "afterRetry": null,
+    "comparison": "Not captured; no post-retry persistence conclusion"
+  }
+}

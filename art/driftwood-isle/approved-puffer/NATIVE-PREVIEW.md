@@ -238,3 +238,21 @@ boot tables. Rest/1.05 product and app commands remain the explicit CLI above;
 serve the resulting isolated app directory and click Start practice. The screenshot
 browser scripts and full failed/successful logs remain in the clean export's tmp;
 public-safe evidence receipts carry no private absolute paths.
+
+
+### Extended 1.10 / live-combat smoke check (2026-10-18)
+
+Both 1.10 and attack-mode products/apps built, then booted in cloud Chromium with
+zero JavaScript/HTTP errors. A real keyboard approach and twelve touch attack taps
+produced player damage (HUD 100→88) and the status “Collected 2 local practice coins.”
+Retry reported a fresh bout; the later screenshot shows health 100 and a respawned
+Puffer. No gameplay state or time was injected. Compact evidence and exact product
+pins are in `cloud-combat-receipt.json` beside the earlier screenshots.
+
+This establishes live combat/reward/reset paths, not a complete attack-animation
+measurement. No per-frame belly scale/clock telemetry was captured, the close view
+is occluded by weapon/UI, and player death was not reached. The reward path does not
+certify a death animation. Storage was sampled before combat only; post-reward
+persistence was not independently checked. Optional video capture failed before
+page creation because Playwright's FFmpeg was unavailable; screenshot-only retry
+completed successfully. All prior lighting, all-angle and phone caveats remain.
