@@ -1,4 +1,5 @@
 {
+  "test/world-scene-tier.test.ts": [],
   "test/quest-message-rows.test.ts": [],
   "test/npc-figure-rows.test.ts": [],
   "test/product-in-look.test.ts": [

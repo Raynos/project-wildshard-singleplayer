@@ -18,7 +18,7 @@ import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { parseWorldSceneModels, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
-import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
+import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { ShardContext } from '../plugin/context';
 import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
@@ -43,7 +43,7 @@ export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection,
   if (products === undefined) { products = new WeakMap(); residents.set(resident, products); }
   const previous = products.get(ctx.product); if (previous !== undefined) return previous;
   let section: WorldScenesSection;
-  try { section = parseWorldScenes(input); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error('World scene admission failed', { cause: error })); }
+  try { section = worldScenesForTier(parseWorldScenes(input), TIER); } catch (error) { return Promise.reject(error instanceof Error ? error : new Error('World scene admission failed', { cause: error })); }
   const pending = build(ctx, section, resident);
   products.set(ctx.product, pending);
   const cache = products;

@@ -346,3 +346,15 @@ test('building presentation borrows the installed Z2 namespace', async () => {
   expect(() => handles.material('harbour.root')).toThrow('Expected scene material');
   context.scope.dispose();
 });
+
+test('inactive tier sources are skipped before blob admission and decoding', async () => {
+  const { TIER } = await import('../src/engine/core/tier');
+  const context = fixture(), rows = section(), library = rows.libraries[0];
+  if (library?.kind !== 'owned') throw new Error('Missing owned fixture library');
+  const tier = TIER === 'phone' ? 'desktop' : 'phone';
+  library.models.push({ id: 'inactive', file: 'models/not-shipped.glb', tier, attributes: {} });
+  try {
+    const handles = await installWorldScenes(context, rows);
+    expect(handles.group('harbour.root')).toBeInstanceOf(Group);
+  } finally { context.scope.dispose(); }
+});

@@ -13,7 +13,7 @@ const bounded = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>
 const strings = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).length <= 128));
 const reference = v.strictObject({ library: id, model: id });
 const library = v.variant('kind', [
-  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, file: v.union([id, v.strictObject({ phone: id, desktop: id })]), segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
+  v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), file: v.union([id, v.strictObject({ phone: id, desktop: id })]), segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
   v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
@@ -45,7 +45,7 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
     batches: v.optional(bounded(WorldSceneBatchSchema, 32), []),
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
-    placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id })]), 128), []) }),
+    placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
     && row.libraries.every(entry => entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry))))
     && row.steps.every(entry => (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))), 'Unique scene identities and exactly one recipe source'));
@@ -53,3 +53,13 @@ type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
 export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds'] };
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */
 export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.parse(WorldScenesSchema, input); }
+
+/** Select declared presentation membership before decoding or allocating any library/batch.
+ * Unmarked rows remain shared; recipe/profile variants inside a tier retain their existing selectors. */
+export function worldScenesForTier(section: WorldScenesSection, tier: 'phone' | 'desktop'): WorldScenesSection {
+  const active = (row: { readonly tier?: 'phone' | 'desktop' }): boolean => row.tier === undefined || row.tier === tier;
+  const libraries: WorldScenesSection['libraries'] = [];
+  for (const entry of section.libraries) libraries.push(entry.kind === 'owned'
+    ? { ...entry, models: entry.models.filter(active) } : entry);
+  return { ...section, libraries, batches: section.batches?.filter(active) ?? [], placements: section.placements?.filter(active) ?? [] };
+}

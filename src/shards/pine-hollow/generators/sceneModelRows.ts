@@ -90,8 +90,11 @@ placements.push({ id: 'props.rocks', model: 'props.rocks', draw: 'batched', sort
 
 export const SCENE_MODELS = parseWorldSceneModels({ product: 'pine-hollow', models });
 export const SCENE_PLACEMENTS = placements.map(parseWorldScenePlacement);
+function placementReference(row: (typeof SCENE_PLACEMENTS)[number]) {
+  return { id: row.id, file: `scenes/placements/${row.id}.json`, ...(row.tier === undefined ? {} : { tier: row.tier }) };
+}
 export const MODEL_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', batches: CRAG_BATCH_ROWS, welds: CABIN_WELDS, libraries: [CRAG_LIBRARY, TIMBER_LIBRARY, ...CABIN_LIBRARIES,
   { id: 'heroes', kind: 'owned', models: heroes.blobs.map(row => ({ id: row.name.slice('models/heroes/'.length, -'.glb'.length), file: row.name })) },
   { id: 'props', kind: 'owned', models: props.geometry },
-], materials, placements: SCENE_PLACEMENTS.map(row => ({ id: row.id, file: `scenes/placements/${row.id}.json` })), steps: [] });
+], materials, placements: SCENE_PLACEMENTS.map(placementReference), steps: [] });
 export const MODEL_BLOBS = [...heroes.blobs, ...props.blobs, ...CRAG_MODEL_BLOBS, ...TIMBER_BLOBS, ...CABIN_BLOBS];

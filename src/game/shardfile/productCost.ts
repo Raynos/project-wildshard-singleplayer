@@ -3,7 +3,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputIndex';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
 
 /** Project only exclusive alternatives selected by existing typed presentation hosts.
  * Transport stays fully charged. References elsewhere or dependencies keep an asset resident;
@@ -36,7 +36,17 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop'):
   }
   const scenes = sections.get('world/scenes');
   if (scenes !== undefined) {
-    const row = parseWorldScenes(scenes);
+    const declared = parseWorldScenes(scenes);
+    for (const library of declared.libraries) if (library.kind === 'owned') for (const model of library.models) {
+      if (model.tier === undefined || model.tier === tier) continue;
+      for (const file of typeof model.file === 'string' ? [model.file] : Object.values(model.file)) {
+        const ref = names.get(file); if (ref !== undefined) inactive.add(ref);
+      }
+    }
+    for (const placement of declared.placements) if (placement.tier !== undefined && placement.tier !== tier && 'file' in placement) {
+      const ref = names.get(placement.file); if (ref !== undefined) inactive.add(ref);
+    }
+    const row = worldScenesForTier(declared, tier);
     const libraries: typeof row.libraries = [];
     for (const library of row.libraries) {
       if (library.kind !== 'owned') { libraries.push(library); continue; }

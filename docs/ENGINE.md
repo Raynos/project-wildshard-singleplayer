@@ -9503,6 +9503,13 @@ translated floors/anchors, invalid choices, disposal and cold Explorer fill.
 
 ### Shared world-scene batches
 
+Owned library models, batches and placement declarations may carry a `tier`
+(`phone` or `desktop`). Unmarked rows remain shared. `worldScenesForTier`
+selects these rows before admission, geometry decoding or batch preparation;
+it preserves recipe/profile variants within the selected tier. The device's
+library estimate excludes only inactive files without another live reference
+or dependency. Both tiers' immutable transport remains accounted separately.
+
 The client-only `game/shardfile/worldSceneBatch` owner backs these rows;
 `@wildshard/format/worldSceneBatch` defines their public data schema.
 

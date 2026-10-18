@@ -11,7 +11,7 @@ const instance = v.strictObject({ near: distance, far: distance,
   sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]) });
 
 /** One reserved client draw shared by named placements and ordered fixed LOD instances. */
-export const WorldSceneBatchSchema = v.pipe(v.strictObject({ id, material: id, name: v.optional(id, 'world-scene-batch'),
+export const WorldSceneBatchSchema = v.pipe(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), material: id, name: v.optional(id, 'world-scene-batch'),
   capacity: v.strictObject({ instances: v.pipe(count, v.maxValue(8192)), vertices: count, indices: count }),
   sortObjects: v.optional(v.boolean(), false), perObjectFrustumCulled: v.optional(v.boolean(), true),
   castShadow: v.optional(v.boolean(), false), receiveShadow: v.optional(v.boolean(), false),
