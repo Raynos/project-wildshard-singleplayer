@@ -42,13 +42,18 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
   if (actor === undefined) throw new Error('Missing authored wild stallion');
   const spawn = nalatiBake().spawns.find(a => a.id === actor.id);
   if (spawn === undefined) throw new Error('Missing authored wild stallion placement');
-  const originalPlan = await prepareHeadlessRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/nalati-grasslands') });
+  const product = await loadHeadlessProduct('out/nalati-grasslands');
+  const originalPlan = await prepareHeadlessRuntime({ shard: source, assets, rapier, product });
   const heightAt = originalPlan.ports?.heightAt; if (heightAt === undefined) throw new Error('Missing actual terrain');
-  const x = spawn.at[0] + 2, z = spawn.at[2], fixture = { ...source, spawn: { x, y: heightAt(x, z) + 0.1, z, yaw: 0 } };
-  const preparation = { shard: fixture, assets, rapier }, entry = { module: MODULE };
+  // Declared assembly reads the product's shardfile, including its spawn.
+  // Keep every shipped section/blob; replace only this documented fixture start.
+  const x = spawn.at[0] + 2, z = spawn.at[2], fixture = { ...product.shardfile, spawn: { x, y: heightAt(x, z) + 0.1, z, yaw: 0 } };
+  const preparation = { shard: fixture, assets, rapier, product: { ...product, shardfile: fixture } }, entry = { module: MODULE };
   const first = await createTrustedHeadlessResident(preparation, entry);
   let restored: Awaited<ReturnType<typeof createTrustedHeadlessResident>> | undefined;
   try {
+    assert.equal(first.host.player.position.x, x, 'Fixture must start beside the authored living stallion');
+    assert.equal(first.host.player.position.z, z, 'Fixture must start beside the authored living stallion');
     const original = first.host.entities.get(actor.id); if (original === undefined) throw new Error('Missing native authored stallion');
     let previous = 0, breakingTicks = 0, prompt = false, checkpointTick = 0;
     for (let tick = 0; tick < 10_000 && law(first.host).phase !== 'bonded'; tick++) {
