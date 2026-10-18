@@ -33,7 +33,8 @@ const bake = v.parse(PackedSpecimenSchema, { ...packedRows, bin: '/assets/nalati
 describe('declared specimen catalogue', () => {
   it('registers all original camp, yurt, bridge and trail definitions without building specimens', () => {
     expect(Object.keys(camp)).toHaveLength(53);
-    expect(Object.keys(trail)).toHaveLength(8);
+    expect(Object.keys(trail)).toHaveLength(17);
+    expect(Object.keys(trail)).toEqual(expect.arrayContaining(['shoreBoulder', 'smallRock', 'reefRock', 'palm', 'hibiscusBush', 'driftLog', 'pier', 'boat', 'zipline']));
     const ids = new Set(definedModels().map(model => model.id));
     for (const model of [...Object.values(camp), ...Object.values(trail).filter(entry => 'id' in entry)]) expect(ids.has(model.id)).toBe(true);
   });

@@ -7,7 +7,6 @@ export function cabinAmbienceRows(): { floors: { x: number; z: number; rot: numb
     const at = row.firePit;
     if (at === null) return [];
     const [x, y, z] = at;
-    if (x === undefined || y === undefined || z === undefined) throw new Error('Invalid cabin fire emitter');
     return [{ x, y, z }];
   }) };
 }

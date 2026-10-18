@@ -7,6 +7,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
 import source from '../src/shards/driftwood-isle/shard.config';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
+import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
 
 const QUEST_HOST = source.questHost;
 const DRIFTWOOD_QUEST = DRIFTWOOD_QUESTS.quests[0];
@@ -24,7 +25,9 @@ const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().en
 test('the retained DW producer preserves story, POI anchors, NPC policy and ordered command routes', async () => {
   const loaded = await readProjectAssets('src/shards/driftwood-isle');
   expect(hash(DRIFTWOOD_QUESTS)).toBe(originals.DRIFTWOOD_QUESTS);
-  expect(hash(loaded.shard.quests)).toBe(originals.DRIFTWOOD_QUESTS);
+  const { achievements, ...originalQuests } = loaded.shard.quests;
+  expect(hash(originalQuests)).toBe(originals.DRIFTWOOD_QUESTS);
+  expect(achievements).toEqual(DRIFTWOOD_FEATS);
   const storyFile = loaded.output.namedFiles?.find(file => file.name === 'quests/story.json');
   const storyBytes = storyFile === undefined ? undefined : loaded.assets.get(storyFile.hash);
   if (storyBytes === undefined) throw new Error('The product must contain named story rows');
