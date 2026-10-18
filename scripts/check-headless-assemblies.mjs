@@ -6,8 +6,8 @@ import { parseSync } from 'vite';
 import { resolveSpecifier } from './check-graph.mjs';
 
 /** Verify a shard's optional native assembly against its exact static imports.
- * @param {string} root @param {string} slug */
-export function checkHeadlessAssembly(root, slug) {
+ * @param {string} root @param {string} slug @param {string} [importDirectory] checked-import consumer directory */
+export function checkHeadlessAssembly(root, slug, importDirectory = resolve(root, 'tmp/headless-modules', slug)) {
   const prefix = `src/shards/${slug}`, declaration = resolve(root, prefix, 'data/headlessAssembly.json');
   if (!existsSync(declaration)) return undefined;
   const data = JSON.parse(readFileSync(declaration, 'utf8'));
@@ -78,7 +78,8 @@ export function checkHeadlessAssembly(root, slug) {
     for (const exported of exports) if (!available.has(exported)) throw new Error(`Missing headless export ${name}#${exported}`);
     const fields = exports.map((exported, index) => {
       const binding = `m${entries.length}e${index}`;
-      const specifier = relative(resolve(root, 'tmp/headless-modules', slug), resolve(root, path)).replaceAll('\\', '/');
+      const local = relative(importDirectory, resolve(root, path)).replaceAll('\\', '/');
+      const specifier = local.startsWith('.') ? local : `./${local}`;
       lines.push(path.endsWith('.json')
         ? `import ${binding} from ${JSON.stringify(specifier)} with { type: 'json' };`
         : `import { ${exported} as ${binding} } from ${JSON.stringify(specifier)};`);

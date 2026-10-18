@@ -1,0 +1,89 @@
+{
+  "purpose": "G494 source census correction; no runtime source reduction",
+  "sourceParent": "0a8008b3c99b510f48516c43d76d767ea426692f",
+  "beforeTree": "0a8008b3c99b510f48516c43d76d767ea426692f",
+  "correctedRulerTree": "f6f757c91f9490412a771ef678ecefb959f45136",
+  "rule": "Only exact imports validated by each existing data/headlessAssembly.json become source-census roots. Output census is unchanged.",
+  "perShard": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "rulerDelta": 0
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "rulerDelta": 0
+    },
+    "driftwood-isle": {
+      "before": 3237,
+      "after": 3237,
+      "rulerDelta": 0
+    },
+    "far-reach": {
+      "before": 419,
+      "after": 419,
+      "rulerDelta": 0
+    },
+    "ink-cel-valley": {
+      "before": 1122,
+      "after": 1122,
+      "rulerDelta": 0
+    },
+    "nalati-grasslands": {
+      "before": 20313,
+      "after": 20313,
+      "rulerDelta": 0
+    },
+    "nine-dragon-stack": {
+      "before": 11880,
+      "after": 12144,
+      "rulerDelta": 264
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "rulerDelta": 0
+    },
+    "pine-hollow": {
+      "before": 3962,
+      "after": 3962,
+      "rulerDelta": 0
+    },
+    "sunscar-dunes": {
+      "before": 208,
+      "after": 208,
+      "rulerDelta": 0
+    }
+  },
+  "platformRuntimeLines": 0,
+  "newRuntimeHosts": 0,
+  "proof": {
+    "pair": "20261018T060857-sp-x5-ruler-pair-18771",
+    "regression": "20261018T062644-sp-x5-ruler-regression-v2-84364"
+  },
+  "nineOwnershipDelta": [
+    {
+      "path": "src/engine/physics/edgeEntries.ts",
+      "name": "",
+      "kind": "sole-module",
+      "lines": 37
+    },
+    {
+      "path": "src/game/proof/entryways.ts",
+      "name": "",
+      "kind": "sole-module",
+      "lines": 165
+    },
+    {
+      "path": "src/game/shardfile/portalLinkProof.ts",
+      "name": "",
+      "kind": "sole-module",
+      "lines": 62
+    }
+  ],
+  "validation": {
+    "pair": "passed: all10 products, root/layer/scripts types, typed lint, headless assembly tests and all17 shard-headless cases",
+    "regression": "passed: source/output ownership regression, root types, typed lint, check-paths, check-models, check-model-sources"
+  }
+}

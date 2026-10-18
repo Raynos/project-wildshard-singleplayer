@@ -78,3 +78,26 @@ it('keeps a data-selected native plan as a real user after its wrapper is remove
   expect(()=>sourceProgressLines(root)).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+
+it('retains only checked proof-map imports after a handwritten catalogue is deleted',()=>{
+ const root=mkdtempSync(join(tmpdir(),'platform-native-proof-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./proof':'./proof.ts'}}));
+  put('src/game/proof.ts','export function admitted() { return 1; }\nexport function unrelated() { return 2; }');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {admitted,unrelated} from '@wildshard/game/proof'; export const value=[admitted(),unrelated()];"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
+  put('src/shards/driftwood-isle/data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/game/proof':['admitted']}}));
+  const catalogue='src/shards/driftwood-isle/boot/headlessModules.ts';
+  put(catalogue,"import {admitted} from '@wildshard/game/proof'; export const headlessModules={'src/game/proof':{admitted}};");
+  const before=sourceProgressLines(root)['pine-hollow']?.customLines;
+  unlinkSync(join(root,catalogue));
+  expect(before).toBe(2); // Pine's own line and the undeclared export stay charged.
+  expect(sourceProgressLines(root)['pine-hollow']?.customLines).toBe(before);
+  // Product/runtime census remains independent of proof-only capabilities.
+  expect(outputShardLines(root)['pine-hollow']?.conversion.customRuntimeLines).toBe(3);
+  put('src/shards/driftwood-isle/data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/game/proof':['missing']}}));
+  expect(()=>sourceProgressLines(root)).toThrow('Missing headless export');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

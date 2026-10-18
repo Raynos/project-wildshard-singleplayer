@@ -3,7 +3,7 @@
 // G417: one measure only; platform-native shards have no frozen denominator.
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { relative, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import * as v from 'valibot';
@@ -15,6 +15,7 @@ import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-compo
 import { outputRuntime, outputSections } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
+import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -717,7 +718,10 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const hostFiles = new Map();
   for (const [slug, output] of Object.entries(outputs)) {
     const path = `${prefixOf(slug)}.section-hosts.ts`;
-    texts.set(path, sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')); probes.set(path, true);
+    // The source ruler retains native composition. A checked JSON capability
+    // catalogue has the same defining users as its former handwritten imports.
+    const native = sourceProgress ? checkHeadlessAssembly(root, slug, dirname(resolve(root, path))) : undefined;
+    texts.set(path, `${sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')}\n${native ?? ''}`); probes.set(path, true);
     hostFiles.set(slug, path);
   }
   const consumers = [...Object.entries(shardFiles).map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];

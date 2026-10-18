@@ -41,6 +41,11 @@ test('data-only native proofs generate checked imports outside source and play p
     expect(source).toContain('import { proveEntryways as m0e0 } from "../../../src/game/proof/entryways.ts"');
     expect(source).toContain('"src/game/proof/entryways": { "proveEntryways": m0e0 }');
     expect(existsSync(resolve(root, 'src/shards/demo/boot/headlessModules.ts'))).toBe(false);
+    // The source census consumes the same checked declarations at its own path,
+    // preserving defining-module reach when the handwritten catalogue is gone.
+    const census = checkHeadlessAssembly(root, 'demo', resolve(root, 'src/shards/demo'));
+    expect(census).toContain('from "../../game/proof/entryways.ts"');
+    expect(census).toContain('"src/game/proof/entryways": { "proveEntryways": m0e0 }');
     // Export admission still applies when no handwritten import map exists.
     put('src/game/proof/entryways.ts', 'export function different():void {}');
     expect(() => generateHeadlessModuleMap(root, 'demo')).toThrow('Missing headless export');
