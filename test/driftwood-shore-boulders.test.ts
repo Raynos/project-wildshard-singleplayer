@@ -37,8 +37,12 @@ it('retains the sailboat rest floor and native hull dimensions', () => {
 it('decodes all finished rock draws without changing native channels or hulls', async () => {
   expect(parseWorldScene(rockRows.scene)).toEqual(rockRows.scene);
   const small = rockRows.world.small.map(row => ({ x: row.matrix[12] ?? 0, y: row.matrix[13] ?? 0, z: row.matrix[14] ?? 0, matrix: row.matrix, params: row.params }));
+  const nativeSin = Math.sin, nativeCos = Math.cos;
   const baked = bakeRockScenes(shore.placements, small), catalogue = parseWorldSceneModels({ product: 'driftwood-isle', models: rockRows.catalogue });
   try {
+    expect(Math.sin).toBe(nativeSin); expect(Math.cos).toBe(nativeCos);
+    // The native arm64 value ended in 9504; x64 ended in 9505 and invalidated the official map.
+    expect(baked.world.shore[16]?.matrix[2]).toBe(0.6717517652239505);
     expect(baked.world.shore).toHaveLength(109); expect(baked.world.small).toHaveLength(400);
     expect(baked.shoreColliders).toHaveLength(91);
     for (const [id, native] of baked.geometry) {

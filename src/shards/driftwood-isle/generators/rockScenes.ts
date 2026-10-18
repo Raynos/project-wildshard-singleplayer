@@ -2,6 +2,7 @@
 import { type BufferGeometry, Matrix4 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
+import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { drawnHullWorld, poseGeometry, poseOf } from '@wildshard/engine/models/colliders';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -45,6 +46,11 @@ export function reefGeometry(params: ReefParams, rng: Rng): BufferGeometry {
 
 /** Original merged ordering and Float32 pose arithmetic, including every hull point. */
 export function bakeRockScenes(shore: readonly Placement<ShoreParams>[], small: readonly SmallPlacement[]): RockSceneBake {
+  // Matrix doubles are map inputs: native transcendental rounding differs on arm64 and x64.
+  return withPortableMath(() => buildRockScenes(shore, small));
+}
+
+function buildRockScenes(shore: readonly Placement<ShoreParams>[], small: readonly SmallPlacement[]): RockSceneBake {
   const geometry = new Map<string, BufferGeometry>(), shoreColliders: ColliderDesc[] = [];
   const shoreCopies: RockWorldCopy[] = [], smallCopies: RockWorldCopy[] = [];
   const record = (copies: RockWorldCopy[], part: BufferGeometry, row: Placement<object>, params: object, colliders: readonly ColliderDesc[]): void => {
