@@ -1,18 +1,19 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Running net (receipt 16, four layers):** W1 net +40,370 lines, W2 net +8,184 (platform growth charged once).
+**Ruler (eighteenth, ef8a24805, 10-18 ~14:00 Cancun):** Nalati 18,760 (AS 240), Nine 11,463, Pine 4,109 (AS 488), DW 3,270 (AS 130), **Sky 0 / Signal 0**. Layers: engine 76,466, game 60,727, format 12,571, sdk 10,766. Running netCut W1 −40,637, W2 −8,440 (progress/shard-platform/maps-batch-2026-10-18-18/all10-source-ruler.json).
 
-**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,111, DW 3,266 (both under 20 %), **Sky 0 / Signal 0** (Z1 af0fee112, pushed in 3e60148e8), Nalati 19,225, Nine 11,688. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
+**Phase:** W1 done; W2 Pine/DW under 20 % and Sky/Signal at zero; W3 Nalati/Nine now (G501/G504: mini-plan Step 1 batches by component, biggest first, one batch per task).
 
-**Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6 per platform commit; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns unblocking a red gate/CI/smoke (fix forward or revert, no waiting on the owner).
+**Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns a red gate; G496 shrink-only custom sections, attribution SHAs to the coordinator first; G498 legacy copies take crash fixes only.
 
-**Batches:** live 114973d17; sixteenth pushed, smoke fix 62e14486d. Seventeenth closed and baking (Nine volume/LUT −154, Nine C9 −170, Nalati terrain −217, Nine kits −154). Eighteenth ready: x6 W3 audio (−188), x9 Nalati chapter (−68, platform +146), x4 Nine spill (−157), x1 NM2 prerequisite. G504: W3 = Step 1 batches by component. P0: display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900); sp-x4 on sampler3D + Nine B8 architecture.
+**Batches:** eighteenth landed ef8a24805 (W3 audio, Nalati chapter, Nine spill, rock contacts), strict push running (sp-x7, 14:08). Freeze holds until PUSHED. **Nineteenth order:** sp-x1 NM2 prerequisite (Nalati −22, AS +43, game +20; NM2 stays open at 5/6) · sp-x8 Nine signs/C9 · sp-x9 Nalati B3 (−123, ready) · sp-x5 Nine B4 (4 modules, 25 lossless LOD GLBs via the cast host) · sp-x6 Explorer B10 (11 modules) · sp-x4 Nine B7 (dead hero VM + weave bake).
 
-**Lanes (7 Codex + sp-x7 deploy; Opus cap 1 until Mon):**
-- CM1 + Pine C9 sp-x9 · C1-DW + C7/C8 sp-x5 · C4 sp-x1 · Sky/Signal: Z2/Z10 sp-x8, Z7/Z9 sp-x4 · G498 rows sp-x6 · switch-point rows sp-x1 · map owner sp-x10 · sp-x7 deploy only (G485/G493).
-- Components left (10-18 rulers): DW C1 ~1,140, Pine C9 738, Pine/DW C4 ~750/733, C5 Pine ~600 / DW 648.
+**P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
-**Perf:** drive fix e2141156c (default-off until one device reading): desktop worst 16.8/33.4/33.4 ms, Simulator worst 78–85 ms and p95 34–35 ms on all three roads (meets the floor). PF1 closed: Pine spawn/cabin/pond 59.88 fps, p95 16.8 (one 283 ms cabin outlier unexplained).
+**Lanes (7 Codex + sp-x7 deploy; Opus 0 until Mon 10-19):** C1 Nine sp-x5 · C4/NM2 sp-x1 · C9 Nine sp-x8 · C5 Nalati sp-x9 · C6-C8 + ruler sp-x6 · C2/C3 + P0 sp-x4 · maps sp-x10 · sp-x7 deploy only (G485/G493).
 
-**Attribution SHAs sent before landing (G496):** G499 d5a456d5e (net +296), ruler key 7b326dcb4, cue director key c3ff4774b, custom-section seal 68eb6e360 (exact limits, shrink-only), admin ruler fix e2a214cdc; W3 component classifier 3dd8f3f9b (Nalati/Nine path rules, totals unchanged). **G501:** once Pine/DW hold under 20 % after G499, component lanes take their own component across Sky/Signal (to zero) first, then Nalati/Nine (W3) when none is left. **G499/G500 (10-18 switch point):** 9 approvedFeature tags removed; waterSurface stays in the engine until the legacy copy goes; Builder-Call only for steers and rule-bending ratifies. **Order (G471/G483/G486/G487):** W2 Pine/DW ≤ 20 %; Sky/Signal-to-zero then the Z1 lockstep deleting both runtimes after W2; W3 Nalati/Nine. Rows: [open-x-queue](open-x-queue.md).
-Paused: SF22 SF57 SF67. G495–G498 rules in the lane preamble.
+**Perf:** drive fix e2141156c default-off until a device reading; Simulator p95 34–35 ms on all roads. PF1 closed: Pine 59.88 fps, p95 16.8 ms.
+
+**Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d (Nalati/Nine path rules, totals unchanged).
+
+Rows: [open-x-queue](open-x-queue.md). Paused: SF22 SF57 SF67. G495–G504 in the lane preamble.
