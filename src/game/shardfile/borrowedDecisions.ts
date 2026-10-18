@@ -245,7 +245,8 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
       decisions = new ShardDecisions(runtime, source, assets, admitted, new Map(), undefined, undefined, undefined, true);
       return decisions;
     };
-    ports.fixed(`decision:${groupId}`, () => {
+    let steppingInstalled = false;
+    const step = (): void => {
       owner(); state.tick++; for (const run of before) run();
       for (const member of members.values()) {
         const observation = member.observation, actor = member.actor;
@@ -260,7 +261,7 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
         } });
       }
       for (const run of after) run();
-    }, scope);
+    };
     scope.onDispose(() => { members.clear(); entities.clear(); strikes.clear(); });
     return { bind: (actor: AnimalSim, row: BorrowedDecision, body?: CreatureBodyRecipe): BorrowedSpeciesControl => {
       if (!Object.values(script.actors).includes(actor.entityId) || actor.flying || body?.motion !== 'ground' || body.actions !== undefined || body.offset !== undefined
@@ -285,6 +286,12 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
       members.set(actor.entityId, { actor, runner, effects: row.strikeEffects, control }); entities.set(actor.entityId, actor); strikes.set(actor.entityId, runner);
       for (const field of source.state.shared.filter(candidate => candidate.privacy === 'public' && candidate.type !== 'string')) actor.mem[field.name] = Number(field.default);
       if (decisions !== undefined) decisions.restartActor(actor.entityId);
+      // Population construction may yield between bodies. Publish no fixed-step
+      // callback until every declared member is bound; snapshots still refuse
+      // an incomplete group through owner(), rather than inventing empty state.
+      if (!steppingInstalled && Object.values(script.actors).every(id => members.has(id))) {
+        steppingInstalled = true; ports.fixed(`decision:${groupId}`, step, scope);
+      }
       return control;
     } };
   }

@@ -459,3 +459,38 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
     expect(()=>owner.step()).toThrow('normalized body offset');expect(actor.state).toBe(beforeState);expect(actor.yOffset).toBe(depth);
   }finally{sim.dispose();}
 });
+
+
+test('a yielded spawn-group build publishes its step only after every declared body binds', async () => {
+  const f = fixture(await module('return 0;')), sim = createShardfileSim(f.source, f.assets, { rapier: await rapier });
+  try {
+    const source = structuredClone(f.source); source.creatures.spawns = [];
+    source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], actors: [], bosses: [
+      { id: 'actor.a', kind: 'boar', look: 'boar', at: [0, 5], yaw: 0 },
+      { id: 'actor.b', kind: 'boar', look: 'boar', at: [0, 7], yaw: 0 },
+    ] } };
+    const script = f.scripts[0]; if (script === undefined) throw new Error('Missing group fixture guest');
+    script.binding = { spawnGroup: 'fixture.pack' }; script.commands = []; script.fields = {}; script.flags = {}; script.moves = {}; script.strikes = {};
+    for (const slot of script.state) slot.scope = 'actor';
+    const owner = sim.host, fixed = new Map<string, () => void>();
+    const authority = borrowedDecisionAuthority(source, f.assets, f.sections, { scope: owner.scope, events: owner.events,
+      flags: owner.flags, physics: owner.physics, player: owner.player, groundHeightAt: (x, z) => owner.groundHeightAt(x, z),
+      live: body => owner.entities.get(body.entityId) === body,
+      fixed: (id, run, scope) => { if (fixed.has(id)) throw new Error('Duplicate group step'); fixed.set(id, run); scope.onDispose(() => { fixed.delete(id); }); },
+    });
+    const a = owner.entities.get('actor.a'), b = owner.entities.get('actor.b');
+    if (a === undefined || b === undefined) throw new Error('Missing group fixture bodies');
+    const bind = (actor: typeof a) => authority.bind(actor, { script: 'controller', group: 'fixture.pack', strikeEffects: [] },
+      { kind: 'animal', motion: 'ground', attack: 'keeper', stunned: 'none', contact: { kind: 'environment', halfArc: Math.PI } });
+    const first = bind(a);
+    expect(fixed.size).toBe(0);
+    expect(() => first.snapshot()).toThrow('bodies must be bound');
+    // A real fixed boundary between body batches has no partial authority to run.
+    owner.step(); for (const run of fixed.values()) run();
+    bind(b); expect(fixed.size).toBe(1);
+    expect(bind(a)).toBe(first); expect(fixed.size).toBe(1);
+    for (const run of fixed.values()) run();
+    const saved = first.snapshot(); first.restore(saved); expect(first.snapshot()).toBe(saved);
+    owner.dispose(); expect(fixed.size).toBe(0);
+  } finally { sim.dispose(); }
+});

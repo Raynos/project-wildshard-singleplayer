@@ -813,6 +813,12 @@ or admission can consume its 60-second navigation window. Title, grid and travel
 handoffs still reset on their first read, reject future timestamps and refuse a new
 navigation starting after expiry. Explicit clocks support deterministic tests.
 
+`leaseClientLibrary` in `@wildshard/game/shardfile/clientLibrary` awaits verified
+rereads of released transport before charging the complete decoded/GPU library
+closure. Callers await it and supply the same `ClientAssets.read` used by runtime
+and tile owners. Missing/corrupt bytes or a disposed owner refuse before claims
+publish; disposal releases the existing allocator leases.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

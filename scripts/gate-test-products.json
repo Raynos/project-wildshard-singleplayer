@@ -1,4 +1,5 @@
 {
+  "test/client-library-residency.test.ts": [],
   "test/nalati-render-tiles.test.ts": [],
   "test/native-roster-retirement.test.ts": [],
   "test/cue-director.test.ts": [],

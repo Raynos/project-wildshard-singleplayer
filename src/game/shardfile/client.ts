@@ -217,7 +217,7 @@ export class ShardfileClient {
     const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
-    if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer) });
+    if (this.bindings.residency === undefined || this.source.runtime === null) await leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer), read: ref => this.assets.read(ref) });
     const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope, { trustedGraphs: this.nativeFeatures || this.bindings.trustedRuntime === true, ...(this.nativeFeatures ? { graphs: this.plan?.features.some(row => row.kind === 'world.scenes' && row.graphs === 'required') === true || setting('graphMaterials') === 'on' } : {}) });
     this.presentation = presentation;
     if (this.nativeFeatures) presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null });
