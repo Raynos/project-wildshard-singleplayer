@@ -20,13 +20,13 @@ export default defineConfig(({ command }) => {
   if (typeof bake !== 'object' || bake === null || !('file' in bake) || typeof bake.file !== 'string' ||
       !/^\/assets\/driftwood-isle\/creatures\/bodies-[a-f0-9]{64}\.bin$/u.test(bake.file)) throw new Error('Invalid fixture body asset');
   const assets = [bake.file.slice(1), 'assets/models/driftwood-fp/fp-arms.glb', 'assets/physics/rapier.wasm'];
-  return { publicDir: false, base: '/', resolve: { alias: rapierAlias },
+  return { publicDir: false, base: './', resolve: { alias: rapierAlias },
     define: { __DEVSERVER__: true, __BUILD_ID__: JSON.stringify('practice-demo'), __SAVE_NAMESPACES__: '[]',
       __SHARDFILE_VALIDATOR__: JSON.stringify(receipt.revision), __SHARDFILE_VERDICTS__: JSON.stringify([receipt]) },
     build: { outDir, target: 'es2022', sourcemap: false, cssCodeSplit: false,
-      rolldownOptions: { input: resolve('practice/index.html') } },
+      rolldownOptions: { input: resolve('practice.html') } },
     plugins: [rapierPreviewPlugin(), { name: 'practice-demo-closure', configResolved(config) { destinationRoot = config.build.outDir; }, buildStart() { copyRapierWasm(); }, closeBundle() {
-      copyFileSync(join(destinationRoot, 'practice/index.html'), join(destinationRoot, 'index.html'));
+      copyFileSync(join(destinationRoot, 'practice.html'), join(destinationRoot, 'index.html'));
       cpSync(product, join(destinationRoot, 'practice-product'), { recursive: true });
       for (const asset of assets) { const destination = join(destinationRoot, asset); mkdirSync(dirname(destination), { recursive: true }); copyFileSync(join('public', asset), destination); }
     } }],

@@ -49,8 +49,10 @@ try {
     await page.locator('#practice-retry').tap(); await page.waitForTimeout(500); row.retry = await sample(); save();
   }
   report.storageAfter = await page.evaluate(() => ({ local: Object.fromEntries(Object.keys(localStorage).map(key => [key, localStorage.getItem(key)])), session: Object.fromEntries(Object.keys(sessionStorage).map(key => [key, sessionStorage.getItem(key)])) }));
+  const mount = process.env.PRACTICE_QA_REQUIRE_MOUNT;
+  report.assetPathsContained = mount === undefined || report.requests.every(path => path === '/' || path.startsWith(mount));
   report.storageUnchanged = JSON.stringify(report.storageBefore) === JSON.stringify(report.storageAfter);
-  if (report.errors.length > 0 || !report.storageUnchanged || report.encounters.some(row => row.before.targets !== 1 || row.before.dummies.some(Boolean))) process.exitCode = 1;
+  if (report.errors.length > 0 || !report.assetPathsContained || !report.storageUnchanged || report.encounters.some(row => row.before.targets !== 1 || row.before.dummies.some(Boolean))) process.exitCode = 1;
 } catch (error) {
   report.fatal = error.message; process.exitCode = 1;
   const page = browser.contexts().at(0)?.pages().at(0);

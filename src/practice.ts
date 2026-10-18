@@ -1,3 +1,4 @@
+import { replacePracticeCanvas } from './practiceCanvas';
 import { installAppIdentity } from './engine/app/identity';
 import { installAssetTables } from './engine/boot/tables';
 import { installSaveEnvironment } from './engine/saves/environment';
@@ -15,7 +16,7 @@ const status = document.getElementById('practice-status');
 const start = document.getElementById('practice-start');
 const select = document.getElementById('practice-opponent');
 const retry = document.getElementById('practice-retry');
-const canvas = document.getElementById('game');
+let canvas = document.getElementById('game');
 if (!(start instanceof HTMLButtonElement) || !(select instanceof HTMLSelectElement) ||
     !(retry instanceof HTMLButtonElement) || !(canvas instanceof HTMLCanvasElement) || status === null)
   throw new Error('Practice page is incomplete');
@@ -40,6 +41,9 @@ async function begin(): Promise<void> {
     owner.listen(select, 'change', () => { void change(); });
     owner.listen(retry, 'click', demo.retry);
     owner.listen(window, 'pagehide', event => { if (!event.persisted) { demo.dispose(); owner.dispose(); } });
-  } catch (error: unknown) { report(error instanceof Error ? error.message : 'Arena failed to load.'); start.disabled = false; }
+  } catch (error: unknown) {
+    if (canvas instanceof HTMLCanvasElement) canvas = replacePracticeCanvas(canvas);
+    report(error instanceof Error ? error.message : 'Arena failed to load.'); start.disabled = false;
+  }
 }
 owner.listen(start, 'click', () => { void begin(); });

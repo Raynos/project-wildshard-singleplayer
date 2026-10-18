@@ -1,3 +1,5 @@
+import { loadRapier } from './engine/physics/rapier';
+import { practiceAssetUrl } from './practiceAssets';
 import { Scope } from './engine/app/scope';
 import { ktx2TranscodeSupport } from './engine/core/ktx2';
 import { browserContentHash } from './game/shardfile/product';
@@ -14,6 +16,9 @@ export async function bootPractice(canvas: HTMLCanvasElement, status: (message: 
       base: new URL('practice-product/', document.baseURI).href, firstParty: true, offline: false,
       fetch: url => fetch(url), hash: browserContentHash, textures: ktx2TranscodeSupport(),
     }, productOwner);
+    const physics = await fetch(practiceAssetUrl('/assets/physics/rapier.wasm'));
+    if (!physics.ok) throw new Error(`Practice physics fetch failed: ${physics.status}`);
+    await loadRapier(await physics.arrayBuffer());
     const demo = await startPracticeDemo({ canvas, level: practiceLevel(), product,
       prepare: game => preparePracticeContent(game, product), status });
     demo.game.levelScope.expose(window, '__practiceDemo', demo);

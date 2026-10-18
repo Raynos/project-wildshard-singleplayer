@@ -1,0 +1,216 @@
+{
+  "source": "a876b85139e740f59b6ddb56717a28fd708b5e96",
+  "runnerSha256": "1949fb71bd070b59c9592a567c27e686f7432f4873f77ea2650f153676a5571f",
+  "startedAt": "2026-10-18T16:31:10.051Z",
+  "encounters": [
+    {
+      "id": "brine-puffer:brine-puffer",
+      "before": {
+        "state": "practice",
+        "targets": 1,
+        "kind": "brine-puffer",
+        "hp": 45,
+        "enemyState": "stalk",
+        "localHealth": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "player": {
+          "position": [
+            -0.000002875322962836435,
+            900.0005999405548,
+            -2.200001277192311
+          ],
+          "yaw": 0,
+          "pitch": -0.1
+        },
+        "dummies": [
+          false,
+          false,
+          false
+        ],
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "diagnosticPose": {
+        "position": [
+          -0.001970334265024576,
+          900,
+          -4.548384663276375
+        ],
+        "yaw": 0,
+        "pitch": -0.08
+      },
+      "after": {
+        "state": "practice",
+        "targets": 1,
+        "kind": "brine-puffer",
+        "hp": 0,
+        "enemyState": "dead",
+        "localHealth": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "player": {
+          "position": [
+            -0.11961514379848082,
+            900.0197833641068,
+            -6.218104350159192
+          ],
+          "yaw": 0.038311840654311355,
+          "pitch": -0.08
+        },
+        "dummies": [
+          false,
+          false,
+          false
+        ],
+        "status": "Collected 2 local practice coins."
+      },
+      "retry": {
+        "state": "practice",
+        "targets": 1,
+        "kind": "brine-puffer",
+        "hp": 45,
+        "enemyState": "stalk",
+        "localHealth": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "player": {
+          "position": [
+            -0.000003500196768868591,
+            900.0012999369865,
+            -2.2000019677885847
+          ],
+          "yaw": 0,
+          "pitch": 0
+        },
+        "dummies": [
+          false,
+          false,
+          false
+        ],
+        "status": "Fresh practice bout."
+      }
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "/",
+    "/assets/index-BGpsJt-c.js",
+    "/assets/scope-CDMJThrF.js",
+    "/assets/tables-BovtVlAx.js",
+    "/assets/preload-helper-BZ1Pz5am.js",
+    "/assets/style-3STfMJLR.css",
+    "/assets/practiceBoot-Drvyxuo1.js",
+    "/assets/rolldown-runtime-DK3Fl9T5.js",
+    "/assets/three.core-BNyAOcZ3.js",
+    "/assets/shaderPatches-CWlvy5Ya.js",
+    "/assets/GLTFLoader-DnZ_kjM2.js",
+    "/assets/Settings-BNCbqsIt.js",
+    "/assets/memoryResources-ConTL0Oo.js",
+    "/assets/memoryAttribution-DlUGm6mv.js",
+    "/assets/preload-CmzSeC3A.js",
+    "/assets/audioFiles-yVhHrSJt.js",
+    "/assets/Stems-Bu04mpd9.js",
+    "/assets/runtime-CZnRYlme.js",
+    "/assets/meshopt_decoder.module-DDLmvpjg.js",
+    "/assets/clock-B53qIMMf.js",
+    "/assets/json-Dr12Y27u.js",
+    "/assets/geometryBounds-yA5duv2Q.js",
+    "/assets/registry-eXmxyLwY.js",
+    "/assets/toon-QxNvPP0g.js",
+    "/assets/runtimeProduct-mt2zmiza.js",
+    "/assets/SetScore-y2i-Y-HX.js",
+    "/assets/audioLog-DDd08KrP.js",
+    "/assets/declaredBank-By5fvH-F.js",
+    "/assets/Cues-Bn3sjTlb.js",
+    "/assets/build-CehzHm6x.js",
+    "/assets/materialGraph-CteREh-_.js",
+    "/assets/presets-Lbjwe67b.js",
+    "/assets/time-Cb5-tWPA.js",
+    "/assets/graphBackend-CSWy_SUh.js",
+    "/assets/dataLook-D6qpKypn.js",
+    "/assets/dayCycle-e1TDlXAt.js",
+    "/assets/Weapon-CNKF6Yh8.js",
+    "/assets/nodeLayerFrame-PqqyriBq.js",
+    "/assets/shadowVariants-kzUh2vEP.js",
+    "/assets/precompile-BRbQsRUz.js",
+    "/assets/shadowDepthVariants-BoIU_3-F.js",
+    "/assets/shadowChunks-C9VsmQcL.js",
+    "/assets/postPreparation-BM0ovkLk.js",
+    "/assets/lastEnd-_zgpYodu.js",
+    "/assets/emptyLook-D2dy-xuz.js",
+    "/assets/Tool-jTOctduU.js",
+    "/assets/lentLooks-I-o2C5-o.js",
+    "/assets/wind-CDg_obA2.js",
+    "/practice-product/shard.json",
+    "/practice-product/sections/actors/creatures.json",
+    "/practice-product/sections/actors/crowds.json",
+    "/practice-product/sections/actors/moves.json",
+    "/practice-product/sections/actors/spawns.json",
+    "/practice-product/sections/actors/species.json",
+    "/practice-product/sections/actors/species-programs.json",
+    "/practice-product/sections/actors/strikes.json",
+    "/practice-product/sections/audio/audio.json",
+    "/practice-product/sections/combat/encounters.json",
+    "/practice-product/sections/combat/items.json",
+    "/practice-product/sections/combat/strikes.json",
+    "/practice-product/sections/economy/ledger.json",
+    "/practice-product/sections/economy/loot.json",
+    "/practice-product/sections/held/arms.json",
+    "/practice-product/sections/look/look.json",
+    "/practice-product/sections/look/materials.json",
+    "/practice-product/sections/quests/quests.json",
+    "/practice-product/sections/sim/client-scripts.json",
+    "/practice-product/sections/sim/hooks.json",
+    "/practice-product/sections/sim/plumbing.json",
+    "/practice-product/sections/sim/scripts.json",
+    "/practice-product/sections/sim/sim.json",
+    "/practice-product/sections/state/migrations.json",
+    "/practice-product/sections/state/state.json",
+    "/practice-product/sections/ui/card.json",
+    "/practice-product/sections/ui/compendium.json",
+    "/practice-product/sections/ui/ui.json",
+    "/practice-product/sections/world/collision.json",
+    "/practice-product/sections/world/days.json",
+    "/practice-product/sections/world/edge.json",
+    "/practice-product/sections/world/movers.json",
+    "/practice-product/sections/world/navigation.json",
+    "/practice-product/sections/world/props.json",
+    "/practice-product/sections/world/spawn.json",
+    "/practice-product/sections/world/terrain.json",
+    "/practice-product/sections/world/tiles.json",
+    "/practice-product/sections/world/traversal.json",
+    "/practice-product/sections/world/water.json",
+    "/practice-product/sections/world/weather.json",
+    "/assets/physics/rapier.wasm",
+    "/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+    "/practice-product/blobs/json/04384aec594c221f424b091e40ef8e38d1a50ae258598cd4bdaba707fd47a83c.json",
+    "/assets/engineNodesHandler-BvL7_dXB.js",
+    "/assets/engineNodesHandler-Cj_Q1yv1.js",
+    "/assets/nodeCoarseMask-BL9dSruf.js",
+    "/assets/compile-BIF2ICWQ.js",
+    "/practice-product/blobs/json/57df8cde9066347dbdb232970d0875d9d9c374fdd4f33250279e853e48e90f42.json",
+    "/assets/driftwood-isle/creatures/bodies-52302db244df83ae1d4967f5e16b8df380ebb34debcb2d69a6d2675f67d4530f.bin",
+    "/practice-product/blobs/json/1907958e926a51148a67ba71188f8c9bcfa4f5da19547e1e97ff92196f8e7091.json",
+    "/practice-product/blobs/json/3b807a5a8bd90184cf747d73def214f7247894b5c3681dcfefb1213916a34b60.json",
+    "/practice-product/blobs/json/580a5f7c7e0bf426b82bb74ed5968b57db28b81060d24e03257e1ab7da6fb19c.json",
+    "/practice-product/blobs/json/00564e25981624bed49ba7b3e2673217c86bc84f8d5eefb8e8dc2c88660b208e.json",
+    "/practice-product/blobs/json/765a87858b656792a4a30e9a6bd8842981cc77095941c5d01a39ffa823e0dd43.json",
+    "/assets/models/driftwood-fp/fp-arms.glb",
+    "/practice-product/blobs/wasm/d2387beb63031edd5c2daadb2f060e6193f7bb8489d3cdcefffdf52bc43a4726.wasm",
+    "/practice-product/blobs/wasm/d2387beb63031edd5c2daadb2f060e6193f7bb8489d3cdcefffdf52bc43a4726.wasm"
+  ],
+  "visualStatus": "Rejected mechanics fixtures",
+  "storageBefore": {
+    "local": {},
+    "session": {}
+  },
+  "storageAfter": {
+    "local": {},
+    "session": {}
+  },
+  "storageUnchanged": true,
+  "endedAt": "2026-10-18T16:31:26.834Z"
+}

@@ -1,3 +1,4 @@
+import { practiceAssetUrl } from './practiceAssets';
 import type { Game } from './engine/core/Game';
 import { app } from './engine/app/runtime';
 import type { ShardProduct } from './game/shardfile/shardProduct';
@@ -37,7 +38,8 @@ export async function preparePracticeContent(game: Game, product: ShardProduct):
   const presentation = v.parse(presentationSchema, await json('practice/looks.json'));
   const ids = presentation.materials;
   lendLooks(owner, await runtimeLookMaterials({ scope: owner, renderer: game.renderer }, product.shardfile, true, Object.values(ids)));
-  const bodies = packedCreatureBodies(await json('practice/bodies.json')); await bodies.preload();
+  const bodyData = v.parse(v.looseObject({ file: v.string() }), await json('practice/bodies.json'));
+  const bodies = packedCreatureBodies({ ...bodyData, file: practiceAssetUrl(bodyData.file) }); await bodies.preload();
   const looks: SpeciesLook[] = await Promise.all(presentation.looks.map(async (row): Promise<SpeciesLook> => {
     const clips: unknown = JSON.parse(new TextDecoder().decode(await product.file(row.pose)));
     return { id: row.id, species: row.species, kind: row.kind, rigContract: row.rigContract,
@@ -53,7 +55,8 @@ export async function preparePracticeContent(game: Game, product: ShardProduct):
   for (const row of program.species) app.species.registerRow(row, owner);
   for (const look of looks) app.species.registerLook(look, owner);
   for (const row of readLootTables(product.section('economy/loot').rows.loot[0]?.economy?.tables)) registerLootTable(row, owner);
-  const arms = ToonArms.admit(product.section('held/arms').look);
+  const heldData = v.parse(v.looseObject({ url: v.string() }), product.section('held/arms').look);
+  const arms = ToonArms.admit({ ...heldData, url: practiceAssetUrl(heldData.url) });
   await arms.prepareProduct({ scope: owner, renderer: game.renderer }, product);
   const held = await arms.load();
   if (held.arms === undefined) throw new Error('Demo sword arms failed to load');

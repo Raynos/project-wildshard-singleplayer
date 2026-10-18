@@ -222,9 +222,11 @@ PREVIEW_CFG="$BASE/$stamp/vite.preview.mjs"
 # plugins serve their already-built bytes without importing their build generators.
 PREVIEW_MODULE="$SRC/vite/preview.ts"
 [ -f "$PREVIEW_MODULE" ] || PREVIEW_MODULE="$REPO/vite/preview.ts"
+PRACTICE_PREVIEW_BASE=""
+[ $PRACTICE_DEMO -eq 1 ] && PRACTICE_PREVIEW_BASE="base: '/practice/',"
 cat > "$PREVIEW_CFG" <<JS
 import { previewConfig } from '$PREVIEW_MODULE';
-export default { ...previewConfig(), root: '$SRC' };
+export default { ...previewConfig(), $PRACTICE_PREVIEW_BASE root: '$SRC' };
 JS
 cd "$SRC" || exit 1
 # A tool runner retires its process group when the calling command exits. nohup ignores HUP, but stays in that

@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { saveEnvironment } from '../src/engine/saves/environment';
+import { replacePracticeCanvas } from '../src/practiceCanvas';
+import { practiceAssetUrl } from '../src/practiceAssets';
 import { practiceLevel } from '../src/practiceLevel';
 import presentation from '../src/shards/driftwood-isle/data/practiceLooks.json';
 import bodies from '../src/shards/driftwood-isle/data/creatureBodies.generated.json';
@@ -32,4 +34,23 @@ test('the demo presentation describes exactly five real packed creature rigs', (
     for (const socket of look.rigContract.sockets) expect(body?.bones.some(bone => bone.name === socket)).toBe(true);
     expect(look.pose).toBe(`poses/${look.rigContract.skeleton.replace(/\.v1$/u, '')}.json`);
   }
+});
+
+
+test('demo assets stay within the page mount without intercepting global fetch', () => {
+  expect(practiceAssetUrl('/assets/physics/rapier.wasm', 'https://example.test/practice/')).toBe('https://example.test/practice/assets/physics/rapier.wasm');
+  expect(practiceAssetUrl('/assets/models/arms.glb', 'https://example.test/practice/index.html')).toBe('https://example.test/practice/assets/models/arms.glb');
+  expect(practiceAssetUrl('/assets/body.bin', 'https://example.test/')).toBe('https://example.test/assets/body.bin');
+  expect(() => practiceAssetUrl('https://other.test/file', 'https://example.test/practice/')).toThrow('Unexpected practice asset path');
+});
+
+
+test('failed boot replaces only its disposed canvas and preserves page controls', () => {
+  const canvas = document.createElement('canvas'); canvas.id = 'game'; canvas.width = 804; canvas.height = 1748;
+  const control = document.createElement('button'); document.body.append(canvas, control);
+  const replacement = replacePracticeCanvas(canvas);
+  expect(replacement).not.toBe(canvas); expect(canvas.isConnected).toBe(false);
+  expect(replacement.id).toBe('game'); expect(replacement.width).toBe(804); expect(replacement.height).toBe(1748);
+  expect(control.isConnected).toBe(true); expect(document.querySelectorAll('canvas')).toHaveLength(1);
+  document.body.replaceChildren();
 });

@@ -9862,3 +9862,9 @@ policy; ordinary legacy declarations retain their existing fallback.
 The engine package exposes its existing `core/webglStartup`, `physics/active`
 and `physics/ragdoll` and `saves/environment` modules for explicit compositions. A demo installs a
 memory-only SaveEnvironment before dynamically importing the game host.
+
+The standalone demo resolves its explicit physics, body and first-person assets
+beside its page, so the artifact can mount at `/practice/` without global fetch
+interception. A failed disposed Game receives a fresh page-owned canvas before
+retry; normal engine context teardown is unchanged. The supported preview's
+`--practice-demo` mode serves that same mounted path.
