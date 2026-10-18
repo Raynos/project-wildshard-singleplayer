@@ -1,0 +1,188 @@
+{
+  "sourceTree": "1150837b4d96999e4977772e91adc0641f73d7ba",
+  "sourceParent": "2e2b2a49152907e2966aa4399b978845dee391ea",
+  "commitParent": "cac5b2b315a0edfdb9d5d209570235f22940c3d8",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2057,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "45c9dd5e2e56673b39bd46eb47c3631a996bbccd8bdd068daa3645c5af0db37f",
+      "inputFiles": 277,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "45c9dd5e2e56673b39bd46eb47c3631a996bbccd8bdd068daa3645c5af0db37f",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "31c1f1793d843459a561b00760eebdde093a9a968de6f92961be452fe967b809",
+      "inputFiles": 268,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "31c1f1793d843459a561b00760eebdde093a9a968de6f92961be452fe967b809",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "7671a2d042243ab85429a2635fffdd34e97487c8",
+      "owner": "sp-x9",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "paired approved timber producer and native timber scene adoption; three whole runtime modules deleted",
+      "directFactInputs": {
+        "pine-hollow": [
+          "data/timberScenes.generated.json",
+          "data/plumbing.json"
+        ]
+      },
+      "reportedNetShardLines": {
+        "pine-hollow": -170
+      },
+      "reportedNetPlatformLines": 162,
+      "ownerProof": "48 tests including 17 headless, root/layer types, typed lint, all10 products, two exact 20-view native pairs and 7 walk routes with 0 stuck; actual phone pending",
+      "finalPhoneProof": {
+        "receipt": "tmp/sp-x9-timber/landed-phone.json",
+        "sha256": "b76fe51b243ff688553e2e23a086fec0dabbb9fc628a0eb43898949900821120",
+        "proof": "20261017T220359-sp-x9-timber-release-phone-97846",
+        "source": "7671a2d042243ab85429a2635fffdd34e97487c8",
+        "passed": true,
+        "device": "muted iPhone 16 Pro",
+        "checks": [
+          "play",
+          "health100",
+          "rendered frames",
+          "no page errors or fatal"
+        ],
+        "resources": "owner4411 stopped"
+      }
+    },
+    {
+      "sha": "62d4d3f96d7c761fd282fa0b8fe1fd286cdbb219",
+      "owner": "sp-x1",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "AssemblyScript return program and ecology lifetime admission",
+      "directFactInputs": {},
+      "changedGeneratorInputs": [
+        "bake-returns.mjs",
+        "returnProgram.ts",
+        "keeperRows.ts",
+        "output.ts",
+        "product.ts"
+      ],
+      "reportedNetShardLines": {
+        "driftwood-isle": -65,
+        "pine-hollow": 0
+      },
+      "reportedNetPlatformLines": 190,
+      "reportedAssemblyScriptLines": {
+        "driftwood-isle": 119,
+        "pine-hollow": 433
+      },
+      "ownerProof": ".git/proofs/20261017T220739-c4-return-landing-source-14303.json; all10/types/lint42incl17/native exact/phone/hooks green"
+    },
+    {
+      "sha": "bd3df46b19a32a6d9ad474ca1989e7ec4b16e8ed",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "DW static batches 7-8 piers, boat, zipline, foliage and logs",
+      "directFactInputs": {
+        "driftwood-isle": [
+          "data/foliageScenes.generated.json",
+          "data/pierScenes.generated.json"
+        ]
+      },
+      "movedFactInput": {
+        "from": "data/pierRows.json",
+        "to": "generators/pierRows.json"
+      },
+      "mapInputDeclaration": "bounded owner map.json update already landed",
+      "reportedNetShardLines": {
+        "driftwood-isle": -525
+      },
+      "reportedNetPlatformLinesIncludingFormat": 31,
+      "ownerProof": "progress/shard-platform/driftwood-static-scenes-2026-10-17/proof.json; 55 tests including17 headless, root/layer types, typed lint, all10, exact28 views, zero-stuck8 legs, desktop59.88; Simulator absolute p95 limitation retained"
+    },
+    {
+      "sha": "2e2b2a49152907e2966aa4399b978845dee391ea",
+      "owner": "sp-x7",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "portableMath scopes rock scene producer to identical ARM/x64 rows and all11 GLBs",
+      "directFactInputs": {},
+      "ownerProof": ".git/proofs/20261017T222325-sp-x7-portable-rock-check-86432.json; x64 producer --check complete JSON/11GLBs exact, root/layer types, typed lint, all10 nonstrict, 21 focused/headless passed"
+    },
+    {
+      "sha": "cac5b2b315a0edfdb9d5d209570235f22940c3d8",
+      "owner": "sp-x5/sp-x7",
+      "shards": [],
+      "change": "guard/component path repair only; no declared map inputs changed",
+      "ownerProof": "guards/path checks/root+layer types/lint/headless/all10 green; actual bd3 source phone pass no page errors"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [],
+    "pine-hollow": [
+      "data/timberScenes.generated.json"
+    ]
+  }
+}
