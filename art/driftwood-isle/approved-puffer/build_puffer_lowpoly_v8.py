@@ -1,4 +1,4 @@
-"""Puffer low-poly style revision. New art-direction target, NOT a new owner approval.
+"""Puffer approved low-poly target study. Mesh implementation remains unaccepted.
 Blender 4.3: -b -t 2 --python-exit-code 1 -P <source> -- --out tmp/puffer-lowpoly-v8 --render
 No old assets replaced; no runtime wiring. X right, Y forward, Z up.
 """
@@ -197,7 +197,7 @@ for ob,joint in parts:ob.select_set(True)
 bpy.context.view_layer.objects.active=parts[0][0];bpy.ops.object.join();skin=bpy.context.object;skin.name='Puffer style revision skin'
 bpy.ops.object.select_all(action='DESELECT');skin.select_set(True);arm.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(out/'puffer-style-v8.glb'),export_format='GLB',use_selection=True,export_animations=False)
-(out/'metrics.json').write_text(json.dumps({'status':'style revision study; no new owner approval; not accepted','triangles':triangles,'joints':8,'materials':1,'glbBytes':(out/'puffer-style-v8.glb').stat().st_size},indent=2))
+(out/'metrics.json').write_text(json.dumps({'status':'approved low-poly target; implementation unaccepted','triangles':triangles,'joints':8,'materials':1,'glbBytes':(out/'puffer-style-v8.glb').stat().st_size},indent=2))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'inspection.blend'))
 if a.render:
     scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=False;scene.render.resolution_x=780;scene.render.resolution_y=960;scene.render.resolution_percentage=100;scene.world.color=(.18,.18,.18);scene.view_settings.view_transform='AgX'

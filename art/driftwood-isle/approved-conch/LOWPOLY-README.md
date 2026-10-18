@@ -1,13 +1,15 @@
 # Conch low-poly style revision
 
-**Unaccepted source study. No new human approval is claimed.**
+**Owner-approved low-poly visual target; model acceptance remains 0.**
 
 The original Conch identity was approved. The owner subsequently requested a
 style audit against Driftwood's actual low-poly look and continued development
 of the same five identities toward 5/5 quality. The coordinator inspected a
 revised low-poly AI concept on 2026-10-18, showing broad cream/coral whorls,
 clean burgundy anatomy, amber stalk eyes and asymmetric shield/thrust claws.
-That revision is a working visual target, not a new owner pick or game capture.
+The owner explicitly approved all five revised low-poly mockups later on
+2026-10-18. The revised Conch is now the approved build target. It remains
+concept art, not a game capture or acceptance of any actual model.
 
 `build_conch_lowpoly_v1.py` is a separate version. It replaces the failed narrow
 cone with explicit broad graduated whorl sections and a tilted centerline;

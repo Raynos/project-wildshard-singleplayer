@@ -52,3 +52,24 @@ support. No geometry was changed for the retry. The actual study GLB is
 Rear/side views, rigging, animation, Model Explorer, arena behavior, phone
 performance and human fun remain untested. Neither an export nor this README
 establishes quality acceptance. Runtime wiring follows successful render review.
+
+## V2 correction and inspection
+
+`build_mantis_v2.py` is separate editable source; the first study is preserved.
+All declared sRGB palette swatches are explicitly decoded to linear material
+inputs. Lighting and exposure were not changed to fake the color correction.
+The new study broadens hooks and leaf wings, adds purposeful thorax plates,
+angles the brow and changes the camera/framing to match the target side.
+
+Actual v2 export and front render pass: 1,686 triangles, 59 mesh objects, zero
+boundary edges, zero nonmanifold edges and zero degenerate faces. The model
+is still unaccepted. The inspected render is clearly improved in wood/green
+color and blade mass, with the complete silhouette visible. Remaining gaps:
+rigid angular upper-arm cross-sections, insufficient tapered/overlapping body
+planes, large simplified head and too uniformly straight leaf ridges. Rear
+and side review are still required before rigging or runtime integration.
+These visual judgments are not a 5/5 claim.
+
+V2 evidence: `comparison-v2-board.webp`, `actual-v2-preview.webp`,
+`mantis-study-v2.glb`, and `metrics-v2.json`. Reproduce with the same command
+above, substituting `build_mantis_v2.py`, then `review_board_v2.py`.

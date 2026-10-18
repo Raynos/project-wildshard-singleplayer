@@ -1,0 +1,13 @@
+{
+  "status": "unaccepted study",
+  "objects": 114,
+  "triangles": 2138,
+  "height": 5.89,
+  "front": "-Y",
+  "glbBytes": 302772,
+  "rendered": true,
+  "actualRenderedViews": [
+    "three-quarter"
+  ],
+  "visualAcceptance": false
+}

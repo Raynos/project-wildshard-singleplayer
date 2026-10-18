@@ -47,3 +47,18 @@ gltf-validator 2.0.0-dev.3.10 reports zero errors and one standard Blender
 `NODE_SKINNED_MESH_NON_ROOT` warning; parent transforms are identity. The asset
 retains a single skinned mesh, eight joints and one vertex-color material.
 The script remains the source; this copy is deliberately labelled failed.
+
+## Owner approval update, 2026-10-18 15:31 UTC
+
+The owner explicitly approved all five revised low-poly mockups, including the
+portable Puffer image linked above. It is now the approved build target. Earlier
+proposal-status statements record the prior checkpoint state. This approval
+does not accept any generated mesh; v7 still fails and v8 remains unexecuted.
+
+
+## V8 actual result and V9 source-only correction
+V8 rendered successfully, but failed target anatomy: pouch too small, feet too long, brows still layered, tail obscured. The closed mouth side gap is an improvement, not acceptance. `failed-lowpoly-v8.webp` and `failed-lowpoly-v8.glb` preserve this failed study. Export: 2,899 triangles, 7,559 vertices, eight joints, one material, 443,776 bytes; Khronos validator 2.0.0-dev.3.10 reports zero errors and one skinned-non-root warning with identity parent transforms.
+
+`build_puffer_lowpoly_v9.py` is unexecuted. It enlarges the forward ivory pouch, shortens and widens foot roots, lowers brow back planes, buries spine roots and angles the tail root toward its visible fan. These are geometry changes awaiting a single comparison render; no quality acceptance or runtime admission.
+
+V9 executed: pouch scale and grounding improved, but exposed eye rims, layered brow chunks, raised narrow mouth and incomplete tail webbing still fail the approved target. `failed-lowpoly-v9.webp` and `.glb` preserve the actual failed result: 2,889 triangles, eight joints, one material, 443,608 bytes. No implementation accepted.
