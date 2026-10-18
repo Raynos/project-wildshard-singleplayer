@@ -1,0 +1,22 @@
+{
+  "-1": {
+    "pupilCenter": [
+      -0.18301710486412048,
+      0.39637985825538635,
+      0.9979999661445618
+    ],
+    "blockedByHull": false,
+    "hit": null,
+    "faceIndex": null
+  },
+  "1": {
+    "pupilCenter": [
+      0.18240974843502045,
+      0.39513444900512695,
+      0.9979999661445618
+    ],
+    "blockedByHull": false,
+    "hit": null,
+    "faceIndex": null
+  }
+}

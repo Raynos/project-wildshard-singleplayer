@@ -1,0 +1,116 @@
+{
+  "schema": "wildshard.puffer.native-codec-validation.v1",
+  "candidate": "V23, visually unaccepted",
+  "recordedAt": "2026-10-18T17:14:00Z",
+  "inputs": {
+    "blenderSource": {
+      "path": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v23.py",
+      "sha256": "56c53b5529df403dbf5056632712fab1acffd6daf54926ab5cc8572acdfe1d2b",
+      "bytes": 20310
+    },
+    "nativeExport": {
+      "path": "tmp/puffer-lowpoly-v23/puffer-native-v23.json",
+      "sha256": "18e8847e87e9e6d9546000572e1775cced8b20b78c0317e2a0599b5fb3a4fd68",
+      "bytes": 2469432
+    },
+    "exportHelper": {
+      "path": "art/driftwood-isle/approved-puffer/native_export.py",
+      "sha256": "210ee9b812655509dcbf869e91db945cc17df40da2ccc07ffdc9d2f292043416",
+      "bytes": 10827
+    },
+    "codecTest": {
+      "path": "test/puffer-native-export.test.ts",
+      "sha256": "bbd404fb553c5a15361b275e8020ff8a039356ef32b54e8b0235723e01fd452a",
+      "bytes": 4671
+    },
+    "scratchOnlyDimensions": {
+      "path": "tmp/puffer-native-codec-v23/test-only-dims.json",
+      "sha256": "1b875c8250f9ec3d8f4a49354ac82a840563c0cad77b7b821e8fe92d1f0d2510",
+      "bytes": 154
+    }
+  },
+  "outputs": {
+    "packedMetadata": {
+      "path": "tmp/puffer-native-codec-v23/metadata.json",
+      "sha256": "89966d6c3431d0cb173e5a1ae1e88e9fb618e8528d98295d1decaee9f617f4ac",
+      "bytes": 9755
+    },
+    "packedBinary": {
+      "path": "tmp/puffer-native-codec-v23/payload.bin",
+      "sha256": "33dafa49dac6cdba0de9e88eb454b935e74e1a7dfae679915162d89b9af0cc78",
+      "bytes": 70888
+    }
+  },
+  "commands": {
+    "pack": "python3 art/driftwood-isle/approved-puffer/native_export.py tmp/puffer-lowpoly-v23/puffer-native-v23.json tmp/puffer-native-codec-v23/test-only-dims.json tmp/puffer-native-codec-v23",
+    "actualCodecTest": "PUFFER_NATIVE_SOURCE=tmp/puffer-lowpoly-v23/puffer-native-v23.json PUFFER_NATIVE_PACK=tmp/puffer-native-codec-v23 node_modules/.bin/vitest run test/puffer-native-export.test.ts --maxWorkers=1"
+  },
+  "actualCodecResult": {
+    "exitCode": 0,
+    "testFilesPassed": 1,
+    "testsPassed": 1,
+    "testsSkipped": 0,
+    "durationSeconds": 9.52,
+    "consumer": "src/game/plugin/geometry.ts packedCreatureBodies"
+  },
+  "counts": {
+    "parts": 35,
+    "bones": 8,
+    "vertices": 17196,
+    "triangles": 5732,
+    "attributeElements": {
+      "positions": 51588,
+      "colorsLinear": 51588,
+      "skinIndices": 68784,
+      "skinWeights": 68784,
+      "furLen": 17196
+    }
+  },
+  "boneOrder": [
+    "body",
+    "belly",
+    "tail",
+    "finL",
+    "finR",
+    "rearL",
+    "rearR",
+    "head"
+  ],
+  "dimensions": {
+    "bodyY": 0.699999988079071,
+    "bodyHalfLen": 0.5,
+    "bodyRadius": 0.6,
+    "headRadius": 0.2,
+    "legLen": 0.5,
+    "feet": [
+      [
+        0.7,
+        0.5
+      ],
+      [
+        -0.7,
+        0.5
+      ]
+    ],
+    "halfWidth": 0.8
+  },
+  "dimensionCaveat": "Scratch-only schema and round-trip test inputs. These dimensions are not approved hit volumes or gameplay tuning. Only bodyY was required to match the real exported bind pivot.",
+  "verified": [
+    "Every actual native Float32 position/color/skinWeight/furLen and Uint16 skinIndex survives the existing packed-body reader",
+    "Parent-before-child absolute bind bones and head-under-belly hierarchy",
+    "Four weight lanes per vertex, normalized sums and valid indices",
+    "Explicit dimensions round-trip and fresh per-copy geometry ownership"
+  ],
+  "syntheticProofSeparate": {
+    "pythonTestsPassed": 5,
+    "purpose": "Synthetic reflected winding, four-influence preservation, invalid input rejection, typed packing and coherent scale math; not substituted for the actual codec test"
+  },
+  "stillOpen": [
+    "Visual acceptance",
+    "Rendered deformation and numeric pose review",
+    "Final hit-volume and gameplay dimension tuning",
+    "Runtime product admission and fight integration",
+    "Phone performance"
+  ],
+  "scope": "Build-time foundation only. No runtime files changed, no other enemies rebaked, no large native JSON copied into source control."
+}

@@ -1,6 +1,59 @@
 # Brine Puffer reference review
 
-Date: 2026-10-18. Status: V18 four-view eye gate inspected; implementation remains unaccepted.
+Date: 2026-10-18. Status: V23 complete candidate inspected; implementation remains unaccepted.
+
+## V20–V23 consolidated review, 17:14 UTC
+
+V20's outward eye recentering made both frontal pupils visible. V21 hero and
+side views confirmed no return of protruding eye coins. Exact-profile iris
+occlusion is expected for these forward-facing recessed eyes; do not enlarge
+the aperture merely to force full-profile visibility. The reference's small
+side thumbnail is oblique and does not establish that requirement.
+
+V22's connected cream muzzle projected as an oversized visor. V23 reduced it
+and restored buried crown/shoulder spines and an ochre border on the tail face.
+V23 is therefore reviewed as a complete identity candidate, without the earlier
+anatomy-only exclusions. Actual hero, front and side renders were inspected.
+
+| Visual criterion | /5 | V23 evidence |
+| --- | ---: | --- |
+| Silhouette | 3.25 | Spines and tail improve identity, but profile feet remain almost leaf-thin and toes read as small saw teeth. |
+| Face / character | 2.75 | Pupils read; cream nose still forms an X/bow-tie across inner eyes and the broad orange cheek lacks the target's thick brow wedge. |
+| Facet language | 3.0 | Closed hull has coherent broad planes, but residual horizontal bands and mechanically repeated foot tips differ from target. |
+| Palette | 2.5 | Cream appears grey and orange peach-like; target is warmer ivory/gold with stronger burnt orange and deeper teal contrast. |
+| Reference fidelity | 2.75 | Recognizable puffer identity and improved construction, but face, foot volume and color remain materially short of the approved image. |
+
+Highest-impact next corrections, sent directly to the builder:
+
+1. Give each foot real fore/aft volume with a swept cross-section around its
+   centerline. Increasing only lateral width or vertical thickness does not
+   fix its leaf-like side profile. Make terminal tips broad contiguous lobes.
+2. Remove cream nose side wings extending over the inner eyes. Follow the
+   upper mouth boundary with a compact peaked arch, tapering into mouth
+   corners; retain stable pupil positions and containment checks.
+3. Form an integrated thick orange upper brow, rather than relying on a broad
+   flat orange cheek patch. Then add nostrils and a warm tongue/interior.
+4. Warm the ivory and strengthen orange/teal contrast under consistent light.
+
+The native export and topology checks are technical evidence, not visual
+acceptance. No animation, gameplay, runtime integration or phone-performance
+score is assigned. V23 remains unaccepted. This review is frozen for checkpoint.
+
+## V19 front-eye gate, 16:57 UTC
+
+Lowering the eye assembly exposes more gold, but the frontal pupils remain
+behind the inner nasal wall. The eye-read gate still fails; face/character
+remains **2.25/5**. This frontal evidence supersedes earlier hero-based advice
+to move the visible eye medially. The explicit medial offset plus recession
+along an outward normal shifts the lenses too far inward in world space.
+
+Test a small outward tangent shift of the whole eye assembly, retaining its
+lowered height and recomputing containment. Open the upper lid modestly only
+if it still obstructs the centered pupil. Add a front-camera-to-pupil visibility
+ray against the final cut hull to identify the obstructing wall. Containment
+and visibility are separate requirements; passing one does not prove the other.
+
+This was the earlier checkpoint boundary; subsequent results appear above.
 
 ## V18 four-view gate, 16:55 UTC
 
