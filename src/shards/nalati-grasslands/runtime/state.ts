@@ -12,8 +12,9 @@ import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
-import { BufferGeometry, Color, Float32BufferAttribute, Vector3, type Object3D } from 'three';
+import { Color, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
 import { WaterSurface, waterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -62,7 +63,7 @@ import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
-import { registerNalatiPlaces } from '../world/places';
+import { placeSet, placedWithin } from '@wildshard/engine/models/sets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 const { HITCHING_RAIL } = poiLayoutRows;
@@ -157,10 +158,11 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
   // host in their look (data/lookGraphs.json 'nalati-water', lit by world/installWeather.ts) ──
-  const strips = v.parse(v.object({ surface: v.looseObject({ look: v.string() }), position: v.array(v.number()), water: v.array(v.number()), index: v.array(v.number()) }),
+  const strips = v.parse(v.object({ surface: v.looseObject({ look: v.string() }) }),
     JSON.parse(new TextDecoder().decode(await plugin.product.file('world/water.json'))));
-  const water = new WaterSurface(strips.surface, waterSurfaceLook(lentLooksOf(strips.surface.look), strips.surface.look)).draw(new BufferGeometry()
-    .setAttribute('position', new Float32BufferAttribute(strips.position, 3)).setAttribute('aWater', new Float32BufferAttribute(strips.water, 4)).setIndex(strips.index));
+  const waterGeometry = createOwnedGeometry('world/water.glb');
+  await waterGeometry.load(await plugin.product.file('world/water.glb'));
+  const water = new WaterSurface(strips.surface, waterSurfaceLook(lentLooksOf(strips.surface.look), strips.surface.look)).draw(waterGeometry.take());
   game.scene.add(water.group);
   groups['water'] = water.group;
   updates.push((dt) => water.update(dt));
@@ -217,7 +219,20 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await dressing.addToSliced(game.scene, slicer(30).due);   // the clutter keeps clear of these (SF67: ~30 ms a task)
   const dressPlaced = await dressing.place(plugin.app.registry, macrotask);
   // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
-  await registerNalatiPlaces({ registry: plugin.app.registry, pois: pois.placed, others: [...rockPlaced, ...dressPlaced], yieldTask: macrotask });
+  const { placeSets } = v.parse(v.object({ placeSets: v.pipe(v.array(v.object({ place: v.string(), id: v.string(), name: v.string(), file: v.string(), pois: v.exactOptional(v.array(v.string())), x: v.number(), z: v.number(), r: v.number() })), v.length(17)) }), await plugin.product.json('world/water.json'));
+  const claimed = new Set(placeSets.flatMap(row => row.pois ?? []));
+  const loose = [...pois.placed].filter(([name]) => !claimed.has(name)).flatMap(([, placed]) => placed);
+  for (let index = 0; index < Math.min(17, placeSets.length); index++) {
+    const row = placeSets[index];
+    if (row === undefined) throw new Error('Missing named place row');
+    const members = [...(row.pois ?? []).flatMap(name => pois.placed.get(name) ?? []),
+      ...[...loose, ...rockPlaced, ...dressPlaced].flatMap(placed => {
+        const view = placedWithin(placed, row.x, row.z, row.r, 'centre');
+        return view === null ? [] : [view];
+      })];
+    if (members.length > 0) placeSet({ ...row, members, registry: plugin.app.registry });
+    await macrotask();
+  }
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await slice(++completed, total, 'Dressing');

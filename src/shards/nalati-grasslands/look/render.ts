@@ -10,12 +10,65 @@
  *   sky             no engine cloud layer or planet; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
  * The panorama dome, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 step 6.
  */
-import type { LookStrategy } from '@wildshard/engine/render/look';
+import type { LookStrategy, TerrainPainter } from '@wildshard/engine/render/look';
 import { installPaintedAir, NALATI_SKY } from './air';
 import { installLookV2Fog } from './fog';
 import { lookV2EngineKnobs, lookV2Passes } from './grade';
 import { GrassV2 } from './grass';
-import { NALATI_TERRAIN_PAINTER } from './terrainPainter';
+import * as THREE from 'three';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
+import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
+import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import { bakeUniforms } from './bake';
+import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
+import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+
+const { SNOW_LINE, GLACIER } = layoutRows;
+const SURFACE = parsePaintedTerrain({
+  maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' },
+  metres: { base: TEX_METRES.meadow, track: TEX_METRES.path, gravel: TEX_METRES.gravel, rock: TEX_METRES.rock, snow: TEX_METRES.snow },
+  means: { base: [...TEX_MEAN.meadow], rock: [...TEX_MEAN.rock] },
+  snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
+  ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half },
+});
+const LAYERS = ['meadow', 'path', 'gravel', 'rock', 'snow'] as const satisfies readonly NalatiTexName[];
+
+function terrainMesh(value: THREE.Object3D | undefined): value is THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial> {
+  if (!(value instanceof THREE.Mesh)) return false;
+  const geometry: unknown = value.geometry, material: unknown = value.material;
+  return geometry instanceof THREE.BufferGeometry && material instanceof THREE.MeshLambertMaterial;
+}
+
+/** Painterly appearance stays live; terrain and slab topology are authored scene data. */
+const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: async (terrain, field) => {
+  const [, textures, product] = await Promise.all([field.ready(), loadNalatiTextures(LAYERS), loadFirstPartyProduct('nalati-grasslands')]);
+  const material = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 });
+  const colour = product.section('look/colour-functions')['terrain'];
+  if (colour === undefined) throw new Error('Missing terrain colour graph');
+  applyPaintedTerrain(material, SURFACE, textures);
+  materialColourGraph(material, 'terrain.colour', colour, true);
+  bindPaintedTerrainBake(material, {
+    famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,
+    famTBakeContact: bakeUniforms.tBakeContact, famTContactXf: bakeUniforms.uContactXf,
+  });
+  const shapes = new Map<string, THREE.BufferGeometry>();
+  for (const id of ['ground', 'slab']) {
+    const file = `world/terrain/${id}.glb`, owned = createOwnedGeometry(file);
+    await owned.load(await product.file(file));
+    const geometry = owned.take(); geometry.computeBoundingSphere(); shapes.set(id, geometry);
+  }
+  const { terrain: recipe } = await product.json<{ readonly terrain: unknown }>('world/water.json');
+  const scene = createClientScene(parseWorldScene(recipe).scene, { geometry: shapes, materials: new Map([['terrain', material]]) });
+  const ground = scene.parts.get('ground'), slab = scene.parts.get('slab');
+  if (!terrainMesh(ground) || !terrainMesh(slab)) throw new Error('Missing named terrain mesh');
+  terrain.material = material; terrain.mesh = ground;
+  terrain.group.add(...scene.root.children);
+} };
 
 export const shardRender = (): LookStrategy => ({
   mode: 'replace',

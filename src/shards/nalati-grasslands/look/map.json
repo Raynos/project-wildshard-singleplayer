@@ -13,11 +13,15 @@
     "data/oliveColour.json",
     "data/lookGraphs.json",
     "look/light.ts",
-    "look/terrainPainter.ts",
+    "look/render.ts",
+    "data/terrainScene.json",
     "behaviour/kokpar.as",
     "data/layout.generated.json",
     "data/peopleFrames.json",
-    "data/peopleChannels.generated.json"
+    "data/peopleChannels.generated.json",
+    "assets/world-terrain/ground.generated.glb",
+    "assets/world-terrain/slab.generated.glb",
+    "assets/world-terrain/water.generated.glb"
   ],
   "style": {
     "kind": "ground",

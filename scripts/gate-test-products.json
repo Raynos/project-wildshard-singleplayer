@@ -1,4 +1,5 @@
 {
+  "test/nalati-render-tiles.test.ts": [],
   "test/native-roster-retirement.test.ts": [],
   "test/cue-director.test.ts": [],
   "test/navigation-arrival.test.ts": [],

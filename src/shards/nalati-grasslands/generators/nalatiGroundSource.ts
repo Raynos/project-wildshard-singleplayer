@@ -5,8 +5,10 @@ import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
 import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
-import { buildPainterlyGeometry } from '../look/terrainPainter';
-import { TERRAIN } from '../world/terrain';
+import { buildPainterlyGeometry } from './terrainPainter';
+import { TERRAIN, SEED, groundColor, surfaceAt } from '../world/terrain';
+
+export const TERRAIN_PAINT_SOURCE = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt };
 
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 /** the painter names its masks as the painted-terrain layer reads them */
@@ -45,7 +47,7 @@ export function nalatiGroundSource(bytes: Uint8Array): NativeLatticeSource {
     // retain its existing interpolation everywhere else, without resampling the native mesh.
     return ix >= 0 && ix < 256 && iz >= 0 && iz < 256 && x === -250 + ix * step && z === -250 + iz * step ? grid.heights[iz * 256 + ix] ?? 0 : sampler.heightAt(x, z);
   };
-  const generator = buildPainterlyGeometry({ ...sampler, heightAt, ready: () => Promise.resolve(true), trails: () => TERRAIN.trails, trailDistance: TERRAIN.trailDistance });
+  const generator = buildPainterlyGeometry({ ...sampler, heightAt, ready: () => Promise.resolve(true), trails: () => TERRAIN.trails, trailDistance: TERRAIN.trailDistance }, TERRAIN_PAINT_SOURCE);
   let result = generator.next();
   while (result.done !== true) result = generator.next();
   const geometry = result.value;

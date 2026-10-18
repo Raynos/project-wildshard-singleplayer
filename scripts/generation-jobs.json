@@ -19908,6 +19908,52 @@
         "src/shards/nine-dragon-stack/runtime/productSections.generated.d.ts",
         "src/shards/nine-dragon-stack/generators/layoutSchema.generated.json"
       ]
+    },
+    {
+      "id": "nalati-terrain-scene",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk",
+        "src/engine",
+        "src/format",
+        "scripts/bake-output.mjs",
+        "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
+        "src/shards/nalati-grasslands/generators/terrainScene.ts",
+        "src/shards/nalati-grasslands/generators/terrainPainter.ts",
+        "src/shards/nalati-grasslands/generators/zones.ts",
+        "src/shards/nalati-grasslands/generators/nalatiGroundSource.ts",
+        "src/shards/nalati-grasslands/world/terrain.ts",
+        "src/shards/nalati-grasslands/edge.ts",
+        "src/shards/nalati-grasslands/boot/layout.generated.json",
+        "src/shards/nalati-grasslands/boot/clearings.generated.json",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
+        "src/shards/nalati-grasslands/data/water.generated.json",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "scripts/bake-loader.mjs",
+        "src/game",
+        "src/commons"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
+        "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
+        "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
+        "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
+        "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb"
+      ],
+      "platform": "native"
     }
   ]
 }

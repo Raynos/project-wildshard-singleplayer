@@ -1,0 +1,42 @@
+{
+  "scene": {
+    "version": 1,
+    "root": "root",
+    "nodes": [
+      {
+        "id": "root",
+        "kind": "group",
+        "children": [
+          "ground",
+          "slab"
+        ]
+      },
+      {
+        "id": "ground",
+        "kind": "mesh",
+        "geometry": "ground",
+        "material": "terrain",
+        "receiveShadow": true,
+        "castShadow": false,
+        "missing": "omit"
+      },
+      {
+        "id": "slab",
+        "kind": "mesh",
+        "geometry": "slab",
+        "material": "terrain",
+        "receiveShadow": true,
+        "castShadow": false,
+        "missing": "omit"
+      }
+    ],
+    "materials": [
+      {
+        "id": "terrain",
+        "kind": "port",
+        "source": "terrain"
+      }
+    ]
+  },
+  "imports": []
+}

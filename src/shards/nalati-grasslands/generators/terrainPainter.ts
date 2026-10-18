@@ -1,82 +1,17 @@
-/**
- * Nalati's painted terrain (E357 S3.2, 07 §6.2 step 3): the look's `terrainPainter`, built by `Terrain.build` in place
- * of the engine's default ground (it was `Terrain.ts`'s `style === 'painterly'` branch, moved verbatim).
- */
+/** Build-only native terrain painter. The client consumes its lossless geometry. */
 import * as THREE from 'three';
-import { macrotask } from '@wildshard/engine/boot/plan';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
-import type { PainterField, TerrainPainter } from '@wildshard/engine/render/look';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { Terrain } from '@wildshard/engine/world/Terrain';
-import { applyPaintedTerrain, bindPaintedTerrainBake } from '@wildshard/engine/render/families/paintedTerrain';
-import { PAINTED_TERRAIN_ATTRIBUTES as ATTR, parsePaintedTerrain } from '@wildshard/format/materialFamilies';
-import { NALATI_GRASSLANDS as def } from '../manifest';
-import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
+import type { PainterField } from '@wildshard/engine/render/look';
+import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
+import type { ShardManifest, ChunkTerrain } from '@wildshard/game/shard/manifest';
 import { zoneWeights } from './zones';
-import { bakeUniforms } from './bake';
-import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
 
-const { SNOW_LINE, GLACIER } = layoutRows;
-
-/** the manifest's terrain field (what `terrainFor(def)` returned) */
-function terrain(): NonNullable<typeof def.ground.terrain> {
-  const t = def.ground.terrain;
-  if (!t) throw new Error('No terrain for nalati-grasslands');
-  return t;
-}
-
-export const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: buildPainterly };
-
-/**
- * `style: 'painterly'` (Nalati): no textures. A smooth indexed grid (normals from the height grid), each vertex
- * painted by the def's `groundColor(x, z, h, slope)` — the valley / plateau greens, gravel, rock, snow — on the
- * shared painterly material with soft cel bands (terrain takes a gentler ramp than props, so the slopes still
- * read as gradients). The slab walls are painted rock on the same material. Two draw calls, one program.
- */
-/**
- * The painted ground as the painterly family's painted-terrain layer (engine/render/families/paintedTerrain.ts): meadow
- * detail, the dirt track along the trails, gravel, granite, snow, the snow ring and the glacier, per pixel over the
- * vertex colour. The phone's key light on the ground is shadowed by the look bake (look/bake.ts; CSM adds what moves).
- */
-const SURFACE = parsePaintedTerrain({
-  maps: { base: 'meadow', track: 'path', gravel: 'gravel', rock: 'rock', snow: 'snow' },
-  metres: { base: TEX_METRES.meadow, track: TEX_METRES.path, gravel: TEX_METRES.gravel, rock: TEX_METRES.rock, snow: TEX_METRES.snow },
-  means: { base: [...TEX_MEAN.meadow], rock: [...TEX_MEAN.rock] },
-  snow: { line: SNOW_LINE, high: [44, 84] }, wet: [-9.2, -9.9],
-  ice: { from: [GLACIER.x0, GLACIER.z0], to: [GLACIER.x1, GLACIER.z1], half: GLACIER.half },
-});
-const LAYERS = ['meadow', 'path', 'gravel', 'rock', 'snow'] as const satisfies readonly NalatiTexName[];
-
-async function buildPainterly(t: Terrain, f: PainterField): Promise<void> {
-  const [, tex] = await Promise.all([f.ready(), loadNalatiTextures(LAYERS)]);
-  const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
-  const colour = (await loadFirstPartyProduct('nalati-grasslands')).section('look/colour-functions')['terrain'];
-  if (colour === undefined) throw new Error('Missing terrain colour graph');
-  applyPaintedTerrain(mat, SURFACE, tex);
-  materialColourGraph(mat, 'terrain.colour', colour, true);
-  bindPaintedTerrainBake(mat, {
-    famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,
-    famTBakeContact: bakeUniforms.tBakeContact, famTContactXf: bakeUniforms.uContactXf,
-  });
-  t.material = mat;
-  const rows = buildPainterlyGeometry(f);
-  let r = rows.next();
-  while (r.done !== true) { await macrotask(); r = rows.next(); }
-  t.mesh = new THREE.Mesh(r.value, mat);
-  t.mesh.receiveShadow = true;
-  t.mesh.castShadow = false;
-  t.group.add(t.mesh);
-  const slab = new THREE.Mesh(buildPainterlySlab(f), mat); // the same material: painted granite walls, a grassy lip
-  slab.receiveShadow = true;
-  t.group.add(slab);
-}
+export interface TerrainPaintSource { readonly seed: number; readonly terrain: ChunkTerrain; readonly groundColor: NonNullable<ShardManifest['groundColor']>; readonly surfaceAt: NonNullable<ShardManifest['surfaceAt']> }
 
 /** the painted terrain grid (G227: public so a bake runs the one painter on its native samplers; no behaviour change) */
-export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.BufferGeometry, undefined> {
-  const paint = def.groundColor;
+export function* buildPainterlyGeometry(f: PainterField, source: TerrainPaintSource): Generator<void, THREE.BufferGeometry, undefined> {
+  const paint = source.groundColor;
   const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
   const hs = new Float32Array(res * res);
   for (let iz = 0; iz < res; iz++) {
@@ -101,10 +36,10 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
       const l = Math.hypot(nx, ny, nz);
       nrm[i * 3] = nx / l; nrm[i * 3 + 1] = ny / l; nrm[i * 3 + 2] = nz / l;
       const slope = 1 - ny / l;
-      paint?.(x, z, y, slope, terrain(), out); // the manifest always paints (groundColor)
+      paint(x, z, y, slope, source.terrain, out); // the manifest always paints (groundColor)
       col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
       // the painted-terrain masks: road across · gravel · snow · rock
-      const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
+      const [gravel, rock, snow] = source.surfaceAt(x, z, y, slope);
       signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
       surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
       zoneWeights(x, z, y, slope, zw); zone[i * 3] = zw[0]; zone[i * 3 + 1] = zw[1]; zone[i * 3 + 2] = zw[2];
@@ -135,10 +70,10 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
  * a ragged rocky cliff, not a ruled line. Same material as the ground (one program), masks in `surf` (rock = 1 below
  * the lip). Indexed, smooth normals.
  */
-function buildPainterlySlab(f: PainterField): THREE.BufferGeometry {
+export function buildPainterlySlab(f: PainterField, source: TerrainPaintSource): THREE.BufferGeometry {
   const segs = 256;
   const H = CHUNK_HALF, D = -CHUNK_DEPTH;
-  const n = new Noise2D(def.seed + 404);
+  const n = new Noise2D(source.seed + 404);
   // rows down the wall: [metres below the lip (negative = depth fraction of the slab), outward bulge scale, rock 0/1]
   const ROWS: [number, number, number][] = [[0, 0, 0], [0.6, 1.2, 0], [1.6, 1.6, 1], [4, 0.6, 1], [8, 2.2, 1], [14, 1.0, 1], [22, 2.8, 1], [34, 1.4, 1], [-0.55, 3.5, 1], [-1, 0.5, 1]];
   const verts: number[] = [], cols: number[] = [], surf: number[] = [], rdir: number[] = [], idx: number[] = [];
@@ -156,7 +91,7 @@ function buildPainterlySlab(f: PainterField): THREE.BufferGeometry {
       const y0 = f.heightAt(x, z) + 0.05;
       const u = (s.n[0] !== 0 ? z : x) * 0.02 + s.n[0] * 3.1 + s.n[1] * 7.3;
       const [, ny] = f.normalAt(x, z, 1.5);
-      def.groundColor?.(x, z, y0, 1 - ny, terrain(), grass);
+      source.groundColor(x, z, y0, 1 - ny, source.terrain, grass);
       for (const [r, [dy, bulge, rock]] of ROWS.entries()) {
         const y = dy >= 0 ? y0 - dy : D * -dy;
         // the ledges: each row juts or recedes by its own noise (the lip overhangs a little, the wall breaks in steps)
