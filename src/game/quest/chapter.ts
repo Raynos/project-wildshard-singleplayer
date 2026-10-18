@@ -105,3 +105,12 @@ export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknow
   ctx.scope.onDispose(() => { presentation.chip.line.root.remove(); });
   return { quest, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers };
 }
+
+/** Client-only registration of admitted item and achievement rows in their existing level scope.
+ * Simulation counters, ledger rewards and saved inventory retain their original owners. */
+export function installQuestCatalogue(ctx: Pick<ShardContext, 'product'> & { readonly rows: Pick<ShardContext['rows'], 'item' | 'feat'> }): void {
+  const items = ctx.product.section('combat/items').items.catalogue;
+  const feats = ctx.product.section('quests/quests').quests.achievements;
+  if (items !== undefined) ctx.rows.item(items);
+  if (feats !== undefined) ctx.rows.feat(feats);
+}

@@ -1,3 +1,4 @@
+import { PINE_FEATS } from './generators/questInventory';
 import plumbing from './data/plumbing.json' with { type: 'json' };
 import identity from './data/identity.json' with { type: 'json' };
 import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
@@ -39,5 +40,5 @@ export default parseShardfile({
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
   runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes', 'movers', 'clientChannels'], spawns: PINE_RUNTIME_SPAWNS },
   clientChannels: [...weatherChannels.clientChannels, ...skyChannels.clientChannels],
-  quests: parseQuestData(people.quests), questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  quests: parseQuestData({ ...people.quests, achievements: PINE_FEATS }), questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

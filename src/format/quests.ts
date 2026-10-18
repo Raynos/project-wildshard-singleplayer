@@ -1,3 +1,4 @@
+import { CatalogueIconSchema } from './items';
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -18,7 +19,10 @@ const trigger = v.variant('kind', [
 const choice = v.strictObject({ id, label: text, next: v.nullable(id), when: v.exactOptional(condition), sets: v.exactOptional(names), scene: v.exactOptional(id) });
 const node = v.strictObject({ id, lines: v.pipe(v.array(text), v.minLength(1), v.maxLength(32)), sets: v.exactOptional(names), choices: v.pipe(v.array(choice), v.maxLength(16)) });
 const dialogue = v.strictObject({ id, name: text, start: id, nodes: v.pipe(v.array(node), v.minLength(1), v.maxLength(128)) });
-const raw = v.strictObject({ flags: names, quests: v.pipe(v.array(quest), v.maxLength(32)), triggers: v.pipe(v.array(trigger), v.maxLength(128)), dialogue: v.pipe(v.array(dialogue), v.maxLength(32)) });
+/** Display metadata for the existing achievement registry and ledger; no new progress save. */
+const achievement = v.strictObject({ id, name: text, goal: text, count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(4096)),
+  kind: v.exactOptional(id), variant: v.exactOptional(id), event: v.exactOptional(id), title: text, icon: CatalogueIconSchema });
+const raw = v.strictObject({ achievements: v.exactOptional(v.pipe(v.array(achievement), v.maxLength(256))), flags: names, quests: v.pipe(v.array(quest), v.maxLength(32)), triggers: v.pipe(v.array(trigger), v.maxLength(128)), dialogue: v.pipe(v.array(dialogue), v.maxLength(32)) });
 /** Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. */
 export type QuestData = v.InferOutput<typeof raw>;
 const reads = (c: v.InferOutput<typeof condition> | undefined): string[] => [...(c?.all ?? []), ...(c?.any ?? []), ...(c?.none ?? [])];
@@ -27,7 +31,7 @@ export function questDataRules(data: QuestData): string[] {
   const errors: string[] = [], flags = new Set(data.flags);
   const unique = (ids: readonly string[]): void => { if (new Set(ids).size !== ids.length) errors.push('unique declaration ids'); };
   const checkFlags = (ids: readonly string[]): void => { for (const flag of ids) if (!flags.has(flag)) errors.push(`undeclared quest flag ${flag}`); };
-  unique(data.flags); unique(data.quests.map((q) => q.id)); unique(data.triggers.map((t) => t.id)); unique(data.dialogue.map((d) => d.id));
+  unique(data.achievements?.map(row => row.id) ?? []); unique(data.flags); unique(data.quests.map((q) => q.id)); unique(data.triggers.map((t) => t.id)); unique(data.dialogue.map((d) => d.id));
   for (const q of data.quests) {
     unique(q.steps.map((s) => s.id)); checkFlags([q.completeFlag, ...reads(q.startWhen)]);
     for (const s of q.steps) checkFlags([...reads(s.done), ...(s.count ?? []), ...(s.markers ?? []).flatMap((m) => reads(m.hideWhen))]);

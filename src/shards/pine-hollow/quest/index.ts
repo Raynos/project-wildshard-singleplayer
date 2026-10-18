@@ -1,39 +1,30 @@
+import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
+import type { HeldLoadout } from '@wildshard/game/loadout/held';
+import type { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { installQuestChapter, installQuestFlags } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import type { CustomSections, TradeGood } from '../runtime/productSections.generated.d.ts';
-import type { Progress } from '@wildshard/game/Progress';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
-import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import type { Music } from '@wildshard/engine/audio/Music';
-import type { Game } from '@wildshard/engine/core/Game';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { place as placeModel } from '@wildshard/engine/models/place';
-import type { Player } from '@wildshard/engine/player/Player';
-import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
-import type { HUD } from '@wildshard/engine/ui/HUD';
-import type { FullMap, MapPoi } from '@wildshard/engine/ui/Map';
-import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import type { MapPoi } from '@wildshard/engine/ui/Map';
 import { test } from '@wildshard/engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import { createQuestPlacements, type Interactable } from '@wildshard/engine/world/interact/types';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
-import type { Inventory, ItemId } from '@wildshard/game/Inventory';
+import type { ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -78,39 +69,14 @@ import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBenc
 import { Exchange } from '@wildshard/game/loot/exchange';
 import './pinehollow.css';
 import { DataPanel, readDataPanels } from '@wildshard/sdk/dataPanels';
-import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
-import { hollowLog, loadHollowLog } from '../runtime/models/hollowLog';
-import { pineModels } from '../runtime/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls } from './nightThralls';
-import { placeTokenShelf } from './tokenShelf';
 import { BeaverPool } from '../world/beaverPool';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
 
 type AmmoKind = 'iron' | 'pitch' | 'broadhead' | 'cartridge' | 'arrow';
 
-export interface PineQuestHost {
-  ctx: ShardContext;
-  game: Game; sky: Sky; player: Player; animals: AnimalManager;
-  hud: HUD; audio: Audio; music: Music;
-  inventory: Inventory; progress: Pick<Progress, 'bindLedger' | 'refreshLedger'>; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
-  weapons: { setEnabled: (on: boolean) => void; visible: boolean };
-  /** the crossbow's bolts, and the loadout's special ammo (PH-C11: pitch / broadhead bolts, cartridges, arrows) */
-  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void; /** can the kit hold n more? (E314 C: no trade into a full quiver) */ room?: (kind: AmmoKind, n: number) => boolean };
-  menu: { isOpen: boolean; close: (silent?: boolean) => void };
-  interactables: Interactable[];
-  registry: WorldRegistry;
-  cabins: Cabins | null;
-  landmarks: PineLandmarks | null;
-  trees: readonly TreeInstance[];
-  fullMap: FullMap;
-  compendium: { readonly def: { readonly entries: readonly { readonly id: string }[] }; stats: (id: string) => { readonly state: string } } | null;
-  chunkId: string;
-  params: URLSearchParams;
-  touchUi: () => boolean;
-  nolock: boolean;
-}
 
 export interface PineQuest {
   useSfx: (sfx: PineHollowSfx) => void;
@@ -126,7 +92,14 @@ async function loadQuest() {
   const [{ RewardCaption }, { QuestViews, bindQuestPageInteractions }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
   return { QuestViews, bindQuestPageInteractions, RewardCaption };
 }
-export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins | null; landmarks: PineLandmarks | null;
+  loadout: HeldLoadout; compendium: ReturnType<typeof installCollectionCompendium>;
+  preload?: () => Promise<void>; loadQuest?: typeof loadQuest }): Promise<PineQuest> {
+  const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
+  if (runtime === undefined || enteredWorld === undefined || enteredWorld === null || play === undefined || play === null) throw new Error('Pine quest requires its entered play services');
+  const h = { ...enteredWorld, ...play, ctx, cabins: deps.cabins, landmarks: deps.landmarks, trees: enteredWorld.forest.trees,
+    interactables: runtime.interactables, chunkId: ctx.manifest.slug, compendium: deps.compendium?.state ?? null,
+    crossbow: { addBolts: (n: number) => { deps.loadout.addAmmo('iron', n); }, addAmmo: deps.loadout.addAmmo, room: deps.loadout.room } };
   const panels = await readDataPanels(h.ctx.product);
   const boardPanel = panels['board'], countPanel = panels['count'];
   if (boardPanel === undefined || countPanel === undefined) throw new Error('Pine requires its named quest panels');
@@ -145,7 +118,6 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   await Promise.all([(deps.preload ?? (() => PINE_FIGURES.prepare()))(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
-  const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const figureScenes = new SceneHandles(sky);
   const flags = installQuestFlags(ctx, story.quest.id, h.chunkId);
@@ -180,25 +152,22 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   game.scene.add(pool.group);
   pool.setOpen(flags.has('open:dam-sluice'), true);
   ctx.scope.onDispose(flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); }));
-  ctx.system({ id: 'quest.pool', phase: 'update', after: ['quest.kit'], before: ['quest.shelf', 'quest', 'hud.combat', 'main.frame'], run: (dt) => { pool.update(dt); } });
+  ctx.system({ id: 'quest.pool', phase: 'update', after: ['quest.kit'], before: ['quest', 'hud.combat', 'main.frame'], run: (dt) => { pool.update(dt); } });
 
   // ── the counters, the toasts ──
   const ui = new QuestViews(ctx);
   const chip = ui.view('count', (scope) => new DataPanel(countPanel, { scope }));
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
-  // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
+  // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (the declared scene placement owns its distance band)
   const rangerRoot = h.cabins?.roots[0];
-  const shelf = rangerRoot && h.cabins ? await placeTokenShelf(h.cabins.resources) : null;
-  if (shelf) {
-    shelf.setShown(tokenCount() === TOKEN_NAMES.length);
-    ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });
-  }
+  const shelf = rangerRoot && h.cabins ? (await h.cabins.resources.place('timbers.token-shelf')).object : null;
+  if (shelf !== null) shelf.visible = tokenCount() === TOKEN_NAMES.length;
   kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls: new Map<string, (e: InteractEvent) => void>([
     ['resin', () => { inventory.add('amber-resin'); chip().show({ label: 'Amber resin', n: resinCount(), of: RESIN_COUNT }); }],
     ['all-resin', () => { if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`); }],
     ['token', e => { const i = Number(e.def.id.split('-')[1] ?? '1') - 1;
       chip().show({ label: 'Carved tokens', n: tokenCount(), of: TOKEN_NAMES.length }); hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`); }],
-    ['all-tokens', () => { if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); } }],
+    ['all-tokens', () => { if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); if (shelf !== null) shelf.visible = true; } }],
     ['pickup', () => { h.music.sting('pickup'); }],
   ]) });
   // the vista bench: sit → face the far country, a little lift of the chin
@@ -261,7 +230,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
-      ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
+      ['ammo', { add: h.crossbow.addAmmo }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
       ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(HeldFinishes.current(h.ctx.manifest.slug).get(id)); } }]))]]) });
   const boardUi = ui.view('board', (scope) => {
     const onClaim = (value: unknown): void => {
@@ -293,9 +262,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the trader's slate ──
   const owns = (s: string): boolean => HeldFinishes.current(h.ctx.manifest.slug).has(s) && h.skins.has(s);
-  const room = (k: AmmoKind, n: number) => h.crossbow.room?.(k, n) ?? true;
+  const room = h.crossbow.room;
   const exchange = new Exchange(exchangeRows, new Map<string, unknown>([['pack', inventory], ['skins', { owns, own: h.skins.own.bind(h.skins) }],
-    ['ammo', { capacity: room, addBolts: h.crossbow.addBolts.bind(h.crossbow), grant: (kind: Exclude<AmmoKind, 'iron'>, n: number) => h.crossbow.addAmmo?.(kind, n) }]]));
+    ['ammo', { capacity: room, addBolts: h.crossbow.addBolts.bind(h.crossbow), grant: (kind: Exclude<AmmoKind, 'iron'>, n: number) => h.crossbow.addAmmo(kind, n) }]]));
   // the platform draws the stall (SF28; the G87 sheet since G181): the goods and the rules are declared here
   const trade = ui.view('trade', (scope) => {
     const panel = new ShopPanel<TradeGood>({
@@ -367,14 +336,11 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the hollow log: a model (E315 M2) placed once on its bed; its materials are the cabins' (already loaded, so it
   // lands a frame later). Its LOD (the shell alone past 60 m) is the model's
-  let hollow: HollowLog | null = null;
-  const logModels = pineModels(sky);
-  void loadHollowLog(logModels).then(() => {
-    const site = hollowLogSite();
-    placeModel(hollowLog, [{ x: HOLLOW_LOG.x, y: site.floorY, z: HOLLOW_LOG.z, yaw: HOLLOW_LOG.yaw }],
-      { ctx: logModels, draw: 'single', registry: h.registry, piece: { id: 'hollow-log', floor: (x, z) => (insideHollowLog(x, z) ? site.floorY : undefined), solidFloor: true } });
-    hollow = site;
-    return site;
+  let hollow: { floorY: number; mid: THREE.Vector3; mouths: THREE.Vector3[] } | null = null;
+  void h.cabins?.resources.place('quests.hollow-log').then(() => {
+    const site = questScenes.sites.hollow;
+    hollow = { floorY: site.floorY, mid: new THREE.Vector3().fromArray(site.mid), mouths: site.mouths.map(point => new THREE.Vector3().fromArray(point)) };
+    return hollow;
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
@@ -433,7 +399,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── per frame ──
   let slowT = 0;
-  ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit', 'quest.pool', 'quest.shelf'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
+  ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit', 'quest.pool'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     talks.update(dt, t, pp);
     if (zip !== null && lm) {
@@ -499,7 +465,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     flags, quest, board, kit, stag, thralls, people, content: native.content,
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
-    zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
+    zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: () => hollow,
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },

@@ -248,7 +248,6 @@ const MODEL_RELOCATIONS = new Map([
   ['pine-hollow', 'runtime/models/fallenLog.ts', 'fallenLog.ts'],
   ['pine-hollow', 'runtime/models/fern.ts', 'fern.ts'],
   ['pine-hollow', 'runtime/models/forestTree.ts', 'forestTree.ts'],
-  ['pine-hollow', 'runtime/models/hollowLog.ts', 'hollowLog.ts'],
   ['pine-hollow', 'runtime/models/logCabin.ts', 'logCabin.ts'],
   ['pine-hollow', 'runtime/models/mossyBoulder.ts', 'mossyBoulder.ts'],
   ['pine-hollow', 'runtime/models/stoneFirePit.ts', 'stoneFirePit.ts'],

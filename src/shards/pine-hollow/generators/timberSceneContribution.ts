@@ -1,3 +1,4 @@
+import codeParts from '../data/codeParts.json' with { type: 'json' };
 /** Final timber draws, shadow proxies and native placement facts; no page-side weld. */
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { Matrix4, Object3D } from 'three';
@@ -32,9 +33,9 @@ export const TIMBER_MODEL_ROWS: unknown[] = Object.entries(names).map(([key, nam
   }) }));
 for (const row of [{ key: 'zip-cable', name: 'Zip-line cable', shelf: false }, { key: 'token-shelf', name: 'Token shelf', shelf: true }]) {
   TIMBER_MODEL_ROWS.push({ key: row.key, id: `pine-hollow/${row.key}`, name: row.name, category: 'props', pipeline: 'code',
-    ...(row.shelf ? { surface: 'wood' } : {}), file: 'data/timberScenes.generated.json', assembly: 'parts', defaults: {},
+    ...(row.shelf ? { surface: 'wood' } : {}), file: 'data/timberScenes.generated.json', assembly: row.shelf ? 'objects' : 'parts', defaults: {},
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: row.key, library: 'timbers', model: row.key,
-      material: row.shelf ? 'tokens' : 'timber.iron', receiveShadow: row.shelf }] }] });
+      material: row.shelf ? 'tokens' : 'timber.iron', receiveShadow: row.shelf, ...(row.shelf ? { until: 28 } : {}) }] }] });
 }
 
 const sites = [
@@ -69,3 +70,18 @@ const model = (row: typeof baked.geometry[number]) => {
 };
 export const TIMBER_LIBRARY = { id: 'timbers', kind: 'owned' as const, models: baked.geometry.map(model) };
 export const TIMBER_SURFACES = [...TIMBER_MATERIALS, { id: 'tokens', kind: 'lowpoly', variant: 'default', properties: {} }];
+
+const logDraws = [
+  { id: 'outer', part: 'outer', material: 'bark', castShadow: true, receiveShadow: true },
+  { id: 'inner', part: 'inner', material: 'log', castShadow: false, receiveShadow: true },
+  { id: 'rim-0', part: 'rim-0', material: 'endGrain', castShadow: false, receiveShadow: false },
+  { id: 'rim-1', part: 'rim-1', material: 'endGrain', castShadow: false, receiveShadow: false },
+  { id: 'bed', part: 'bed', material: 'chink', castShadow: false, receiveShadow: true },
+].map(({ part, material, ...draw }) => Object.assign(draw, { library: 'timbers', model: `hollow-log-${part}`, material: `timber.${material}` }));
+TIMBER_MODEL_ROWS.push({ key: 'hollow-log', id: 'pine-hollow/hollow-log', name: 'Hollow log', category: 'nature', pipeline: 'code', surface: 'wood',
+  file: 'data/hollowLog.json', assembly: 'parts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1],
+    draws: logDraws, lods: [{ from: 60, draws: [{ ...logDraws[0], castShadow: false }] }], colliders: codeParts.colliders['hollow-log'] }] });
+const log = baked.sites.hollow;
+TIMBER_PLACEMENTS.push(parseWorldScenePlacement({ id: 'quests.hollow-log', model: 'hollow-log', draw: 'single',
+  poses: [{ x: log.x, y: log.floorY, z: log.z, yxz: { yaw: log.yaw, scale: 1 } }],
+  piece: { id: 'hollow-log', solidFloor: true, floors: [log.floor] } }));

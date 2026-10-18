@@ -24,18 +24,19 @@ const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), 
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const secondary = v.strictObject({ action: name, code: v.exactOptional(v.picklist([3, 4])), move: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)) });
 /** Portable equipment presentation. World pickups remain owned by their existing service. */
-const equipmentIcon = v.picklist(['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel',
+/** Shared catalogue glyph ids; content supplies names, never executable icon hooks. */
+export const CatalogueIconSchema = v.picklist(['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel',
   'sword', 'deer', 'elk', 'boar', 'bear', 'ghost', 'ironhide', 'meat', 'hide', 'tusk', 'antlers', 'bolt', 'claw', 'shell', 'coconut', 'coin', 'seaglass', 'rope', 'whetstone', 'chart', 'bearclaw', 'boartusk', 'crossbow', 'rifle', 'lever', 'longbow', 'hat', 'cape', 'charm', 'necklace', 'glyph', 'purse', 'talon', 'leopard', 'wolf', 'eagle', 'rider', 'horse', 'grapple']);
 const equipmentNumber = v.pipe(finite, v.minValue(0), v.maxValue(10000));
 const cue = v.pipe(v.string(), v.regex(/^cue\.[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const equipment = v.strictObject({ id: v.pipe(v.string(), v.regex(/^weapon\.[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128)),
   legacySlot: v.exactOptional(v.picklist(['crossbow', 'sword', 'rifle', 'sword-iron', 'bow', 'sabre', 'spear', 'empty'])),
-  ui: v.strictObject({ name: text, icon: equipmentIcon, swapIcon: v.pipe(text, v.maxLength(512)),
+  ui: v.strictObject({ name: text, icon: CatalogueIconSchema, swapIcon: v.pipe(text, v.maxLength(512)),
     touch: v.picklist(['melee', 'bow', 'ranged', 'throwing']), lockOn: v.boolean(), melee: v.boolean(), tracers: v.boolean(),
     inputContext: v.exactOptional(name), swapName: v.exactOptional(text), huntersEye: v.exactOptional(v.boolean()),
     ammo: v.exactOptional(v.strictObject({ label: text, segments: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(1024)),
       magazine: v.exactOptional(v.boolean()), bagLabel: v.exactOptional(text), bagLabelFor: v.exactOptional(text) })) }),
-  meta: v.strictObject({ name: text, icon: equipmentIcon, blurb: text, category: name }),
+  meta: v.strictObject({ name: text, icon: CatalogueIconSchema, blurb: text, category: name }),
   cues: v.exactOptional(v.strictObject({ fire: cue, reload: cue, impact: cue, dry: v.exactOptional(cue), hit: v.exactOptional(cue),
     heavy: v.exactOptional(cue), charge: v.exactOptional(v.record(name, cue)) })),
   hitStop: v.exactOptional(v.strictObject({ body: equipmentNumber, head: equipmentNumber, kill: equipmentNumber })),
@@ -65,7 +66,8 @@ const inventory = v.pipe(v.strictObject({ kinds: v.pipe(v.array(name), v.minLeng
   quantity: v.picklist(['unchecked', 'positive-safe-integer']), snapshot: v.picklist(['order', 'roster']),
   stackLimit: v.exactOptional(v.pipe(finite, v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER))), restoreError: text }),
   v.check(row => new Set(row.kinds).size === row.kinds.length && row.counts.min <= row.counts.max, 'Unique inventory kinds and ordered count bounds'));
-const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
+const catalogue = v.pipe(v.array(v.strictObject({ id: name, label: text, icon: CatalogueIconSchema, travels: v.boolean() })), v.maxLength(256));
+const raw = v.strictObject({ version: v.literal(1), catalogue: v.exactOptional(catalogue), rows: v.pipe(v.array(v.variant('kind', [weapon, tool])), v.maxLength(64)),
   launches: v.exactOptional(v.pipe(v.record(name, BodyLaunchSchema), v.maxEntries(64))),
   pickups: v.exactOptional(v.pipe(v.record(name, ClaimedPickupSchema), v.maxEntries(128))),
   contexts: v.pipe(v.array(ItemContextSchema), v.maxLength(64)),
@@ -150,7 +152,9 @@ export function parseNativeSweptMeleeBinding(input: unknown, itemsInput: unknown
 export type ShardItems = v.InferOutput<typeof raw>;
 /** Local references plus optional script catalogue checks; global format composition supplies admitted module ids. */
 export function itemRules(items: ShardItems, modules?: readonly string[]): string[] {
-  const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
+  const errors: string[] = [];
+  if (new Set(items.catalogue?.map(row => row.id)).size !== (items.catalogue?.length ?? 0)) errors.push('unique catalogue item ids');
+  const ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
   const runtimeContexts = items.runtimeContexts ?? [];
   if (items.loadout.effects?.weapons.some(binding => new Set(binding.items).size !== binding.items.length
     || binding.items.some(id => !weapons.some(entry => entry.id === id && entry.equipment?.legacySlot !== undefined))) === true)

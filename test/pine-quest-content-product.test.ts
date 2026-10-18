@@ -20,7 +20,8 @@ const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().en
 test('the retained producer preserves the entire quest and NPC declarations in the admitted product', async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
   const quests = parseQuestData(pinePeople.quests);
-  expect(hash(loaded.shard.quests)).toBe(originals.quests);
+  const { achievements: _achievements, ...gameplay } = loaded.shard.quests;
+  expect(hash(gameplay)).toBe(originals.quests);
   expect(hash(quests)).toBe(originals.quests);
   const section = loaded.output.custom?.sections.find(row => row.name === 'custom/questRuntime');
   const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);

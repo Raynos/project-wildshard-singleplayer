@@ -1,3 +1,4 @@
+import { installQuestCatalogue } from '@wildshard/game/quest/chapter';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybrid';
 import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
@@ -20,7 +21,8 @@ import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { pineRifleFloor } from '../quest/rifleFloor';
+import { Vector3 } from 'three';
+import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
@@ -149,9 +151,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.species(ctx.product.section('actors/species-programs').page);
     ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
     ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
-    const inventory = ctx.product.section<CustomSections['custom/questInventory']>('custom/questInventory');
-    ctx.rows.item(inventory.items);
-    ctx.rows.feat(inventory.feats);
+    installQuestCatalogue(ctx);
     ctx.rows.compendium({ ...declaredProductCompendium(ctx.product, 'pine.journal'), id: 'pine.journal' });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
@@ -180,7 +180,7 @@ export class PineHollow extends ShardPlugin {
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
-    const { animals, weapons, inventory, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
+    const { animals, weapons, inventory, hud, audio, music, skins, wearSkin, menu, touchUi, nolock } = h;
     installRuntimeAudioEntry(ctx,'play',{audio,music});
     const { cabins, landmarks, particles } = this;
     const cabinAudio = { ...ctx.product.section<CustomSections['custom/cabinAmbience']>('custom/cabinAmbience') };
@@ -214,8 +214,8 @@ export class PineHollow extends ShardPlugin {
     });
     const loadout = installHeldLoadout(ctx, ctx.product.section('held/loadout'));
     const rifleDrop = (() => {
-      const position = pineRifleFloor(cabins === null ? null : { floorHeightAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') });
-      if (position === null) return null;
+      if (cabins === null) return null;
+      const site = questScenes.sites.rifle, position = new Vector3(site.x, site.y, site.z);
       const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3, random: pickupStream('cabin-rifle') });
       rt.interactables.push(drop.interactable);
       drop.onNear = (inside) => audio.pickupHum(inside);
@@ -242,9 +242,7 @@ export class PineHollow extends ShardPlugin {
     const trophyPack = ctx.product.section<CustomSections['custom/trophyMounts']>('custom/trophyMounts');
     registerPackedGeometrySource(ctx.scope, 'collection-mounts', { url: ctx.product.url(trophyPack.url), rows: trophyPack.rows, label: 'trophy-wall' });
     const compendium = installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock }]]), { mounts: 'collection-mounts', scope: ctx.scope, product: ctx.product, pack: trophyPack, chalk: ctx.product.section<CustomSections['custom/paintedTextures']>('custom/paintedTextures').chalk, texture: ctx.product.section<CustomSections['custom/paintedTextures']>('custom/paintedTextures').textures.chalk });
-    const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
-      crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
-      menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
+    const quest = await installPineQuest(ctx, { cabins, landmarks, loadout, compendium });
     const placeSets = ctx.product.section<CustomSections['custom/placeSets']>('custom/placeSets');
     registerPlaceSets(placeSets, { file: 'generators/placeSets.ts', registry, centres: { placed: placedGroups(), point: row => row } });
     const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: cabinAudio.floors }, sites: { cabins: audioTerrain.CABIN_SITES }, owners: { terrain: audioTerrain, cabins: { ...cabins?.audioState, firePits: cabinAudio.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');

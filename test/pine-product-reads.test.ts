@@ -18,9 +18,9 @@ test('Pine client reads resolve against the emitted output', async () => {
   };
   const rows = loaded.shard.items.pickups ?? {};
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
-  const inventory = value('custom/questInventory');
-  expect(inventory.feats.length).toBeGreaterThan(0);
-  expect(inventory.items.length).toBeGreaterThan(0);
+  expect(loaded.shard.quests.achievements?.length).toBeGreaterThan(0);
+  expect(loaded.shard.items.catalogue?.length).toBeGreaterThan(0);
+  expect(custom.sections.some(row => row.name === 'custom/questInventory')).toBe(false);
   const shots = loaded.shard.audio.bank?.shots;
   if(shots===undefined)throw new Error('Pine admitted voice identities absent');
   for (const voice of Object.values(value('custom/ambientLife').sounds)) expect(shots.includes(voice), voice).toBe(true);

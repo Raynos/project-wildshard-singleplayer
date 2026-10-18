@@ -13,7 +13,6 @@ import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
 import trailside from '../data/trailsideBake.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
-import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './questInventory';
 import { GULL_FLOCK } from './gullsLook';
 import { OCEAN_SURFACE } from './oceanLook';
 import { OCEAN_FILES } from './oceanFiles';
@@ -27,5 +26,4 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/oceanSurface', value:{surface:OCEAN_SURFACE, files:OCEAN_FILES}},
   {name:'custom/fixedLayouts', value:{nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS, shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), entryDecks:ENTRY_DECKS, entryFloors:ENTRY_FLOORS, foliage:{seed:foliage.seed,tiers:foliage.tiers}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:coveBake, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
   {name:'custom/trailside', value:trailside},
-  {name:'custom/questRows', value:{feats:DRIFTWOOD_FEATS, items:DRIFTWOOD_ITEMS}},
 ];

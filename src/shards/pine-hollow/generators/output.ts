@@ -55,7 +55,7 @@ import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,NativeViewSchema,CabinSeedsSch
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
-import { PINE_FEAT_COUNTERS, PINE_FEATS, PINE_BAG_ITEMS } from './questInventory';
+import { PINE_FEAT_COUNTERS } from './questInventory';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, CABIN_LIFE } from './cabinLook';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
@@ -108,7 +108,7 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/tradeCatalogue'?parseTradeCatalogue(tradeCatalogue()):name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/questInventory'?{feats:PINE_FEATS,items:PINE_BAG_ITEMS}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/tradeCatalogue'?parseTradeCatalogue(tradeCatalogue()):name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));

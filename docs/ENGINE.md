@@ -9095,6 +9095,14 @@ update systems or save adapters in the chapter intake. Callers keep their
 original chip update phase. Both shipped quests preserve their flags,
 notice/sting ordering, map card and completion marker policy.
 
+`game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
+from `combat/items` and `quests.achievements` from `quests/quests` through
+the existing scoped item and achievement registries. Both are optional,
+bounded, duplicate-checked display rows; they add no counter or save owner.
+Pine and Driftwood use these declarations instead of private catalogue
+sections. Achievement display metadata is excluded from decision save
+contracts, so a mid-quest continuation keeps its original gameplay basis.
+
 Pine's remaining page assembly, Driftwood's adventure/finale and both
 native quest keepers retain their charge. NPC rig updates, death drops,
 model, pool, door, traversal and reward-camera assembly stay in their

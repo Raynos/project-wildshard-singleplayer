@@ -33,11 +33,11 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
   const trail = value('custom/trailside');
   expect(trail.worldColliders.some(row => row.kind === 'treads')).toBe(true); expect(trail.posts.pls.length * 6).toBe(trail.posts.boxes.length);
-  const quest = value('custom/questRows');
-  expect(quest.items).toEqual(DRIFTWOOD_ITEMS); expect(quest.feats).toEqual(DRIFTWOOD_FEATS);
+  expect(loaded.shard.items.catalogue).toEqual(DRIFTWOOD_ITEMS);
+  expect(loaded.shard.quests.achievements).toEqual(DRIFTWOOD_FEATS);
+  expect(custom.sections.some(row => row.name === 'custom/questRows')).toBe(false);
   const economy = source.rows.loot[0]?.economy;
   expect(economy?.effects).toEqual(DRIFTWOOD_EFFECTS); expect(economy?.goods).toEqual(GOODS);
-  expect(Reflect.has(quest, 'effects')).toBe(false); expect(Reflect.has(quest, 'goods')).toBe(false);
 }, 30000);
 
 test('effect rows retain identity values while refusing invalid effect ids and unnamespaced tags', () => {

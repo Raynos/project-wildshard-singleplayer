@@ -134,5 +134,9 @@
   "test/pine-prop-product.test.ts": [
     "pine-hollow"
   ],
-  "test/driftwood-foliage-scenes.test.ts": []
+  "test/driftwood-foliage-scenes.test.ts": [],
+  "test/quest-catalogue-sites.test.ts": [
+    "pine-hollow",
+    "driftwood-isle"
+  ]
 }

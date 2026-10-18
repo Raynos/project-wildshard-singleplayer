@@ -59,9 +59,6 @@ const foliageTier = v.strictObject({
   bushes: v.strictObject({ specs: v.pipe(v.array(v.strictObject({ x: number, z: number, ...bush })), v.maxLength(1024)),
     placements: v.pipe(v.array(v.strictObject({ ...point.entries, params: v.strictObject({ ...bush, phase: number }) })), v.maxLength(1024)) }),
 });
-const icon = v.picklist(['rope', 'poi', 'laurel', 'seaglass', 'coin', 'check', 'sword', 'claw', 'coconut', 'meat', 'shell', 'hide']);
-const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, event: v.exactOptional(text), kind: v.exactOptional(text), title: text, icon });
-const item = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
 
 const placement = v.strictObject({
   enemies: v.pipe(v.array(v.strictObject({ kind: v.picklist(['crab', 'monkey', 'sailor']), variant: v.nullable(text),
@@ -180,7 +177,6 @@ export const SECTIONS = {
   'custom/gullFlock': AmbientFlockSchema,
   /** the sea's water-surface row and its baked grid per tier and floor (data/oceanLook.ts, data/oceanFiles.ts; world/Ocean.ts) */
   'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }) }),
-  'custom/questRows': v.strictObject({ feats: v.pipe(v.array(feat), v.maxLength(128)), items: v.pipe(v.array(item), v.maxLength(128)) }),
 } as const;
 
 const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number });

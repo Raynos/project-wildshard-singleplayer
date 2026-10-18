@@ -8,6 +8,8 @@ import {Mesh,MeshStandardMaterial} from 'three';
 import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
 import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
+import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
+import {questSites} from './questSites.ts';
 import {timberWholeViews} from './timberWholeViews.ts';
 import {bakeTimberCopy} from './timberScenes.ts';
 import {byteWriter,jsonBytes} from '../../../../scripts/bake-output.mjs';
@@ -45,7 +47,7 @@ export async function bakeTimberSceneSources(){
  const bytes=Uint8Array.from(inflateSync(packed));
  if(createHash('sha256').update(bytes).digest('hex')!==parts.sha256)throw new Error('Native code part hash differs');
  const pack=new GeometryPack(bytes,packedRows(parts.rows),'pine native code parts');
- for(const id of ['zip-cable','token-shelf'])geometry.set(id,pack.geometry(parts.parts[id]));
+ for(const id of ['zip-cable','token-shelf','hollow-log-outer','hollow-log-inner','hollow-log-rim-0','hollow-log-rim-1','hollow-log-bed'])geometry.set(id,pack.geometry(parts.parts[id]));
  return {copies,geometry};
 }
 export async function writeTimberScenes(){
@@ -59,7 +61,7 @@ export async function writeTimberScenes(){
    writer.put(fileURLToPath(new URL(source,project)),encoded);geometryHashes[source]=createHash('sha256').update(encoded).digest('hex');
    blobs.push({name,kind:'glb',source});models.push({id,file:name,attributes:shape.hasAttribute('moss')?{moss:'aMoss'}:{}});
   }
-  writer.put(fileURLToPath(new URL('data/timberScenes.generated.json',project)),jsonBytes({blobs,geometry:models,copies,geometryHashes}));
+  writer.put(fileURLToPath(new URL('data/timberScenes.generated.json',project)),jsonBytes({blobs,geometry:models,copies,geometryHashes,sites:questSites(readNativeTerrain(readFileSync(new URL('public/assets/baked/pine-hollow/terrain.bin',root))).heightAt)}));
   writer.finish();
  }finally{material.dispose();for(const shape of geometry.values())shape.dispose();}
 }

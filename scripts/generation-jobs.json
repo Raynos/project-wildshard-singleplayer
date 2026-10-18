@@ -1011,7 +1011,9 @@
         "src/shards/pine-hollow/generators/leverProfile.ts",
         "src/shards/pine-hollow/generators/crossbowProfile.ts",
         "src/shards/pine-hollow/data/bowProfile.json",
-        "src/shards/pine-hollow/generators/bowProfile.ts"
+        "src/shards/pine-hollow/generators/bowProfile.ts",
+        "src/shards/pine-hollow/generators/interactions.ts",
+        "src/shards/pine-hollow/data/wardensHollow.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/items.generated.json"
@@ -5876,7 +5878,13 @@
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
         "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
         "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138",
-        "src/shards/pine-hollow/data/logKit.json"
+        "src/shards/pine-hollow/data/logKit.json",
+        "src/shards/pine-hollow/generators/questSites.ts",
+        "src/shards/pine-hollow/generators/ambience.ts",
+        "src/shards/pine-hollow/data/hollowLog.json",
+        "src/shards/pine-hollow/data/cabins.json",
+        "src/shards/pine-hollow/data/layout.generated.json",
+        "public/assets/baked/pine-hollow/terrain.bin"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/timber-scenes/creek-footbridge-draw-0.glb",
@@ -5895,6 +5903,11 @@
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-draw-3.glb",
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-draw-4.glb",
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-proxy-0.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-bed.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-inner.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-outer.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-rim-0.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-rim-1.glb",
         "src/shards/pine-hollow/assets/timber-scenes/token-shelf.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zip-cable.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-draw-0.glb",
@@ -5924,6 +5937,11 @@
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-draw-3.glb",
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-draw-4.glb",
         "src/shards/pine-hollow/assets/timber-scenes/fire-lookout-proxy-0.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-bed.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-inner.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-outer.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-rim-0.glb",
+        "src/shards/pine-hollow/assets/timber-scenes/hollow-log-rim-1.glb",
         "src/shards/pine-hollow/assets/timber-scenes/token-shelf.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zip-cable.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-draw-0.glb",

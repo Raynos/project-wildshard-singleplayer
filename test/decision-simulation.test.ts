@@ -48,6 +48,25 @@ function fixture(wasm = bytes, binding?: { shard: true } | { encounter: string }
   return { source, assets, sections, scripts, options: { sections } };
 }
 
+test('achievement display rows preserve a pre-catalogue decision continuation silently', async () => {
+  const f = fixture(), first = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+  let restored: ShardfileSimulation | undefined;
+  try {
+    for (let i = 0; i < 9; i++) first.host.step();
+    const saved = first.decisions?.snapshot();
+    if (saved === undefined) throw new Error('Missing pre-catalogue decision owner');
+    f.source.quests.achievements = [{ id: 'traveller', name: 'Traveller', goal: 'Find the crossing', count: 1,
+      event: 'crossing', title: 'Across the water', icon: 'poi' }];
+    restored = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+    const invoke = vi.spyOn(DecisionModule.prototype, 'invoke');
+    try {
+      restored.decisions?.restore(saved);
+      expect(restored.decisions?.snapshot()).toBe(saved);
+      expect(invoke).not.toHaveBeenCalled();
+    } finally { invoke.mockRestore(); }
+  } finally { restored?.dispose(); first.dispose(); }
+});
+
 test('two actors execute rows on the real fixed-step move, strike, field and flag owners', async () => {
   const f = fixture(), sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
   try {
