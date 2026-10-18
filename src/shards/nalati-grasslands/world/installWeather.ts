@@ -38,11 +38,13 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { Lightning as Weather, Exposed, LightningPlayer } from './Lightning';
+import type { Lightning as Weather, Exposed, LightningPlayer, Strike } from './Lightning';
 import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
-import { WeatherFX } from './WeatherFX';
-import { setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
+import { RAIN_PROGRAM } from './rainProgram';
+import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
+import { lentLook, setLentTexture, pushLentParams, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 type WeatherHUD = Parameters<HUD['setWeather']>[0];
@@ -79,7 +81,7 @@ export interface NalatiWeather {
   /** Plain admitted weather owner; lightning is composed separately. */
   air: WeatherContinuation;
   rig: SkyRig;
-  fx: WeatherFX;
+  fx: Awaited<ReturnType<typeof weatherEffects>>;
   /** the look applied last frame (clock + storm) */
   look: SkyLook;
   /** the yurts the lightning's shelter rule reads (world/weatherStep.ts yurtsOf over the POI colliders; the headless bake's `yurts`) */
@@ -148,8 +150,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
     if (phase) weather.weather.force(phase, Number.parseFloat(at) || 0);
   }
 
-  const fx = new WeatherFX({ phone: TIER === 'phone', seed: def.seed }).build();
-  game.scene.add(fx.group);
+  const fx = await weatherEffects(ctx);
 
   weather.onTelegraph((s) => {
     fx.telegraph(s);
@@ -225,4 +226,53 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   };
   ctx.ctx.debug.expose('nalati.weather', out);
   return out;
+}
+
+/** Static weather is admitted data; events only place borrowed visuals. */
+async function weatherEffects(ctx: WeatherCtx) {
+ const rows = await ctx.ctx.product.json<{
+  shapes: Record<string, { data: unknown }>; puddles: number[]; noise: number[]; glow: number[]; fire: number[];
+ }>('world/weather-fx.json');
+ const channels=ctx.ctx.product.shardfile.clientChannels, loader=new THREE.BufferGeometryLoader();
+ const geometry=(id:string):THREE.BufferGeometry=>{const row=rows.shapes[id];if(row===undefined)throw new Error('Missing weather geometry');return loader.parse(row);};
+ const texture=(bytes:number[],noise=false):THREE.DataTexture=>{
+  const t=new THREE.DataTexture(Uint8Array.from(bytes),128,128);
+  t.magFilter=THREE.LinearFilter;t.minFilter=noise?THREE.LinearMipmapLinearFilter:THREE.LinearFilter;t.generateMipmaps=noise;
+  if(noise)t.wrapS=t.wrapT=THREE.RepeatWrapping;t.needsUpdate=true;return t;
+ };
+ const noise=texture(rows.noise,true);for(const id of ['nalati-storm-deck','nalati-storm-curtains'])setLentTexture(id,'tNoise',noise);
+ const group=new THREE.Group(), parts=new Map<string,THREE.Object3D>(), shapes:THREE.BufferGeometry[]=[];
+ for(const [id,look,order] of [['deck','nalati-storm-deck',-9],['curtains','nalati-storm-curtains',-8],['bolt','nalati-lightning-bolt',15],['smoke','nalati-strike-smoke',9],['puddles','nalati-puddles',2]] as const){
+  const g=geometry(id);shapes.push(g);
+  const mesh=id==='smoke'?new THREE.Points(g,lentLook(look)):id==='puddles'?new THREE.InstancedMesh(g,lentLook(look),Math.max(1,rows.puddles.length/16)):new THREE.Mesh(g,lentLook(look));
+  if(mesh instanceof THREE.InstancedMesh){mesh.count=rows.puddles.length/16;mesh.instanceMatrix.array.set(rows.puddles);mesh.instanceMatrix.needsUpdate=true;}
+  mesh.frustumCulled=false;mesh.visible=false;mesh.renderOrder=order;mesh.name=id;parts.set(id,mesh);group.add(mesh);
+ }
+ const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:texture(rows.glow),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,toneMapped:false}));
+ const fire=new THREE.Sprite(new THREE.SpriteMaterial({map:texture(rows.fire),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+ glow.renderOrder=12;fire.renderOrder=11;group.add(glow,fire);parts.set('glow',glow);parts.set('fire',fire);
+ const rainU={uOffset:{value:new THREE.Vector3()},uR:{value:TIER==='phone'?11:16},uVel:{value:new THREE.Vector3(0,-9,0)},uLen:{value:.9},uCol:{value:new THREE.Color()},uAlpha:{value:.3},uWidth:{value:.013}};
+ const count=TIER==='phone'?3500:6000,rain=rainCurtain({count,seed:ctx.manifest.seed,uniforms:rainU,program:RAIN_PROGRAM});group.add(rain);parts.set('rain',rain);
+ const uniforms={uVelx:0,uVely:0,uVelz:0,uLen:0,uAlpha:0,uColx:0,uColy:0,uColz:0},draw={count:0};
+ const flags:Record<string,number>=Object.fromEntries([...parts.keys()].map(id=>[id,0]));
+ const timers={boltT:99,glowT:99,smokeLeft:0,smokeT:0},windReading={x:0,z:0};
+ const params=graphParamRoots(channels,'nalati.fx',['nalati-storm-deck','nalati-storm-curtains','nalati-lightning-bolt','nalati-strike-smoke','nalati-puddles']);
+ const owners=new Map<string,unknown>([...params.roots,...parts,['wind',windReading],['flags',flags],['rainU',uniforms],['draw',draw],['glowMaterial',{get opacity(){return glow.material.opacity;},set opacity(value:number){glow.material.opacity=value;}}],['fireMaterial',{get opacity(){return fire.material.opacity;},set opacity(value:number){fire.material.opacity=value;}}]]);
+ let lane:ReturnType<typeof installChannelPrograms>|null=null;
+ ctx.game.levelScope.onDispose(()=>{group.removeFromParent();for(const g of shapes)g.dispose();rain.geometry.dispose();if(Array.isArray(rain.material)){for(const material of rain.material)material.dispose();}else rain.material.dispose();noise.dispose();for(const sprite of [glow,fire]){sprite.material.map?.dispose();sprite.material.dispose();}});
+ group.name='weather-fx';ctx.game.scene.add(group);
+ return {group,rain,
+  telegraph(s:Strike){glow.position.set(s.x,s.y+.4,s.z);timers.glowT=0;},
+  bolt(s:Strike){timers.glowT=99;timers.boltT=0;setLentParam('nalati-lightning-bolt','origin',[s.x,s.y,s.z]);if(s.kind==='tree'){setLentParam('nalati-strike-smoke','origin',[s.x,s.y-2,s.z]);fire.position.set(s.x,s.y-1.5,s.z);timers.smokeLeft=360;}},
+  inCloudFlash(bearing:number){setLentParam('nalati-storm-deck','flashDir',new THREE.Vector3(Math.cos(bearing),.25,Math.sin(bearing)).normalize().toArray());},
+  update(dt:number,weather:Weather,look:SkyLook,camera:THREE.Camera,airWind:{x:number;z:number}){
+   timers.boltT+=dt;timers.glowT+=dt;timers.smokeLeft=Math.max(0,timers.smokeLeft-dt);timers.smokeT+=dt;
+   windReading.x=airWind.x;windReading.z=airWind.z;
+   if(lane===null){owners.set('weather',{get front(){return weather.front;},get stormFrom(){return weather.stormFrom;},get rainbow(){return weather.rainbow;},get overcast(){return weather.overcast;},get flash(){return weather.flash;},get rain(){return weather.rain;},get wet(){return weather.weather.wet;}});owners.set('look',look);owners.set('camera',camera.position);lane=installChannelPrograms(channels,'nalati.fx',owners);}
+   lane.evaluate({time:0,delta:dt,values:{...timers,active:Number(weather.weather.state!=='clear'),count}});pushLentParams(params);
+   for(const [id,part] of parts)part.visible=(flags[id]??0)>0;
+   rainU.uVel.value.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);rainU.uCol.value.setRGB(uniforms.uColx,uniforms.uColy,uniforms.uColz);rainU.uLen.value=uniforms.uLen;rainU.uAlpha.value=uniforms.uAlpha;
+   if(rain.visible){const box=rainU.uR.value*2;rainU.uOffset.value.addScaledVector(rainU.uVel.value,dt);for(const axis of ['x','y','z'] as const)rainU.uOffset.value[axis]=((rainU.uOffset.value[axis]%box)+box)%box;rain.geometry.setDrawRange(0,Math.ceil(draw.count)*6);}
+  },
+ };
 }

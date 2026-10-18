@@ -3,6 +3,10 @@ import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { graphParamRoots } from '../src/game/looks/graphDaySky';
 import { PINE_RAIN_PROGRAMS } from '../src/shards/pine-hollow/data/weatherLook';
 import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';
+import { Object3D, BufferGeometryLoader } from 'three';
+import { weatherFxChannels } from '../src/shards/nalati-grasslands/generators/weatherFxChannels';
+import { weatherPresentation } from '../src/shards/nalati-grasslands/generators/weatherPresentation';
+import { makeLook } from '../src/shards/nalati-grasslands/look/skyRig';
 
 const { rain, splash, lens, channels } = PINE_RAIN_PROGRAMS;
 function rig() {
@@ -32,5 +36,56 @@ describe('pine.rain channels', () => {
     expect(set[`${lens}.clock`]).toBeCloseTo(2); expect(set[`${lens}.wet`]).toBeCloseTo(wet * 0.8);
     seen.room = 1; step(0.5);
     expect(set[`${lens}.clock`]).toBeCloseTo(2); expect(set[`${lens}.wet`]).toBe(0); expect(set[`${splash}.time`]).toBeCloseTo(1);
+  });
+});
+
+describe('Nalati weather presentation rows', () => {
+  function setup() {
+    const rows = weatherFxChannels(), ids = ['nalati-storm-deck', 'nalati-storm-curtains', 'nalati-lightning-bolt', 'nalati-strike-smoke', 'nalati-puddles'];
+    const params = graphParamRoots(rows, 'nalati.fx', ids), set: Record<string, unknown> = {};
+    const flags = { deck: 0, curtains: 0, rain: 0, bolt: 0, glow: 0, smoke: 0, fire: 0, puddles: 0 };
+    const weather = { front: 0, stormFrom: 1, rainbow: 0, overcast: 0, rain: 0, flash: 0, wet: 0 };
+    const rainU = { uVelx: 0, uVely: 0, uVelz: 0, uLen: 0, uAlpha: 0, uColx: 0, uColy: 0, uColz: 0 }, draw = { count: 0 };
+    const look = makeLook(), camera = { x: 10, y: 20, z: -30 }, wind = { x: 10, z: -20 };
+    const owners = new Map<string, unknown>([...params.roots, ['flags', flags], ['weather', weather], ['look', look], ['camera', camera], ['wind', wind], ['rainU', rainU], ['draw', draw], ['glowMaterial', { opacity: 0 }], ['fireMaterial', { opacity: 0 }],
+      ...['deck', 'curtains', 'glow', 'fire'].map(id => [id, new Object3D()] as const)]);
+    const lane = installChannelPrograms(rows, 'nalati.fx', owners);
+    const defaultValues = { boltT: 99, glowT: 99, smokeLeft: 0, smokeT: 0, active: 0, count: 3500 };
+    const step = (values = defaultValues): void => {
+      lane.evaluate({ time: 0, delta: 1 / 30, values });
+      params.push({ setParam: (id, name, value) => { set[`${id}.${name}`] = Array.isArray(value) ? [...value] : value; } });
+    };
+    return { flags, weather, rainU, draw, set, step };
+  }
+  it('hides dry weather and exposes rain, wet ground and the storm front together', () => {
+    const { flags, weather, rainU, draw, set, step } = setup();
+    step(); expect(Object.values(flags)).toEqual(Array.from({ length: 8 }, () => 0));
+    Object.assign(weather, { front: .8, rain: .6, overcast: .9, wet: .8 }); step();
+    expect(flags).toMatchObject({ deck: 1, curtains: 1, rain: 1, puddles: 1, bolt: 0, glow: 0 });
+    expect(rainU).toMatchObject({ uVelx: 3.5, uVely: -9.5, uVelz: -7 });
+    expect(draw.count).toBeCloseTo(3500 * .66);
+    expect(set['nalati-puddles.puddle']).toEqual([.8, .6]);
+  });
+  it('expires telegraphs and bolts while preserving a struck tree smoke tail', () => {
+    const { flags, set, step } = setup();
+    step({ boltT: .02, glowT: .8, smokeLeft: 360, smokeT: 1, active: 1, count: 3500 });
+    expect(flags).toMatchObject({ bolt: 1, glow: 1, smoke: 1, fire: 1 });
+    expect(set['nalati-lightning-bolt.alpha']).toBe(1);
+    step({ boltT: 1, glowT: 2, smokeLeft: 5, smokeT: 10, active: 0, count: 3500 });
+    expect(flags).toMatchObject({ bolt: 0, glow: 0, smoke: 1, fire: 0 });
+    expect(set['nalati-strike-smoke.smoke']).toEqual([1 / 6, 2, -4]);
+  });
+  it('bakes finite indexed bolt geometry and ground-fitted puddle matrices', () => {
+    const rows = weatherPresentation(0x4a1a, () => 7);
+    expect(rows.puddles.length / 16).toBeGreaterThan(0);
+    expect(rows.puddles.length / 16).toBeLessThanOrEqual(110);
+    for (let offset = 13; offset < rows.puddles.length; offset += 16) expect(rows.puddles[offset]).toBeCloseTo(7.03);
+    expect(rows.shapes['bolt']?.data?.index?.array.length).toBeGreaterThan(64 * 6);
+    const loader = new BufferGeometryLoader();
+    for (const shape of Object.values(rows.shapes)) expect(loader.parse(shape).getAttribute('position').count).toBeGreaterThan(0);
+    expect(rows).toEqual(weatherPresentation(0x4a1a, () => 7));
+    expect(rows.noise).toHaveLength(128 * 128 * 4);
+    expect(rows.glow[3]).toBe(0);
+    expect(rows.glow[(64 * 128 + 64) * 4 + 3]).toBe(255);
   });
 });

@@ -733,7 +733,13 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/shards/nalati-grasslands/generators/clientMotion.ts"
+        "src/shards/nalati-grasslands/generators/clientMotion.ts",
+        "src/shards/nalati-grasslands/generators/weatherPresentation.ts",
+        "src/shards/nalati-grasslands/generators/weatherFxChannels.ts",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/sdk/random.ts",
+        "src/sdk/bake/terrain.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
