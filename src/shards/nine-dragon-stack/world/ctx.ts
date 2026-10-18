@@ -1,30 +1,28 @@
 // The build context every world module writes into: named kits (one merged mesh each), instance lists, sign quads,
 // the grapple's dragon hooks and the minimap's floor plan.
-import { Color, Matrix4, Quaternion, Vector3 } from 'three';
-import { Kit } from './kit';
+import { type BufferGeometry, type Color, Matrix4, Vector3 } from 'three';
 import type { Emitter } from '../runtime/looks/vertexSpill';
 import { Dressing } from './facade/dressing';
-import { KitSet } from '../runtime/kit/kitSet';
 import type { DrawnCopy } from '../runtime/kit/drawnInto';
 import { Rng } from '@wildshard/engine/core/rng';
-import { WELL, Y0 } from '../layout';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */
 export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';
 
 export interface Instance { m: Matrix4; c: Color }
 
-const WHITE = new Color(1, 1, 1);
-const ZAX = new Vector3(0, 0, 1);
-
 /** a model drawn into a kit (E306 M4, models/inKit.ts): the world records where each copy stands and registers them on the
  *  kit's mesh once it is built (world/inKit.ts, @wildshard/sdk/kit/drawnInto) */
-export type InKit = DrawnCopy<Kit>;
+export type InKit = DrawnCopy<string>;
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 
-/** the build context: the named kits (the SDK's kit set: `kit`, `alpha`, `kitx`, `far`, `cell`) and the layout's records */
-export class Ctx extends KitSet<Kit, Kit> {
+/** Native view records and final merged layout geometries; author builders live in generators/. */
+export class Ctx {
+  readonly kits = new Map<string, BufferGeometry | null>();
+  readonly alphaKits = new Map<string, BufferGeometry>();
+  readonly reflective = new Set<string>();
+  readonly farOf = new Map<string, number>();
   /** the TRELLIS crowd: walkers (umbrellas) and mahjong sitters, instanced by main.ts */
   readonly walkers: Matrix4[] = [];
   readonly sitters: Matrix4[] = [];
@@ -45,32 +43,10 @@ export class Ctx extends KitSet<Kit, Kit> {
   readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
 
-  constructor() {
-    super(() => new Kit(), () => new Kit());
-  }
-
   lantern(x: number, y: number, z: number, s = 1, rot = 0): void {
     const m = new Matrix4().makeRotationY(rot);
     m.scale(new Vector3(s, s, s));
     m.setPosition(x, y, z);
     this.lanterns.push(m);
-  }
-
-  /** place a kit piece: its local +z faces `n` (a wall's outward normal), origin at `at`, scaled by `s` */
-  put(piece: Piece, at: Vector3, n: Vector3, s: Vector3, color: Color = WHITE): void {
-    const q = new Quaternion().setFromUnitVectors(ZAX, new Vector3(n.x, 0, n.z).normalize());
-    const m = new Matrix4().compose(at, q, s);
-    const inWell = at.x > WELL.x0 - 1 && at.x < WELL.x1 + 1 && at.z > WELL.z0 - 1 && at.z < WELL.z1 + 1;
-    const region = inWell ? (at.y < Y0 - 70 ? 'deep' : 'well') : 'town';
-    const key = `${piece}@${region}`;
-    let list = this.inst.get(key);
-    if (list === undefined) { list = []; this.inst.set(key, list); }
-    list.push({ m, c: color.clone() });
-  }
-
-  ac(x: number, y: number, z: number, rotY: number): void {
-    const m = new Matrix4().makeRotationY(rotY);
-    m.setPosition(x, y, z);
-    this.acs.push(m);
   }
 }

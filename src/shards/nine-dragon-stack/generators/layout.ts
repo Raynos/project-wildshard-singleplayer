@@ -7,6 +7,7 @@
  * live builders.
  */
 import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Ctx } from './ctx';
 import { Kit } from './kit';
 import { buildSquare } from './square';
@@ -92,9 +93,21 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
     kitName.set(k, name);
     if ('extra' in k && Array.isArray(k.extra)) for (const e of k.extra) if (e instanceof Kit) kitName.set(e, name);
   }
-  const kits = [...ctx.kits].map(([name, k]) => ({ name, geo: k.vertexCount > 0 ? addGeometry(k.build()) : null, compact: k.compact }));
+  // Native boot used to merge solid and swept builders by name. Emit those final
+  // streams in the same order, including swept-only names after the solid names.
+  const kits = [...ctx.kits].map(([name, k]) => {
+    const extra = ctx.kitxs.get(name), base = k.vertexCount > 0 ? k.build() : null;
+    const swept = extra !== undefined && extra.vertexCount > 0 ? extra.build() : null;
+    const geometry = base === null ? swept : swept === null ? base : mergeGeometries([base, swept], false);
+    if (base !== null && swept !== null && geometry === null) throw new Error(`Nine kit channels differ: ${name}`);
+    geometry?.computeBoundingSphere();
+    return { name, geo: geometry === null ? null : addGeometry(geometry), compact: k.compact };
+  });
+  for (const [name, k] of ctx.kitxs) if (!ctx.kits.has(name) && k.vertexCount > 0) {
+    const geometry = k.build(); geometry.computeBoundingSphere();
+    kits.push({ name, geo: addGeometry(geometry), compact: false });
+  }
   const alphaKits = [...ctx.alphaKits].filter(([, k]) => k.vertexCount > 0).map(([name, k]) => ({ name, geo: addGeometry(k.build()) }));
-  const kitxs = [...ctx.kitxs].filter(([, k]) => k.vertexCount > 0).map(([name, k]) => ({ name, geo: addGeometry(k.build()) }));
   const f64: number[] = [];
   const m4 = (m: Matrix4): void => { f64.push(...m.elements); };
   const v3 = (p: Vector3): void => { f64.push(p.x, p.y, p.z); };
@@ -113,7 +126,7 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   const shell = ctx.fd.shell.vertexCount > 0 ? addGeometry(ctx.fd.shell.build()) : null;
   const plan = banyanOut.plan;
   const draft: LayoutRows = {
-    version: 1, geometries, kits, alphaKits, kitxs,
+    version: 1, geometries, kits, alphaKits, kitxs: [],
     reflective: [...ctx.reflective], farOf: [...ctx.farOf],
     counts: { walkers: ctx.walkers.length, sitters: ctx.sitters.length, lanterns: ctx.lanterns.length, acs: ctx.acs.length, hooks: ctx.hooks.length, hookMounts: ctx.hookMounts.length, steam: ctx.steam.length, pieces: ctx.fd.pieces.length, windows: ctx.fd.windows.length, lions: queued.lions.length },
     inKit: ctx.inKit.map((c) => {

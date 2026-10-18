@@ -12,7 +12,6 @@ import {
   Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import { Ctx, type InKit, type Piece } from './ctx';
-import { Kit } from './kit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
 import { paifang } from '../models/paifang';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
@@ -63,14 +62,12 @@ import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometr
 import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { loadCast, loadFixedRows, loadSignAtlas } from './casts';
 import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
-import { merge } from './hero/kitx';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
 import { cullHandedBatches } from '../runtime/cull/handedBatches';
-import { convertKits } from '../runtime/kit/kitConvert';
 import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeometry';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
-import { KIT_YIELD_MS, SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import { SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
 import { lodReady } from '../runtime/cull/meshLod';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -87,7 +84,7 @@ const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<object>>>> = { plant: ga
  *  figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts), registered on
  *  their kits' meshes in this order */
 /** one model drawn into the kits: its id, and its copies registered on their kits' meshes */
-interface InKitModel { readonly id: string; readonly register: (nd: ModelContext, copies: readonly InKit[], meshOf: (k: Kit) => Mesh | undefined) => InKitPlaced[] }
+interface InKitModel { readonly id: string; readonly register: (nd: ModelContext, copies: readonly InKit[], meshOf: (k: string) => Mesh | undefined) => InKitPlaced[] }
 const inKitModel = <P extends object>(model: ModelDef<P>): InKitModel => ({ id: model.id, register: (nd, copies, meshOf) => registerInKit(nd, copies, model, meshOf) });
 const IN_KIT: readonly InKitModel[] = [
   inKitModel(brassDragonHook), inKitModel(drumStool), inKitModel(parkedScooter), inKitModel(mahjongTableModel), inKitModel(inkFigure), inKitModel(paifang), inKitModel(banyan), inKitModel(earthGodShrine),
@@ -179,23 +176,17 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;
   const [entries, boards, fixed] = await Promise.all([loadCast(entryCaps ? 'entries-capped' : 'entries-open'), loadCast('facade-signs'), loadFixedRows()]);
-  ctx.kits.set('entries', Kit.fromBake(entries));
+  ctx.kits.set('entries', entries);
   for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
   const portals = buildPortals(ctx);
   root.add(portals.root);
   progress(0.3, 'signs');
   await opts.pause();
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
-  ctx.kits.set('facade-signs', Kit.fromBake(boards));
+  ctx.kits.set('facade-signs', boards);
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
-  // (which kit each Kit object is: the models drawn into the kits name theirs by object, a folded kit's parts by its fold)
-  const kitName = new Map<Kit, string>();
-  for (const [name, k] of ctx.kits) {
-    kitName.set(k, name);
-    if ('extra' in k && Array.isArray(k.extra)) for (const e of k.extra) if (e instanceof Kit) kitName.set(e, name);
-  }
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
   const paper = new Lanterns(fixed.lantern);
@@ -206,15 +197,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
-  const { solid: kitGeos, alpha: alphaGeos, profile: kitProfile } = await convertKits({ solid: ctx.kits, swept: ctx.kitxs, alpha: ctx.alphaKits }, merge, (done, total, name) => {
-    progress(0.4 + 0.12 * done / Math.max(1, total), name === undefined ? `geometry ${done}/${total}` : `geometry ${done + 1}/${total}: ${name}`);
-  }, KIT_YIELD_MS, opts.pause);
-  // Each Kit/KitX still owns its large JS number[] buffers after build() copies them into typed geometry.
-  // No later phase reads the builders; release them before the facade and texture uploads add to the peak.
+  const kitGeos = [...ctx.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]);
+  const alphaGeos = [...ctx.alphaKits];
+  Reflect.set(window, '__ndKitProfile', [...kitGeos, ...alphaGeos].map(([name, geometry]) => ({ name, ms: 0, vertices: geometry.getAttribute('position').count })));
   ctx.kits.clear();
-  ctx.kitxs.clear();
   ctx.alphaKits.clear();
-  Reflect.set(window, '__ndKitProfile', kitProfile);
   await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
   progress(0.52, 'neon spill + canopy');
   let phaseStart = performance.now();
@@ -242,7 +229,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
   // brush-drawn figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts)
   // registered on their kits' meshes
-  const meshOfKit = (k: Kit): Mesh | undefined => kits.byName.get(kitName.get(k) ?? '');
+  const meshOfKit = (name: string): Mesh | undefined => kits.byName.get(name);
   const inKit = ctx.inKit.filter((c) => !IN_KIT.some((m) => m.id === c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
   await slice();

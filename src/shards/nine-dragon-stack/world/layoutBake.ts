@@ -9,7 +9,6 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Ctx, InKit } from './ctx';
-import { Kit } from './kit';
 import { isPiece } from './facade/pieceIds';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
@@ -37,7 +36,8 @@ export class LayoutBake {
    *  when a grid cell builds Nine on the road (sp-o101). */
   async prepare(pause: () => Promise<void>): Promise<void> {
     const r = this.rows;
-    const used = [...r.kits.flatMap(k => (k.geo === null ? [] : [k.geo])), ...r.alphaKits.map(k => k.geo), ...r.kitxs.map(k => k.geo),
+    if (r.kitxs.length > 0) throw new Error('Nine layout requires offline merged kits');
+    const used = [...r.kits.flatMap(k => (k.geo === null ? [] : [k.geo])), ...r.alphaKits.map(k => k.geo),
       ...(r.shell === null ? [] : [r.shell])];
     for (const i of used) {
       if (this.ahead.has(i)) continue;
@@ -97,16 +97,12 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   const m4 = (): Matrix4 => { const m = new Matrix4(); for (let i = 0; i < 16; i++) m.elements[i] = num(); return m; };
   const v3 = (): Vector3 => new Vector3(num(), num(), num());
   const col = (): Color => new Color(num(), num(), num());
-  const byName = new Map<string, Kit>();
   for (const k of r.kits) {
-    const kit = k.geo === null ? new Kit() : Kit.fromBake(bake.geometry(k.geo));
-    ctx.kits.set(k.name, kit);
-    byName.set(k.name, kit);
+    ctx.kits.set(k.name, k.geo === null ? null : bake.geometry(k.geo));
   }
-  for (const k of r.alphaKits) ctx.alphaKits.set(k.name, Kit.fromBake(bake.geometry(k.geo)));
-  for (const k of r.kitxs) ctx.kitxs.set(k.name, Kit.fromBake(bake.geometry(k.geo)));
+  for (const k of r.alphaKits) ctx.alphaKits.set(k.name, bake.geometry(k.geo));
   for (const name of r.reflective) ctx.reflective.add(name);
-  for (const [name, m] of r.farOf) ctx.far(name, m);
+  for (const [name, m] of r.farOf) ctx.farOf.set(name, m);
   const c = r.counts;
   for (let i = 0; i < c.walkers; i++) ctx.walkers.push(m4());
   for (let i = 0; i < c.sitters; i++) ctx.sitters.push(m4());
@@ -144,10 +140,9 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
     ctx.fd.merged.set(id, new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])));
   }
   for (const k of r.inKit) {
-    const kit = byName.get(k.kit);
-    if (kit === undefined) throw new Error(`[nine-dragon] the layout bake draws '${k.model}' into no kit '${k.kit}'`);
+    if (!ctx.kits.has(k.kit)) throw new Error(`[nine-dragon] the layout bake draws '${k.model}' into no kit '${k.kit}'`);
     const b = k.box;
-    const copy: InKit = { model: k.model, kit, at: k.at, ...(b === null ? {} : { box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) }) };
+    const copy: InKit = { model: k.model, kit: k.kit, at: k.at, ...(b === null ? {} : { box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) }) };
     ctx.inKit.push(copy);
   }
   for (const m of r.map) ctx.map.push({ ...m });

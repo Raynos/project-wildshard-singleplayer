@@ -6,12 +6,11 @@ import type { Mesh } from 'three';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { type DrawnPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
 import type { InKit } from './ctx';
-import type { Kit } from './kit';
 
 /** one `place` of a model on one kit's mesh (`kit`: the kit's name — which region of the fragment it is, for its Sets) */
 export type InKitPlaced = DrawnPlaced;
 
 /** Register the recorded copies of one model on the meshes of the kits they were drawn into (`meshOf`: the mesh a Kit became). */
-export function registerInKit<P extends object>(ctx: ModelContext, copies: readonly InKit[], model: ModelDef<P>, meshOf: (k: Kit) => Mesh | undefined): InKitPlaced[] {
+export function registerInKit<P extends object>(ctx: ModelContext, copies: readonly InKit[], model: ModelDef<P>, meshOf: (k: string) => Mesh | undefined): InKitPlaced[] {
   return registerDrawnInto(ctx, copies, model, meshOf, 'nds-');
 }

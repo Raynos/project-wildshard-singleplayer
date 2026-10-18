@@ -2,9 +2,6 @@
 // conversion's yield, the Well's silk sheet layers, the noodle stall's steam puffs and the movers' paths
 // (kit/kitConvert, looks/mistGeometry, props/pathMovers).
 
-/** the kits' geometry conversion gives the page a turn (the loading panel paints) every this many ms */
-export const KIT_YIELD_MS = 30;
-
 /** each silk sheet across the Well is two layers: at its height, and 5 m under it at 70 % */
 export const SHEET_LAYERS = [{ dy: 0, alpha: 1 }, { dy: -5, alpha: 0.7 }] as const;
 
