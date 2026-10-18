@@ -101,6 +101,14 @@ export async function runCli(args: readonly string[], options: { readonly decisi
     const folder=resolve(input.endsWith('.json') ? dirname(input) : input);
     if (input.endsWith('.json') || existsSync(resolve(folder, 'shard.json'))) {
       const checked = validateOutputProduct(folder);
+      // G491: validation.json contains static build evidence, never authority
+      // for current script CPU. Execute the admitted bytes again on this host.
+      const sections = new Map<string, unknown>();
+      for (const row of checked.index.sections) {
+        const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(resolve(folder, row.path), row.bytes)));
+        sections.set(row.name, value);
+      }
+      await admitBuild(checked.shard, checked.assets, checked.shard.runtime === null ? 'refuse' : 'warn', sections);
       console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
     const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest, options);

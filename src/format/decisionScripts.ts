@@ -20,6 +20,7 @@ const row = v.strictObject({
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)),
   source: v.pipe(v.string(), v.maxLength(256), v.regex(/^behaviour\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.as$/u),
     v.check(value => !value.split('/').includes('generated'), 'authored script source, not generated glue')),
+  sourceHash: v.exactOptional(v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))),
   binding: v.union([v.strictObject({ encounter: id }), v.strictObject({ quest: id }), v.strictObject({ zone: id }), v.strictObject({ shard: v.literal(true) }), v.strictObject({ spawnGroup: id })]),
   pages: v.optional(v.pipe(positive, v.maxValue(4)), 1), onFail: v.picklist(['hold', 'reset', 'skip']),
   on: v.pipe(v.array(v.picklist(keys(SCRIPT_V1_EVENTS))), v.minLength(1), v.maxLength(23), v.check(values => unique(values), 'unique subscribed events')),

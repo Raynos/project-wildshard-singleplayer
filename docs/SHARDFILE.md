@@ -70,7 +70,16 @@ and a server all run the same bytes; admission can only vouch for the exact bina
 runs; no compiler ships to the phone or runs at load; and it is the same rule as every
 other shard-file asset (GLB not Blender scripts, KTX2 not source images, JSON not
 generators). The row keeps provenance only: the `source` path, and a SHA-256 of that
-source so a build can prove which `.as` produced the `.wasm`.
+source so a build can prove which `.as` produced the `.wasm`. The v1 row's
+`sourceHash` is the SHA-256 of the exact UTF-8 entry-source bytes, including
+comments and whitespace. The official compiler overwrites any supplied claim
+from its confined source input; author declarations may omit it before compile.
+The immutable `module` hash separately identifies the complete compiled binary.
+
+`wildshard validate <built-output>` samples script CPU/fuel again for data-only
+products (60 warm-up ticks, three 60-tick windows). Disk `validation.json` is
+never execution-cost authority. Hybrid products still report native execution
+as unmeasured; they need their separate trusted native/browser proof.
 
 **Any language may produce the WASM** (Jake, 2026-10-17, G491). The format is a data
 contract, not our toolchain: a module written in C, Rust, Zig or anything else is

@@ -47,3 +47,14 @@ test('the budget counts every authored source and preserves comment-looking stri
   await expect(compileDecisionScripts([raw], registries, authored, { asLineCeiling: 3 })).rejects.toThrow('4 > 3');
   await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/generated/hidden.as', source]]), budget)).rejects.toThrow('Invalid authored');
 });
+
+test('emits the exact source SHA and replaces a stale producer claim', async () => {
+  const original = await compileDecisionScripts([{ ...raw, sourceHash: 'f'.repeat(64) }], registries, sources(), budget);
+  const digest = async (text: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  expect(original.rows[0]?.sourceHash).toBe(await digest(source));
+  const changed = `${source}\n// source-only provenance change`;
+  const rebuilt = await compileDecisionScripts([raw], registries, new Map([['behaviour/main.as', changed]]), budget);
+  expect(rebuilt.rows[0]?.sourceHash).toBe(await digest(changed));
+  expect(rebuilt.rows[0]?.sourceHash).not.toBe(original.rows[0]?.sourceHash);
+  expect(() => parseDecisionScripts([{ ...raw, sourceHash: 'not-a-sha' }])).toThrow();
+});

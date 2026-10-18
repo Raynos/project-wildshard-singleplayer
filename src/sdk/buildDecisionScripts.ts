@@ -60,7 +60,9 @@ export async function compileDecisionScripts(input: unknown, registries: Decisio
     const bytes = await compileScript(binding.glue, { abi: 1, maximumPages: row.pages, sources });
     admitScriptContract(bytes, { abi: 1, pages: row.pages });
     const hash = hashImmutableBytes(bytes), module = `blobs/wasm/${hash}.wasm`;
-    compiled.push({ ...row, module });
+    const text = authored.get(row.source);
+    if (text === undefined) throw new Error(`Missing decision source: ${row.source}`);
+    compiled.push({ ...row, module, sourceHash: hashImmutableBytes(new TextEncoder().encode(text)) });
     if (!blobs.has(hash)) blobs.set(hash, nameBlob(`behaviour/${row.id}.wasm`, 'wasm', bytes, { critical: true, script: { abi: 1, pages: row.pages } }));
     generated.set(binding.path, binding.bindings); generated.set(`${binding.path.slice(0, -3)}.glue.ts`, binding.glue);
   }
@@ -81,7 +83,7 @@ export function readDecisionSources(project: string): ReadonlyMap<string, string
       else if (entry.isFile() && entry.name.endsWith('.as')) {
         const value = readBoundedFile(path, 1_000_000); bytes += value.length;
         if (bytes > 4_000_000) throw new Error('Decision sources exceed byte cap');
-        files.set(path.slice(root.length + 1).split(sep).join('/'), new TextDecoder('utf-8', { fatal: true }).decode(value));
+        files.set(path.slice(root.length + 1).split(sep).join('/'), new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(value));
       }
     }
   };

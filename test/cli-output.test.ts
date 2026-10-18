@@ -6,6 +6,7 @@ import { expect, test, vi } from 'vitest';
 import { runCli } from '../src/sdk/cli';
 import { buildProject, newProject } from '@wildshard/sdk/project';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import { HeadlessSimulation } from '../src/sdk/headless';
 
 test('CLI validates v2 output and refuses monolith disk inputs for validate and prove', async () => {
   mkdirSync('tmp', { recursive: true });
@@ -21,5 +22,36 @@ test('CLI validates v2 output and refuses monolith disk inputs for validate and 
     writeFileSync(resolve(old, 'shard.json'), encodeCanonicalJson(source));
     await expect(runCli(['validate', old])).rejects.toThrow(/format/u);
     await expect(runCli(['prove', resolve(old, 'shard.json'), resolve(scratch, 'absent-proof.json')])).rejects.toThrow(/format/u);
+  } finally { log.mockRestore(); rmSync(scratch, { recursive: true, force: true }); }
+});
+
+test('built admission measures CPU again and refuses fresh over-budget observations despite a stale receipt', async () => {
+  mkdirSync('tmp', { recursive: true });
+  const scratch = mkdtempSync(resolve('tmp', 'cli-cpu-'));
+  const log = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  try {
+    const project = resolve(scratch, 'project'), output = resolve(scratch, 'out');
+    newProject(project, 'cli-cpu');
+    await buildProject(project, output, { client: null, placeholders: false });
+    writeFileSync(resolve(output, 'validation.json'), JSON.stringify({ scripts: { p95Micros: 0, maxMicros: 0, samples: 1000000 } }));
+    await expect(runCli(['validate', output])).resolves.toBeUndefined();
+    expect(log.mock.calls.some(args => args.some(value => typeof value === 'string' && value.includes('measured scripts (180 ticks)')))).toBe(true);
+    const start = HeadlessSimulation.create.bind(HeadlessSimulation);
+    let ticks = 0;
+    // Craft a bad fresh measurement at the trusted worker boundary; all actual
+    // physics/tick execution still runs. The disk receipt still claims zero CPU.
+    const measured = vi.spyOn(HeadlessSimulation, 'create').mockImplementation(async (...args) => {
+      const sim = await start(...args), step = sim.step.bind(sim);
+      vi.spyOn(sim, 'step').mockImplementation(async sources => {
+        const commit = await step(sources); ticks++;
+        return { ...commit, scriptMicros: 5000 };
+      });
+      return sim;
+    });
+    try {
+      await expect(runCli(['validate', output])).rejects.toThrow('Performance report refused');
+      expect(ticks).toBe(240);
+      expect(log.mock.calls.some(args => args.some(value => typeof value === 'string' && value.includes('script CPU p95 us/tick: 5000')))).toBe(true);
+    } finally { measured.mockRestore(); }
   } finally { log.mockRestore(); rmSync(scratch, { recursive: true, force: true }); }
 });
