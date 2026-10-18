@@ -310,3 +310,21 @@ Next priorities: restore V9 visible eye coordinates/aperture and projected iris 
 ## 2026-10-18: V31 rejected structural failure
 
 Independently inspected `tmp/puffer-lowpoly-v31-from-v9/matched-style.png`: the body and pouch are missing, leaving floating face pieces/spines and exposed fin-root caps. Seven frames existed when checked, but the builder stopped the run before completing the nine-view set (reported exit 130). This is a rejected structural failure, not a valid new candidate; no complete-view resemblance score is assigned. V29 remains best reviewed at 3.37. Builder reports a malformed cheek-patch rear closure causing a destructive Boolean and is adding volume/manifold/bounds checks; eye visibility against an emptied hull is not sufficient validation.
+
+
+## 2026-10-18: V36 full multiview result
+
+Reviewed matched hero and all nine actual diagnostics in `tmp/puffer-lowpoly-v36-from-v9-full/`. **Overall 3.35/5:** silhouette/proportions 3.4, face/expression 3.3, details 3.6, facet/style 3.0, decimal-calculated at unchanged 35/30/20/15 weights. Effectively a close call with V29 (3.37), not a defensible new best; retain V29 as best reviewed. No alternate camera was substituted into scoring.
+
+The tapered brows recover anger and rounded amber lower lobes remain visible from front/hero. Nasal bridge continuity improves over V29's black upper gap. However, side/elevated-side views expose folded orange cheek shelves and sawtooth surface intersections; these are direct geometric artifacts, not disagreements with inferred AI anatomy. The brow and cheek still lack the original's clean broad planar wedge-to-cheek transition. Core stance, prominent rear feet, long cream shelf and raised mantle layering remain.
+
+Three next priorities: replace the folded cheek shelves with a coherent sparse surface joining outer socket to warm cheek; remove raised mantle overlaps while preserving broad purposeful facets and all spines; subordinate rear fins and keep low sloping forefoot fans. Existing eye coordinates and readable iris lobes should remain protected during cheek work. V33–V35 were hero-only local gates and were not assigned full-view scores; V31 remains rejected structural failure. V37 is not scored before actual evidence.
+
+
+## 2026-10-18: V38 full multiview result
+
+Reviewed all ten actual images in `tmp/puffer-lowpoly-v38-from-v9-full/`, original matched hero and fixed nine diagnostics. **Overall 3.51/5:** silhouette/proportions 3.6, face/expression 3.35, details 3.6, facet/style 3.5, decimal-calculated with unchanged weights. New best reviewed full-view candidate, ahead of V29 3.37; still below 4.5 and unaccepted.
+
+The mantle is now a continuous broad faceted body rather than overlapping shingles, and moving pouch/mouth rearward reduces the separate forward-ball impression in side views. Those are genuine geometric improvements under the same cameras. All defining features remain. The cleaner mantle still has somewhat regular longitudinal bands and broad rectangular top patches, so it is not yet the approved irregular triangulated surface language. Folded orange cheek ledges remain visible in profile, and rear feet are too prominent relative to forefeet. Front toe wedges still read as hem-mounted triangles rather than broad integrated terminal lobes.
+
+Next three priorities: subordinate rear distal fins while preserving buried roots; build four broad ridge-topped forefoot lobes sharing bases with the orange dorsal fan; replace folded cheek ledges with a coherent warm transition around the eye without reducing projected iris visibility. Hidden-view evaluation is coherent construction checked against the original small side/rear thumbnails, not exact imitation of derived AI tail orientation. V39 remains unscored pending actual renders.
