@@ -70,3 +70,26 @@ test('isolated source contains only the Puffer guest and named native pose witho
   expect(output.namedFiles?.map(row => row.name)).toEqual(['poses/brine-puffer.json', 'practice/bodies.json', 'practice/looks.json', 'practice/pickups.json']);
   expect(output.platform?.sections.map(row => row.name).sort()).toEqual(['actors/moves', 'actors/species-programs', 'actors/strikes', 'held/arms', 'sim/scripts']);
 });
+
+test('live native motion covers idle, locomotion, tell, burst, flinch and death without moving head bind', () => {
+  const { context, bones } = rig(), animate = numericCreaturePose(pufferNativeClips('attack'));
+  const head = bones['head']; if (head === undefined) throw new Error('Missing head');
+  const bind = head.position.toArray(); context.mem['puffer-st'] = 0;
+  context.t = .6; animate(context);
+  expect(Math.abs(bones['tail']?.rotation.y ?? 0)).toBeGreaterThan(.1);
+  context.speed = .7; context.phase = .25; animate(context);
+  expect(bones['finL']?.rotation.x).toBeLessThan(-.1);
+  expect(bones['finR']?.rotation.x).toBeCloseTo(0);
+  context.speed = 0; context.mem['puffer-st'] = 1; context.mem['regular-clock'] = .85; animate(context);
+  expect(bones['finL']?.rotation.y).toBeGreaterThan(.07);
+  context.mem['regular-clock'] = 1.02; animate(context);
+  expect(bones['finL']?.rotation.y).toBeLessThan(0);
+  context.mem['puffer-st'] = 2; context.flinch = 1; animate(context);
+  expect(bones['body']?.rotation.x).toBeLessThan(-.07);
+  context.alive = false; context.deathT = 1; context.mem['puffer-st'] = 5; animate(context);
+  expect(bones['body']?.rotation.z).toBeCloseTo(.35);
+  expect(bones['body']?.position.y).toBeCloseTo(context.dims.bodyY + .09);
+  expect(bones['tail']?.rotation.y).toBe(0);
+  expect(head.position.toArray()).toEqual(bind);
+  expect(head.rotation.toArray().slice(0, 3)).toEqual([0, 0, 0]);
+});

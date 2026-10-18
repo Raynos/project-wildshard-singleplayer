@@ -1,0 +1,66 @@
+{
+  "base": "V57",
+  "outlineRelativeYZ": [
+    [
+      0.21,
+      0
+    ],
+    [
+      0.14,
+      0.15
+    ],
+    [
+      0.02,
+      0.29
+    ],
+    [
+      -0.12,
+      0.32
+    ],
+    [
+      -0.27,
+      0.24
+    ],
+    [
+      -0.34,
+      0.1
+    ],
+    [
+      -0.3,
+      -0.025
+    ],
+    [
+      -0.32,
+      -0.16
+    ],
+    [
+      -0.17,
+      -0.31
+    ],
+    [
+      -0.015,
+      -0.28
+    ],
+    [
+      0.12,
+      -0.2
+    ],
+    [
+      0.2,
+      -0.08
+    ]
+  ],
+  "centerXYZ": [
+    0.29,
+    -1,
+    0.68
+  ],
+  "halfThicknessHub": 0.055,
+  "halfThicknessInner": ".036 plus .009 toward root",
+  "halfThicknessEdge": ".018 plus .010 toward root",
+  "borderInnerFraction": 0.8,
+  "tailRootAndPivotChanged": false,
+  "orientationChanged": false,
+  "bodyFacePouchFeetChanged": false,
+  "status": "unaccepted; actual silhouette, thickness and all-view review pending"
+}

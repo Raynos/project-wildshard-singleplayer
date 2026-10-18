@@ -1,0 +1,68 @@
+{
+  "sourceSha256": "73eb5a123aa55fd5a358f893d6fb05fbe87d87a92ba13ba76231264757230b02",
+  "method": "Actual rigid-weight V57 vertices; Three.js XYZ Euler; independent living parameter envelope plus 1001 death samples. Numerical samples, not continuous proof or visual acceptance.",
+  "livingSamples": 1944,
+  "worstLiving": {
+    "minimumY": 0.004000000189989805,
+    "parts": {
+      "belly": 0.07079359143972397,
+      "head": 0.6766172647476196,
+      "tail": 0.28999999165534973,
+      "finL": 0.004000000189989805,
+      "finR": 0.07230182511511862,
+      "rearL": 0.05176333906885511,
+      "rearR": 0.004000000189989805
+    },
+    "maximumFinRootMotion": 0.03617092006297322,
+    "parameters": {
+      "idle": -1.0,
+      "walk": -1.0,
+      "tell": 0,
+      "burst": 0,
+      "flinch": 0,
+      "swelling": 1
+    }
+  },
+  "maximumFinRootMotion": 0.04390229132150385,
+  "worstDeath": [
+    0.0034130757386120775,
+    0.14400000000000002
+  ],
+  "deathEnd": {
+    "minimumY": 0.0183833843813688,
+    "parts": {
+      "belly": 0.30916377039848775,
+      "head": 0.674890683225598,
+      "tail": 0.5992866455728186,
+      "finL": 0.4710084775508173,
+      "finR": 0.0183833843813688,
+      "rearL": 0.47214004414147037,
+      "rearR": 0.0828824552272748
+    },
+    "maximumFinRootMotion": 0.0
+  },
+  "nativeSha256": "c3dc5595bce7180ed39b0c8156833afcdc6b4ac1000eab08078037cb5bb16187",
+  "transitionSamples": 3024,
+  "worstTransition": {
+    "minimumY": 0.0011577273641684496,
+    "parts": {
+      "belly": 0.1446280783625574,
+      "head": 0.6763357123934778,
+      "tail": 0.36999285536762677,
+      "finL": 0.11941776753553837,
+      "finR": 0.0011577273641684496,
+      "rearL": 0.11923312540328215,
+      "rearR": 0.018060980229163727
+    },
+    "maximumFinRootMotion": 0.007923097825258445,
+    "parameters": {
+      "dead": 0.25,
+      "idle": -1,
+      "walk": 0,
+      "tell": 1,
+      "burst": 0,
+      "flinch": 0,
+      "swelling": 1
+    }
+  }
+}
