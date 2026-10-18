@@ -1,4 +1,6 @@
 import { Rng } from '@wildshard/engine/core/rng';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import * as v from 'valibot';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -16,11 +18,11 @@ import { type Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
-import { placeDog, placeHerd, placePack, type WildPlacer } from './wildPlacement';
-import { NALATI_WILDLIFE, type WildlifeLayout } from '../data/fauna';
+import { MARE_VARIANTS, NALATI_WILDLIFE, type WildlifeLayout } from '../data/fauna';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { HITCH_HORSE_SPOTS } = poiLayoutRows;
+const point = v.object({ x: v.number(), z: v.number() });
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild
@@ -28,7 +30,7 @@ const { HITCH_HORSE_SPOTS } = poiLayoutRows;
  * animals (hit tests, health bars, blood, onKill, corpses and the sabre's stagger work as for any boar); the sheep are
  * one instanced crowd (`Flock`).
  *
- *   const wildlife = new Wildlife(animals, { scene, sky, seed }).build();         // NALATI_WILDLIFE layout by default
+ *   const wildlife = new Wildlife(animals, { scene, sky, seed, admission }).build();         // NALATI_WILDLIFE layout by default
  *   game.onUpdate((dt, t) => wildlife.update(dt, t, player, extra, advanceFlock));
  *   wildlife.disturb(x, z)     an arrow / javelin landed: a herd within 15 m stampedes, the flock panics
  *   wildlife.scare(x, z, r)    lightning / an explosion: packs within 20 m break, herds within r stampede
@@ -49,7 +51,7 @@ export interface WildlifeControllers {
   pack: (members: Animal[], x: number, z: number) => PackController;
   herd: (members: Animal[]) => HerdController;
 }
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; admission: unknown; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -64,6 +66,7 @@ export class Wildlife {
   campHorses: Animal[] = [];
   onSound?: ((name: string, position: THREE.Vector3) => void) | undefined;
   private rng: Rng;
+  private readonly placement: ReturnProgram;
   private prev = new THREE.Vector3(); private speed = 0; private init = false;
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
@@ -71,7 +74,7 @@ export class Wildlife {
   private readonly preyBindings = new Map<string, PackPrey>();
   private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.controllers = opts.controllers ?? this.declaredControllers(); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.placement = ReturnProgram.page(opts.admission); this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
     return declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
@@ -116,16 +119,27 @@ export class Wildlife {
     }
   }
 
-  /** the shared placement (wildPlacement.ts) over this world: Wildlife's stream, the page's ground, the manager's bodies */
-  private placer(): WildPlacer<Animal> {
-    return { rng: this.rng, bodies: () => this.animals.animals,
-      ground: { normalY: (x, z) => normalAt(x, z)[1], heightAt, waterLevel, wetAt: (x, z) => wildEnv.wetAt?.(x, z) === true },
-      spawn: (kind, x, z, yaw, variant) => this.animals.spawn(kind, x, z, yaw, variant), place: (a, x, z, yaw) => { a.place(x, z, yaw); } };
+  /** The AS owner chooses retries and accepts live terrain/body observations. */
+  private spot(x: number, z: number, radius: number): { x: number; z: number } {
+    const attempts = v.parse(v.number(), this.placement.project('begin', {})['attempts']);
+    for (let i = 0; i < Math.min(attempts, 1024); i++) {
+      const at = v.parse(point, this.placement.project('spot', { x, z, radius }, this.rng));
+      const clash = this.animals.animals.some(a => Math.abs(a.position.x - at.x) < 2 && Math.abs(a.position.z - at.z) < 2);
+      if (this.placement.project('accept', { ...at, normal: normalAt(at.x, at.z)[1], height: heightAt(at.x, at.z), water: waterLevel(),
+        wet: Number(wildEnv.wetAt?.(at.x, at.z) === true), clash: Number(clash) })['accept'] === 1) return at;
+    }
+    return { x, z };
+  }
+  private yaw(): number { return v.parse(v.number(), this.placement.project('yaw', {}, this.rng)['yaw']); }
+  private place(kind: string, variant: string, x: number, z: number, radius: number): Animal {
+    const at = this.spot(x, z, radius); return this.animals.spawn(kind, at.x, at.z, this.yaw(), variant);
   }
 
   spawnPack(x: number, z: number, variants: string[]): PackController {
     const herd = this.animals.addHerd('wolf', x, z);
-    const members = placePack(this.placer(), x, z, variants, w => { w.herd = herd; this.animals.herds[herd]?.members.push(w); this.wolves.push(w); });
+    const radius = v.parse(v.number(), this.placement.project('packPlan', {})['radius']);
+    const members = variants.map(variant => { const w = this.place('wolf', variant, x, z, radius);
+      w.herd = herd; this.animals.herds[herd]?.members.push(w); this.wolves.push(w); return w; });
     const pack = this.controllers.pack(members, x, z);
     pack.findPrey = (px, pz, r) => this.nearestFoal(px, pz, r);
     this.packs.push(pack);
@@ -134,7 +148,19 @@ export class Wildlife {
 
   spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HerdController {
     const herd = this.animals.addHerd('horse', x, z);
-    const members = placeHerd(this.placer(), x, z, mares, foals, stallion, h => { h.herd = herd; this.animals.herds[herd]?.members.push(h); });
+    const params = { mares, foals, stallion: Number(stallion), coats: MARE_VARIANTS.length };
+    const start = v.parse(v.object({ start: v.number(), count: v.number() }), this.placement.project('herdStart', params, this.rng));
+    const variants = [...MARE_VARIANTS, 'foal-bay', 'foal-chestnut', 'stallion'], members: Animal[] = [];
+    for (let index = 0; index < start.count; index++) {
+      const plan = this.placement.project('herdMember', { ...params, ...start, index });
+      const variant = variants[v.parse(v.number(), plan['variant'])]; if (variant === undefined) throw new Error('Missing herd variant');
+      const a = this.place('horse', variant, x, z, v.parse(v.number(), plan['radius']));
+      a.herd = herd; this.animals.herds[herd]?.members.push(a); members.push(a);
+      if (plan['place'] === 1) {
+        const at = v.parse(v.number(), plan['mother']), mother = at < mares ? members[at] : undefined;
+        if (mother !== undefined) { const offset = v.parse(point, this.placement.project('foal', {}, this.rng)); a.place(mother.position.x + offset.x, mother.position.z + offset.z, mother.yaw); }
+      } else if (plan['place'] === 2) a.place(x + v.parse(v.number(), plan['x']), z + v.parse(v.number(), plan['z']), v.parse(v.number(), plan['yaw']));
+    }
     const h = this.controllers.herd(members);
     h.findWolf = (px, pz, r) => this.nearestWolf(px, pz, r);
     this.herds.push(h);
@@ -147,7 +173,8 @@ export class Wildlife {
     this.opts.scene.add(f.mesh);
     f.onSound = (name, sx, sz) => { this._v.set(sx, heightAt(sx, sz) + 0.6, sz); this.onSound?.(name, this._v); };
     if (dog) {
-      const d = placeDog(this.placer(), x, z);
+      const plan = v.parse(v.object({ ...point.entries, radius: v.number() }), this.placement.project('dogPlan', { x, z }));
+      const at = this.spot(plan.x, plan.z, plan.radius), d = this.animals.spawn('sheepdog', at.x, at.z, 0, 'collie');
       d.herd = this.animals.addHerd('sheepdog', x, z);
       f.setDog(d);
     }

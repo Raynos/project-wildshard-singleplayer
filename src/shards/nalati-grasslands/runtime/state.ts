@@ -132,6 +132,7 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
+  const admission = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json')).admission;
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
@@ -366,7 +367,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     animals.wetAt = nalatiWetAt;
     animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
     declaredCrowds = createNativeFlocks(sky, ctx.chunk.seed, flockBody);
-    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed,
+    return new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed, admission,
       flock: declaredCrowds.factory });
   };
   const finishWildlife = (animals: AnimalManager, w: Wildlife): Wildlife => {

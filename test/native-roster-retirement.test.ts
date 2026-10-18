@@ -4,6 +4,8 @@ import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { HuntBrain, type HuntBody } from '../src/engine/ai/hunt';
 import { NativeManager } from '../src/game/population/nativeManager';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { BOAR } from '../src/game/systems/species/boar';
 import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -78,4 +80,56 @@ test('native continuation resolves real identities and preserves detached ordere
     expect(manager.snapshot([null, 'first'], ['first'])).toEqual(saved); expect(rng.snapshot()).toEqual(stream);
     expect([...host.entities.keys()]).toEqual(['first']);
   } finally { host.dispose(); }
+});
+
+test('native admission attaches existing actors and preserves release ordering', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(37), before = rng.snapshot();
+  const recipe = SIM_LEVEL.entities[0]; if (recipe === undefined) throw new Error('Missing native recipe');
+  const members: HuntBody[] = [], observed: unknown[] = [];
+  const hunt = { herds: [{ members }], addHerd: (): number => 0, adopt: (): void => undefined,
+    forget: (actor: HuntBody): void => { observed.push([host.entities.has(actor.entityId), actor.alive, actor.position.y, actor.hidden]); } };
+  const intake = createNativeCreatureRoster(host, { specs: [recipe.spec], variants: new Map(), rng, hunt, hunted: 'every', spawnY: 10 });
+  try {
+    const actor = host.spawn({ ...recipe, id: 'creature:7' });
+    const body = intake.body(actor.entityId, actor.kind, actor.variant, 0, actor.position, actor.yaw, [actor.scale, actor.scale], actor);
+    intake.attach(body, actor);
+    expect([...host.entities.keys()]).toEqual(['creature:7']); expect(members).toEqual([actor]); expect(body.actor).toBe(actor);
+    expect(() => intake.attach(body, actor)).toThrow('materialized');
+    expect(() => intake.attach({ ...body, id: 'foreign' }, actor)).toThrow('Foreign');
+    expect(rng.snapshot()).toEqual(before);
+    intake.retire(body, { membership: 'retain', native: 'before', final: { alive: false, hidden: true, y: -10000 } });
+    expect(observed).toEqual([[false, false, -10000, true]]); expect(members).toEqual([actor]);
+    expect(intake.identities.identity(actor.entityId)?.state).toBe('retired'); expect(intake.byId.size).toBe(0);
+    expect(body.actor).toBeNull(); expect(rng.snapshot()).toEqual(before);
+  } finally { host.dispose(); }
+});
+
+test('AS admission preserves placement draws and ordered herd recipes', () => {
+  const program = ReturnProgram.page(admission), rng = new Rng(2907), oracle = new Rng(2907);
+  expect(program.project('begin', {})).toEqual({ attempts: 40 });
+  for (let i = 0; i < 80; i++) {
+    const angle = oracle.range(0, Math.PI * 2), distance = Math.sqrt(oracle.next()) * 8;
+    expect(program.project('spot', { x: 31, z: -42, radius: 8 }, rng)).toEqual({ x: 31 + Math.cos(angle) * distance, z: -42 + Math.sin(angle) * distance });
+    expect(program.project('yaw', {}, rng)).toEqual({ yaw: oracle.range(0, Math.PI * 2) });
+    expect(rng.snapshot()).toEqual(oracle.snapshot());
+  }
+  const observation = { x: 235, z: -235, normal: .78, height: 1, water: .7, wet: 0, clash: 0 };
+  expect(program.project('accept', observation)).toEqual({ accept: 1 });
+  for (const refused of [{ x: 235.00001 }, { normal: .7799 }, { height: .999 }, { wet: 1 }, { clash: 1 }])
+    expect(program.project('accept', { ...observation, ...refused })).toEqual({ accept: 0 });
+  const params = { coats: 12, mares: 11, foals: 3, stallion: 1 }, start = oracle.int(0, 11);
+  expect(program.project('herdStart', params, rng)).toEqual({ start, count: 15 });
+  for (let index = 0; index < 15; index++) {
+    const plan = program.project('herdMember', { ...params, start, index });
+    expect(plan).toEqual(index < 11 ? { variant: (start + index) % 12, radius: 11, place: 0 }
+      : index < 14 ? { variant: 12 + (index - 11) % 2, radius: 3, place: 1, mother: index - 11 }
+        : { variant: 14, radius: 4, place: 2, x: 16, z: 4, yaw: 0 });
+  }
+  expect(program.project('foal', {}, rng)).toEqual({ x: oracle.range(-2, 2), z: oracle.range(-2, 2) });
+  expect(rng.snapshot()).toEqual(oracle.snapshot());
+  expect(program.project('pack', { elite: 1, packs: 2, groups: 7, variants: 5, bodies: 59 })).toEqual({ accept: 1 });
+  expect(program.project('pack', { elite: 1, packs: 2, groups: 7, variants: 5, bodies: 60 })).toEqual({ accept: 0 });
+  expect(program.project('bond', { x: 250, z: -250, bonds: 0, elite: 1 })).toEqual({ accept: 1, scale: 1.3 });
+  expect(program.project('bond', { x: 0, z: 0, bonds: 1, elite: 0 })).toEqual({ accept: 0, scale: 0 });
 });

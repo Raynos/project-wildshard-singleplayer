@@ -6484,6 +6484,14 @@ snapshot and restore methods resolve ordered actor ids against the host;
 null slots retain retired positions. Rows bound capacity and select optional
 historical memory fields. Adapters retain versioned wire fields and policy
 state. No shard resolver or callback enters this manager.
+`createNativeCreatureRoster.attach` admits an existing actor only when its
+host identity, kind and variant match the slot. It performs no spawn, floor
+sample or random draw. Materialization uses the same admission path.
+Retirement rows preserve herd membership when a legacy envelope keeps its
+corpses, choose whether native retirement precedes memory release, and
+declare final alive/hidden/height values. `floorOffset` retains the owner's
+historical ray origin for later moving-body floor queries. None installs a
+new clock or a shard callback.
 `orderedNativeReinstall` restores actor registration order before/after
 the keeper step and returns an idempotent settle callback for later spawns.
 No helper creates a second simulation or random stream.
