@@ -10,7 +10,7 @@ import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '@wildshard/game/plugin/quests';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
-import { StagWalk } from '../quest/stagWalk';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -55,7 +55,8 @@ export function pineSpots(): PineSpots { const { profile: _profile, notice: _not
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const TradeSaved = v.strictObject({ modal: v.strictObject({ version: v.literal(1), open: v.boolean() }),
   skins: v.pipe(v.array(v.picklist(['hollow-ash', 'scarback-furnace'])), v.maxLength(2), v.check(skins => new Set(skins).size === skins.length)) });
-const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v.strictObject({ stag: v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: finite }),
+const StagSaved = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: v.pipe(finite, v.minValue(0)) });
+const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>) => v.strictObject({ stag: StagSaved,
   dawn: v.pipe(v.string(), v.maxLength(1000000)), fast: v.nullable(Fast), zip: v.nullable(v.strictObject({ s: finite, v: finite })), rifle: v.boolean(),
   counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.optional(pack, () => ({ counts: {}, order: [] })), dialogue: v.optional(v.unknown(), null), lodge: v.optional(v.unknown()), hollowAsh: v.optional(v.boolean(), false),
@@ -92,7 +93,7 @@ export interface PineQuestPorts {
 export interface PineQuest {
   readonly cables: ReturnType<typeof cableModes>;
   readonly quests: ReturnType<typeof installQuestGraph>['quests'];
-  readonly stag: StagWalk;
+  readonly stag: v.InferOutput<typeof StagSaved>;
   /** The page's authored seven-kind pack, shared add/trade law, silently restored with the quest. */
   readonly pack: NativeInventory<string>;
   /** the zipline carries the player (the page's weapons are off and stowed for the ride) */
@@ -289,7 +290,10 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   }, host.scope);
   syncFeats();
 
-  const stag = new StagWalk(content.lead);
+  const stag: v.InferOutput<typeof StagSaved> = { i: 0, mode: 'none', t: 0 }, leadProgram = ReturnProgram.native(host, content.lead.program);
+  const modes = ['none', 'stare', 'trot', 'gone'] as const;
+  const leadInput = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, on: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
+  const leadFailure = new Error('Stag projection omitted its continuation');
   const followed = { kind: 'follow', target: 'stag' } as const;
   const followedFrame: { flags: readonly string[] } = { flags: [] };
   host.onStep(QUEST_STEP, dt => {
@@ -318,10 +322,16 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     }
     if (chapter.current?.id === 'dawn') clock.request('dawn.request');
     clock.update(dt);
-    const lead = stag.step(dt, chapter.current?.id === 'stag' && ports.night() > 0.5, host.player.position);
-    if (lead?.kind === 'vanish' && lead.done) { followedFrame.flags = flags.all; commitQuestEffects(host, 'pack', steps.signal(followed, followedFrame)); }
+    const bend = content.lead.path[stag.i], player = host.player.position;
+    leadInput.i = stag.i; leadInput.mode = modes.indexOf(stag.mode); leadInput.elapsed = stag.t; leadInput.dt = dt;
+    leadInput.on = Number(chapter.current?.id === 'stag' && ports.night() > 0.5);
+    leadInput.playerX = player.x; leadInput.playerZ = player.z; leadInput.atX = bend?.[0] ?? 0; leadInput.atZ = bend?.[1] ?? 0;
+    const lead = leadProgram.project('lead', leadInput), i = lead['i'], mode = modes[lead['mode'] ?? -1], elapsed = lead['elapsed'];
+    if (i === undefined || mode === undefined || elapsed === undefined) throw leadFailure;
+    stag.i = i; stag.mode = mode; stag.t = elapsed;
+    if (lead['event'] === 5) { followedFrame.flags = flags.all; commitQuestEffects(host, 'pack', steps.signal(followed, followedFrame)); }
   }, {
-    snapshot: () => ({ stag: { i: stag.i, mode: stag.mode, t: stag.t }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
+    snapshot: () => ({ stag: { ...stag }, dawn: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, zip: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       rifle: state.rifle, counts: { ...counts }, pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), lodge: lodge.snapshot(), ...(hollowAsh ? { hollowAsh } : {}),
       ...(trader.active || tradeSkins.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...tradeSkins] } } : {}),
       ...(ports.ammunition?.changed === true ? { ammunition: ports.ammunition.snapshot() } : {}) }),
@@ -336,7 +346,8 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), lodgeState);
       if (saved.hollowAsh !== (finish.board.claimed >= 3) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Pine lodge/modal ownership');
       if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.zip !== null || ports.ammunition === undefined)) throw new RangeError('Invalid Pine trader/modal ownership');
-      restoreClock(saved.dawn); stag.load(saved.stag); fast.on = saved.fast; cables.restore(cableId, { riding: saved.zip !== null, s: saved.zip?.s ?? 0, v: saved.zip?.v ?? 0 }); state.rifle = saved.rifle;
+      restoreClock(saved.dawn); if (saved.stag.i >= content.lead.path.length) throw new RangeError('Invalid stag continuation');
+      Object.assign(stag, saved.stag); fast.on = saved.fast; cables.restore(cableId, { riding: saved.zip !== null, s: saved.zip?.s ?? 0, v: saved.zip?.v ?? 0 }); state.rifle = saved.rifle;
       counts = { ...saved.counts };
       pack.restore(saved.pack);
       restoreDialogue(); restoreLodge(); restoreTrader(); restoreAmmo?.(); hollowAsh = saved.hollowAsh; tradeSkins = new Set(saved.trader?.skins);

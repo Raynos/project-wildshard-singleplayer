@@ -1,0 +1,384 @@
+{
+  "sourceTree": "d3199bb2ef33297b8585e9564f4d03baedd37e6f",
+  "basis": "source, post-gen all-10 verified products, build mirror check3",
+  "rows": {
+    "pine-hollow": {
+      "custom": 3934,
+      "assemblyScript": 488,
+      "components": {
+        "C1": 1066,
+        "C2": 343,
+        "C3": 173,
+        "C4": 644,
+        "C5": 756,
+        "C6": 225,
+        "C7": 7,
+        "C8": 21,
+        "C9": 699
+      }
+    },
+    "driftwood-isle": {
+      "custom": 3146,
+      "assemblyScript": 130,
+      "components": {
+        "C1": 1087,
+        "C2": 165,
+        "C3": 0,
+        "C4": 715,
+        "C5": 540,
+        "C6": 139,
+        "C7": 0,
+        "C8": 27,
+        "C9": 473
+      }
+    }
+  },
+  "change": {
+    "base": "0a5a8bc02e1dfdefae8e4fded957b7914289c1ec",
+    "tree": "d3199bb2ef33297b8585e9564f4d03baedd37e6f",
+    "units": [
+      {
+        "path": "src/shards/pine-hollow/quest/index.ts",
+        "before": 374,
+        "after": 374,
+        "delta": 0
+      },
+      {
+        "path": "src/shards/pine-hollow/quest/stagLead.ts",
+        "before": 69,
+        "after": 79,
+        "delta": 10
+      },
+      {
+        "path": "src/shards/pine-hollow/quest/stagWalk.ts",
+        "before": 49,
+        "after": 0,
+        "delta": -49
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/quest.ts",
+        "before": 276,
+        "after": 287,
+        "delta": 11
+      }
+    ],
+    "delta": -28,
+    "generators": [
+      {
+        "path": "src/shards/pine-hollow/generators/bake-life.mjs",
+        "before": 21,
+        "after": 25
+      },
+      {
+        "path": "src/shards/pine-hollow/generators/questConsequences.ts",
+        "before": 37,
+        "after": 37
+      },
+      {
+        "path": "src/shards/pine-hollow/generators/questRuntime.ts",
+        "before": 22,
+        "after": 23
+      },
+      {
+        "path": "src/shards/pine-hollow/generators/sections.ts",
+        "before": 223,
+        "after": 223
+      }
+    ],
+    "generatorDelta": 5,
+    "platformDelta": 0
+  },
+  "projectionCost": {
+    "tree": "d3199bb2ef33297b8585e9564f4d03baedd37e6f",
+    "surfaces": {
+      "desktop": {
+        "module": "blobs/wasm/9e30eb68e589fd0e612b43b3a8a6a41b56ecefd851968e8fe818186dd9bd443c.wasm",
+        "timedObservation": {
+          "i": 0,
+          "mode": 0,
+          "elapsed": 0.8,
+          "begin": 0,
+          "dt": 0.016666666666666666,
+          "on": 1,
+          "playerX": 50,
+          "playerZ": -30,
+          "atX": 30,
+          "atZ": -2
+        },
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+        "fuelPerCall": {
+          "min": 130091,
+          "max": 258758,
+          "limit": 400000
+        },
+        "native": {
+          "medianMs": 0.004,
+          "p95Ms": 0.004599999994039535,
+          "maxBatchMeanMs": 0.004599999994039535,
+          "batches": 20,
+          "framesPerBatch": 2000
+        },
+        "pageTwoCalls": {
+          "medianMs": 0.007099999994039536,
+          "p95Ms": 0.007449999988079071,
+          "maxBatchMeanMs": 0.007449999988079071,
+          "batches": 20,
+          "framesPerBatch": 2000
+        }
+      },
+      "simulator": {
+        "module": "blobs/wasm/9e30eb68e589fd0e612b43b3a8a6a41b56ecefd851968e8fe818186dd9bd443c.wasm",
+        "timedObservation": {
+          "i": 0,
+          "mode": 0,
+          "elapsed": 0.8,
+          "begin": 0,
+          "dt": 0.016666666666666666,
+          "on": 1,
+          "playerX": 50,
+          "playerZ": -30,
+          "atX": 30,
+          "atZ": -2
+        },
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+        "fuelPerCall": {
+          "min": 130091,
+          "max": 258758,
+          "limit": 400000
+        },
+        "native": {
+          "medianMs": 0.0035,
+          "p95Ms": 0.006,
+          "maxBatchMeanMs": 0.006,
+          "batches": 20,
+          "framesPerBatch": 2000
+        },
+        "pageTwoCalls": {
+          "medianMs": 0.006,
+          "p95Ms": 0.009500000000000114,
+          "maxBatchMeanMs": 0.009500000000000114,
+          "batches": 20,
+          "framesPerBatch": 2000
+        }
+      }
+    }
+  },
+  "phone": "Required after landing against exact commit; reported to coordinator over Herdr.",
+  "gates": {
+    "proof": "20261018T072013-sp-x9-c5-gates-v7-80182",
+    "tree": "d3199bb2ef33297b8585e9564f4d03baedd37e6f",
+    "rootTypes": "passed",
+    "layerTypes": "passed",
+    "typedLint": "passed",
+    "all10": "passed, source-only G490 window",
+    "focused": "44 tests in 8 files, including all 17 shard-headless cases",
+    "oldSave": "2 envelope tests; Pine original i/mode/t wire in all four modes, silent restore",
+    "oracle": "9600 step comparisons against sealed predecessor; page phase-order checks",
+    "driftwood-isle": {
+      "status": "passed",
+      "suffixTicksExecuted": 1000,
+      "hash": "5ac20ce6da0d12b8ee015703d848da2b0d786364b416af613f05b89c660141a7",
+      "replayHash": "5ac20ce6da0d12b8ee015703d848da2b0d786364b416af613f05b89c660141a7",
+      "workerExact": true
+    },
+    "pine-hollow": {
+      "status": "passed",
+      "suffixTicksExecuted": 1200,
+      "hash": "0feef4994e7ca3dba49429f2edc5b9be568343bb91038c4a3cd8afe2dc786fb9",
+      "replayHash": "0feef4994e7ca3dba49429f2edc5b9be568343bb91038c4a3cd8afe2dc786fb9",
+      "restoredReemits": 0
+    },
+    "mapWarning": [
+      "wildshard build: the baked map of driftwood-isle, pine-hollow does not match its world (SF66); rebake: node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=driftwood-isle,pine-hollow"
+    ]
+  },
+  "hostBar": {
+    "score": "6/6",
+    "host": "src/game/population/returnProgram.ts",
+    "apiChanged": false
+  },
+  "before": {
+    "pine-hollow": {
+      "custom": 3962,
+      "assemblyScript": 465,
+      "C5": 784
+    },
+    "driftwood-isle": {
+      "custom": 3146,
+      "assemblyScript": 130,
+      "C5": 540
+    }
+  },
+  "ownDelta": {
+    "pine-hollow": -28,
+    "driftwood-isle": 0,
+    "assemblyScript": {
+      "pine-hollow": 23,
+      "driftwood-isle": 0
+    },
+    "platform": 0,
+    "generators": 5
+  },
+  "candidatePhone": {
+    "sha": "d3199bb2ef33297b8585e9564f4d03baedd37e6f",
+    "midQuest": {
+      "flags": [
+        "talked:ranger",
+        "lever:dam-log-a",
+        "lever:dam-log-b",
+        "open:dam-sluice",
+        "taken:pond-glass",
+        "lit:pond",
+        "taken:ridge-flint",
+        "lit:ridge",
+        "used:ph-zip",
+        "lit:den",
+        "seen:crossroads"
+      ],
+      "step": "stag"
+    },
+    "progressed": {
+      "active": false,
+      "flags": [
+        "talked:ranger",
+        "lever:dam-log-a",
+        "lever:dam-log-b",
+        "open:dam-sluice",
+        "taken:pond-glass",
+        "lit:pond",
+        "taken:ridge-flint",
+        "lit:ridge",
+        "used:ph-zip",
+        "lit:den",
+        "followed:stag"
+      ],
+      "step": "king"
+    },
+    "continued": {
+      "flags": [
+        "talked:ranger",
+        "lever:dam-log-a",
+        "lever:dam-log-b",
+        "open:dam-sluice",
+        "taken:pond-glass",
+        "lit:pond",
+        "taken:ridge-flint",
+        "lit:ridge",
+        "used:ph-zip",
+        "lit:den",
+        "followed:stag"
+      ],
+      "step": "king"
+    },
+    "device": "iPhone 16 Pro",
+    "muted": true,
+    "proof": "20261018T073532-sp-x9-c5-candidate-phone-v2-57720",
+    "method": "Existing __pineQuest.goto plus public stag.update calls drive the admitted guest across seven authored bends; real flag commits and page reload persistence are asserted."
+  },
+  "finalVerification": {
+    "sourceTree": "e062b0a309828fcd6c3dd363a5becd19e4e3dab1",
+    "parent": "ba4e6d2a6605dc8f1f5238168b26cf27a071bc33",
+    "proof": "20261018T075735-sp-x9-c5-latest-gates-38592",
+    "rows": {
+      "pine-hollow": {
+        "custom": 4100,
+        "assemblyScript": 488,
+        "components": {
+          "C1": 1093,
+          "C2": 343,
+          "C3": 173,
+          "C4": 645,
+          "C5": 764,
+          "C6": 225,
+          "C7": 7,
+          "C8": 21,
+          "C9": 829
+        }
+      },
+      "driftwood-isle": {
+        "custom": 3276,
+        "assemblyScript": 130,
+        "components": {
+          "C1": 1087,
+          "C2": 165,
+          "C3": 0,
+          "C4": 845,
+          "C5": 540,
+          "C6": 139,
+          "C7": 0,
+          "C8": 27,
+          "C9": 473
+        }
+      }
+    },
+    "change": {
+      "base": "ba4e6d2a6605dc8f1f5238168b26cf27a071bc33",
+      "tree": "e062b0a309828fcd6c3dd363a5becd19e4e3dab1",
+      "units": [
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "before": 374,
+          "after": 374,
+          "delta": 0
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/stagLead.ts",
+          "before": 69,
+          "after": 79,
+          "delta": 10
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/stagWalk.ts",
+          "before": 49,
+          "after": 0,
+          "delta": -49
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/quest.ts",
+          "before": 276,
+          "after": 287,
+          "delta": 11
+        }
+      ],
+      "delta": -28,
+      "generators": [
+        {
+          "path": "src/shards/pine-hollow/generators/bake-life.mjs",
+          "before": 21,
+          "after": 25
+        },
+        {
+          "path": "src/shards/pine-hollow/generators/questConsequences.ts",
+          "before": 37,
+          "after": 37
+        },
+        {
+          "path": "src/shards/pine-hollow/generators/questRuntime.ts",
+          "before": 22,
+          "after": 23
+        },
+        {
+          "path": "src/shards/pine-hollow/generators/sections.ts",
+          "before": 223,
+          "after": 223
+        }
+      ],
+      "generatorDelta": 5,
+      "platformDelta": 0
+    },
+    "gates": "root/layer types, typed lint, all10, 44 focused including 17 headless, 2 old-save envelopes, DW strict workerExact 1000, Pine continuation 1200",
+    "G499": "Actual attribution charge adds Pine 166 and DW 130 independently of this cut; before this cut Pine 4128 and DW 3276.",
+    "before": {
+      "pine-hollow": {
+        "custom": 4128,
+        "assemblyScript": 465,
+        "C5": 792
+      },
+      "driftwood-isle": {
+        "custom": 3276,
+        "assemblyScript": 130,
+        "C5": 540
+      }
+    }
+  }
+}

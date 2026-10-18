@@ -2,14 +2,18 @@ import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buil
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
+const lead = JSON.parse(readFileSync(new URL('../data/questLead.json', import.meta.url), 'utf8'));
 const fields = ['candidates','now','minimum','maximum','draw','scale','kill','arrival','harvest','site','visit','distance','reach','giveUp','present','night','combat',
-  'heightBias','height','coverBias','cover','radius','clear','homeX','homeZ','x','z'];
-const channels = ['arrival','gather','remove','fade','dim','eligible','index','score','x','z'];
-const signals = ['arrival','carcass','guide','shelterScore','shelterPlace'];
+  'heightBias','height','coverBias','cover','radius','clear','homeX','homeZ','x','z',
+  'i','mode','elapsed','begin','dt','on','playerX','playerZ','atX','atZ'];
+const channels = ['arrival','gather','remove','fade','dim','eligible','index','score','x','z','i','mode','elapsed','event'];
+const signals = ['arrival','carcass','guide','shelterScore','shelterPlace','lead'];
 const aliases = values => Object.fromEntries(values.map(name => [name,name]));
 const registry = values => new Map([...values].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const row = { id:'pine.life', abi:'1.0', side:'sim', module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/life.as',
- binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},
+ binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{
+ firstX:lead.path[0][0],firstZ:lead.path[0][1],lastX:lead.path.at(-1)[0],lastZ:lead.path.at(-1)[1],
+ length:lead.path.length,first:lead.first,near:lead.near,past:lead.past,trot:lead.trot,gone:lead.gone},
  reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const built = await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},
  readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2130});

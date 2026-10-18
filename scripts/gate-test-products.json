@@ -1,4 +1,5 @@
 {
+  "test/pine-stag-walk.test.ts": [],
   "test/boot-smoke-partition.test.ts": [],
   "test/far-herd-upload.test.ts": [],
   "test/hybrid-entry-preparation.test.ts": [],

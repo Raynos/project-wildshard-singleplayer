@@ -19724,6 +19724,8 @@
         "src/shards/pine-hollow/behaviour/elites/ironhide.as",
         "src/shards/pine-hollow/behaviour/king.as",
         "src/shards/pine-hollow/behaviour/life.as",
+        "src/shards/pine-hollow/behaviour/stag.as",
+        "src/shards/pine-hollow/data/questLead.json",
         "src/shards/pine-hollow/behaviour/night.as",
         "src/shards/pine-hollow/generators/bake-life.mjs"
       ],

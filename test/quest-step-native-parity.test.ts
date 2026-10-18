@@ -48,5 +48,15 @@ for (const slug of ['driftwood-isle', 'pine-hollow'] as const)
       owner.restore(v.parse(SavedValue, fixture.state));
       expect(JSON.stringify(owner.snapshot())).toBe(fixture.bytes);
       expect(resident.effects).toEqual([]);
+      if (slug === 'pine-hollow') {
+        // Saves made between bends retain the original wire, without entering
+        // the v1 guest, publishing a follow flag, or paying a reward on restore.
+        for (const mode of ['none', 'stare', 'trot', 'gone']) {
+          const state = { ...legacy['pine-hollow'].state, stag: { i: 2, mode, t: 0.8 } };
+          owner.restore(v.parse(SavedValue, state));
+          expect(owner.snapshot()).toEqual(state);
+          expect(resident.effects).toEqual([]);
+        }
+      }
     } finally { resident.dispose(); }
   }, 120_000);

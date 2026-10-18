@@ -1,8 +1,9 @@
+import { lead } from './stag';
 import { Signal, Field, Channel, Read, Do } from './generated/pineLife';
 @inline function get(field:i32):f64 { return Read.field(0,field); }
 // The page owns objects and frame poses; this guest owns the forest's rules.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.arrival) {
+  if(signal==Signal.lead) { lead(); } else if(signal==Signal.arrival) {
     const draw=Math.max(0,Math.min(1,get(Field.draw)));
     Do.channel(Channel.arrival,get(Field.now)+(get(Field.minimum)+draw*(get(Field.maximum)-get(Field.minimum)))*get(Field.scale));
   } else if(signal==Signal.carcass) {

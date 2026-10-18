@@ -1,4 +1,4 @@
-import type { QuestLeadRows } from '../runtime/productSections.generated.d.ts';
+import type { PineQuestRows } from '../runtime/productSections.generated.d.ts';
 /**
  * Quest beat 5 (PINE-HOLLOW-REMASTER PH-C1): "follow the Ghost Stag to the old-growth" — a scripted lead. After dark a
  * pale stag stands on the west road where it leaves the Hollow, staring back at you. Come within ~16 m and it turns,
@@ -12,21 +12,22 @@ import type { QuestLeadRows } from '../runtime/productSections.generated.d.ts';
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
-import { StagWalk } from './stagWalk';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 
-// the walk's road and lengths are the renderer-free walk's (stagWalk.ts), which the headless quest runs alone
+// AS owns the walk; this view preserves appearance before actor integration.
 type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;
 
 export class StagLead {
   private a: StagBody | null = null;
-  private readonly walk: StagWalk;
+  private readonly brain: ReturnProgram;
+  private readonly walk = { i: 0, mode: 0, elapsed: 0 };
   private readonly puffs: Puffs;
   private readonly _v = new THREE.Vector3();
   onDone?: () => void;
   onAppear?: (first: boolean) => void;
 
-  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, rows: QuestLeadRows) {
-    this.walk = new StagWalk(rows);
+  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, private readonly rows: PineQuestRows['lead']) {
+    this.brain = ReturnProgram.page(rows.program);
     this.puffs = new Puffs(scene, new THREE.Color(0.75, 1.6, 2.0), 3);
   }
 
@@ -37,24 +38,34 @@ export class StagLead {
   /** per frame. `on` = the beat is current and it is night; off → the apparition leaves (a burst) */
   update(dt: number, t: number, on: boolean, player: THREE.Vector3): void {
     this.puffs.update(dt, t);
-    const began = this.walk.begin(on, player);
-    if (began?.kind === 'vanish') this.vanish(false);
-    if (began?.kind === 'appear') this.appear(0, player, true);
+    const began = this.project(true, 0, on, player);
+    if (began === 4) this.vanish(false);
+    if (began === 1) this.appear(0, player, true);
     const a = this.a;
     if (!a) return;
     a.update(dt, t, true);
     if (Math.floor(t * 10) !== Math.floor((t - dt) * 10)) a.sampleTerrain();
-    if (this.walk.mode === 'stare') {
+    if (this.walk.mode === 1) {
       a.setMotion(Math.atan2(player.x - a.position.x, player.z - a.position.z), 0, 3);
       a.lookTarget.copy(player); a.lookWeight = 1;
-    } else if (this.walk.mode === 'trot') {
-      const next = this.walk.rows.path[this.walk.i + 1] ?? this.walk.rows.path[this.walk.i];
+    } else if (this.walk.mode === 2) {
+      const next = this.rows.path[this.walk.i + 1] ?? this.rows.path[this.walk.i];
       if (next) a.setMotion(Math.atan2(next[0] - a.position.x, next[1] - a.position.z), 4.5, 4);
       a.lookWeight = 0;
     }
-    const event = this.walk.step(dt, on, player, a.position);
-    if (event?.kind === 'appear') this.appear(this.walk.i, player, false);
-    else if (event !== null) { this.fade(); if (event.kind === 'vanish') this.vanish(event.done); }
+    const event = this.project(false, dt, on, player, a.position);
+    if (event === 2) this.appear(this.walk.i, player, false);
+    else if (event !== 0) { this.fade(); if (event === 5 || event === 4) this.vanish(event === 5); }
+  }
+
+  private project(begin: boolean, dt: number, on: boolean, player: THREE.Vector3, at = this.a?.position): number {
+    const point = this.rows.path[this.walk.i];
+    const result = this.brain.project('lead', { ...this.walk, begin: Number(begin), dt, on: Number(on),
+      playerX: player.x, playerZ: player.z, atX: at?.x ?? point?.[0] ?? 0, atZ: at?.z ?? point?.[1] ?? 0 });
+    Object.assign(this.walk, result);
+    const event = result['event'];
+    if (event === undefined) throw new Error('Stag projection omitted its event');
+    return event;
   }
 
   private spawnAt(x: number, z: number, yaw: number): StagBody {
@@ -66,7 +77,7 @@ export class StagLead {
   }
 
   private appear(i: number, player: THREE.Vector3, first: boolean): void {
-    const p = this.walk.rows.path[i];
+    const p = this.rows.path[i];
     if (!p) return;
     const yaw = Math.atan2(player.x - p[0], player.z - p[1]);
     if (this.a) { this.a.place(p[0], p[1], yaw); this.a.mesh.visible = true; } else this.a = this.spawnAt(p[0], p[1], yaw);
