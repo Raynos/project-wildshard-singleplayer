@@ -56,11 +56,13 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   if (typeof author.buildPufferPreviewProduct !== 'function') throw new Error('Practice author entry is missing');
   const lines = decisionLegacyLines(root, 'driftwood-isle');
   if (lines === undefined) throw new Error('Practice decisions require the sealed Driftwood line budget');
-  const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode);
+  const rootFlinch = rigAdmission?.profile === 'v70-rig1-gait5' ? 'authored-pose' : undefined;
+  const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode, rootFlinch);
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
     schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
     ...(rigAdmission === null ? {} : { rigAdmission }),
+    ...(rootFlinch === undefined ? {} : { rootFlinch }),
     ...(mode === 'gait5' ? { visualAdapter: 'puffer-gait5-continuity', visualAdapterSha256: hash(readFileSync(resolve(root, 'src/pufferGaitContinuityPreview.ts'))) } : {}),
     source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     dimensionsSha256: hash(dimensionBytes), colliderAcceptance: false, visualAcceptance: false,

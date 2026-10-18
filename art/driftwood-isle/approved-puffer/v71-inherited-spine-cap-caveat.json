@@ -1,0 +1,63 @@
+{
+  "status": "inherited attachment caveat, not an all-buried certification",
+  "sourceDiagnosticSha256": "21a2b817470eaa6ff49cd029d238cecb43b116600c45d97c6dcc1c6c6e6e35d6",
+  "spines": [
+    {
+      "object": "Cream crown spine 0",
+      "baselineOutsideSignedSamples": 1,
+      "candidateOutsideSignedSamples": 1,
+      "baselineMinimumSignedBurial": -0.028524992987513542,
+      "candidateMinimumSignedBurial": -0.028524992987513542
+    },
+    {
+      "object": "Cream crown spine 1",
+      "baselineOutsideSignedSamples": 1,
+      "candidateOutsideSignedSamples": 1,
+      "baselineMinimumSignedBurial": -0.00619478175030963,
+      "candidateMinimumSignedBurial": -0.00619478175030963
+    },
+    {
+      "object": "Cream crown spine 2",
+      "baselineOutsideSignedSamples": 0,
+      "candidateOutsideSignedSamples": 0,
+      "baselineMinimumSignedBurial": 0.010479140270035714,
+      "candidateMinimumSignedBurial": 0.010595194340567105
+    },
+    {
+      "object": "Cream crown spine 3",
+      "baselineOutsideSignedSamples": 2,
+      "candidateOutsideSignedSamples": 2,
+      "baselineMinimumSignedBurial": -0.03453838964924216,
+      "candidateMinimumSignedBurial": -0.03453838964924216
+    },
+    {
+      "object": "Cream crown spine 4",
+      "baselineOutsideSignedSamples": 2,
+      "candidateOutsideSignedSamples": 2,
+      "baselineMinimumSignedBurial": -0.03453838964924216,
+      "candidateMinimumSignedBurial": -0.03453838964924216
+    },
+    {
+      "object": "Cream crown spine 5",
+      "baselineOutsideSignedSamples": 2,
+      "candidateOutsideSignedSamples": 2,
+      "baselineMinimumSignedBurial": -0.034816983999917284,
+      "candidateMinimumSignedBurial": -0.03470463836856652
+    },
+    {
+      "object": "Cream crown spine 6",
+      "baselineOutsideSignedSamples": 2,
+      "candidateOutsideSignedSamples": 2,
+      "baselineMinimumSignedBurial": -0.034817030595149845,
+      "candidateMinimumSignedBurial": -0.03470468588056974
+    },
+    {
+      "object": "Cream crown spine 7",
+      "baselineOutsideSignedSamples": 2,
+      "candidateOutsideSignedSamples": 2,
+      "baselineMinimumSignedBurial": -0.034423176383761245,
+      "candidateMinimumSignedBurial": -0.034423176383761245
+    }
+  ],
+  "interpretation": "Several existing spine root-cap corner samples lie outside the signed nearest core surface in V70 and V71. No all-spine-cap-buried claim is supported. Preserve this evidence and inspect visible seating in actual rendered views. Candidate polygon-versus-triangle normals are being corrected before interpreting small differences."
+}

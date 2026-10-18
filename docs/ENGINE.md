@@ -1984,6 +1984,13 @@ registration, naming the species and bone. The factory also validates the actual
 an `Animal`, so a declaration cannot hide an incomplete model. Default quadruped animation additionally needs its
 neck, ears, tail, belly and leg bones; use `rig: 'custom'` with `animate` for other skeletons.
 
+**Custom recoil ownership.** `SpeciesDef` / `SpeciesLook.rootFlinch` optionally selects `'engine'` (the
+unchanged default) or `'authored-pose'`. A custom rig whose joint pose already owns hit recoil can opt out
+of the engine's additional directional whole-root flinch. `AnimalView` passes this policy to
+`applyAnimalRoot`; terrain pitch/roll, yaw, position, joint animation, damage, physical knockback,
+hit flash and death remain unchanged. This policy is presentation data, never a species-name branch or
+an actor-state clamp. The isolated practice host admits the optional enum through its strict look schema.
+
 `animal.impulse(worldVelocity)` copies and adds a velocity in metres per second, then decays it at 3.5/s on the body
 clock. Ground bodies resolve its XZ displacement through their normal collision motor; flying bodies also use Y.
 Bodies sampling WORLD floors fall ballistically when the floor drops more than 1 m: gravity is −20 m/s²,

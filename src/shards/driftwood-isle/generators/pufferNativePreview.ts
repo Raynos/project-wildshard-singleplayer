@@ -57,9 +57,14 @@ export function createPufferPreviewSource(): Shardfile {
 }
 
 /** Separate product only: never reads or writes the rejected multi-creature generated bake. */
-export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode): ProjectOutput {
+export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose'): ProjectOutput {
+  if (rootFlinch !== undefined && mode !== 'gait5') throw new Error('Authored recoil requires the admitted gait5 preview');
+  const looks: ((typeof practiceLooks.looks)[number] & { rootFlinch?: 'authored-pose' })[] = [];
+  for (const row of practiceLooks.looks) {
+    if (row.kind === 'brine-puffer') looks.push(rootFlinch === undefined ? row : { ...row, rootFlinch });
+  }
   const poses = emitNamedBlobs([
-    ['practice/looks.json', { ...practiceLooks, looks: practiceLooks.looks.filter(row => row.kind === 'brine-puffer') }],
+    ['practice/looks.json', { ...practiceLooks, looks }],
     ['practice/bodies.json', creatureBodies],
     ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
     ['poses/brine-puffer.json', mode === 'gait4' || mode === 'gait5' ? pufferNativeGait4Clips() : pufferNativeClips(mode)],
@@ -86,9 +91,9 @@ export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferN
 }
 
 /** Recompile the one Puffer guest against this exact catalogue, then emit and re-read the real SDK product and receipt. */
-export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode): Promise<ReturnType<typeof validateOutputProduct>> {
+export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose'): Promise<ReturnType<typeof validateOutputProduct>> {
   const source = createPufferPreviewSource();
-  const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode), { source, options });
+  const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode, rootFlinch), { source, options });
   const merged = mergeProjectBlobs(source, prepared.assets, prepared.blobs, prepared.options.namedFiles);
   writeOutputProduct(merged.shard, merged.assets, destination, { ...prepared.options, namedFiles: merged.namedFiles });
   return validateOutputProduct(destination);

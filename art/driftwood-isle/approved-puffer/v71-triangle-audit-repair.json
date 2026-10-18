@@ -1,0 +1,9 @@
+{
+  "status": "source-only comparison-frame correction; geometry unchanged",
+  "previousBuilderSha256": "653f2be77e3cd2302f7cbd4735e6d957ec97a722edfdf155b2dc659ffc0927ec",
+  "correctedBuilder": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v71_triangleaudit.py",
+  "correctedBuilderSha256": "58f9fb0172335572358d49d31d7456c6e9a93ff44c4f8f54b2352c39bb917404",
+  "change": "Candidate BVH uses explicit loop triangles matching native exporter, replacing polygon-normal BVHTree.FromObject",
+  "guardThresholdsChanged": false,
+  "priorFailurePreserved": true
+}

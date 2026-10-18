@@ -1,6 +1,6 @@
 import type { Euler, Vector3 } from 'three';
 import type { AnimalSim } from './AnimalSim';
-import type { RigAnimCtx } from './species/registry';
+import type { RigAnimCtx, SpeciesDef } from './species/registry';
 
 /** A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port. */
 export interface AnimalRigJoint { readonly position: Vector3; readonly rotation: Euler; readonly scale: Vector3 }
@@ -66,10 +66,12 @@ export class QuadrupedRigPose {
   /** Pure bounded restore, without posing joints or consuming RNG. */
   restore(value:number):void{if(!Number.isFinite(value)||value<0)throw new Error('Invalid quadruped pose continuation');this.breathPhase=value;}
 }
-/** Shipping root tilt/flinch law. The actor's position is copied only after custom motion has completed. */
+/** Shipping root tilt/flinch law. Authored custom recoil can opt out of only the additional root flinch.
+ * The actor's position is copied only after custom motion has completed; terrain tilt remains independent. */
 export function applyAnimalRoot(root:Pick<AnimalRigJoint,'position'|'rotation'>,position:Vector3,
-  yaw:number,tiltPitch:number,tiltRoll:number,custom:boolean,alive:boolean,flinch:number,flinchPitch:number,flinchRoll:number):void {
+  yaw:number,tiltPitch:number,tiltRoll:number,custom:boolean,alive:boolean,flinch:number,flinchPitch:number,flinchRoll:number,
+  rootFlinch:SpeciesDef['rootFlinch']='engine'):void {
   root.position.copy(position);
-  const f=custom&&alive?flinch*1.8:0;
+  const f=custom&&alive&&rootFlinch!=='authored-pose'?flinch*1.8:0;
   root.rotation.set(tiltPitch+flinchPitch*f,yaw,tiltRoll+flinchRoll*f,'YXZ');
 }

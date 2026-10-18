@@ -1,0 +1,76 @@
+{
+  "schema": "wildshard.puffer.v70-authored-recoil-source-validation.v1",
+  "status": "source tests passed; fresh build/capture pending",
+  "baselineIntegrationCheckpoint": "207c95b5e13de559734610d06761eec1e1ae3ab6",
+  "policy": {
+    "field": "rootFlinch",
+    "default": "engine",
+    "optIn": "authored-pose",
+    "selection": "exact v70-rig1-gait5 admitted preview only",
+    "unchanged": [
+      "terrain tilt",
+      "yaw and actor position",
+      "authored numeric hit motion",
+      "damage",
+      "physics knockback",
+      "hit flash",
+      "death",
+      "persistence"
+    ]
+  },
+  "weightedNativeSha256": "b985594b98035df3a006464d5af76b0f2b10eca076fa3366b9d94bc325ba1762",
+  "visualAdapterSha256": "54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d",
+  "poseSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+  "gaitSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0",
+  "tests": {
+    "newTestsPassed": 7,
+    "existingFocusedTestsPassedIncludingExplicitNativeCodec": 36,
+    "nodeAdmissionTestsPassed": 6,
+    "defaultLegacyMatrixCases": 48,
+    "authoredTerrainPreservationMatrixCases": 12,
+    "defaultProductLookModesByteEquivalent": 6,
+    "typedLint": true,
+    "skippedNativeCodec": false
+  },
+  "weightedWorldPoseAudit": {
+    "frames": 2136,
+    "minimumWorldFinClearance": 0.004000000189989805,
+    "maximumCapToBellyError": 0,
+    "minimumTriangleAreaRatio": 0.5999999999953696,
+    "cases": [
+      "stop-resume",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "dt": [
+      0.016666666666666666,
+      0.03333333333333333,
+      0.1,
+      0.2
+    ],
+    "yaw": [
+      -1.7,
+      0.9
+    ],
+    "scope": "Actual numeric pose plus actual root policy and world matrices; flat y900 floor only, no terrain or world ragdoll contact"
+  },
+  "failedDefaultRegressionWitnessPreserved": true,
+  "sourcePins": {
+    "docs/ENGINE.md": "4fd01e44462a2727ab9b90e354154afa8e213edcc5212fb7670f9bd7fe32a728",
+    "scripts/build-puffer-native-preview.mjs": "4f827e6f5867366e54ff6aeef9ff9531ce3221950d4679fe1e8b540328affc07",
+    "src/engine/entities/AnimalView.ts": "7df9e8d3f7d1adcf92231c83bee33418b9ed34cd15b76b947d77883b0efacd6e",
+    "src/engine/entities/animalRig.ts": "489476be6cd84a182251f4c159a04b996197e174d70d87aa315f825479807687",
+    "src/engine/entities/species/look.ts": "e03b5bc6bf15a4a74cb6e9d8a1e9a551d6ca869e1f97b5adab5634770ff0b901",
+    "src/engine/entities/species/registry.ts": "141af7c0a250066f3815834192297f1dbe5517860d53656f337e4a0c5309c7fb",
+    "src/practiceContent.ts": "355d1e66a5cfb62971248c64a0f332af3d19c95790e6cc24c20560c485a408fd",
+    "src/practicePresentation.ts": "ffcc9dc2f7c461442be949d70caf90c63e262a3f44bfb32d9f1b0e320c5ed0c2",
+    "src/shards/driftwood-isle/generators/pufferNativePreview.ts": "27d9501ae8ca6ed414fa6a94582dd855c12926d6ad6df02ee537103688df9548",
+    "test/animal-root-flinch.test.ts": "35eb5c50d552d79ebafb225794818967b97196debf53d1de078a3814975b0627",
+    "test/practice-root-flinch.test.ts": "dde3f25ffd4478225c7e723dc23a089d0659d1c75efe6b1fb83df5f21d74868b",
+    "test/puffer-native-root-flinch.test.ts": "4ed2d33a07d3c675d344df0231e9a7e15e47145a5b3bb2c8679d3e37b53d6dd3"
+  },
+  "freshAppBuildRun": false,
+  "freshBrowserRun": false,
+  "visualAcceptance": false
+}

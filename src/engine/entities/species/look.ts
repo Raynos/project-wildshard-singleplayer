@@ -10,7 +10,7 @@ export interface CreatureHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   bones: BoneDef[]; overgrown: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
 }
-export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
+export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'rootFlinch' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;
   /** creature memory a specimen is stood up with in the Model Explorer (a creature that waits hidden is shown risen) */
   standMem?: Readonly<Record<string, number>>;

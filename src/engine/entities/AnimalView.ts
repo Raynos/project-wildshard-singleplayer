@@ -490,7 +490,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     this.jointPose?.apply(this.pose,dt,c);
   }
   private applyRoot(): void {
-    applyAnimalRoot(this.mesh,this.position,this.yaw,this.tiltPitch,this.tiltRoll,this.custom,this.alive,this.flinch,this.flinchPitch,this.flinchRoll);
+    applyAnimalRoot(this.mesh,this.position,this.yaw,this.tiltPitch,this.tiltRoll,this.custom,this.alive,this.flinch,this.flinchPitch,this.flinchRoll,this.model.species.rootFlinch);
   }
 
 }

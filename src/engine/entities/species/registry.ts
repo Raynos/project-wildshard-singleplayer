@@ -278,6 +278,9 @@ export interface SpeciesDef {
   /** 'quadruped' (default: the deer skeleton, Animal.ts poses it) or 'custom' (only `body` (root) + `head` bones are
    *  required; `animate` poses the rest every frame) */
   rig?: 'quadruped' | 'custom';
+  /** Custom poses may own hit recoil; omit to retain the engine's additional directional root flinch.
+   * Terrain tilt, authored joint motion, damage, knockback, hit flash and death are unaffected. */
+  rootFlinch?: 'engine' | 'authored-pose';
   /** custom rigs: pose the bones from the context (called every frame the animal is within animation range) */
   animate?: (ctx: RigAnimCtx) => void;
   /** Authored cadence; omitted custom thinkers retain their legacy rate during migration. */
