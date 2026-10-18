@@ -1,0 +1,73 @@
+{
+  "base": "V55",
+  "scope": "convex rear cap Y<=.10 only; existing front welded along exact 14-vertex interface",
+  "authoredOffsets": {
+    "1": {
+      "1": 0.055,
+      "2": -0.045,
+      "12": -0.045,
+      "13": 0.055
+    },
+    "2": {
+      "1": -0.06,
+      "2": 0.06,
+      "12": 0.06,
+      "13": -0.06
+    },
+    "3": {
+      "1": 0.05,
+      "2": -0.05,
+      "12": -0.05,
+      "13": 0.05
+    }
+  },
+  "offsetScale": 0.7,
+  "protectedFrontVertices": 84,
+  "rearConvexStats": {
+    "signedVolume": 0.5562364147357576,
+    "maximumDihedralDegrees": 91.40894836657768,
+    "triangles": 134,
+    "verticesUsed": 69,
+    "supportPlaneTolerance": 1e-07
+  },
+  "maximumExteriorDihedralDegrees": 59.54451200041176,
+  "signedVolume": 1.054925705926791,
+  "referenceJoinedVolume": 1.0600562244833145,
+  "maximumSampledSilhouetteDrift": 0.019203856413702036,
+  "maximumSampleDisplacement": 0.059995515473854316,
+  "spineRootClearances": [
+    {
+      "Y": -0.43,
+      "angle": 0,
+      "beforeSignedDistance": -0.026568972735720394,
+      "afterSignedDistance": -0.026552469494047437
+    },
+    {
+      "Y": -0.12,
+      "angle": 0,
+      "beforeSignedDistance": -0.03715022698918812,
+      "afterSignedDistance": -0.03715022698918812
+    },
+    {
+      "Y": -0.27,
+      "angle": -0.95,
+      "beforeSignedDistance": -0.015159055740691978,
+      "afterSignedDistance": -0.015065490585754383
+    },
+    {
+      "Y": -0.27,
+      "angle": 0.95,
+      "beforeSignedDistance": -0.015159055740691929,
+      "afterSignedDistance": -0.015065490585754364
+    },
+    {
+      "Y": -0.53,
+      "angle": 1.55,
+      "beforeSignedDistance": -0.007007627032284715,
+      "afterSignedDistance": -0.007007627032284715
+    }
+  ],
+  "nonmanifoldEdges": 0,
+  "facePouchFeetAndPaletteChanged": false,
+  "status": "structural gate only; rendered broad-facet gain unaccepted"
+}
