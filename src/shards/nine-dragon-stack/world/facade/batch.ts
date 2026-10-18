@@ -6,7 +6,7 @@ import { type InstancedCuller, place } from '@wildshard/engine/models/place';
 // piece), and instanced window quads.
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
-import { Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry, type ShaderMaterial } from 'three';
+import { Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry } from 'three';
 import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import type { WorldRows } from '../../runtime/productSections.generated';
@@ -96,7 +96,7 @@ export async function buildFacade(d: Dressing, facade: WorldRows['facade'], reco
     });
     q.setAttribute('aWin', new InstancedBufferAttribute(aWin, 4));
     q.setAttribute('aWall', new InstancedBufferAttribute(aWall, 3));
-    const wm: ShaderMaterial = windowMaterial(shared);
+    const wm = windowMaterial(shared);
     const im = new InstancedMesh(q, wm, n);
     im.name = 'facade-windows';
     d.windows.forEach((w, i) => { im.setMatrixAt(i, w.m); im.setColorAt(i, w.light); });

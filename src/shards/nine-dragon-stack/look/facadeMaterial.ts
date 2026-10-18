@@ -1,33 +1,50 @@
-// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
-// The facade lab's programs (a simple Jiehua Neon: P1 "ink" owns the real surface look).
-//  - jiehua: flat wash × two hard bands of top light, ruled ink edges from aFace + fwidth (constant px, fading into
-//    the wash when sub-pixel), the kit's patterns (slab bands, glazed tiles, bars, stripes, leaves, AC fans, slats,
-//    pipe brackets, lit sign boxes), silk fog. Opaque only: no discard anywhere (the iPhone's hidden-surface removal).
-//  - window: interior mapping (Spider-Man / Matrix Awakens) on ONE instanced quad per window — the reveal, the glass
-//    with its mullions, a curtain, a room box with a partition and a fluorescent tube, all ruled; lit or dark.
-//  The ink-wash shadow under each projection, the drip stains and the neon spill are baked into the shell's vertex
-//  colours by the grammar (no transparent decals: overdraw is the phone's enemy).
-// SHARD-PLATFORM M3: the programs are rows in data/facadeLook.ts on the SDK shader family; this module makes the materials.
-import { type ShaderMaterial, type IUniform, Vector2 } from 'three';
-import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { FACADE_PROGRAMS, FACADE_UNIFORMS } from '../runtime/looks/facadeLook';
-import { LOOK_FRAGMENTS, type Shared } from './style';
+// The existing shell, piece and window draws borrow their separately admitted graphs.
+import { Color, Texture, Vector2, Vector3, Vector4, type Material, type IUniform } from 'three';
+import { lentLook, hasLentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import type { MaterialEntry } from '@wildshard/format/materials';
+import type { Shared } from './style';
 
 export type Uniforms = Record<string, IUniform>;
-
-const FACADE_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, FACADE_PROGRAMS);
-
-/** the facade programs' uniforms, built on the clean room's shared ones (one object each) */
-export function facadeUniforms(shared: Shared): Uniforms {
-  return { ...shared.u, uInk: shared.u.uInk0, uInkFar: shared.u.uInk1, ...uniformsFrom(FACADE_UNIFORMS) };
+const tuple2 = [0, 0], tuple3 = [0, 0, 0], tuple4 = [0, 0, 0, 0];
+const textureBooks = new WeakMap<Readonly<Uniforms>, Map<string, Texture>>();
+const paramBooks = new WeakMap<Readonly<Uniforms>, Map<string, string[]>>();
+const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows'];
+function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
+/** Uniform writes only. Existing shared handles still own day, paint, Explorer and light tuning. */
+export function syncArchitecture(shared: Readonly<Uniforms>, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {
+  let textures = textureBooks.get(shared);
+  if (textures === undefined) { textures = new Map(); textureBooks.set(shared, textures); }
+  let bindings = paramBooks.get(shared);
+  if (bindings === undefined) {
+    bindings = new Map();
+    if (catalogue === undefined) return;
+    for (const id of IDS) {
+      const material = catalogue[id];
+      if (material?.family !== 'graph' || !('graph' in material)) throw new Error(`Missing architecture graph ${id}`);
+      for (const name of Object.keys(material.graph.params ?? {})) {
+        if (!name.startsWith('u')) continue;
+        const ids = bindings.get(name) ?? []; ids.push(id); bindings.set(name, ids);
+      }
+    }
+    paramBooks.set(shared, bindings);
+  }
+  for (const [name, ids] of bindings) {
+    const value: unknown = shared[name]?.value;
+    const numeric = typeof value === 'number' ? value : value instanceof Color ? value.toArray(tuple3) : value instanceof Vector3 ? value.toArray(tuple3)
+      : value instanceof Vector2 ? value.toArray(tuple2) : value instanceof Vector4 ? value.toArray(tuple4) : null;
+    for (const id of ids) {
+      if (!hasLentLook(id)) continue;
+      if (numeric !== null) setLentParam(id, name, numeric);
+      else if (isTexture(value) && textures.get(`${id}:${name}`) !== value) { setLentTexture(id, name, value); textures.set(`${id}:${name}`, value); }
+    }
+  }
 }
-
-/** the one architecture program; `shrink` = [start, end] metres for small clutter (0 = never) */
-export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [number, number] } = {}): ShaderMaterial {
-  return FACADE_FAMILY.material('facade', shared, { uniforms: { uShrink: { value: new Vector2(opt.shrink?.[0] ?? 0, opt.shrink?.[1] ?? 0) } } });
+export function facadeUniforms(shared: Shared): Uniforms { return { ...shared.u, uSky: { value: new Color(0xbcc4d2) }, uFacadeWash: { value: new Color(0xe0e3ef) } }; }
+export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [number, number] } = {}): Material {
+  syncArchitecture(shared);
+  const id = opt.shrink === undefined ? 'nine-facade' : 'nine-facade-small';
+  if (opt.shrink !== undefined) setLentParam(id, 'shrink', opt.shrink);
+  return lentLook(id);
 }
-
-// ── windows: interior mapping on a unit quad, scaled to the window (data/facadeLook.ts) ──
-export function windowMaterial(shared: Uniforms): ShaderMaterial {
-  return FACADE_FAMILY.material('window', shared);
-}
+export function windowMaterial(shared: Uniforms): Material { syncArchitecture(shared); return lentLook('nine-windows'); }

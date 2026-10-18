@@ -3,7 +3,7 @@
 // context's `once` (src/engine/models/model.ts). One context per built fragment: build.ts makes it first, fills the look as
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
-import { type BufferGeometry, Group, Matrix4, type Material, Mesh, type ShaderMaterial } from 'three';
+import { type BufferGeometry, Group, Matrix4, type Material, Mesh } from 'three';
 import { modelContext, type ModelBuild, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '@wildshard/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
@@ -41,9 +41,9 @@ export interface NdLook {
   /** The explicit resident owner; Explorer requests may supply their shorter-lived view scope. */
   readonly owner: Scope;
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
-  mat: ShaderMaterial | null;
+  mat: Material | null;
   /** the facade kit's programs (facade/batch.ts): the pieces, and the small clutter that shrinks into the wall far off */
-  facade: { readonly mat: ShaderMaterial; readonly small: ShaderMaterial } | null;
+  facade: { readonly mat: Material; readonly small: Material } | null;
   /** the paper lanterns' look (look/lanterns.ts: the 'nine-lantern' graph) */
   lantern: Material | null;
   /** the 'nine-neon' look over the sign atlas (the drones' lights) and the atlas */

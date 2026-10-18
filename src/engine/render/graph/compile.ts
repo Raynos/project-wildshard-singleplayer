@@ -34,7 +34,7 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ContextNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
+  Node as BaseNode, PhysicalLightingModel, SplitNode, Texture3DNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
   Fn, Loop, Var, and, attribute, cameraNear, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
@@ -52,7 +52,7 @@ import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
-import { instanceTransformNode } from '../nodes/nodeInstancing';
+import { instanceTransformNode, instanceColourNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
 import { fogPatches, materialNodeFogOf, ownMaterialNodeFog, type NodeFogPatch } from '../fogPatches';
 import { fogUniforms } from '../../world/Atmosphere';
@@ -414,6 +414,12 @@ function lentArrayStandIn(): THREE.DataArrayTexture {
   return arrayStandIn;
 }
 
+let volumeStandIn: THREE.Data3DTexture | null = null;
+function lentVolumeStandIn(): THREE.Data3DTexture {
+  if (volumeStandIn === null) { volumeStandIn = new THREE.Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1); volumeStandIn.needsUpdate = true; }
+  return volumeStandIn;
+}
+
 /** Borrow the renderer's already collected lights; never walk a world's scene graph per draw. */
 function firstSkyLight(frame: NodeFrame): THREE.DirectionalLight | null {
   if (frame.scene === null || frame.renderer === null) return null;
@@ -485,9 +491,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const lent = new Map<string, ((next: THREE.Texture) => void)[]>();
   /** the texture each lent param was lent last, for its samples not built yet */
   const lentNow = new Map<string, THREE.Texture>();
-  const arraySamplers = new Set<string>();
+  const arraySamplers = new Set<string>(), volumeSamplers = new Set<string>();
   const findArraySamplers = (nodes: Readonly<Record<string, GraphNode>>): void => {
     for (const node of Object.values(nodes)) {
+      if (node.op === 'texture3D' && node.param !== undefined) volumeSamplers.add(node.param);
       if (node.op === 'textureArray' && node.param !== undefined) arraySamplers.add(node.param);
       if (node.body !== undefined) findArraySamplers(node.body.nodes);
     }
@@ -572,7 +579,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
   // Implicit texture derivatives need coherent execution on both sides of a select.
   // Follow references in their lexical scope, including a loop's actual output.
-  const sampleOps = new Set(['texture', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
+  const sampleOps = new Set(['texture', 'texture3D', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
   function samples(r: GraphRef | undefined, scope: Scope, seen = new Set<GraphNode>()): boolean {
     if (typeof r !== 'string') return false;
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
@@ -813,6 +820,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
       case 'length': return { t: 'float', n: new MathNode('length', one().n) };
       case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
+      case 'instanceOrigin': return { t: 'vec3', n: instanceTransformNode(vec4(0, 0, 0, 1)).xyz };
+      case 'instanceColour': return { t: 'vec3', n: instanceColourNode() };
+      case 'localToWorldVector': return { t: 'vec3', n: modelWorldMatrix.mul(instanceTransformNode(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 0))).xyz };
       case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };
       case 'cross': { const [x, y] = two(); return { t: 'vec3', n: new MathNode('cross', x.n, y.n) }; }
       case 'dot': { const [x, y] = two(); return { t: 'float', n: new MathNode('dot', x.n, y.n) }; }
@@ -864,6 +874,13 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
           // No captured material: shared node programs read this draw's material, not the first builder's.
           return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference(slot, 'texture'), 'vec4') : vec4(1);
         })() };
+      }
+      case 'texture3D': {
+        if (n.param === undefined) throw new Error('material graph: volume sample has no param');
+        const sample = new Texture3DNode(lentNow.get(n.param) ?? lentVolumeStandIn(), one().n);
+        const list = lent.get(n.param) ?? [];
+        list.push(next => { sample.value = next; }); lent.set(n.param, list);
+        return { t: 'vec4', n: stagedTexture(sample) };
       }
       case 'textureArray':
       case 'textureLod':
@@ -1125,6 +1142,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       // a lighting-stage sample builds with the program (after this call): it starts on the texture lent last
       if (texParams.get(name)?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
       if (arraySamplers.has(name) && !(next instanceof THREE.DataArrayTexture) && !(next instanceof THREE.CompressedArrayTexture)) throw new Error(`material graph: ${name} requires a 2D texture array`);
+      if (volumeSamplers.has(name) && !(next instanceof THREE.Data3DTexture)) throw new Error(`material graph: ${name} requires a 3D texture`);
       lentNow.set(name, next);
       for (const retarget of lent.get(name) ?? []) retarget(next);
     },

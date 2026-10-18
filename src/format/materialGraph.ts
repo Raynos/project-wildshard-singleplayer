@@ -457,6 +457,11 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // under flatShading) into a unit world one; `worldToLocal` turns a world direction into the model space
   // `vertex.offset` is added in (the transpose of the model's 3 × 3 world matrix, unnormalised, as the families do it)
   viewToWorld: { arity: [1, 1], rule: 'dir3', cost: 6, places: MESH },
+  // Full local direction through object and instance scale/rotation (no translation).
+  localToWorldVector: { arity: [1, 1], rule: 'dir3', cost: 8, places: VERT },
+  // The renderer's instance tint, or white for an ordinary/uncoloured instance.
+  instanceOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },
+  instanceColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: VERT },
   worldToLocal: { arity: [1, 1], rule: 'dir3', cost: 3, places: VERT },
   length: { arity: [1, 1], rule: 'length', cost: 3 },
   dot: { arity: [2, 2], rule: 'dot', cost: 2 },
@@ -482,6 +487,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   texture: { arity: [1, 1], rule: 'texture', cost: 4 },
   textureArray: { arity: [2, 2], rule: 'texture', cost: 6 },
   // Explicit mip and screen gradients keep painted panoramas continuous at a wrap.
+  // Trilinear volume read; a lent Data3DTexture, coordinates in [0,1].
+  texture3D: { arity: [1, 1], rule: 'texture', cost: 4, places: MESH },
   textureLod: { arity: [2, 2], rule: 'texture', cost: 4, places: MESH },
   textureGrad: { arity: [3, 3], rule: 'texture', cost: 4, places: FRAG },
   // the constant-count loop
@@ -687,7 +694,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const types = new Map<string, GraphValueType>(); // `<scope path>/<id>` → type
   const visiting = new Set<string>();
   const textures = new Set<string>();
-  const textureDimensions = new Map<string, '2d' | 'array'>();
+  const textureDimensions = new Map<string, '2d' | 'array' | '3d'>();
   const sampled = { scene: false, depth: false, normal: false, mesh: false }; // set while typing (a post graph reads a scene input)
   const counted = new Set<string>();
   /** `<scope path>/<id>` → whether the node reads a sun input (directly, through its inputs or a loop body) */
@@ -834,16 +841,17 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       case 'texture': {
         const name = raw.param;
         if (typeof name !== 'string' || paramTypes.get(name) !== 'texture') return fail(`${at}: texture names a texture param`);
-        if (ins[0] !== 'vec2') return fail(`${at}: texture samples at a vec2`);
+        if (ins[0] !== (op === 'texture3D' ? 'vec3' : 'vec2')) return fail(`${at}: ${op} samples at a ${op === 'texture3D' ? 'vec3' : 'vec2'}`);
         if (op === 'textureLod' && ins[1] !== 'float') return fail(`${at}: textureLod needs a numeric mip`);
         if (op === 'textureGrad' && (ins[1] !== 'vec2' || ins[2] !== 'vec2')) return fail(`${at}: textureGrad needs two vec2 gradients`);
-        const dimension = op === 'textureArray' ? 'array' : '2d';
+        const dimension = op === 'textureArray' ? 'array' : op === 'texture3D' ? '3d' : '2d';
+        if (dimension === '3d' && (!isRecord(rawParams) || !isRecord(rawParams[name]) || rawParams[name].role !== 'lent')) return fail(`${at}: texture3D needs a lent texture param`);
         if (dimension === 'array') {
           const param = isRecord(rawParams) ? rawParams[name] : undefined;
           if (ins[1] !== 'float' || !isRecord(param) || param.role !== 'lent') return fail(`${at}: textureArray needs a numeric layer and a lent texture param`);
         }
         const previous = textureDimensions.get(name);
-        if (previous !== undefined && previous !== dimension) return fail(`${at}: a texture param cannot mix 2D and array samples`);
+        if (previous !== undefined && previous !== dimension) return fail(`${at}: a texture param cannot mix sample dimensions`);
         textureDimensions.set(name, dimension);
         textures.add(name);
         return 'vec4';

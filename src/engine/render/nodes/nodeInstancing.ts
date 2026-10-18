@@ -2,7 +2,7 @@
  * Their names and layout are independent of instance count and material. */
 import { BatchedMesh, InstancedMesh, ShaderChunk, type Object3D } from 'three';
 import { Node, type NodeBuilder, type NodeMaterial } from 'three/webgpu';
-import { Fn, nodeObject, normalLocal, positionLocal, subBuild, transformNormal, varyingProperty } from 'three/tsl';
+import { Fn, nodeObject, normalLocal, positionLocal, subBuild, transformNormal, varyingProperty, vec3 } from 'three/tsl';
 
 /** Reserved attributes are supplied by WebGLBindingStates from the draw object,
  * so they are deliberately independent of builder.geometry. */
@@ -32,6 +32,15 @@ export function instanceTransformNode(value: Node<'vec4'>): Node<'vec4'> {
     if (builder.object instanceof InstancedMesh) return nodeObject(new InstanceMatrixNode()).mul(value);
     if (builder.object instanceof BatchedMesh) return nodeObject(new BatchMatrixNode()).mul(value);
     return value;
+  })();
+}
+
+/** Renderer-bound instance tint. Like the matrix, it follows cull compaction. */
+export function instanceColourNode(): Node<'vec3'> {
+  return Fn((builder: NodeBuilder): Node<'vec3'> => {
+    if (builder.object instanceof InstancedMesh && builder.object.instanceColor !== null) return nodeObject(new InstanceColourNode());
+    if (builder.object instanceof BatchedMesh && batchHasColour(builder.object)) return nodeObject(new BatchColourNode()).rgb;
+    return vec3(1);
   })();
 }
 

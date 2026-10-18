@@ -28,6 +28,7 @@ import { AO_TUNING } from '../data/aoLook';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { syncArchitecture } from './facadeMaterial';
 import { BANDS } from '../runtime/looks/look';
 
 /**
@@ -37,9 +38,10 @@ import { BANDS } from '../runtime/looks/look';
  * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
  */
 const SILK_FOG = 'nine-silk-fog';
-const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks'] as const;
+const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows'] as const;
 const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
 function syncSilkFog(shared: Shared): void {
+  syncArchitecture(shared.u);
   setLentParam('nine-streaks', 'time', shared.u.uTime.value);
   setLentParam('nine-streaks', 'perf', STREAK_PERF.toArray());
   const u = shared.u, o = silkOut;
@@ -47,6 +49,7 @@ function syncSilkFog(shared: Shared): void {
   for (const id of SILK_MATERIALS) {
     if (!hasLentLook(id)) continue;
     setLentParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
+    if (id.startsWith('nine-architecture') || id.startsWith('nine-facade') || id === 'nine-windows') continue;
     setLentParam(id, 'datum', Y0);
     setLentParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / (BANDS[0]?.d ?? 1));
     setLentParam(id, 'fogBase', u.uFogBase.value);
@@ -59,7 +62,7 @@ function syncSilkFog(shared: Shared): void {
     setLentParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
     setLentParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
     setLentParam(id, 'puff', u.uPuff.value.toArray(o.puff));
-    if (id === SILK_FOG || id === 'nine-streaks') continue;
+    if (id !== 'nine-canopy-cards' && id !== 'nine-canopy-inner') continue;
     setLentParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
     setLentParam(id, 'ink0', u.uInk0.value.toArray(o.col));
     setLentParam(id, 'ink1', u.uInk1.value.toArray(o.col));

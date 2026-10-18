@@ -2,8 +2,10 @@
 // SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type ShaderMaterial, type Texture, type IUniform, Vector2, Vector3, Vector4 } from 'three';
-import { ShaderFamily, uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Material, type Texture, type IUniform } from 'three';
+import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { syncArchitecture } from './facadeMaterial';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
 import { FLAG, PAINT_GLSL } from '../runtime/looks/paint';
@@ -12,12 +14,12 @@ import { lightVolUniforms } from './light/lightvol';
 import { LIGHTVOL_GLSL } from '../runtime/looks/light';
 import { METAL, SUTRA } from '../util';
 import { fogBandWindow } from '../runtime/looks/fogBands';
-import { PROGRAMS, SHARED_UNIFORMS } from '../runtime/looks/look';
+import { SHARED_UNIFORMS } from '../runtime/looks/look';
 
 /** the splices only the shard knows (the datum, the flagstones, paint, light) */
 export const LOOK_FRAGMENTS: Readonly<Record<string, string>> = { y0: String(Y0), flagRh: FLAG.rh.toFixed(3), paint: PAINT_GLSL, lightvol: LIGHTVOL_GLSL };
 /** the family: the data's programs, with the splices only the shard knows (the datum, the flagstones, paint, light) */
-export const LOOK_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, PROGRAMS);
+
 
 const c = (hex: number): Color => new Color(hex);
 
@@ -66,15 +68,7 @@ export class Shared {
   bandWindow(): void { fogBandWindow(this.u.uBands.value, this.u.uCam.value.y, this.u.uBandWin.value); }
 }
 
-export function jiehuaMaterial(shared: Shared, opt: { alphaCut?: boolean; viewmodel?: boolean; doubleSide?: boolean } = {}): ShaderMaterial {
-  const u: Uniforms = {};
-  if (opt.viewmodel === true) {
-    u['uCam'] = { value: new Vector3() };
-    u['uFogScale'] = { value: 0 };
-    u['uLightDir'] = { value: new Vector3(0.3, 0.8, 0.5).normalize() };
-    u['uLineFade'] = { value: new Vector2(100, 200) };
-    u['uPaintK'] = { value: new Vector4(0, 1, 1, 1) }; // the weapon is not painted stone
-  }
-  const cut = opt.alphaCut === true;
-  return LOOK_FAMILY.material('jiehua', shared.u, { uniforms: u, defines: cut ? { ALPHA_CUT: '' } : {}, side: opt.doubleSide === true || cut ? 'double' : 'front' });
+export function jiehuaMaterial(shared: Shared, opt: { alphaCut?: boolean; viewmodel?: boolean; doubleSide?: boolean } = {}): Material {
+  syncArchitecture(shared.u);
+  return lentLook(opt.alphaCut === true ? 'nine-architecture-cut' : 'nine-architecture');
 }
