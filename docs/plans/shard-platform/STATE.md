@@ -6,7 +6,7 @@
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns a red gate; G496 shrink-only custom sections, attribution SHAs to the coordinator first; G498 legacy copies take crash fixes only.
 
-**Batches:** nineteenth (NM2) and twentieth (Nine signs −207, Nalati B3 −123, CI repair 387400424) landed; twentieth 9f77d61bd pushing (sp-x7). Live lag cause fixed: 023c33833's Driftwood replay 60→1000 reverted. Freeze until PUSHED. **Twenty-first order:** sp-x5 Nine B4 (−162, 28 LOD GLBs) · sp-x6 Explorer B10 (11 modules, −204) · sp-x4 Nine B7 (−221) · sp-x1 NM2 close-out (sheepdog to AS at 10 Hz, keeper wrappers deleted) · sp-x8 Nalati C9 (−127) · sp-x9 Nalati boss fights.
+**Batches:** nineteenth (NM2) and twentieth (Nine signs −207, Nalati B3 −123, CI repair 387400424) landed; twentieth 9f77d61bd pushing (sp-x7). Live lag cause fixed: 023c33833's Driftwood replay 60→1000 reverted. Freeze until PUSHED. **Twenty-first order:** sp-x6 Explorer B10 (11 modules, −204) · sp-x5 Nine B4 (−162, 28 LOD GLBs) · sp-x4 Nine B7 (−221) · sp-x1 NM2 close-out (−67; −26 since the prerequisite) · sp-x8 Nalati C9 (−127) · sp-x9 Nalati boss fights.
 
 **P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900), validated against the 9190f1569 GLSL (16 captures SSIM ≥ 0.9995). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
