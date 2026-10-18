@@ -21,7 +21,10 @@
     "data/peopleChannels.generated.json",
     "assets/world-terrain/ground.generated.glb",
     "assets/world-terrain/slab.generated.glb",
-    "assets/world-terrain/water.generated.glb"
+    "assets/world-terrain/water.generated.glb",
+    "behaviour/chapter.as",
+    "data/chapterStory.json",
+    "boot/poiPaint.json"
   ],
   "style": {
     "kind": "ground",

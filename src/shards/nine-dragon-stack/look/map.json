@@ -14,7 +14,8 @@
     "data/plumbing.json",
     "data/lightPools.json",
     "runtime/looks/light.ts",
-    "data/lantern.json"
+    "data/lantern.json",
+    "data/lightSpill.generated.json"
   ],
   "clipAbove": 153,
   "style": {

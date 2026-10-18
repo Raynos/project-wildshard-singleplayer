@@ -1,0 +1,370 @@
+{
+  "sourceTree": "cc2178c245dbfdae69cb96153dceb626d27bc87f",
+  "sourceParent": "df6bab26d474258cc2e726ec0b03d9ecb8c2bf3f",
+  "commitParent": "38e71e55a031b01352f6170c13b09bbc14f1d07a",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2557,
+  "shards": {
+    "pine-hollow": {
+      "inputHash": "1be60c084d55c1481b6923e151e2a01b3d02b9a45b1e5046522b4f29f3d3abbf",
+      "inputFiles": 291,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "1be60c084d55c1481b6923e151e2a01b3d02b9a45b1e5046522b4f29f3d3abbf",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "0d13456afcfdaa4f3866f5574e24218235f3b7da2990d89431601927d3af1f81",
+      "inputFiles": 185,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "0d13456afcfdaa4f3866f5574e24218235f3b7da2990d89431601927d3af1f81",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    },
+    "nine-dragon-stack": {
+      "inputHash": "0aa58276e9b3df5af6d07de6b508cf3e0f07a4f02a1f31ddece638f9c2a819ce",
+      "inputFiles": 156,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "0aa58276e9b3df5af6d07de6b508cf3e0f07a4f02a1f31ddece638f9c2a819ce",
+        "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+        "image": "/assets/nine-dragon-stack/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 13378
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "df6bab26d474258cc2e726ec0b03d9ecb8c2bf3f",
+    "through": "38e71e55a031b01352f6170c13b09bbc14f1d07a",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "fbd427d0a803a293a4006523380f7627abb53a11",
+      "38e71e55a031b01352f6170c13b09bbc14f1d07a"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "phoneProof": {
+    "bakeSource": "cc2178c245dbfdae69cb96153dceb626d27bc87f",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "nalati-grasslands",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 4442,
+        "entryMs": 4477,
+        "gameplayMs": 4676,
+        "framesStartMs": 4677,
+        "framesCompleteMs": 4997
+      },
+      "gameplayFrames": {
+        "initial": 2,
+        "final": 12
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 4997,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 12,
+      "drawnFrame": 12,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "nalati-grasslands",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 52,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "fd23ede6bd47a34ebd6a56f706a53dd2c4924405",
+      "owner": "sp-x6",
+      "summary": "Nalati and Nine audio rendering/effect rows",
+      "phoneReceipt": ".git/proofs/fd23ede6b-sp-x6-phone.json",
+      "mapShards": [
+        "nalati-grasslands",
+        "nine-dragon-stack"
+      ],
+      "mappedPaths": [
+        "src/shards/nalati-grasslands/generators/audio.ts",
+        "src/shards/nine-dragon-stack/generators/audio.ts"
+      ],
+      "newDirectFacts": {},
+      "sourceRulerReceipt": ".git/proofs/fd23ede6b-sp-x6-ruler.json"
+    },
+    {
+      "sha": "023c338334c83870d55f405dc15d95a5f7f710d7",
+      "owner": "sp-x9",
+      "summary": "Nalati chapter story bindings and guest script; shared quest schema regenerates mapped Pine schema",
+      "phoneReceipt": ".git/proofs/20261018T134339-sp-x9-chapter-landed-phones-47904.json",
+      "phoneReports": [
+        ".git/proofs/sp-x9-023c33833-phone.json",
+        ".git/proofs/sp-x9-023c33833-pine-phone.json"
+      ],
+      "mapShards": [
+        "nalati-grasslands",
+        "pine-hollow"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "behaviour/chapter.as",
+          "data/chapterStory.json"
+        ]
+      },
+      "indirectGeneratedMapInput": "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
+      "sourceRulerReceipt": ".git/proofs/sp-x9-023c33833-ruler.json"
+    },
+    {
+      "sha": "b29e2c1700daa5ce1fc0aa571e4647f1d109b15b",
+      "owner": "sp-x4",
+      "summary": "Nine exact final vertex spill binary sidecars",
+      "portabilityReceipt": ".git/proofs/sp-x4-b29e2c170-spill-crossarch.json",
+      "portability": {
+        "revision": "b29e2c1700daa5ce1fc0aa571e4647f1d109b15b",
+        "job": "nine-light-spill",
+        "noExternalPreload": true,
+        "metadata": "src/shards/nine-dragon-stack/data/lightSpill.generated.json",
+        "metadataSha256": "595b8512dc9ab991086c6055d29c346c029ce17605990fd900d37bd8dc7265df",
+        "runs": [
+          {
+            "arch": "arm64",
+            "version": "v24.18.1",
+            "platform": "darwin",
+            "command": [
+              "node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nine-dragon-stack/generators/bake-light-spill.mjs",
+              "--check"
+            ],
+            "exitCode": 0,
+            "metadataSha256": "595b8512dc9ab991086c6055d29c346c029ce17605990fd900d37bd8dc7265df"
+          },
+          {
+            "arch": "x64",
+            "version": "v24.18.1",
+            "platform": "darwin",
+            "command": [
+              "/Users/raynos/.local/node-x64/node-v24.18.1-darwin-x64/bin/node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nine-dragon-stack/generators/bake-light-spill.mjs",
+              "--check"
+            ],
+            "exitCode": 0,
+            "metadataSha256": "595b8512dc9ab991086c6055d29c346c029ce17605990fd900d37bd8dc7265df"
+          }
+        ]
+      },
+      "phoneVerification": {
+        "passed": true,
+        "poses": 12,
+        "minimumSSIM": 0.9998764,
+        "liveFloat32Exact": true,
+        "tiers": [
+          "phone",
+          "desktop"
+        ],
+        "dayNight": true
+      },
+      "mapShards": [
+        "nine-dragon-stack"
+      ],
+      "newDirectFacts": {
+        "nine-dragon-stack": [
+          "data/lightSpill.generated.json"
+        ]
+      },
+      "namedData": "Product-only binary sidecars; one project-side packed rendering book"
+    },
+    {
+      "sha": "f50f5fe28075e2d57c02274dfa142adb222f5930",
+      "owner": "sp-x5",
+      "summary": "Nalati fitted-rock contacts and glacier geometry baked into the paint fact book",
+      "portabilityReceipt": ".git/proofs/sp-x5-f50f5fe28-poi-crossarch.json",
+      "portability": {
+        "revision": "f50f5fe28075e2d57c02274dfa142adb222f5930",
+        "job": "nalati-poi-paint",
+        "noExternalPreload": true,
+        "metadata": "src/shards/nalati-grasslands/boot/poiPaint.json",
+        "metadataSha256": "e848ae3ebf0956ce9558bb3451e25e5f27f6bdb077ad5c472ad9a6a849111960",
+        "runs": [
+          {
+            "arch": "arm64",
+            "version": "v24.18.1",
+            "platform": "darwin",
+            "command": [
+              "node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs",
+              "--check"
+            ],
+            "exitCode": 0,
+            "metadataSha256": "e848ae3ebf0956ce9558bb3451e25e5f27f6bdb077ad5c472ad9a6a849111960"
+          },
+          {
+            "arch": "x64",
+            "version": "v24.18.1",
+            "platform": "darwin",
+            "command": [
+              "/Users/raynos/.local/node-x64/node-v24.18.1-darwin-x64/bin/node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs",
+              "--check"
+            ],
+            "exitCode": 0,
+            "metadataSha256": "e848ae3ebf0956ce9558bb3451e25e5f27f6bdb077ad5c472ad9a6a849111960"
+          }
+        ]
+      },
+      "phoneVerification": {
+        "passed": true,
+        "device": "muted iPhone 16 Pro",
+        "animals": 35,
+        "colliders": 2776,
+        "finitePosition": true,
+        "pageErrors": []
+      },
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "boot/poiPaint.json"
+        ]
+      },
+      "sourceProof": "progress/shard-platform/nalati-solid-glacier-2026-10-18/README.md"
+    },
+    {
+      "sha": "85232db588996800f40c6d67c78b669b52dfa813",
+      "owner": "sp-x7",
+      "summary": "Map-neutral Nine admitted-LUT nullable-branch lint repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nine-dragon-stack": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "pine-hollow": [],
+    "nalati-grasslands": [
+      "behaviour/chapter.as",
+      "data/chapterStory.json",
+      "boot/poiPaint.json"
+    ],
+    "nine-dragon-stack": [
+      "data/lightSpill.generated.json"
+    ]
+  }
+}
