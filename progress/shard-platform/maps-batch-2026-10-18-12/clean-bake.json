@@ -1,0 +1,315 @@
+{
+  "sourceTree": "5befef7d8e580b7f55e8c8bfe3d6b86bdcdd3253",
+  "sourceParent": "9464c7c38c6ea4d519b2524b8e27b541bb4ef5c9",
+  "commitParent": "0a8008b3c99b510f48516c43d76d767ea426692f",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2559,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "7a71671c5b5b639451396d004945000f8312d9ec48cdcea732e38035f4969be3",
+      "inputFiles": 289,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "7a71671c5b5b639451396d004945000f8312d9ec48cdcea732e38035f4969be3",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "af069b51f835f4242e7031628cb6db2540390e4d0594eb2a91c5256f4fe8a92b",
+      "inputFiles": 288,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "af069b51f835f4242e7031628cb6db2540390e4d0594eb2a91c5256f4fe8a92b",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "1a547a91937540e080c81c6161e9e74de7dba82509384cd18626d9da442e73b9",
+      "inputFiles": 159,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "1a547a91937540e080c81c6161e9e74de7dba82509384cd18626d9da442e73b9",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    },
+    "far-reach": {
+      "inputHash": "206b5b2c83edafa39c08dbeee0442e89cb151cc42abda94f6fc3a0abbd9855cd",
+      "inputFiles": 168,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "206b5b2c83edafa39c08dbeee0442e89cb151cc42abda94f6fc3a0abbd9855cd",
+        "pixelHash": "280bb9d964ac7adc95688defd60783214c6c960a2bd212f5a6a30cd2b0fd1f68",
+        "image": "/assets/far-reach/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:void",
+        "bytes": 23334
+      }
+    },
+    "sunscar-dunes": {
+      "inputHash": "4ead922721f86e36b4cee69d9de17aa0bd4374d82a3e32d89167db8dce06e1fb",
+      "inputFiles": 122,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "4ead922721f86e36b4cee69d9de17aa0bd4374d82a3e32d89167db8dce06e1fb",
+        "pixelHash": "0ac8178b0a3fa38cd2c2a852d06456764fd3d2ec1606792c7b4bbfd5e4fa33dc",
+        "image": "/assets/sunscar-dunes/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 27322
+      }
+    },
+    "nine-dragon-stack": {
+      "inputHash": "27e768b1f57943a1313118d7c0f717c2c61f4ff7e1e36cfcad16229dda6b49eb",
+      "inputFiles": 148,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "27e768b1f57943a1313118d7c0f717c2c61f4ff7e1e36cfcad16229dda6b49eb",
+        "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+        "image": "/assets/nine-dragon-stack/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 13378
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "0b2cd050353c3229ac8fc0bd134fbc2a3b59af4d",
+      "owner": "sp-x8",
+      "summary": "Declared Z2 world steps and Z10 Explorer catalogue",
+      "mapShards": [
+        "far-reach",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "pine-hollow",
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "far-reach": [
+          "manifest.json"
+        ],
+        "sunscar-dunes": [
+          "manifest.json",
+          "look/dusk.ts"
+        ]
+      }
+    },
+    {
+      "sha": "1bce5043fcadb5b1b4e7e942f769bb109c90671d",
+      "owner": "sp-x4",
+      "summary": "Z7 declared light emitters and Nine light-pool facts",
+      "mapShards": [
+        "sunscar-dunes",
+        "nine-dragon-stack"
+      ],
+      "newDirectFacts": {
+        "nine-dragon-stack": [
+          "data/lightPools.json",
+          "runtime/looks/light.ts"
+        ]
+      }
+    },
+    {
+      "sha": "0c7a6fb847c9cd10c76c3105f58c75b57aaf01a8",
+      "owner": "sp-x4",
+      "summary": "Z9 data weather fields replace Sunscar dusk module",
+      "mapShards": [
+        "sunscar-dunes"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "c5ef46054fb1c95efff6ed522d1b7904f4a87c2e",
+      "owner": "sp-x9",
+      "summary": "Map-neutral CM1 lifecycle and estimate repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "5b21ba2d3123095943045dcf4a38115fb4a0c43d",
+      "owner": "sp-x1",
+      "summary": "C4 declared monkey pose/program and Pine shelter policy",
+      "mapShards": [
+        "driftwood-isle",
+        "pine-hollow"
+      ],
+      "newDirectFacts": {
+        "pine-hollow": [
+          "behaviour/life.as"
+        ],
+        "driftwood-isle": [
+          "behaviour/returns.as"
+        ]
+      }
+    },
+    {
+      "sha": "eefc80e1ec7c5c938a83292db16f8da5b60c1f0b",
+      "owner": "sp-x5",
+      "summary": "Cargo native geometry and catalogue bake",
+      "mapShards": [
+        "driftwood-isle"
+      ],
+      "newDirectFacts": {
+        "driftwood-isle": [
+          "data/cargoScenes.generated.json",
+          "data/cargoBlobs.generated.json",
+          "data/fixedBlobs.generated.json"
+        ]
+      },
+      "portableProof": "20261018T050347-sp-x5-cargo-x64-v2-80097"
+    },
+    {
+      "sha": "9464c7c38c6ea4d519b2524b8e27b541bb4ef5c9",
+      "owner": "sp-x9",
+      "summary": "Map-neutral Pine declared budget rows C9 close",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "far-reach": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "sunscar-dunes": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nine-dragon-stack": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "behaviour/returns.as",
+      "data/cargoScenes.generated.json",
+      "data/cargoBlobs.generated.json",
+      "data/fixedBlobs.generated.json"
+    ],
+    "pine-hollow": [
+      "behaviour/life.as"
+    ],
+    "nalati-grasslands": [],
+    "far-reach": [
+      "manifest.json"
+    ],
+    "sunscar-dunes": [
+      "manifest.json"
+    ],
+    "nine-dragon-stack": [
+      "data/lightPools.json",
+      "runtime/looks/light.ts"
+    ]
+  }
+}

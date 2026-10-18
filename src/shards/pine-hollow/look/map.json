@@ -106,6 +106,7 @@
     "data/hollowLog.json",
     "data/cabinScenes.generated.json",
     "data/cabinLivingScenes.generated.json",
-    "data/skyLook.json"
+    "data/skyLook.json",
+    "behaviour/life.as"
   ]
 }

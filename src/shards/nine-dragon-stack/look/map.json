@@ -11,7 +11,9 @@
     "data/layoutPlan.ts",
     "data/specimenDims.ts",
     "data/weaponLooks.ts",
-    "data/plumbing.json"
+    "data/plumbing.json",
+    "data/lightPools.json",
+    "runtime/looks/light.ts"
   ],
   "clipAbove": 153,
   "style": {
