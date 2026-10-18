@@ -807,6 +807,12 @@ rAF timestamp measures polling timing; neither substitutes for the delivered dra
 
 `beginLoading({id, name, trace?})` from `@wildshard/engine/ui/Loading` adopts the first-HTML panel before product hydration. Repeating it for the same active identity returns the same panel and clock. `Loading.paintAdmission({phase, detail, bytesRead, bytesTotal, filesDone, filesTotal})` shows actual pre-plan work; an unknown total stays explicit. `waiting(detail)` identifies module or service waits. The session then hands its ordinary plan to that instance with `paint(view)`, preserving verified admission bytes and reaching 100 only at plan completion. The first HTML reads the title-arrival display name without consuming its one-shot navigation intent.
 
+`freshPageArrival(at, now?, startedAt?)` in `@wildshard/engine/boot/titleArrival`
+checks one-shot entry intent against the receiving document's start before cold modules
+or admission can consume its 60-second navigation window. Title, grid and travel
+handoffs still reset on their first read, reject future timestamps and refuse a new
+navigation starting after expiry. Explicit clocks support deterministic tests.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

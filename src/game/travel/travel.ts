@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { markUnload } from '@wildshard/engine/boot/lastEnd';
-import { setTitleArrival } from '@wildshard/engine/boot/titleArrival';
+import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
 import { chunkUrl, findShard } from '../shard/registry';
 import { shards } from '../shard/list';
@@ -48,8 +48,7 @@ export function travelService(ports: TravelPorts): { travel: (request: TravelReq
       const handoff = ports.slot.read();
       ports.slot.reset();
       if (handoff === null || handoff.to !== to) return null;
-      const age = ports.now() - handoff.at;
-      return age >= 0 && age <= 60_000 ? handoff : null;
+      return freshPageArrival(handoff.at, ports.now()) ? handoff : null;
     },
   };
 }

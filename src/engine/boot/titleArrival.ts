@@ -9,6 +9,14 @@ const MAX_AGE_MS = 60_000;
 
 interface StoredArrival extends TitleArrival { at: number; name?: string }
 
+/** A one-shot handoff must be fresh when this document arrives, before cold
+ * modules or world admission run. Later reloads still use their own start.
+ * Explicit clocks keep expiry and delayed-consumption checks deterministic. */
+export function freshPageArrival(at: number, now = Date.now(), startedAt = typeof window === 'undefined' ? now : performance.timeOrigin): boolean {
+  if (![at, now, startedAt].every(Number.isFinite) || at > now || startedAt > now) return false;
+  return now - at <= MAX_AGE_MS || (startedAt >= at && startedAt - at <= MAX_AGE_MS);
+}
+
 function valid(raw: string | null, slug: string): TitleArrival | null {
   if (raw === null) return null;
   try {
@@ -16,7 +24,7 @@ function valid(raw: string | null, slug: string): TitleArrival | null {
     if (typeof value !== 'object' || value === null) return null;
     const candidate = value as Partial<StoredArrival>;
     if (![slug].includes(candidate.slug ?? '') || (candidate.mode !== 'enter' && candidate.mode !== 'explore' && candidate.mode !== 'arena')) return null;
-    if (typeof candidate.at !== 'number' || !Number.isFinite(candidate.at) || Date.now() - candidate.at < 0 || Date.now() - candidate.at > MAX_AGE_MS) return null;
+    if (typeof candidate.at !== 'number' || !freshPageArrival(candidate.at)) return null;
     return { slug, mode: candidate.mode };
   } catch { return null; }
 }
