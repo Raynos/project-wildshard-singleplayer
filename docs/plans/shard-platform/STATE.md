@@ -1,4 +1,4 @@
-# SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
+# SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
 **W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,004 (target 4,261), DW 3,289 (target 3,433), Sky 375, Signal 339 after x8 Z2/Z10 0b2cd0503. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
 
