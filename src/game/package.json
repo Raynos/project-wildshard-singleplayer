@@ -193,7 +193,8 @@
     "./looks/toonLook": "./looks/toonLook.ts",
     "./quest/effects": "./quest/effects.ts",
     "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
-    "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts"
+    "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts",
+    "./shardfile/worldSceneSurface": "./shardfile/worldSceneSurface.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

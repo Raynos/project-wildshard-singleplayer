@@ -28,19 +28,13 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import * as THREE from 'three';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { floorAtRects } from '@wildshard/engine/physics/box';
-import type { ModelDef } from '@wildshard/engine/models/model';
+import { type FloorRect, floorAtRects } from '@wildshard/engine/physics/box';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
+import { type ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins } from './homestead';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
-import { pineModels } from './context';
-import { loadTimber, type Floor } from './timber';
-import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { timberLandmark } from '../models/fireLookout';
-import { zipCable } from '../models/zipCable';
 import { loadCodeParts } from './codeParts';
 import { CaveInterior } from '../kit/caveInterior';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -72,7 +66,7 @@ export class PineLandmarks {
   /** the timber models' colliders, then the props' (world space: the navmesh bake reads them) */
   readonly timberColliders: ColliderDesc[] = [];
   readonly propColliders: ColliderDesc[] = [];
-  private floors: Floor[] = [];
+  private floors: FloorRect[] = [];
   private lit: Record<WaystoneId, { lit: boolean }> = { pond: { lit: true }, ridge: { lit: true }, den: { lit: true } };
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
   private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
@@ -89,30 +83,20 @@ export class PineLandmarks {
    * `registry`: where the placed models register (null: only built, and drawn under `group`). The crags stand where their
    * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
-  async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
+  async build(cabins: Cabins | null): Promise<this> {
     const cave = CaveInterior.load(); // the kit + the cave + their textures, fetched while the timber builds
-    const ctx = pineModels(this.sky);
-    await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx), loadCodeParts()]);
-    const batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.timberColliders });
-    const placeTimber = async <P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors): Promise<void> => {
-      const mine: readonly Floor[] = authored.landmarks.timberFloors[id];
-      await batch.frames(model, [frame], params, { draw: 'single', piece: { id, solidFloor: true, floor: (x, z) => floorAtRects(mine, x, z, 'highest') } });
-      this.floors.push(...mine);
-    };
-    // the timber landmarks (models), one task each, at the frames their world-space builders used
-    const lookoutAt = lookoutSite();
-    await placeTimber(timberLandmark('fire-lookout'), lookoutAt, undefined, 'pine-lookout');
+    await loadCodeParts(); // the retained cave roof still borrows its native collider part
+    this.timberColliders.push(...(await this.scenes.place('timbers.fire-lookout')).colliders);
+    this.floors.push(...authored.landmarks.timberFloors['pine-lookout']);
     await macrotask();
-    const landingAt = landingSite().at, atSite = { site: 'world' } as const;
-    await placeTimber(timberLandmark('zipline-landing'), landingAt, atSite, 'pine-zip-landing');
-    const zip=authored.landmarks.zip;
-    this.zip={top:new THREE.Vector3(...zip.top),bottom:new THREE.Vector3(...zip.bottom),launch:new THREE.Vector3(...zip.launch),landing:new THREE.Vector3(...zip.landing)};
-    // the steel cable between the two gantries (baked between the same anchors, ../generators/codeParts.ts)
-    const { top } = this.zip;
-    await batch.place(zipCable, [{ x: top.x, y: top.y, z: top.z }], { draw: 'single', piece: { id: 'pine-zip-cable' } });
+    this.timberColliders.push(...(await this.scenes.place('timbers.zipline-landing')).colliders);
+    this.floors.push(...authored.landmarks.timberFloors['pine-zip-landing']);
+    const zip = authored.landmarks.zip;
+    this.zip = { top: new THREE.Vector3(...zip.top), bottom: new THREE.Vector3(...zip.bottom), launch: new THREE.Vector3(...zip.launch), landing: new THREE.Vector3(...zip.landing) };
+    this.timberColliders.push(...(await this.scenes.place('timbers.zip-cable')).colliders);
     await macrotask();
-    const bridge = bridgeSite();
-    await placeTimber(timberLandmark('creek-footbridge'), bridge.at, atSite, 'pine-footbridge');
+    this.timberColliders.push(...(await this.scenes.place('timbers.creek-footbridge')).colliders);
+    this.floors.push(...authored.landmarks.timberFloors['pine-footbridge']);
     await macrotask();
     this.crags = { cave: await cave };
     await this.buildProps(cabins);
@@ -193,7 +177,7 @@ export class PineLandmarks {
  * buildings are not here: `new Cabins(sky, game.scene)` assembles them with the cabins from the bake (../generators/logCabin.ts).
  */
 export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; scenes: SceneHandles; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins, h.registry);
+  const lm = await new PineLandmarks(h.sky, h.scenes).build(h.cabins);
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/runtime/world/landmarks.ts', object: lm.group });
   // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it

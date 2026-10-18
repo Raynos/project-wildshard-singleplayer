@@ -1,9 +1,11 @@
+import { prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from '@wildshard/game/shardfile/worldSceneSurface';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
 import { memoUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
+import { loadGLTF } from '@wildshard/engine/core/assets';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
@@ -13,11 +15,10 @@ import { BakedBuildingLookSchema, BuildingLifeLookSchema, emptyBuildingLifeRows,
 import type { SiteLightState } from '@wildshard/engine/fx/SiteLights';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { pineSetCap } from '../debug/options';
 import { productCoverAppearance } from '@wildshard/game/looks/coverAppearance';
 import * as v from 'valibot';
 import { loadFirstPartyProduct, slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { lentLook, lentMappedLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind, type BakedBuilding } from '../../world/logKit';
 import { pineModels } from './context';
@@ -91,39 +92,27 @@ export async function loadCabinRows(): Promise<CabinRows> {
 
 const matsCache = new WeakMap<Sky, Promise<Mats>>();
 /** the cabins' PBR materials, loaded once per sky and shared (PH-B3: the landmarks build with the same set — no new programs) */
-export function cabinMats(sky: Sky): Promise<Mats> {
-  return memoUntilDisposed(matsCache, sky, () => loadMats(sky));
+export function cabinMats(sky: Sky, resources?: SceneHandles): Promise<Mats> {
+  return memoUntilDisposed(matsCache, sky, () => loadMats(sky, resources));
 }
 
-async function loadMats(sky: Sky): Promise<Mats> {
-  const { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS, HEARTH_LOOKS, CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE } = await loadCabinRows();
-  const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
+async function loadMats(sky: Sky, resources?: SceneHandles): Promise<Mats> {
+  const owner = resourceScope();
+  const { HEARTH_LOOKS } = await loadCabinRows();
   const product = await loadFirstPartyProduct('pine-hollow'), appearance = await productCoverAppearance(product, 'look/cover-appearance.json');
-  const [endGrain, glow] = await Promise.all([appearance.texture(product, 'endGrain'), appearance.texture(product, 'glow')]);
-  const scans = new Map(await Promise.all(CABIN_PBR.map(async row => [row.key, pbrMaterial(await loadPBR(row.scan, 1, cap), {
-    metalness: 0, color: new THREE.Color(...row.color), normalScale: new THREE.Vector2(...row.normal),
-  })] as const)));
-  const scan = (key: typeof CABIN_PBR[number]['key']): THREE.MeshStandardMaterial => {
-    const material = scans.get(key); if (material === undefined) throw new Error(`Missing cabin material ${key}`); return material;
-  };
-  const m: Mats = {
-    log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: endGrain }),
-    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: lentMappedLook(CABIN_MOSS_LOOKS.roof, scan('roof')), beam: scan('beam'), deck: scan('deck'),
-    door: lentMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../../generators/cabinLook.ts)
-    stone: lentMappedLook(CABIN_MOSS_LOOKS.stone, scan('stone')), // the roof and the stone mossed over their scans' maps (../../generators/cabinLook.ts)
-    glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
-    iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
-    smoke: lentLook(HEARTH_LOOKS.smoke), flame: lentLook(HEARTH_LOOKS.flame), ember: lentLook(HEARTH_LOOKS.ember),
-    glow: new THREE.MeshBasicMaterial({ map: glow, color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
-  };
-  // the moss graphs light their scans' normal maps themselves (their authored shading normal replaces the borrowed one)
-  for (const key of ['roof', 'stone'] as const) {
-    const normal = scan(key).normalMap;
-    if (normal === null) throw new Error(`Cabin scan ${key} has no normal map`);
-    setLentTexture(CABIN_MOSS_LOOKS[key], 'normalMap', normal);
+  const surfaces = new Map<string, THREE.Material>();
+  if (resources === undefined) {
+    const rows = product.section('world/scenes').materials.filter(row => row.kind === 'surface');
+    await prepareWorldSceneSurfaces(rows, sky, product, owner);
+    await rows.reduce(async (pending, row) => { await pending; surfaces.set(row.id, await worldSceneSurfaceMaterial(row, sky, product, owner)); }, Promise.resolve());
   }
-  for (const k of ['log', 'endGrain', 'chink', 'beam', 'deck', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
-  return m;
+  const material = (key: string): THREE.Material => { const value = resources?.material(`materials.timber.${key}`) ?? surfaces.get(`timber.${key}`); if (value === undefined) throw new Error(`Missing cabin surface: ${key}`); return value; };
+  const standard = (key: string): THREE.MeshStandardMaterial => { const value = material(key); if (!(value instanceof THREE.MeshStandardMaterial)) throw new Error(`Expected standard cabin surface: ${key}`); return value; };
+  const glow = await appearance.texture(product, 'glow');
+  return { log: standard('log'), endGrain: standard('endGrain'), chink: standard('chink'), roof: material('roof'), beam: standard('beam'), deck: standard('deck'),
+    door: material('door'), stone: material('stone'), glass: standard('glass'), bark: standard('bark'), iron: standard('iron'), cloth: standard('cloth'), char: standard('char'),
+    smoke: lentLook(HEARTH_LOOKS.smoke), flame: lentLook(HEARTH_LOOKS.flame), ember: lentLook(HEARTH_LOOKS.ember),
+    glow: new THREE.MeshBasicMaterial({ map: glow, color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }) };
 }
 
 /** the phone's pooled cabin lights (PH-L3): at most this many */
@@ -220,7 +209,7 @@ export class Cabins {
   async build(): Promise<{ group: THREE.Group; interactables: Interactable[] }> {
     const { CABIN_LIGHT } = this.rows;
     // the seven PBR sets, the six models and the bake in one round of fetches
-    const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
+    const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky, this.resources), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadRigFile('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadRigFile('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadRigFile('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadRigFile('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
     ]), loadCabinBake(pineModels(this.sky))]);
     const props: Record<PropKind, PropPart[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };

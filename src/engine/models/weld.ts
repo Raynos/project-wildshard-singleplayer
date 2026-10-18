@@ -45,7 +45,7 @@ function bound(geometry: THREE.BufferGeometry, bounds: 'sphere' | 'both' = 'sphe
 // ── depth-only casters (SHADOW_LAYER) ──
 
 /** never drawn in a view (SHADOW_LAYER), only its depth: front-sided like the materials it stands in for */
-const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
+export const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
 
 /** position-only merged caster on SHADOW_LAYER (drawn into the sun's shadow maps and nowhere else); null for an empty list */
 export function shadowProxy(list: THREE.BufferGeometry[]): THREE.Mesh | null {

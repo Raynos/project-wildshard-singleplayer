@@ -5,6 +5,7 @@ import rows from '../src/shards/pine-hollow/data/props.json' with { type: 'json'
 import baked from '../src/shards/pine-hollow/data/propScenes.generated.json' with { type: 'json' };
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 
 test('admitted scene rows retain every scatter copy and native Float32 upload', () => {
   const file = output.namedFiles.find(row => row.name === 'models/world-scenes.json');
@@ -26,4 +27,14 @@ test('admitted scene rows retain every scatter copy and native Float32 upload', 
   const placed = SCENE_PLACEMENTS[0]; if (placed === undefined) throw new Error('Missing authored placement');
   expect(() => parseWorldScenes({ ...MODEL_SCENES, placements: [{ ...placed, poses: [{ x: 0, y: 0, z: 0, matrix: [1] }] }] })).toThrow();
   expect(() => parseWorldScenes({ ...MODEL_SCENES, placements: [{ ...placed, callback: () => undefined }] })).toThrow();
+});
+
+test('built scene libraries retain every logical reference after hash deduplication', async () => {
+  const product = await loadHeadlessProduct('out/pine-hollow'), scenes = product.section('world/scenes');
+  for (const library of scenes.libraries) if (library.kind === 'owned') for (const model of library.models) {
+    expect(product.hasFile(model.file), `${library.id}/${model.id}: ${model.file}`).toBe(true);
+  }
+  const timber = scenes.libraries.find(row => row.id === 'timbers');
+  if (timber?.kind !== 'owned') throw new Error('Missing timber library');
+  expect(timber.models).toHaveLength(26); expect(new Set(timber.models.map(row => row.id)).size).toBe(26);
 });

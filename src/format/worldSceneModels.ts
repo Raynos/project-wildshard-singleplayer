@@ -10,15 +10,18 @@ const params = v.record(id, v.unknown());
 const box = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), rot: finite, yTop: finite, yBottom: finite });
 const floor = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), y: finite, rot: v.exactOptional(finite), slope: v.exactOptional(finite), tilt: v.exactOptional(finite) });
 const site = v.strictObject({ piece: v.exactOptional(id), origin: point, colliders: list(box, 2048), floors: list(floor, 4096), anchors: v.record(id, v.strictObject({ ...point.entries, yaw: finite })) });
-const draw = v.strictObject({ id, library: id, model: id, material: id, castShadow: v.optional(v.boolean(), false), receiveShadow: v.optional(v.boolean(), false), renderOrder: v.optional(finite, 0),
-  until: v.exactOptional(v.pipe(finite, v.minValue(0))), sphere: v.exactOptional(v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))])) });
 const distance = v.pipe(finite, v.minValue(0));
 const band = v.union([distance, v.strictObject({ phone: distance, desktop: distance })]);
+const knob = v.pipe(id, v.regex(/^[a-z][a-z0-9-]*(?:\.[a-z][a-zA-Z0-9-]*)+$/u));
+const drawDistance = v.union([band, v.strictObject({ knob, multiply: v.optional(distance, 1), add: v.optional(distance, 0) })]);
+const flag = v.union([v.boolean(), v.strictObject({ phone: v.boolean(), desktop: v.boolean() }), v.strictObject({ knob })]);
+const draw = v.strictObject({ id, library: id, model: id, material: id, castShadow: v.optional(flag, false), receiveShadow: v.optional(v.boolean(), false), renderOrder: v.optional(finite, 0),
+  until: v.exactOptional(drawDistance), depthOnly: v.exactOptional(v.boolean()), sphere: v.exactOptional(v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))])) });
 const levelSchema = v.strictObject({ from: band, draws: list(draw, 64) });
 const distanceAt = (value: v.InferOutput<typeof band> | undefined, tier: 'phone' | 'desktop'): number => value === undefined ? Infinity : typeof value === 'number' ? value : value[tier];
 const choice = v.strictObject({ id, params, size: v.tuple([finite, finite, finite]), draws: list(draw, 64), lods: v.optional(list(levelSchema, 8), []), colliders: list(v.unknown(), 2048), site: v.exactOptional(site) });
 const model = v.strictObject({ key: id, id, name: id, file: id, category: v.picklist(['buildings', 'nature', 'props', 'gear']), pipeline: v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']), surface: v.exactOptional(surface), defaults: params,
-  variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts']), 'weld'), choices: list(choice, 128) });
+  variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts', 'objects']), 'weld'), choices: list(choice, 128) });
 /** Static model recipes over Z2's product libraries and material slots. No executable ports. */
 export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene model recipes require plain JSON'),
   v.strictObject({ product: v.pipe(id, v.regex(/^[a-z_][a-z0-9_-]{0,63}$/u)), models: list(model, 128) }),
@@ -27,6 +30,7 @@ export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'S
       && entry.choices.every(value => [value.draws, ...value.lods.map(level => level.draws)].every(parts => new Set(parts.map(part => part.id)).size === parts.length)
         && value.lods.every((level, i) => (['phone', 'desktop'] as const).every(tier => distanceAt(level.from, tier) === distanceAt(entry.choices[0]?.lods[i]?.from, tier)
           && (i === 0 || distanceAt(level.from, tier) > distanceAt(value.lods[i - 1]?.from, tier))))
-        && value.lods.length === entry.choices[0]?.lods.length && (entry.assembly === 'parts' || value.lods.length === 0))), 'Unique scene model and choice identities with ordered shared LOD bands'));
+        && value.lods.length === entry.choices[0]?.lods.length && (entry.assembly === 'parts' || value.lods.length === 0)
+        && value.draws.every(part => part.depthOnly !== true || entry.assembly === 'objects'))), 'Unique scene model and choice identities with ordered shared LOD bands'));
 export type WorldSceneModels = v.InferOutput<typeof WorldSceneModelsSchema>;
 export function parseWorldSceneModels(input: unknown): WorldSceneModels { return v.parse(WorldSceneModelsSchema, input); }

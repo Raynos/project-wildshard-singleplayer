@@ -1,4 +1,5 @@
 import { Matrix4, type Material } from 'three';
+import { floorAtRects } from '@wildshard/engine/physics/box';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -51,13 +52,17 @@ export class WorldScenePlacement {
     const placed = withOwner(this.owner, () => place(preplaced === undefined ? definition : { ...definition, colliders: () => [] },
       row.poses.map(authored => {
         if ('matrix' in authored) return { ...authored, matrix: new Matrix4().fromArray(authored.matrix) };
-        const { yxz, ...pose } = authored; return { ...pose, matrix: modelPoseMatrix({ ...pose, ...yxz }) };
+        const { yxz, ...pose } = authored; const { yawAtan2, ...rotation } = yxz;
+        const yaw = yawAtan2 === undefined ? rotation.yaw : Math.atan2(yawAtan2[0], yawAtan2[1]);
+        return { ...pose, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
       }),
       { ctx: sharedModelContext(world.sky, world.game), registry: this.ctx.app.registry, draw: row.draw,
         ...(this.batch === undefined ? {} : { batch: this.batch.reserve() }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
         ...(row.piece === undefined && preplaced === undefined ? {} : { piece: { ...(row.piece === undefined ? {} : { id: row.piece.id }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
           ...(preplaced === undefined ? {} : { colliders: preplaced }),
+          ...(row.piece?.solidFloor === undefined ? {} : { solidFloor: row.piece.solidFloor }),
+          ...(row.piece?.floors === undefined ? {} : { floor: (x: number, z: number) => floorAtRects(row.piece?.floors ?? [], x, z, row.piece?.floorPolicy ?? 'first') }),
           ...(row.piece?.split === undefined ? {} : { split: { every: row.piece.split, yieldTask: () => buildYield(this.owner) } }) } }) }));
     await placed.registered;
     await buildYield(this.owner);

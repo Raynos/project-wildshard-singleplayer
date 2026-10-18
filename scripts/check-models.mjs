@@ -248,7 +248,6 @@ const MODEL_RELOCATIONS = new Map([
   ['pine-hollow', 'runtime/models/caveArch.ts', 'caveArch.ts'],
   ['pine-hollow', 'runtime/models/fallenLog.ts', 'fallenLog.ts'],
   ['pine-hollow', 'runtime/models/fern.ts', 'fern.ts'],
-  ['pine-hollow', 'runtime/models/fireLookout.ts', 'fireLookout.ts'],
   ['pine-hollow', 'runtime/models/forestTree.ts', 'forestTree.ts'],
   ['pine-hollow', 'runtime/models/hollowLog.ts', 'hollowLog.ts'],
   ['pine-hollow', 'runtime/models/logCabin.ts', 'logCabin.ts'],
@@ -257,7 +256,6 @@ const MODEL_RELOCATIONS = new Map([
   ['pine-hollow', 'runtime/models/treeStump.ts', 'treeStump.ts'],
   ['pine-hollow', 'runtime/models/waystone.ts', 'waystone.ts'],
   ['pine-hollow', 'runtime/models/woodenCrate.ts', 'woodenCrate.ts'],
-  ['pine-hollow', 'runtime/models/zipCable.ts', 'zipCable.ts'],
   ['driftwood-isle', 'generators/trailsideModels.ts', 'trailside.ts'],
   ['pine-hollow', 'roster.ts', 'creatures.ts'],
 ].map(([slug, source, name]) => [`src/shards/${slug}/${source}`, `src/shards/${slug}/models/${name}`]));

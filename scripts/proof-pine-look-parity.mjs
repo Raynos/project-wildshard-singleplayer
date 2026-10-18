@@ -15,6 +15,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
+import { shaderCodeSources } from './parity/shader-code.mjs';
 import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
 import { developerSettings, harnessPins } from './debug-settings.mjs';
 
@@ -33,6 +34,8 @@ const compare = arg('compare');
 if (compare !== undefined) {
   const [a, b] = compare.split(',').map(path => JSON.parse(readFileSync(path, 'utf8')));
   const diffs = [];
+  if (a.rows.length !== b.rows.length) diffs.push('Native sample counts differ');
+  for (const sample of [a, b]) for (const row of sample.rows) if (row.calls <= 0 || row.triangles <= 0 || row.lit <= 0) diffs.push(`Empty native sample: ${row.tier}/${row.pose}`);
   if ((a.phase ?? 'midday') !== (b.phase ?? 'midday')) diffs.push('Day/night capture phase differs');
   for (const [i, row] of a.rows.entries()) {
     const other = b.rows[i];
@@ -49,7 +52,10 @@ if (compare !== undefined) {
       } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
-  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaderCount', 'shaders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) {
+    if (key === 'shaders' && a.tiers[tier].shaderCode !== undefined && a.tiers[tier].shaderCode === b.tiers[tier]?.shaderCode) console.log(`${tier}: raw shader labels differ; executable sources are byte-exact`);
+    else diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  }
   console.log(diffs.length === 0 ? `pine-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -84,8 +90,10 @@ try {
     await page.goto(new URL(`/?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0&tier=${tier}`, url).href, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => {
       const w = window.__wildshard?.world;
-      return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
+      return document.querySelector('.ws-load-error') !== null || (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
     }, undefined, { timeout: 400000, polling: 1000 });
+    const refusal = await page.evaluate(() => document.querySelector('.ws-load-error')?.textContent ?? null);
+    if (refusal !== null) throw new Error(`Native boot refused: ${refusal}`);
     await sleep(4000);
     tiers[tier] = await page.evaluate(() => {
       const w = window.__wildshard.world, pieces = w.game.app.registry.pieceList();
@@ -143,6 +151,7 @@ try {
     // one staged frame per creature kind (scripts/look-parity-creatures.mjs): the bodies' geometry, skin, maps and materials
     for (const kind of await page.evaluate(creatureKinds)) {
       const shot = await page.evaluate(creatureShot, kind);
+      if (shot.calls <= 0 || shot.triangles <= 0 || shot.lit <= 0) throw new Error(`Empty native creature sample: ${tier}/${kind}`);
       const row = { tier, pose: `creature:${kind}`, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-creature-${kind}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
@@ -153,6 +162,7 @@ try {
     const sources = await page.evaluate(() => [...window.__slpShaders].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
     tiers[tier].shaderCount = sources.length;
     tiers[tier].shaders = sha(sources.join('\u0000'));
+    tiers[tier].shaderCode = sha(shaderCodeSources(sources).join('\u0000'));
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);

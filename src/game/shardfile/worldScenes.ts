@@ -2,6 +2,7 @@ import { SceneHandles } from './sceneHandles';
 import { type BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from './worldSceneSurface';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
@@ -58,10 +59,11 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   };
   // Admission precedes geometry/material allocation, including both cube variants.
   for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.map(model => model.file) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
-  for (const row of section.materials) if (row.kind === 'look') {
-    if (product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
-    if (row.over !== undefined) reference(row.over, true);
+  for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
+    if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
+    if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
   }
+  for (const row of section.materials) if (row.kind === 'surface') await admitWorldSceneSurface(row, product);
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
   if (section.catalogue !== undefined) {
     requireFile(section.catalogue);
@@ -158,14 +160,22 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       await buildYield(owner);
     }
-    const missing = section.materials.flatMap(row => row.kind === 'look' && !hasLentLook(row.look) ? [row.look] : []);
+    const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined && !hasLentLook(row.look) ? [row.look] : []);
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
+    const surfaces = section.materials.filter(row => row.kind === 'surface');
+    if (surfaces.length > 0) {
+      const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
+      await prepareWorldSceneSurfaces(surfaces, sky, product, owner);
+    }
     for (const row of section.materials) {
       if (row.kind === 'source' && row.load === 'placement') continue;
       const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
       if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
       let material: Material;
-      if (row.kind === 'source') {
+      if (row.kind === 'surface') {
+        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
+        material = await worldSceneSurfaceMaterial(row, sky, product, owner);
+      } else if (row.kind === 'source') {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
         material = await worldSceneSourceMaterial(row, sky, owner);
       } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
@@ -205,7 +215,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         if (geometry === undefined || geometry === null) throw new Error('Missing model catalogue source');
         geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); });
       }
-      bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials }, owner);
+      bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing }, owner);
       const definitions = defineWorldSceneCatalogue(catalogue);
       for (const row of placements) {
         const model = catalogue.models.find(entry => entry.key === row.model);

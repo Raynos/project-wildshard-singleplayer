@@ -129,5 +129,9 @@
   "test/declared-input-platform.test.ts": [],
   "test/driftwood-shore-boulders.test.ts": [
     "driftwood-isle"
+  ],
+  "test/world-scene-baked-model.test.ts": [],
+  "test/pine-prop-product.test.ts": [
+    "pine-hollow"
   ]
 }

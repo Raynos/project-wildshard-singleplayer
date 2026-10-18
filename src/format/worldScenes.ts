@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { WorldSceneSurfaceSchema } from './worldSceneSurface';
 import { isJsonData } from './json';
 import { WorldSceneBindingsSchema } from './clientChannels';
 import { WorldScenePlacementSchema } from './worldScenePlacement';
@@ -14,7 +15,7 @@ const library = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, file: id, attributes: v.optional(strings, {}) }), 128) }),
   v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
-const material = v.variant('kind', [
+const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),
     anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1) }),
   v.strictObject({ id, kind: v.literal('lowpoly'), variant: id, properties: v.optional(v.strictObject({ flatShading: v.exactOptional(v.boolean()), roughness: v.exactOptional(finite) }), {}) }),

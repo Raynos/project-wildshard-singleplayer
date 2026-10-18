@@ -188,7 +188,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
   // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
   const rangerRoot = h.cabins?.roots[0];
-  const shelf = rangerRoot ? placeTokenShelf(sky, rangerRoot, h.registry) : null;
+  const shelf = rangerRoot && h.cabins ? await placeTokenShelf(h.cabins.resources) : null;
   if (shelf) {
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
     ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });

@@ -1,6 +1,8 @@
 import { BatchedMesh, Matrix4, type BufferGeometry, type Camera, type Material } from 'three';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { WorldSceneBatchRow } from '@wildshard/format/worldSceneBatch';
 
 /** Client-only reserved batch. Named model calls fill it first; finish appends fixed geometry in authored order. */
@@ -15,11 +17,12 @@ export class WorldSceneBatch {
     if (this.owner.disposed) throw new Error('World scene batch owner is disposed');
     if (this.value !== undefined) return this.value;
     const row = this.row, capacity = row.capacity;
-    const mesh = new BatchedMesh(capacity.instances, capacity.vertices, capacity.indices, this.material);
+    const mesh = withOwner(this.owner, () => new BatchedMesh(capacity.instances, capacity.vertices, capacity.indices, this.material));
     mesh.name = row.name; mesh.sortObjects = row.sortObjects; mesh.perObjectFrustumCulled = row.perObjectFrustumCulled;
     mesh.castShadow = row.castShadow; mesh.receiveShadow = row.receiveShadow;
     this.value = mesh;
-    this.owner.onDispose(() => { mesh.removeFromParent(); mesh.dispose(); });
+    ownSceneResource(mesh, this.owner);
+    this.owner.onDispose(() => { mesh.removeFromParent(); });
     return mesh;
   }
 

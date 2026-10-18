@@ -9461,6 +9461,39 @@ A placement pose declares either its exact `matrix` or a `yxz` row containing
 existing native `modelPoseMatrix` owner, preserving browser transform and
 collider operation order without portable-math copies or executable data.
 
+### Baked objects and original surfaces
+
+A catalogue model may declare `assembly: 'objects'` for a completed offline
+weld. Draw order is retained; `depthOnly: true` places a baked caster on the
+engine shadow layer with its shared proxy material. Draw `until` and
+`castShadow` accept a scalar or `{phone, desktop}` row. A draw may instead
+reference a declared plumbing `knob`: distance adds bounded `multiply` and
+`add` values; shadow flags read a boolean knob. These resolve when a model
+builds, retaining level overrides. Objects have no extra
+LOD levels; ordinary `parts` models retain the shared LOD contract.
+
+A placement's `piece` may declare world-space `floors`, `floorPolicy`
+(`first` or `highest`) and `solidFloor`. Authored `yxz.yawAtan2` operands
+preserve the native browser's turn when offline and browser trigonometry
+round differently. They override only the yaw in that authored pose.
+
+The `surface` material row builds an original standard material or a named
+PBR scan, optionally mapped through a declared graph. Its bounded properties
+retain linear colour vectors, normal scale and ordinary material flags.
+`map` borrows a product appearance image by file/id; `lookTextures` binds
+named original map slots into the graph. Texture caps are optional tier rows; a cell profile may lower the cap
+only at or below its authored native threshold. Appearance file, texture id
+and image references are admitted before scene allocation. Construction is
+shared per sky, immutable product files and complete row; living parts, world
+copies and Explorer specimens borrow one material. Each borrowing scope
+retains a lease; the last scope disposes the original and evicts the cache.
+Scan bases prepare together so equal sources retain shared texture uploads;
+final materials then publish in declared row order, including graph mapping.
+`game/shardfile/worldSceneSurface` is client presentation;
+its `prepareWorldSceneSurfaces`, `worldSceneSurfaceMaterial` and
+`admitWorldSceneSurface` take rows and product data; no shard callback enters
+its API.
+
 ## Contract boards (G473, G474)
 
 `format/contracts` admits finite offer rows, match rules, weighted draw bands,

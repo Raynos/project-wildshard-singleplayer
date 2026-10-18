@@ -2,7 +2,12 @@ import { type BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, Mes
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { TIER } from '@wildshard/engine/core/tier';
+import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
+import { shadowProxyMaterial } from '@wildshard/engine/models/weld';
+import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from '../shardfile/worldSceneSurface';
+import { buildTier, TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
+import type { PlumbingData } from '@wildshard/format/plumbing';
+import { plumbingKnob } from '../shard/declaredPlumbing';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
@@ -21,9 +26,15 @@ interface Sources {
   readonly catalogue: WorldSceneModels;
   readonly geometries: ReadonlyMap<string, BufferGeometry>;
   readonly materials: ReadonlyMap<string, Material>;
+  readonly plumbing?: PlumbingData | null;
 }
 interface State { value?: Sources; pending?: Promise<Sources> }
 const state = (ctx: ModelContext, product: string): State => ctx.once(`world-scenes/models/${product}`, () => ({}));
+type Draw = WorldSceneModels['models'][number]['choices'][number]['draws'][number];
+const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefined): number => typeof value === 'number' ? value
+  : 'knob' in value ? plumbingKnob(source?.plumbing, buildTier(), value.knob, 'number', TIER_CONFIG) * value.multiply + value.add : value[buildTier()];
+const tierFlag = (value: Draw['castShadow'], source: Sources | undefined): boolean => typeof value === 'boolean' ? value
+  : 'knob' in value ? plumbingKnob(source?.plumbing, buildTier(), value.knob, 'boolean', TIER_CONFIG) : value[buildTier()];
 const surfaces = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] as const;
 const requireLive = (owner: Scope): void => { if (owner.disposed) throw new Error('Scene model owner is not live'); };
 const colliders = (rows: readonly unknown[]) => readColliderRows(rows, { kinds: ['box', 'treads', 'capsule', 'ball', 'hull', 'trimesh'], surfaces });
@@ -52,6 +63,9 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     if (rows.catalogue === undefined || !same(parseWorldSceneModels(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await admitted.file(rows.catalogue)))), catalogue)) throw new Error('Scene model boot metadata differs from its admitted catalogue');
     const geometries = new Map<string, BufferGeometry>();
     const draws = catalogue.models.flatMap(model => model.choices.flatMap(choice => [...choice.draws, ...choice.lods.flatMap(level => level.draws)]));
+    const slots = new Set(draws.map(draw => draw.material)), materialRows = rows.materials.filter(row => slots.has(row.id));
+    if (materialRows.length !== slots.size) throw new Error('Missing scene model material slot');
+    for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
     for (const draw of draws) {
       const key = JSON.stringify([draw.library, draw.model]);
       if (geometries.has(key)) continue;
@@ -64,17 +78,18 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       requireLive(owner);
       const owned = geometry.take(); geometries.set(key, owned); owner.onDispose(() => { owned.dispose(); });
     }
-    const slots = new Set(draws.map(draw => draw.material)), materialRows = rows.materials.filter(row => slots.has(row.id));
-    if (materialRows.length !== slots.size) throw new Error('Missing scene model material slot');
-    const missing = materialRows.flatMap(row => row.kind === 'look' && !hasLentLook(row.look) ? [row.look] : []);
+    const missing = materialRows.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined && !hasLentLook(row.look) ? [row.look] : []);
     if (missing.length > 0) {
       if (ctx.renderer === null) throw new Error('Cold scene graph materials require a renderer');
       lendLooks(owner, await runtimeLookMaterials({ scope: owner, renderer: ctx.renderer }, admitted.shardfile, true, [...new Set(missing)]));
     }
     const materials = new Map<string, Material>();
+    const surfaceRows = materialRows.filter(row => row.kind === 'surface');
+    if (surfaceRows.length > 0) await prepareWorldSceneSurfaces(surfaceRows, ctx.sky, admitted, owner);
     for (const row of materialRows) {
       let material: Material;
-      if (row.kind === 'source') material = await worldSceneSourceMaterial(row, ctx.sky, owner);
+      if (row.kind === 'surface') material = await worldSceneSurfaceMaterial(row, ctx.sky, admitted, owner);
+      else if (row.kind === 'source') material = await worldSceneSourceMaterial(row, ctx.sky, owner);
       else if (row.kind === 'look') { if (row.over !== undefined) throw new Error('Cold scene models require direct graph slots'); material = lentLook(row.look); }
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
       else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
@@ -84,7 +99,7 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       if (row.kind === 'basic' || row.kind === 'standard') owner.onDispose(() => { material.dispose(); });
     }
     requireLive(owner);
-    const result: Sources = { catalogue, materials, geometries };
+    const result: Sources = { catalogue, materials, geometries, plumbing: admitted.shardfile.plumbing };
     current.value ??= result; owner.onDispose(() => { if (current.value === result) { delete current.value; delete current.pending; } }); return current.value;
     } catch (error) { owner.dispose(); throw error; }
   })();
@@ -110,23 +125,34 @@ export function defineWorldSceneCatalogue(input: unknown): {
       const source = state(ctx, rows.product).value, geometry = source?.geometries.get(JSON.stringify([draw.library, draw.model])), material = source?.materials.get(draw.material);
       if (geometry === undefined || material === undefined) throw new Error('Scene model parts are not ready');
       if (draw.sphere !== undefined) geometry.boundingSphere = new Sphere(new Vector3(draw.sphere[0], draw.sphere[1], draw.sphere[2]), draw.sphere[3]);
-      return { geometry, material, castShadow: draw.castShadow, receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder, ...(draw.until === undefined ? {} : { until: draw.until }) };
+      return { geometry, material, castShadow: tierFlag(draw.castShadow, source), receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder, ...(draw.until === undefined ? {} : { until: tierNumber(draw.until, source) }) };
     });
-    const builder = libraryModel<Record<string, unknown>, string>({
-      draws: params => { const choice = select(params); return choice.draws.map(draw => ({ draw: JSON.stringify([choice.id, draw.id]), material: draw.material, castShadow: draw.castShadow, receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder })); },
+    const builder = (context: ModelContext) => libraryModel<Record<string, unknown>, string>({
+      draws: params => { const choice = select(params); return choice.draws.map(draw => ({ draw: JSON.stringify([choice.id, draw.id]), material: draw.material, castShadow: tierFlag(draw.castShadow, state(context, rows.product).value), receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder })); },
       geometry: (ctx, key) => { const draw = parts.get(key), sources = state(ctx, rows.product).value; if (draw === undefined || sources === undefined) throw new Error('Scene model resources are not ready'); const geometry = sources.geometries.get(JSON.stringify([draw.library, draw.model])); if (geometry === undefined) throw new Error(`Missing scene model geometry: ${key}`); return geometry.clone(); },
       material: (ctx, id) => { const material = state(ctx, rows.product).value?.materials.get(id); if (material === undefined) throw new Error(`Missing scene model material: ${id}`); return material; },
-      colliders: params => colliders(select(params).colliders),
     });
     const { key: _key, choices: _choices, assembly: _assembly, surface, ...metadata } = row;
-    definitions.set(row.key, defineModel({ ...metadata, ...(surface === undefined ? {} : { surface }), ...(builder.colliders === undefined ? {} : { colliders: builder.colliders }),
+    definitions.set(row.key, defineModel({ ...metadata, ...(surface === undefined ? {} : { surface }), colliders: params => colliders(select(params).colliders),
       build: (ctx, params, rng) => {
         const choice = select(params), build = () => {
           const source = state(ctx, rows.product).value?.catalogue;
           if (source === undefined) throw new Error('Scene model resources are not ready');
           if (!admitted.has(source)) { if (!same(source, rows)) throw new Error('Scene model metadata differs from its resident catalogue'); admitted.add(source); }
           if (row.assembly === 'parts') return rawParts(choice.draws, ctx);
-          const made = builder.build(ctx, params, rng); if (!(made instanceof Group)) throw new Error('Scene model library must build a group'); return made; };
+          if (row.assembly === 'objects') {
+            const root = new Group();
+            for (const [i, part] of rawParts(choice.draws, ctx).entries()) {
+              const proxy = choice.draws[i]?.depthOnly === true;
+              const mesh = new Mesh(part.geometry.clone(), proxy ? shadowProxyMaterial : part.material);
+              mesh.castShadow = proxy || (part.castShadow ?? false); mesh.receiveShadow = part.receiveShadow ?? false; mesh.renderOrder = part.renderOrder ?? 0;
+              if (proxy) mesh.layers.set(SHADOW_LAYER);
+              if (part.until !== undefined) mesh.userData['until'] = part.until;
+              root.add(mesh);
+            }
+            return root;
+          }
+          const made = builder(ctx).build(ctx, params, rng); if (!(made instanceof Group)) throw new Error('Scene model library must build a group'); return made; };
         if (state(ctx, rows.product).value !== undefined) return build();
         return loadingSpecimen(row.id, choice.size, async () => {
           await load(ctx, rows.product, rows); const made = build(); if (made instanceof Group) return made;

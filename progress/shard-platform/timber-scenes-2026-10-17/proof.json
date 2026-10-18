@@ -1,0 +1,1613 @@
+{
+  "date": "2026-10-17",
+  "checkedSourceTree": "e60856adaa957f4e802f8d2e0fc51cc4f64258a9",
+  "parent": "f934de98089f27eee02b4335039fec637458d223",
+  "ruler": {
+    "basis": "scripts/shard-platform.mjs source-basis component inventory in the build mirror",
+    "before": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 4299,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 5301,
+      "sunscar-dunes": 392
+    },
+    "after": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 4299,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 5131,
+      "sunscar-dunes": 392
+    },
+    "netShard": {
+      "pine-hollow": -170
+    },
+    "platform": {
+      "basis": "nonblank source code lines excluding comments; engine/game/sdk/format TS and MJS",
+      "files": [
+        {
+          "path": "src/engine/models/weld.ts",
+          "before": 178,
+          "after": 178
+        },
+        {
+          "path": "src/format/worldSceneModels.ts",
+          "before": 30,
+          "after": 34
+        },
+        {
+          "path": "src/format/worldScenePlacement.ts",
+          "before": 21,
+          "after": 21
+        },
+        {
+          "path": "src/format/worldSceneSurface.ts",
+          "before": 0,
+          "after": 17
+        },
+        {
+          "path": "src/format/worldScenes.ts",
+          "before": 49,
+          "after": 50
+        },
+        {
+          "path": "src/game/models/worldSceneCatalogue.ts",
+          "before": 143,
+          "after": 169
+        },
+        {
+          "path": "src/game/shardfile/worldSceneBatch.ts",
+          "before": 44,
+          "after": 47
+        },
+        {
+          "path": "src/game/shardfile/worldScenePlacement.ts",
+          "before": 60,
+          "after": 65
+        },
+        {
+          "path": "src/game/shardfile/worldSceneSurface.ts",
+          "before": 0,
+          "after": 96
+        },
+        {
+          "path": "src/game/shardfile/worldScenes.ts",
+          "before": 256,
+          "after": 266
+        }
+      ],
+      "net": 162
+    },
+    "parentEvidence": {
+      "commit": "c302012ddf90976cdb5b7ad058af01f00dc43990",
+      "receipt": "progress/shard-platform/maps-batch-2026-10-17-5/all10-source-ruler.json",
+      "measuredSourceTree": "413541a522f8a8d50de065461e08258c07cf3167",
+      "sourceParent": "d0ab45464",
+      "mapOnlyNet": 0,
+      "chapterCommit": "11c99f5f2b037f77de45f454d9b74b491110df63",
+      "chapterDelta": {
+        "pine-hollow": -2,
+        "driftwood-isle": -72
+      },
+      "nativeParentEquivalence": "58b405d5b82e80bb80183485ed70e9e165cb9f76 differs from actual4e306 only in proof/state files"
+    }
+  },
+  "producer": {
+    "source": "60fee31fb11e43445fa243c15a65c675f7034ef8",
+    "proof": "20261017T193752-sp-x10-timber-clean-16567",
+    "outputs": 27,
+    "ownedNativeGeometries": 26,
+    "receipt": {
+      "sourceTree": "60fee31fb11e43445fa243c15a65c675f7034ef8",
+      "copies": 5,
+      "draws": 17,
+      "proxies": 7,
+      "geometry": 26,
+      "nativeWholeGeometryByteParity": true,
+      "nativeWeldByteParity": true,
+      "nativeIntakeByteParity": true,
+      "codePartsByteParity": true,
+      "geometryHashCoverage": true
+    },
+    "pass": true
+  },
+  "checks": {
+    "proof": "20261017T220340-sp-x9-timber-release-closure-94546",
+    "generation": true,
+    "rootTypes": true,
+    "layerTypes": true,
+    "scriptTypes": true,
+    "scriptTypesProof": "20261017T212929-sp-x9-timber-script-types-54299",
+    "typedLint": true,
+    "products": 10,
+    "headlessCases": 17,
+    "testFiles": 8,
+    "tests": 48
+  },
+  "native": {
+    "proof": "20261017T205340-sp-x9-timber-landable-native-recheck-69039",
+    "pass": true,
+    "before": {
+      "build": "58b405d-mvd5culs",
+      "phase": "midday",
+      "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 290115164,
+          "programs": 166,
+          "shaderCount": 268,
+          "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64"
+        },
+        "desktop": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 607318452,
+          "programs": 182,
+          "shaderCount": 290,
+          "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 73,
+          "triangles": 993685,
+          "lit": 1095048,
+          "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 63,
+          "triangles": 908269,
+          "lit": 1095048,
+          "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 48,
+          "triangles": 844956,
+          "lit": 1095048,
+          "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 44,
+          "triangles": 801689,
+          "lit": 1095048,
+          "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 39,
+          "triangles": 796026,
+          "lit": 1095048,
+          "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 102,
+          "triangles": 1129254,
+          "lit": 1089140,
+          "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4498,
+          "lit": 26199,
+          "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 2927,
+          "lit": 42396,
+          "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4000,
+          "lit": 37044,
+          "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4500,
+          "lit": 39854,
+          "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 170,
+          "triangles": 6432911,
+          "lit": 615663,
+          "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 126,
+          "triangles": 6041308,
+          "lit": 615663,
+          "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 91,
+          "triangles": 5795644,
+          "lit": 615663,
+          "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 84,
+          "triangles": 5754237,
+          "lit": 615663,
+          "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 77,
+          "triangles": 5630076,
+          "lit": 615663,
+          "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 203,
+          "triangles": 7508744,
+          "lit": 612909,
+          "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 6988,
+          "lit": 14709,
+          "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 5477,
+          "lit": 23492,
+          "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 7996,
+          "lit": 20856,
+          "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 8999,
+          "lit": 21576,
+          "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+        }
+      ]
+    },
+    "after": {
+      "build": "f49e410-mvd62x9w",
+      "phase": "midday",
+      "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 290115164,
+          "programs": 166,
+          "shaderCount": 268,
+          "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64"
+        },
+        "desktop": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 607318452,
+          "programs": 182,
+          "shaderCount": 290,
+          "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 73,
+          "triangles": 993685,
+          "lit": 1095048,
+          "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 63,
+          "triangles": 908269,
+          "lit": 1095048,
+          "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 48,
+          "triangles": 844956,
+          "lit": 1095048,
+          "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 44,
+          "triangles": 801689,
+          "lit": 1095048,
+          "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 39,
+          "triangles": 796026,
+          "lit": 1095048,
+          "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 102,
+          "triangles": 1129254,
+          "lit": 1089140,
+          "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4498,
+          "lit": 26199,
+          "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 2927,
+          "lit": 42396,
+          "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4000,
+          "lit": 37044,
+          "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4500,
+          "lit": 39854,
+          "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 170,
+          "triangles": 6432911,
+          "lit": 615663,
+          "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 126,
+          "triangles": 6041308,
+          "lit": 615663,
+          "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 91,
+          "triangles": 5795644,
+          "lit": 615663,
+          "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 84,
+          "triangles": 5754237,
+          "lit": 615663,
+          "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 77,
+          "triangles": 5630076,
+          "lit": 615663,
+          "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 203,
+          "triangles": 7508744,
+          "lit": 612909,
+          "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 6988,
+          "lit": 14709,
+          "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 5477,
+          "lit": 23492,
+          "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 7996,
+          "lit": 20856,
+          "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 8999,
+          "lit": 21576,
+          "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+        }
+      ]
+    },
+    "legacyIsolation": {
+      "before": {
+        "build": "75aa5c9-mvd2mfze",
+        "phase": "midday",
+        "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+        "tiers": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 289681220,
+            "programs": 166,
+            "shaderCount": 268,
+            "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 606884508,
+            "programs": 182,
+            "shaderCount": 290,
+            "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c"
+          }
+        },
+        "rows": [
+          {
+            "tier": "phone",
+            "pose": "gate",
+            "player": [
+              0,
+              0.1,
+              -200
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 73,
+            "triangles": 993685,
+            "lit": 1095048,
+            "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+          },
+          {
+            "tier": "phone",
+            "pose": "ranger-cabin",
+            "player": [
+              -14,
+              2.1,
+              -62
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 63,
+            "triangles": 908269,
+            "lit": 1095048,
+            "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+          },
+          {
+            "tier": "phone",
+            "pose": "pond",
+            "player": [
+              -56,
+              -0.7,
+              95
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 48,
+            "triangles": 844956,
+            "lit": 1095048,
+            "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+          },
+          {
+            "tier": "phone",
+            "pose": "mill",
+            "player": [
+              80,
+              3.5,
+              112
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 44,
+            "triangles": 801689,
+            "lit": 1095048,
+            "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+          },
+          {
+            "tier": "phone",
+            "pose": "lookout",
+            "player": [
+              170,
+              8,
+              -140
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 39,
+            "triangles": 796026,
+            "lit": 1095048,
+            "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+          },
+          {
+            "tier": "phone",
+            "pose": "north",
+            "player": [
+              0,
+              0.2,
+              200
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 102,
+            "triangles": 1129254,
+            "lit": 1089140,
+            "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:bear",
+            "player": [
+              1.31,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4498,
+            "lit": 26199,
+            "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:boar",
+            "player": [
+              0.977,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 2927,
+            "lit": 42396,
+            "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:deer",
+            "player": [
+              1.091,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4000,
+            "lit": 37044,
+            "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:elk",
+            "player": [
+              1.105,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4500,
+            "lit": 39854,
+            "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+          },
+          {
+            "tier": "desktop",
+            "pose": "gate",
+            "player": [
+              0,
+              0.1,
+              -200
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 170,
+            "triangles": 6432911,
+            "lit": 615663,
+            "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+          },
+          {
+            "tier": "desktop",
+            "pose": "ranger-cabin",
+            "player": [
+              -14,
+              2.1,
+              -62
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 126,
+            "triangles": 6041308,
+            "lit": 615663,
+            "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+          },
+          {
+            "tier": "desktop",
+            "pose": "pond",
+            "player": [
+              -56,
+              -0.7,
+              95
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 91,
+            "triangles": 5795644,
+            "lit": 615663,
+            "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+          },
+          {
+            "tier": "desktop",
+            "pose": "mill",
+            "player": [
+              80,
+              3.5,
+              112
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 84,
+            "triangles": 5754237,
+            "lit": 615663,
+            "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+          },
+          {
+            "tier": "desktop",
+            "pose": "lookout",
+            "player": [
+              170,
+              8,
+              -140
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 77,
+            "triangles": 5630076,
+            "lit": 615663,
+            "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+          },
+          {
+            "tier": "desktop",
+            "pose": "north",
+            "player": [
+              0,
+              0.2,
+              200
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 203,
+            "triangles": 7508744,
+            "lit": 612909,
+            "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:bear",
+            "player": [
+              1.31,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 6988,
+            "lit": 14709,
+            "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:boar",
+            "player": [
+              0.977,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 5477,
+            "lit": 23492,
+            "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:deer",
+            "player": [
+              1.091,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 7996,
+            "lit": 20856,
+            "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:elk",
+            "player": [
+              1.105,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 8999,
+            "lit": 21576,
+            "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+          }
+        ]
+      },
+      "after": {
+        "build": "031f18a-mvd5r5c4",
+        "phase": "midday",
+        "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+        "tiers": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 289681220,
+            "programs": 166,
+            "shaderCount": 268,
+            "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 606884508,
+            "programs": 182,
+            "shaderCount": 290,
+            "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c"
+          }
+        },
+        "rows": [
+          {
+            "tier": "phone",
+            "pose": "gate",
+            "player": [
+              0,
+              0.1,
+              -200
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 73,
+            "triangles": 993685,
+            "lit": 1095048,
+            "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+          },
+          {
+            "tier": "phone",
+            "pose": "ranger-cabin",
+            "player": [
+              -14,
+              2.1,
+              -62
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 63,
+            "triangles": 908269,
+            "lit": 1095048,
+            "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+          },
+          {
+            "tier": "phone",
+            "pose": "pond",
+            "player": [
+              -56,
+              -0.7,
+              95
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 48,
+            "triangles": 844956,
+            "lit": 1095048,
+            "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+          },
+          {
+            "tier": "phone",
+            "pose": "mill",
+            "player": [
+              80,
+              3.5,
+              112
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 44,
+            "triangles": 801689,
+            "lit": 1095048,
+            "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+          },
+          {
+            "tier": "phone",
+            "pose": "lookout",
+            "player": [
+              170,
+              8,
+              -140
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 39,
+            "triangles": 796026,
+            "lit": 1095048,
+            "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+          },
+          {
+            "tier": "phone",
+            "pose": "north",
+            "player": [
+              0,
+              0.2,
+              200
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 102,
+            "triangles": 1129254,
+            "lit": 1089140,
+            "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:bear",
+            "player": [
+              1.31,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4498,
+            "lit": 26199,
+            "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:boar",
+            "player": [
+              0.977,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 2927,
+            "lit": 42396,
+            "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:deer",
+            "player": [
+              1.091,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4000,
+            "lit": 37044,
+            "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+          },
+          {
+            "tier": "phone",
+            "pose": "creature:elk",
+            "player": [
+              1.105,
+              20,
+              0
+            ],
+            "width": 804,
+            "height": 1362,
+            "calls": 1,
+            "triangles": 4500,
+            "lit": 39854,
+            "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+          },
+          {
+            "tier": "desktop",
+            "pose": "gate",
+            "player": [
+              0,
+              0.1,
+              -200
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 170,
+            "triangles": 6432911,
+            "lit": 615663,
+            "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+          },
+          {
+            "tier": "desktop",
+            "pose": "ranger-cabin",
+            "player": [
+              -14,
+              2.1,
+              -62
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 126,
+            "triangles": 6041308,
+            "lit": 615663,
+            "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+          },
+          {
+            "tier": "desktop",
+            "pose": "pond",
+            "player": [
+              -56,
+              -0.7,
+              95
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 91,
+            "triangles": 5795644,
+            "lit": 615663,
+            "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+          },
+          {
+            "tier": "desktop",
+            "pose": "mill",
+            "player": [
+              80,
+              3.5,
+              112
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 84,
+            "triangles": 5754237,
+            "lit": 615663,
+            "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+          },
+          {
+            "tier": "desktop",
+            "pose": "lookout",
+            "player": [
+              170,
+              8,
+              -140
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 77,
+            "triangles": 5630076,
+            "lit": 615663,
+            "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+          },
+          {
+            "tier": "desktop",
+            "pose": "north",
+            "player": [
+              0,
+              0.2,
+              200
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 203,
+            "triangles": 7508744,
+            "lit": 612909,
+            "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:bear",
+            "player": [
+              1.31,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 6988,
+            "lit": 14709,
+            "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:boar",
+            "player": [
+              0.977,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 5477,
+            "lit": 23492,
+            "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:deer",
+            "player": [
+              1.091,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 7996,
+            "lit": 20856,
+            "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+          },
+          {
+            "tier": "desktop",
+            "pose": "creature:elk",
+            "player": [
+              1.105,
+              20,
+              0
+            ],
+            "width": 603,
+            "height": 1021,
+            "calls": 1,
+            "triangles": 8999,
+            "lit": 21576,
+            "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+          }
+        ]
+      },
+      "proof": "20261017T203542-sp-x9-timber-final-native-32648"
+    }
+  },
+  "physics": {
+    "proof": "20261017T202935-sp-x9-timber-walk-floor-independent-91675",
+    "receipt": "progress/physics/sp-x9-timber-v10-67fd9bf-mvd5ao33.json",
+    "routes": 7,
+    "stuck": 0,
+    "walk": [
+      {
+        "shard": "pine-hollow",
+        "name": "cabin-porch",
+        "frames": 1329,
+        "seconds": 44.3,
+        "end": {
+          "x": -10.24,
+          "y": 3.833,
+          "z": -34.382
+        },
+        "expectY": 3.815,
+        "maxY": 4.25,
+        "groundSpeedP50": 4.24,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "pond",
+        "frames": 1348,
+        "seconds": 44.9,
+        "end": {
+          "x": -63.882,
+          "y": -2.005,
+          "z": 109.25
+        },
+        "expectY": -2.01,
+        "maxY": 3.82,
+        "groundSpeedP50": 4.29,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lookout-climb",
+        "frames": 356,
+        "seconds": 11.9,
+        "end": {
+          "x": 34.809,
+          "y": 57.477,
+          "z": 211.344
+        },
+        "expectY": 57.46,
+        "maxY": 57.48,
+        "groundSpeedP50": 1.83,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "zip-landing",
+        "frames": 66,
+        "seconds": 2.2,
+        "end": {
+          "x": 3.242,
+          "y": 3.304,
+          "z": 20.128
+        },
+        "expectY": 3.29,
+        "maxY": 3.31,
+        "groundSpeedP50": 3.9,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "creek-bridge",
+        "frames": 225,
+        "seconds": 7.5,
+        "end": {
+          "x": -135.967,
+          "y": 1.488,
+          "z": -5.3
+        },
+        "expectY": 1.42,
+        "maxY": 1.53,
+        "groundSpeedP50": 4.26,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lodge-porch",
+        "frames": 46,
+        "seconds": 1.5,
+        "end": {
+          "x": -165.198,
+          "y": -0.16,
+          "z": -114.231
+        },
+        "expectY": -0.18,
+        "maxY": -0.16,
+        "groundSpeedP50": 4.22,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "den-cave",
+        "frames": 341,
+        "seconds": 11.4,
+        "end": {
+          "x": 218.91,
+          "y": 8.036,
+          "z": 217.581
+        },
+        "expectY": 8.01,
+        "maxY": 9.07,
+        "groundSpeedP50": 4.33,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      }
+    ]
+  },
+  "desktopFloor": {
+    "pass": false,
+    "noRegression": true,
+    "before": "75aa5c92f",
+    "after": "67fd9bf62f271c01563266cfb5f682d94d50d33b",
+    "cabin": {
+      "beforeP95Ms": 33.4,
+      "afterP95Ms": 33.4,
+      "beforeFps": 59.88,
+      "afterFps": 59.88
+    },
+    "spawnP95Ms": {
+      "before": 33.3,
+      "after": 16.7
+    },
+    "officialExit": 2,
+    "note": "Existing cabin frame-floor miss remains; other shared machine jobs were active."
+  },
+  "hostBar": {
+    "score": "5/6",
+    "test1Exception": "G483 approval-only entry; fictional Quay fixture, no second shipping shard claimed"
+  },
+  "deleted": [
+    "src/shards/pine-hollow/runtime/models/fireLookout.ts",
+    "src/shards/pine-hollow/runtime/models/zipCable.ts",
+    "src/shards/pine-hollow/runtime/world/timber.ts"
+  ],
+  "maps": "Source-only G490 sixth window; canonical bake and strict all-10 map stamp closure owned by sp-x10"
+}

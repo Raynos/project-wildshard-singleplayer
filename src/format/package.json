@@ -186,7 +186,8 @@
     "./worldSceneBatch": "./worldSceneBatch.ts",
     "./bodySlots": "./bodySlots.ts",
     "./inputDeclarations": "./inputDeclarations.ts",
-    "./sceneRefs": "./sceneRefs.ts"
+    "./sceneRefs": "./sceneRefs.ts",
+    "./worldSceneSurface": "./worldSceneSurface.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
