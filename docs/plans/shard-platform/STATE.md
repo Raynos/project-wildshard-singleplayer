@@ -10,7 +10,7 @@
 
 **P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900), validated against the 9190f1569 GLSL (16 captures SSIM ≥ 0.9995). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
-**Lanes (G505: 5 Codex building + sp-x7 deploy; the next two finishers, likely sp-x6 and sp-x5, are not restarted; Opus 0 until Mon 10-19):** C1 Nine sp-x5 · C4/NM2 sp-x1 · C9 Nalati sp-x8 · C6 boss fights sp-x9 · C6-C8 + ruler sp-x6 · C2/C3 + P0 sp-x4 · maps sp-x10 · sp-x7 deploy only (G485/G493).
+**Lanes (G505: 5 Codex + sp-x7 deploy; sp-x5 and sp-x6 finished and stay idle; Opus 0 until Mon 10-19):** C4/NM2 sp-x1 · C2/C3 Nine looks sp-x4 · C9 Nalati sp-x8 · C6 boss fights sp-x9 · maps sp-x10 · sp-x7 deploy only. Next tasks take the biggest uncut batches (Nalati B8 world 842, native actor interface 1,350, weather reactions 766).
 
 **G507 mega-build (Jake):** lanes only cut and land code; no lane-to-lane messages, receipts, boards, captures or soaks; lanes message the coordinator only for blockers. **Pace:** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); G506 (Jake): a batch lands on types + lint + focused tests + the push gate, nothing else; heavy proofs once per W3 milestone or grid deploy (lanes/common.md); a red gate gets sp-x7's fast revert (G493).
 
