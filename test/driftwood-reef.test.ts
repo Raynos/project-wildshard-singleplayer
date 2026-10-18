@@ -1,17 +1,18 @@
-import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 // @vitest-environment happy-dom
-import { expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { modelContext, seedOf } from '@wildshard/engine/models/model';
+import { modelContext } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { namedModelProduct } from './fixtures/namedModelProduct';
-import { REEF, type ReefParams } from '../src/shards/driftwood-isle/runtime/models/reef';
+import { Scope } from '../src/engine/app/scope';
+import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
+import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { reefCatalogue, REEF_SCENE_LIBRARY } from '../src/shards/driftwood-isle/generators/reefCatalogue';
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';
 import { decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
-import { REEF_SPECIMENS } from '../src/shards/driftwood-isle/generators/reefSpecimenRows';
+import { REEF_SPECIMENS, REEF_MODEL_SEED } from '../src/shards/driftwood-isle/generators/reefSpecimenRows';
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 
@@ -32,42 +33,40 @@ it('owns the native reef wind channels and full picking boxes without a geometry
   } finally { geometry.dispose(); shape.dispose(); }
 });
 
-it('loads all authored reef cards with the borrowed material and refuses undeclared shapes', async () => {
-  admitDriftwoodFixtureRows();
-  const material = new MeshStandardMaterial(), ctx = modelContext(null);
-  ctx.once('driftwood-isle/reef:material', () => ({material, uniforms: {uTime: {value: 0}}}));
-  const emitted = new Map<string, Uint8Array>(), expected = new Map<string, { attributes: Record<string, number[]>; index: number[] | null }[]>();
-  for (const kind of ['coral', 'weed', 'star'] as const) {
-    const shapes: { attributes: Record<string, number[]>; index: number[] | null }[] = []; expected.set(kind, shapes);
-    const row = REEF_SPECIMENS[kind];
-    for (const variant of [{id: 'default', params: row.defaults}, ...row.variants.map(v => ({id: v.id, params: {...row.defaults, ...v.params}}))]) {
-      const url = `draw:reef:${kind}:${variant.id}`;
-      const geometry = reefGeometry(kind, variant.params, new Rng(seedOf(REEF[kind])));
-      shapes.push({ attributes: Object.fromEntries(Object.entries(geometry.attributes).map(([name, channel]) => [name, Array.from(channel.array)])), index: geometry.index === null ? null : Array.from(geometry.index.array) });
-      emitted.set(url, staticGlb([{geometry, material, customAttributes: {_SWAY: 'aSway'}, compactIndex: true}], `reef-${kind}`)); geometry.dispose();
-    }
-  }
-  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(namedModelProduct(emitted));
+it('keeps every baked reef card byte-exact through Z2, with its sway and borrowed look', async () => {
+  const material = new MeshStandardMaterial(), ctx = modelContext(null), owner = new Scope('reef-cards');
+  const rows = parseWorldSceneModels({ product: 'driftwood-isle', models: reefCatalogue() });
+  const catalogue = defineWorldSceneCatalogue(rows), geometries = new Map<string, BufferGeometry>();
   try {
-    for (const kind of ['coral', 'weed', 'star'] as const) {
-      const def = REEF[kind];
-      const variants: ReefParams[] = [def.defaults];
-      for (const variant of def.variants ?? []) variants.push({...def.defaults, ...variant.params});
-      for (const [index, params] of variants.entries()) {
-        const ready = new Promise<void>(resolve => { document.addEventListener('ws:model-ready', () => resolve(), {once: true}); });
-        const built = def.build(ctx, params, new Rng(seedOf(def)));
-        if (Array.isArray(built) || !('children' in built)) throw new Error('Reef card did not use its owned intake');
-        await ready; const mesh = built.children[0];
-        if (!(mesh instanceof Mesh)) throw new Error('Reef card missing');
-        const geometry: unknown = mesh.geometry; if (!isGeometry(geometry)) throw new Error('Reef geometry missing');
-        const shape = expected.get(kind)?.[index];
-        if (shape === undefined) throw new Error('Missing authored reef oracle');
-        for (const [name, values] of Object.entries(shape.attributes)) expect(Array.from(geometry.getAttribute(name).array)).toEqual(values);
-        expect(geometry.index === null ? null : Array.from(geometry.index.array)).toEqual(shape.index);
-        expect(mesh.material).toBe(material);
-        expect(geometry.getAttribute('aSway').count).toBe(geometry.getAttribute('position').count); geometry.dispose();
-      }
-      expect(() => def.build(ctx, {...def.defaults, s: 12}, new Rng(1))).toThrow('no authored geometry');
+    for (const model of rows.models) for (const choice of model.choices) {
+      const draw = choice.draws[0]; if (draw === undefined) throw new Error('Missing reef draw');
+      const file = REEF_SCENE_LIBRARY.models.find(row => row.id === draw.model);
+      const kind = model.key === 'coral' ? 'coral' : model.key === 'seaweed' ? 'weed' : 'star';
+      if (file === undefined) throw new Error('Missing reef asset');
+      const row = REEF_SPECIMENS[kind], variant = row.variants.find(item => item.id === choice.id);
+      const original = reefGeometry(kind, { ...row.defaults, ...variant?.params }, new Rng(REEF_MODEL_SEED));
+      const bytes = staticGlb([{ geometry: original, material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true }], `reef-${kind}`);
+      original.dispose();
+      const intake = createOwnedGeometry(file.file, file.attributes);
+      await intake.load(bytes);
+      geometries.set(JSON.stringify([draw.library, draw.model]), intake.take());
     }
-  } finally { mocked.mockRestore(); material.dispose(); }
+    bindWorldSceneModelSources(ctx, rows.product, { catalogue: rows, geometries, materials: new Map([['reef', material]]) }, owner);
+    for (const kind of ['coral', 'weed', 'star'] as const) {
+      const key = kind === 'coral' ? 'coral' : kind === 'weed' ? 'seaweed' : 'reef-starfish', row = REEF_SPECIMENS[kind];
+      const def = catalogue.model(key);
+      for (const variant of [{params: row.defaults}, ...row.variants.map(item => ({params: {...row.defaults, ...item.params}}))]) {
+        const original = reefGeometry(kind, variant.params, new Rng(REEF_MODEL_SEED));
+        const built = def.build(ctx, variant.params, new Rng(1));
+        if (Array.isArray(built) || !('children' in built)) throw new Error('Missing reef card');
+        const mesh = built.children[0]; if (!(mesh instanceof Mesh) || !isGeometry(mesh.geometry)) throw new Error('Missing reef mesh');
+        try {
+          for (const [name, channel] of Object.entries(original.attributes)) expect(Array.from(mesh.geometry.getAttribute(name).array)).toEqual(Array.from(channel.array));
+          expect(mesh.geometry.index === null ? null : Array.from(mesh.geometry.index.array)).toEqual(original.index === null ? null : Array.from(original.index.array));
+          expect(mesh.material).toBe(material); expect(mesh.castShadow).toBe(false); expect(mesh.receiveShadow).toBe(true);
+        } finally { original.dispose(); mesh.geometry.dispose(); }
+      }
+      expect(() => def.build(ctx, {...row.defaults, s: 12}, new Rng(1))).toThrow('authored choice');
+    }
+  } finally { owner.dispose(); for (const geometry of geometries.values()) geometry.dispose(); material.dispose(); }
 });

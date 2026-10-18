@@ -50,8 +50,6 @@ const reviewedW2Owners = new Map([
   ['src/game/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
   ['src/game/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
   ['src/engine/models/ownedGeometry.ts', 'C1'],
-  // Native geometry admission and owned static batch/specimen buffers.
-  ['src/shards/driftwood-isle/runtime/boot/reefGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
   ['src/game/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
   ['src/game/shardfile/runtimeWorld.ts#RuntimePropsPorts', 'C1'],

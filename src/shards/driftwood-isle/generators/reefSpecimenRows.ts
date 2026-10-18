@@ -1,3 +1,6 @@
+/** Baked reef inputs; the native world has its own owned batch. */
+export interface ReefParams { readonly s: number; readonly rot: number; readonly v: number; readonly shape?: number }
+export const REEF_MODEL_SEED = 0x5ea1 ^ 0xc0;
 /** The original bounded Explorer defaults and variants; the world has its own owned batch. */
 export const REEF_SPECIMENS = {
   "coral": {

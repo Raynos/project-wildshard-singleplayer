@@ -2,7 +2,7 @@ import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { driftwoodRows, driftwoodProduct, driftwoodTierShadows } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, buildTier } from '@wildshard/engine/core/tier';
 import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
@@ -22,23 +22,23 @@ import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import manifest from '../discovery.generated';
-import { Ocean, loadOcean } from './Ocean';
+import { WaterSurface, waterSurfaceLook } from '@wildshard/sdk/looks/waterSurface';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { MooringLines } from '../runtime/props/mooringLines';
 import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { hasLentLook, lentLook, lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
-import { reefMaterial } from '../runtime/models/reef';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import SEABED from '../data/seabedLook.json' with { type: 'json' };
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
 import type { CustomSections, CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
-import { followToonLook } from '@wildshard/game/looks/toonLook';
+import { followToonLook, toonLookState } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BlenderIsland } from './BlenderIsland';
@@ -58,7 +58,7 @@ type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
-  ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
+  ocean: WaterSurface | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
   gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: { group: THREE.Group; placed: Placed[]; crabSites: CustomSections['custom/fixedLayouts']['cove']['spec']['crabSites']; anchors: CustomSections['custom/fixedLayouts']['cove']['native']['anchors']; update: () => void } | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
@@ -109,7 +109,16 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     if (row === undefined) throw new Error('Missing admitted entry deck');
     return row;
   }), decks = deckRows.map(({ rect }) => rect);
-  const ocean = new Ocean(sky).build(await loadOcean(), sea.level, decks, lowered.edgeInset);
+  const oceanRows = driftwoodRows('custom/oceanSurface'), oceanLook = oceanRows.surface.look;
+  const grid = createOwnedGeometry(oceanRows.files[buildTier()], { _depth: 'aDepth', _seed: 'aSeed' });
+  const [, floor] = await Promise.all([grid.load(), fetch(oceanRows.files.floor, { cache: 'force-cache' }).then(async response => {
+    if (!response.ok) throw new Error(`Baked sea floor load failed (${response.status})`);
+    return new Uint16Array(await response.arrayBuffer());
+  })]);
+  if (oceanRows.files.level !== sea.level) throw new Error('The baked ocean is for another sea level');
+  toonLookState(driftwoodProduct()).dayLight.uSeaLevel.value = sea.level;
+  const ocean = new WaterSurface(oceanRows.surface, waterSurfaceLook(lentLooksOf(oceanLook), oceanLook))
+    .draw(grid.take(), { level: sea.level, floor, dry: decks, lent: { night: toonLookState(driftwoodProduct()).dayLight.uToonNight } });
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
@@ -214,13 +223,13 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
   const seabed = await stages.build('Seabed', () => {
-    const mesh = scenes.mesh('reef.mesh'), { update } = reefMaterial(modelContext(sky));
+    const mesh = scenes.mesh('reef.mesh'), update = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
     const s = REEF_LAYOUT.school, swim = SEABED.swim, centre = { x: s.x, y: s.y, z: s.z };
     const school = createAmbientFlock({ ...swim, count: s.n, wheeling: { ...swim.wheeling, centre: { x: s.x, z: s.z }, radius: s.r, altitude: [s.y, s.y] } },
       { name: SEABED.fishMesh, geometry: fixedDraw('reefFish').copy().rotateY(Math.PI), material: lowPolyLookMaterial(sky, 'still') });
     const tint = new THREE.Color();
     for (const [i, fish] of s.fish.entries()) school.mesh.setColorAt(i, tint.setHex(fish.colour));
-    return { mesh, fish: school.mesh, tick: (dt: number) => { update?.(); school.update(dt, centre); } };
+    return { mesh, fish: school.mesh, tick: (dt: number) => { update(); school.update(dt, centre); } };
   }, { objects: value => [value.mesh, value.fish] });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];

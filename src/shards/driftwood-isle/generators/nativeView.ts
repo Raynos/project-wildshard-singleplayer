@@ -16,7 +16,6 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { TROPHY_LAYOUT } from './trophyLayout';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import { REEF_LOOK } from './reefLook';
-import { REEF_SPECIMENS } from './reefSpecimenRows';
 import { TRAIL_SPECIMEN_ROWS } from './trailSpecimenRows';
 import { TRAIL_SPECIMENS } from './trailSpecimens';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
@@ -52,7 +51,6 @@ export const NATIVE_VIEW = {
   POOL_LOOK,
   REEF_LOOK,
   REEF_ROCK,
-  REEF_SPECIMENS,
   SHORE_ROCK,
   SHRINE_POOL_LOOK,
   SHRINE_SITES,

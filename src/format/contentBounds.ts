@@ -15,6 +15,8 @@ export const CELL_HEIGHT = 500;       // metres, bottom to top
 export const CELL_BELOW = 250;        // metres below the highway level
 /** Cell height above the highway in metres. */
 export const CELL_ABOVE = CELL_HEIGHT - CELL_BELOW;
+/** Painted horizon radius in metres, shared by the renderer and authored water fades. */
+export const HORIZON_RADIUS = 2300;
 /** Decimal bytes per MB in the streaming cost model. */
 export const CONTENT_MB = 1_000_000;
 /** The one memory switch (src/format/memoryGates.json, G433): the Explorer / loading caps and whether memory checks refuse

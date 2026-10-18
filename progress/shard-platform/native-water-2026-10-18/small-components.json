@@ -1,0 +1,518 @@
+{
+  "revision": "ac891a3d8",
+  "basis": "source",
+  "shards": {
+    "pine-hollow": {
+      "counts": {
+        "C7": 7,
+        "C8": 24
+      },
+      "spans": [
+        {
+          "path": "src/shards/pine-hollow/budgets.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 9,
+          "end": 9,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Authored audio phase budget; retained as budget data, not an audio implementation."
+        },
+        {
+          "path": "src/shards/pine-hollow/budgets.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 17,
+          "end": 17,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Authored audio phase budget; retained as budget data, not an audio implementation."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/ctx.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 5,
+          "end": 5,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/declaredBank",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 13,
+          "end": 13,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/Audio",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 14,
+          "end": 14,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/Music",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 35,
+          "end": 35,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/declaredBank",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 43,
+          "end": 43,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/SetScore",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 44,
+          "end": 44,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/audioProfiles",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/combat/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 178,
+          "end": 178,
+          "lines": 1,
+          "reason": "owner API requireAudioProfile",
+          "retainedReason": "Binds an existing declared audio profile/service to the native combat or interaction view; no duplicate synthesis or routing law."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C7",
+          "start": 12,
+          "end": 12,
+          "lines": 1,
+          "reason": "import @wildshard/game/plugin/mover",
+          "retainedReason": "Loans the live canoe mesh and quest flags/prompts to the declared mover; the driver/path/carry law already lives in mover data."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 17,
+          "end": 17,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/interactSfx",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 55,
+          "end": 55,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/declaredBank",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 131,
+          "end": 131,
+          "lines": 1,
+          "reason": "owner API InteractSfx",
+          "retainedReason": "Binds an existing declared audio profile/service to the native combat or interaction view; no duplicate synthesis or routing law."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C7",
+          "start": 331,
+          "end": 332,
+          "lines": 2,
+          "reason": "owner API installDeclaredMovers",
+          "retainedReason": "Loans the live canoe mesh and quest flags/prompts to the declared mover; the driver/path/carry law already lives in mover data."
+        },
+        {
+          "path": "src/shards/pine-hollow/quest/index.ts",
+          "kind": "runtime-ts",
+          "component": "C7",
+          "start": 439,
+          "end": 439,
+          "lines": 1,
+          "reason": "property movers",
+          "retainedReason": "Loans the live canoe mesh and quest flags/prompts to the declared mover; the driver/path/carry law already lives in mover data."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/dev/perfLap.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 2,
+          "end": 2,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/Music",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 12,
+          "end": 12,
+          "lines": 1,
+          "reason": "import @wildshard/game/plugin/audio",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 60,
+          "end": 60,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/declared",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 61,
+          "end": 61,
+          "lines": 1,
+          "reason": "import @wildshard/engine/world/Heightfield",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 182,
+          "end": 182,
+          "lines": 1,
+          "reason": "declaration audio",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 184,
+          "end": 184,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 220,
+          "end": 220,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 222,
+          "end": 222,
+          "lines": 1,
+          "reason": "declaration cabinAudio",
+          "retainedReason": "Connects the real mixer, score, cabin floor/door/fire state and terrain to admitted audio. The hosts already own synthesis, cue routing and ambience policy."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/quest.ts",
+          "kind": "runtime-ts",
+          "component": "C7",
+          "start": 3,
+          "end": 3,
+          "lines": 1,
+          "reason": "import @wildshard/game/plugin/mover",
+          "retainedReason": "The quest page exposes whether the player is already riding, to avoid competing rides."
+        },
+        {
+          "path": "src/shards/pine-hollow/runtime/quest.ts",
+          "kind": "runtime-ts",
+          "component": "C7",
+          "start": 345,
+          "end": 345,
+          "lines": 1,
+          "reason": "owner API moversRiding",
+          "retainedReason": "The quest page exposes whether the player is already riding, to avoid competing rides."
+        },
+        {
+          "path": "src/shards/pine-hollow/shard.config.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 8,
+          "end": 8,
+          "lines": 1,
+          "reason": "import ./data/audio.generated.json",
+          "retainedReason": "Imports emitted audio data for shard publication."
+        },
+        {
+          "path": "src/shards/pine-hollow/world/weather.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 42,
+          "end": 42,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/declaredAmbience",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/game/population/shelter.ts",
+          "kind": "sole-module",
+          "component": "C8",
+          "start": 41,
+          "end": 41,
+          "lines": 1,
+          "reason": "declaration score",
+          "retainedReason": "Population candidate score, not a sound score; retained population placement work."
+        },
+        {
+          "path": "src/engine/combat/cues.ts",
+          "kind": "sole-export",
+          "component": "C8",
+          "lines": 1,
+          "reason": "G294 declaration resolveHitStop",
+          "retainedReason": "Combat hit-stop lookup; retains its honest sole-user charge and is not audio policy."
+        },
+        {
+          "path": "src/game/plugin/mover.ts",
+          "kind": "sole-export",
+          "component": "C7",
+          "lines": 1,
+          "reason": "G294 declaration moversRiding",
+          "retainedReason": "Reads the existing entered-scope riding state; no movement policy remains here."
+        }
+      ]
+    },
+    "driftwood-isle": {
+      "counts": {
+        "C7": 0,
+        "C8": 29
+      },
+      "spans": [
+        {
+          "path": "src/shards/driftwood-isle/loot/presentation.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 8,
+          "end": 8,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/Audio",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 8,
+          "end": 8,
+          "lines": 1,
+          "reason": "import @wildshard/engine/audio/Audio",
+          "retainedReason": "Type or native service import used by the owning combat/quest/weather view; deleting it requires removing that consumer, not relocating the import."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 245,
+          "end": 245,
+          "lines": 1,
+          "reason": "declaration cues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 246,
+          "end": 246,
+          "lines": 1,
+          "reason": "owner API takeCues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 247,
+          "end": 253,
+          "lines": 7,
+          "reason": "declaration cues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 254,
+          "end": 254,
+          "lines": 1,
+          "reason": "owner API cues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 260,
+          "end": 260,
+          "lines": 1,
+          "reason": "owner API cues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/adventure.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 262,
+          "end": 262,
+          "lines": 1,
+          "reason": "owner API cues",
+          "retainedReason": "Drains director story cues to spawn/restore the Captain, present the boss and notify the player. These cues are story events, not just sounds; the script remains authoritative."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 32,
+          "end": 32,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Loans the active mixer to the existing adventure view; quest state and presentation still require that view."
+        },
+        {
+          "path": "src/shards/driftwood-isle/quest/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 53,
+          "end": 53,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Loans the active mixer to the existing adventure view; quest state and presentation still require that view."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 1,
+          "end": 1,
+          "lines": 1,
+          "reason": "import @wildshard/game/plugin/audio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 2,
+          "end": 2,
+          "lines": 1,
+          "reason": "file owner",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 5,
+          "end": 5,
+          "lines": 1,
+          "reason": "file owner",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 8,
+          "end": 9,
+          "lines": 2,
+          "reason": "declaration installDriftwoodAudio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 10,
+          "end": 11,
+          "lines": 2,
+          "reason": "property audio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 12,
+          "end": 13,
+          "lines": 2,
+          "reason": "declaration installDriftwoodAudio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 16,
+          "end": 16,
+          "lines": 1,
+          "reason": "property audio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/audio/install.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 17,
+          "end": 17,
+          "lines": 1,
+          "reason": "declaration installDriftwoodAudio",
+          "retainedReason": "Loans the live world floors, shrine dusk owner, listener, camera and wind to admitted audio rows; bind preserves native method receivers and entered lifetime."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 10,
+          "end": 10,
+          "lines": 1,
+          "reason": "import ./audio/install",
+          "retainedReason": "Calls the native scene-loan installer after play services exist and before the finale memory warms."
+        },
+        {
+          "path": "src/shards/driftwood-isle/runtime/index.ts",
+          "kind": "runtime-ts",
+          "component": "C8",
+          "start": 73,
+          "end": 73,
+          "lines": 1,
+          "reason": "owner API installDriftwoodAudio",
+          "retainedReason": "Calls the native scene-loan installer after play services exist and before the finale memory warms."
+        }
+      ]
+    }
+  }
+}

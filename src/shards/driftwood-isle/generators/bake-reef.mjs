@@ -6,14 +6,12 @@ import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
 import {Rng} from '@wildshard/engine/core/rng';
-import {seedOf} from '@wildshard/engine/models/model';
 import {bindLevelSelection} from '@wildshard/engine/level/selection';
 import {HeightfieldBinding,bindHeightfield} from '@wildshard/engine/world/Heightfield';
 import {terrainHeight} from '@wildshard/engine/world/terrainHeight';
 import { WRECK } from './worldSites';
 import manifest from '../discovery.generated';
-import {REEF_SPECIMENS} from './reefSpecimenRows.ts';
-import {REEF} from '../runtime/models/reef.ts';
+import {REEF_SPECIMENS,REEF_MODEL_SEED} from './reefSpecimenRows.ts';
 import {LAGOON_REEF,reefLayoutJson,scatterLagoon} from './reefScatter.ts';
 import {reefGeometry} from './reef.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';
@@ -45,7 +43,7 @@ try{
 for(const kind of ['coral','weed','star']){
  const row=REEF_SPECIMENS[kind];
  for(const variant of [{id:'default',params:row.defaults},...row.variants.map(v=>({id:v.id,params:{...row.defaults,...v.params}}))]){
-  const shape=reefGeometry(kind,variant.params,new Rng(seedOf(REEF[kind]))),material=new MeshStandardMaterial();
+  const shape=reefGeometry(kind,variant.params,new Rng(REEF_MODEL_SEED)),material=new MeshStandardMaterial();
   try{files[kind][variant.id]=emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'aSway'},compactIndex:true}],`reef-${kind}`),'glb',`models/reef/${kind}/${variant.id}.glb`);}
   finally{shape.dispose();material.dispose();}
  }

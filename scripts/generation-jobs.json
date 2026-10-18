@@ -16700,6 +16700,8 @@
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
       "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
         "src/shards/driftwood-isle/generators/bake-specimens.mjs"
       ],
       "inputRoots": [
@@ -16715,7 +16717,12 @@
         "src/shards/driftwood-isle/generators/siteCatalogue.ts",
         "src/shards/driftwood-isle/data/rockScenes.generated.json",
         "src/shards/driftwood-isle/data/foliageScenes.generated.json",
-        "src/shards/driftwood-isle/data/pierScenes.generated.json"
+        "src/shards/driftwood-isle/data/pierScenes.generated.json",
+        "src/shards/driftwood-isle/generators/reefCatalogue.ts",
+        "src/shards/driftwood-isle/generators/reefSpecimenRows.ts",
+        "src/shards/driftwood-isle/generators/reefFiles.ts",
+        "src/shards/driftwood-isle/data/reefBlobs.generated.json",
+        "src/sdk/bake/source-loader.mjs"
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",

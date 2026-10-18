@@ -1,0 +1,128 @@
+{
+  "basis": "source",
+  "baseSource": "b7f052ae4b0031e716dd8e75a0950dadd4ff0c1d",
+  "proofBaseTree": "c0cfec73801ab960a064b700c651f72292dddfc3",
+  "candidate": "e48d9e0e1b3627632f202399fbf528fc570b924d",
+  "allTenGeneratedProductsVerified": true,
+  "rows": [
+    {
+      "slug": "pine-hollow",
+      "before": 4065,
+      "after": 4065,
+      "net": 0,
+      "componentsBefore": {
+        "C1": 1073,
+        "C2": 347,
+        "C3": 172,
+        "C4": 695,
+        "C5": 784,
+        "C6": 225,
+        "C7": 7,
+        "C8": 24,
+        "C9": 738
+      },
+      "componentsAfter": {
+        "C1": 1073,
+        "C2": 347,
+        "C3": 172,
+        "C4": 695,
+        "C5": 784,
+        "C6": 225,
+        "C7": 7,
+        "C8": 24,
+        "C9": 738
+      }
+    },
+    {
+      "slug": "driftwood-isle",
+      "before": 3384,
+      "after": 3309,
+      "net": -75,
+      "componentsBefore": {
+        "C1": 1196,
+        "C2": 181,
+        "C3": 0,
+        "C4": 729,
+        "C5": 589,
+        "C6": 148,
+        "C7": 0,
+        "C8": 29,
+        "C9": 512
+      },
+      "componentsAfter": {
+        "C1": 1138,
+        "C2": 174,
+        "C3": 0,
+        "C4": 729,
+        "C5": 589,
+        "C6": 145,
+        "C7": 0,
+        "C8": 29,
+        "C9": 505
+      }
+    }
+  ],
+  "platform": {
+    "base": "c0cfec73801ab960a064b700c651f72292dddfc3",
+    "candidate": "e48d9e0e1b3627632f202399fbf528fc570b924d",
+    "rows": [
+      {
+        "path": "src/engine/world/HorizonMatte.ts",
+        "before": 285,
+        "after": 286
+      },
+      {
+        "path": "src/format/contentBounds.ts",
+        "before": 32,
+        "after": 33
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/bake-reef.mjs",
+        "before": 50,
+        "after": 48
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/clientSections.ts",
+        "before": 30,
+        "after": 33
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/nativeView.ts",
+        "before": 65,
+        "after": 63
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/reef.ts",
+        "before": 136,
+        "after": 136
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/reefCatalogue.ts",
+        "before": 0,
+        "after": 22
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/reefSpecimenRows.ts",
+        "before": 126,
+        "after": 128
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/sections.ts",
+        "before": 178,
+        "after": 177
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/siteCatalogue.ts",
+        "before": 35,
+        "after": 36
+      },
+      {
+        "path": "src/shards/driftwood-isle/generators/worldScenes.ts",
+        "before": 50,
+        "after": 51
+      }
+    ],
+    "platform": 2,
+    "generators": 24
+  }
+}

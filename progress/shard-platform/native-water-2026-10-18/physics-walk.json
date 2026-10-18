@@ -1,0 +1,96 @@
+{
+  "candidate": "21d7245-mvdjc75a",
+  "tier": "phone",
+  "walkCpu": 1,
+  "legs": [
+    {
+      "shard": "driftwood-isle",
+      "name": "pier",
+      "seconds": 23.6,
+      "end": {
+        "x": -19.715,
+        "y": 0.531,
+        "z": -150.685
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "hut",
+      "seconds": 10.2,
+      "end": {
+        "x": -22,
+        "y": 18.911,
+        "z": -64.537
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "bridge",
+      "seconds": 12.2,
+      "end": {
+        "x": 35.285,
+        "y": 12.268,
+        "z": 33.253
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "lookout",
+      "seconds": 4.1,
+      "end": {
+        "x": 93.801,
+        "y": 40.529,
+        "z": 93.706
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "wreck",
+      "seconds": 4.3,
+      "end": {
+        "x": 151.306,
+        "y": 3.805,
+        "z": 7.642
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "cave",
+      "seconds": 4.7,
+      "end": {
+        "x": 142.006,
+        "y": 0.42,
+        "z": 18.58
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "shrine",
+      "seconds": 4.7,
+      "end": {
+        "x": -96.898,
+        "y": 10.218,
+        "z": 106.495
+      },
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "boat",
+      "seconds": 2.2,
+      "end": {
+        "x": -4.331,
+        "y": 0.284,
+        "z": -202.307
+      },
+      "stuck": []
+    }
+  ],
+  "stuck": 0
+}
