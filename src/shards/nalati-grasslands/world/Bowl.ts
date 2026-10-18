@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
-import { instanceModel, poiMaterial, loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
+import { instanceModel, poiMaterial, loadNalatiModel, placementMatrix } from './modelView';
+import type { ModelPlacement } from './modelTypes';
+import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { inPoiClearing } from './terrain';
 import rows from '../boot/decorative.generated.json' with { type: 'json' };
@@ -115,7 +117,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     }
     m.instanceMatrix.needsUpdate = true;
   };
-  const riderTris = riders.length * (PHONE ? FAR_TRIS['kokpar-rider'] : MODEL_TRIS['kokpar-rider']);
+  const riderTris = riders.length * (PHONE ? modelMetrics.farTriangles['kokpar-rider'] : modelMetrics.triangles['kokpar-rider']);
   return { ...base, tris: base.tris + riderTris, update };
 }
 
@@ -196,7 +198,7 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
   };
-  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: data.total * FAR_TRIS['horse-wild'], update, register: (o) => [put(copies, { ...o, object: group }, group)] };
+  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: data.total * modelMetrics.farTriangles['horse-wild'], update, register: (o) => [put(copies, { ...o, object: group }, group)] };
 }
 
 // ── snow lotus ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -208,7 +210,7 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   const data = rows[TIER].lotus, copies = bakedMember(data.member), put = placer(snowLotus)[1];
   loadNalatiModel(sky, 'snow-lotus', data.look).then(model => { group.add(instanceModel(model, data.poses)); return model; })
     .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
-  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: data.poses.length * MODEL_TRIS['snow-lotus'], register: (o) => [put(copies, { ...o, object: group }, group)] };
+  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: data.poses.length * modelMetrics.triangles['snow-lotus'], register: (o) => [put(copies, { ...o, object: group }, group)] };
 }
 
 // ── the glacier ──────────────────────────────────────────────────────────────────────────────────────────────────────

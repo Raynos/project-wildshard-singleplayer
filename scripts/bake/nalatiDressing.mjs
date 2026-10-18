@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import * as THREE from 'three';
 import { installBakeEnvironment } from './environment.mjs';
 import { prepareNativeTerrain } from './nativeWorld.mjs';
 import { byteWriter, jsonBytes, outputHash } from '../bake-output.mjs';
@@ -12,9 +11,7 @@ async function bakeNalatiDressing(dressingRecipe) {
   const root = resolve(import.meta.dirname, '../..');
   const environment = installBakeEnvironment(root);
   const noop = () => undefined;
-  const sky = new Proxy({ setupMaterial: noop, sunDir: new THREE.Vector3(0, 1, 0),
-    hemi: new THREE.HemisphereLight(), csm: { lights: [new THREE.DirectionalLight()], update: noop } },
-  { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color') ? new THREE.Color(1, 1, 1) : undefined });
+
 
   try {
     const { NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/manifest.ts');
@@ -24,9 +21,9 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/world/terrain.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
-    const [{ placeForest }, { SPRUCE_SPECS }, { NalatiPOIs }, { outcropsPlace, bakeCragRock }] = await Promise.all([
+    const [{ placeForest }, { SPRUCE_SPECS }, { outcropsPlace, bakeCragRock }] = await Promise.all([
       import('@wildshard/engine/world/forest/placement'), import('../../src/shards/nalati-grasslands/generators/spruceGeometry.ts'),
-      import('../../src/shards/nalati-grasslands/world/index.ts'), import('../../src/shards/nalati-grasslands/generators/places.ts'),
+      import('../../src/shards/nalati-grasslands/generators/places.ts'),
     ]);
     const [layout, terrain, { inPoiClearing }] = await Promise.all([
       import('../../src/shards/nalati-grasslands/generators/layout.ts'), import('../../src/shards/nalati-grasslands/world/terrain.ts'),
@@ -40,11 +37,17 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { trees, grid } = placeForest(SPRUCE_SPECS.map(row => ({ trunkRadius: row.trunk, height: row.height })));
     const forest = { trees, nearby: (x, z, r) => grid.nearby(x, z, r) };
     const plan = await planDressing(forest);
-    const pois = await new NalatiPOIs(sky).buildSliced(() => Promise.resolve());
+    const placeRows = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/places.json'), 'utf8')).rows;
+    const sequence = JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data/worldView.json'), 'utf8')).sequence;
+    const spots = placeRows.find(row => row.name === 'kurgans').anchors.balbalSpots;
+    const poiColliders = sequence.flatMap(row => row.name === 'balbals' ? spots.map(spot => {
+      const scale = spot.scale ?? 1, y = heightAt(spot.x, spot.z) - .18 * scale;
+      return { x: spot.x, z: spot.z, hw: .42 * scale, hd: .33 * scale, rot: -spot.yaw, yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true };
+    }) : placeRows.find(place => place.name === row.name)?.colliders ?? []);
     const steps = outcropsPlace({ ground: heightAt, flutter: { streamer: noop, flag: noop, strip: noop }, smoke: { emitter: noop } });
     let step = steps.next(); while (!step.done) step = steps.next();
     const outcrops = step.value, crags = bakeCragRock((await import('@wildshard/engine/core/tier')).TIER_CONFIG.maxTexture <= 1024, heightAt);
-    const avoid = [...pois.colliders, ...outcrops.colliders, ...crags.colliders];
+    const avoid = [...poiColliders, ...outcrops.colliders, ...crags.colliders];
     for (const part of crags.meshes) part.geometry.dispose();
     const clutter = campClutterSpots(avoid);
     const writer = byteWriter(process.argv.includes('--check'), 'nalati-dressing-plan');

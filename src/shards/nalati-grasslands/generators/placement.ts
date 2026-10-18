@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Box, Platform } from '../data/placeTypes';
 import type { ModelLod, ModelLook, ModelPlacement, NalatiModelName } from '../data/modelTypes';
-import { MODEL_SIZE, MODEL_TRIS } from './modelPlacement';
+import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
 import type { ModelContext, Placement } from '@wildshard/engine/models/model';
 import type { Draw } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
@@ -53,7 +53,7 @@ function highest(floors: readonly Platform[]): Platform {
 /** a set's generated models' triangles (the POI's perf report) */
 export function instanceTris(instances: Iterable<readonly [NalatiModelName, InstanceData]>): number {
   let n = 0;
-  for (const [name, l] of instances) n += MODEL_TRIS[name] * l.placements.length;
+  for (const [name, l] of instances) n += modelMetrics.triangles[name] * l.placements.length;
   return n;
 }
 
@@ -109,7 +109,8 @@ export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { read
 
 /** Native model bounds used by both authored collision recipes and live placement boxes. */
 export function generatedBounds(name: NalatiModelName, box = new THREE.Box3()): THREE.Box3 {
-  const [w, h, d] = MODEL_SIZE[name];
+  const [w, h, d] = modelMetrics.sizes[name];
+  if (w === undefined || h === undefined || d === undefined) throw new Error('Missing model bounds');
   box.min.set(-w / 2, 0, -d / 2); box.max.set(w / 2, h, d / 2);
   return box;
 }

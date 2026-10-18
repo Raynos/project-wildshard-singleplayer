@@ -1,46 +1,9 @@
 import type * as THREE from 'three';
-import type { Box } from './solid';
-import type { ModelLod, ModelLook, ModelPlacement, NalatiModelName } from './modelView';
-import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { ModelDef } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
 import type { Platform } from './types';
-import type { DeckRow, TorFloorRow } from './placeTypes';
+import type { DeckRow, TorFloorRow, MemberData, SetRegister } from './placeTypes';
 
-
-export interface GeneratedSpec<P> {
-  /** the model's id: the Explorer's card re-frames when the file lands */
-  readonly id: string;
-  readonly name: NalatiModelName;
-  readonly look?: ModelLook;
-  /** which of the file's LODs (the herds draw the far one) */
-  readonly lod?: ModelLod;
-  /** its instances cast shadows (default true) */
-  readonly castShadow?: boolean;
-  /** the instance's placement from a copy's (default: the same point, turned `rot`) */
-  readonly pose?: (at: ModelPlacement, p: P) => ModelPlacement;
-  /** what a copy collides with, world space, from its placement */
-  readonly collide?: (at: ModelPlacement, p: P) => Made;
-}
-
-interface Made { readonly boxes?: readonly Box[]; readonly descs?: readonly ColliderDesc[]; readonly floor?: Platform }
-
-/** one model's copies in a set as data: where they stand, their boxes, what they made (the places bake writes these rows,
- *  generators/places.ts; the page places them back, ./placeBake.ts) */
-export interface MemberData {
-  readonly draw: Draw;
-  /** true: its copies are painted into the set's kit (its mesh), false: the set's generated instances (its group) */
-  readonly inKit: boolean;
-  /** where each copy stands (its params stay with what it made: `place` draws nothing, and has no own-space colliders to pose) */
-  readonly placements: Omit<Placement<object>, 'params'>[];
-  readonly boxes: number[];
-  /** its copies' boxes as colliders, then their real-geometry ones (the old builders' order: boxes first) */
-  readonly solid: ColliderDesc[];
-  readonly descs: ColliderDesc[];
-  readonly floors: Platform[];
-}
-/** a set's generated models' instances of one model: their look and placements */
-export interface InstanceData { readonly look: ModelLook; readonly castShadow: boolean; readonly placements: ModelPlacement[] }
 
 /** Placement-only authored floors; all solid construction is baked. */
 function highest(floors: readonly Platform[]): Platform {
@@ -59,17 +22,6 @@ export function placeMember<P extends object>(def: ModelDef<P>, m: MemberData, o
     drawnInto: { object, boxes: Float32Array.from(m.boxes), colliders: [...m.solid, ...m.descs] },
     piece: { solidFloor: true, ...(floor === undefined ? {} : { floor }), ...(o.split === undefined ? {} : { split: o.split }) },
   });
-}
-
-export interface SetRegister {
-  readonly ctx: ModelContext;
-  readonly registry?: WorldRegistry | null;
-  /** the set's painted mesh (its painted models' tap target) */
-  readonly object: THREE.Object3D;
-  /** where its generated models' instances land (default: `object`) */
-  readonly group?: THREE.Object3D;
-  /** register each model's colliders `every` at a time, a task apart (the phone's per-task collider budget: `Placed.registered`) */
-  readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
 }
 
 /** Exact numeric floor profile recorded by the static painter. */

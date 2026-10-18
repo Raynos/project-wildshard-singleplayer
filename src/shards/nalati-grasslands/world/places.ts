@@ -12,21 +12,21 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { instanceModel, loadNalatiModel, poiMaterial, texturedMaterial, type NalatiModelName } from './modelView';
+import { instanceModel, loadNalatiModel, poiMaterial, texturedMaterial } from './modelView';
+import type { NalatiModelName } from './modelTypes';
 import { yardMaterial } from './Yard';
 import type { NalatiTexName } from '../look/nalatiTextures';
 import type { PoiCtx, PoiPiece, PlaceAnchors } from './types';
-import type { PlaceGeometryRow, PlaceRow, MemberRow, EffectRow } from './placeTypes';
-import { placeMember, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, torFloor, deckFloor, type MemberData, type SetRegister } from './painted';
+import type { PlaceGeometryRow, PlaceRow, MemberRow, EffectRow, MemberData, SetRegister } from './placeTypes';
+import { placeMember, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, torFloor, deckFloor } from './painted';
 import scenes from '../boot/poiScenes.generated.json' with { type: 'json' };
 import prepared from '../boot/placeRuntime.generated.json' with { type: 'json' };
 import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
 import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
 
-type PreparedMember = MemberRow;
 interface PreparedPlace extends Omit<PlaceRow, 'meshes' | 'members'> {
  readonly meshes: readonly { readonly geometry: PlaceGeometryRow; readonly offset: number; readonly material: string }[];
- readonly members: readonly (readonly [string, PreparedMember])[];
+ readonly members: readonly (readonly [string, MemberRow])[];
 }
 const geometrySchema = v.object({ attrs: v.array(v.tuple([v.string(), v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), v.number(), v.boolean()])), count: v.number(), index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: v.number(), box: v.boolean(), expand: v.boolean() });
 const isPlaces = (input: unknown): input is readonly PreparedPlace[] => Array.isArray(input) && input.every(row => typeof row === 'object' && row !== null && 'name' in row && 'meshes' in row && 'members' in row);
@@ -80,9 +80,8 @@ export function bakedPlaceAnchors(name: string): PlaceAnchors {
 }
 const colliders = (inputs: readonly MemberRow['descs'][number][]): ColliderDesc[] => { const decoded = inputs.map(({ heading, ...row }) => heading === undefined ? row : { ...row, yaw: Math.atan2(...heading) }); return readColliderRows(decoded, { kinds: ['box', 'treads', 'hull', 'capsule', 'ball', 'trimesh'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] }).map((parsed, i) => Object.assign(decoded[i] ?? {}, parsed)); };
 export function bakedMember(input: MemberRow): MemberData {
- const m = input;
- const placements = m.placements.map(({ matrix, heading, ...p }): Omit<Placement<object>, 'params'> => ({ ...p, ...(heading === undefined ? {} : { yaw: Math.atan2(...heading) }), ...(matrix === undefined ? {} : { matrix: new THREE.Matrix4().fromArray(matrix) }) }));
- return { draw: m.draw === 'instanced' ? 'instanced' : 'merged', inKit: m.inKit, placements, boxes: [...m.boxes], solid: colliders(m.solid), descs: colliders(m.descs), floors: m.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f)) };
+ const placements = input.placements.map(({ matrix, heading, ...p }): Omit<Placement<object>, 'params'> => ({ ...p, ...(heading === undefined ? {} : { yaw: Math.atan2(...heading) }), ...(matrix === undefined ? {} : { matrix: new THREE.Matrix4().fromArray(matrix) }) }));
+ return { draw: input.draw === 'instanced' ? 'instanced' : 'merged', inKit: input.inKit, placements, boxes: [...input.boxes], solid: colliders(input.solid), descs: colliders(input.descs), floors: input.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f)) };
 }
 export type Placer = (m: MemberData, o: SetRegister, object: THREE.Object3D) => Placed;
 export const placer = <P extends object>(def: ModelDef<P>): readonly [string, Placer] => [def.id, (m, o, object) => placeMember(def, m, o, object)];

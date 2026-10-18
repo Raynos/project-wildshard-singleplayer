@@ -18,7 +18,8 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
-import { poiMaterial, placementMatrix, MODEL_TRIS } from './modelView';
+import { poiMaterial, placementMatrix } from './modelView';
+import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 import { balbal, wearGenerated, type BalbalCarving, type BalbalParams } from '../models/balbal';
 
 export interface Statue { x: number; y: number; z: number; yaw: number; scale: number; tilt: number; variant: number; slot: number; collider: Collider }
@@ -79,7 +80,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
   });
   return {
     piece: {
-      name: 'balbals', object: group, colliders, surface: 'stone', tris: MODEL_TRIS.balbal * spots.length,
+      name: 'balbals', object: group, colliders, surface: 'stone', tris: modelMetrics.triangles.balbal * spots.length,
       // one InstancedMesh per carved variant (the model contract's instanced path), wearing the generated model once it lands
       register: ({ registry, ctx: mctx }) => {
         const placed = place(balbal, placements, { ctx: mctx, draw: 'instanced', registry });

@@ -1,8 +1,12 @@
+import type * as THREE from 'three';
+import type { ModelContext, Placement } from '@wildshard/engine/models/model';
+import type { Draw } from '@wildshard/engine/models/place';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { Material } from '@wildshard/engine/physics/surface';
 
-import type { ModelPlacement } from './modelView';
+import type { ModelPlacement, ModelLook } from './modelTypes';
 
 export interface PlaceGeometryRow extends BakedGeometryRow { readonly expand: boolean }
 /** a drawn mesh of a place: its name, its material ('poi' the painterly POI material, a texture name the textured one,
@@ -53,3 +57,30 @@ export interface PlaceAnchors {
 export interface CragLedgeFloor { readonly heading?: readonly [number, number]; readonly kind: 'ledge'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly hw: number; readonly hd: number; readonly top: number }
 export interface LeopardCaveFloor { readonly kind: 'cave'; readonly x: number; readonly z: number; readonly cs: number; readonly sn: number; readonly mouthW: number; readonly depth: number; readonly porchY: number }
 export interface KurganEntranceFloor { readonly kind: 'entrance'; readonly x: number; readonly z: number; readonly fx: number; readonly fz: number; readonly cw: number; readonly len: number; readonly lintelY: number; readonly dep: number; readonly floorY: number; readonly nSteps: number; readonly rise: number }
+export interface MemberData {
+  readonly draw: Draw;
+  /** true: its copies are painted into the set's kit (its mesh), false: the set's generated instances (its group) */
+  readonly inKit: boolean;
+  /** where each copy stands (its params stay with what it made: `place` draws nothing, and has no own-space colliders to pose) */
+  readonly placements: Omit<Placement<object>, 'params'>[];
+  readonly boxes: number[];
+  /** its copies' boxes as colliders, then their real-geometry ones (the old builders' order: boxes first) */
+  readonly solid: ColliderDesc[];
+  readonly descs: ColliderDesc[];
+  readonly floors: Platform[];
+}
+/** a set's generated models' instances of one model: their look and placements */
+export interface InstanceData { readonly look: ModelLook; readonly castShadow: boolean; readonly placements: ModelPlacement[] }
+
+
+export interface SetRegister {
+  readonly ctx: ModelContext;
+  readonly registry?: WorldRegistry | null;
+  /** the set's painted mesh (its painted models' tap target) */
+  readonly object: THREE.Object3D;
+  /** where its generated models' instances land (default: `object`) */
+  readonly group?: THREE.Object3D;
+  /** register each model's colliders `every` at a time, a task apart (the phone's per-task collider budget: `Placed.registered`) */
+  readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
+}
+

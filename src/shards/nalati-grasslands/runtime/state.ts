@@ -27,7 +27,6 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
@@ -42,7 +41,8 @@ import { createClientScene } from '@wildshard/game/plugin/ui';
 import { cragRock, cragMaterial, CRAG_GEOMETRY } from '../models/cragRock';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
-import { NalatiPOIs, buildBakedOutcrops } from '../world/index';
+import { buildNalatiPOIs, buildBakedOutcrops } from '../world/view';
+import type { NalatiPOIs } from '../world/viewTypes';
 import { NalatiDressing } from '../world/dressing/index';
 import { wireKurganSliced, type KurganBoss } from '../combat/goldenKing';
 import { wireElites, type NalatiElites } from '../combat/elites';
@@ -62,11 +62,9 @@ import { reseedGrassV2 } from '../look/grass';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
-import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { placeSet, placedWithin } from '@wildshard/engine/models/sets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
-const { HITCHING_RAIL } = poiLayoutRows;
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
@@ -207,8 +205,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
-  const pois = await new NalatiPOIs(sky).buildSliced(macrotask); // SF67: a task apart per POI
-  await pois.place(game.scene, ctx.player, macrotask);   // each POI into the world registry (NALATI-MERGE P1): drawn, collides, in Explore
+  const pois = await buildNalatiPOIs(sky, game.scene, ctx.player, macrotask, plugin.app.registry);
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
   await slice(++completed, total, 'Places');
@@ -360,7 +357,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const night = await wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
-  let devMode: string | null = null, devT = 0, devNext: (() => void) | null | undefined;
   let painter: NalatiSkinPainter | null = null, syncT = 0;
   const prepareWildlife = (animals: AnimalManager): Wildlife => {
     attachedAnimals = animals;
@@ -405,7 +401,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       if (p.kit !== null) stealth.bindKit(p.kit);
       night.bindKit(p.kit);
       ride.bind({ toast: p.toast });
-      devMode = ctx.params.get('ride');
       painter = new NalatiSkinPainter(nalati.skins, {
         mounted: () => ride?.mount.horse ?? null,
         sabre: p.kit?.sabre ?? null, bow: p.kit?.bow ?? null,
@@ -442,39 +437,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  /** dev (`?ride=`): mount = on a camp horse at the rail · gallop = on it at the spawn, down the road · camp = at the rail on foot · herd = 30 m from the nearest wild
-   *  stallion · break = the bucking rounds on him · argymaq = beside Argymaq, beaten (with `?elite=argymaq`, the break prompt) */
-
-  const devRide = (r: Ride, w: Wildlife, mode: string): (() => void) | null => {
-    const face = (x: number, z: number): void => { player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); player.pitch = -0.05; };
-    const put = (x: number, z: number): void => { player.position.set(x, heightAt(x, z), z); };
-    if (mode === 'mount' || mode === 'camp' || mode === 'gallop') {
-      const h = w.campHorses[0];
-      if (h === undefined) return null;
-      put(HITCHING_RAIL.x - 6, HITCHING_RAIL.z - 3); face(h.position.x, h.position.z);
-      if (mode !== 'camp') r.mount.mount(h);
-      // gallop: the camp horse out on the north road at the spawn, heading down it (open ground for a run)
-      if (mode === 'gallop') { const sp = ctx.chunk.spawn; r.mount.teleport(sp.x, sp.z, sp.yaw + Math.PI); }
-      return null;
-    }
-    const herd = mode === 'argymaq' ? w.herds.find((h) => h.stallion?.kind === 'argymaq') : w.herds.find((h) => h.stallion?.kind === 'horse');
-    const st = herd?.stallion ?? null;
-    if (herd === undefined || st === null) return null;
-    const dx = st.position.x - herd.cx, dz = st.position.z - herd.cz, l = Math.hypot(dx, dz) || 1, d = mode === 'herd' ? 30 : 2.6;
-    put(st.position.x + (dx / l) * d, st.position.z + (dz / l) * d); face(st.position.x, st.position.z);
-    if (mode === 'argymaq') st.hp = Math.min(st.hp, st.maxHp * 0.2);   // the herd reads him BEATEN → the break prompt
-    return mode === 'break' ? () => { r.taming.forceBreak(); } : null;   // once Taming has picked the nearest stallion
-  };
-  // ── riding + taming (creatures agent B7 / B8; src/shards/nalati-grasslands/ride/ride.ts, src/shards/nalati-grasslands/ride/Mount.ts, src/shards/nalati-grasslands/ride/Taming.ts): the camp's two
-  //    saddled horses, TULPAR (or ARGYMAQ, who replaces him), the bucking rounds; `?ride=mount|gallop|camp|herd|break|argymaq` (dev) ──
-    updates.push((dt) => {
-      ride?.update(dt);
-      // dev `?ride=`: 1 s of play in (the elites have spawned Argymaq), then the follow-up 0.8 s later
-      if (devMode === null || ride === null || wildlife === null) return;
-      devT += dt;
-      if (devT > 1 && devNext === undefined) devNext = devRide(ride, wildlife, devMode);
-      else if (devT > 1.8 && devNext !== undefined) { devNext?.(); devMode = null; }
-    });
+  updates.push(dt => { ride?.update(dt); });
   // ── wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops (mirrored from elites.skins once a second) and the
   //    Titan's saddle, painted on the kit and on the horse you ride / your bonded horse ──
 

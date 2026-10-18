@@ -66,7 +66,7 @@ export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/places.ts',
   'src/shards/nalati-grasslands/world/Balbals.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts',
-  'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
+  'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
   'src/shards/nalati-grasslands-legacy/cragRock.ts',
 ];

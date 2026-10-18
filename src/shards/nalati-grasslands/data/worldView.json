@@ -1,0 +1,69 @@
+{
+  "sequence": [
+    {
+      "name": "camp",
+      "kind": "static",
+      "placers": "camp"
+    },
+    {
+      "name": "bridge",
+      "kind": "static",
+      "placers": "camp"
+    },
+    {
+      "name": "roads",
+      "kind": "static",
+      "placers": "camp"
+    },
+    {
+      "name": "summerCamp",
+      "kind": "static",
+      "placers": "camp"
+    },
+    {
+      "name": "kurgans",
+      "kind": "static",
+      "placers": "kurgan"
+    },
+    {
+      "name": "balbals",
+      "kind": "live"
+    },
+    {
+      "name": "eagleRock",
+      "kind": "static",
+      "placers": "eagle"
+    },
+    {
+      "name": "cairn",
+      "kind": "static",
+      "placers": "camp"
+    },
+    {
+      "name": "crags",
+      "kind": "static",
+      "placers": "crag"
+    },
+    {
+      "name": "watchtower",
+      "kind": "static",
+      "placers": "tower"
+    },
+    {
+      "name": "kokpar",
+      "kind": "live"
+    },
+    {
+      "name": "farHerds",
+      "kind": "live"
+    },
+    {
+      "name": "snowLotus",
+      "kind": "live"
+    },
+    {
+      "name": "glacier",
+      "kind": "live"
+    }
+  ]
+}

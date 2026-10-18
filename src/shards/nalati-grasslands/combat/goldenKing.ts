@@ -313,11 +313,9 @@ export class KurganDungeon {
   group: THREE.Object3D = new THREE.Group();
   readonly colliders: Collider[] = [];
   /** true while the player is in the dromos or the chamber (the fight hides the outdoor world then) */
-  inside = false;
   /** walkable heights: the floor (+ the sand drifts), the coffin plinth, the fallen beams, the pedestal step */
   readonly floorHeightAt = (x: number, z: number): number | undefined => this.floorAt(x, z);
 
-  readonly niches = NICHES;
   readonly streams: Stream[] = [];
   readonly rings: Ring[] = [];
   declare beam: { mesh: THREE.Mesh; mat: FxMaterial; line: THREE.Mesh; lineMat: FxMaterial };
@@ -343,14 +341,10 @@ export class KurganDungeon {
   private staticBuilt = false;
 
   constructor() {
-    this.group.name = 'kurgan-dungeon';
-    this.group.visible = false;
-    this.group.position.set(DUNGEON.x, DUNGEON.y, DUNGEON.z);
     this.sealCollider = { x: DUNGEON.x, z: DUNGEON.z + CH + 0.1, hw: DOOR_W + 0.3, hd: 0.25, rot: 0, yTop: DUNGEON.y - 50, yBottom: DUNGEON.y - 51 };
   }
 
   // ── frames ──
-  local(p: THREE.Vector3, out = new THREE.Vector3()): THREE.Vector3 { return out.set(p.x - DUNGEON.x, p.y - DUNGEON.y, p.z - DUNGEON.z); }
   world(lx: number, ly: number, lz: number, out = new THREE.Vector3()): THREE.Vector3 { return out.set(DUNGEON.x + lx, DUNGEON.y + ly, DUNGEON.z + lz); }
   inChamber(p: THREE.Vector3): boolean { const x = p.x - DUNGEON.x, z = p.z - DUNGEON.z, y = p.y - DUNGEON.y; return Math.abs(x) < CH && Math.abs(z) < CH && y > -3 && y < 8; }
   inDromos(p: THREE.Vector3): boolean { const x = p.x - DUNGEON.x, z = p.z - DUNGEON.z, y = p.y - DUNGEON.y; return Math.abs(x) < DW + 0.5 && z >= CH && z < DROMOS_END + 1 && y > -3 && y < 8; }
@@ -664,7 +658,7 @@ export class KurganBoss {
     const go = () => {
       this.dungeon.world(DROMOS_SPAWN.x, 0, atZ, player.position);
       player.velocity.set(0, 0, 0); player.yaw = DROMOS_SPAWN.yaw; player.pitch = 0;
-      this.inside = true; this.dungeon.inside = true;
+      this.inside = true;
       this.dungeon.setVisible(true);
       // the outdoor world goes dark (sealed interior: nothing out there can be seen) — everything at the scene root
       // but the interior, the animals, the camera (the viewmodel), the lights and the sky
@@ -696,7 +690,7 @@ export class KurganBoss {
           player.yaw = e.facing; player.pitch = 0; player.velocity.set(0, 0, 0);
         }
       }
-      this.inside = false; this.dungeon.inside = false;
+      this.inside = false;
       this.dungeon.setVisible(false);
       for (const o of this.hidden) o.visible = true;
       this.hidden = [];
@@ -750,3 +744,4 @@ export class KurganBoss {
 export function wireKurgan(ctx: KurganCtx): KurganBoss { return new KurganBoss(ctx).build(); }
 /** `wireKurgan`, its hidden static interior built a task apart per part (SF67: the load's long task) */
 export function wireKurganSliced(ctx: KurganCtx, yieldTask: () => Promise<void>): Promise<KurganBoss> { return new KurganBoss(ctx).buildSliced(yieldTask); }
+

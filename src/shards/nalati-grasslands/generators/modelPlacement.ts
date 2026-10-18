@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { ModelPlacement, NalatiModelName, FarModelName } from '../data/modelTypes';
+import type { ModelPlacement } from '../data/modelTypes';
 
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 export function placementMatrix(p: ModelPlacement, out = new THREE.Matrix4()): THREE.Matrix4 {
@@ -7,23 +7,4 @@ export function placementMatrix(p: ModelPlacement, out = new THREE.Matrix4()): T
   _e.set(p.pitch ?? 0, p.rot ?? 0, p.roll ?? 0, 'YXZ');
   return out.compose(_p.set(p.x, p.y, p.z), _q.setFromEuler(_e), _s.set(p.sx ?? k, p.sy ?? k, p.sz ?? k));
 }
-
-export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, number, number]>> = {
-  'horse-saddled': [0.71, 1.9, 2.31], 'horse-wild': [0.78, 1.75, 2.16], spruce: [5.96, 15.69, 5.58],
-  wolf: [0.48, 0.85, 0.94], sheep: [0.5, 0.95, 1.19], 'snow-leopard': [0.48, 0.8, 1.33], eagle: [0.43, 0.85, 0.57],
-  'golden-king': [0.88, 2.1, 0.68], balbal: [0.68, 1.6, 0.59], 'boulder-1': [1.65, 1.4, 1.66], 'boulder-2': [2.15, 2.0, 2.14],
-  'boulder-3': [3.11, 0.8, 2.58], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
-  firewood: [0.58, 0.6, 0.68], chest: [0.87, 0.6, 0.69],
-  watchtower: [8.68, 12.01, 7.19], 'snow-lotus': [0.55, 0.5, 0.56], 'kokpar-rider': [1.19, 2.5, 3.25],
-};
-
-/** triangles per model (desktop GLB; the phone GLB is the same mesh) — for the POIs' tri counts */
-export const MODEL_TRIS: Readonly<Record<NalatiModelName, number>> = {
-  'horse-saddled': 8000, 'horse-wild': 8000, spruce: 2999, wolf: 7523, sheep: 4802, 'snow-leopard': 7997,
-  eagle: 5903, 'golden-king': 8000, balbal: 1473, 'boulder-1': 800, 'boulder-2': 800, 'boulder-3': 800, 'kumis-churn': 1334,
-  cauldron: 1406, saddle: 1456, firewood: 1492, chest: 1417, watchtower: 4000, 'snow-lotus': 2233, 'kokpar-rider': 9000,
-};
-/** triangles of the far LODs */
-export const FAR_TRIS: Readonly<Record<FarModelName, number>> = { 'horse-wild': 790, 'horse-saddled': 798, 'kokpar-rider': 1066 };
-
 

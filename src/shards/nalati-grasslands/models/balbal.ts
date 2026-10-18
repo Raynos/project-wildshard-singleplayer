@@ -17,7 +17,8 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { bakedActorGeometry } from '../world/places';
-import { poiMaterial, loadNalatiModel, MODEL_SIZE } from '../world/modelView';
+import { poiMaterial, loadNalatiModel } from '../world/modelView';
+import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 
 export type BalbalCarving = 'bare' | 'capped';
 
@@ -37,7 +38,9 @@ function generatedBalbal(sky: Sky): Promise<{ geometry: THREE.BufferGeometry; ma
   let p = worn.get(sky);
   if (!p) {
     p = loadNalatiModel(sky, 'balbal', { rim: 0.35, bands: 0.8 }).then((model) => {
-      const k = 2.15 / MODEL_SIZE.balbal[1];
+      const height = modelMetrics.sizes.balbal[1];
+      if (height === undefined) throw new Error('Missing balbal bounds');
+      const k = 2.15 / height;
       return { geometry: model.geometry.clone().rotateY(Math.PI).scale(k, k, k), material: model.material };
     });
     worn.set(sky, p);
