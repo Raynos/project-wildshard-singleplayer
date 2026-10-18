@@ -1,0 +1,441 @@
+{
+  "status": "passed",
+  "proof": "20261018T064800-sp-x5-boot-final-look-61643",
+  "poses": 12,
+  "baseline": {
+    "build": "eefc80e-mvdqn9o2",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 34,
+        "colliderCount": 1929,
+        "colliders": "906642dbfc65b60b03098c8d67a8d58e3ccad7b5c6b9d1db671945a4877e2c5e",
+        "gpuBytes": 190168025,
+        "programs": 189,
+        "shaderCount": 319,
+        "shaders": "60d62043d41a5b63c68ab7848ef12797bdaee664104b0309b6fa865822e01996"
+      },
+      "desktop": {
+        "pieces": 34,
+        "colliderCount": 2082,
+        "colliders": "90eb7ba7d00234ec3c08175f70132b0f1bc143eb5d7893d987f95e26d15ea3f8",
+        "gpuBytes": 380802178,
+        "programs": 202,
+        "shaderCount": 345,
+        "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "beach-sea",
+        "player": [
+          100,
+          2.6,
+          1
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 113,
+        "triangles": 834738,
+        "lit": 1095048,
+        "pixels": "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "wreck",
+        "player": [
+          130,
+          1.2,
+          10
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 100,
+        "triangles": 777303,
+        "lit": 1095048,
+        "pixels": "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "lookout",
+        "player": [
+          93.6,
+          33.5,
+          95.9
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 76,
+        "triangles": 677796,
+        "lit": 1095048,
+        "pixels": "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "cave",
+        "player": [
+          142,
+          0.4,
+          14
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 94,
+        "triangles": 715464,
+        "lit": 1095048,
+        "pixels": "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "vista",
+        "player": [
+          -46,
+          17.2,
+          -100
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 169,
+        "triangles": 887812,
+        "lit": 1095043,
+        "pixels": "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "altar",
+        "player": [
+          -99,
+          7.1,
+          109
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 168,
+        "triangles": 1577465,
+        "lit": 1095048,
+        "pixels": "d9300e27719bd0341f843e05d62571e28a27b309b07331865b52779e82fb6ade"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "beach-sea",
+        "player": [
+          100,
+          2.6,
+          1
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 188,
+        "triangles": 1275426,
+        "lit": 615663,
+        "pixels": "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "wreck",
+        "player": [
+          130,
+          1.2,
+          10
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 145,
+        "triangles": 1101304,
+        "lit": 615663,
+        "pixels": "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "lookout",
+        "player": [
+          93.6,
+          33.5,
+          95.9
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 166,
+        "triangles": 1095553,
+        "lit": 615663,
+        "pixels": "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "cave",
+        "player": [
+          142,
+          0.4,
+          14
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 194,
+        "triangles": 1139305,
+        "lit": 615663,
+        "pixels": "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "vista",
+        "player": [
+          -46,
+          17.2,
+          -100
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 299,
+        "triangles": 1628125,
+        "lit": 614739,
+        "pixels": "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "altar",
+        "player": [
+          -99,
+          7.1,
+          109
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 467,
+        "triangles": 2825019,
+        "lit": 615663,
+        "pixels": "0b0fcdf630dce1c9984e61375b2c71784a4606c91427117f2a8e4d84f3d4e9c0"
+      }
+    ]
+  },
+  "candidate": {
+    "build": "c0b1b6f-mvdrgx36",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, Time of day pinned (paused); 180 controlled frames per pose, time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 34,
+        "colliderCount": 1929,
+        "colliders": "906642dbfc65b60b03098c8d67a8d58e3ccad7b5c6b9d1db671945a4877e2c5e",
+        "gpuBytes": 190168025,
+        "programs": 189,
+        "shaderCount": 319,
+        "shaders": "60d62043d41a5b63c68ab7848ef12797bdaee664104b0309b6fa865822e01996"
+      },
+      "desktop": {
+        "pieces": 34,
+        "colliderCount": 2082,
+        "colliders": "90eb7ba7d00234ec3c08175f70132b0f1bc143eb5d7893d987f95e26d15ea3f8",
+        "gpuBytes": 380802178,
+        "programs": 202,
+        "shaderCount": 345,
+        "shaders": "1018701bddac5fdfb3abe85012f634ee5708a213c7e6e0edb2df4217b92228d0"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "beach-sea",
+        "player": [
+          100,
+          2.6,
+          1
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 113,
+        "triangles": 834738,
+        "lit": 1095048,
+        "pixels": "a5823ca68a4b1b8c5eafbfac262d83e99022a349324234cab06206b0842c5a7d"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "wreck",
+        "player": [
+          130,
+          1.2,
+          10
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 100,
+        "triangles": 777303,
+        "lit": 1095048,
+        "pixels": "fdcb426bbc6b2f374766c4767e7e6b67e4e17decb9fb4ec774f44b2ee2def0ce"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "lookout",
+        "player": [
+          93.6,
+          33.5,
+          95.9
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 76,
+        "triangles": 677796,
+        "lit": 1095048,
+        "pixels": "429e50108dfa7d8029ffc41ba1d4cef828f21aac92b14337c30a3c3179d9c7b5"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "cave",
+        "player": [
+          142,
+          0.4,
+          14
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 94,
+        "triangles": 715464,
+        "lit": 1095048,
+        "pixels": "7853abfac78e7307302fd8c34e114d6eb3418e4d1e85b8a546c0e9d25cbe6800"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "vista",
+        "player": [
+          -46,
+          17.2,
+          -100
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 169,
+        "triangles": 887812,
+        "lit": 1095043,
+        "pixels": "ac4194a742a7ba7042138d3e7e2db8642e4a67bc3af5ecf0f5434ab6ac95c989"
+      },
+      {
+        "tier": "phone",
+        "phase": "midday",
+        "pose": "altar",
+        "player": [
+          -99,
+          7.1,
+          109
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 168,
+        "triangles": 1577465,
+        "lit": 1095048,
+        "pixels": "d9300e27719bd0341f843e05d62571e28a27b309b07331865b52779e82fb6ade"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "beach-sea",
+        "player": [
+          100,
+          2.6,
+          1
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 188,
+        "triangles": 1275426,
+        "lit": 615663,
+        "pixels": "69224a07f7469feea11fe488b721da1d20dc7bb08dfc613434790478ed11e5b1"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "wreck",
+        "player": [
+          130,
+          1.2,
+          10
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 145,
+        "triangles": 1101304,
+        "lit": 615663,
+        "pixels": "28075e6f6a8ab03688e739b620210ee1ddf8edc2bc5c4586a252d8fd3a6cb89b"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "lookout",
+        "player": [
+          93.6,
+          33.5,
+          95.9
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 166,
+        "triangles": 1095553,
+        "lit": 615663,
+        "pixels": "ef07a6b1b2f966617a01eba1c5cc2fa4e3a0ede546242f8bdaf4f4cd12985691"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "cave",
+        "player": [
+          142,
+          0.4,
+          14
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 194,
+        "triangles": 1139305,
+        "lit": 615663,
+        "pixels": "16c5418b905a5c348b5ec963b6bc1ac2d281eb7c5a7bfa25c30a0aadd7aa969a"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "vista",
+        "player": [
+          -46,
+          17.2,
+          -100
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 299,
+        "triangles": 1628125,
+        "lit": 614739,
+        "pixels": "940de7798f43112d7f47af552b3848fbbe7d790c3f3ba76fcb8dbf16c922495c"
+      },
+      {
+        "tier": "desktop",
+        "phase": "midday",
+        "pose": "altar",
+        "player": [
+          -99,
+          7.1,
+          109
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 467,
+        "triangles": 2825019,
+        "lit": 615663,
+        "pixels": "0b0fcdf630dce1c9984e61375b2c71784a4606c91427117f2a8e4d84f3d4e9c0"
+      }
+    ]
+  }
+}

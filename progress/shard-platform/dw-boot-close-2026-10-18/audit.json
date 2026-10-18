@@ -1,0 +1,254 @@
+{
+  "purpose": "DW C9/C2/C6 source ownership audit and whole-module deletion evidence",
+  "deletedModules": [
+    {
+      "path": "src/shards/driftwood-isle/boot/headlessModules.ts",
+      "replacement": "data/headlessAssembly.json through the existing check-headless-assemblies.mjs checked proof-map generator; generated imports live only under tmp/headless-modules",
+      "behavior": "The exact declared exports, assembly installation, native owners and continuation remain unchanged."
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/look/render.ts",
+      "replacement": "manifest.json bindings.render.platform toon calls the existing G475 toonLook(product) factory directly",
+      "behavior": "Hybrid world admission and cold geometry admission already install the same product rows before native readers. No look row changes."
+    }
+  ],
+  "retained": [
+    {
+      "paths": [
+        "src/shards/driftwood-isle/sim/baked.ts"
+      ],
+      "component": "C9",
+      "reason": "Native bake decoding includes validated actor/body shapes, float32 collider storage, the terrain sampler and the wreck-hold nearest-sample law. Existing primitives decode individual pieces; none replaces this whole module. Its keeper consumer belongs to C4."
+    },
+    {
+      "paths": [
+        "src/shards/driftwood-isle/runtime/index.ts",
+        "src/shards/driftwood-isle/runtime/hybrid.ts"
+      ],
+      "component": "C9",
+      "reason": "Entered/resident lifetime composition still owns the real world, creatures, quest and audio. Removing these modules requires deleting those native owners and their shared plugin scaffolding, rather than moving the callbacks into a host. C5 edits in index belong to sp-x1."
+    },
+    {
+      "paths": [
+        "src/shards/driftwood-isle/runtime/boot/blobAssets.ts",
+        "src/shards/driftwood-isle/runtime/boot/rows.ts"
+      ],
+      "component": "C9",
+      "reason": "The 88 fixed-geometry slots share validated channels, grouped inventory, owned copies and cold Explorer intake. Existing product/geometry APIs provide the primitives but no equivalent data-only lifetime owner. A relocated copy would be a single-user host."
+    },
+    {
+      "paths": [
+        "src/shards/driftwood-isle/boot/ground.ts",
+        "src/shards/driftwood-isle/boot/bridgeFacts.ts"
+      ],
+      "component": "C9",
+      "reason": "Ground binds trail/water metadata to the required terrain lattice; bridge facts validate authored spans against the real ground before drawing/collision. Deletion needs data-driven metadata/span intake without dropping those checks."
+    },
+    {
+      "paths": [
+        "src/shards/driftwood-isle/runtime/looks/creatureLooks.ts"
+      ],
+      "component": "C2",
+      "reason": "Native creature views clone the lent lit graph per animal, multiply the original eye glow and require the captain coat texture. The existing primitive recipe resolver does not reproduce these graph/material bindings. Creature ownership remains C4."
+    },
+    {
+      "paths": [
+        "src/shards/driftwood-isle/loot/presentation.ts",
+        "src/game/shard/declaredRows.ts#declaredLootEconomy"
+      ],
+      "component": "C6",
+      "reason": "The presentation binds the actual trader, purse, owned/worn cosmetics, finds, flags and modal hold. Pine's barter/skin ownership differs. Moving this callback bundle would fail the data-only host bar; the shared trader/ownership seam is still required. The economy adapter also validates registered ownership and cosmetic identifiers."
+    },
+    {
+      "paths": [
+        "src/game/plugin/animation.ts#stepNpcFacing",
+        "src/game/plugin/animation.ts#stepNpcHeadFocus",
+        "src/shards/driftwood-isle/runtime/npc/Castaway.ts",
+        "src/shards/driftwood-isle/runtime/npc/Trader.ts"
+      ],
+      "component": "C9",
+      "reason": "These sole-user helper charges belong to the real NPC view rigs: authored facing, focused heads and gestures run with the live native interaction owner. Their whole files cannot be deleted onto an existing equivalent data-only host without simplifying that presentation."
+    },
+    {
+      "paths": [
+        "src/engine/boot/plan.ts#BuildStages",
+        "src/shards/driftwood-isle/world/build.ts"
+      ],
+      "component": "C9",
+      "reason": "The native world build uses scoped progress slices around its real synchronous builds. BuildStages is still charged as a sole declaration; removing that helper or copying its scheduling into a new host would not delete its containing shared module and would risk boot responsiveness. Whole-world data intake must replace the caller first."
+    },
+    {
+      "paths": [
+        "src/game/loot/tables.ts#readLootTables",
+        "src/game/loot/tables.ts#registerLootTable"
+      ],
+      "component": "C6",
+      "reason": "These native loot-table reader/registration declarations remain live through the same native assembly. A whole-file cut depends on replacing its retained native item/table owners; the existing economy adapter alone does not own those lifetimes."
+    }
+  ],
+  "scope": {
+    "newRuntimeHosts": 0,
+    "newApprovedFeatureTags": 0,
+    "newAssemblyScriptLines": 0,
+    "mapInputsChangedByBuilder": [],
+    "mapOwner": "sp-x10 owns canonical intake and the planned manifest.json map root",
+    "protectedComponents": [
+      "C4",
+      "C5"
+    ],
+    "look": "Driftwood retains its low-poly toon rows and existing host."
+  },
+  "hostBar": {
+    "host": "src/game/looks/toonLook.ts",
+    "score": "5/6, failing only real second user under existing G475 exception",
+    "tests": [
+      {
+        "test": 1,
+        "pass": false,
+        "evidence": "lint/platform-pending-users.json:2203 names existing G475 approval; test/toon-look-platform.test.ts:18 is a fictional fixture, not a second shard"
+      },
+      {
+        "test": 2,
+        "pass": true,
+        "evidence": "src/game/looks/toonLook.ts:50 reads product sections without shard names or branches"
+      },
+      {
+        "test": 3,
+        "pass": true,
+        "evidence": "src/game/looks/toonLook.ts:51 obtains all look rows from look/toon"
+      },
+      {
+        "test": 4,
+        "pass": true,
+        "evidence": "src/game/looks/toonLook.ts:48 labels the host client-only"
+      },
+      {
+        "test": 5,
+        "pass": true,
+        "evidence": "test/toon-look-platform.test.ts:71 builds independent ground ids, materials and fog through the real host"
+      },
+      {
+        "test": 6,
+        "pass": true,
+        "evidence": "src/game/looks/toonLook.ts:50 accepts only an admitted product; test/toon-look-platform.test.ts:51 rejects executable rows"
+      }
+    ],
+    "newHost": false,
+    "newApprovedFeatureTags": 0,
+    "proofMap": "Existing build-only checked proof generator, not a runtime host"
+  },
+  "measurement": {
+    "ruler": "corrected checked-headless-import roots in both parent and candidate",
+    "parentTree": "f6f757c91f9490412a771ef678ecefb959f45136",
+    "candidateTree": "c0b1b6f56e0dff63a24b2869078a1695df240755",
+    "perShard": {
+      "_template": {
+        "parent": 1000,
+        "candidate": 1000,
+        "net": 0
+      },
+      "blender-template": {
+        "parent": 106,
+        "candidate": 106,
+        "net": 0
+      },
+      "driftwood-isle": {
+        "parent": 3237,
+        "candidate": 3195,
+        "net": -42
+      },
+      "far-reach": {
+        "parent": 419,
+        "candidate": 419,
+        "net": 0
+      },
+      "ink-cel-valley": {
+        "parent": 1122,
+        "candidate": 1122,
+        "net": 0
+      },
+      "nalati-grasslands": {
+        "parent": 20313,
+        "candidate": 20313,
+        "net": 0
+      },
+      "nine-dragon-stack": {
+        "parent": 12144,
+        "candidate": 12144,
+        "net": 0
+      },
+      "pastel-plain": {
+        "parent": 733,
+        "candidate": 733,
+        "net": 0
+      },
+      "pine-hollow": {
+        "parent": 3962,
+        "candidate": 3962,
+        "net": 0
+      },
+      "sunscar-dunes": {
+        "parent": 208,
+        "candidate": 208,
+        "net": 0
+      }
+    },
+    "platformRuntimeNet": 0,
+    "assemblyScriptNet": 0,
+    "components": {
+      "parent": {
+        "C1": 1097,
+        "C2": 172,
+        "C3": 0,
+        "C4": 715,
+        "C5": 589,
+        "C6": 142,
+        "C7": 0,
+        "C8": 29,
+        "C9": 493
+      },
+      "candidate": {
+        "C1": 1090,
+        "C2": 165,
+        "C3": 0,
+        "C4": 715,
+        "C5": 582,
+        "C6": 140,
+        "C7": 0,
+        "C8": 29,
+        "C9": 474
+      }
+    }
+  },
+  "validation": {
+    "sourceProof": "20261018T062209-sp-x5-boot-strict-source-68599",
+    "required": [
+      "strict all-10 products with zero map-stale warnings",
+      "root types",
+      "layer types",
+      "scripts types",
+      "typed lint",
+      "check-paths",
+      "check-models",
+      "check-model-sources",
+      "focused 7 files including all 17 shard-headless cases"
+    ],
+    "strictMapStaleWarnings": 0,
+    "focusedTestsPassed": 46,
+    "look": {
+      "proof": "20261018T064800-sp-x5-boot-final-look-61643",
+      "poses": 12,
+      "result": "Exact pixels, draws, triangles, GPU bytes, shader sources, programs and colliders on phone and desktop"
+    },
+    "nativeSaves": {
+      "proof": "20261018T064529-sp-x5-boot-final-native-v3-53625",
+      "testsPassed": 4,
+      "result": "Recorded DW/Pine quest saves replay byte-identically; legacy native quest envelopes retain exact bytes."
+    },
+    "combinedTypes": {
+      "proof": "20261018T065111-sp-x5-boot-combined-types-75453",
+      "tree": "650f69638f48880d72c776953ab8bdd37eb98f0e",
+      "result": "Root, layer and scripts types pass after rebasing onto engine repair e2141156cd96a7dd2e5e1b007db9a8fae84b5324."
+    }
+  }
+}

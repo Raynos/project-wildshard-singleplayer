@@ -334,8 +334,7 @@
       "export": "GROUND"
     },
     "render": {
-      "module": "./runtime/look/render",
-      "export": "shardRender"
+      "platform": "toon"
     },
     "roster": {
       "module": "./roster",

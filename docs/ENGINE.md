@@ -10009,6 +10009,8 @@ product bytes and borrows materials from its preparation scope. That scope
 clears its loan on disposal; a painter used before preparation refuses.
 `game/looks/toonLighting` supplies shared lighting for these hosts and held
 meshes. Shards declare cover rows rather than extending the instance streamer.
+Discovery binds this same factory directly when the manifest declares
+`bindings.render: { platform: 'toon' }`; no shard render adapter is needed.
 
 The feature is approved from day one by G475: the approval metadata names
 the feature and decision directly, with no invented future toon shard. The

@@ -10,7 +10,8 @@ node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/
 node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/driftwood-isle/run.mjs zipline
 ```
 
-`checkpoints` authors a bounded continuous player-command tape in the actual trusted `boot/headlessModules.ts` and its declared assembly: Wendell,
+`checkpoints` authors a bounded continuous player-command tape through the checked
+`data/headlessAssembly.json` capability map and the native assembly: Wendell,
 the flint chest, the lookout and beacon, the hold sailor/key/pump/winch/strongbox, iron sword, the nearby plate crabs, the physical
 barrel on plate B and player on plate A, the sluice and cave shard, the altar, the living Captain and the reward.
 No code writes player poses, HP, flags, grants or actor decisions. If the player dies or the tape stalls, it fails.

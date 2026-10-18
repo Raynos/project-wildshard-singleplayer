@@ -78,8 +78,9 @@ export function authoredManifestSource(root, slug) {
   } else if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
   if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
   const native = [];
+  if (b.render?.platform === 'toon') native.push("render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)");
   if (b.ground) native.push(`ground: ${value(b.ground)}`);
-  for (const key of ['render', 'roster']) if (b[key]) {
+  for (const key of ['render', 'roster']) if (b[key] && b[key].platform === undefined) {
     if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(b[key].export)) throw new Error(`${file}: invalid lazy binding export`);
     // a called look or roster factory gets the shard's product (toLevelSpec binds it; product-in-look-o272)
     native.push(key === 'render' || b[key].call === true ? `${key}: async (product) => callWithProduct(${lazy(b[key], false)}, product)` : `${key}: async () => ${lazy(b[key], false)}`);

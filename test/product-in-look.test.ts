@@ -84,7 +84,10 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
     const root = resolve(import.meta.dirname, '..');
     for (const slug of ['driftwood-isle', 'pine-hollow', 'far-reach', 'sunscar-dunes']) {
       const source = authoredManifestSource(root, slug);
-      expect(source).toContain('render: async (product) => callWithProduct(');
+      expect(source).toContain(slug === 'driftwood-isle'
+        ? "render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)"
+        : 'render: async (product) => callWithProduct(');
+      if (slug === 'driftwood-isle') expect(source).not.toContain('import("./runtime/look/render")');
       expect(source).toContain('const callWithProduct = ');
       expect(source).toContain("import type { ShardProduct } from '../../game/shardfile/shardProduct';");
     }

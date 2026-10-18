@@ -27,8 +27,8 @@ import { playDriftwood } from './tape';
 
 const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
-export const ENTRY = 'boot/headlessModules.ts';
-const ROOT = new URL('../../../', import.meta.url), MODULE = new URL(`src/shards/driftwood-isle/${ENTRY}`, ROOT).href;
+export const ENTRY = 'data/headlessAssembly.json';
+const ROOT = new URL('../../../', import.meta.url), MODULE = new URL('test/fixtures/driftwood-headless.ts', ROOT).href;
 const WORKER = new URL('worker.ts', import.meta.url).href;
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
 /** Select a generator-owned output directory; native recorders and replay readers share this explicit port. */

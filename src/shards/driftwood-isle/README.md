@@ -32,7 +32,7 @@ Everything here is used by Driftwood alone, so it stays in the shard (the rule o
 | `quest/` | the castaway spine: Wendell, the three shards, the altar, the finale, the trader stall, feats | its own adventure |
 | `runtime/npc/`, `npc/` | the Castaway (client, `runtime/npc/`) and the Trader (a loop the runtime-performance rule refuses keeps it in `npc/`), with their pivoted models and idle motion | their poses don't fit the kit NPC rig (B39) |
 | `loot/` | keepsakes, perks, finds, the shop | its own loot rules (E314) |
-| `runtime/look/`, `look/` | the toon look: light model, colour-ramp fog, stylized sky, terrain painter (client, in `runtime/look/`); day keys, ground colour, far look and map inputs stay in `look/` (headless and bakes read them) | the toon style is Driftwood's |
+| `look/` | baked map and authored look rows; the manifest selects the existing platform toon look | palette, lighting and sky remain Driftwood data |
 | `audio/` | island ambience, score, SFX, the shrine hum, surface steps | its own sound |
 | `weapons/`, `loadout/` | the iron sword row and the wood / iron sword loadout | the kit `Sword` with Driftwood's profiles and arms |
 | `onboarding/` | the first minutes | the first shard a player meets |
@@ -55,8 +55,8 @@ Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 30 s.
 ## Look
 
 Faceted low-poly toon, no textures: flat-shaded vertex colours, a two-band toon ramp with coloured shadows and a rim,
-a stylized gradient sky with faceted clouds, a colour-ramp fog, the learned LUT, a painted horizon. `runtime/look/render.ts` is
-an `extend` look on the clean chain. Driftwood stays low-poly: never photoreal.
+a stylized gradient sky with faceted clouds, a colour-ramp fog, the learned LUT, a painted horizon. The manifest's
+`render.platform: "toon"` binds the existing platform `toonLook` to the product on the clean chain. Driftwood stays low-poly: never photoreal.
 
 ## Open asks
 

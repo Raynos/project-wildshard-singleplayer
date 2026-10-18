@@ -37,7 +37,6 @@ const cases = [
 const trustedEntries: Partial<Record<string, string>> = {
   'pine-hollow': 'test/fixtures/pine-headless.ts',
   'nalati-grasslands': 'src/shards/nalati-grasslands/boot/headlessModules.ts',
-  'driftwood-isle': 'src/shards/driftwood-isle/boot/headlessModules.ts',
 };
 
 beforeAll(() => {
@@ -53,7 +52,7 @@ for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a l
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
-  const entry = slug === 'nine-dragon-stack' ? generateHeadlessModuleMap(resolve('.'), slug) : trustedEntries[slug];
+  const entry = slug === 'nine-dragon-stack' || slug === 'driftwood-isle' ? generateHeadlessModuleMap(resolve('.'), slug) : trustedEntries[slug];
   if (trusted && entry === undefined) throw new Error('Missing declared trusted entry');
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
     sections: productHeadlessSections(product),
