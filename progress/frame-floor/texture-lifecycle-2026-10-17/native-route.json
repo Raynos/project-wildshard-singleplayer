@@ -1,0 +1,562 @@
+{
+  "source": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+  "build": {
+    "build": "d460c6e-mvdeyno1",
+    "time": "2026-10-18T05:57:38.652Z"
+  },
+  "pass": true,
+  "renderFaults": [],
+  "proof": "20261018T010342-tx1-surface-route-3106",
+  "harnessSha256": "0168959bd15ada4d67e405b48bedcbbc5e59b888d052984a46f6576cf4abfc56",
+  "routes": [
+    {
+      "name": "pine-hollow-road-entry",
+      "plan": {
+        "name": "pine-hollow-road-entry",
+        "from": null,
+        "to": "pine-hollow",
+        "movement": "road-hover",
+        "start": {
+          "x": 0,
+          "z": 277.5
+        },
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 345
+          }
+        ],
+        "requiredResidents": [
+          "pine-hollow"
+        ],
+        "finishOnArrival": false
+      },
+      "samples": 118,
+      "inside": "pine-hollow",
+      "elapsedSeconds": 30.53440000000596,
+      "witnessFailures": [],
+      "first": {
+        "seconds": 0.010699999988079072,
+        "x": 0,
+        "y": 0.22936111576850013,
+        "z": 277.5,
+        "current": null,
+        "gameplayReady": true,
+        "hover": true,
+        "water": {
+          "mode": null,
+          "surface": null,
+          "eyeY": 1.9343712269628657
+        }
+      },
+      "last": {
+        "seconds": 30.44709999999404,
+        "x": 0.0013781736401475286,
+        "y": 0.019998617348733094,
+        "z": 343.308535056236,
+        "current": "pine-hollow",
+        "gameplayReady": true,
+        "hover": false,
+        "water": {
+          "mode": null,
+          "surface": null,
+          "eyeY": 1.6729788279816495
+        }
+      },
+      "minimumFeetY": 0.01995860597014587,
+      "waterSamplesBelowZero": []
+    },
+    {
+      "name": "driftwood-isle-road-entry",
+      "plan": {
+        "name": "driftwood-isle-road-entry",
+        "from": null,
+        "to": "driftwood-isle",
+        "movement": "road-hover",
+        "start": {
+          "x": 0,
+          "z": 277.5
+        },
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 210
+          }
+        ],
+        "requiredResidents": [
+          "driftwood-isle"
+        ],
+        "finishOnArrival": false
+      },
+      "samples": 78,
+      "inside": "driftwood-isle",
+      "elapsedSeconds": 20.03159999999404,
+      "witnessFailures": [],
+      "first": {
+        "seconds": 0.006900000005960465,
+        "x": 0,
+        "y": 0.3421280901192826,
+        "z": 277.5,
+        "current": null,
+        "gameplayReady": true,
+        "hover": true,
+        "water": {
+          "mode": null,
+          "surface": null,
+          "eyeY": 2.0461696549952215
+        }
+      },
+      "last": {
+        "seconds": 19.952200000017882,
+        "x": -0.0024613355042085727,
+        "y": -0.7800003312280123,
+        "z": 211.60364896267492,
+        "current": "driftwood-isle",
+        "gameplayReady": true,
+        "hover": false,
+        "water": {
+          "mode": "wading",
+          "surface": 0,
+          "eyeY": 0.9263227457889507
+        }
+      },
+      "minimumFeetY": -0.7800875563664985,
+      "waterSamplesBelowZero": [
+        {
+          "seconds": 12.202599999994039,
+          "x": -0.037957968653124396,
+          "y": -0.7798784540103324,
+          "z": 231.95646244123418,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9119476423482055
+          }
+        },
+        {
+          "seconds": 12.469200000017882,
+          "x": -0.03665101375451485,
+          "y": -0.7799121839201061,
+          "z": 231.2337332686766,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8992844527442596
+          }
+        },
+        {
+          "seconds": 12.719200000017882,
+          "x": -0.03553439449103024,
+          "y": -0.7799008960649471,
+          "z": 230.57760864332158,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8759503890069421
+          }
+        },
+        {
+          "seconds": 12.96940000000596,
+          "x": -0.034387678592672444,
+          "y": -0.7800002448642144,
+          "z": 229.9218116721495,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9204839215076077
+          }
+        },
+        {
+          "seconds": 13.21940000000596,
+          "x": -0.033253427348306275,
+          "y": -0.7799130958922714,
+          "z": 229.26602604448635,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9056918464675718
+          }
+        },
+        {
+          "seconds": 13.48590000000596,
+          "x": -0.03205208799851533,
+          "y": -0.779900980706162,
+          "z": 228.5665114505573,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.873796408640717
+          }
+        },
+        {
+          "seconds": 13.7525,
+          "x": -0.030844349844180385,
+          "y": -0.7800002682636941,
+          "z": 227.86701042413551,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9036974364903247
+          }
+        },
+        {
+          "seconds": 14.00309999999404,
+          "x": -0.029756751307438378,
+          "y": -0.7800001997605531,
+          "z": 227.2110561376794,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9217303915302564
+          }
+        },
+        {
+          "seconds": 14.26940000000596,
+          "x": -0.02854335833705335,
+          "y": -0.7800012876108039,
+          "z": 226.51154310837228,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8817800356794474
+          }
+        },
+        {
+          "seconds": 14.519700000017881,
+          "x": -0.027495231700172762,
+          "y": -0.7799050202341559,
+          "z": 225.85574733301837,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8913226036261881
+          }
+        },
+        {
+          "seconds": 14.7855,
+          "x": -0.0262805963964049,
+          "y": -0.7800875563664985,
+          "z": 225.15623418822724,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9259891673688877
+          }
+        },
+        {
+          "seconds": 15.036,
+          "x": -0.025179670096563522,
+          "y": -0.779900196383397,
+          "z": 224.50048411846,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.892009265764938
+          }
+        },
+        {
+          "seconds": 15.2865,
+          "x": -0.02402065534146025,
+          "y": -0.7800002876213793,
+          "z": 223.84470633253295,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8812691946175049
+          }
+        },
+        {
+          "seconds": 15.552300000011922,
+          "x": -0.02278470984195813,
+          "y": -0.7799001703354688,
+          "z": 223.14521034270365,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.921436539996629
+          }
+        },
+        {
+          "seconds": 15.80290000000596,
+          "x": -0.021638618540905763,
+          "y": -0.7800005321299349,
+          "z": 222.48942693158824,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9045849696890816
+          }
+        },
+        {
+          "seconds": 16.06659999999404,
+          "x": -0.020492950977072932,
+          "y": -0.779696203484792,
+          "z": 221.8336263692363,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8741095522279686
+          }
+        },
+        {
+          "seconds": 16.318,
+          "x": -0.01928105939326563,
+          "y": -0.7800004440290021,
+          "z": 221.13417901307184,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9128544242480239
+          }
+        },
+        {
+          "seconds": 16.569,
+          "x": -0.018146176821333238,
+          "y": -0.7799005522686738,
+          "z": 220.47839057653982,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.915209521076597
+          }
+        },
+        {
+          "seconds": 16.81909999999404,
+          "x": -0.017013549075941437,
+          "y": -0.7799033047306975,
+          "z": 219.82259007379253,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8741008538525555
+          }
+        },
+        {
+          "seconds": 17.086200000017882,
+          "x": -0.015774851212641106,
+          "y": -0.7798271008835681,
+          "z": 219.12308869346816,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.900656898058496
+          }
+        },
+        {
+          "seconds": 17.35240000000596,
+          "x": -0.014562742157736674,
+          "y": -0.7799006910175476,
+          "z": 218.42356317698795,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9257092804707604
+          }
+        },
+        {
+          "seconds": 17.6025,
+          "x": -0.013428847544432965,
+          "y": -0.779866550980233,
+          "z": 217.76776924192745,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8839187383468645
+          }
+        },
+        {
+          "seconds": 17.86720000001788,
+          "x": -0.012260776303023913,
+          "y": -0.7799001437127399,
+          "z": 217.11196931660015,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8832390629513058
+          }
+        },
+        {
+          "seconds": 18.119300000011922,
+          "x": -0.011040429277941466,
+          "y": -0.7798995499291149,
+          "z": 216.41244885906417,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.925394749655624
+          }
+        },
+        {
+          "seconds": 18.38570000001788,
+          "x": -0.009822306302098904,
+          "y": -0.7799235775858787,
+          "z": 215.71294815674264,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9022612310381978
+          }
+        },
+        {
+          "seconds": 18.65270000001788,
+          "x": -0.008498440677372154,
+          "y": -0.7798740605979501,
+          "z": 215.01356008857329,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8739854293188688
+          }
+        },
+        {
+          "seconds": 18.919,
+          "x": -0.007314251771035951,
+          "y": -0.780035437325142,
+          "z": 214.3140498085304,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9071875692797362
+          }
+        },
+        {
+          "seconds": 19.18559999999404,
+          "x": -0.005945349744011064,
+          "y": -0.7799015946769313,
+          "z": 213.61468807443816,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9236030516480749
+          }
+        },
+        {
+          "seconds": 19.43609999999404,
+          "x": -0.004865020381417007,
+          "y": -0.7800008531742887,
+          "z": 212.95885044544775,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.8793801241716096
+          }
+        },
+        {
+          "seconds": 19.70190000000596,
+          "x": -0.0037276642021745188,
+          "y": -0.7799445524327265,
+          "z": 212.25933096393783,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.888366602408138
+          }
+        },
+        {
+          "seconds": 19.952200000017882,
+          "x": -0.0024613355042085727,
+          "y": -0.7800003312280123,
+          "z": 211.60364896267492,
+          "current": "driftwood-isle",
+          "gameplayReady": true,
+          "hover": false,
+          "water": {
+            "mode": "wading",
+            "surface": 0,
+            "eyeY": 0.9263227457889507
+          }
+        }
+      ]
+    }
+  ]
+}

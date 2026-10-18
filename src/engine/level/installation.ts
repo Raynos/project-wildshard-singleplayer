@@ -2,7 +2,7 @@ import { Group, type Object3D } from 'three';
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
 import { ownedFacade, withOwner } from '../app/ownership';
-import { sceneResources } from '../app/sceneOwnership';
+import { ownSceneResource, sceneResources } from '../app/sceneOwnership';
 import type { StepProgress } from '../boot/plan';
 import type { ContentRowMap, LevelAdapters, LevelContext } from './context';
 
@@ -34,7 +34,7 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
     };
     const root = new Group();
     const freeTree = (tree: Object3D): void => {
-      for (const resource of sceneResources(tree)) if (!app.assets.isAcquired(resource)) scope.own(resource);
+      for (const resource of sceneResources(tree)) ownSceneResource(resource, scope, app.assets);
       tree.removeFromParent();
     };
     scope.onDispose(() => { freeTree(root); });

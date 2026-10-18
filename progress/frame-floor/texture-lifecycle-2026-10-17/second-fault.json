@@ -1,0 +1,158 @@
+{
+  "source": "efdacb531825abfeb2b1055cb7719a5130360a08",
+  "surface": "desktop",
+  "complete": false,
+  "error": "Error: Grid floor route driftwood-isle-road-entry timed out (waypoint 0/1, feet 0, 0.5, 256.6, current null)",
+  "errors": [],
+  "consoleErrors": [
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The \"position\" attribute is likely to have NaN values. [object Object]"
+    },
+    {
+      "level": "error",
+      "text": "[grid] driftwood-isle: admission failed; it stays closed until a retry Error: Compressed texture 456 lost its allocation after mip retirement"
+    }
+  ],
+  "admission": {
+    "residents": [],
+    "pending": [],
+    "issues": {
+      "driftwood-isle": "Compressed texture 456 lost its allocation after mip retirement"
+    },
+    "crossing": {
+      "phase": "settled",
+      "issue": null
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "driftwood-isle",
+          "status": "refused"
+        },
+        {
+          "instance": "pine-hollow",
+          "status": "loading"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "status": "loading"
+        }
+      ],
+      "draws": 930
+    }
+  },
+  "rows": [
+    {
+      "name": "spawn",
+      "frames": 120,
+      "p95Ms": 16.8,
+      "maxMs": 16.8,
+      "pass": true
+    },
+    {
+      "name": "grid-crossroads",
+      "frames": 120,
+      "p95Ms": 16.8,
+      "maxMs": 16.8,
+      "pass": true
+    },
+    {
+      "name": "grid-deck-north",
+      "frames": 120,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "pass": true
+    },
+    {
+      "name": "grid-far-reach-road-entry-travel",
+      "frames": 120,
+      "p95Ms": 16.8,
+      "maxMs": 83.3,
+      "pass": true
+    },
+    {
+      "name": "grid-far-reach-road-entry-drive",
+      "frames": 330,
+      "p95Ms": 16.8,
+      "maxMs": 83.3,
+      "pass": true
+    },
+    {
+      "name": "grid-far-reach-road-entry",
+      "frames": 120,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "pass": true
+    },
+    {
+      "name": "grid-pine-hollow-road-entry-travel",
+      "frames": 120,
+      "p95Ms": 16.8,
+      "maxMs": 33.2,
+      "pass": true
+    },
+    {
+      "name": "grid-pine-hollow-road-entry-drive",
+      "frames": 1500,
+      "p95Ms": 16.8,
+      "maxMs": 66.7,
+      "pass": true
+    },
+    {
+      "name": "grid-pine-hollow-road-entry",
+      "frames": 120,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "pass": true
+    }
+  ]
+}

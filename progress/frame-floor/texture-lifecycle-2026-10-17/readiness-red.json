@@ -1,0 +1,12 @@
+{
+  "source": "2d258772607c265c58108d576def9fc592ca2b98",
+  "proof": "20261018T005442-tx1-readiness-red-56385",
+  "expected": "fail",
+  "result": {
+    "cases": 15,
+    "passed": 14,
+    "failed": 1
+  },
+  "failure": "A retired texture with a valid native version and a provisional native sampler key rejects readiness after its CPU mips retire.",
+  "nativeError": "Compressed texture 5 has no mipmaps and is not resident on this renderer"
+}

@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "records": [
+    {
+      "sha": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+      "runId": "5743-1792303505676",
+      "when": "2026-10-18T06:09:37.555Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "surface": "both",
+      "frames": 120,
+      "gridScenario": "milestone",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "harnessRevision": "aa10b6304266a6408384195b3197ddbdbb2d36bd",
+      "label": "A1",
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 33.4,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1440,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 33.3,
+              "maxMs": 83.3,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 1200,
+              "p95Ms": 16.8,
+              "maxMs": 566.6,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": false
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        },
+        {
+          "surface": "sim",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 44,
+              "maxMs": 46,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 228,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": false
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 36,
+              "maxMs": 228,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": false
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 46,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 135,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1020,
+              "p95Ms": 36,
+              "maxMs": 135,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 46,
+              "maxMs": 185,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 810,
+              "p95Ms": 38,
+              "maxMs": 469,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": false
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        }
+      ]
+    }
+  ],
+  "purpose": "Functional proof of complete Sky/Pine/DW travel on both surfaces; no pacing credit because A1 Simulator overlapped cabin desktop comparison. Frame-floor failures remain honest.",
+  "proof": "20261018T010505-tx1-abba-final-5711",
+  "withdrawnAt": "natural A1/B1 boundary after both surfaces completed"
+}

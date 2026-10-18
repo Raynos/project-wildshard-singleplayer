@@ -1,0 +1,92 @@
+{
+  "_template": {
+    "custom": 1000,
+    "assemblyScript": 119,
+    "components": null
+  },
+  "blender-template": {
+    "custom": 106,
+    "assemblyScript": 23,
+    "components": null
+  },
+  "driftwood-isle": {
+    "custom": 3545,
+    "assemblyScript": 119,
+    "components": {
+      "C1": 1342,
+      "C2": 202,
+      "C3": 0,
+      "C4": 733,
+      "C5": 589,
+      "C6": 148,
+      "C7": 0,
+      "C8": 29,
+      "C9": 502
+    }
+  },
+  "far-reach": {
+    "custom": 518,
+    "assemblyScript": 53,
+    "components": {
+      "C1": 284,
+      "C2": 70,
+      "C3": 54,
+      "C4": 0,
+      "C5": 8,
+      "C6": 19,
+      "C7": 0,
+      "C8": 0,
+      "C9": 83
+    }
+  },
+  "ink-cel-valley": {
+    "custom": 1122,
+    "assemblyScript": 94,
+    "components": null
+  },
+  "nalati-grasslands": {
+    "custom": 20486,
+    "assemblyScript": 162,
+    "components": null
+  },
+  "nine-dragon-stack": {
+    "custom": 11890,
+    "assemblyScript": 0,
+    "components": null
+  },
+  "pastel-plain": {
+    "custom": 733,
+    "assemblyScript": 94,
+    "components": null
+  },
+  "pine-hollow": {
+    "custom": 4210,
+    "assemblyScript": 452,
+    "components": {
+      "C1": 1232,
+      "C2": 367,
+      "C3": 169,
+      "C4": 705,
+      "C5": 782,
+      "C6": 226,
+      "C7": 7,
+      "C8": 25,
+      "C9": 697
+    }
+  },
+  "sunscar-dunes": {
+    "custom": 392,
+    "assemblyScript": 96,
+    "components": {
+      "C1": 152,
+      "C2": 123,
+      "C3": 50,
+      "C4": 0,
+      "C5": 7,
+      "C6": 12,
+      "C7": 0,
+      "C8": 0,
+      "C9": 48
+    }
+  }
+}

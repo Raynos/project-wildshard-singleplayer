@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "source": "4744259c0ea2b93232de54759b5b6689c2c3e076",
+  "parent": "cbb225d2d",
+  "checks": {
+    "rootTypes": "pass",
+    "layerTypes": "pass",
+    "typedLint": "pass",
+    "strictProducts": {
+      "command": "CI=1 node scripts/build-shardfiles.mjs",
+      "count": 10,
+      "mapStaleWarnings": 0
+    },
+    "focusedTests": {
+      "files": 5,
+      "cases": 56,
+      "headlessCases": 17,
+      "newLifecycleCases": 14
+    }
+  },
+  "logSha256": "7b32833aab7167d52fc05bf58880d22fce665f34f1b82e95dabcd66c0c018936",
+  "proof": "20261018T003435-tx1-sealed-lifetime-52038",
+  "previous": {
+    "source": "efdacb531825abfeb2b1055cb7719a5130360a08",
+    "parent": "84b9c8745b1ffe222be3029be1f3ee1ca68730e7",
+    "checks": {
+      "rootTypes": "pass",
+      "layerTypes": "pass",
+      "typedLint": "pass",
+      "strictProducts": {
+        "command": "CI=1 node scripts/build-shardfiles.mjs",
+        "count": 10,
+        "mapStaleWarnings": 0
+      },
+      "focusedTests": {
+        "files": 5,
+        "cases": 51,
+        "headlessCases": 17,
+        "newLifecycleCases": 9
+      }
+    },
+    "logSha256": "7e641cc22b1e9cbb50f70b6931a8147eed3b7635e743864c735e75020b855800",
+    "proof": "20261017T235317-tx1-final-ownership-90952",
+    "measurementFollowup": "Code checks all passed; the scratch source-ruler summary dereferenced components on a shard without a breakdown. Corrected post-generation ruler proof is separate."
+  },
+  "nativeTravel": "All four ABBA runs complete on desktop and Simulator: 24 road crossings, zero render faults/context loss. Pacing mixed; entry stays off.",
+  "sealedFinalRuntime": {
+    "source": "b0a9c1dcd777b278abfce7ee1ec9f0433a0d4cb2",
+    "parent": "cbb225d2d",
+    "proof": "20261018T005818-tx1-sealed-final-checks-72998",
+    "rootTypes": "pass",
+    "layerTypes": "pass",
+    "typedLint": "pass",
+    "strictProducts": {
+      "command": "CI=1 node scripts/build-shardfiles.mjs",
+      "count": 10,
+      "mapStaleWarnings": 0,
+      "rc": 0
+    },
+    "focusedTests": {
+      "files": 6,
+      "cases": 58,
+      "headlessCases": 17,
+      "lifecycleCases": 15
+    },
+    "logSha256": "aeb72d7bbb3f8c181466bf7a22bde1ef2ff65f9390de7ef6d2c9b82b98fcf184"
+  },
+  "currentIntegration": {
+    "source": "2e2b1979480c340639121eb3265fefa657d7f9ab",
+    "parent": "fe47dd742ba3ceee194878cb6bfbe10dfc7ee5e7",
+    "proof": "20261018T011603-tx1-integration3-51997",
+    "rootTypes": "pass",
+    "layerTypes": "pass",
+    "typedLint": "pass",
+    "strictProducts": {
+      "command": "CI=1 node scripts/build-shardfiles.mjs",
+      "builtCount": 10,
+      "rc": 1,
+      "staleMaps": [
+        "pine-hollow"
+      ],
+      "note": "Pine cabin source landed in the open source-only tenth map window. TX1 changes no map inputs; coordinator seals the map batch. This is a strict refusal, not a green strict build."
+    },
+    "logSha256": "19bc23d290ee5fc4fb48393456465fc7cfb4479959b78c344d8cda2c9a9af31d"
+  },
+  "invalidFixtureAttempt": {
+    "proof": "20261018T012402-tx1-focused-final-77800",
+    "cases": 60,
+    "passed": 54,
+    "failed": 6,
+    "cause": "Changed mirror slot without preparing all ten output products: six headless cases hit missing/stale fixture products. Not credited as a passing headless proof."
+  },
+  "preparedFocused": {
+    "source": "2e2b1979480c340639121eb3265fefa657d7f9ab",
+    "proof": "20261018T012502-tx1-prepared-focused-80566",
+    "products": {
+      "count": 10,
+      "command": "node scripts/build-shardfiles.mjs --reuse",
+      "rc": 0,
+      "warning": "Expected Pine stamp in source-only tenth map window; not a strict-green claim."
+    },
+    "tests": {
+      "files": 6,
+      "cases": 60,
+      "headlessCases": 17,
+      "lifecycleCases": 15,
+      "rc": 0
+    },
+    "wrapperRc": 127,
+    "wrapperFailure": "After all 60 tests passed, a scratch helper called undefined quiet_boundary before accounting. Ruler reran separately successfully in the same exact, prepared mirror.",
+    "logSha256": "141542071b4a55acc9fa40957dbc41396d6a2c5e6ad10005364343174c86b9b6"
+  },
+  "finalIntegration": {
+    "source": "dd16301bd2c9713f1ad53b7a50e9db13ed19c66d",
+    "parent": "6322000c2d57386254361adf287e2aa0fdca0ea1",
+    "proof": "20261018T014731-tx1-final-verify-66774",
+    "rootTypes": "pass",
+    "layerTypes": "pass",
+    "typedLint": "pass",
+    "strictProducts": {
+      "source": "dd16301bd2c9713f1ad53b7a50e9db13ed19c66d",
+      "command": "CI=1 node scripts/build-shardfiles.mjs",
+      "rc": 1,
+      "count": 10,
+      "staleMaps": [
+        "driftwood-isle",
+        "pine-hollow"
+      ],
+      "strictPass": false
+    },
+    "focusedTests": {
+      "files": 6,
+      "cases": 61,
+      "headlessCases": 17,
+      "lifecycleCases": 15,
+      "pass": true
+    },
+    "sourceRuler": "pass; source-basis inventory after exact generation",
+    "rulerParentResolution": "git rev-parse <immutable candidate>^; TX1_BASE_SHA is unused by the final ruler helper",
+    "logSha256": "92696f8a0e4117019f4ec73139f33a954ea49d59e4f53496b69feecef12522ef",
+    "scratchHelperHashes": {
+      "final-verify.sh": "447c396c2caca7232cd366699f218f97c3e213e2793c50d5e35979704e42ec3c",
+      "classify-strict.py": "9fdaf5d187e52686915e996993327ac7684f19434a7e3a84fa400970dab6a8c8",
+      "final-ruler-only.sh": "c0b8d07497ef50269d3c4c07c2adc83819ef15c73b3c880fe15abcf9d72f7a16"
+    }
+  }
+}

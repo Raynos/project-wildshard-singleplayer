@@ -85,7 +85,10 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     return typeof properties === 'object' && properties !== null
       && Reflect.get(properties, '__webglTexture') !== undefined
       && Reflect.get(properties, '__version') === version
-      && Reflect.get(properties, '__cacheKey') === signature
+      // Three binds an unchanged version without reevaluating its sampler key.
+      // After retirement, the guarded live allocation is still that exact draw's
+      // storage; asking for another upload would require pixels already released.
+      && (texture.mipmaps.length === 0 || Reflect.get(properties, '__cacheKey') === signature)
       && typeof source === 'object' && source !== null && Reflect.get(source, '__version') === texture.source.version;
   };
   const check = (): void => {

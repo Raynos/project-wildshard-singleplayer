@@ -2,6 +2,7 @@ import { BufferGeometry, Material, Texture, WebGLRenderTarget, InstancedMesh, Ba
 import { ownSceneResource, sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
 import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
+import { shaderPatchTextures } from './shaderPatches';
 
 function eventMethod(resource: object, method: 'addEventListener' | 'removeEventListener', listener: () => void): void {
   const fn: unknown = Reflect.get(resource, method);
@@ -11,9 +12,11 @@ function eventMethod(resource: object, method: 'addEventListener' | 'removeEvent
 type Resource = BufferGeometry | Material | Texture | WebGLRenderTarget | InstancedMesh | BatchedMesh;
 const isResource = (value: unknown): value is Resource => value instanceof BufferGeometry || value instanceof Material ||
   value instanceof Texture || value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh;
+type ObservedRenderer = Pick<WebGLRenderer, 'properties' | 'renderBufferDirect'> & Partial<Pick<WebGLRenderer, 'compile' | 'compileAsync'>>;
 /** The resources a material's program and samplers upload with: the material, its maps and its uniform samplers. */
 function materialUploads(material: Resource): Resource[] {
   const out: Resource[] = [material];
+  if (material instanceof Material) out.push(...shaderPatchTextures(material));
   for (const value of Object.values(material)) if (value instanceof Texture) out.push(value);
   const uniforms: unknown = Reflect.get(material, 'uniforms');
   if (typeof uniforms === 'object' && uniforms !== null) {
@@ -47,6 +50,7 @@ export class UploadOwnership {
   /** A compiled object's samplers and geometry, with that object's owner: their own upload (the warm-up's texture pass,
    *  a later draw) is attributed to it when no drawn owner is known then. A hint never observes a resource by itself. */
   private readonly hints = new WeakMap<Resource, Scope>();
+  private readonly acquisitions = new WeakMap<Resource, WeakSet<Scope>>();
   /** Resources whose dispose is being dispatched now: three's own dispose handler looks them up after ours ran
    *  (deallocateTexture / deallocateMaterial call properties.get), which is not an upload. Cleared after the task. */
   private readonly releasing = new WeakSet<Resource>();
@@ -57,6 +61,7 @@ export class UploadOwnership {
   private readonly level: Scope;
   private readonly assets: AssetService;
   private drawOwner: Scope | null = null;
+  private drawDepth = 0;
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -79,10 +84,14 @@ export class UploadOwnership {
   observe(value: unknown): void {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
+    const acquired = this.assets.isAcquired(resource);
+    const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource) ?? null);
+    if (acquired && consumer !== null) this.retainAsset(resource, consumer);
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
-    if (!this.assets.isAcquired(resource)) {
-      if (this.drawOwner !== null && !this.drawOwner.disposed) ownSceneResource(resource, this.drawOwner);
+    if (!acquired) {
+      const using = this.drawOwner ?? (this.drawDepth > 0 && resource instanceof Texture ? this.level : null);
+      if (using !== null && !using.disposed) ownSceneResource(resource, using);
       else if (sceneResourceOwner(resource)?.disposed === true) {
         // SF57: three's own dispose handlers look the resource up (deallocateMaterial / deallocateTexture call
         // properties.get) while its owner is tearing it down. That lookup is not a use: adopting there made the page's
@@ -97,9 +106,18 @@ export class UploadOwnership {
       }
     }
     const owner = sceneResourceOwner(resource);
-    this.assets.observeResidency(resource, owner ?? this.drawOwner);
-    if (owner !== null || this.assets.isAcquired(resource)) this.hold(resource);
+    this.assets.observeResidency(resource, acquired ? consumer ?? owner : owner ?? this.drawOwner);
+    if (owner !== null || acquired) this.hold(resource);
     else this.holdWeakly(resource);
+  }
+  /** A sampler binding is a real cache consumer, including page meshes outside delegated cell roots. */
+  private retainAsset(resource: Resource, owner: Scope): void {
+    if (owner.disposed || this.acquisitions.get(resource)?.has(owner)) return;
+    const release = this.assets.acquireResource(resource);
+    if (release === null) return;
+    let users = this.acquisitions.get(resource);
+    if (users === undefined) { users = new WeakSet(); this.acquisitions.set(resource, users); }
+    users.add(owner); owner.onDispose(release);
   }
   private hold(resource: Resource): void {
     if (this.owned.has(resource)) return;
@@ -163,8 +181,8 @@ export class UploadOwnership {
     root.traverse((node) => {
       const material: unknown = Reflect.get(node, 'material');
       if (material === undefined || material === null) return;
-      const owner = sceneObjectOwner(node);
-      if (owner === null || owner.disposed) return;
+      const owner = sceneObjectOwner(node) ?? this.level;
+      if (owner.disposed) return;
       const prior = this.drawOwner; this.drawOwner = owner;
       try {
         const materials: unknown[] = Array.isArray(material) ? material : [material];
@@ -173,13 +191,17 @@ export class UploadOwnership {
           if (!isResource(m)) continue;
           // three's compile builds the material's program now: that upload is this object's
           this.observe(m);
-          for (const r of materialUploads(m)) if (r !== m && sceneResourceOwner(r) === null) this.hints.set(r, owner);
+          for (const r of materialUploads(m)) if (r !== m) {
+            if (r instanceof Texture && !this.assets.isAcquired(r)) ownSceneResource(r, owner);
+            this.retainAsset(r, owner);
+            if (sceneResourceOwner(r) === null) this.hints.set(r, owner);
+          }
         }
         if (isResource(geometry) && sceneResourceOwner(geometry) === null) this.hints.set(geometry, owner);
       } finally { this.drawOwner = prior; }
     });
   }
-  attach(renderer: WebGLRenderer): void {
+  attach(renderer: ObservedRenderer): void {
     const get = renderer.properties.get.bind(renderer.properties);
     renderer.properties.get = (object) => {
       // a lookup outside any draw while the resource's dispose is dispatched is three's own teardown, not an upload
@@ -189,20 +211,26 @@ export class UploadOwnership {
     const draw = renderer.renderBufferDirect.bind(renderer);
     renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
       const prior = this.drawOwner; this.drawOwner = sceneObjectOwner(object);
+      this.drawDepth++;
       try {
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
         this.observe(object); this.observe(geometry); this.observe(material);
         draw(camera, scene, geometry, material, object, group);
-      } finally { this.drawOwner = prior; }
+      } finally { this.drawDepth--; this.drawOwner = prior; }
     };
     // Test doubles carry only the draw path.
-    if (Reflect.has(renderer, 'compile')) {
+    if (renderer.compile !== undefined) {
       const compile = renderer.compile.bind(renderer);
-      renderer.compile = (scene, camera, target) => { this.compiled(scene); return compile(scene, camera, target); };
+      renderer.compile = (scene, camera, target) => {
+        this.compiled(scene); const programs = compile(scene, camera, target); this.compiled(scene); return programs;
+      };
     }
-    if (Reflect.has(renderer, 'compileAsync')) {
+    if (renderer.compileAsync !== undefined) {
       const compileAsync = renderer.compileAsync.bind(renderer);
-      renderer.compileAsync = (scene, camera, target) => { this.compiled(scene); return compileAsync(scene, camera, target); };
+      renderer.compileAsync = (scene, camera, target) => {
+        this.compiled(scene);
+        return compileAsync(scene, camera, target).then(programs => { this.compiled(scene); return programs; });
+      };
     }
   }
 }

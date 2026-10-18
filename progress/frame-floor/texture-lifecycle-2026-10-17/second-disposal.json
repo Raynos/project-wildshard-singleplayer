@@ -1,0 +1,18 @@
+{
+  "source": "0922663412a783cee0c9b2800ef12ae33d09f94e",
+  "base": "efdacb531825abfeb2b1055cb7719a5130360a08",
+  "complete": false,
+  "pass": false,
+  "error": "Error: Grid floor route driftwood-isle-road-entry timed out (waypoint 0/1, feet 0.1, 0.4, 256.6, current null)",
+  "issue": {
+    "driftwood-isle": "Compressed texture 369 lost its allocation after mip retirement; owner=grid.world:pine-hollow, managed=false Error: texture dispose\n    at Tc.<anonymous> (http://127.0.0.1:4407/assets/compressedUpload-DS_WmECS.js:1:1617)\n    at Tc.dispatchEvent (http://127.0.0.1:4407/assets/three.module-D0kZyzyv.js:1:4058)\n    at Tc.dispose (http://127.0.0.1:4407/assets/three.module-D0kZyzyv.js:1:34841)\n    at Object.run (http://127.0.0.1:4407/assets/runtime-C3f5tkiG.js:1:3969)\n    at t.dispose (http://127.0.0.1:4407/assets/scope-DlRdNARb.js:1:6329)\n    at Object.dispose [as run] (http://127.0.0.1:4407/assets/session-2RxCuyxn.js:564:5501)\n    at t.dispose (http://127.0.0.1:4407/assets/scope-DlRdNARb.js:1:6329)\n    at Object.dispose (http://127.0.0.1:4407/assets/session-2RxCuyxn.js:116:70674)\n    at Object.dispose (http://127.0.0.1:4407/assets/session-2RxCuyxn.js:564:34110)\n    at Object.commit (http://127.0.0.1:4407/assets/session-2RxCuyxn.js:116:20838); liveOwner=level; managed=false"
+  },
+  "nativeDisposalSource": {
+    "source": "src/engine/app/sceneOwnership.ts",
+    "line": 103,
+    "operation": "last private texture lease releases at regional-world disposal",
+    "owner": "grid.world:pine-hollow",
+    "managed": false
+  },
+  "foundMissingConsumers": "Declared and compile-exposed shader-patch samplers, plus page-owned compilation outside delegated roots, were not retained."
+}

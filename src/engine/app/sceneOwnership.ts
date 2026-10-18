@@ -33,6 +33,7 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
 interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
 const resourceOwners = new WeakMap<object, Scope>();
+const textureLeases = new WeakMap<object, Set<Scope>>();
 const resourceKeys = new WeakMap<object, string>();
 let nextResourceKey = 0;
 function resourceKey(resource: object): string {
@@ -47,10 +48,10 @@ function resourceKey(resource: object): string {
 /** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
 export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
 
-const standIns = new WeakMap<Object3D, Object3D>();
+const standIns = new WeakMap<Object3D, { source: Object3D; owner: Scope | null }>();
 /** A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s
  *  owner: its materials and geometry are `source`'s. */
-export function linkStandIn(copy: Object3D, source: Object3D): void { standIns.set(copy, source); }
+export function linkStandIn(copy: Object3D, source: Object3D): void { standIns.set(copy, { source, owner: sceneObjectOwner(source) }); }
 
 /** Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. */
 export function sceneObjectOwner(node: Object3D): Scope | null {
@@ -58,25 +59,48 @@ export function sceneObjectOwner(node: Object3D): Scope | null {
     const delegated = delegatedScenes.get(parent);
     if (delegated !== undefined) return delegated.scope;
     const source = standIns.get(parent);
-    if (source !== undefined) return sceneObjectOwner(source);
+    if (source !== undefined) return sceneObjectOwner(source.source) ?? source.owner;
   }
   return null;
 }
 
-/** Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. */
-export function ownSceneResource(resource: Disposable3, scope: Scope): void {
+/** Adopt scene resources; shared textures retire only after every using scope leaves.
+ * Pass the asset service for cached inputs: their acquired references remain the sole disposal authority. */
+export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: Pick<AssetService, 'acquireResource'>): void {
+  const releaseAsset = assets?.acquireResource(resource);
+  if (releaseAsset !== undefined && releaseAsset !== null) { scope.onDispose(releaseAsset); return; }
   const owner = resourceOwners.get(resource);
   // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
   // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
-  if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) return;
-  markResourceOwner(resource, scope);
-  if (resource instanceof Texture) {
-    // A backdrop may explicitly free a sampler before its delegated scope closes. Native disposal remains exact once.
-    let disposed = false;
-    const released = (): void => { disposed = true; };
-    resource.addEventListener('dispose', released);
-    scope.capture('textures', () => { resource.removeEventListener('dispose', released); if (!disposed) resource.dispose(); });
-  } else scope.own(resource);
+  if (!(resource instanceof Texture)) {
+    if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) return;
+    markResourceOwner(resource, scope); scope.own(resource); return;
+  }
+  if (owner === scope || (owner !== undefined && scope.sharesTeardown(owner))) return;
+  let leases = textureLeases.get(resource);
+  if (owner !== undefined && !owner.disposed && leases === undefined) return;
+  if (leases?.has(scope)) return;
+  if (leases === undefined || leases.size === 0) {
+    leases = new Set();
+    textureLeases.set(resource, leases);
+  }
+  const users = leases;
+  users.add(scope);
+  if (owner === undefined || owner.disposed) markResourceOwner(resource, scope);
+  const release = (): boolean => {
+    users.delete(scope);
+    const next = users.values().next();
+    if (!next.done) {
+      if (resourceOwners.get(resource) === scope) markResourceOwner(resource, next.value);
+      return false;
+    }
+    return true;
+  };
+  // A backdrop may explicitly free a sampler before its delegated scope closes. Native disposal remains exact once.
+  let disposed = false;
+  const released = (): void => { disposed = true; };
+  resource.addEventListener('dispose', released);
+  scope.capture('textures', () => { resource.removeEventListener('dispose', released); if (release() && !disposed) resource.dispose(); });
 }
 
 function markResourceOwner(resource: Disposable3, scope: Scope): void {

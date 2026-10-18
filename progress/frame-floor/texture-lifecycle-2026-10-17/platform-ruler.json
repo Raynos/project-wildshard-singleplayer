@@ -1,0 +1,32 @@
+{
+  "base": "6322000c2d57386254361adf287e2aa0fdca0ea1",
+  "source": "dd16301bd2c9713f1ad53b7a50e9db13ed19c66d",
+  "files": {
+    "src/engine/app/sceneOwnership.ts": {
+      "before": 164,
+      "after": 187,
+      "net": 23
+    },
+    "src/engine/level/installation.ts": {
+      "before": 107,
+      "after": 107,
+      "net": 0
+    },
+    "src/engine/render/uploadOwnership.ts": {
+      "before": 160,
+      "after": 187,
+      "net": 27
+    },
+    "src/engine/render/compressedUpload.ts": {
+      "before": 112,
+      "after": 112,
+      "net": 0
+    },
+    "src/game/shardfile/worldSceneMaterials.ts": {
+      "before": 60,
+      "after": 61,
+      "net": 1
+    }
+  },
+  "net": 51
+}

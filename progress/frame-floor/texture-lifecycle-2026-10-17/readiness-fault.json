@@ -1,0 +1,100 @@
+{
+  "source": "5ddc654a0cad2ca28a050bb9236a9788bb5c5a61",
+  "complete": false,
+  "pass": false,
+  "observations": [
+    {
+      "phase": "inside Pine",
+      "sceneChain": [
+        {
+          "name": "pine-hollow/waystone:base:1",
+          "type": "Mesh",
+          "id": 4701,
+          "visible": true
+        },
+        {
+          "name": "pine-hollow/waystone",
+          "type": "Group",
+          "id": 4702,
+          "visible": true
+        },
+        {
+          "name": "",
+          "type": "Scene",
+          "id": 8,
+          "visible": true
+        }
+      ],
+      "texture": {
+        "key": "map",
+        "id": 441,
+        "uuid": "3975516f-4d25-43b8-965e-d8e63d6866d5",
+        "name": "waystone-lod1-albedo",
+        "mips": 0,
+        "version": 1,
+        "sourceId": 461,
+        "sourceVersion": 1,
+        "properties": {
+          "__webglInit": true,
+          "__cacheKey": "1000,1000,0,1006,1008,1,,37808,1009,false,false,false,4,srgb",
+          "__webglTexture": {
+            "type": "WebGLTexture",
+            "live": true
+          },
+          "__version": 1
+        },
+        "sourceProperties": {
+          "__version": 1
+        },
+        "sampler": "1000,1000,0,1006,1008,4,,37808,1009,false,false,false,4,srgb"
+      }
+    },
+    {
+      "phase": "DW admission failed",
+      "sceneChain": [
+        {
+          "name": "pine-hollow/waystone:base:1",
+          "type": "Mesh",
+          "id": 4701,
+          "visible": true
+        },
+        {
+          "name": "pine-hollow/waystone",
+          "type": "Group",
+          "id": 4702,
+          "visible": true
+        },
+        {
+          "name": "",
+          "type": "Scene",
+          "id": 8,
+          "visible": true
+        }
+      ],
+      "texture": {
+        "key": "map",
+        "id": 441,
+        "uuid": "3975516f-4d25-43b8-965e-d8e63d6866d5",
+        "name": "waystone-lod1-albedo",
+        "mips": 0,
+        "version": 1,
+        "sourceId": 461,
+        "sourceVersion": 1,
+        "properties": {
+          "__webglInit": true,
+          "__cacheKey": "1000,1000,0,1006,1008,1,,37808,1009,false,false,false,4,srgb",
+          "__webglTexture": {
+            "type": "WebGLTexture",
+            "live": true
+          },
+          "__version": 1
+        },
+        "sourceProperties": {
+          "__version": 1
+        },
+        "sampler": "1000,1000,0,1006,1008,4,,37808,1009,false,false,false,4,srgb"
+      }
+    }
+  ],
+  "finding": "Allocation remains live, native version and source version match. Native anisotropy key is 1, requested scalar is 4 without a texture version increment. The no-mips readiness error is a false missing-allocation conclusion, distinct from the original native disposal fault. Preserve the native drawn filtering."
+}

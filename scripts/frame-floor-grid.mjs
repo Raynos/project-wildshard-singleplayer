@@ -370,6 +370,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
               hook: state.live.runtimeTiming?.current?.hook ?? null,
             } : undefined;
             trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover,
+              water: { mode: player.swimming ? 'swimming' : player.wading ? 'wading' : null,
+                surface: player.waterSurface, eyeY: world.game.camera.position.y },
               ...(preparation === undefined ? {} : { preparation }) }); lastSample = seconds;
           }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
@@ -426,6 +428,20 @@ export function gridFloorWitnessFailures(result) {
   if (plan.to === null && after.cells.some(row => Math.abs(active.worldFeet.x - row.cell[0] * 555) < 250 && Math.abs(active.worldFeet.z - row.cell[1] * 555) < 250)) failures.push('Road destination lies inside a shard');
   if (![active.worldFeet.x, active.worldFeet.y, active.worldFeet.z, result.elapsedSeconds].every(Number.isFinite)
     || result.elapsedSeconds <= 0 || result.trace.length === 0
-    || result.trace.some(row => ![row.seconds, row.x, row.y, row.z].every(Number.isFinite) || row.y < -0.25)) failures.push('Route has no valid above-ground motion witness');
+    || result.trace.some((row, index) => {
+      if (![row.seconds, row.x, row.y, row.z].every(Number.isFinite)) return true;
+      if (row.y >= -0.25) return false;
+      // Over-water sockets can put real wading/swimming feet below sea level.
+      // Require actual water locomotion (or its adjacent same-surface entry
+      // sample, before the motor lands) and an eye above the finite surface;
+      // an underground fall or a submerged route still fails this witness.
+      const water = row.water;
+      const locomotion = candidate => candidate !== undefined && ['wading', 'swimming'].includes(candidate.mode);
+      const adjacent = [result.trace[index - 1]?.water, result.trace[index + 1]?.water]
+        .some(candidate => locomotion(candidate) && candidate.surface === water?.surface);
+      return water === undefined || !(locomotion(water) || adjacent)
+        || !Number.isFinite(water.surface) || !Number.isFinite(water.eyeY)
+        || water.surface <= row.y || water.eyeY < water.surface;
+    })) failures.push('Route has no valid above-ground or surface-water motion witness');
   return failures;
 }

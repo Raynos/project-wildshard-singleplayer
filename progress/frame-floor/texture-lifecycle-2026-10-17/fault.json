@@ -1,0 +1,94 @@
+{
+  "sha": "10d21090e0e4a7bbf905b578d192985462b921cc",
+  "runId": "62044-1792297053572",
+  "when": "2026-10-18T04:27:13.981Z",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "surface": "desktop",
+  "frames": 120,
+  "complete": false,
+  "pass": false,
+  "gridScenario": "milestone",
+  "gridRoutes": [
+    "pine-hollow-road-entry",
+    "driftwood-isle-road-entry"
+  ],
+  "harnessRevision": "907576ae9ebfe08003a255523e84171f75f71dfb",
+  "base": "d860db471b5445b3380ddb14803b106a53597d8d",
+  "diagnosticOnly": "compressed texture dispose stack appended to the existing fault; no ownership changes",
+  "error": "Error: Drawn-frame sampler stalled (0/120)",
+  "faults": [
+    "[faults] system \"render\" threw: Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement; owner=undefined Error: texture dispose\n    at Tc.<anonymous> (http://127.0.0.1:4402/assets/compressedUpload-CczP7Coi.js:1:1587)\n    at Tc.dispatchEvent (http://127.0.0.1:4402/assets/three.module-D0kZyzyv.js:1:4058)\n    at Tc.dispose (http://127.0.0.1:4402/assets/three.module-D0kZyzyv.js:1:34841)\n    at Object.run (http://127.0.0.1:4402/assets/sceneHandles-DWM_i1cg.js:1:2659)\n    at t.dispose (http://127.0.0.1:4402/assets/scope-DlRdNARb.js:1:6329)\n    at Object.run (http://127.0.0.1:4402/assets/scope-DlRdNARb.js:1:2396)\n    at t.dispose (http://127.0.0.1:4402/assets/scope-DlRdNARb.js:1:6329)\n    at Object.dispose (http://127.0.0.1:4402/assets/session-P3EGB88E.js:116:70672)\n    at Object.dispose (http://127.0.0.1:4402/assets/session-P3EGB88E.js:564:34104)\n    at Object.commit (http://127.0.0.1:4402/assets/session-P3EGB88E.js:116:20838)\n    at Tc.<anonymous> (http://12",
+    "[faults] core system \"render\" failed 3 times: the frame loop stops",
+    "Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement; owner=undefined Error: texture dispose"
+  ],
+  "lastStop": {
+    "leg": "driftwood-isle-road-entry",
+    "phase": "travel",
+    "waypoint": 0,
+    "target": {
+      "x": 0,
+      "z": 210
+    }
+  },
+  "lastAdmission": {
+    "residents": [],
+    "pending": [],
+    "issues": {},
+    "crossing": {
+      "phase": "settled",
+      "issue": null
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "driftwood-isle",
+          "status": "loading"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "status": "loading"
+        },
+        {
+          "instance": "pine-hollow",
+          "status": "loading"
+        }
+      ],
+      "draws": 249
+    }
+  },
+  "rows": [
+    {
+      "name": "grid-pine-hollow-road-entry-travel",
+      "frames": 120,
+      "p95Ms": 16.7,
+      "maxMs": 33.3,
+      "pass": true
+    },
+    {
+      "name": "grid-pine-hollow-road-entry-drive",
+      "frames": 1440,
+      "p95Ms": 16.8,
+      "maxMs": 50,
+      "pass": true
+    },
+    {
+      "name": "grid-pine-hollow-road-entry",
+      "frames": 120,
+      "p95Ms": 16.7,
+      "maxMs": 16.8,
+      "pass": true
+    }
+  ],
+  "nativeDisposalSource": {
+    "bundle": "assets/sceneHandles-DWM_i1cg.js",
+    "line": 1,
+    "column": 2659,
+    "source": "src/game/shardfile/worldSceneMaterials.ts",
+    "sourceLine": 43,
+    "operation": "owner.onDispose callback directly invokes texture.dispose()",
+    "ownership": "Shared atlas cache resource; capture scene owner undefined; direct callback bypasses acquireResource/release"
+  }
+}

@@ -1,4 +1,6 @@
 {
+  "test/frame-floor-output-entry.test.ts": [],
+  "test/texture-scope-lifetime.test.ts": [],
   "test/chapter-director-product.test.ts": ["pine-hollow", "driftwood-isle"],
   "test/world-scene-tier.test.ts": [],
   "test/quest-message-rows.test.ts": [],

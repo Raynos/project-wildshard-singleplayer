@@ -375,6 +375,17 @@ shard's scope (`ctx.scope`), so a verb never takes a scope.
 
 `Scope.sharesTeardown(other)` detects a common ancestor currently running synchronous disposal. Delegated sibling scene owners then keep their own final resource capture without repeating it through the outer scene. An independently disposed outer root still captures a live delegated owner that can outlive it; late textures remain owned, and shared native resources are freed once.
 
+Scene textures retain one lease per using scope. Retiring one scene releases its
+lease; only the last using scope disposes the texture. This preserves the native
+allocation of a compressed texture whose CPU mip chain was retired after drawing,
+while another scene still uses it. Geometry and material ownership stay separate.
+Cached inputs acquire a reference from their asset service, which remains their
+sole disposal authority; scene teardown releases that reference.
+The renderer retains samplers per using scope; draws outside delegated cell
+roots use the renderer level. Compilation retains destination samplers, including declared and compile-exposed
+shader-patch samplers, before their first draw. After CPU mip retirement, readiness follows Three's
+version gate and the guarded live allocation, preserving the drawn sampler state. Unowned observations outside draws keep their weak lifetime.
+
 **The construction owner.** Engine code that builds a reusable service doesn't take a scope argument everywhere;
 it asks for the current owner instead.
 

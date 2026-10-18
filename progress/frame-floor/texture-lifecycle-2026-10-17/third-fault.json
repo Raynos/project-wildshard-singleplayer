@@ -1,0 +1,20 @@
+{
+  "source": "4ee4e77761c20565f06a3641a3fe565ed5b9018f",
+  "parent": "bf76ee9ee459107dccc7253a110dfd1e5935307d",
+  "pass": false,
+  "complete": false,
+  "error": "Error: [grid] driftwood-isle: admission failed; it stays closed until a retry Error: Compressed texture waystone-lod1-albedo has no mipmaps and is not resident on this renderer\n    at http://127.0.0.1:4402/assets/compressedUpload-D2mza_hG.js:1:3633",
+  "completedRoutes": [
+    {
+      "name": "pine-hollow-road-entry",
+      "samples": 125,
+      "inside": "pine-hollow",
+      "failures": []
+    }
+  ],
+  "consumer": "Driftwood afterPlay warm-up requests Pine waystone-lod1-albedo after retirement; job and exact disposal chain still under trace",
+  "final14Attempt": {
+    "source": "4744259c0ea2b93232de54759b5b6689c2c3e076",
+    "error": "Error: [grid] driftwood-isle: admission failed; it stays closed until a retry Error: Compressed texture waystone-lod1-albedo has no mipmaps and is not resident on this renderer\n    at http://127.0.0.1:4400/assets/compressedUpload-Bwm3empF.js:1:3242"
+  }
+}

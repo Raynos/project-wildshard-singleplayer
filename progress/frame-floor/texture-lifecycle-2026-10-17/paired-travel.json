@@ -1,0 +1,1235 @@
+{
+  "schema": 1,
+  "records": [
+    {
+      "sha": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+      "runId": "92240-1792304995501",
+      "when": "2026-10-18T06:34:14.037Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "surface": "both",
+      "frames": 120,
+      "gridScenario": "milestone",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "harnessRevision": "8fc8afa158c3b2c5f408d41daa493b835b067306",
+      "device": "frame-floor-iphone-17-pro",
+      "elapsedSeconds": 258.543,
+      "underTenMinutes": true,
+      "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+      "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "limitations": [
+        "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+        "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+        "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+      ],
+      "build": "devserver",
+      "developer": "on",
+      "label": "A1",
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 83.4,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 16.7,
+              "maxMs": 83.4,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1470,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 33.4,
+              "maxMs": 50,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 1170,
+              "p95Ms": 16.8,
+              "maxMs": 50,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        },
+        {
+          "surface": "sim",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 45,
+              "maxMs": 46,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 41,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 158,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 300,
+              "p95Ms": 34,
+              "maxMs": 158,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 71,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 960,
+              "p95Ms": 36,
+              "maxMs": 101,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 63,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 840,
+              "p95Ms": 40,
+              "maxMs": 149,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 59,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        }
+      ]
+    },
+    {
+      "sha": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+      "runId": "14980-1792305254108",
+      "when": "2026-10-18T06:38:29.051Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "surface": "both",
+      "frames": 120,
+      "gridScenario": "milestone",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "harnessRevision": "8fc8afa158c3b2c5f408d41daa493b835b067306",
+      "device": "frame-floor-iphone-17-pro",
+      "elapsedSeconds": 254.955,
+      "underTenMinutes": true,
+      "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+      "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "limitations": [
+        "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+        "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+        "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+      ],
+      "build": "devserver",
+      "developer": "on",
+      "label": "B1",
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 33.3,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1470,
+              "p95Ms": 16.8,
+              "maxMs": 83.3,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 33.3,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 1170,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 33.3,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        },
+        {
+          "surface": "sim",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 45,
+              "maxMs": 46,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 46,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 124,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 300,
+              "p95Ms": 34,
+              "maxMs": 124,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 68,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 960,
+              "p95Ms": 35,
+              "maxMs": 82,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 37,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 43,
+              "maxMs": 58,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 780,
+              "p95Ms": 35,
+              "maxMs": 85,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 39,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        }
+      ]
+    },
+    {
+      "sha": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+      "runId": "30860-1792305509105",
+      "when": "2026-10-18T06:42:49.894Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "surface": "both",
+      "frames": 120,
+      "gridScenario": "milestone",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "harnessRevision": "8fc8afa158c3b2c5f408d41daa493b835b067306",
+      "device": "frame-floor-iphone-17-pro",
+      "elapsedSeconds": 260.798,
+      "underTenMinutes": true,
+      "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+      "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "limitations": [
+        "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+        "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+        "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+      ],
+      "build": "devserver",
+      "developer": "on",
+      "label": "B2",
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 66.7,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 16.7,
+              "maxMs": 66.7,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 33.3,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1470,
+              "p95Ms": 16.8,
+              "maxMs": 66.5,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 33.4,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 1170,
+              "p95Ms": 16.8,
+              "maxMs": 66.6,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        },
+        {
+          "surface": "sim",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 47,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 152,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 36,
+              "maxMs": 152,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 80,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 990,
+              "p95Ms": 36,
+              "maxMs": 99,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 45,
+              "maxMs": 87,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 810,
+              "p95Ms": 36,
+              "maxMs": 98,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        }
+      ]
+    },
+    {
+      "sha": "d460c6e2ae12045e5ad4bc51c588d960dcc82a88",
+      "runId": "48726-1792305769950",
+      "when": "2026-10-18T06:47:02.253Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "surface": "both",
+      "frames": 120,
+      "gridScenario": "milestone",
+      "gridRoutes": [
+        "far-reach-road-entry",
+        "pine-hollow-road-entry",
+        "driftwood-isle-road-entry"
+      ],
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "harnessRevision": "6322000c2d57386254361adf287e2aa0fdca0ea1",
+      "device": "frame-floor-iphone-17-pro",
+      "elapsedSeconds": 252.312,
+      "underTenMinutes": true,
+      "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+      "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+      "criteria": {
+        "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+        "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+        "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+        "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded",
+        "maxFrameMs": "Every observed row: max <= 100 ms desktop / <= 200 ms Simulator"
+      },
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "limitations": [
+        "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+        "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+        "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+      ],
+      "build": "devserver",
+      "developer": "on",
+      "label": "A2",
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-crossroads",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 66.7,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 330,
+              "p95Ms": 16.8,
+              "maxMs": 66.7,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1470,
+              "p95Ms": 16.8,
+              "maxMs": 66.7,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 33.4,
+              "maxMs": 83.4,
+              "medianFps": 59.88,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 1170,
+              "p95Ms": 16.8,
+              "maxMs": 83.4,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "medianFps": 59.88,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        },
+        {
+          "surface": "sim",
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 161,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry-drive",
+              "frames": 300,
+              "p95Ms": 34,
+              "maxMs": 161,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-far-reach-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 107,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 990,
+              "p95Ms": 35,
+              "maxMs": 107,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 39,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "p95Ms": 39,
+              "maxMs": 65,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 810,
+              "p95Ms": 37,
+              "maxMs": 82,
+              "medianFps": 30.303,
+              "pass": false,
+              "contextLost": false,
+              "maxFramePass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 50,
+              "medianFps": 30.303,
+              "pass": true,
+              "contextLost": false,
+              "maxFramePass": true
+            }
+          ],
+          "complete": true,
+          "errors": [],
+          "error": null
+        }
+      ]
+    }
+  ],
+  "proof": "20261018T012955-tx1-abba-92207",
+  "harnessHashes": {
+    "scripts/frame-floor.mjs": "9713d1f2ae4d7eee14f3396ff48f1b92c4b9f4be44125dd8afd3f57a1c1c46a7",
+    "scripts/frame-floor-args.mjs": "8d34606fb12c95ee4e22b90ec744a0bcdea74fa48e59818d19b9deb2da6a84d2",
+    "scripts/frame-floor-grid.mjs": "0168959bd15ada4d67e405b48bedcbbc5e59b888d052984a46f6576cf4abfc56",
+    "scripts/frame-floor-settings.mjs": "c7c666a47eef39d285c25194429dc455ce77ba2b535b17213c66e10a1d13b7fb",
+    "scripts/debug-settings.mjs": "49a53f95151d78b80a4203308dbf8411ec1e36fd2687c6c09155259e52ffc5b8"
+  },
+  "verdict": {
+    "complete": true,
+    "renderFaults": 0,
+    "entryDefault": "off; unchanged",
+    "note": "A=current on, B=entry. Timing verdict is separate from route completion. See per-road p95/max and documented shared-machine limits."
+  }
+}

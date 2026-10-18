@@ -25,7 +25,10 @@ export interface FloorGridWitness {
   plan: FloorGridPlan; before: FloorGridState; after: FloorGridState;
   /** Every drawn frame: real motor blockage at an unready destination edge, and early visibility. */
   arrival?: { blockedFrames: number; blockedMs: number; visibleBeforeReadyFrames: number };
-  trace: { seconds: number; x: number; y: number; z: number; current: string | null; gameplayReady: boolean; hover?: boolean; preparation?: { pending: string[]; resident: boolean; visible: boolean | null; hook: string | null } }[]; elapsedSeconds: number }
+  trace: { seconds: number; x: number; y: number; z: number; current: string | null; gameplayReady: boolean; hover?: boolean;
+    /** Actual water locomotion and eye elevation; absent in older records. */
+    water?: { mode: 'wading' | 'swimming' | null; surface: number | null; eyeY: number };
+    preparation?: { pending: string[]; resident: boolean; visible: boolean | null; hook: string | null } }[]; elapsedSeconds: number }
 export interface FloorGridProgress { documentOrigin: number; sampledAt: number; seconds: number;
   stop: { leg: string; phase: string; waypoint: number | null; target: { x: number; z: number } | null };
   current: string | null; inside: string | null; feet: { x: number; y: number; z: number }; gameplayReady: boolean;

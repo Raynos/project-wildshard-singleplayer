@@ -2,6 +2,7 @@ import { BufferGeometry, Material, Mesh, MeshStandardMaterial, type Object3D, Te
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { app } from '@wildshard/engine/app/runtime';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 
@@ -43,9 +44,9 @@ export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: 
         sky.setupMaterial(material);
         const values: readonly unknown[] = Object.values(material);
         for (const value of values) if (textureValue(value)) textures.add(value);
-        owner.onDispose(() => { material.dispose(); });
+        ownSceneResource(material, owner);
       }
-      owner.onDispose(() => { for (const texture of textures) texture.dispose(); });
+      for (const texture of textures) ownSceneResource(texture, owner, app.assets);
       if (owner.disposed) throw new Error('Scene material owner is disposed');
       return { materials, root: file.scene };
     });
