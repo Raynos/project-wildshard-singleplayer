@@ -6014,11 +6014,11 @@ actor classes refuse. `apply(frame)` writes the evaluated numbers;
 body, scene object or state grant is created. Pine weather and Signal well
 transforms use this binding.
 
-Pine's ambient-life installer lives in its own
-`runtime/life/ambientLife.ts` (G456 H1), alongside its forager and trunk
-policies. The posed view, scoped world, herd, terrain, knife, observation
-clock and harvest cancellation stay with the same owners. This is private
-client content, not a game host or a native simulation installer.
+Pine's former ambient-life runtime is deleted. `sdk/looks/pageLife` owns
+its client presentation alongside Driftwood's actual gull draw. Forest rules
+live in `behaviour/life.as`; model, flock, forager and timed-tool rows are
+emitted as `actors/page-life.json`. The real journal, sound bank, actor
+manager and reward reservation retain ownership.
 
 `engine/ai/ambientFlight.CirclingFlyer` is the reusable circling-flyer law.
 Its bounded tuning controls vertical waves, pitch and bank; `step` borrows
@@ -6544,7 +6544,7 @@ Forest-community ambient rows declare bounded local `perches` profiles
 rotation/scale and section interpolation; no bark geometry is traversed
 at runtime. The shard-owned cheap producer derives profiles from the
 original authored tree GLB. Ambient clocks, RNG and flock owners remain
-with installAmbientLife.
+with the shared page-life presenter.
 
 
 `ProjectileContact<T, H = TargetHit>` accepts the native owner's existing
@@ -9280,6 +9280,23 @@ night clock and spawn stream using rows.
 grouped placement, training refills and perches over the real manager; it changes
 neither body AI nor existing herd membership. All three owners are the approved
 G474/G475 actor-spawn feature and have independent salt-marsh fixture coverage.
+
+`sdk/looks/pageLife.installPageLife` is a client-only ambient presenter.
+`format/pageLife` rows select actual flock draws or a packed model library,
+forager populations, journal guidance, corpse ownership and timed tools.
+The API accepts the trusted context, rows and concrete platform journal,
+sound-bank and flock instances; no shard callback or owner/path reflection.
+Driftwood lends its existing gull draw; Pine declares packed birds and hares.
+The existing flock/forager owners keep their streams and pose channels.
+A stateless ABI-v1 projection selects corpse arrival/cleanup and guide
+eligibility, at most 10 Hz; per-frame tool/camera interpolation stays native.
+Guide attempts keep their native clock and RNG phase; eligibility is read
+lazily only when due, with a minimum declared period of 0.1 seconds.
+The tool retains the real harvest reward reservation and restores equipment,
+material colour and camera offsets on interrupted resident entry. Its guest
+has no durable state or additional save adapter. Product Wasm metadata admits
+its fixed page; the existing page decision authority prepares that memory.
+Named `actors/page-life.json` data is emitted with its defining source.
 
 SDK defining facades are `sdk/populationRoster`, `sdk/populationShelter`
 and `sdk/populationRespawn`; they

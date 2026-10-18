@@ -1,10 +1,8 @@
 import elites from '../behaviour/elites.generated.json' with {type:'json'};
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
-import {parseAmbientLife} from '@wildshard/format/ambientLife';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
 import journal from '../data/journalBlobs.generated.json' with {type:'json'};
-import {PINE_LIFE} from './ambientLife';
 import playback from '../data/heldPlayback.json' with {type:'json'};
 import inputs from '../data/heldInputs.json' with {type:'json'};
 import sights from '../data/heldSights.json' with {type:'json'};
@@ -29,7 +27,6 @@ import kingKit from '../data/kingKit.generated.json' with {type:'json'};
 const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl,...birds.byUrl,...streams.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
 const values={
- 'custom/ambientLife':PINE_LIFE,
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},
  'custom/heldToolPlayback':toolPlayback,
@@ -43,7 +40,6 @@ const values={
 
 // Semantic host laws are kept in their defining public parsers. The serialized
 // custom schema checks structure; publication also checks the runtime registry.
-parseAmbientLife(PINE_LIFE);
 parsePrivateScene(crossbow.hierarchy);
 function checkPrograms(value:unknown):void{
  if(Array.isArray(value)){for(const row of value)checkPrograms(row);return;}

@@ -2019,3 +2019,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Immutable JSON declarations emitted by the schema compiler.
 src/shards/pine-hollow/data/cabins.d.json.ts
 src/shards/driftwood-isle/data/bridgeRows.d.json.ts
+
+/src/shards/pine-hollow/behaviour/life.generated.json

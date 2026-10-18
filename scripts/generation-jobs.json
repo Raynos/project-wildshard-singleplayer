@@ -18982,6 +18982,40 @@
       ],
       "seedOutputs": [],
       "platform": "native"
+    },
+    {
+      "id": "pine-life",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-life.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-life.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/pine-hollow/behaviour/director.as",
+        "src/shards/pine-hollow/behaviour/elites/blackpaw.as",
+        "src/shards/pine-hollow/behaviour/elites/common.as",
+        "src/shards/pine-hollow/behaviour/elites/ghost.as",
+        "src/shards/pine-hollow/behaviour/elites/imperial.as",
+        "src/shards/pine-hollow/behaviour/elites/ironhide.as",
+        "src/shards/pine-hollow/behaviour/king.as",
+        "src/shards/pine-hollow/behaviour/life.as",
+        "src/shards/pine-hollow/behaviour/night.as",
+        "src/shards/pine-hollow/generators/bake-life.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/behaviour/life.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/behaviour/life.generated.json"
+      ]
     }
   ]
 }

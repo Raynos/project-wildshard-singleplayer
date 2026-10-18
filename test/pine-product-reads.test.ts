@@ -1,3 +1,4 @@
+import { parsePageLife } from '../src/format/pageLife';
 import { parseCoverAppearance } from '../src/format/coverAppearance';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
@@ -23,7 +24,17 @@ test('Pine client reads resolve against the emitted output', async () => {
   expect(custom.sections.some(row => row.name === 'custom/questInventory')).toBe(false);
   const shots = loaded.shard.audio.bank?.shots;
   if(shots===undefined)throw new Error('Pine admitted voice identities absent');
-  for (const voice of Object.values(value('custom/ambientLife').sounds)) expect(shots.includes(voice), voice).toBe(true);
+  const lifeFile = loaded.output.namedFiles?.find(row => row.name === 'actors/page-life.json');
+  const lifeBytes = lifeFile === undefined ? undefined : loaded.assets.get(lifeFile.hash);
+  if (lifeBytes === undefined) throw new Error('Pine output has no ambient page');
+  const life = parsePageLife(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(lifeBytes)));
+  const voices = [...life.flocks.filter(row => row.audio === 'bank').flatMap(({ row }) => [
+    row.call?.cue, row.scavenge?.voices.call, row.scavenge?.voices.pair, row.scavenge?.voices.flap,
+    row.visit?.call?.cue, row.visit?.callCue, row.visit?.acts?.drum?.cue,
+  ].filter((cue): cue is string => cue !== undefined && cue !== null)),
+    ...(life.guide === undefined ? [] : [life.guide.cue]), ...(life.harvest?.sounds ?? [])];
+  for (const voice of voices) expect(shots.includes(voice), voice).toBe(true);
+  expect(custom.sections.some(row => row.name === 'custom/ambientLife')).toBe(false);
   expect(shots.length).toBe(new Set(shots).size);
   for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));

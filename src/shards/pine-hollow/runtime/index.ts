@@ -46,7 +46,7 @@ import { installPineCombat } from '../combat/install';
 import { eliteStream } from '@wildshard/game/quest/eliteStreams';
 import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { installPineQuest } from '../quest/index';
-import { installAmbientLife } from './life/ambientLife';
+import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 
 import { pineMemoryTrim } from './debug/options';
@@ -251,13 +251,8 @@ export class PineHollow extends ShardPlugin {
     landmarks?.crags?.cave.spots().forEach(spot => { ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); });
     await installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => floorAtRects(cabinAudio.floors, x, z, 'first') !== undefined || (landmarks?.crags?.cave.inside(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
-    const wildlifeLibrary = await PosedDraw.library(ctx.product, 'look/wildlife-draw.json');
-    await wildlifeLibrary.preload();
-    const lifeRows = ctx.product.section<CustomSections['custom/ambientLife']>('custom/ambientLife');
-    const wildlife=wildlifeLibrary.draw(lifeRows.scavenger.flock.count+lifeRows.forager.count+2);
-    const life = installAmbientLife(lifeRows,{view:wildlife,knife:()=>HeldEquipment.current(ctx.manifest.slug).tool(ctx,lifeRows.harvest),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(lifeRows.sounds).find(id=>id===name);if(family===undefined||!ambience.sfx.acceptsShot(family))throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
-      places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
-      visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
+    if (pineMemoryTrim()) animals.shadowBatch = false;
+    const life = await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), compendium?.state ?? null, ambience.sfx);
     Object.assign(rt.objects, { pineLife: life, ambience });
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins, props: rt.objects['props'], streams: rt.objects['streams'], pineLife: life });
     rt.hooks.equipmentUpdate = (dt) => { loadout.update(dt); };
@@ -266,8 +261,6 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.checkpoint = () => fights.onPlayerDeath();
     rt.hooks.eliteEngaged = () => fights.eliteEngaged();
     rt.hooks.isElite = (animal) => fights.isElite(animal);
-    rt.hooks.harvestBusy = () => life?.busy ?? false;
-    if (life) rt.hooks.harvest = (animal, give, cancel) => { life.harvest(animal, give, cancel); };
     rt.hooks.stepSurface = (at) => ambience.stepSurface(at.x, at.z, at.y);
     rt.hooks.directional = true;
   }

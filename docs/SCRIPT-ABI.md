@@ -431,3 +431,13 @@ physics, damage and retirement operations; no shard TypeScript port is accepted.
 See [spawn owner](../src/game/population/spawnScript.ts),
 [strike owner](../src/game/population/scriptStrikes.ts), and
 [elite admission](../src/format/eliteFeature.ts).
+
+### Client ambient projections
+
+The client-only `sdk/looks/pageLife` presenter also uses `ReturnProgram`:
+`arrival`, `carcass` and `guide` requests supply finite observations and receive
+validated channels. Carcass/guide decisions run at most 10 Hz; object lifetime,
+flock pose packing and timed-tool interpolation remain native. Pine's
+`behaviour/life.as` contains its forest rules. The product admits the same
+fixed-page Wasm bytes through `actors/return-scripts`; the existing page
+decision authority prepares its memory before construction. The guest owns no clock, actor or durable save state.

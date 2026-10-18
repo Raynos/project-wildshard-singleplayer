@@ -138,5 +138,6 @@
   "test/quest-catalogue-sites.test.ts": [
     "pine-hollow",
     "driftwood-isle"
-  ]
+  ],
+  "test/page-life.test.ts": []
 }

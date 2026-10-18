@@ -10,7 +10,6 @@ import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import * as v from 'valibot';
 import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
-import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -237,7 +236,6 @@ export const SECTIONS = {
   'custom/runtimeGraphs': RuntimeGraphsSchema,
   'custom/placeSets': PlaceSetsSchema,
   'custom/cabinAmbience': CabinAmbienceSchema,
-  'custom/ambientLife':ForestLifeSchema,
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
   'custom/trophyMounts':CollectionMountPackSchema,
   'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),

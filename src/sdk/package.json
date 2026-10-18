@@ -152,7 +152,8 @@
     "./populationShelter": "./populationShelter.ts",
     "./populationRespawn": "./populationRespawn.ts",
     "./populationRoster": "./populationRoster.ts",
-    "./models/geometrySources": "./models/geometrySources.ts"
+    "./models/geometrySources": "./models/geometrySources.ts",
+    "./looks/pageLife": "./looks/pageLife.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
