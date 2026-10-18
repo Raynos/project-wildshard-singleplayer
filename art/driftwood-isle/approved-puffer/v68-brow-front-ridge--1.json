@@ -1,0 +1,82 @@
+{
+  "base": "V67",
+  "originalFront": [
+    [
+      -0.19,
+      0.785,
+      0.9944
+    ],
+    [
+      -0.46,
+      0.725,
+      1.058
+    ],
+    [
+      -0.46,
+      0.67,
+      1.185
+    ],
+    [
+      -0.2,
+      0.76,
+      1.048
+    ]
+  ],
+  "candidateFront": [
+    [
+      -0.19,
+      0.785,
+      0.9944
+    ],
+    [
+      -0.46,
+      0.725,
+      1.058
+    ],
+    [
+      -0.46,
+      0.6950000000000001,
+      1.185
+    ],
+    [
+      -0.2,
+      0.76,
+      1.048
+    ]
+  ],
+  "centralFrontRidge": [
+    -0.33,
+    0.7600000000000001,
+    1.1345
+  ],
+  "unchangedRearEdgeMidpoint": [
+    -0.33,
+    0.575,
+    1.1015000000000001
+  ],
+  "lowerHoodAnchorsExact": true,
+  "rearFootprintExact": true,
+  "independentAppendagesAdded": false,
+  "guard": {
+    "geometrySHA256": "f804c8de5d65888439a6548a7925a84de767d65b372028962c8d0a2b9d9ba3a1",
+    "vertices": 10,
+    "faces": 13,
+    "volume": 0.0038275707076898396,
+    "nonManifoldEdges": 0,
+    "bounds": [
+      [
+        -0.46000000834465027,
+        -0.1899999976158142
+      ],
+      [
+        0.5299999713897705,
+        0.7850000262260437
+      ],
+      [
+        0.9793999791145325,
+        1.184999942779541
+      ]
+    ]
+  },
+  "status": "unaccepted; actual broad top-plane visibility and target wedge expression require review"
+}

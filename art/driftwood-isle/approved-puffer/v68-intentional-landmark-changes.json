@@ -1,0 +1,64 @@
+{
+  "irisPupilGlint": "V9 centers/depths/pupil/glint fixed; lower amber and lining arc expanded 18%",
+  "browFrontPositiveX": [
+    [
+      0.19,
+      0.785,
+      0.9944
+    ],
+    [
+      0.46,
+      0.725,
+      1.058
+    ],
+    [
+      0.46,
+      0.67,
+      1.185
+    ],
+    [
+      0.2,
+      0.76,
+      1.048
+    ]
+  ],
+  "browRearOffset": [
+    0,
+    -0.14,
+    -0.015
+  ],
+  "browSpanToIrisDiameter": 1.5697674418604652,
+  "outerRimRadii": [
+    0.118,
+    0.085
+  ],
+  "innerRimRadii": [
+    0.104,
+    0.07
+  ],
+  "mirrored": true,
+  "coordinates": "Blender pre-stance; common Z minus .10 follows",
+  "pouchAndMouthTranslation": [
+    0,
+    -0.11,
+    0
+  ],
+  "removed": "separate folded V9 cheek shell",
+  "finRevision": {
+    "rearWidthDepthScale": 0.7,
+    "rearReachScale": 0.72,
+    "frontToes": "four closed broad dorsal-ridge lobes",
+    "midFinStation": [
+      0.53,
+      0.24,
+      0.18,
+      0.23,
+      0.16
+    ]
+  },
+  "cheekRevision": "shared collinear root-shoulder-rim spokes with strictly monotone depth; no extra surface",
+  "cranialRevision": "broad forward upper-front section expansion at Y .33/.55/.69; no added Boolean or tube",
+  "paintRevision": "sloped wrapped cheek fields with surface-preserving face partition",
+  "volumeRevision": "bounded local cheek-to-pouch taper on shared vertices",
+  "reason": "V68 central/front upper brow ridge only, rear footprint and lower hood pinned; V67 successful body/mouth/feet retained"
+}
