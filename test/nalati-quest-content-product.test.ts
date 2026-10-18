@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { parseChapterStoryPresentation } from '../src/format/questStory';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
 import { readProjectAssets } from '../src/sdk/project';
@@ -29,14 +30,19 @@ test('Nalati compiles the unchanged chapters, camp dialogues, placements and dis
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing compiled Nalati quest content');
-  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ ...content, kokpar });
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ npcs: content.npcs, places: content.places, kokpar });
   const module = loaded.output.namedFiles?.find(row => row.name === 'behaviour/nalati.kokpar.wasm');
   expect(module?.hash).toBe(kokpar.program.script.module.split('/').at(-1)?.slice(0, -5));
   expect(module?.critical).toBe(true);
   const chapterFile = loaded.output.namedFiles?.find(row => row.name === 'quests/chapters.json');
   const chapterBytes = chapterFile === undefined ? undefined : loaded.assets.get(chapterFile.hash);
   if (chapterBytes === undefined) throw new Error('Missing compiled chapter presentation');
-  expect(JSON.parse(new TextDecoder().decode(chapterBytes))).toEqual(chapters);
+  const { decision, ...display } = parseChapterStoryPresentation(JSON.parse(new TextDecoder().decode(chapterBytes)));
+  expect(display).toEqual(chapters);
+  const readings = Object.values(decision?.actions ?? {}).flat().filter(effect => effect.kind === 'reading');
+  expect(readings.map(reading => reading.lines)).toEqual(content.carvings);
+  const eliteReads = Object.values(decision?.observations ?? {}).filter(row => 'saved' in row.source && row.source.saved.record === 'elites').map(row => 'saved' in row.source ? row.source.saved.id : '');
+  expect(eliteReads).toEqual(content.featherElites.map(elite => elite.id));
 }, 30_000);
 
 test('compiled Nalati chapters resume old flag saves at every step and retain elder dialogue', () => {

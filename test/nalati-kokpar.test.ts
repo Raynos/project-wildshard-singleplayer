@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { kokparView } from '../src/shards/nalati-grasslands/adventure';
+import { kokparView } from '../src/shards/nalati-grasslands/quest/kokpar';
 import { Scope } from '../src/engine/app/scope';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
@@ -17,7 +17,7 @@ it('matches frozen round rules at 10 Hz while carrying poses stay per frame', ()
   const mount: KokparMount = { mounted: true, gait: 'gallop', horse: { position: player.clone(), yaw: 0 } };
   const floor = (x: number, z: number): number => x * 0.001 + z * 0.002;
   const original = buildKokparRound(sky, floor, { toast: text => { expected.push(text); }, sting: kind => { expected.push(kind); }, onWin: () => { expected.push('won'); } }, new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()));
-  const current = kokparView({ ctx: { scope }, sky, player: { position: player, yaw: 0 }, ride: { mount, taming: { phase: '', isArgymaq: false } },
+  const current = kokparView({ ctx: { scope }, sky, player: { position: player, yaw: 0 }, ride: { mount },
     hud: { toast: text => { events.push(text); } }, music: { sting: kind => { events.push(kind === 'chunk' ? 'win' : kind === 'death' ? 'lose' : kind); } },
     persistence: { flags: { set: () => { events.push('won'); } } } }, floor, rows, new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()));
   const requests = vi.spyOn(ReturnProgram.prototype, 'project');

@@ -145,3 +145,17 @@ test('late lantern attachment stays in the declared mesh frame after world place
     const dispose = vi.spyOn(flame.geometry, 'dispose'); figure.dispose(); expect(dispose).toHaveBeenCalledOnce();
   } finally { load.mockRestore(); build.mockRestore(); }
 });
+
+test('entered figure ids resolve only their live scope and refuse ambiguity', () => {
+  const a = new Scope('figure-owner-a'), b = new Scope('figure-owner-b');
+  const first = new FigureRows(resources(), row(), a), second = new FigureRows(resources(), row(), b);
+  try {
+    expect(FigureRows.entered(a, 'person')).toBe(first);
+    expect(FigureRows.entered(b, 'person')).toBe(second);
+    const duplicate = new FigureRows(resources(), row(), a);
+    expect(() => FigureRows.entered(a, 'person')).toThrow();
+    duplicate.dispose(); expect(FigureRows.entered(a, 'person')).toBe(first);
+    first.dispose(); expect(() => FigureRows.entered(a, 'person')).toThrow();
+    b.dispose(); expect(() => FigureRows.entered(b, 'person')).toThrow();
+  } finally { a.dispose(); b.dispose(); }
+});

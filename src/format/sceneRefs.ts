@@ -18,6 +18,9 @@ export type SceneRef = v.InferOutput<typeof SceneRefSchema>;
 export const ObservationRefSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Observation reference requires plain JSON'), v.union([
   v.strictObject({ flag: id }), v.strictObject({ mark: id }),
   v.strictObject({ mover: id, state: v.picklist(['at-end', 'moving']) }),
+  v.strictObject({ quest: id, step: v.exactOptional(id), state: v.exactOptional(v.picklist(['active', 'complete'])) }),
+  v.strictObject({ saved: v.strictObject({ record: v.picklist(['bosses', 'elites']), id,
+    field: v.picklist(['defeated', 'rewardTaken', 'kills']) }) }),
 ]));
 export type ObservationRef = v.InferOutput<typeof ObservationRefSchema>;
 /** Check all publications before a consumer allocates prompts or effects. */

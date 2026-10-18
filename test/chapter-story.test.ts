@@ -20,6 +20,14 @@ import drift from '../src/shards/driftwood-isle/shard.config';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 
+import { installChapterStory } from '../src/game/quest/chapter';
+import { bindAdventurePersistence } from '../src/game/quest/persistence';
+import { FigureRows } from '../src/game/systems/npc/figureRows';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { chapterPresentation } from '../src/shards/nalati-grasslands/generators/chapterBindings';
+import persistenceRows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
+import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
+
 afterEach(() => { vi.useRealTimers(); document.body.replaceChildren(); });
 
 test('Nalati and Driftwood bind the same ordered states and replay completion facts once per bind', () => {
@@ -125,4 +133,86 @@ test('Driftwood chapter adoption matches its previous presenter through completi
     }
     expect(quest.isComplete).toBe(true);
   } finally { oldLine.dispose(); line.dispose(); scope.dispose(); }
+});
+
+test('entered chapter rows preserve carving order and continue the same saved chapters', () => {
+  const notices: string[] = [], changes: string[] = [], instance = 'chapter-story-continuation';
+  const enter = () => {
+    const scope = new Scope(instance), app = new App();
+    const product = createShardProduct({ slug: nalati.identity.slug, revision: 1, shardfile: nalati,
+      sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('No file needed')) });
+    const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+    const ctx = shardContext(level.context, MANIFEST, { shard: MANIFEST, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+    const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
+    Object.defineProperty(ctx.game, 'runtime', { value: { world: { player }, interactables: [], play: {
+      hud: { toast: (text: string) => { notices.push(text); } }, music: { sting: () => undefined },
+      audio: { weaponSwap: () => undefined }, fullMap: { setQuest: () => undefined, setPois: () => undefined },
+    } } });
+    const saved = bindAdventurePersistence(ctx, nalati, persistenceRows, instance,
+      { names: () => ({}), cosmetics: () => ({ owned: [], worn: {} }) });
+    for (const talk of policy.talks) new FigureRows(new SceneHandles({ setupMaterial: () => undefined }), {
+      id: talk.figure, name: talk.id, feet: [0, 0, 0], yaw: 0, talkHeight: 1.5, pointAt: [0, 1.5, 0], points: false, rig: { skeleton: 'npc.test', clips: [], sockets: [] },
+      joints: [], sockets: [], visible: [], drawDistance: 90,
+    }, scope);
+    const chapter = scope.run(() => installChapterStory(ctx, chapterPresentation(policy), { content, program: kokpar.program }));
+    scope.onDispose(saved.flags.onChange(flag => { changes.push(flag); }));
+    return { scope, chapter, saved };
+  };
+  const first = enter();
+  try {
+    first.saved.flags.reset(); first.saved.elites.write({}); first.saved.bosses.write({});
+    first.saved.flags.set('talked:elder');
+    first.chapter.project('quest', { now: 0, bonded: 1, argymaq: 0, inside: 0, tied: 0 });
+    first.saved.flags.set('won:kokpar'); first.saved.flags.set('told:tulpar'); first.saved.flags.set('talked:elder:2');
+    expect(first.chapter.line?.active?.def.id).toBe('golden-king');
+    expect(first.chapter.line?.active?.current?.id).toBe('clues');
+    first.chapter.project('carving', { now: 0 });
+    expect(first.saved.flags.has(content.clueFlags[0] ?? '')).toBe(true);
+    expect(notices.at(-1)).toBe('A carving on its back · clue 1 / 3');
+    expect(first.chapter.dialogueBox().isOpen).toBe(true);
+    expect(changes.at(-1)).toBe(content.clueFlags[0]);
+    first.chapter.dialogueBox().close(false);
+    const snapshot = first.chapter.line?.chapters.map(state => state.snapshot());
+    first.scope.dispose(); const resumed = enter();
+    try {
+      expect(resumed.chapter.line?.chapters.map(state => state.snapshot())).toEqual(snapshot);
+      const before = changes.length;
+      resumed.chapter.project('carving', { now: 0 });
+      expect(changes.slice(before)).toEqual([content.clueFlags[1]]);
+      resumed.chapter.dialogueBox().close(false);
+      resumed.chapter.project('carving', { now: 0 });
+      expect(resumed.chapter.line?.active?.current?.id).toBe('door');
+      const after = changes.length; resumed.chapter.project('carving', { now: 0 });
+      expect(changes.length).toBe(after);
+      const bosses = vi.spyOn(resumed.saved.bosses, 'read').mockReturnValue({
+        'golden-king': { defeated: true, rewardTaken: false, kills: 1 },
+        'storm-titan': { defeated: true, rewardTaken: true, kills: 1 },
+      });
+      try {
+        resumed.chapter.project('quest', { bonded: 0, argymaq: 0, inside: 0, tied: 0 });
+        expect(changes.slice(after)).toEqual(['dead:golden-king', 'dead:jel-ata']);
+        expect(resumed.chapter.line?.active?.current?.id).toBe('home');
+      } finally { bosses.mockRestore(); }
+      resumed.saved.flags.clear('dead:jel-ata');
+      resumed.saved.flags.set('told:king'); resumed.saved.flags.set('talked:elder:3');
+      expect(resumed.chapter.line?.active?.current?.id).toBe('feathers');
+      const elite = { timer: 0, discovered: false, skinTaken: false, kills: 1, retired: false };
+      const elites = vi.spyOn(resumed.saved.elites, 'read').mockReturnValue(Object.fromEntries(content.featherElites.map(row => [row.id, elite])));
+      try {
+        const beforeFeathers = changes.length, beforeNotices = notices.length;
+        resumed.chapter.project('feathers', {});
+        expect(changes.slice(beforeFeathers)).toEqual([...content.featherElites.map(row => `felled:${row.id}`), ...content.featherFlags]);
+        expect(notices.slice(beforeNotices).filter(text => text.startsWith('Storm feather'))).toEqual([
+          'Storm feather · 1 / 3', 'Storm feather · 2 / 3', 'Storm feather · 3 / 3',
+        ]);
+        expect(resumed.chapter.line?.active?.current?.id).toBe('cairn');
+        resumed.saved.flags.set('lit:cairn'); resumed.saved.flags.set('dead:jel-ata'); resumed.saved.flags.set('told:wind');
+        expect(resumed.chapter.line?.active).toBeNull();
+        for (const flag of content.featherFlags) resumed.saved.flags.clear(flag);
+        const completedNotices = notices.length;
+        resumed.chapter.project('feathers', {});
+        expect(notices.slice(completedNotices).filter(text => text.startsWith('Storm feather'))).toEqual([]);
+      } finally { elites.mockRestore(); }
+    } finally { resumed.saved.flags.reset(); resumed.scope.dispose(); }
+  } finally { first.scope.dispose(); }
 });

@@ -1,11 +1,11 @@
 import * as v from 'valibot';
-import { HandleIdSchema } from './sceneRefs';
+import { HandleIdSchema, ObservationRefSchema } from './sceneRefs';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const names = v.pipe(v.array(name), v.maxLength(128));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
-const toast = v.strictObject({ kind: v.literal('toast'), text: v.pipe(v.string(), v.maxLength(4096)),
+const toast = v.strictObject({ kind: v.literal('toast'), when: v.exactOptional(ObservationRefSchema), text: v.pipe(v.string(), v.maxLength(4096)),
   progress: v.exactOptional(v.strictObject({ flags: names, complete: v.pipe(v.string(), v.maxLength(4096)) })),
   counter: v.exactOptional(v.strictObject({ prefix: name, of: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(8192)) })) });
 const sting = v.strictObject({ kind: v.literal('sting'), name: v.picklist(['pickup', 'death', 'chunk', 'dawn']) });
@@ -23,6 +23,8 @@ export type QuestSceneEffect = v.InferOutput<typeof QuestSceneEffectSchema>;
 /** Ordered effects, admitted identically for page actions and quest step rows. */
 export const QuestEffectSchema = v.union([QuestSceneEffectSchema, v.variant('kind', [
   toast, sting,
+  v.strictObject({ kind: v.literal('reading'), title: v.pipe(v.string(), v.maxLength(512)),
+    lines: v.pipe(v.array(v.pipe(v.string(), v.maxLength(8192))), v.maxLength(128)) }),
   v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('item'), item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
   v.strictObject({ kind: v.literal('command'), script: name, type: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)),

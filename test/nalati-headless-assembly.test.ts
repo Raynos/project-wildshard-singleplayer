@@ -1,6 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native regression reads the shipped physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
+import { nalatiNativeWitness, nalatiTamingNativeWitness } from './proof/nalati-grasslands/witness';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
@@ -37,3 +39,16 @@ test('Nalati declared assembly retains its native 100 + 30 tick continuation', a
     if (restored !== undefined) expect(Object.values(restored.scope.census).every(count => count === 0)).toBe(true);
   }
 }, 120_000);
+
+
+test('Nalati chapter landing retains native actor order, codec and strict suffix', async () => {
+  const proof = v.parse(v.object({ replay: v.object({ codecByteExact: v.literal(true), suffixTicksExecuted: v.literal(60),
+    checkpointCaptured: v.literal(true), suffixHash: v.string() }) }), await nalatiNativeWitness(true, false));
+  expect(proof.replay.suffixHash).toMatch(/^[0-9a-f]{64}$/u);
+}, 120_000);
+
+test('Nalati chapter landing retains the native taming adoption suffix', async () => {
+  const proof = v.parse(v.object({ taming: v.object({ suffixExact: v.literal(true), tulparAdopted: v.literal(true),
+    originalHiddenAlive: v.literal(true), rounds: v.literal(5), ticksExecuted: v.number() }) }), await nalatiTamingNativeWitness());
+  expect(proof.taming.ticksExecuted).toBeGreaterThan(8000);
+}, 180_000);

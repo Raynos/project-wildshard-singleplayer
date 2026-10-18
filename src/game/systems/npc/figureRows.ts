@@ -13,6 +13,7 @@ import { FigureSkins } from './figureSkins';
 import { standingFigure, type FigureSkinState } from './standingFigure';
 
 const skins = new FigureSkins();
+const entered = new WeakMap<Scope, Map<string, Set<FigureRows>>>();
 function sourceId(ref: ScenePointRef): string {
   if (!('part' in ref)) throw new Error('Figure object requires a scene part');
   return ref.part;
@@ -28,6 +29,12 @@ function anchorColliders(box: FigureRow['collider']): readonly ColliderDesc[] {
  * Eviction cancels late skin publication.
  */
 export class FigureRows {
+  /** Resolve the actual scoped figure by its admitted identity, never a shard port. */
+  static entered(owner: Scope, id: string): FigureRows {
+    const figures = [...entered.get(owner)?.get(id) ?? []].filter(figure => figure.active), figure = figures[0];
+    if (owner.disposed || figures.length !== 1 || figure === undefined) throw new Error(`Figure is not entered: ${id}`);
+    return figure;
+  }
   /** Loading-screen intake shares immutable sources with subsequent instances. */
   static async prepareSkins(rows: readonly FigureSkinRow[]): Promise<void> { await Promise.all(rows.map(row => skins.load(row))); }
   /** The same data anchors are usable by the model registry before a draw exists. */
@@ -39,6 +46,7 @@ export class FigureRows {
   readonly ready: Promise<void>;
   talking = false;
   private live = true;
+  private releaseEntry: () => void = () => undefined;
   private readonly publications = new Map<string, THREE.Object3D | THREE.Vector3>();
   private readonly draws: THREE.Object3D[];
   private readonly row: FigureRow;
@@ -76,6 +84,9 @@ export class FigureRows {
     for (const socket of pivotSockets) this.publish(socket.id, socket.object);
     this.person = row.fallback === undefined ? undefined : standingFigure(this.group, resources, row, this.skinState);
     this.refreshPoint();
+    const figures = entered.get(owner) ?? new Map<string, Set<FigureRows>>(), group = figures.get(row.id) ?? new Set<FigureRows>();
+    group.add(this); figures.set(row.id, group); entered.set(owner, figures);
+    this.releaseEntry = () => { group.delete(this); if (group.size === 0) figures.delete(row.id); };
     owner.onDispose(() => { this.dispose(); });
     this.ready = (async () => {
       try {
@@ -132,7 +143,7 @@ export class FigureRows {
   /** Late loads cannot attach or publish into an evicted scene. */
   dispose(): void {
     if (!this.live) return;
-    this.live = false; this.skinState.pending = null;
+    this.live = false; this.releaseEntry(); this.skinState.pending = null;
     for (const [id, object] of this.publications) this.resources.release(id, object);
     this.publications.clear();
     for (const owned of this.skinState.owned) owned.dispose(); this.skinState.owned.length = 0;

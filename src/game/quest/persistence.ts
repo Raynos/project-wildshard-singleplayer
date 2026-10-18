@@ -5,6 +5,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRuntimeFacts, type RuntimeFacts } from '../plugin/headless';
 import { bossesSave, elitesSave, progressSave } from '../saves';
 import type { Progress } from '../Progress';
+import { publishBoundPersistence } from './chapterBindings';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.minValue(0));
@@ -112,10 +113,12 @@ export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'
     }
   };
   if (bondState !== undefined) projectBond(bond.read());
-  return { flags, facts, bosses, elites, names: nameRecord, cosmetics: cosmeticRecord, bond,
+  const persistence: AdventurePersistence = { flags, facts, bosses, elites, names: nameRecord, cosmetics: cosmeticRecord, bond,
     feat: (event: string, total?: number): void => { outcome('event', event, undefined, total); },
     kill: (kind: string, variant?: string): void => { outcome('kill', kind, variant); },
     bindProgress: (progress: Parameters<typeof facts.bindProgress>[0]): void => {
       facts.bindProgress(progress, () => { const state = bondState?.write(bondState.read()) ?? true, ledger = facts.flush(); return state && ledger; });
     } };
+  publishBoundPersistence(ctx.scope, persistence);
+  return persistence;
 }

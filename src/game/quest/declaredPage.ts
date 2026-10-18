@@ -11,6 +11,7 @@ import { commitQuestEffects } from './effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
+import { readQuestObservation } from './chapterBindings';
 import type { PageQuestStages } from '../plugin/ui';
 
 /** Original owners installed by the compiled client features, never shard callbacks. */
@@ -47,6 +48,7 @@ export function bindDeclaredPage(ctx: ShardContext, input: unknown, resources: P
       if (!rules.data.marks.some(mark => mark.id === ref.mark)) throw new Error(`Unknown quest observation mark ${ref.mark}`);
       return [row.id, () => rules.has(ref.mark)] as const;
     }
+    if ('saved' in ref || 'quest' in ref) return [row.id, () => readQuestObservation(ctx, rows.quest, ref) !== 0] as const;
     const mover = source.movers.find(moverRow => moverRow.id === ref.mover);
     if (mover === undefined) throw new Error(`Unknown quest observation mover ${ref.mover}`);
     return [row.id, () => {
@@ -182,6 +184,7 @@ function compileQuestEffects(ctx: Pick<ShardContext, 'scope' | 'game' | 'product
         return (): void => { scene.rules.mark(effect.target, effect.value); };
       }
       case 'toast': return (): void => {
+        if (effect.when !== undefined && readQuestObservation(ctx, quest, effect.when) === 0) return;
         const play = ctx.game.runtime?.play;
         if (play === undefined || play === null) throw new Error('Quest toast requires the entered play host');
         const progress = effect.progress;
@@ -190,7 +193,7 @@ function compileQuestEffects(ctx: Pick<ShardContext, 'scope' | 'game' | 'product
         play.hud.toast(count === progress.flags.length ? progress.complete : `${effect.text} · ${String(count)}/${String(progress.flags.length)}`);
       };
       case 'command': case 'notice': throw new Error('Quest effect requires an admitted command or notice lane');
-      case 'flag': case 'item': case 'sting': return (): void => { commitQuestEffects(ctx, quest, [effect]); };
+      case 'reading': case 'flag': case 'item': case 'sting': return (): void => { commitQuestEffects(ctx, quest, [effect]); };
       default: throw new Error('Unknown quest effect');
     }
   });

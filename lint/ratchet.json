@@ -2095,7 +2095,6 @@
     "src/shards/far-reach/world/meshes.ts": 1,
     "src/shards/far-reach/world/mill.ts": 3,
     "src/shards/far-reach/world/shapes.ts": 3,
-    "src/shards/nalati-grasslands/adventure.ts": 25,
     "src/shards/nalati-grasslands/cragRock.ts": 1,
     "src/shards/nalati-grasslands/plugin.ts": 5,
     "src/shards/nalati-grasslands/stealth.ts": 18,
@@ -2354,6 +2353,7 @@
     "src/shards/driftwood-isle/runtime/world/systems.ts": 8,
     "src/shards/driftwood-isle/runtime/world/Shrine.ts": 3,
     "src/shards/driftwood-isle/runtime/models/fixedSites.ts": 10,
-    "src/shards/nalati-grasslands/world/modelView.ts": 2
+    "src/shards/nalati-grasslands/world/modelView.ts": 2,
+    "src/shards/nalati-grasslands/quest/kokpar.ts": 8
   }
 }

@@ -16,7 +16,7 @@ import type { SimValue } from '../src/engine/sim';
 // Both witnesses regenerate and compare the recorded gameplay checkpoint payloads before replaying an existing
 // save. Their retained recorder refuses any changed flags, rewards, effects or compressed save bytes on Darwin.
 const Proof = v.object({ replay: v.object({ status: v.literal('passed'), checkpointCaptured: v.literal(true),
-  hash: v.string(), replayHash: v.string(), suffixTicksExecuted: v.pipe(v.number(), v.minValue(1)) }) });
+  hash: v.string(), replayHash: v.string(), workerExact: v.exactOptional(v.boolean()), workerTicks: v.exactOptional(v.number()), suffixTicksExecuted: v.pipe(v.number(), v.minValue(1)) }) });
 const SavedValue: v.GenericSchema<unknown, SimValue> = v.lazy(() => v.union([
   v.null(), v.boolean(), v.pipe(v.number(), v.finite()), v.string(), v.array(SavedValue), v.record(v.string(), SavedValue),
 ]));
@@ -26,10 +26,11 @@ for (const [slug, witness] of [
   ['pine-hollow', (mode: string) => pineWitness(mode, 270_000)],
 ] as const)
   test(`${slug}: recorded native quest saves restore and replay byte-identically`, () => {
-    const result = witness('replay');
+    const result = witness(slug === 'driftwood-isle' ? 'replay-strict' : 'replay');
     expect(result.status, `${result.stderr}\n${result.stdout}`).toBe(0);
     const proof = v.parse(Proof, JSON.parse(result.stdout.split('\n').at(-1) ?? 'null'));
     expect(proof.replay.replayHash).toBe(proof.replay.hash);
+    if (slug === 'driftwood-isle') { expect(proof.replay.workerExact).toBe(true); expect(proof.replay.workerTicks).toBe(1000); }
   }, 300_000);
 
 for (const slug of ['driftwood-isle', 'pine-hollow'] as const)

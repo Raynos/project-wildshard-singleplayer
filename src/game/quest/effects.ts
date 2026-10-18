@@ -5,17 +5,18 @@ import type { ShardContext } from '../plugin/context';
 import { isItemId } from '../bag/itemCatalog';
 import { creditNativeInventory, debitNativeInventory } from '../inventoryLaw';
 import { boundQuestState } from './boundState';
+import { boundChapter, readQuestObservation } from './chapterBindings';
 import type { QuestStepEffect } from './steps';
 
 /** Framework-internal dispatch; shard APIs supply effect rows and owner ids only. */
 function commit(effects: readonly QuestStepEffect[], flags: Flags,
-  credit: (item: string, count: number) => void, debit: (item: string, count: number) => boolean, present?: (effect: Extract<QuestStepEffect, { kind: 'toast' | 'sting' }>) => void): void {
+  credit: (item: string, count: number) => void, debit: (item: string, count: number) => boolean, present?: (effect: Extract<QuestStepEffect, { kind: 'toast' | 'sting' | 'reading' }>) => void): void {
   for (const effect of effects) {
     if (effect.kind === 'flag') { if (effect.value === false) flags.clear(effect.flag); else flags.set(effect.flag); }
     else if (effect.kind === 'item') credit(effect.item, effect.count);
     else if (effect.kind === 'take') {
       if (!debit(effect.item, effect.count)) throw new Error('Quest delivery changed before commit');
-    } else if (effect.kind === 'toast' || effect.kind === 'sting') {
+    } else if (effect.kind === 'toast' || effect.kind === 'sting' || effect.kind === 'reading') {
       if (present === undefined) throw new Error('Quest presentation requires a page host');
       present(effect);
     } else throw new Error('Quest effect requires an admitted command or notice lane');
@@ -35,7 +36,9 @@ export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'>
       if (!isItemId(item)) throw new Error('Unknown quest inventory item');
       return play.inventory.take(item, count);
     }, effect => {
-      if (effect.kind === 'sting') play.music.sting(effect.name);
+      if (effect.kind === 'toast' && effect.when !== undefined && readQuestObservation(context, owner, effect.when) === 0) return;
+      if (effect.kind === 'reading') boundChapter(context.scope, owner).reading(effect);
+      else if (effect.kind === 'sting') play.music.sting(effect.name);
       else if (effect.progress !== undefined) {
         const progress = effect.progress, count = progress.flags.filter(flag => state.flags.has(flag)).length;
         play.hud.toast(count === progress.flags.length ? progress.complete : `${effect.text} · ${String(count)}/${String(progress.flags.length)}`);

@@ -4,7 +4,7 @@ import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
-import { installQuestChapter, installQuestFlags, installQuestInteractables } from '@wildshard/game/quest/chapter';
+import { installChapterStory, installQuestFlags, installQuestInteractables } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import type { CustomSections, TradeGood } from '../runtime/productSections.generated.d.ts';
@@ -342,7 +342,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
-  const presentation = installQuestChapter(ctx, story);
+  const presentation = installChapterStory(ctx, story, { program: native.lead.program });
   const questChip = presentation.chip, objective = presentation.objective;
   const clock = await readChapterDirector(ctx, 'quests/chapter-director.json');
   ui.retainRoot(objective.root, () => { objective.hide(false); });
@@ -353,7 +353,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   // ── the quest ──
 
   // ── the stag ──
-  const stag = new StagLead(game.scene, animals, native.lead);
+  const stag = new StagLead(game.scene, animals, native.lead, presentation);
   stag.onAppear = (first) => { if (first) serviceActions.run('stag.appear'); };
   stag.onDone = () => { commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'follow', target: 'stag' }, { flags: flags.all })); serviceActions.run('stag.complete'); };
 

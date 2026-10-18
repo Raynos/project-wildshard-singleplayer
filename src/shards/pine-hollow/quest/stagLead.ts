@@ -12,14 +12,13 @@ import type { PineQuestRows } from '../runtime/productSections.generated.d.ts';
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import type { QuestChapter } from '@wildshard/game/quest/chapter';
 
 // AS decides at <=10 Hz; Animal integrates the borrowed motion every frame.
 type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;
 
 export class StagLead {
   private a: StagBody | null = null;
-  private readonly brain: ReturnProgram;
   private pending = 0;
   private readonly walk = { i: 0, mode: 0, elapsed: 0 };
   private readonly puffs: Puffs;
@@ -27,8 +26,7 @@ export class StagLead {
   onDone?: () => void;
   onAppear?: (first: boolean) => void;
 
-  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, private readonly rows: PineQuestRows['lead']) {
-    this.brain = ReturnProgram.page(rows.program);
+  constructor(scene: THREE.Scene, private readonly animals: { animals: StagBody[]; spawn: (kind: 'deer', x: number, z: number, yaw: number, variant: 'ghost') => StagBody; onSound?: (name: string, at: THREE.Vector3) => void }, private readonly rows: PineQuestRows['lead'], private readonly chapter: Pick<QuestChapter, 'project'>) {
     this.puffs = new Puffs(scene, new THREE.Color(0.75, 1.6, 2.0), 3);
   }
 
@@ -42,7 +40,7 @@ export class StagLead {
     this.pending += dt;
     if (this.pending >= 0.1) {
       const point = this.rows.path[this.walk.i], at = this.a?.position;
-      const result = this.brain.project('lead', { ...this.walk, begin: 0, dt: this.pending, on: Number(on),
+      const result = this.chapter.project('lead', { ...this.walk, begin: 0, dt: this.pending, on: Number(on),
         playerX: player.x, playerZ: player.z, atX: at?.x ?? point?.[0] ?? 0, atZ: at?.z ?? point?.[1] ?? 0 });
       Object.assign(this.walk, result);
       const event = result['event'];

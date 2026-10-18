@@ -5,13 +5,18 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const { KOKPAR:k }=JSON.parse(readFileSync(new URL('../data/layout.generated.json',import.meta.url),'utf8'));
 const goals=[0,Math.PI].map(t=>{const x=Math.cos(t)*k.rx*0.82,z=Math.sin(t)*k.rz*0.82;
  return {x:k.x+x*Math.cos(k.rot)+z*Math.sin(k.rot),z:k.z-x*Math.sin(k.rot)+z*Math.cos(k.rot)};});
-const fields=['carrying','left','slow','cheer','warned','dt','playerX','playerZ','goatX','goatZ','mounted','horse','fast','practice','horseX','horseZ'];
-const channels=['carrying','left','slow','cheer','warned','event','pose','goal','warning'],signals=['step','win'];
+const quest=JSON.parse(readFileSync(new URL('../data/questContent.json',import.meta.url),'utf8'));
+const fields=['bonded','argymaq','inside','king','tied','titan','clueStep',
+ ...quest.clueFlags.map((_,i)=>`clue${i}`),...quest.featherFlags.map((_,i)=>`feather${i}`),
+ ...quest.featherElites.flatMap((_,i)=>[`elite${i}`,`felled${i}`]),'carrying','left','slow','cheer','warned','dt','playerX','playerZ','goatX','goatZ','mounted','horse','fast','practice','horseX','horseZ'];
+const channels=['carrying','left','slow','cheer','warned','event','pose','goal','warning','qBonded','qArgymaq','qInside','qKing','qTied','qTitan',
+ ...quest.clueFlags.map((_,i)=>`qClue${i}`),...quest.featherFlags.flatMap((_,i)=>[`qFeather${i}`,`qNotice${i}`]),
+ ...quest.featherElites.map((_,i)=>`qElite${i}`)],signals=['step','win','quest','carving','feathers'];
 const aliases=values=>Object.fromEntries(values.map(name=>[name,name]));
 const registry=values=>new Map([...values].sort((a,b)=>a<b?-1:a>b?1:0).map((name,i)=>[name,i+1]));
 const row={id:'nalati.kokpar',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/kokpar.as',
  binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],
- params:{homeX:k.x,homeZ:k.z,fieldRadius:Math.max(k.rx,k.rz)+22,goal0X:goals[0].x,goal0Z:goals[0].z,goal1X:goals[1].x,goal1Z:goals[1].z},
+ params:{clues:quest.clueFlags.length,elites:quest.featherElites.length,feathers:quest.featherFlags.length,homeX:k.x,homeZ:k.z,fieldRadius:Math.max(k.rx,k.rz)+22,goal0X:goals[0].x,goal0Z:goals[0].z,goal1X:goals[1].x,goal1Z:goals[1].z},
  reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
 const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},
  readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837});

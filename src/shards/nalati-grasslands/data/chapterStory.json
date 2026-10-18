@@ -8,27 +8,32 @@
     {
       "id": "elder",
       "label": "Talk to Baqyt Ata",
-      "radius": 3.2
+      "radius": 3.2,
+      "figure": "elder"
     },
     {
       "id": "herderGate",
       "label": "Talk to Dauren",
-      "radius": 3.2
+      "radius": 3.2,
+      "figure": "herdergate"
     },
     {
       "id": "herderRail",
       "label": "Talk to Erlan",
-      "radius": 3.2
+      "radius": 3.2,
+      "figure": "herderrail"
     },
     {
       "id": "child",
       "label": "Talk to Ayan",
-      "radius": 3.2
+      "radius": 3.2,
+      "figure": "child"
     },
     {
       "id": "cook",
       "label": "Talk to Gulnar Apa",
-      "radius": 3.2
+      "radius": 3.2,
+      "figure": "cook"
     }
   ],
   "rewards": {

@@ -8,7 +8,7 @@ import { QuestState } from '../src/engine/quest/core';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installQuestChapter } from '../src/game/quest/chapter';
+import { installChapterStory } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
 import { parseChapterDirector } from '../src/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -16,6 +16,8 @@ import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pa
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { beatFlags } from '../src/shards/pine-hollow/generators/questBeats';
 import { CHAPTER_DIRECTOR as pineRows } from '../src/shards/pine-hollow/generators/chapterDirector';
+
+import pineLife from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 
 const products = new Map<string, ShardProduct>();
 beforeAll(async () => {
@@ -35,7 +37,7 @@ async function fixture(slug: string, saved: readonly string[]) {
   Object.defineProperty(context, 'game', { value: { runtime: { world: { player, sky: { dayNight: day } }, play: {
     inventory, weapons, hud: { toast: (text: string) => { events.push(text); } }, music: { sting: (name: string) => { events.push(name); } }, fullMap: { setQuest: () => undefined },
   } } } });
-  const chapter = scope.run(() => installQuestChapter(context, slug === 'pine-hollow' ? pineStory : driftwoodStory));
+  const chapter = scope.run(() => installChapterStory(context, slug === 'pine-hollow' ? pineStory : driftwoodStory, slug === 'pine-hollow' ? { program: pineLife } : {}));
   const clock = await scope.run(() => readChapterDirector(context, 'quests/chapter-director.json'));
   return { scope, quest, flags, events, player, day, weapons, chapter, clock };
 }
@@ -134,4 +136,15 @@ test('chapter admission rejects shard callbacks, reflection and reward observati
   expect(() => parseChapterDirector({ ...pineRows, hooks: {} })).toThrow();
   expect(() => parseChapterDirector({ ...pineRows, actions: { bad: [{ kind: 'call', owner: 'shard', path: ['run'] }] } })).toThrow();
   expect(() => parseChapterDirector({ ...pineRows, observations: { x: { read: 'reward-x' } } })).toThrow('target');
+});
+
+
+test('Pine chapter uses the same entered numeric decision owner as its client stag', async () => {
+  const f = await fixture('pine-hollow', ['talked:ranger']);
+  try {
+    const result = f.chapter.project('lead', { i: 0, mode: 0, elapsed: 0, begin: 0, dt: .1, on: 1,
+      playerX: 30, playerZ: -30, atX: 30, atZ: -30 });
+    expect(result['event']).toBe(1); expect(result['mode']).toBe(1);
+    expect(f.quest.flags.all).toEqual(['talked:ranger']);
+  } finally { f.scope.dispose(); f.quest.dispose(); }
 });

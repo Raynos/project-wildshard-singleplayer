@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { BatchedMesh, type Object3D } from 'three';
+import { BatchedMesh, type Object3D, type Vector3 } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
@@ -9,12 +9,18 @@ import { isJsonData } from '@wildshard/format/json';
 import { app } from '@wildshard/engine/app/runtime';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { QuestState } from '@wildshard/engine/quest/core';
+import type { QuestLine, QuestState } from '@wildshard/engine/quest/core';
 import { placesWithDiscovery, type Places, type LiveMarker } from '@wildshard/engine/quest/view';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { FullMap } from '@wildshard/engine/ui/Map';
-import type { ObjectiveLine } from '@wildshard/engine/quest/view/ui';
-import { parseQuestStory } from '@wildshard/format/questStory';
+import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
+import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/format/questStory';
+import { FigureRows } from '../systems/npc/figureRows';
+import { NpcDialogueRowSchema } from '../plugin/quests';
+import { ReturnProgram } from '../population/returnProgram';
+import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
+import { commitQuestEffects } from './effects';
+import { QuestEffectSchema } from '@wildshard/format/questSteps';
 import type { ShardContext } from '../plugin/context';
 import { completionProjection, type CompletionProgress } from '../complete/declared';
 import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/ui';
@@ -30,6 +36,8 @@ const schema = v.strictObject({
   placements: v.exactOptional(v.record(v.string(), point)),
   completion: v.exactOptional(v.boolean()),
   remainingLabel: v.exactOptional(v.string()),
+  program: v.exactOptional(v.unknown()),
+  content: v.exactOptional(v.object({ npcs: v.record(v.string(), NpcDialogueRowSchema), places: discoverySchema })),
 });
 /** Existing entered services; callers cannot inject story policy or owner paths. */
 export interface QuestChapterContext extends Pick<ShardContext, 'app' | 'scope' | 'product'> {
@@ -42,18 +50,22 @@ export interface QuestChapterContext extends Pick<ShardContext, 'app' | 'scope' 
 /** A client-only view over a quest already bound by its existing progression owner. */
 export interface QuestChapter {
   readonly quest: QuestState;
+  readonly line: QuestLine | null;
+  readonly project: (signal: string, input: Readonly<Record<string, number>>) => Readonly<Record<string, number>>;
+  readonly reading: (input: unknown) => void;
+  readonly dialogueBox: () => DialogueBox;
+  readonly talk: (id: string) => void;
+  readonly update: (dt: number, player: Vector3) => void;
+  readonly installFeats: () => void;
   readonly objective: ObjectiveLine;
   readonly places: Places | null;
   readonly discover: (rows: unknown) => Places;
   readonly chip: ReturnType<typeof presentQuestStory>['chip'];
   readonly markers: () => LiveMarker[];
 }
-const chapters = new WeakMap<Scope, Map<string, QuestChapter>>();
 /** Framework lookup of the installed chapter, sharing its original objective owner. */
 export function boundQuestChapter(scope: Scope, id: string): QuestChapter {
-  const chapter = chapters.get(scope)?.get(id);
-  if (scope.disposed || chapter === undefined) throw new Error('Chapter presentation is not installed');
-  return chapter;
+  return boundChapter(scope, id);
 }
 /** Respect a piece's owner when a quest borrows it; own only the entry's unowned subtree. */
 export function ownQuestTree(object: Object3D, scope: Scope): void {
@@ -75,13 +87,33 @@ export function installQuestFlags(ctx: Pick<QuestChapterContext, 'scope' | 'prod
  */
 export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknown,
   input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
-  const story = parseQuestStory(storyInput), rows = v.parse(schema, input);
+  return buildQuestChapter(ctx, storyInput, input, anchors);
+}
+
+/** Entered chapter stories resolve saved services and named figure resources;
+ * story/content rows are the entire author API. Existing callers retain their
+ * update, polling and feat installation phases. */
+export function installChapterStory(ctx: ShardContext, storyInput: unknown,
+  input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
+  return buildQuestChapter(ctx, storyInput, input, anchors, ctx);
+}
+
+function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input: unknown,
+  anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>, entered?: ShardContext): QuestChapter {
+  if (!isJsonData(input)) throw new Error('Chapter intake requires plain JSON data');
+  const rows = v.parse(schema, input);
+  const completeStory = typeof storyInput === 'object' && storyInput !== null && 'quest' in storyInput ? parseQuestStory(storyInput) : null;
+  const chapterRows = completeStory?.chapters ?? (completeStory === null ? parseChapterStoryPresentation(storyInput) : undefined);
+  const id = completeStory?.quest.id ?? chapterRows?.chapters[0];
+  if (id === undefined) throw new Error('Chapter requires a declared quest');
+  const story = completeStory ?? { quest: { id, markers: {} }, chapters: chapterRows };
+  const persistence = completeStory === null ? enteredAdventurePersistence(ctx.scope) : null;
   const existing = findBoundQuestState(ctx.scope, story.quest.id);
-  if (chapters.get(ctx.scope)?.has(story.quest.id) === true) throw new Error('Chapter presentation is already installed');
-  const services = existing === undefined ? boundQuestServices(ctx.scope, story.quest.id) : { flags: existing.flags };
-  const ports: Parameters<typeof bindRuntimeQuest>[3] = { ...services, place: marker => story.quest.markers[marker.id] };
+  if (hasBoundChapter(ctx.scope, story.quest.id)) throw new Error('Chapter presentation is already installed');
+  const services = persistence === null ? existing === undefined ? boundQuestServices(ctx.scope, story.quest.id) : { flags: existing.flags } : { flags: persistence.flags, facts: persistence.facts };
+  const ports: Parameters<typeof bindRuntimeQuest>[3] = { ...services, ...(completeStory === null ? {} : { place: (marker: { id: string }) => completeStory.quest.markers[marker.id] }) };
   const line = story.chapters === undefined ? null
-    : bindStoryChapters(ctx, ctx.product.shardfile, [story.quest.id], ports, 'after-facts');
+    : bindStoryChapters(ctx, ctx.product.shardfile, story.chapters.chapters, ports, completeStory === null ? 'before-facts' : 'after-facts');
   const quest = existing ?? line?.chapters[0] ?? bindRuntimeQuest(ctx, ctx.product.shardfile, story.quest.id, ports).state;
   const world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest chapter requires its entered play services');
@@ -97,7 +129,8 @@ export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknow
     return { id: marker.id, label: marker.label, short: marker.short ?? marker.label, x: at.x, z: at.z };
   });
   const toast = (text: string): void => { play.hud.toast(text); }, sting = (): void => { play.music.sting('chunk'); };
-  const fullMap = { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
+  const fullMap = completeStory === null && entered?.game.runtime?.play !== undefined && entered.game.runtime.play !== null
+    ? entered.game.runtime.play.fullMap : { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
   const options: Pick<QuestPresentationOptions, 'markers' | 'chip' | 'place'> = { markers: () => left() ?? markers(), chip: () => { const remaining = left(); return remaining === null ? quest.chip()
       : { label: remaining.length > 0 ? rows.remainingLabel ?? '' : '', count: '' }; },
     ...(rows.placements === undefined ? {} : { place: at => {
@@ -107,20 +140,52 @@ export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknow
     } }),
   };
   const presentation = line === null || story.chapters === undefined
-    ? presentQuestStory(story, { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)
-    : presentChapterStory(line, story.chapters, { scope: ctx.scope, flags: quest.flags, figures: {}, npcs: {},
-      places: [], prompts: [], open: () => undefined, fullMap, toast, sting, ...options });
-  let places: Places | null = null;
+    ? presentQuestStory(parseQuestStory(story), { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)
+    : presentChapterStory(line, story.chapters, { ...(completeStory === null && entered !== undefined ? { ctx: entered } : {}), scope: ctx.scope, flags: quest.flags,
+      figures: Object.fromEntries(story.chapters.talks.map(row => {
+        const figure = FigureRows.entered(ctx.scope, row.figure ?? row.id);
+        return [row.id, { headWorld: figure.talkPoint, get talking() { return figure.talking; }, set talking(value: boolean) { figure.talking = value; } }];
+      })), npcs: rows.content?.npcs ?? {}, places: rows.content?.places ?? [], prompts: entered?.game.runtime?.interactables ?? [],
+      open: () => { entered?.game.runtime?.play?.audio.weaponSwap(); },
+      ...(persistence === null ? {} : { feat: persistence.feat }), fullMap, toast, sting, ...(completeStory === null ? {} : options) });
+  let places: Places | null = completeStory === null && 'places' in presentation ? presentation.places : null;
   const discover = (catalogue: unknown): Places => {
     if (places !== null) throw new Error('Quest discovery is already installed');
     places = placesWithDiscovery(v.parse(discoverySchema, catalogue), quest.flags, text => { play.hud.toast(text); }, markers);
     return places;
   };
   ctx.scope.onDispose(() => { presentation.chip.line.root.remove(); });
-  const chapter: QuestChapter = { quest, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers };
-  let installed = chapters.get(ctx.scope);
-  if (installed === undefined) { installed = new Map(); chapters.set(ctx.scope, installed); }
-  installed.set(story.quest.id, chapter);
+  const decision = chapterRows?.decision;
+  const program = rows.program ?? decision?.program;
+  const brain = program === undefined ? null : ReturnProgram.page(program, ctx.scope);
+  const project = (signal: string, values: Readonly<Record<string, number>>): Readonly<Record<string, number>> => {
+    if (brain === null) throw new Error('Chapter has no admitted decision program');
+    const observed = { ...values };
+    for (const [observationId, row] of Object.entries(decision?.observations ?? {})) {
+      if (row.on === undefined || row.on === signal) observed[observationId] = readQuestObservation(ctx, quest.def.id, row.source);
+    }
+    const result = brain.project(signal, observed);
+    for (const [channel, value] of Object.entries(result)) if (value !== 0) {
+      const effects = decision?.actions[channel];
+      if (effects !== undefined) {
+        if (entered === undefined) throw new Error('Chapter effects require their entered services');
+        commitQuestEffects(entered, quest.def.id, effects);
+      }
+    }
+    return result;
+  };
+  const chapter: QuestChapter = { quest, line, project, reading: readingInput => {
+    const row = v.parse(QuestEffectSchema, readingInput);
+    if (row.kind !== 'reading' || !('dialogue' in presentation)) throw new Error('Chapter reading requires its dialogue');
+    const dialogue = presentation.dialogue();
+    if (!dialogue.isOpen) dialogue.open(row.title, row.lines, () => undefined);
+  }, dialogueBox: () => {
+    if (!('dialogue' in presentation)) throw new Error('Chapter has no dialogue');
+    return presentation.dialogue();
+  }, talk: personId => { if ('talk' in presentation) presentation.talk(personId); },
+    update: (dt, player) => { if ('dialogue' in presentation) presentation.update(dt, player); },
+    installFeats: () => { if ('installFeats' in presentation) presentation.installFeats(); }, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers: completeStory === null && 'markers' in presentation ? presentation.markers : markers };
+  publishBoundChapter(ctx.scope, story.quest.id, chapter);
   return chapter;
 }
 

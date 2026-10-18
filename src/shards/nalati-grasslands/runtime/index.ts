@@ -31,7 +31,7 @@ import { buildNalatiLoadoutSliced, type NalatiLoadout } from '../weapons/loadout
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
 import { installNalatiWeaponHooks } from '../weapons/hooks';
-import { installNalatiAdventure } from '../adventure';
+import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
 import { bindAdventurePersistence, readAdventurePersistence, type AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
@@ -139,8 +139,8 @@ export class NalatiPlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = this.loadout;
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
-    const { player, game, sky, params, chunk, registry } = world;
-    const { animals, weapons, hud, audio, music, progress, fullMap } = h;
+    const { player, params } = world;
+    const { animals, weapons, hud, audio, music, progress } = h;
     const persistence = this.persistence;
     if (persistence === null) throw new Error('Nalati declared progression has not been bound');
     persistence.bindProgress(progress);
@@ -194,10 +194,8 @@ export class NalatiPlugin extends ShardPlugin {
       health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
     });
     await part();
-    const quest = await installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, persistence, fullMap, ride, animals, nalati: rt, params });
-    await quest?.people.ready;
-    if (ctx.scope.disposed) throw new Error('Nalati was unloaded during the camp people model load');
-    if (quest !== null) { ctx.bag.fragment('finds', { id: 'nalati.finds', render: (panel) => { renderFinds(panel, nalatiFinds(quest.flags)); } }); shell.hooks.questFlags = () => quest.flags.all.slice().sort(); }
+    const flags = await installNalatiQuestView(ctx, rt, persistence);
+    ctx.bag.fragment('finds', { id: 'nalati.finds', render: panel => { renderFinds(panel, nalatiFinds(flags)); } }); shell.hooks.questFlags = () => flags.all.slice().sort();
     ctx.playground(horsePlayground(ride));
   }
 }

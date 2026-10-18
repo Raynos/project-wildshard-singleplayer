@@ -9278,6 +9278,20 @@ update systems or save adapters in the chapter intake. Callers keep their
 original chip update phase. Both shipped quests preserve their flags,
 notice/sting ordering, map card and completion marker policy.
 
+`installChapterStory(ctx, story, rows)` extends that same client-only host
+with a Script ABI v1 return program. Pine supplies its stag program; Nalati
+supplies its chapter/carving program and content rows. `chapter.project`
+reads typed saved-record, flag and quest-step observations, then applies
+ordered action rows through the existing effect dispatcher. It installs no
+clock: Pine retains its 10 Hz decision phase and Nalati retains its poll
+and death-event phases. Reading effects borrow the entered dialogue;
+conditional notices inspect the current chapter after preceding effects.
+Raw ordered chapter rows borrow `bindAdventurePersistence`'s saved owner,
+including its old-save adoption and fact ordering. Figure ids resolve the
+actual `FigureRows` in the entered scope; missing or ambiguous ids refuse.
+The caller still advances the camp figures and goat view. No save field,
+actor identity or RNG call is added.
+
 `game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
 from `combat/items` and `quests.achievements` from `quests/quests` through
 the existing scoped item and achievement registries. Both are optional,

@@ -98,7 +98,7 @@ export function enteredPeople(w: { ctx: Pick<ShardContext, 'scope'> & { product:
     const spec = population.figures[id], row = spec.row, feet = new THREE.Vector3(...row.feet); feet.y = floorAt(feet.x, feet.z);
     const view = new FigureRows(resources, { ...row, feet: feet.toArray() }, scope);
     const frame = { height: spec.frame.height, neck: new THREE.Vector3(...spec.frame.neck), shoulder: new THREE.Vector3(...spec.frame.shoulder) };
-    const p: Person = { id, feet, headWorld: view.talkPoint, talking: false, yaw: row.yaw, idleYaw: row.yaw,
+    const p: Person = { id, feet, headWorld: view.talkPoint, get talking() { return view.talking; }, set talking(value: boolean) { view.talking = value; }, yaw: row.yaw, idleYaw: row.yaw,
       headYaw: 0, headPitch: 0, armX: 0, armZ: 0, glanceT: spec.glanceAfter, glance: 0, phase: spec.phase, ring: 0 };
     fig[id] = p;
     const root = resources.object(`${row.id}.joint.root`), head = resources.object(`${row.id}.joint.head`), arm = resources.object(`${row.id}.joint.arm`);

@@ -1,4 +1,7 @@
 import * as v from 'valibot';
+import { ObservationRefSchema } from './sceneRefs';
+import { QuestEffectSchema } from './questSteps';
+import { isJsonData } from './json';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());
@@ -20,13 +23,18 @@ const borrowed = v.strictObject({ owner: text, path: v.pipe(v.array(text), v.min
 const chapterText = v.pipe(v.string(), v.maxLength(512));
 const ChapterPresentation = v.pipe(v.strictObject({
   chapters: v.pipe(v.array(v.pipe(chapterText, v.minLength(1))), v.maxLength(64)),
-  talks: v.pipe(v.array(v.strictObject({ id: chapterText, label: chapterText,
+  talks: v.pipe(v.array(v.strictObject({ id: chapterText, figure: v.exactOptional(chapterText), label: chapterText,
     radius: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(100)) })), v.maxLength(64)),
   rewards: v.record(chapterText, v.strictObject({ event: chapterText, title: chapterText })),
   flagEvents: v.pipe(v.array(v.strictObject({ flag: chapterText, event: chapterText })), v.maxLength(64)),
   introTitle: chapterText, chapterTitle: chapterText, completedObjective: chapterText, completedHint: chapterText,
   rewardKicker: chapterText, rewardSubtitle: chapterText, started: chapterText, objective: chapterText,
   messages: v.exactOptional(v.strictObject({ firstStep: v.exactOptional(chapterText), started: chapterText, objective: chapterText, completed: chapterText })),
+  decision: v.exactOptional(v.strictObject({ program: v.exactOptional(v.pipe(v.unknown(), v.check(isJsonData))),
+    observations: v.pipe(v.record(chapterText, v.strictObject({ source: ObservationRefSchema,
+      on: v.exactOptional(chapterText) })), v.maxEntries(64)),
+    actions: v.pipe(v.record(chapterText, v.pipe(v.array(QuestEffectSchema), v.maxLength(32))), v.maxEntries(64)),
+  })),
   rewardMs: v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(60000)),
 }), v.check(rows => rows.chapters.length > 0 && new Set(rows.chapters).size === rows.chapters.length
   && new Set(rows.talks.map(row => row.id)).size === rows.talks.length

@@ -23,7 +23,8 @@ function fixture() {
     onSound: () => { effects.push('call'); },
   };
   vi.spyOn(Puffs.prototype, 'burst').mockImplementation((_at, from) => { effects.push(from === 2.6 ? 'appear-puff' : 'fade-puff'); });
-  const lead = new StagLead(scene, animals, { ...LEAD, program });
+  const brain = ReturnProgram.page(program);
+  const lead = new StagLead(scene, animals, { ...LEAD, program }, { project: (signal, input) => brain.project(signal, input) });
   lead.onAppear = first => { effects.push(first ? 'first' : 'appear'); };
   lead.onDone = () => { effects.push('done'); };
   return { lead, actor, animals, effects };

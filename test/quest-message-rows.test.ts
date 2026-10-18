@@ -82,6 +82,7 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
       const stable = [...log]; for (const flag of next.done.all ?? []) flags.set(flag);
       expect(log).toEqual(stable);
       expect(() => installQuestChapter(ctx, story, { calls: {} })).toThrow();
+      expect(() => installQuestChapter(ctx, story, { content: { hook: () => undefined } })).toThrow('plain JSON');
       expect(() => installQuestChapter(ctx, { ...story, quest: { ...story.quest, id: 'unbound' } })).toThrow('not bound');
       if (completion) {
         for (const step of def.steps) for (const flag of step.done.all ?? []) flags.set(flag);
