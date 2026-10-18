@@ -277,14 +277,7 @@
         "row": "W3 Nalati native species context (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/sdk/looks/posedInstances.ts",
@@ -490,14 +483,7 @@
         "row": "W3 Nalati typed native bake reader (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/sdk/headlessRuntime.ts",
@@ -686,14 +672,7 @@
         "row": "W3 Nalati packed creature bodies (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/plugin/geometry.ts",
@@ -878,14 +857,7 @@
         "row": "W3 Nalati baked hunting-ground queries (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/plugin/director.ts",
@@ -1043,14 +1015,7 @@
         "row": "W3 Nalati creature rise and sink (G441)"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/plugin/headless.ts",
@@ -1595,14 +1560,7 @@
         "row": "G475"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "collections",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G475"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/sdk/models/geometrySources.ts",
@@ -1612,14 +1570,7 @@
         "row": "G475"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "collections",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G475"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/engine/models/slots.ts",
@@ -1697,14 +1648,7 @@
         "row": "G477"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "loadout",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/loadout/finishes.ts",
@@ -1750,10 +1694,10 @@
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3",
       "approvedFeature": {
-        "name": "loadout",
+        "name": "held-arms",
         "decision": {
           "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
+          "row": "G475"
         }
       }
     },
@@ -1970,14 +1914,7 @@
         "row": "G477"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "quadruped-rig",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/animation/limbQueryView.ts",
@@ -1987,14 +1924,7 @@
         "row": "G477"
       },
       "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "quadruped-rig",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
+      "rechecked-by": "end of W3"
     },
     {
       "module": "src/game/animation/limbView.ts",
