@@ -28,17 +28,25 @@ test('render setup retains the live uniforms used by parked views', () => {
 
 test('canonical palette key order retains authored rock geometry', () => {
   const wire = namedModelProduct(new Map(), false).section('custom/fixedLayouts', SECTIONS).nativeView.SHORE_ROCK;
-  expect(Object.keys(wire)).not.toEqual(Object.keys(SHORE_ROCK));
+  // Parsing may restore declaration order; explicitly exercise a different order too.
+  const reversed = {
+    wet: wire.wet, mossDark: wire.mossDark, mossLight: wire.mossLight, moss: wire.moss,
+    crease: wire.crease, cool: wire.cool, warm: wire.warm, edge: wire.edge,
+    light: wire.light, mid: wire.mid, dark: wire.dark, foot: wire.foot,
+  };
+  expect(Object.keys(reversed)).not.toEqual(Object.keys(SHORE_ROCK));
   const build = (palette: typeof SHORE_ROCK) => {
     const rng = new Rng(0x5ea1 ^ 0x70c5), moss = rng.range(0.25, 0.85);
     return authoredRockGeometry(1.8, rng, { moss, squash: 0.72, palette, ground: -0.35 * 1.8 * 0.72 });
   };
   {
-    const original = build(SHORE_ROCK), admitted = build(wire);
+    const original = build(SHORE_ROCK), admitted = build(wire), reordered = build(reversed);
     try {
       for (const name of ['position', 'normal', 'color']) expect(admitted.getAttribute(name).array).toEqual(original.getAttribute(name).array);
       expect(admitted.index?.array).toEqual(original.index?.array);
-    } finally { original.dispose(); admitted.dispose(); }
+      for (const name of ['position', 'normal', 'color']) expect(reordered.getAttribute(name).array).toEqual(original.getAttribute(name).array);
+      expect(reordered.index?.array).toEqual(original.index?.array);
+    } finally { original.dispose(); admitted.dispose(); reordered.dispose(); }
   }
 });
 

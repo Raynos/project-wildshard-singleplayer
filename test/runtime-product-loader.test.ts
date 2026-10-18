@@ -33,7 +33,8 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
   const values = new Map(outputSectionPayloads(source)); values.set('custom/facts', { count: 3 });
   for (const [name, value] of added ?? []) values.set(name, value);
   if (platformRef) values.set('ui/strings', { file: `blobs/bin/${ref}.bin` });
-  const wires = new Map<string, Uint8Array>(); let descriptors = 0;
+  const customSchema = bytes({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['count'], additionalProperties: false, properties: { count: { type: 'number' } } });
+  const wires = new Map<string, Uint8Array>([['schemas/custom/facts.schema.json', customSchema]]); let descriptors = 0;
   const sections = [...values].map(([name, value]) => {
     const wire = bytes(value), path = `sections/${name}.json`; wires.set(path, wire);
     return { name, path, hash: hashImmutableBytes(wire), bytes: wire.length,
@@ -42,7 +43,7 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
   const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-    sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(bytes({})), bytes: bytes({}).length }],
+    sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
     files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: logicalNames?.get(file.hash) ?? (file.hash === ref ? 'models/token.bin' : 'models/desktop.bin'), path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: null });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
@@ -57,7 +58,7 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
 }
 function trust(receipt: unknown): void { vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', [receipt]); }
 
-test('the pinned index skips section schemas and shares a facade until its last lease ends', async () => {
+test('the pinned index keeps custom admission and shares a facade until its last lease ends', async () => {
   const f = fixture(); trust(f.receipt); const parse = vi.spyOn(schema, 'parseShardfile');
   const a = own(), b = own();
   const [first, second] = await Promise.all([loadShardProduct(f.source.identity.slug, f.options, a), loadShardProduct(f.source.identity.slug, f.options, b)]);
@@ -68,6 +69,15 @@ test('the pinned index skips section schemas and shares a facade until its last 
   a.dispose(); expect(await loadShardProduct(f.source.identity.slug, f.options, b)).toBe(first);
   b.dispose(); expect(await loadShardProduct(f.source.identity.slug, f.options, own())).not.toBe(first);
   expect(f.descriptors()).toBe(2);
+});
+
+test('a pinned product still refuses missing and changed custom schema bytes', async () => {
+  const missing = fixture(); trust(missing.receipt);
+  missing.wires.delete('schemas/custom/facts.schema.json');
+  await expect(loadShardProduct(missing.source.identity.slug, missing.options, own())).rejects.toThrow('Unavailable');
+  const changed = fixture(); trust(changed.receipt);
+  changed.wires.set('schemas/custom/facts.schema.json', bytes({ $schema: 'http://json-schema.org/draft-07/schema#' }));
+  await expect(loadShardProduct(changed.source.identity.slug, changed.options, own())).rejects.toThrow('hash or size');
 });
 
 test('a wrong index receipt never bypasses parsing and custom checks', async () => {

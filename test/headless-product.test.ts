@@ -25,10 +25,12 @@ test('native output admission supplies checked sections and hash-verified named 
       return { name, path, hash: hashImmutableBytes(wire), bytes: wire.length,
         schema: name.startsWith('custom/') ? 'schemas/custom/native.schema.json' : `wildshard:${name}@1` };
     }));
+    const customSchema = bytes({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['count'], additionalProperties: false, properties: { count: { type: 'number' } } });
+    await put('schemas/custom/native.schema.json', customSchema);
     const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
       identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
       admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-      sections, schemas: [{ path: 'schemas/custom/native.schema.json', hash: hashImmutableBytes(bytes({})), bytes: 2 }],
+      sections, schemas: [{ path: 'schemas/custom/native.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
       files: source.files.map(file => ({ ...file, kind: 'bin', name: 'models/native.bin', path: `blobs/bin/${hash}.bin` })), runtime: null });
     await put('shard.json', bytes(index)); await put(`blobs/bin/${hash}.bin`, blob);
     const product = await loadHeadlessProduct(dir);
