@@ -213,7 +213,11 @@
     "./shardfile/lightEmitters": "./shardfile/lightEmitters.ts",
     "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts",
     "./shardfile/customSchema": "./shardfile/customSchema.ts",
-    "./shardfile/clientSceneHandles": "./shardfile/clientSceneHandles.ts"
+    "./shardfile/clientSceneHandles": "./shardfile/clientSceneHandles.ts",
+    "./practice/scene": "./practice/scene.ts",
+    "./riding/hud": "./riding/hud.ts",
+    "./riding/mount": "./riding/mount.ts",
+    "./riding/ride.css": "./riding/ride.css"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

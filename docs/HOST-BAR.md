@@ -69,6 +69,9 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 ## Dated exceptions
 
+- G478 riding presentation: `game/riding/mount` consumes profile rows and actor identities (fixture second shard).
+- G478 riding HUD: `game/riding/hud` consumes observation rows and retains the baseline HUD slots (fixture second shard).
+
 - `engine/world/waterSurface.ts` (Pine's water body) stays in the engine until `pine-hollow-legacy` is deleted
   (SHARD-PLATFORM-NEXT N5) and moves to Pine in that commit (G500); the sealed legacy copy cannot import primary Pine.
 

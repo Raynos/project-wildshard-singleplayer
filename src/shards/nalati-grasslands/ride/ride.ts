@@ -10,10 +10,14 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
-import { Mount } from './Mount';
+import { Mount as RidingMount } from '@wildshard/game/riding/mount';
+import { HORSE_SPEED } from '../species/horse';
+import { wildEnv } from '../creatures/env';
+import { Sabre } from '../runtime/weapons/mountedSword';
+import { Spear } from '../runtime/weapons/javelinSpear';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Taming } from './Taming';
-import { RideHUD } from './RideHUD';
+import { RideHUD } from '@wildshard/game/riding/hud';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { Reins } from './Reins';
@@ -21,7 +25,9 @@ import { SheepRaid } from '../creatures/shepherdView';
 import { DataPanel } from '@wildshard/sdk/dataPanels';
 import type { PanelDefinition } from '@wildshard/format/panelTemplate';
 import { cleanHorseName } from './horseNames';
-import './ride.css';
+import '@wildshard/game/riding/ride.css';
+
+export type Mount = RidingMount & { refuse: ((x: number, z: number) => boolean) | null };
 
 const { HITCH_HORSE_SPOTS, HITCHING_RAIL } = poiLayoutRows;
 const { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } = layoutRows;
@@ -89,28 +95,19 @@ export function wireRide(ctx: RideCtx): Ride {
   };
   const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment?.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
-  const mount = new Mount({
-    player: ctx.player, forest: ctx.forest,
-    ...(ctx.persistence === undefined ? {} : { names: ctx.persistence.names }),
-    isDrawing,
-    hurt: (d) => { hurt(d); },
-    restAt: { x: rest.x, z: rest.z },
-    roads: ROADS,
-  });
-  for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
-  const hud = new RideHUD(mount, ctx.camera, ctx.ctx);
+  if (ctx.ctx === undefined) throw new Error('Riding requires its level context');
+  const names = ctx.persistence?.names.read() ?? {};
+  const mount: Mount = Object.assign(new RidingMount(ctx.ctx, ctx.player, ctx.animals, { names, speeds: HORSE_SPEED, thrownDamage: 10, thrownLabel: 'Thrown from the saddle', restAt: { x: rest.x, z: rest.z }, roads: ROADS }), { refuse: null });
+  for (const h of ctx.wildlife.campHorses) mount.addMountable(h.entityId, 'Camp horse');
+  const hud = new RideHUD(ctx.ctx, ctx.camera, { tagRange: 30, tagHeight: 2.35 });
   // SF34: the saddle is the platform's ride mode, shown on RideHUD's band (Mount enters and exits it)
-  if (ctx.ctx !== undefined) registerPlayerMode({ player: ctx.player }, { id: 'ride', hud: 'ride' }, ctx.ctx.scope);
+  registerPlayerMode({ player: ctx.player }, { id: 'ride', hud: 'ride' }, ctx.ctx.scope);
   const taming = new Taming({
     ...(ctx.persistence === undefined ? {} : { bond: ctx.persistence.bond }),
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
     hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },
   });
-  mount.onBolt = (_a, name) => { play?.toast(`${name} bolts for the camp — it needs a rest`); };
-  mount.onThrown = () => { play?.toast('Thrown!'); };
-  // B1: the panic — a wolf's bite on the rider, lightning close by (chained after Taming's and the HUD's own listeners)
-  mount.onPanic = (h) => { ctx.animals.onSound?.(voice('horse_squeal'), h.position); };
-  ctx.ctx?.on('creature.signal', ({ name, x, z }) => {
+  ctx.ctx.on('creature.signal', ({ name, x, z }) => {
     taming.noteEvent(name, x, z);
     const h = mount.horse;
     if (h === null) return;
@@ -124,19 +121,19 @@ export function wireRide(ctx: RideCtx): Ride {
   });
 
   // B1: the reins (from the hands just under the frame along the neck to the bit, E320); they drop while the bow draws or the stallion bucks
-  const reins = new Reins(ctx.camera, ctx.ctx?.scope);
+  const reins = new Reins(ctx.camera, ctx.ctx.scope);
   // B1: wolves raiding the flock, the mounted shepherd
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: (t) => { play?.toast(t); } });
 
   // B1: NAME at the hitching rail — the horse standing nearest you by the rail, on foot
   const namer = new DataPanel(ctx.namePanel);
-  ctx.ctx?.scope.onDispose(() => { namer.close(); });
+  ctx.ctx.scope.onDispose(() => { namer.close(); });
   let naming: Animal | null = null;
   const nameIt: Interactable = {
     position: new THREE.Vector3(HITCHING_RAIL.x, 0, HITCHING_RAIL.z), radius: 0, label: 'Name',
-    onInteract: () => { const a = naming; if (a !== null) namer.open({ current: mount.nameOf(a) ?? a.label }, new Map([['save', value => {
+    onInteract: () => { const a = naming; if (a !== null) namer.open({ current: mount.nameOf(a.entityId) ?? a.label }, new Map([['save', value => {
       if (typeof value !== 'string') throw new Error('Name input requires text');
-      const n = cleanHorseName(value); if (n.length > 0) { mount.rename(a, n); play?.toast(`Your horse is ${n}`); }
+      const n = cleanHorseName(value); if (n.length > 0) { mount.rename(a.entityId, n); ctx.persistence?.names.write(names); play?.toast(`Your horse is ${n}`); }
     }]])); },
   };
   const nameUpdate = (): void => {
@@ -154,7 +151,7 @@ export function wireRide(ctx: RideCtx): Ride {
     const a = naming, hx = a.position.x + Math.sin(a.yaw) * NAME_HEAD * a.scale, hz = a.position.z + Math.cos(a.yaw) * NAME_HEAD * a.scale;
     nameIt.position.set(hx, heightAt(hx, hz) + 1.5, hz);
     nameIt.radius = NAME_REACH;
-    nameIt.label = `Name ${mount.nameOf(naming) ?? naming.label}`;
+    nameIt.label = `Name ${mount.nameOf(naming.entityId) ?? naming.label}`;
   };
 
   // one prompt for main's list: whichever horse action is nearest the camera (it copies that one's position / label)
@@ -183,14 +180,26 @@ export function wireRide(ctx: RideCtx): Ride {
     get mounted() { return mount.mounted; },
     bind(p) { play = p; },
     update(dt) {
+      const ahead = 2 + mount.speed * 0.4;
+      mount.blockedAhead = mount.refuse?.(mount.feet.x + Math.sin(mount.heading) * ahead, mount.feet.z + Math.cos(mount.heading) * ahead) === true;
+      mount.wet = wildEnv.wetAt?.(mount.feet.x, mount.feet.z) === true;
+      mount.stampedes = new Set(ctx.wildlife.herds.flatMap(herd => herd.stampeding ? herd.members.map(actor => actor.entityId) : herd.stallionState === 'charge' && herd.stallion !== null ? [herd.stallion.entityId] : []));
       mount.update(dt);
+      for (const event of mount.drainEvents()) {
+        if (event.kind === 'mount') { for (const herd of ctx.wildlife.herds) { const actor = event.horse === null ? null : herd.members.find(member => member.entityId === event.horse) ?? null; if (actor !== null || herd.ridden !== null) herd.setRidden(actor); } wildEnv.playerMounted = mount.mounted; }
+        else if (event.kind === 'thrown') play?.toast('Thrown!');
+        else if (event.kind === 'bolt') play?.toast(`${event.name} bolts for the camp — it needs a rest`);
+        else { const horse = mount.horse ?? mount.mountables.find(row => row.a.entityId === event.horse)?.a; if (horse !== undefined) ctx.animals.onSound?.(voice('horse_squeal'), horse.position); }
+      }
       taming.update(dt);
-      hud.update(taming.view);
+      hud.update(taming.view, { mounted: mount.mounted, breaking: mount.breaking, steed: mount.steed, winded: mount.winded, gait: mount.gait, leanLow: mount.leanLow, beat: mount.beat, spurFlash: mount.spurFlash, spur: { latched: mount.spur.latched, streak: mount.spur.streak }, horse: mount.horse?.entityId ?? null, mountables: mount.mountables.map(mt => ({ id: mt.a.entityId, name: mt.name, whistle: (mt.a.mem['whistle'] ?? 0) === 1, hidden: mt.a.hidden, position: [mt.a.position.x, mt.a.position.y, mt.a.position.z], scale: mt.a.scale })) });
       raid.update(dt, ctx.player.position);
       nameUpdate();
       choose();
     },
     late(dt) {
+      const state = mount.mounted ? { speed: mount.speed, yaw: mount.heading - Math.PI } : null;
+      for (const weapon of ctx.ctx?.app.equipment?.available ?? []) { if (weapon instanceof Bow) { weapon.setMount(state); if (mount.gallopFloat) weapon.extraSpreadDeg *= 0.5; } else if (weapon instanceof Sabre || weapon instanceof Spear) weapon.mount = state; }
       const busy = mount.breaking || isDrawing();
       reins.update(dt, mount.horse, mount.mounted, busy);
     },

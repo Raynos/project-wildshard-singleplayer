@@ -206,7 +206,9 @@
     "./declaredQuestPage": "./declaredQuestPage.ts",
     "./sceneBuffers": "./sceneBuffers.ts",
     "./clientTrails": "./clientTrails.ts",
-    "./clientCues": "./clientCues.ts"
+    "./clientCues": "./clientCues.ts",
+    "./practiceCourse": "./practiceCourse.ts",
+    "./riding": "./riding.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -4,29 +4,9 @@ import { hudSlots, type DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import { uiScope } from '@wildshard/engine/ui/ownership';
 import * as THREE from 'three';
 import './ride.css';
-import type { Mount } from './Mount';
+import type { RideHudState } from '@wildshard/format/riding';
 
-/**
- * RideHUD — the riding and taming HUD atoms (Nalati B7 / B8; mockups art/nalati-grasslands/round-2/1-combat/
- * combat-A-horse-archery.png, 2-creatures/taming-1-approach.png, taming-2-bucking.png, taming-3-bonded.png,
- * 7-controls/controls-mounted-layout.png). The touch controls and the STEED row go through the base HUD's slots
- * (src/engine/ui/hudSlots.ts, E154) — this file never places anything on the phone; the one concession is hiding the base's own
- * JUMP / DODGE / HOVER / AIM in the saddle with inline visibility:
- *
- *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch: a row of the
- *             status column — the horse, its name, the bar, the gait)
- *   GALLOP    (touch) a held disc in JUMP's slot (`r0`); JUMP, DODGE and the HOVER tab hide in the saddle
- *   HORSE     (touch) a tab on the LEFT edge just above HOVER (`edge-l`, E319), shown once a horse is bonded (tamed):
- *             whistles it (desktop: X); in the saddle the
- *             same tab reads DISMOUNT, amber, the horse over a down-arrow (N17 — the USE band's DISMOUNT hides while it is up)
- *   TRUST     the arc over the crosshair while you approach a stallion (heart · horseshoe), and his ALERT ear over his head
- *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) at the two edges over the bar
- *   OFFER     (touch) in AIM's slot (`aim`), inside 12 m of the stallion (desktop: hold G)
- *   tags      "TULPAR ♥" over your horse within 30 m
- *
- *   const hud = new RideHUD(mount, camera);   hud.update(taming.view)   // every frame
- *   hud.lean / hud.offer                       the touch discs' held state (Taming reads them)
- */
+/** Client-only riding and taming HUD; stable baseline markup and HUD slots, driven by observations. */
 
 export interface TamingView {
   /** the TRUST arc: 0..100, and the stallion's ALERT 0..100 with where his ear goes (world, null = hidden) */
@@ -59,6 +39,7 @@ const _p = new THREE.Vector3();
 
 export class RideHUD {
   readonly scope = uiScope('RideHUD');
+  private state: RideHudState = { mounted: false, breaking: false, steed: 100, winded: false, gait: 'stand', leanLow: 0, beat: false, spurFlash: 0, spur: { latched: false, streak: 0 }, horse: null, mountables: [] };
   /** touch discs held: LEAN (−1 left, +1 right, 0 none) and OFFER */
   lean = 0;
   offer = false;
@@ -67,7 +48,7 @@ export class RideHUD {
   private readonly trust: HTMLElement; private readonly trustFill: SVGPathElement;
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
-  private readonly tags = new Map<object, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
+  private readonly tags = new Map<string, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
   /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
   private readonly t: { gallop: HTMLElement; horse: HTMLButtonElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLButtonElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
@@ -76,7 +57,7 @@ export class RideHUD {
   private offerAvailable = false;
   private spurUntil = 0;
 
-  constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera, private readonly ctx?: LevelContext) {
+  constructor(private readonly ctx: LevelContext, private readonly camera: THREE.PerspectiveCamera, private readonly profile: { tagRange: number; tagHeight: number }) {
     this.root = document.getElementById('hud') ?? document.body;
     const el = (cls: string, html = ''): HTMLElement => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; return d; };
     this.steed = el('ws-glass ws-ride-steed', `<div class="ws-ride-row"><i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-gait">stand</span></div><div class="ws-ride-sbar"><i style="width:100%"></i></div>`);
@@ -93,7 +74,7 @@ export class RideHUD {
     this.holdMark = mk;
     this.root.append(this.steed, this.trust, this.ear, this.hold);
     this.t = this.buildTouch();
-    this.ctx?.scope.onDispose(() => {
+    this.ctx.scope.onDispose(() => {
       this.steed.remove(); this.trust.remove(); this.ear.remove(); this.hold.remove();
       for (const tag of this.tags.values()) tag.el.remove();
       this.tags.clear();
@@ -105,7 +86,7 @@ export class RideHUD {
     return {
       'verb.1': { action: mounted ? 'ride.horseTab' : 'ride.whistle', label: mounted ? 'Dismount' : 'Horse',
         icon: mounted ? `${SVG_HORSE}<b class="ws-ride-darrow">${SVG_DOWN}</b>` : SVG_HORSE, element: this.t.horse,
-        show: () => !this.mount.breaking && (this.mount.mounted || this.mount.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1)) },
+        show: () => !this.state.breaking && (this.state.mounted || this.state.mountables.some((mt) => mt.whistle)) },
       'verb.2': { action: 'ride.offer', label: 'Offer', icon: SVG_HAND, hold: true, element: this.t.offer,
         show: () => this.offerAvailable },
     };
@@ -115,30 +96,30 @@ export class RideHUD {
 
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
-    const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx ? this.ctx.hud.disc(opts) : hudSlots.disc(opts, this.scope);
-    const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', true); else { this.mount.touchGallop = true; this.mount.gallopTap(); } }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', false); else this.mount.touchGallop = false; } });
+    const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx.hud.disc(opts);
+    const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.ctx.app.input.setHeld('ride.gallop', true); }, release: () => { this.ctx.app.input.setHeld('ride.gallop', false); } });
     // HORSE ⇄ DISMOUNT (N17): one tab on the left edge over HOVER (E319, Jake: HORSE right and HOVER left "makes no sense")
     // — on foot it whistles your horse (shown only once one is bonded), in the saddle it reads DISMOUNT and gets you off
     // (the full-width USE band's DISMOUNT hides, syncUse)
-    const horse = disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-l', press: () => { if (this.ctx) this.ctx.app.input.press(this.mount.mounted ? 'ride.horseTab' : 'ride.whistle'); else if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
-    const leanL = disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.left', true); else this.lean = -1; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.left', false); else if (this.lean < 0) this.lean = 0; } });
-    const leanR = disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.right', true); else this.lean = 1; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.right', false); else if (this.lean > 0) this.lean = 0; } });
-    const offer = disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.offer', true); else this.offer = true; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.offer', false); else this.offer = false; } });
+    const horse = disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-l', press: () => { this.ctx.app.input.press(this.state.mounted ? 'ride.horseTab' : 'ride.whistle'); } });
+    const leanL = disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { this.ctx.app.input.setHeld('lean.left', true); }, release: () => { this.ctx.app.input.setHeld('lean.left', false); } });
+    const leanR = disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { this.ctx.app.input.setHeld('lean.right', true); }, release: () => { this.ctx.app.input.setHeld('lean.right', false); } });
+    const offer = disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { this.ctx.app.input.setHeld('ride.offer', true); }, release: () => { this.ctx.app.input.setHeld('ride.offer', false); } });
     // STEED: a row of the status column under VITALS (D-saddle.jpg's content)
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    if (this.ctx) this.ctx.hud.widget('band.3', steed, 2); else hudSlots.widget('band.3', steed, 2, this.scope);
+    this.ctx.hud.widget('band.3', steed, 2);
     const unlayer = hudSlots.onLayer((layer) => {
       this.layer = layer;
       this.use = layer.querySelector<HTMLElement>('.ws-touch-use');
       if (this.use !== null) {
         const observer = new MutationObserver(() => { this.syncUse(); });
         observer.observe(this.use, { childList: true, characterData: true, subtree: true });
-        this.ctx?.scope.onDispose(() => { observer.disconnect(); });
+        this.ctx.scope.onDispose(() => { observer.disconnect(); });
       }
     });
-    this.ctx?.scope.onDispose(unlayer);
+    this.ctx.scope.onDispose(unlayer);
     return { gallop, horse, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
   }
 
@@ -147,7 +128,7 @@ export class RideHUD {
   private syncUse(): void {
     const use = this.use;
     if (use === null) return;
-    const hide = this.mount.mounted && use.textContent.trim().toLowerCase() === 'dismount';
+    const hide = this.state.mounted && use.textContent.trim().toLowerCase() === 'dismount';
     use.style.visibility = hide ? 'hidden' : '';
   }
 
@@ -157,8 +138,9 @@ export class RideHUD {
     if (d !== null) d.style.visibility = on ? '' : 'hidden';
   }
 
-  update(view: TamingView | null): void {
-    const m = this.mount, t = this.t, touch = hudSlots.touch;
+  update(view: TamingView | null, state: RideHudState): void {
+    this.state = state;
+    const m = state, t = this.t, touch = hudSlots.touch;
     const mounted = m.mounted, breaking = m.breaking;
     // ── the saddle layout ──
     if (mounted !== this.last.mounted || breaking !== this.last.breaking) {
@@ -192,7 +174,7 @@ export class RideHUD {
       const now = performance.now();
       if (m.spurFlash !== this.last.spur) { this.last.spur = m.spurFlash; this.spurUntil = now + 220; t.gallop.classList.add('ws-ride-spur'); this.steed.classList.add('spur'); }
       else if (this.spurUntil > 0 && now > this.spurUntil) { this.spurUntil = 0; t.gallop.classList.remove('ws-ride-spur'); this.steed.classList.remove('spur'); }
-      const name = m.horse?.label ?? 'Steed';
+      const name = m.mountables.find(actor => actor.id === m.horse)?.name ?? 'Steed';
       if (this.sname.textContent !== name) { this.sname.textContent = name; t.sname.textContent = name; }
     }
     // ── taming ──
@@ -219,7 +201,7 @@ export class RideHUD {
       this.hold.classList.toggle('danger', view.danger);
     }
     // HORSE: only once you have a horse to call (Taming marks the bonded one mem.whistle = 1), or while riding one
-    const horseTab = !breaking && (mounted || m.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1));
+    const horseTab = !breaking && (mounted || m.mountables.some((mt) => mt.whistle));
     if (horseTab !== this.last.horseTab) { this.last.horseTab = horseTab; hudSlots.show(t.horse, horseTab); }
     const offer = (view?.offer ?? false) && !mounted;
     this.offerAvailable = offer;
@@ -227,24 +209,24 @@ export class RideHUD {
       this.last.offer = offer;
       hudSlots.show(t.offer, offer);
       this.showDisc('.ws-touch-disc.aim', !offer && !breaking);
-      if (!offer) if (this.ctx) this.ctx.app.input.setHeld('ride.offer', false); else this.offer = false;
+      if (!offer) this.ctx.app.input.setHeld('ride.offer', false);
     }
     // ── name tags over your horses ──
     for (const mt of m.mountables) {
-      if ((mt.a.mem['whistle'] ?? 0) !== 1) continue;
-      let tg = this.tags.get(mt.a);
+      if (!mt.whistle) continue;
+      let tg = this.tags.get(mt.id);
       if (tg === undefined) {
         const el = document.createElement('div'); el.className = 'ws-ride-tag';
         el.innerHTML = `${SVG_HORSE}<span></span><span class="ws-ride-heart">♥</span>`;
         const nm = el.querySelector('span');
         if (nm === null) continue;
-        this.root.append(el); tg = { el, name: nm }; this.tags.set(mt.a, tg);
+        this.root.append(el); tg = { el, name: nm }; this.tags.set(mt.id, tg);
       }
       if (tg.name.textContent !== mt.name) tg.name.textContent = mt.name;
       const tag = tg.el;
-      const d = mt.a.position.distanceTo(this.camera.position);
-      _p.copy(mt.a.position); _p.y += 2.35 * mt.a.scale;
-      const vis = m.horse !== mt.a && d < 30 && d > 2 && this.project(_p);
+      const d = _p.fromArray(mt.position).distanceTo(this.camera.position);
+      _p.fromArray(mt.position); _p.y += this.profile.tagHeight * mt.scale;
+      const vis = m.horse !== mt.id && !mt.hidden && d < this.profile.tagRange && d > 2 && this.project(_p);
       if (vis) tag.style.transform = `translate(${_p.x.toFixed(1)}px, ${_p.y.toFixed(1)}px) translate(-50%, -100%)`;
       tag.classList.toggle('show', vis);
     }

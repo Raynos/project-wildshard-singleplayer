@@ -4,9 +4,9 @@ import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { NalatiTamingLaw } from '../runtime/tamingLaw';
-import type { Mount } from './Mount';
+import type { Mount } from './ride';
 import type { HerdController } from '../runtime/groupRegistry';
-import type { RideHUD } from './RideHUD';
+import type { RideHUD } from '@wildshard/game/riding/hud';
 import { wildEnv } from '../creatures/env';
 
 import { tulparSave as savedSlot } from './saves';
@@ -29,7 +29,13 @@ export interface TamingOpts {
 /** The page adapter to Nalati's same renderer-free taming law; view and save ownership remain here. */
 export class Taming extends NalatiTamingLaw<Animal, HerdController> {
   constructor(opts: TamingOpts) {
-    super({ ...opts, bond: opts.bond ?? { read: () => savedSlot.read('nalati-grasslands'), write: () => undefined },
+    super({ ...opts, mount: {
+      get mounted() { return opts.mount.mounted; }, get horse() { return opts.mount.horse; },
+      get breakShake() { return opts.mount.breakShake; }, set breakShake(value) { opts.mount.breakShake = value; },
+      get breakRoll() { return opts.mount.breakRoll; }, set breakRoll(value) { opts.mount.breakRoll = value; },
+      mount: (actor, breaking) => opts.mount.mount(actor.entityId, breaking), dismount: thrown => { opts.mount.dismount(thrown); },
+      addMountable: (actor, name) => { opts.mount.addMountable(actor.entityId, name); }, removeMountable: actor => { opts.mount.removeMountable(actor.entityId); },
+    }, bond: opts.bond ?? { read: () => savedSlot.read('nalati-grasslands'), write: () => undefined },
       wind: () => wildEnv.wind, random: Math.random,
       hideStallion: st => { st.hidden = true; st.mesh.visible = false; st.position.y = -1e4; },
       retireBonded: old => {

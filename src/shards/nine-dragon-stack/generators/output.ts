@@ -1,3 +1,5 @@
+import { grappleCourseScene } from './courseScene';
+import course from '../data/grappleCourse.json' with { type: 'json' };
 import * as v from 'valibot';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
@@ -39,7 +41,7 @@ const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBl
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
-  nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern })),
+  nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern, practice: grappleCourseScene(course) })),
   nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),

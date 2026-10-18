@@ -27,20 +27,18 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
   }
   input.bindings.describe({ rows: RIDE_KEY_ROWS }, ctx.scope);
   input.push('ride.foot', ctx.scope);
-  mount.input = input; mount.equipment = () => ctx.app.equipment; ride.taming.input = input;
-  mount.onMountChange = (horse) => {
-    if (horse) input.push('ride', ctx.scope);
-    else { input.pop('ride.break'); input.pop('ride'); if (ctx.app.equipment) ctx.app.equipment.stowed = false; }
-  };
+  mount.input = input; ride.taming.input = input;
+  let mounted = mount.mounted;
   ride.taming.onBreaking = (on) => {
     if (on) input.push('ride.break', ctx.scope); else input.pop('ride.break');
     if (ctx.app.equipment) ctx.app.equipment.stowed = on;
   };
   ctx.system({ id: 'shard.nalati.ride.input', phase: 'input', before: ['engine.player.input'], run: () => {
+    if (mounted !== mount.mounted) { mounted = mount.mounted; if (mounted) input.push('ride', ctx.scope); else { input.pop('ride.break'); input.pop('ride'); if (ctx.app.equipment) ctx.app.equipment.stowed = false; } }
     if (input.consume('ride.whistle')) mount.whistle();
     if (input.consume('ride.gallop')) mount.gallopTap();
     if (input.consume('ride.horseTab') && !mount.breaking) mount.dismount();
   } });
-  ctx.scope.onDispose(() => { mount.dismount(); mount.input = null; mount.equipment = null; ride.taming.input = null; });
+  ctx.scope.onDispose(() => { mount.dismount(); mount.input = null; ride.taming.input = null; });
   ctx.debug.expose('nalati.ride', ride);
 }

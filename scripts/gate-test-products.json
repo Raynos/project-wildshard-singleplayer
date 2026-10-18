@@ -219,5 +219,7 @@
   "test/nine-light-spill.test.ts": [],
   "test/nine-explorer-catalogue.test.ts": [],
   "test/nine-look-graphs.test.ts": [],
-  "test/nine-architecture-graphs.test.ts": []
+  "test/nine-architecture-graphs.test.ts": [],
+  "test/practice-course-scene.test.ts": [],
+  "test/riding-platform.test.ts": []
 }

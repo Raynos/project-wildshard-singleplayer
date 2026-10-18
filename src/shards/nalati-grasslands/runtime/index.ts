@@ -198,7 +198,7 @@ export class NalatiPlugin extends ShardPlugin {
     await part();
     const flags = await installNalatiQuestView(ctx, rt, persistence);
     ctx.bag.fragment('finds', { id: 'nalati.finds', render: panel => { renderFinds(panel, nalatiFinds(flags)); } }); shell.hooks.questFlags = () => flags.all.slice().sort();
-    ctx.playground(horsePlayground(ride));
+    ctx.playground(horsePlayground(ride, ctx));
   }
 }
 

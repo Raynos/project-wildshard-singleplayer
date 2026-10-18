@@ -152,7 +152,8 @@
     "./populationRespawn": "./populationRespawn.ts",
     "./populationRoster": "./populationRoster.ts",
     "./models/geometrySources": "./models/geometrySources.ts",
-    "./looks/pageLife": "./looks/pageLife.ts"
+    "./looks/pageLife": "./looks/pageLife.ts",
+    "./bake/practiceCourse": "./bake/practiceCourse.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

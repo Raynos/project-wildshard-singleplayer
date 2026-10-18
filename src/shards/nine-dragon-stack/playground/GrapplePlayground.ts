@@ -7,21 +7,21 @@
  * The REAL Fei Zhua: the room hands the grapple its own course (grapple/course.ts `setGrappleCourse`) — the same LOCK →
  * GRAPPLE / JUMP → ZIP relabel, markers, rope and FX, on these hooks only.
  */
+import type { HookPracticeLayout } from '@wildshard/format/practiceCourse';
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import { HookCoursePlayground } from '../runtime/tools/hookCourse';
 import { FeiZhua } from '../grapple/FeiZhua';
-import GRAPPLE_COURSE from '../data/grappleCourse.json' with { type: 'json' };
 
 /** The grapple course, played with the equipped Fei Zhua. */
 export class GrapplePlayground extends HookCoursePlayground {
-  constructor(host: PlaygroundHost) {
-    super(host, GRAPPLE_COURSE, {
+  constructor(host: PlaygroundHost, layout: HookPracticeLayout) {
+    super(host, layout.course, {
       tool: () => {
         const tool = host.game.app.equipment?.tools.find((item) => item instanceof FeiZhua);
         if (!(tool instanceof FeiZhua)) throw new Error('Grapple playground needs the Fei Zhua');
         return tool;
       },
       now: () => performance.now(),
-    });
+    }, layout);
   }
 }

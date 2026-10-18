@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
-import { GRAPPLE_PLAYGROUND } from './playground/registration';
+import { grapplePlayground } from './playground/registration';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
@@ -118,7 +118,7 @@ export class NdPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     const scope = ctx.scope;
     ctx.strings(bootMetadata.strings);
-    ctx.playground(GRAPPLE_PLAYGROUND);
+    ctx.playground(grapplePlayground(ctx));
     this.shell = ctx.game.runtime;
     // the player stands on the road-height decks at the cell's edges as well as on the fragment: the whole cell is in
     // bounds; the fall net stays the fragment's own (its authored floor, Y0 − 100) under the fragment and drops to just

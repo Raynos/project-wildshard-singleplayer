@@ -1,4 +1,3 @@
-/* ─── riding + taming (Nalati B7 / B8 — src/shards/nalati-grasslands/ride/RideHUD.ts) ─── prefix ws-ride- ─── */
 /* STEED: an amber bar under VITALS (desktop: a panel over the health panel; touch: a strip over the vitals strip) */
 .ws-ride-steed { position: absolute; left: 22px; bottom: 92px; width: 250px; padding: 7px 14px 9px; display: none; pointer-events: none; }
 .ws-ride-steed.show { display: block; }
