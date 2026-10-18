@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 import { WorldSceneBindingsSchema } from './clientChannels';
 import { WorldScenePlacementSchema } from './worldScenePlacement';
+import { WorldSceneBatchSchema } from './worldSceneBatch';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -40,11 +41,12 @@ const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(ro
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */
 export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World scenes require plain JSON'),
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
+    batches: v.optional(bounded(WorldSceneBatchSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id })]), 128), []) }),
-  v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
+  v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
     && row.libraries.every(entry => entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry))))
     && row.steps.every(entry => (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
-export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements'> & { readonly placements?: ParsedWorldScenes['placements'] };
+export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches'] };
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */
 export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.parse(WorldScenesSchema, input); }

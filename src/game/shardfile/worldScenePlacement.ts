@@ -1,4 +1,5 @@
 import { Matrix4, type Material } from 'three';
+import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -12,6 +13,7 @@ import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import type { WorldSceneBatch } from './worldSceneBatch';
 
 function requireLive(owner: Scope): void { if (owner.disposed) throw new Error('Scene placement owner is disposed'); }
 
@@ -21,7 +23,7 @@ export class WorldScenePlacement {
   private pending: Promise<Placed> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: ReturnType<typeof defineWorldSceneCatalogue>, private readonly owner: Scope,
-    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[]) {}
+    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly batch?: WorldSceneBatch) {}
 
   load(): Promise<Placed> {
     if (this.owner.disposed) return Promise.reject(new Error('Scene placement owner is disposed'));
@@ -47,8 +49,12 @@ export class WorldScenePlacement {
       // Keep the authored descriptor's field order as well as its typed lanes; exact native parity hashes both.
       .map((shape, i) => { const ordered = {}; return Object.assign(ordered, row.colliders?.[i], shape); });
     const placed = withOwner(this.owner, () => place(preplaced === undefined ? definition : { ...definition, colliders: () => [] },
-      row.poses.map(({ matrix, ...pose }) => ({ ...pose, matrix: new Matrix4().fromArray(matrix) })),
+      row.poses.map(authored => {
+        if ('matrix' in authored) return { ...authored, matrix: new Matrix4().fromArray(authored.matrix) };
+        const { yxz, ...pose } = authored; return { ...pose, matrix: modelPoseMatrix({ ...pose, ...yxz }) };
+      }),
       { ctx: sharedModelContext(world.sky, world.game), registry: this.ctx.app.registry, draw: row.draw,
+        ...(this.batch === undefined ? {} : { batch: this.batch.reserve() }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
         ...(row.piece === undefined && preplaced === undefined ? {} : { piece: { ...(row.piece === undefined ? {} : { id: row.piece.id }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
           ...(preplaced === undefined ? {} : { colliders: preplaced }),

@@ -115,5 +115,9 @@
   "test/pine-quest-actions-product.test.ts": [
     "pine-hollow",
     "driftwood-isle"
+  ],
+  "test/world-scene-batch.test.ts": [],
+  "test/pine-crag-scenes.test.ts": [
+    "pine-hollow"
   ]
 }

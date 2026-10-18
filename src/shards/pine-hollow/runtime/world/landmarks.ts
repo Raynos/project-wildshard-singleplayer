@@ -41,7 +41,8 @@ import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberS
 import { timberLandmark } from '../models/fireLookout';
 import { zipCable } from '../models/zipCable';
 import { loadCodeParts } from './codeParts';
-import { PineCrags } from './crags';
+import { CaveInterior } from '../kit/caveInterior';
+import { TIER } from '@wildshard/engine/core/tier';
 
 
 
@@ -79,7 +80,7 @@ export class PineLandmarks {
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
   private tmp = new THREE.Vector3();
   /** PH-B2: the Ridge's granite and the bear cave (null: the kit is not in this build) */
-  crags: PineCrags | null = null;
+  crags: { readonly cave: CaveInterior } | null = null;
 
   constructor(private sky: Sky, private readonly scenes: SceneHandles) { this.group.name = 'pine-landmarks'; }
 
@@ -88,7 +89,7 @@ export class PineLandmarks {
    * bake put them (G285: ../generators/crags.ts stepped them round the forest's trunks).
    */
   async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
-    const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
+    const cave = CaveInterior.load(); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
     await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx), loadCodeParts()]);
     const batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.timberColliders });
@@ -112,14 +113,13 @@ export class PineLandmarks {
     const bridge = bridgeSite();
     await placeTimber(timberLandmark('creek-footbridge'), bridge.at, atSite, 'pine-footbridge');
     await macrotask();
-    this.crags = await crags;
+    this.crags = { cave: await cave };
     await this.buildProps(cabins);
     await macrotask();
-    if (this.crags) {
-      // PH-B2: the kit over the Ridge, and the cave behind the arch
-      await this.crags.build(registry, macrotask); // the modules are models: they register themselves
-      this.group.add(this.crags.group);
-    }
+    for (const kind of ['crag-cliff', 'crag-boulder', 'scree']) await this.scenes.place(`crags.${TIER}.${kind}`);
+    this.scenes.object(`crags.${TIER}`); // append the fixed skin and cave after the module placements
+    const cragFx = new THREE.Group(); cragFx.name = 'pine-crags';
+    this.crags.cave.buildFx(); cragFx.add(...this.crags.cave.fx); this.group.add(cragFx);
     return this;
   }
 
@@ -173,7 +173,7 @@ export class PineLandmarks {
 
   update(t: number): void {
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);
-    this.crags?.frame(t);
+    this.crags?.cave.presentFrame(t, this.sky);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
     const lamps = this.sky.lamps;
     if (this.glowMat && this.glow && this.anchors) {
@@ -198,7 +198,7 @@ export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistr
   const crags = lm.crags;
   if (crags) {
     await macrotask();
-    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/world/crags.ts', colliders: crags.caveColliders, surface: 'rock' });
+    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/shards/pine-hollow/runtime/kit/caveInterior.ts', colliders: [...crags.cave.shell, ...crags.cave.roofPatch()], surface: 'rock' });
   }
   h.onUpdate((_dt, t) => { lm.update(t); });
   return lm;

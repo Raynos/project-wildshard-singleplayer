@@ -79,6 +79,7 @@
     "shard.config.ts",
     "data/layout.generated.json",
     "data/geography.generated.json",
+    "data/cragScenes.generated.json",
     "world",
     "generators",
     "models",

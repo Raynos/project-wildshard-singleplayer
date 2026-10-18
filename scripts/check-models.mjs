@@ -133,7 +133,6 @@ export const DONE = {
     'src/shards/pine-hollow-legacy/world/trophyWall.ts': { why: "the frozen copy keeps its own trophy wall mounts (a creature's head built from its rig); the primary wall moved to @wildshard/game/compendium/trophyWall", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow-legacy/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow-legacy/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
-    'src/shards/pine-hollow/runtime/world/crags.ts': { why: "the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground; SHARD-PLATFORM W2a, moved from world/crags.ts, whose entry still covers its frozen legacy copy)", counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow/runtime/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders (SHARD-PLATFORM W2a, moved from world/landmarks.ts, whose entry still covers its frozen legacy copy)", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow-legacy/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow-legacy/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
@@ -142,6 +141,7 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },
     'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
     // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.
     'src/game/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },

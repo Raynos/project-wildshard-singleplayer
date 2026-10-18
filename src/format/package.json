@@ -180,7 +180,8 @@
     "./streamedCover": "./streamedCover.ts",
     "./toonLighting": "./toonLighting.ts",
     "./toonLook": "./toonLook.ts",
-    "./worldScenePlacement": "./worldScenePlacement.ts"
+    "./worldScenePlacement": "./worldScenePlacement.ts",
+    "./worldSceneBatch": "./worldSceneBatch.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

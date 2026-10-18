@@ -2,6 +2,7 @@ import { type BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, Mes
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
+import { TIER } from '@wildshard/engine/core/tier';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
@@ -134,7 +135,7 @@ export function defineWorldSceneCatalogue(input: unknown): {
           return root;
         });
       },
-      lods: row.choices[0]?.lods.map((level, index) => ({ from: level.from, build: (ctx, params) => rawParts(select(params).lods[index]?.draws ?? [], ctx) })) ?? [],
+      lods: row.choices[0]?.lods.map((level, index) => ({ from: typeof level.from === 'number' ? level.from : level.from[TIER], build: (ctx, params) => rawParts(select(params).lods[index]?.draws ?? [], ctx) })) ?? [],
     }));
   }
   const model = (key: string): ModelDef<Record<string, unknown>> => { const found = definitions.get(key); if (found === undefined) throw new Error(`Missing scene model: ${key}`); return found; };

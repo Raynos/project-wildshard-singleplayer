@@ -258,10 +258,6 @@ export const PINE_BOOT_FILES = {
         "/assets/models/pine-hollow-hero/beaver-dam-lod1/beaver-dam-lod1.glb",
         "/assets/models/pine-hollow-hero/canoe/canoe.glb",
         "/assets/models/pine-hollow-hero/canoe-lod1/canoe-lod1.glb",
-        "/assets/models/pine-hollow-crags/crags.glb",
-        "/assets/models/pine-hollow-crags/crags-b.glb",
-        "/assets/models/pine-hollow-crags/cave.glb",
-        "/assets/models/pine-hollow-crags/cave.json",
         "/assets/tex/mossy_rock/diffuse.jpg",
         "/assets/tex/mossy_rock/nor_gl.jpg",
         "/assets/tex/mossy_rock/arm.jpg"

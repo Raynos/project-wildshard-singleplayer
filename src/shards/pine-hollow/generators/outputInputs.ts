@@ -23,11 +23,10 @@ import king from '../data/kingBlobs.generated.json' with {type:'json'};
 import creatures from '../data/creatureBlobs.generated.json' with {type:'json'};
 import rigs from '../data/rigBlobs.generated.json' with {type:'json'};
 import birds from '../data/birdBlobs.generated.json' with {type:'json'};
-import crags from '../data/cragBlobs.generated.json' with {type:'json'};
 import streams from '../data/streamBlobs.generated.json' with {type:'json'};
 import kingKit from '../data/kingKit.generated.json' with {type:'json'};
 
-const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl,...birds.byUrl,...crags.byUrl,...streams.byUrl};
+const names:Readonly<Record<string,string>>={...client.byUrl,...held.byUrl,...king.byUrl,...birds.byUrl,...streams.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
 const values={
  'custom/ambientLife':PINE_LIFE,
@@ -60,7 +59,7 @@ function withGeometryCosts(row:(typeof client.blobs)[number]){
 }
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT={
- blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...crags.blobs,...streams.blobs,
+ blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...held.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...streams.blobs,
  ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}})),
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],

@@ -85,7 +85,7 @@
    "meshopt": [["crags.glb", "public/assets/models/pine-hollow-crags/crags.glb"]],
    "copy": [["crags.json", "public/assets/models/pine-hollow-crags/crags.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/crags.glb", "public/assets/models/pine-hollow-crags/crags.json"],
-   "feeds": ["src/shards/pine-hollow/runtime/world/crags.ts"]
+   "feeds": ["src/shards/pine-hollow/generators/bake-crag-scenes.mjs"]
   },
   "pine-hollow/crags-b": {
    "about": "E322 F-L2 (Jake picked B): the Ridge's big modules fused and weathered (cliff bands, buttress, slab) and the lookout's hero crag, overlaid on crags.glb",
@@ -97,7 +97,7 @@
    "meshopt": [["crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.glb"]],
    "copy": [["crags-b.json", "public/assets/models/pine-hollow-crags/crags-b.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.json"],
-   "feeds": ["src/shards/pine-hollow/runtime/world/crags.ts"]
+   "feeds": ["src/shards/pine-hollow/generators/bake-crag-scenes.mjs"]
   },
   "pine-hollow/cave": {
    "about": "The Den's bear cave: the interior + the hood over its first metres, fitted to the baked heights round the mouth (PH-B2)",
@@ -111,7 +111,7 @@
    "meshopt": [["cave.glb", "public/assets/models/pine-hollow-crags/cave.glb"]],
    "copy": [["cave.json", "public/assets/models/pine-hollow-crags/cave.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/cave.glb", "public/assets/models/pine-hollow-crags/cave.json"],
-   "feeds": ["src/shards/pine-hollow/runtime/world/crags.ts"]
+   "feeds": ["src/shards/pine-hollow/generators/bake-crag-scenes.mjs"]
   },
   "pine-hollow/lever-rifle": {
    "about": "The lever-action carbine, hi (desktop) + lo (phone), each baked on its own UVs (PH-C11)",

@@ -1981,6 +1981,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/nine-dragon/baked/casts/
 
 # Z2 cheap scene-model build outputs
+/src/shards/pine-hollow/assets/crag-scenes/
 /src/shards/pine-hollow/assets/stream-scenes/water.glb
 /src/shards/pine-hollow/assets/stream-scenes/quad.glb
 /src/shards/driftwood-isle/assets/world-scenes/pools.glb

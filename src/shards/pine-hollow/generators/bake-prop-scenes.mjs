@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The original ordered scatter, with instance uploads and native body placement fully authored.
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {Mesh,MeshStandardMaterial} from 'three';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
@@ -14,16 +15,16 @@ const source=read('data/timberWorld.generated.json'),placements=read('data/props
 const rows=bakePropSceneRows(placements,source.propShapes);
 const writer=byteWriter(process.argv.includes('--check'),'pine-prop-scenes');
 const [rocks,stumps,logs]=await Promise.all([pinePropScan('rock_moss_set_01'),pinePropScan('tree_stump_01'),pinePropScan('dead_tree_trunk')]);
-const shapes=pinePropShapes({rocks,stumps,logs}),blobs=[],geometry=[];
+const shapes=pinePropShapes({rocks,stumps,logs}),blobs=[],geometry=[],geometryHashes={};
 if(JSON.stringify(shapes.rows)!==JSON.stringify(source.propShapes))throw new Error('Prop rest facts differ from admitted timber bake');
 const material=new MeshStandardMaterial(),owned=[];
 shapes.piece.traverse(node=>{if(node instanceof Mesh)owned.push(node);});
 try{
  for(const node of owned){
   const id=node.name,name=`models/props/${id}.glb`,path=`assets/prop-scenes/${id}.glb`;
-  writer.put(fileURLToPath(new URL(path,project)),staticGlb([{geometry:node.geometry,material,compactIndex:true,nativeAttributes:true}]));
+  const encoded=staticGlb([{geometry:node.geometry,material,compactIndex:true,nativeAttributes:true}]);writer.put(fileURLToPath(new URL(path,project)),encoded);geometryHashes[path]=createHash('sha256').update(encoded).digest('hex');
   blobs.push({name,kind:'glb',source:path});geometry.push({id,file:name,attributes:{}});
  }
 }finally{material.dispose();for(const node of owned){node.geometry.dispose();for(const sourceMaterial of Array.isArray(node.material)?node.material:[node.material])sourceMaterial.dispose();}}
-writer.put(fileURLToPath(new URL('data/propScenes.generated.json',project)),`${JSON.stringify({...rows,blobs,geometry},(_key,value)=>value instanceof Float32Array?[...value]:value,2)}\n`);
+writer.put(fileURLToPath(new URL('data/propScenes.generated.json',project)),`${JSON.stringify({...rows,blobs,geometry,geometryHashes},(_key,value)=>value instanceof Float32Array?[...value]:value,2)}\n`);
 writer.finish();

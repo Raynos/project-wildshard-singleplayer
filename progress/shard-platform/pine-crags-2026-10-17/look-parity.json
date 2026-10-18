@@ -1,0 +1,734 @@
+{
+  "before": "cf85d95-mvcyrg9h",
+  "after": "cf9fc9e-mvd0cu2x",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "crag-close",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "80908a432c23795e80823a499983f2d02062fc8368a2ee7172894710f135f0f8",
+        "calls": 50,
+        "triangles": 786897
+      },
+      "after": {
+        "pixels": "80908a432c23795e80823a499983f2d02062fc8368a2ee7172894710f135f0f8",
+        "calls": 50,
+        "triangles": 786897
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "4c451a5f2a10f82b36f70b327ce4263c2df72071da912d69ab7ffb55eaf73a95",
+        "calls": 76,
+        "triangles": 973091
+      },
+      "after": {
+        "pixels": "4c451a5f2a10f82b36f70b327ce4263c2df72071da912d69ab7ffb55eaf73a95",
+        "calls": 76,
+        "triangles": 973091
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "ranger-cabin",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "857c73529508c8defbf30e737f57061c39b2dc92289c11d9768ebc3c94385e08",
+        "calls": 64,
+        "triangles": 881559
+      },
+      "after": {
+        "pixels": "857c73529508c8defbf30e737f57061c39b2dc92289c11d9768ebc3c94385e08",
+        "calls": 64,
+        "triangles": 881559
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "45c3ed47c388a44af9d7e1cd75e777c284807ffd141267116040cb8a40f34f32",
+        "calls": 49,
+        "triangles": 818246
+      },
+      "after": {
+        "pixels": "45c3ed47c388a44af9d7e1cd75e777c284807ffd141267116040cb8a40f34f32",
+        "calls": 49,
+        "triangles": 818246
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "mill",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "f645f5c1afb2fa4f7420a6961bd5d91d8137259f9b4199ffbfde9959a4b0246e",
+        "calls": 47,
+        "triangles": 781095
+      },
+      "after": {
+        "pixels": "f645f5c1afb2fa4f7420a6961bd5d91d8137259f9b4199ffbfde9959a4b0246e",
+        "calls": 47,
+        "triangles": 781095
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "fe85116128b9f7f78e238e5679406b131774fb72dd4f5b8f1f056bb7e2a2ce82",
+        "calls": 42,
+        "triangles": 775432
+      },
+      "after": {
+        "pixels": "fe85116128b9f7f78e238e5679406b131774fb72dd4f5b8f1f056bb7e2a2ce82",
+        "calls": 42,
+        "triangles": 775432
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "north",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "f5d936099b752ec108b9b845c0f7317778170c0d319d4691ab9f9bed884f47ed",
+        "calls": 104,
+        "triangles": 1110074
+      },
+      "after": {
+        "pixels": "f5d936099b752ec108b9b845c0f7317778170c0d319d4691ab9f9bed884f47ed",
+        "calls": 104,
+        "triangles": 1110074
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:bear",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "96d643b460b2d8f107972b120bfb0260415287280e1a17f10e3e481250b95f92",
+        "calls": 1,
+        "triangles": 4498
+      },
+      "after": {
+        "pixels": "96d643b460b2d8f107972b120bfb0260415287280e1a17f10e3e481250b95f92",
+        "calls": 1,
+        "triangles": 4498
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:boar",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "3fc36813fa24a6b4af8444b27480baf95231eb0756186d1a0f7a714cb755206a",
+        "calls": 1,
+        "triangles": 2927
+      },
+      "after": {
+        "pixels": "3fc36813fa24a6b4af8444b27480baf95231eb0756186d1a0f7a714cb755206a",
+        "calls": 1,
+        "triangles": 2927
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:deer",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "d9679fe178e168ed4f54f9209f49260cf230593fb3d7c9a7791bd8969a9eaa3e",
+        "calls": 1,
+        "triangles": 4000
+      },
+      "after": {
+        "pixels": "d9679fe178e168ed4f54f9209f49260cf230593fb3d7c9a7791bd8969a9eaa3e",
+        "calls": 1,
+        "triangles": 4000
+      }
+    },
+    {
+      "tier": "phone",
+      "pose": "creature:elk",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "26fcd6ecb9d7b59b3f235a2b1aab3b9cff6c03f7ad940aaed706be343d1110a8",
+        "calls": 1,
+        "triangles": 4500
+      },
+      "after": {
+        "pixels": "26fcd6ecb9d7b59b3f235a2b1aab3b9cff6c03f7ad940aaed706be343d1110a8",
+        "calls": 1,
+        "triangles": 4500
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "crag-close",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "5f44548940e90d751cc6fac1bf4295f4c2390fbd65ddcabdcb9fbee11b88afdc",
+        "calls": 90,
+        "triangles": 5712572
+      },
+      "after": {
+        "pixels": "5f44548940e90d751cc6fac1bf4295f4c2390fbd65ddcabdcb9fbee11b88afdc",
+        "calls": 90,
+        "triangles": 5712572
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "f8a792fe5b9f7b91ddb5b31cfcbf56efc24d1cd5762b141429a5c971316c7c5e",
+        "calls": 186,
+        "triangles": 6403194
+      },
+      "after": {
+        "pixels": "f8a792fe5b9f7b91ddb5b31cfcbf56efc24d1cd5762b141429a5c971316c7c5e",
+        "calls": 186,
+        "triangles": 6403194
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "ranger-cabin",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "1169da8b1834b8bf148a195b80e4e1a496e7808efbab670d847a8c0382a4bd1b",
+        "calls": 121,
+        "triangles": 5972761
+      },
+      "after": {
+        "pixels": "1169da8b1834b8bf148a195b80e4e1a496e7808efbab670d847a8c0382a4bd1b",
+        "calls": 121,
+        "triangles": 5972761
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "877a0876257c0e8cbc8b4afc52ca80fa21224c619a8448e7417c63334c074333",
+        "calls": 89,
+        "triangles": 5751423
+      },
+      "after": {
+        "pixels": "877a0876257c0e8cbc8b4afc52ca80fa21224c619a8448e7417c63334c074333",
+        "calls": 89,
+        "triangles": 5751423
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "mill",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "946f09e7d64f803e21828579fa865e08a2de8168f739dbaab97182c194abef25",
+        "calls": 132,
+        "triangles": 5878685
+      },
+      "after": {
+        "pixels": "946f09e7d64f803e21828579fa865e08a2de8168f739dbaab97182c194abef25",
+        "calls": 132,
+        "triangles": 5878685
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "fdaa6930433addc300a0275f30bdfe08601204445e64e1b2a3f7f0b4b3a8c3b7",
+        "calls": 126,
+        "triangles": 5832496
+      },
+      "after": {
+        "pixels": "fdaa6930433addc300a0275f30bdfe08601204445e64e1b2a3f7f0b4b3a8c3b7",
+        "calls": 126,
+        "triangles": 5832496
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "north",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "c96bf4e16bff915b4e95371084cd9d412dae229029bcd2a8b2e8152d9c226b81",
+        "calls": 203,
+        "triangles": 7474413
+      },
+      "after": {
+        "pixels": "c96bf4e16bff915b4e95371084cd9d412dae229029bcd2a8b2e8152d9c226b81",
+        "calls": 203,
+        "triangles": 7474413
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:bear",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "9f0dd209aa0b882aa739919ab485ad5c0aebefe6b79c82db86978d67461082e6",
+        "calls": 1,
+        "triangles": 6988
+      },
+      "after": {
+        "pixels": "9f0dd209aa0b882aa739919ab485ad5c0aebefe6b79c82db86978d67461082e6",
+        "calls": 1,
+        "triangles": 6988
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:boar",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      },
+      "after": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:deer",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      },
+      "after": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      }
+    },
+    {
+      "tier": "desktop",
+      "pose": "creature:elk",
+      "same": {
+        "tier": true,
+        "pose": true,
+        "calls": true,
+        "triangles": true,
+        "width": true,
+        "height": true
+      },
+      "differingPixels": 0,
+      "before": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      },
+      "after": {
+        "pixels": "5168c43f361e3877f2ca991343cf8f2c46b0ea4facab920411701d914a55d405",
+        "calls": 0,
+        "triangles": 0
+      }
+    }
+  ],
+  "tiers": {
+    "phone": {
+      "gpuBytes": {
+        "before": 275403548,
+        "after": 275403548,
+        "equal": true
+      },
+      "colliders": {
+        "before": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+        "after": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+        "equal": true
+      },
+      "pieces": {
+        "before": 50,
+        "after": 50,
+        "equal": true
+      },
+      "colliderCount": {
+        "before": 2034,
+        "after": 2034,
+        "equal": true
+      },
+      "programs": {
+        "before": 166,
+        "after": 166,
+        "equal": true
+      },
+      "shaders": {
+        "before": "9a64317258689bc1eac4d1501e4e7e91cc9456c2cc09e6234aa27c35771329d0",
+        "after": "9a64317258689bc1eac4d1501e4e7e91cc9456c2cc09e6234aa27c35771329d0",
+        "equal": true
+      },
+      "cragBuffers": {
+        "before": {
+          "batches": 1,
+          "instances": 283,
+          "geometries": 62,
+          "attributes": {
+            "aCdata": {
+              "type": "Float32Array",
+              "bytes": 1512928,
+              "sha256": "1ce123319eb67fc2bbebe159313cda0c2144fb316fc3ceaba87443b1e903695b"
+            },
+            "aCtint": {
+              "type": "Float32Array",
+              "bytes": 756464,
+              "sha256": "f079779122a2517e093a1c10220f51bbbd45f01ef062883466f4bfc9ad889122"
+            },
+            "normal": {
+              "type": "Float32Array",
+              "bytes": 1134696,
+              "sha256": "23795dbbf944b134e9dc53b931cda51aed48aba1067db158eda46a1fcb4a4456"
+            },
+            "position": {
+              "type": "Float32Array",
+              "bytes": 1134696,
+              "sha256": "c57e3a3d7eb08f26069fcba786a9aa8d8bab4a6de4d5eea2fe598f7d28cf8886"
+            }
+          },
+          "index": {
+            "type": "Uint32Array",
+            "bytes": 1442088,
+            "sha256": "5a783dc5026be50ebc673cfe96b1a57d4a7f66c431460103813d34dbe8faa110"
+          },
+          "matrices": {
+            "type": "Float32Array",
+            "bytes": 20736,
+            "sha256": "e739d0a1b6d18dd92c660d004e8bc9fec8e9685f4e500e0b80fbd6233aecdd2f"
+          }
+        },
+        "after": {
+          "batches": 1,
+          "instances": 283,
+          "geometries": 62,
+          "attributes": {
+            "aCdata": {
+              "type": "Float32Array",
+              "bytes": 1512928,
+              "sha256": "1ce123319eb67fc2bbebe159313cda0c2144fb316fc3ceaba87443b1e903695b"
+            },
+            "aCtint": {
+              "type": "Float32Array",
+              "bytes": 756464,
+              "sha256": "f079779122a2517e093a1c10220f51bbbd45f01ef062883466f4bfc9ad889122"
+            },
+            "normal": {
+              "type": "Float32Array",
+              "bytes": 1134696,
+              "sha256": "23795dbbf944b134e9dc53b931cda51aed48aba1067db158eda46a1fcb4a4456"
+            },
+            "position": {
+              "type": "Float32Array",
+              "bytes": 1134696,
+              "sha256": "c57e3a3d7eb08f26069fcba786a9aa8d8bab4a6de4d5eea2fe598f7d28cf8886"
+            }
+          },
+          "index": {
+            "type": "Uint32Array",
+            "bytes": 1442088,
+            "sha256": "5a783dc5026be50ebc673cfe96b1a57d4a7f66c431460103813d34dbe8faa110"
+          },
+          "matrices": {
+            "type": "Float32Array",
+            "bytes": 20736,
+            "sha256": "e739d0a1b6d18dd92c660d004e8bc9fec8e9685f4e500e0b80fbd6233aecdd2f"
+          }
+        },
+        "equal": true
+      }
+    },
+    "desktop": {
+      "gpuBytes": {
+        "before": 606884508,
+        "after": 606884508,
+        "equal": true
+      },
+      "colliders": {
+        "before": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+        "after": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+        "equal": true
+      },
+      "pieces": {
+        "before": 50,
+        "after": 50,
+        "equal": true
+      },
+      "colliderCount": {
+        "before": 2034,
+        "after": 2034,
+        "equal": true
+      },
+      "programs": {
+        "before": 182,
+        "after": 182,
+        "equal": true
+      },
+      "shaders": {
+        "before": "4505f4d8a1cfbbd20aeae04565e1a772a45d95b79f5a83e3289b65255b8f1229",
+        "after": "4505f4d8a1cfbbd20aeae04565e1a772a45d95b79f5a83e3289b65255b8f1229",
+        "equal": true
+      },
+      "cragBuffers": {
+        "before": {
+          "batches": 1,
+          "instances": 283,
+          "geometries": 62,
+          "attributes": {
+            "aCdata": {
+              "type": "Float32Array",
+              "bytes": 1969616,
+              "sha256": "dc7a373e7a226e74053769985b2a51887cb9c637dbc1cb8a967c1f9ae8d97ec3"
+            },
+            "aCtint": {
+              "type": "Float32Array",
+              "bytes": 984808,
+              "sha256": "30e5d2e9bde3a3d79c1631fbbde4f43eb08644906c5089f6921d17da07961a35"
+            },
+            "normal": {
+              "type": "Float32Array",
+              "bytes": 1477212,
+              "sha256": "4d05d5dcec0185a3e897b89e16b403f6ef0eb117119e2c81af02209069a60407"
+            },
+            "position": {
+              "type": "Float32Array",
+              "bytes": 1477212,
+              "sha256": "7d2500a94e9b884362e6a64877b692a20cc575612e6c86fdb21c592a591eca87"
+            }
+          },
+          "index": {
+            "type": "Uint32Array",
+            "bytes": 2058936,
+            "sha256": "db810a9d52ba4575be5b8b678bfcebf7da626f1914e7beb77d6da05ae4a91c06"
+          },
+          "matrices": {
+            "type": "Float32Array",
+            "bytes": 20736,
+            "sha256": "e739d0a1b6d18dd92c660d004e8bc9fec8e9685f4e500e0b80fbd6233aecdd2f"
+          }
+        },
+        "after": {
+          "batches": 1,
+          "instances": 283,
+          "geometries": 62,
+          "attributes": {
+            "aCdata": {
+              "type": "Float32Array",
+              "bytes": 1969616,
+              "sha256": "dc7a373e7a226e74053769985b2a51887cb9c637dbc1cb8a967c1f9ae8d97ec3"
+            },
+            "aCtint": {
+              "type": "Float32Array",
+              "bytes": 984808,
+              "sha256": "30e5d2e9bde3a3d79c1631fbbde4f43eb08644906c5089f6921d17da07961a35"
+            },
+            "normal": {
+              "type": "Float32Array",
+              "bytes": 1477212,
+              "sha256": "4d05d5dcec0185a3e897b89e16b403f6ef0eb117119e2c81af02209069a60407"
+            },
+            "position": {
+              "type": "Float32Array",
+              "bytes": 1477212,
+              "sha256": "7d2500a94e9b884362e6a64877b692a20cc575612e6c86fdb21c592a591eca87"
+            }
+          },
+          "index": {
+            "type": "Uint32Array",
+            "bytes": 2058936,
+            "sha256": "db810a9d52ba4575be5b8b678bfcebf7da626f1914e7beb77d6da05ae4a91c06"
+          },
+          "matrices": {
+            "type": "Float32Array",
+            "bytes": 20736,
+            "sha256": "e739d0a1b6d18dd92c660d004e8bc9fec8e9685f4e500e0b80fbd6233aecdd2f"
+          }
+        },
+        "equal": true
+      }
+    }
+  },
+  "failures": [],
+  "passed": true
+}

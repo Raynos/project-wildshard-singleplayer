@@ -9319,6 +9319,38 @@ at the end of W3. Driftwood supplies the first live rows. The fictional port
 fixture checks draw flags, independent geometry, exact collider ownership,
 translated floors/anchors, invalid choices, disposal and cold Explorer fill.
 
+### Shared world-scene batches
+
+The client-only `game/shardfile/worldSceneBatch` owner backs these rows;
+`@wildshard/format/worldSceneBatch` defines their public data schema.
+
+Optional `batches` reserve named client-only native `BatchedMesh` allocations.
+A row declares its material id, instance/vertex/index capacities, draw flags,
+fixed geometry references and ordered fixed instances (matrix, sphere, near/far
+bands and geometry slots). The LOD threshold may exceed the draw range
+when a fixed instance keeps its near geometry throughout that range.
+A placement's `batch` references that id. Admission
+requires a batched draw with one part and the same material per choice and LOD;
+the fixed tail and declared placements must fit the instance capacity.
+
+Run the named placements first. Reading `handles.object(batchId)` or
+`handles.mesh(batchId)` finalizes the batch by appending the fixed geometry and
+instances after the model calls. Finalization is memoized; later placement
+reservations refuse. The resident's existing view camera updates fixed culling.
+Unused declarations allocate no GPU batch, so a product can declare separate
+phone and desktop capacity rows without allocating both. Disposal retires the
+allocation once while source geometry and material retain their existing owners.
+
+A raw model LOD's `from` accepts a number or `{ phone, desktop }`; each choice
+must share increasing distances for both profiles. The catalogue resolves the
+current engine tier without a shard branch. These remain data declarations:
+no builder, cull callback or reflected private owner enters the section.
+
+A placement pose declares either its exact `matrix` or a `yxz` row containing
+`yaw`, uniform `scale`, and optional `pitch`/`roll`. The latter delegates to the
+existing native `modelPoseMatrix` owner, preserving browser transform and
+collider operation order without portable-math copies or executable data.
+
 ## Contract boards (G473, G474)
 
 `format/contracts` admits finite offer rows, match rules, weighted draw bands,

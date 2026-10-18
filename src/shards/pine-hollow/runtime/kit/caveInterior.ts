@@ -1,11 +1,18 @@
 import * as THREE from 'three';
+import * as v from 'valibot';
+import { loadPBR, loadTexture, texUrl } from '@wildshard/engine/core/assets';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Material as SurfaceMaterial } from '@wildshard/engine/physics/surface';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { insidePolygon, yawLocal, yawWorld, type YawFrame } from '@wildshard/engine/world/yawFrame';
-import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { codePart } from '../world/codeParts';
+import { pineView } from '../world/context';
+import { pineSetCap } from '../debug/options';
 
 /**
  * A cave cut into the terrain (SHARD-PLATFORM M3, the kit system): one interior baked by a shard's builder, described in
@@ -14,7 +21,8 @@ import { codePart } from '../world/codeParts';
  * patch over the cut as a trimesh (the ground above the mouth comes back), the reverb spots, the footprint (no rain
  * inside), the passage's floor; and it draws the shaft (the shard's lent graph look, additive) and the drips near the mouth,
  * fills the walls by day through the shard's fill uniform and hides the sun's depth-less disc under the roof. The
- * interior's geometry and its rock material are the shard's; nothing here knows a shard's cave.
+ * static geometry and contacts arrive from Pine's admitted product. This view retains the nearby light/drip animation
+ * and the granite texture bindings.
  */
 
 /** The baked interior's meta file: everything in the cave's frame (lx across, lz in, y world height). */
@@ -35,6 +43,17 @@ export interface CaveMeta {
   /** the floor's height along the passage (lz → y), for the spawn / the test poses */
   floor: [number, number][];
 }
+
+const finite = v.pipe(v.number(), v.finite()), pair = v.tuple([finite, finite]), triple = v.tuple([finite, finite, finite]);
+const rows = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T) => v.pipe(v.array(schema), v.maxLength(256));
+const CaveRowsSchema = v.strictObject({ meta: v.strictObject({ version: v.literal(1),
+  holes: rows(v.strictObject({ lx: finite, lz: finite, hw: finite, hd: finite, y0: finite, y1: finite })),
+  cuts: rows(v.strictObject({ lx: finite, lz: finite, hw: finite, hd: finite, below: finite })),
+  spots: rows(v.strictObject({ lx: finite, lz: finite, r: finite })), inside: rows(pair),
+  shaft: v.strictObject({ top: triple, foot: triple, r0: finite, r1: finite }),
+  drips: rows(v.tuple([finite, finite, finite, finite])), floor: rows(pair),
+  tris: v.strictObject({ cave: finite, far: finite, col: finite }),
+}), shell: v.unknown() });
 
 /** How a cave looks and behaves near its mouth (a shard's data row). */
 export interface CaveLookRow {
@@ -61,6 +80,9 @@ export interface CaveLookRow {
   };
 }
 
+// Retain the native crag module's shared live fill across its resident views.
+const CAVE_FILL = { value: 1 };
+
 /** A cave cut into the terrain (see the module comment). */
 export class CaveInterior {
   readonly meta: CaveMeta;
@@ -74,6 +96,33 @@ export class CaveInterior {
   private dripState: Float32Array = new Float32Array(0);
   private near = false;
   private under = false;
+  private readonly cameraPosition = new THREE.Vector3();
+  readonly shell: ColliderDesc[] = [];
+
+  /** Client-only cave presentation; all static geometry and contacts arrive through the admitted product. */
+  static async load(): Promise<CaveInterior> {
+    const [product, rock, map, normalMap] = await Promise.all([loadFirstPartyProduct('pine-hollow'),
+      loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)),
+      loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))]);
+    const data = v.parse(CaveRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('world/crag-cave.json'))));
+    const view = pineView(), frame = view.BEAR_CAVE;
+    const cave = new CaveInterior(data.meta, { x: frame.x, z: frame.z, yaw: frame.rot }, view.CAVE_LOOK, CAVE_FILL);
+    cave.shell.push(...readColliderRows([data.shell], { kinds: ['trimesh'], surfaces: ['rock'], requireSurface: true }));
+    const lend = (name: string, texture: THREE.Texture): void => {
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(1, 1); texture.needsUpdate = true;
+      setLentTexture(view.CRAG_LOOK, name, texture);
+    };
+    lend('rockMap', rock.map); lend('rockNormal', rock.normalMap); lend('rockArm', rock.armMap);
+    lend('gritMap', map); lend('gritNormal', normalMap);
+    return cave;
+  }
+
+  /** Only the cave's live light and drips remain here; Z2 updates the static batch's culling. */
+  presentFrame(t: number, sky: SkyRig): void {
+    sky.viewCamera.getWorldPosition(this.cameraPosition);
+    this.update(t, this.cameraPosition, sky);
+    setLentParam(pineView().CRAG_LOOK, 'caveFill', this.fill.value);
+  }
 
   /** `frame`: its mouth at (x, z), local +Z turned by `yaw` into the rock; `fill`: the walls' material's fill uniform this cave drives by day */
   constructor(meta: CaveMeta, frame: YawFrame, look: CaveLookRow, fill: { value: number }) {

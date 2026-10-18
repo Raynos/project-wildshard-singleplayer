@@ -10,9 +10,11 @@ import props from '../data/propScenes.generated.json' with { type: 'json' };
 import scatter from '../data/props.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
-const materials: unknown[] = [];
-const models: unknown[] = [];
-const placements: unknown[] = [];
+import { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CRAG_MATERIAL, CRAG_MODEL_BLOBS } from './cragSceneContribution';
+
+const materials: unknown[] = [CRAG_MATERIAL];
+const models: unknown[] = [...CRAG_MODEL_ROWS];
+const placements: unknown[] = [...CRAG_PLACEMENT_ROWS];
 for (const source of heroes.sources) for (const level of ['near', 'far'] as const) materials.push({
   id: `heroes.${source.id}.${level}`, kind: 'source', load: 'placement', url: source.material[level], aliases: heroes.materialAliases, anisotropy: 4, envMapIntensity: 0.8,
 });
@@ -85,8 +87,8 @@ placements.push({ id: 'props.rocks', model: 'props.rocks', draw: 'batched', sort
 
 export const SCENE_MODELS = parseWorldSceneModels({ product: 'pine-hollow', models });
 export const SCENE_PLACEMENTS = placements.map(parseWorldScenePlacement);
-export const MODEL_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', libraries: [
+export const MODEL_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', batches: CRAG_BATCH_ROWS, libraries: [CRAG_LIBRARY,
   { id: 'heroes', kind: 'owned', models: heroes.blobs.map(row => ({ id: row.name.slice('models/heroes/'.length, -'.glb'.length), file: row.name })) },
   { id: 'props', kind: 'owned', models: props.geometry },
 ], materials, placements: SCENE_PLACEMENTS.map(row => ({ id: row.id, file: `scenes/placements/${row.id}.json` })), steps: [] });
-export const MODEL_BLOBS = [...heroes.blobs, ...props.blobs];
+export const MODEL_BLOBS = [...heroes.blobs, ...props.blobs, ...CRAG_MODEL_BLOBS];

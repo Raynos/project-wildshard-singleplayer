@@ -1,0 +1,206 @@
+{
+  "basis": "Source-basis component inventory from scripts/shard-platform.mjs in immutable build mirrors after verified all-10 products",
+  "base": "a45e47e5b7e581487449cd3989e74fc3c3f472dc",
+  "tree": "f3ffa4f243daa34308c76796769a74f3292c66a2",
+  "shards": {
+    "_template": {
+      "before": 1000,
+      "after": 1000,
+      "net": 0
+    },
+    "blender-template": {
+      "before": 106,
+      "after": 106,
+      "net": 0
+    },
+    "driftwood-isle": {
+      "before": 4720,
+      "after": 4757,
+      "net": 37
+    },
+    "far-reach": {
+      "before": 528,
+      "after": 528,
+      "net": 0
+    },
+    "ink-cel-valley": {
+      "before": 1105,
+      "after": 1105,
+      "net": 0
+    },
+    "nalati-grasslands": {
+      "before": 20339,
+      "after": 20345,
+      "net": 6
+    },
+    "nine-dragon-stack": {
+      "before": 11889,
+      "after": 11889,
+      "net": 0
+    },
+    "pastel-plain": {
+      "before": 733,
+      "after": 733,
+      "net": 0
+    },
+    "pine-hollow": {
+      "before": 6253,
+      "after": 6043,
+      "net": -210
+    },
+    "sunscar-dunes": {
+      "before": 392,
+      "after": 392,
+      "net": 0
+    }
+  },
+  "platformNetLines": 108,
+  "platformFiles": [
+    {
+      "path": "src/format/worldSceneBatch.ts",
+      "before": 0,
+      "after": 21
+    },
+    {
+      "path": "src/format/worldSceneModels.ts",
+      "before": 26,
+      "after": 30
+    },
+    {
+      "path": "src/format/worldScenePlacement.ts",
+      "before": 18,
+      "after": 21
+    },
+    {
+      "path": "src/format/worldScenes.ts",
+      "before": 47,
+      "after": 49
+    },
+    {
+      "path": "src/game/models/worldSceneCatalogue.ts",
+      "before": 142,
+      "after": 143
+    },
+    {
+      "path": "src/game/shardfile/worldSceneBatch.ts",
+      "before": 0,
+      "after": 44
+    },
+    {
+      "path": "src/game/shardfile/worldScenePlacement.ts",
+      "before": 54,
+      "after": 60
+    },
+    {
+      "path": "src/game/shardfile/worldScenes.ts",
+      "before": 275,
+      "after": 302
+    }
+  ],
+  "deleted": [
+    "src/shards/pine-hollow/runtime/world/crags.ts",
+    "src/shards/pine-hollow/runtime/world/heroFiles.ts"
+  ],
+  "before": {
+    "lines": {
+      "basis": "source",
+      "customLines": 6253,
+      "legacyLines": 21305,
+      "assemblyScriptLines": 433,
+      "assemblyScriptBudget": {
+        "ceiling": 2130,
+        "share": 0.020323867636705,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    },
+    "components": {
+      "C1": 2034,
+      "C2": 604,
+      "C3": 345,
+      "C4": 758,
+      "C5": 1273,
+      "C6": 396,
+      "C7": 7,
+      "C8": 32,
+      "C9": 804
+    },
+    "sources": [
+      {
+        "path": "src/shards/pine-hollow/runtime/index.ts",
+        "kind": "runtime-ts",
+        "lines": 268,
+        "ownerPath": "src/shards/pine-hollow/runtime/index.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/kit/caveInterior.ts",
+        "kind": "runtime-ts",
+        "lines": 151,
+        "ownerPath": "src/shards/pine-hollow/runtime/kit/caveInterior.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/world/crags.ts",
+        "kind": "runtime-ts",
+        "lines": 167,
+        "ownerPath": "src/shards/pine-hollow/runtime/world/crags.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/world/heroFiles.ts",
+        "kind": "runtime-ts",
+        "lines": 5,
+        "ownerPath": "src/shards/pine-hollow/runtime/world/heroFiles.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/world/landmarks.ts",
+        "kind": "runtime-ts",
+        "lines": 133,
+        "ownerPath": "src/shards/pine-hollow/runtime/world/landmarks.ts"
+      }
+    ]
+  },
+  "after": {
+    "lines": {
+      "basis": "source",
+      "customLines": 6043,
+      "legacyLines": 21305,
+      "assemblyScriptLines": 433,
+      "assemblyScriptBudget": {
+        "ceiling": 2130,
+        "share": 0.020323867636705,
+        "passed": true,
+        "enforcement": "report-only"
+      }
+    },
+    "components": {
+      "C1": 1838,
+      "C2": 590,
+      "C3": 345,
+      "C4": 758,
+      "C5": 1273,
+      "C6": 396,
+      "C7": 7,
+      "C8": 32,
+      "C9": 804
+    },
+    "sources": [
+      {
+        "path": "src/shards/pine-hollow/runtime/index.ts",
+        "kind": "runtime-ts",
+        "lines": 268,
+        "ownerPath": "src/shards/pine-hollow/runtime/index.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/kit/caveInterior.ts",
+        "kind": "runtime-ts",
+        "lines": 192,
+        "ownerPath": "src/shards/pine-hollow/runtime/kit/caveInterior.ts"
+      },
+      {
+        "path": "src/shards/pine-hollow/runtime/world/landmarks.ts",
+        "kind": "runtime-ts",
+        "lines": 134,
+        "ownerPath": "src/shards/pine-hollow/runtime/world/landmarks.ts"
+      }
+    ]
+  }
+}

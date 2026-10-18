@@ -21,7 +21,7 @@ test('admitted scene rows retain every scatter copy and native Float32 upload', 
     const placement = SCENE_PLACEMENTS.find(row => row.model === model);
     if (placement === undefined) throw new Error('Missing native scatter placement');
     const copies = model === 'props.rocks' ? placement.poses.filter(row => row.params?.['shape'] === Number(group.id.slice('rock-'.length))) : placement.poses;
-    expect([...Float32Array.from(copies.flatMap(row => row.matrix))]).toEqual(group.matrices);
+    expect([...Float32Array.from(copies.flatMap(row => { if (!('matrix' in row)) throw new Error('Scatter pose needs its native matrix'); return row.matrix; }))]).toEqual(group.matrices);
   }
   const placed = SCENE_PLACEMENTS[0]; if (placed === undefined) throw new Error('Missing authored placement');
   expect(() => parseWorldScenes({ ...MODEL_SCENES, placements: [{ ...placed, poses: [{ x: 0, y: 0, z: 0, matrix: [1] }] }] })).toThrow();

@@ -2221,6 +2221,23 @@
           "row": "G483"
         }
       }
+    },
+    {
+      "module": "src/game/shardfile/worldSceneBatch.ts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/decisions.md",
+        "row": "G483"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3",
+      "approvedFeature": {
+        "name": "world scene assembly",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G483"
+        }
+      }
     }
   ]
 }

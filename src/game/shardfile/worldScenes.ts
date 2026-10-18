@@ -3,6 +3,7 @@ import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
+import { WorldSceneBatch } from './worldSceneBatch';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import type { Placed } from '@wildshard/engine/models/place';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
@@ -59,9 +60,9 @@ class InstalledSceneHandles implements SceneHandles {
     if (!this.values.has(id)) throw new Error(`Missing world scene handle: ${id}`);
     return this.values.get(id);
   }
-  object(id: string): Object3D { const value = this.value(id); if (!object3(value)) throw new Error(`Expected scene object: ${id}`); return value; }
+  object(id: string): Object3D { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!object3(value)) throw new Error(`Expected scene object: ${id}`); return value; }
   group(id: string): Group { const value = this.value(id); if (!group3(value)) throw new Error(`Expected scene group: ${id}`); return value; }
-  mesh(id: string): Mesh { const value = this.value(id); if (!mesh3(value)) throw new Error(`Expected scene mesh: ${id}`); return value; }
+  mesh(id: string): Mesh { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!mesh3(value)) throw new Error(`Expected scene mesh: ${id}`); return value; }
   vector(id: string): Vector3 { const value = this.value(id); if (!(value instanceof Vector3)) throw new Error(`Expected scene vector: ${id}`); return value; }
   number(id: string): number { const value = this.value(id); if (typeof value !== 'number') throw new Error(`Expected scene number: ${id}`); return value; }
   material(id: string): MeshStandardMaterial { const value = this.value(id); if (!(value instanceof MeshStandardMaterial)) throw new Error(`Expected scene material: ${id}`); return value; }
@@ -122,6 +123,12 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   const immediate = new Set(section.steps.flatMap(step => Object.values(step.materials)));
   if (section.materials.some(row => row.kind === 'source' && row.load === 'placement' && immediate.has(row.id))) throw new Error('Deferred source material requires a named model placement');
   const published = new Set<string>();
+  const batches = new Map((section.batches ?? []).map(row => [row.id, row])), reservations = new Map<string, number>();
+  for (const row of batches.values()) {
+    if (!slots.has(row.material)) throw new Error('Missing scene batch material');
+    for (const source of row.geometry) { reference(source); if (libraryRows.get(source.library)?.kind !== 'owned') throw new Error('Scene batch requires owned geometry'); }
+    published.add(row.id); reservations.set(row.id, row.fixed.length);
+  }
   const placements: WorldScenePlacementRow[] = [];
   for (const declared of section.placements ?? []) {
     if ('file' in declared) requireFile(declared.file);
@@ -129,6 +136,13 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
     placements.push(row);
     if (catalogue?.models.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
+    if (row.batch !== undefined) {
+      const batch = batches.get(row.batch), model = catalogue.models.find(entry => entry.key === row.model);
+      if (batch === undefined || row.draw !== 'batched' || model === undefined || model.choices.some(choice => [choice.draws, ...choice.lods.map(level => level.draws)].some(draws => draws.length !== 1 || draws.some(draw => draw.material !== batch.material)))) throw new Error('Scene placement cannot share the declared batch');
+      const count = (reservations.get(row.batch) ?? 0) + row.poses.length;
+      if (count > batch.capacity.instances) throw new Error('Scene batch instance capacity exceeded');
+      reservations.set(row.batch, count);
+    }
     for (const id of [row.id, `${row.id}.root`, `${row.id}.colliders`]) {
       if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`);
       published.add(id);
@@ -216,7 +230,20 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       if (row.kind === 'standard' || row.kind === 'basic') owner.onDispose(() => { material.dispose(); });
       await buildYield(owner);
     }
-    const sky = ctx.game.runtime?.world?.sky;
+    const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game, preparedBatches = new Map<string, WorldSceneBatch>();
+    if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
+    for (const row of batches.values()) {
+      const material = materials.get(row.material); if (material === undefined) throw new Error('Missing admitted scene batch material');
+      const preparedGeometry = row.geometry.map(source => {
+        const geometry = libraries.get(source.library)?.geometry(source.model);
+        if (geometry === undefined || geometry === null) throw new Error('Missing admitted scene batch geometry');
+        owner.onDispose(() => { geometry.dispose(); }); return geometry;
+      });
+      const batch = new WorldSceneBatch(row, material, preparedGeometry, owner);
+      preparedBatches.set(row.id, batch); handles.publish(row.id, batch);
+      if (sky !== undefined && game !== undefined) withOwner(owner, () => { game.onUpdate(() => { batch.update(sky.viewCamera); }); });
+      await buildYield(owner);
+    }
     if (sky !== undefined && catalogue !== undefined) {
       const geometries = new Map<string, BufferGeometry>();
       for (const draw of catalogue.models.flatMap(model => model.choices.flatMap(choice => [...choice.draws, ...choice.lods.flatMap(level => level.draws)]))) {
@@ -232,7 +259,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
         const sources = section.materials.filter((source): source is Extract<typeof source, { kind: 'source' }> => source.kind === 'source' && source.load === 'placement' && needed.has(source.id));
-        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources));
+        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, row.batch === undefined ? undefined : preparedBatches.get(row.batch)));
       }
     }
     for (const step of section.steps) for (const instance of step.repeat ?? [{ id: '' }]) {

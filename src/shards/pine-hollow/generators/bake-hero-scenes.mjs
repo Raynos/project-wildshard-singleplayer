@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Preserve original Float32 vertex channels; normalize transforms and cut both arch LODs at author time.
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {MeshStandardMaterial} from 'three';
 import {readSourceModel} from '@wildshard/sdk/bake/skinned';
@@ -12,7 +13,7 @@ import rows from '../data/heroRows.json' with {type:'json'};
 import authored from '../data/timberWorld.generated.json' with {type:'json'};
 
 const root=new URL('../../../../',import.meta.url),project=new URL('../',import.meta.url);
-const writer=byteWriter(process.argv.includes('--check'),'pine-hero-scenes'),geometry=new Map(),facts=[],blobs=[];
+const writer=byteWriter(process.argv.includes('--check'),'pine-hero-scenes'),geometry=new Map(),facts=[],blobs=[],geometryHashes={};
 const material=new MeshStandardMaterial();
 async function read(id,phone=false){
  const source=await readSourceModel(readFileSync(new URL(`public${rows.directory}/${id}/${id}${phone?'.phone':''}.glb`,root)));
@@ -41,8 +42,8 @@ try{
   }
   facts.push(shape);
  }
- for(const [id,shape] of geometry){const name=`models/heroes/${id}.glb`,source=`assets/hero-scenes/${id}.glb`;writer.put(fileURLToPath(new URL(source,project)),staticGlb([{geometry:shape,material,compactIndex:true}]));blobs.push({name,kind:'glb',source});}
+ for(const [id,shape] of geometry){const name=`models/heroes/${id}.glb`,source=`assets/hero-scenes/${id}.glb`;const encoded=staticGlb([{geometry:shape,material,compactIndex:true}]);writer.put(fileURLToPath(new URL(source,project)),encoded);geometryHashes[source]=createHash('sha256').update(encoded).digest('hex');blobs.push({name,kind:'glb',source});}
  const materials=heroMaterialFiles();
  for(const [path,bytes] of Object.entries(materials.outputs))writer.put(fileURLToPath(new URL(path,root)),bytes);
- writer.put(fileURLToPath(new URL('data/heroScenes.generated.json',project)),jsonBytes({blobs,sources:facts,materialAliases:materials.aliases,materialCosts:materials.costs}));writer.finish();
+ writer.put(fileURLToPath(new URL('data/heroScenes.generated.json',project)),jsonBytes({blobs,geometryHashes,sources:facts,materialAliases:materials.aliases,materialCosts:materials.costs}));writer.finish();
 }finally{material.dispose();for(const shape of geometry.values())shape.dispose();}

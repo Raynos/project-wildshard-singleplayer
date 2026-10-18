@@ -1,0 +1,67 @@
+{
+  "runtimeValidation": {
+    "runtimeSource": "c085d080de1a831f63aada8880d19e4422e50578",
+    "runtimeProof": "20261017T185412-sp-x10-crag-final-source-66078",
+    "currentSource": "f3ffa4f243daa34308c76796769a74f3292c66a2",
+    "comparedRoots": [
+      "src",
+      "scripts",
+      "lint"
+    ],
+    "sourceDifferences": [],
+    "onlyChange": "API manual now names the pending host module"
+  },
+  "modelContract": {
+    "globalPassed": false,
+    "baselineDiagnostics": 3,
+    "newDiagnostics": 0,
+    "baselineSource": "1762328b32958b719bc0c1c78df7eff1a0a6cb2d",
+    "coordinatorAcknowledged": true
+  },
+  "basis": "Immutable build mirror, generation followed by root/layer types, full live Pine runtime plus changed-source typed lint, all-10 products, model contract and focused/headless cases",
+  "proof": "20261017T190136-sp-x10-crag-ruler-finish-11995",
+  "base": "a45e47e5b7e581487449cd3989e74fc3c3f472dc",
+  "sourceTree": "f3ffa4f243daa34308c76796769a74f3292c66a2",
+  "passed": true,
+  "testsPassed": 47,
+  "all10Products": true,
+  "headlessCases": 17,
+  "logs": {
+    "gen": {
+      "sha256": "37d8792901b6106451f335d32d870fc7120fd715dfcb0578c779ee583b565897",
+      "bytes": 81704
+    },
+    "root-types": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "layer-types": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "typed-lint": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "products": {
+      "sha256": "699b70c296064dc5336229023c48c0da64f362a8c63803e28ab4115d2dccfe8a",
+      "bytes": 28634
+    },
+    "model-contract": {
+      "sha256": "18ff82b225b300db97aa4f826dff8a779c0e9df25a37434b85ec746cab89b7ba",
+      "bytes": 622
+    },
+    "focused-headless": {
+      "sha256": "50e6468f271ccf650701c3e2bdf03751b9723eb2da6d1737ad62372743fa0126",
+      "bytes": 2467
+    },
+    "ruler": {
+      "sha256": "d71e3ca14dff18093738d087317c9daacf9185c9fd8645595526c4fbc1a8c6b8",
+      "bytes": 1018227
+    },
+    "platform-net": {
+      "sha256": "fb140ea5f093de5c254052adb5320b6a27491120c15fb1e465d2d5a45b37b731",
+      "bytes": 1078
+    }
+  }
+}

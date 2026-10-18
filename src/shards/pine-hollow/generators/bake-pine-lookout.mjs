@@ -97,7 +97,7 @@ async function writeTimberWorld() {
   const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
   const cabinProps = pineCabinPropShapes(shapes.piece, await pineCabinPropParts());
   const pool = bakePoolRows(); pinePoolShapes(shapes.piece, pool);
-  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground, shapes.piece);
+  const baked = pineTimberWorldBake(ground.heightAt, root, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
   const library = [piece, cabins, under, propsPiece].map(part => {
