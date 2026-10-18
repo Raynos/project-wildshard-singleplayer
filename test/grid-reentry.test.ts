@@ -18,7 +18,6 @@ const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
 const entries: Partial<Record<string, string>> = {
   'pine-hollow': 'test/fixtures/pine-headless.ts',
-  'nalati-grasslands': 'src/shards/nalati-grasslands/boot/headlessModules.ts',
 };
 
 // G498: eviction, then return through the actual native installer/restore path.
@@ -31,7 +30,7 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const entry = slug === 'driftwood-isle' || slug === 'nine-dragon-stack'
+  const entry = slug === 'driftwood-isle' || slug === 'nine-dragon-stack' || slug === 'nalati-grasslands'
     ? generateHeadlessModuleMap(resolve('.'), slug) : entries[slug];
   const trusted = entry !== undefined || product.has('sim/runtime-plan');
   const options = entry === undefined ? undefined : { module: pathToFileURL(resolve(entry)).href };

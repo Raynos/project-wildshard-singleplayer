@@ -6,7 +6,7 @@
 import type { PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import { type PortalPlayer as Player, type PortalRide as Ride, type PortalRideState as RideState, type PortalRider as Rider, playerRider as sdkPlayerRider, declaredPortals, walkInRide } from '../runtime/portals/walkInRide';
 import type { RideSlot } from '../runtime/portals/rideVeil';
-import source from '../shard.config';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import portals from '../data/portals.json' with { type: 'json' };
 
 /** what the ride needs of the player */
@@ -22,13 +22,13 @@ export type PortalPlayer = Player;
 export type PortalSlot = RideSlot;
 
 /** the ride over the four decks' rings and the square's ring out */
-export function portalRide(rider: PortalRider, veil: (k: number) => void): PortalRide {
+export function portalRide(rider: PortalRider, veil: (k: number) => void, source: Shardfile): PortalRide {
   const stages = source.directors?.find(row => row.id === 'nine.portal-ride');
   if (stages === undefined) throw new Error('Missing Nine portal director declaration');
   return walkInRide(rider, veil, { entries: declaredPortals(source), trigger: portals.trigger, fade: portals.fade, stages });
 }
 
 /** the player's side of the ride, transferring between shard.config.ts's four declared portal links */
-export function playerRider(player: PortalPlayer, physics: () => PortalTraversalPorts['physics']): PortalRider {
+export function playerRider(player: PortalPlayer, physics: () => PortalTraversalPorts['physics'], source: Shardfile): PortalRider {
   return sdkPlayerRider(player, physics, source);
 }

@@ -1,11 +1,15 @@
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
+import audioDeclaration from '../../data/audio.generated.json' with { type: 'json' };
+import { parseAudioData } from '@wildshard/format/audio';
+
 import { sharedWeaponVoices } from '@wildshard/sdk/runtime/audio/weaponVoices';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { audioRandom } from '@wildshard/engine/audio/util';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+
+const audioRows = parseAudioData(audioDeclaration.audio);
 /**
  * Nalati's synth voices (07 §6.5 A.3, moved verbatim out of the engine mixer): the steppe's creature calls, hooves and the
  * stampede, the steppe weapons (bow / javelin / sabre / spear), the storm beds, thunder and the lightning crackle, and the
@@ -18,7 +22,7 @@ import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
  */
 
 /** the bed id this profile's synth bed answers to (`audio.setAmbient(STEPPE_BED)`) */
-export const STEPPE_BED = requireAudioProfile(source.audio.samples, 'nalati.samples').bed;
+export const STEPPE_BED = requireAudioProfile(audioRows.samples, 'nalati.samples').bed;
 /** the steppe bed's live levels (sound.ts, ~4 Hz) */
 export interface SteppeLevels { wind: number; gust: number; river: number; waterfall: number; camp: number; night: number }
 /** the steppe's creature calls (Wildlife / Flock / Marmots / Pack / Herd and the elites) */
@@ -86,11 +90,11 @@ export class SteppeVoices {
       a.tone({ t, type: 'sawtooth', f0: f * 1.08, f1: f * 0.92, glide: dur, gain: 0.2, attack: 0.05, hold: dur * 0.6, decay: dur * 0.4, lowpass: 900, out: bus });
       return;
     }
-    a.playPhrase(requireAudioProfile(source.audio.synth?.[kind],`nalati.call.${kind}`), bus, {at: t});
+    a.playPhrase(requireAudioProfile(audioRows.synth?.[kind],`nalati.call.${kind}`), bus, {at: t});
   }
 
   private phrase(id: string, values: Readonly<Record<string, number>>, out: AudioNode = this.a.sfx): void {
-    this.a.playPhrase(requireAudioProfile(source.audio.synth?.[`native.${id}`], id), out, values);
+    this.a.playPhrase(requireAudioProfile(audioRows.synth?.[`native.${id}`], id), out, values);
   }
 
   // ─────────────── weather (the storms) ───────────────

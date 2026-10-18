@@ -20,7 +20,7 @@ import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { NEONS } from './towers';
-import { WORDS } from '../data/words';
+import { WORDS } from './words';
 import { hungLine } from './props';
 import { laundryLine, laundryPole } from './wellParts';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';

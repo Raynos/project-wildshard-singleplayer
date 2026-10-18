@@ -1,4 +1,4 @@
-import type { AudioData } from '@wildshard/format/audio';
+import { parseAudioData, type AudioData } from '@wildshard/format/audio';
 import type { Wildlife } from '../../creatures/wildlife';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -38,7 +38,7 @@ import type { Nalati } from '../state';
 import type { NalatiWeather } from '../../world/installWeather';
 import layoutRows from '../../boot/layout.generated.json' with { type: 'json' };
 import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
+import audioDeclaration from '../../data/audio.generated.json' with { type: 'json' };
 
 import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -90,7 +90,7 @@ function brookDistance(x: number, z: number): number {
 }
 
 export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] },
-  entered?: (install: (scope: Scope) => void) => void, audioRows: AudioData = source.audio): NalatiSound {
+  entered?: (install: (scope: Scope) => void) => void, audioRows: AudioData = parseAudioData(audioDeclaration.audio)): NalatiSound {
   const musicProfile = requireAudioProfile(audioRows.music, 'score.nalati');
   const PROFILE = requireAudioProfile(audioRows.zones, 'ambience.nalati');
   const RIVER_ZONE = requireAudioZone(PROFILE, 'river'), BROOK_ZONE = requireAudioZone(PROFILE, 'brook');

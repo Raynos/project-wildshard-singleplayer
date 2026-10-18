@@ -23,7 +23,7 @@ import { SURF } from '../look/paint';
 import { dragonHook } from './props';
 import { hipRoof } from './hipRoof';
 import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
-import { WORDS } from '../data/words';
+import { WORDS } from './words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
 import { Rng } from '@wildshard/sdk/random';
@@ -622,4 +622,3 @@ export function station(ctx: Ctx, k: Kit, x0: number, x1: number, z: number, y: 
   for (const dz of [1, -1]) ctx.signs.place({ at: new Vector3(mx, floor + 2.75, z + dz * (D / 2 + 0.07)), normal: new Vector3(0, 0, dz), size: 0.62, spec: { text: '纜車站', color: '#3fe6ff', vertical: false, style: 'tube' } }, k);
   for (const dz of [-D / 2 - 0.3, D / 2 + 0.3]) ctx.lantern(edge + face * 0.2, y - 0.5, z + dz, 0.8);
 }
-

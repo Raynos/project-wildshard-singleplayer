@@ -102,7 +102,7 @@ export class NdPlugin extends ShardPlugin {
     equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
     const world = this.shell?.world, slot = this.ndWorld?.portal;
-    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics), facts);
+    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics, source), source, facts);
     return Promise.resolve();
   }
   /** G224: the portals while they run (captures read them through the shard handle) */

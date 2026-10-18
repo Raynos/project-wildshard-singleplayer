@@ -1,7 +1,7 @@
 {
   "far": {
     "look": {
-      "module": "look/far.ts",
+      "module": "generators/farLook.ts",
       "export": "farLook"
     }
   }

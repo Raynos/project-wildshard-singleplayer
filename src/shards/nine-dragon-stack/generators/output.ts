@@ -1,7 +1,7 @@
 import { layoutBlobs } from './layoutBlobs';
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
-import { WORDS } from '../data/words';
+import { WORDS } from './words';
 import glyphs from '../data/glyphs.generated.json' with { type: 'json' };
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts } from './viewmodelParts';

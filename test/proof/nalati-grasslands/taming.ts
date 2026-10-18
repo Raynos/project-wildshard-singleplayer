@@ -13,7 +13,7 @@ import { nalatiTamingOf } from '../../../src/shards/nalati-grasslands/runtime/he
 import { nalatiMountedOf } from '../../../src/shards/nalati-grasslands/runtime/headlessMounted';
 import { canonicalSimDigest } from '../../fake/simState';
 
-const MODULE = new URL('../../../src/shards/nalati-grasslands/boot/headlessModules.ts', import.meta.url).href;
+const MODULE = new URL('../../fixtures/nalati-headless.ts', import.meta.url).href;
 function law(host: SimHost) {
   const value = nalatiTamingOf(host); if (value === undefined) throw new Error('Missing native taming owner'); return value;
 }

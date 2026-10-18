@@ -3,7 +3,7 @@ import { ClampToEdgeWrapping, LinearFilter, LinearMipmapLinearFilter, RGFormat, 
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import { loadGlyphField } from '../src/shards/nine-dragon-stack/runtime/signs/neonText';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
-import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/data/words';
+import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
 import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
 import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';

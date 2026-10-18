@@ -3,10 +3,11 @@ import { tap } from '@wildshard/engine/core/harnessTap';
 
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
-import source from '../../shard.config';
+import declarations from '../../data/declarations.generated.json' with { type: 'json' };
+import { parseAudioRouting } from '@wildshard/format/audioRouting';
 
 /** The shardfile owns the cue aliases; trusted recipes retain taps, footfall sequence and chime randomness. */
-export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number, routing = source.audio.routing): CueMap {
+export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number, routing = parseAudioRouting(declarations.audio.routing)): CueMap {
   let step = 0;
   const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>();
   voices.set('nd.step', (opts) => {

@@ -6,12 +6,11 @@ import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { castRay } from '@wildshard/engine/physics/query';
 import { lanternAudioPositions } from '../../look/lanterns';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../../shard.config';
 import { ndCueMap, bindTraversalCue } from './cues';
 
 
 export async function installAudio(ctx: ShardContext): Promise<void> {
-  const rows = runtimeAudio(ctx, source.audio);
+  const rows = runtimeAudio(ctx, ctx.product.shardfile.audio);
   const profile = requireAudioProfile(rows.zones, 'ambience.nd'), musicProfile = requireAudioProfile(rows.music, 'score.nd');
   const positional = requireAudioProfile(profile.positional, 'nd.positional');
   const [{ PositionalLoops }, { CuePlayer }, { SetScore }] = await Promise.all([import('@wildshard/engine/audio/AmbienceBeds'), import('@wildshard/engine/audio/Cues'), import('@wildshard/engine/audio/SetScore')]);

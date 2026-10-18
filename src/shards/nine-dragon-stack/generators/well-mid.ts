@@ -12,7 +12,7 @@ import { E, K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook } from './props';
 import { NEONS } from './towers';
-import { WORDS } from '../data/words';
+import { WORDS } from './words';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
