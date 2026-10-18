@@ -1,9 +1,15 @@
 import { AmbienceZones } from './ambience';
 import { loopAt, panFromYaw } from './util';
-import type { SampleLoop } from './Audio';
+import type { Audio, SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
 import type { Scope } from '../app/scope';
-import type { Vector3 } from 'three';
+import { Vector3 } from 'three';
+import type { CuePlayer } from './Cues';
+import type { AudioSampleMix, AudioMixExpr } from '@wildshard/format/audioProfiles';
+import { audioMixValue, requireAudioProfile, type AudioZoneProfile } from './audioProfiles';
+import { app } from '../app/runtime';
+import { Rng, fnv1a32 } from '../core/rng';
+import { tap, ambientTick } from '../core/harnessTap';
 
 interface LoopVoice { gain: GainNode; pan: StereoPannerNode; stop: () => void }
 function loopVoice(audio: AudioMixer, sample: SampleLoop, scope: Scope, random: () => number): LoopVoice {
@@ -83,4 +89,109 @@ export class PositionalLoops {
     }
   }
   get count(): number { return this.voices.size; }
+}
+
+const sampleStreams = new Map<string, Rng>();
+/** Client-only sampled ambience over native mixer/bank owners. Rows contain all
+ * mix algebra, zone hysteresis, call cadence and random-stream identity. */
+export class SampledAmbience {
+  readonly inputs: Record<string, number>;
+  readonly diag: Record<string, number> = { sampled: 0, calls: 0 };
+  readonly values = new Map<string, number>();
+  readonly zones: AmbienceZones;
+  zone: string;
+  private readonly rows: AudioSampleMix;
+  private readonly random: () => number;
+  private readonly timers: number[];
+  private readonly at = new Vector3();
+  private readonly ear = new Vector3();
+  private lead: string;
+  private leadTime = 0;
+  private first = true;
+  private readonly read = (id: string): number => requireAudioProfile(this.values.get(id) ?? this.inputs[id], id);
+  private value(expr: AudioMixExpr): number { return audioMixValue(expr, this.read); }
+  private readonly audio: Audio;
+  private readonly profile: AudioZoneProfile;
+  private readonly bank: CuePlayer | undefined;
+  constructor(audio: Audio, profile: AudioZoneProfile, bank?: CuePlayer, scope?: Scope) {
+    this.audio = audio; this.profile = profile; this.bank = bank;
+    this.rows = requireAudioProfile(profile.sampleMix, 'sample mix');
+    this.inputs = { ...this.rows.initial };
+    const random = this.rows.random;
+    if (random.kind === 'seeded') {
+      let stream = sampleStreams.get(random.salt);
+      if (stream === undefined) { stream = new Rng(fnv1a32(`${String(app.rng.seedValue)}:${random.salt}`)); sampleStreams.set(random.salt, stream); }
+      const seeded = stream; this.random = () => seeded.next();
+    } else this.random = () => app.rng.stream(random.id).next();
+    this.zones = new AmbienceZones(audio, this.random, scope);
+    this.zone = this.lead = requireAudioProfile(this.rows.zones[0], 'initial sample zone').id;
+    this.timers = this.rows.calls.map(row => this.between(row.initial));
+    for (const row of this.rows.beds) this.diag[row.id] = 0;
+    for (const [id, expr] of this.rows.diagnostics) this.diag[id] = this.value(expr);
+  }
+  private between(range: readonly [number, number]): number { return range[0] + this.random() * (range[1] - range[0]); }
+  private sample(id: string): SampleLoop | undefined { return this.bank === undefined ? this.audio.loop(id) : this.bank.loop(id); }
+  get audible(): string[] { return [...this.zones.beds.keys()]; }
+  /** Re-evaluate explicit scalar inputs in declared order, retaining source gains. */
+  set(inputs: Readonly<Record<string, number>>): void {
+    Object.assign(this.inputs, inputs); this.values.clear();
+    for (const [id, expr] of this.rows.values) this.values.set(id, this.value(expr));
+    const selected = this.selected();
+    if (this.first) { this.first = false; this.zone = this.lead = selected; }
+  }
+  /** Apply gains after the caller publishes any score scene change. */
+  mix(): void {
+    if (!this.audio.ready) return;
+    let sampled = 0;
+    for (const row of this.rows.beds) {
+      const sample = this.sample(row.id);
+      if (sample !== undefined) sampled++;
+      if (sample === undefined && row.keepSilent) continue;
+      const level = sample === undefined ? 0 : this.value(row.level) * sample.gain;
+      this.zones.mix({ id: row.id, panned: row.panned, started: () => { if (row.ambient) tap.sound?.(row.tap, 'ambient'); else tap.sound?.(row.tap); } },
+        sample, level, this.profile.smoothSeconds, row.keepSilent ? -Infinity : 0.002);
+      this.diag[row.id] = Math.round(level * 1000) / 1000;
+    }
+    this.diag['sampled'] = sampled;
+    for (const [id, expr] of this.rows.diagnostics) this.diag[id] = this.value(expr);
+    const time = this.audio.ctx.currentTime;
+    for (const [id, pan] of this.rows.pans) this.zones.beds.get(id)?.pan?.pan.setTargetAtTime(Math.max(-1, Math.min(1, this.value(pan))), time, this.profile.smoothSeconds);
+  }
+  private selected(): string {
+    let selected = requireAudioProfile(this.rows.zones[0], 'sample zone').id, best = -Infinity;
+    for (const row of this.rows.zones) { const weight = this.value(row.weight); if (weight > best) { best = weight; selected = row.id; } }
+    return selected;
+  }
+  /** Native frame clock: hold zones before selection and stop silent sources.
+   * Rows preserve reset-before/after emission order for their random draws. */
+  advance(dt: number, listener: { x: number; y: number; z: number }, yaw: number): void {
+    const top = this.selected();
+    if (top !== this.lead) { this.lead = top; this.leadTime = 0; }
+    this.leadTime += dt;
+    if (this.lead !== this.zone && this.leadTime >= this.profile.holdSeconds) this.zone = this.lead;
+    if (!this.audio.ready) return;
+    if (this.profile.silentSeconds > 0) this.zones.silence(dt, this.profile.silentSeconds);
+    for (let i = 0; i < this.timers.length; i++) if (this.value(requireAudioProfile(this.rows.calls[i], 'sample call').advance) !== 0) this.timers[i] = requireAudioProfile(this.timers[i], 'sample timer') - dt;
+    this.rows.calls.forEach((row, i) => {
+      if (this.value(row.advance) === 0 || requireAudioProfile(this.timers[i], 'sample timer') > 0) return;
+      const run = (): void => {
+        if (row.reset === 'before') this.timers[i] = this.between(row.every);
+        if (this.value(row.when) !== 0) {
+          const emit = row.emit;
+          if (emit.kind === 'cue') this.audio.cue(emit.id, { gain: emit.gain });
+          else {
+            const choice = emit.choices.length === 1 || this.random() < emit.chance ? emit.choices[0] : emit.choices[1];
+            const angle = this.random() * Math.PI * 2, distance = this.between(emit.distance);
+            this.ear.set(listener.x, listener.y, listener.z);
+            this.at.set(listener.x + Math.cos(angle) * distance, listener.y + emit.up, listener.z + Math.sin(angle) * distance);
+            this.diag['calls'] = (this.diag['calls'] ?? 0) + 1;
+            this.audio.animal(requireAudioProfile(choice, 'sample call'), this.at, this.ear, yaw);
+          }
+        }
+        if (row.reset === 'after') this.timers[i] = this.between(row.every);
+      };
+      if (row.tick === null) run(); else ambientTick(row.tick, run);
+    });
+  }
+  dispose(): void { this.zones.dispose(); }
 }

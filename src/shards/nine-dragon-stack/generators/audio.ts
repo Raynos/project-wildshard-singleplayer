@@ -1,6 +1,14 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
 import ND_SAMPLES from '../data/audioSamples.json' with { type: 'json' };
 
+const BLEND = 6;
+const rectangles = [
+  { id: 'well', zone: 'well', x0: -28, x1: 0, z0: -44, z1: 16 },
+  { id: 'plaza', zone: 'market', x0: 0, x1: 22, z0: -26, z1: 20 },
+  { id: 'street', zone: 'market', x0: 0.5, x1: 12.5, z0: -230, z1: -26 },
+  { id: 'stair', zone: 'market', x0: 22, x1: 70, z0: 2, z1: 10 },
+];
+
 /** Today's market/Well beds, enclosed blend regions, lantern hum limits and ordered cue aliases. */
 export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,
   music: { setPlayback: { scene: { well: 0 }, stateMode: true, waitForBank: true },
@@ -10,13 +18,15 @@ export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'defau
       { slots: ['nd-well', 'nd-market'], when: [{ field: 'well', op: 'greater', value: 0.5 }] },
       { slots: ['nd-market', 'nd-market'], when: [] },
     ] },
-  zones: { id: 'ambience.nd', smoothSeconds: 1, tickHz: 4, silentSeconds: 0, holdSeconds: 0, levels: {}, wet: {}, zones: [], blendMetres: 6,
-    rectangles: [
-      { id: 'well', zone: 'well', x0: -28, x1: 0, z0: -44, z1: 16 },
-      { id: 'plaza', zone: 'market', x0: 0, x1: 22, z0: -26, z1: 20 },
-      { id: 'street', zone: 'market', x0: 0.5, x1: 12.5, z0: -230, z1: -26 },
-      { id: 'stair', zone: 'market', x0: 22, x1: 70, z0: 2, z1: 10 },
-    ], beds: [{ id: 'bed.nd.market', zone: 'market' }, { id: 'bed.nd.well', zone: 'well' }], positional: { sample: 'hum.lantern', max: 4, reach: 14 } },
+  zones: { sampleMix: {
+    random: { kind: 'stream', id: 'cosmetic' }, initial: { x: 0, z: 0, worldOn: 1 },
+    values: [...rectangles.map(row => [row.id, ['hypot', ['max', ['max', ['-', row.x0, 'x'], 0], ['-', 'x', row.x1]], ['max', ['max', ['-', row.z0, 'z'], 0], ['-', 'z', row.z1]]]]),
+      ['marketDistance', ['min', 'plaza', ['min', 'street', 'stair']]], ['wellWeight', ['min', 1, ['max', 0, ['+', 0.5, ['/', ['-', 'marketDistance', 'well'], BLEND]]]]]],
+    diagnostics: [], pans: [], beds: [{ id: 'bed.nd.market', tap: 'bed.nd.market', level: ['-', 1, 'wellWeight'], panned: true, keepSilent: true, ambient: true },
+      { id: 'bed.nd.well', tap: 'bed.nd.well', level: 'wellWeight', panned: true, keepSilent: true, ambient: true }],
+    zones: [{ id: 'market', weight: ['-', 1, 'wellWeight'] }, { id: 'well', weight: 'wellWeight' }], calls: [{ tick: null, initial: [8, 20], every: [8, 20], advance: ['and', 'worldOn', ['gt', 'wellWeight', 0.5]], when: 1, reset: 'after', emit: { kind: 'cue', id: 'chime.gust', gain: 0.4 } }],
+  }, id: 'ambience.nd', smoothSeconds: 1, tickHz: 4, silentSeconds: 0, holdSeconds: 0, levels: {}, wet: {}, zones: [], blendMetres: BLEND,
+    rectangles, beds: [{ id: 'bed.nd.market', zone: 'market' }, { id: 'bed.nd.well', zone: 'well' }], positional: { sample: 'hum.lantern', max: 4, reach: 14 } },
   routing: [
     { id: 'step', bus: 'audio', actions: [{ voice: 'nd.step' }] },
     ...['cue.jian.swing', 'cue.sword.swing', 'melee.swing'].map((id) => ({ id, bus: 'audio', actions: [{ voice: 'nd.jian.swing' }] })),

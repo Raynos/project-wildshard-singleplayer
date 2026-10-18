@@ -229,7 +229,25 @@ export const AudioAmbienceRoutingSchema = v.strictObject({
 });
 export type AudioAmbienceRouting = v.InferOutput<typeof AudioAmbienceRoutingSchema>;
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, lifecycle:v.exactOptional(AudioAmbienceLifecycleSchema), routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+/** Sampled loop levels and seeded distant calls; native mixers own playback. */
+const sampleInterval = v.pipe(v.tuple([v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600))]),v.check(row=>row[0]<=row[1]));
+export const AudioSampleMixSchema = v.pipe(v.strictObject({
+  random:v.variant('kind',[
+    v.strictObject({kind:v.literal('seeded'),salt:id}),
+    v.strictObject({kind:v.literal('stream'),id:v.literal('cosmetic')}),
+  ]),
+  initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=64)),
+  values:mixValues(64),diagnostics:mixValues(32),pans:mixValues(32),
+  beds:v.pipe(v.array(v.strictObject({id,tap:id,ambient:v.boolean(),panned:v.boolean(),level:mixExpr,keepSilent:v.boolean()})),v.maxLength(32)),
+  zones:v.pipe(v.array(v.strictObject({id,weight:mixExpr})),v.minLength(1),v.maxLength(32)),
+  calls:v.pipe(v.array(v.strictObject({tick:v.nullable(id),initial:sampleInterval,every:sampleInterval,advance:mixExpr,when:mixExpr,reset:v.picklist(['before','after']),
+    emit:v.variant('kind',[
+      v.strictObject({kind:v.literal('animal'),choices:v.pipe(v.array(id),v.minLength(1),v.maxLength(2)),chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),distance:sampleInterval,up:finite}),
+      v.strictObject({kind:v.literal('cue'),id,gain}),
+    ])})),v.maxLength(16)),
+}),v.check(rows=>new Set(rows.beds.map(row=>row.id)).size===rows.beds.length&&new Set(rows.zones.map(row=>row.id)).size===rows.zones.length&&rows.calls.every(row=>row.every[0]>0),'unique sample rows and positive call periods'));
+export type AudioSampleMix = v.InferOutput<typeof AudioSampleMixSchema>;
+export const AudioZonesSchema = v.strictObject({ id, sampleMix:v.exactOptional(AudioSampleMixSchema), lifecycle:v.exactOptional(AudioAmbienceLifecycleSchema), routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

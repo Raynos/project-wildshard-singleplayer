@@ -203,5 +203,6 @@
     "far-reach",
     "sunscar-dunes"
   ],
-  "test/legacy-seal.test.ts": []
+  "test/legacy-seal.test.ts": [],
+  "test/sampled-ambience.test.ts": []
 }

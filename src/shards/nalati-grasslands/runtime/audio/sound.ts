@@ -26,13 +26,13 @@ import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
  *   app.debug.snapshot()['nalati.sound']()  // the scoped live reader: counts, voices, ambience and score
  *
  * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
- * the zoned sample beds (src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
+ * the declared sample beds (audio.zones.sampleMix: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
  * 4 Hz) over the synth bed's fallback; the score's scene (the score source: the zone, night, the storm, the Golden King).
  *
  * Pine Hollow and Driftwood never build this: the call table and the synth bed are registered on Nalati's mixer only.
  */
 import * as THREE from 'three';
-import { SteppeAmbience } from './SteppeAmbience';
+import { SampledAmbience } from '@wildshard/engine/audio/AmbienceBeds';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
 import type { Nalati } from '../state';
 import type { NalatiWeather } from '../../world/installWeather';
@@ -57,7 +57,7 @@ export interface NalatiSound {
   /** the tally so far (sound → calls) */
   counts: () => Record<string, number>;
   /** the zoned beds (A4), once bound */
-  readonly ambience: SteppeAmbience | null;
+  readonly ambience: SampledAmbience | null;
   /** the synth voices (audio/synth.ts), once bound */
   readonly voices: SteppeVoices | null;
 }
@@ -134,14 +134,16 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
 
   // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
   let chorusT = 20, bedT = 0;
-  let amb: SteppeAmbience | null = null;
+  let amb: SampledAmbience | null = null;
   let score: ReturnType<typeof SetScore.declared> | undefined;
   let refresh = (): void => { /* Bound alongside the score. */ };
+  const zoneScene = { zone: 'grass' };
   const setScene = (patch: Readonly<Record<string,number|boolean|string|null>>): void => {
     if (!score) return;
     const before = JSON.stringify(score.scene); Object.assign(score.scene, patch);
     if (JSON.stringify(score.scene) !== before) refresh();
   };
+  const syncZone = (): void => { if (amb !== null && zoneScene.zone !== amb.zone) { zoneScene.zone = amb.zone; setScene(zoneScene); } };
   const chorus = (): void => {
     if (!audio) return;
     const a = audioRandom() * Math.PI * 2, d = 260 + audioRandom() * 330;
@@ -184,9 +186,13 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
           scope.onDispose(release);
           a.onLevelBank((bank) => { score?.useBank(bank.score); }, scope);
         }
-        amb = new SteppeAmbience(a, PROFILE);
-        scope.onDispose(() => { amb?.dispose(); amb = null; audio = null; voices = null; });
-        amb.onZone = (zone) => { setScene({ zone }); };
+        amb = new SampledAmbience(a, PROFILE); zoneScene.zone = '';
+        scope.onDispose(() => { amb?.dispose(); if (voices !== null) { voices.stormSink = undefined; voices.sampledSteppe(false); } amb = null; audio = null; voices = null; });
+        voices.stormSink = (rain, storm) => {
+          if (a.loop('rain') === undefined && a.loop('stormwind') === undefined) return false;
+          if (amb !== null) Object.assign(amb.inputs, { rain, storm });
+          return true;
+        };
         if (entered !== undefined) scope.onDispose(() => {
           if (a.hoofSurfaceAt === hoofSurfaceAt) a.hoofSurfaceAt = previousHoof;
           if (a.bedId === STEPPE_BED) a.setAmbient(previousBed);
@@ -226,15 +232,22 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
           const bd = brookDistance(p.x, p.z);
           const panTo = (dx: number, dz: number): number => panFromYaw(dx, dz, player.yaw, 0.7);
           const toCamp = Math.hypot(p.x - CAMP.x, p.z - CAMP.z) < Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z) ? CAMP : SUMMER_YURTS;
-          amb.set({
-            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smoothstep(MELT_ZONE.outer, MELT_ZONE.inner, bd)), camp, night, wind: wind.speed, gust, out,
-            pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < MELT_ZONE.outer ? panTo(side.x, side.z) : panTo(FALL_ZONE.x - p.x, FALL_ZONE.z - p.z) },
-          });
+          const [valley, bowl, snow] = zoneAt(p.x, p.z);
+          const mix = amb.inputs;
+          mix['valley'] = valley; mix['bowl'] = bowl; mix['snow'] = snow;
+          mix['river'] = river; mix['melt'] = Math.max(fall, smoothstep(MELT_ZONE.outer, MELT_ZONE.inner, bd));
+          mix['camp'] = camp; mix['night'] = night; mix['wind'] = wind.speed; mix['gust'] = gust; mix['out'] = out;
+          mix['riverPan'] = panTo(0, RIVER.z(p.x) - p.z); mix['campPan'] = panTo(toCamp.x - p.x, toCamp.z - p.z);
+          mix['meltPan'] = bd < MELT_ZONE.outer ? panTo(side.x, side.z) : panTo(FALL_ZONE.x - p.x, FALL_ZONE.z - p.z);
+          amb.set(mix); syncZone();
+          amb.mix();
+          if (audio.ready) voices?.sampledSteppe((amb.diag['sampled'] ?? 0) > 0);
         }
         // A2: the score's scene — the King's barrow, a storm (Jel Ata's cue), the night; the zone comes from amb.onZone
         setScene({ night: night > 0.5, storm: weather.weather.stormActive || nalati.titan.engaged, boss: nalati.boss.inside ? 'king' : null });
       }
-      amb?.update(dt, p, player.yaw);
+      amb?.advance(dt, p, player.yaw);
+      syncZone();
       chorusT -= dt;
       if (chorusT <= 0) {
         const dark = clock.dayPhase === 'dusk' || clock.dayPhase === 'night';

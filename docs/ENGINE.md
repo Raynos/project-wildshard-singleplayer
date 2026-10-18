@@ -1637,6 +1637,13 @@ floor footprints, circular regions and live zone spots. Ordered rows feed
 the existing mixer expressions; `probeFinite` holds the mix on invalid
 listener/weather input. Floor, site and point ports remain real owners.
 
+`SampledAmbience` consumes `audio.zones.sampleMix`: bounded level and pan
+expressions, zone weights and held selection, and seeded distant-call rows.
+`set()` receives scalar observations, `mix()` applies gains, and `advance()`
+advances the native frame
+clock. Mixer loops or a native `CuePlayer` supply samples. No author callback
+is installed; disposal releases the native loop owners.
+
 | Export | What it is |
 |---|---|
 | `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind` | the engine mixer (`runtime.play.audio`, a port while S3.5 finishes) |
@@ -1644,6 +1651,7 @@ listener/weather input. Floor, site and point ports remain real owners.
 | `CueMap`, `CuePlayer`, `CueOpts`, `CueBank`, `SampleClip`, `CueId` | cues: the engine and weapons emit `cue.*`; your cue map turns a cue into sound |
 | `CombatCues`, `audioCueMap`, `CombatCueMap`, `CombatCueOpts` | `runtime.play.cues`: `cues.use(fn, scope)` adds a handler; `fire`, `charge`, `cue` play one |
 | `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
+| `SampledAmbience` (`audio/AmbienceBeds`) | client sampled loops and seeded distant calls from `audio.zones.sampleMix` |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses) |
 | `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
