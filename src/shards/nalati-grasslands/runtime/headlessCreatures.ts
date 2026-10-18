@@ -1,3 +1,4 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { NativeManager } from '@wildshard/game/population/nativeManager';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -23,11 +24,9 @@ import { HORSE_SPECIES } from '../species/horse';
 import { LEOPARD_SPECIES } from '../species/leopard';
 import { SHEEPDOG_SPECIES } from '../species/sheepdog';
 import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
-import { nalatiFlockRows } from '../creatures/flockRows';
-import { NALATI_WILDLIFE } from '../data/fauna';
+import { parseFlock } from '@wildshard/format/crowds';
 import { setDogFlock, thinkSheepdog } from '../creatures/sheepdogBrain';
 import { argymaqDefinition } from '../combat/eliteRoster';
-import { ARGYMAQ } from '../data/eliteEncounters';
 import { SEED, TERRAIN } from '../world/terrain';
 import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
@@ -60,7 +59,7 @@ export type NalatiHuntBody = AnimalSim & HuntBody & { hidden: boolean };
 export function nalatiHuntSpecies(): (kind: string) => HuntSpecies {
   const stallion = HORSE_SPECIES.variants.find(variant => variant.id === 'stallion');
   if (stallion === undefined) throw new Error('Nalati horse has no stallion');
-  const rows = new Map<string, HuntSpecies>([['wolf', WOLF_SPECIES], [KOKBORI, KOKBORI_SPECIES], ['horse', HORSE_SPECIES], ['leopard', LEOPARD_SPECIES], ['sheepdog', SHEEPDOG_SPECIES], [ARGYMAQ, argymaqDefinition(HORSE_SPECIES, stallion)]]);
+  const rows = new Map<string, HuntSpecies>([['wolf', WOLF_SPECIES], [KOKBORI, KOKBORI_SPECIES], ['horse', HORSE_SPECIES], ['leopard', LEOPARD_SPECIES], ['sheepdog', SHEEPDOG_SPECIES], [ecology.argymaq, argymaqDefinition(HORSE_SPECIES, stallion)]]);
   return kind => { const row = rows.get(kind); if (row === undefined) throw new Error(`Nalati hunting brain has no row '${kind}'`); return row; };
 }
 
@@ -196,7 +195,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   // page's default creatures/flock.ts runs the same spans, test/fixtures/flock-oracle; its declared crowds run FlockBrain), each
   // set up on its own seed as Wildlife builds it, over the page's ground, water and wild view; its dog (the roster's sheepdogs in
   // order, one a flock that has one) thinks on the one sheepdog rule (creatures/sheepdogBrain.ts) over the host's 'ai' stream
-  const floor = bakedSamplers(ports.grid), layout = NALATI_WILDLIFE.flocks, rows = nalatiFlockRows(SEED, layout);
+  const floor = bakedSamplers(ports.grid), layout = ecology.wildlife.flocks, rows = ecology.flocks.world.map(row => parseFlock({ ...row, seed: SEED + row.seed }));
   if (rows.length > FLOCK_MAX) throw new Error(`Nalati headless hosts at most ${String(FLOCK_MAX)} flocks`);
   const pushTrample = (x: number, z: number, r: number, st: number, vx: number, vz: number): void => { env.trample(x, z, r, st, vx, vz); };
   const flockPorts: FlockPorts = { heightAt: floor.heightAt, normalY: (x, z) => floor.normalAt(x, z)[1], inBounds: (x, z, margin) => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin,
@@ -356,7 +355,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   };
   const hideTamedStallion = (a: AnimalSim): void => {
     const owned = asHunt(a);
-    if (!a.alive || hiddenStallions.has(a.entityId) || !herdOf.has(a) || (a.kind !== 'horse' && a.kind !== ARGYMAQ)) throw new Error('Foreign Nalati tamed stallion');
+    if (!a.alive || hiddenStallions.has(a.entityId) || !herdOf.has(a) || (a.kind !== 'horse' && a.kind !== ecology.argymaq)) throw new Error('Foreign Nalati tamed stallion');
     // The wild stallion remains a living identity in the manager; only its simulation/view presence ends.
     owned.hidden = true; a.position.y = -1e4; a.motor?.dispose(); a.motor = null;
     const owner = intake.identities.identity(a.entityId); if (owner !== null) intake.identities.own(a.entityId, { ...owner, listed: false });

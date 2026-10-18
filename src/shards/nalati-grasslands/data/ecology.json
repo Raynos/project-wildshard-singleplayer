@@ -1,0 +1,396 @@
+{
+  "argymaq": "argymaq",
+  "elites": {
+    "aqbars": {
+      "id": "aqbars",
+      "name": "Aqbars the Pale",
+      "epithet": "Irbis of the Crags",
+      "lair": {
+        "at": "CRAG_CAVE",
+        "r": 14
+      },
+      "awareR": 60,
+      "engageR": 25,
+      "leashR": 90,
+      "rule": "always",
+      "respawnMin": 20,
+      "signature": "POUNCE",
+      "phase2": "ENRAGED",
+      "drop": {
+        "skin": "irbis-sabre",
+        "skinName": "IRBIS",
+        "weapon": "sabre",
+        "blurb": "pale frost steel, rosette damascus, a snow-leopard grip"
+      }
+    },
+    "kokbori": {
+      "id": "kokbori",
+      "name": "Kokbori",
+      "epithet": "Mother of the Pack",
+      "lair": {
+        "at": "KOKBORI_DEN",
+        "r": 16
+      },
+      "awareR": 80,
+      "engageR": 50,
+      "leashR": 120,
+      "rule": "dusk",
+      "respawnMin": 20,
+      "signature": "PACK HOWL",
+      "phase2": "THE PACK FALLS BACK",
+      "drop": {
+        "skin": "sky-wolf-bow",
+        "skinName": "SKY-WOLF",
+        "weapon": "bow",
+        "blurb": "blue-grey horn limbs, wolf-fang nocks, a silver string"
+      }
+    },
+    "qyran": {
+      "id": "qyran",
+      "name": "Qyran the Storm-Wing",
+      "epithet": "Berkut of the High Wind",
+      "lair": {
+        "at": "EAGLE_ROCK",
+        "r": 20
+      },
+      "awareR": 110,
+      "engageR": 75,
+      "leashR": 150,
+      "rule": "storm",
+      "respawnMin": 20,
+      "signature": "STOOP",
+      "phase2": "INTO THE STORM",
+      "drop": {
+        "skin": "storm-wing-arrows",
+        "skinName": "STORM-WING",
+        "weapon": "arrow",
+        "blurb": "golden fletching, a gold streak behind every arrow"
+      }
+    },
+    "qara-batyr": {
+      "id": "qara-batyr",
+      "name": "Qara Batyr the Unburied",
+      "epithet": "Captain of the Night Riders",
+      "lair": {
+        "at": "QARA_CAIRN",
+        "r": 18
+      },
+      "awareR": 90,
+      "engageR": 60,
+      "leashR": 150,
+      "rule": "night",
+      "respawnMin": 20,
+      "signature": "DEATH CHARGE",
+      "phase2": "THE DEAD RIDE",
+      "drop": {
+        "skin": "night-rider-mount",
+        "skinName": "NIGHT RIDER",
+        "weapon": "mount",
+        "blurb": "black barding, a spectral mane that glows at night"
+      }
+    },
+    "argymaq": {
+      "id": "argymaq",
+      "name": "Argymaq the Unbroken",
+      "epithet": "Stallion of the High Crags",
+      "lair": {
+        "at": "ARGYMAQ_PASTURE",
+        "r": 22
+      },
+      "awareR": 80,
+      "engageR": 40,
+      "leashR": 100,
+      "rule": "always",
+      "respawnMin": 20,
+      "once": true,
+      "signature": "TRAMPLE",
+      "phase2": "HE RUNS",
+      "drop": {
+        "skin": null,
+        "skinName": "ARGYMAQ",
+        "weapon": "horse",
+        "blurb": "the best horse in Nalati"
+      }
+    }
+  },
+  "wildlife": {
+    "packs": [
+      {
+        "at": "KOKBORI_DEN",
+        "offset": [
+          22,
+          -30
+        ],
+        "variants": [
+          "alpha",
+          "grey",
+          "tawny",
+          "grey",
+          "scout"
+        ]
+      }
+    ],
+    "herds": [
+      {
+        "at": "HORSE_PLAINS",
+        "mares": 11,
+        "foals": 3,
+        "stallion": true
+      }
+    ],
+    "flocks": [
+      {
+        "at": "PASTURE",
+        "count": 40,
+        "dog": true
+      }
+    ],
+    "marmots": {
+      "sites": 7,
+      "box": {
+        "x0": -160,
+        "x1": 170,
+        "z0": -30,
+        "z1": 95
+      }
+    },
+    "campHorses": true
+  },
+  "mareVariants": [
+    "bay",
+    "chestnut",
+    "bay",
+    "dun",
+    "chestnut",
+    "grey",
+    "bay",
+    "black",
+    "dun",
+    "bay",
+    "chestnut",
+    "grey"
+  ],
+  "modes": {
+    "traverse": [],
+    "ride": [
+      {
+        "id": "ride",
+        "gaits": {
+          "walk": 1.8,
+          "trot": 4.5,
+          "canter": 8.5,
+          "gallop": 13
+        }
+      }
+    ]
+  },
+  "flock": {
+    "kind": "flock",
+    "runSpeed": 4.6,
+    "walkSpeed": 0.9,
+    "grazeStep": 0.35,
+    "bleatCue": "sheep_bleat"
+  },
+  "gameplay": {
+    "horse": {
+      "aggressive": false,
+      "chargeSpeed": 12,
+      "chargeDamage": 25,
+      "sounds": {
+        "call": "horse_neigh",
+        "hurt": "horse_squeal",
+        "callEvery": [
+          40,
+          120
+        ]
+      },
+      "tuning": {
+        "hp": 150,
+        "sightRange": 45,
+        "sightRangeGraze": 20,
+        "sightCone": 1.2217304763960306,
+        "hearStill": 4,
+        "hearCrouch": 8,
+        "hearWalk": 15,
+        "hearSprint": 30,
+        "noticeRate": 0.4,
+        "forgetRate": 0.2,
+        "alertAt": 0.45,
+        "boltAt": 1,
+        "freezeMin": 2,
+        "freezeMax": 4,
+        "relaxAfter": 4,
+        "panicDist": 10,
+        "runSpeed": 12.5,
+        "trotSpeed": 4.5,
+        "fleeMinTime": 3,
+        "fleeUntil": 80,
+        "fleeUntilMax": 120,
+        "fleeMaxTime": 14,
+        "lookBack": 3,
+        "waryTime": 20,
+        "waryBoost": 1.3,
+        "herdAlertRadius": 20,
+        "herdBoltDelayMin": 0.2,
+        "herdBoltDelayMax": 0.8,
+        "impactSpook": 15,
+        "impactAlert": 40
+      },
+      "tick": "ai",
+      "trampleRadius": 0.8
+    },
+    "wolf": {
+      "aggressive": true,
+      "walkSpeed": 1.6,
+      "chargeSpeed": 9.5,
+      "chargeDamage": 12,
+      "sounds": {
+        "call": "wolf_howl",
+        "hurt": "wolf_yelp",
+        "callEvery": [
+          60,
+          160
+        ]
+      },
+      "tuning": {
+        "hp": 70,
+        "sightRange": 35,
+        "sightRangeGraze": 35,
+        "sightCone": 1.2217304763960306,
+        "hearStill": 4,
+        "hearCrouch": 8,
+        "hearWalk": 16,
+        "hearSprint": 30,
+        "noticeRate": 0.45,
+        "forgetRate": 0.12,
+        "alertAt": 0.35,
+        "boltAt": 1,
+        "freezeMin": 0.5,
+        "freezeMax": 1,
+        "relaxAfter": 8,
+        "panicDist": 0,
+        "runSpeed": 9.5,
+        "trotSpeed": 4,
+        "fleeMinTime": 2,
+        "fleeUntil": 60,
+        "fleeUntilMax": 80,
+        "fleeMaxTime": 12,
+        "lookBack": 1,
+        "waryTime": 30,
+        "waryBoost": 1.3,
+        "herdAlertRadius": 40,
+        "herdBoltDelayMin": 0.2,
+        "herdBoltDelayMax": 0.6,
+        "impactSpook": 0,
+        "impactAlert": 25
+      },
+      "tick": "ai",
+      "trampleRadius": 0.45
+    }
+  },
+  "species": {
+    "leopard": {
+      "id": "species.nalati.leopard",
+      "kind": "leopard",
+      "label": "Snow leopard",
+      "lockable": true,
+      "aggressive": true,
+      "walkSpeed": 1.4,
+      "chargeSpeed": 11,
+      "chargeDamage": 14,
+      "sounds": {
+        "call": "leopard_growl",
+        "hurt": "leopard_growl",
+        "callEvery": [
+          40,
+          90
+        ]
+      },
+      "variants": [
+        {
+          "id": "aqbars",
+          "label": "Aqbars the Pale",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            1.5,
+            1.5
+          ],
+          "hp": 700
+        }
+      ],
+      "tick": "ai"
+    },
+    "eagle": {
+      "id": "species.nalati.eagle",
+      "kind": "eagle",
+      "label": "Golden eagle",
+      "lockable": true,
+      "aggressive": true,
+      "walkSpeed": 0.5,
+      "chargeDamage": 30,
+      "sounds": {
+        "call": "eagle_cry",
+        "hurt": "eagle_cry",
+        "callEvery": [
+          8,
+          18
+        ]
+      },
+      "variants": [
+        {
+          "id": "qyran",
+          "label": "Qyran the Storm-Wing",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            3,
+            3
+          ],
+          "hp": 600
+        }
+      ],
+      "tick": "ai"
+    },
+    "kokbori": {
+      "id": "species.nalati.kokbori",
+      "kind": "kokbori",
+      "label": "Kokbori",
+      "lockable": true,
+      "aggressive": true,
+      "walkSpeed": 1.8,
+      "chargeSpeed": 11,
+      "chargeDamage": 22,
+      "sounds": {
+        "call": "wolf_howl",
+        "hurt": "wolf_yelp",
+        "callEvery": [
+          50,
+          120
+        ]
+      },
+      "tick": "ai",
+      "variants": [
+        {
+          "id": "kokbori",
+          "label": "Kokbori, Mother of the Pack",
+          "weight": 1,
+          "rarity": "legendary",
+          "scale": [
+            2.6,
+            2.6
+          ],
+          "hp": 650
+        }
+      ]
+    }
+  },
+  "specimenFlocks": [
+    {
+      "x": 0,
+      "z": 0,
+      "count": 1,
+      "dog": false
+    }
+  ]
+}

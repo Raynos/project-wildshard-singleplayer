@@ -1,4 +1,4 @@
-import { WOLF_GAMEPLAY } from '../data/species/faunaGameplay';
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
@@ -103,7 +103,7 @@ export function canidPostPose(c: RigAnimCtx): void {
 }
 
 export const WOLF_SPECIES: SpeciesDef = {
-  ...WOLF_GAMEPLAY,
+  ...ecology.gameplay.wolf,
   lockable: true,
   rigContract: { skeleton: 'wolf.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'wolf',

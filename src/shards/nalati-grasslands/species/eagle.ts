@@ -1,7 +1,7 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { eliteThink, eliteAct, eliteDamageMul } from '../runtime/eliteBrain';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, smooth01, clamp } from '@wildshard/engine/entities/species/rigs';
-import { EAGLE_DATA } from '../data/species/eagle';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 import type * as THREE from 'three';
@@ -60,7 +60,7 @@ function animateEagle(c: RigAnimCtx): void {
   b.head.rotation.set(0.2 * fold - 0.3 * ground + 0.1 * Math.sin(c.t * 2 + c.seed), 0.3 * Math.sin(c.t * 0.7 + c.seed), 0);
 }
 
-const { id: _id, brain: _brain, ...body } = EAGLE_DATA;
+const { id: _id, brain: _brain, ...body } = ecology.species.eagle;
 export const EAGLE_SPECIES: SpeciesDef = {
   ...body,
   rigContract: { skeleton: 'eagle.v1', clips: [], sockets: ['body', 'head'] },

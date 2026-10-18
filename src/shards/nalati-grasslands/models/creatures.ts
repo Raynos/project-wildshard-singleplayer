@@ -46,7 +46,7 @@ export const sheep: ModelDef<object> = defineModel<object>({
   build: (ctx) => {
     if (sheepBody === null) throw new Error('Sheep model requires its prepared body');
     const options = { x: 0, z: 0, count: 1, seed: SHEEP_SEED };
-    const flock = createNativeFlocks(ctx.sky, SHEEP_SEED, sheepBody, [{ x: 0, z: 0, count: 1, dog: false }]);
+    const flock = createNativeFlocks(ctx.sky, SHEEP_SEED, sheepBody, 'specimen');
     const mesh = flock.factory(options, 0).mesh;
     mesh.setMatrixAt(0, new THREE.Matrix4());   // the flock stood it on the terrain near (0, 0): its own space instead
     mesh.instanceMatrix.needsUpdate = true;

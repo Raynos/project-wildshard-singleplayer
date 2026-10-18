@@ -1,3 +1,4 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import * as v from 'valibot';
@@ -18,8 +19,9 @@ import { type Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { pushWildMovers } from '../look/trampleMovers';
 import { Marmots } from './marmots';
-import { MARE_VARIANTS, NALATI_WILDLIFE, type WildlifeLayout } from '../data/fauna';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
+
+type WildlifeLayout = typeof ecology.wildlife;
 
 const { HITCH_HORSE_SPOTS } = poiLayoutRows;
 const point = v.object({ x: v.number(), z: v.number() });
@@ -30,7 +32,7 @@ const point = v.object({ x: v.number(), z: v.number() });
  * animals (hit tests, health bars, blood, onKill, corpses and the sabre's stagger work as for any boar); the sheep are
  * one instanced crowd (`Flock`).
  *
- *   const wildlife = new Wildlife(animals, { scene, sky, seed, admission }).build();         // NALATI_WILDLIFE layout by default
+ *   const wildlife = new Wildlife(animals, { scene, sky, seed, admission }).build();         // ecology.wildlife layout by default
  *   game.onUpdate((dt, t) => wildlife.update(dt, t, player, extra, advanceFlock));
  *   wildlife.disturb(x, z)     an arrow / javelin landed: a herd within 15 m stampedes, the flock panics
  *   wildlife.scare(x, z, r)    lightning / an explosion: packs within 20 m break, herds within r stampede
@@ -97,7 +99,7 @@ export class Wildlife {
 
   private *buildSteps(controllers: WildlifeControllers | undefined): Generator<void, void> {
     this.controllers = controllers ?? this.declaredControllers();
-    const layout = this.opts.layout ?? NALATI_WILDLIFE;
+    const layout = this.opts.layout ?? ecology.wildlife;
     for (const p of layout.packs) { this.spawnPack(p.x, p.z, p.variants); yield; }
     for (const h of layout.herds) { this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion); yield; }
     for (const f of layout.flocks) { this.spawnFlock(f.x, f.z, f.count, f.dog, f.range); yield; }
@@ -148,9 +150,9 @@ export class Wildlife {
 
   spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HerdController {
     const herd = this.animals.addHerd('horse', x, z);
-    const params = { mares, foals, stallion: Number(stallion), coats: MARE_VARIANTS.length };
+    const params = { mares, foals, stallion: Number(stallion), coats: ecology.mareVariants.length };
     const start = v.parse(v.object({ start: v.number(), count: v.number() }), this.placement.project('herdStart', params, this.rng));
-    const variants = [...MARE_VARIANTS, 'foal-bay', 'foal-chestnut', 'stallion'], members: Animal[] = [];
+    const variants = [...ecology.mareVariants, 'foal-bay', 'foal-chestnut', 'stallion'], members: Animal[] = [];
     for (let index = 0; index < start.count; index++) {
       const plan = this.placement.project('herdMember', { ...params, ...start, index });
       const variant = variants[v.parse(v.number(), plan['variant'])]; if (variant === undefined) throw new Error('Missing herd variant');

@@ -1,7 +1,7 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { eliteThink, eliteAct, eliteDamageMul } from '../runtime/eliteBrain';
 import type { SpeciesDef, AnimalSpecies, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, bump, clamp } from '@wildshard/engine/entities/species/rigs';
-import { LEOPARD_DATA } from '../data/species/leopard';
 
 import * as THREE from 'three';
 import { nalatiBody } from './bodies';
@@ -63,7 +63,7 @@ function felidPostPose(c: RigAnimCtx): void {
   t2.rotation.copy(_e);
 }
 
-const { id: _id, brain: _brain, ...body } = LEOPARD_DATA;
+const { id: _id, brain: _brain, ...body } = ecology.species.leopard;
 export const LEOPARD_SPECIES: SpeciesDef = {
   ...body,
   kind: LEOPARD,

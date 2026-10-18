@@ -3,7 +3,9 @@ import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../src/shard
 import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
 import { readFlockBody } from '../src/shards/nalati-grasslands/runtime/flockDeclared';
 import { FlockBrain } from '../src/engine/ai/flock';
-import { nalatiFlockRows } from '../src/shards/nalati-grasslands/creatures/flockRows';
+import { flock } from '../src/sdk/crowds';
+import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { nalatiFlockRows as originalFlockRows } from '../src/shards/nalati-grasslands-legacy/creatures/flockRows';
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
 const source = () => {
@@ -15,6 +17,13 @@ const source = () => {
     throw new Error('Unexpected sheep product file');
   } };
 };
+
+for (const seed of [0, 3, 8172, 0xffffffff - 101]) it(`keeps flock identities and setup seeds exact at ${String(seed)}`, () => {
+  const world = ecology.flocks.world.map(row => flock({ ...row, seed: seed + row.seed }));
+  const specimen = ecology.flocks.specimen.map(row => flock({ ...row, seed: seed + row.seed }));
+  expect(world).toEqual(originalFlockRows(seed));
+  expect(specimen).toEqual(originalFlockRows(seed, [{ x: 0, z: 0, count: 1, dog: false }]));
+});
 
 it('keeps every frozen sheep vertex, rig weight, index and animation bound exactly', async () => {
   const original = buildSheepGeometry(), product = source(), body = await readFlockBody(product), baked = body.geometry;
@@ -49,7 +58,7 @@ it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', 
   const centre = (): void => undefined, trample = (): void => undefined;
   const original = new ShippingFlock({ heightAt, normalAt: () => [0, 1, 0], wetAt: () => false,
     playerCrouched: false, grassHeightAt: () => 0, trample, centre }, { x: 0, z: 0, count: 1, seed: 3 });
-  const row = nalatiFlockRows(3, [{ x: 0, z: 0, count: 1, dog: false }])[0];
+  const row = ecology.flocks.specimen.map(declaration => flock({ ...declaration, seed: 3 + declaration.seed }))[0];
   if (row === undefined) throw new Error('Missing specimen flock row');
   const declared = new FlockBrain({ heightAt, normalY: () => 1,
     inBounds: (x, z, margin) => Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin,

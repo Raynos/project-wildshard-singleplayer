@@ -1,3 +1,4 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { AqbarsKeeper } from '../runtime/aqbarsKeeper';
 import { QyranKeeper } from '../runtime/qyranKeeper';
 import { KokboriKeeper } from '../runtime/kokboriKeeper';
@@ -46,7 +47,6 @@ import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, ty
 import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { bakedActorGeometry } from '../world/placeBake';
 import { argymaqDefinition, eliteRuleHolds } from './eliteRoster';
-import { ARGYMAQ as ARGYMAQ_KIND, NALATI_ELITE_DEFS } from '../data/eliteEncounters';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { EAGLE_ROCK } = poiLayoutRows;
@@ -437,7 +437,7 @@ function riderModel(sky: Sky): THREE.Group {
 // ─────────────────────────────── E4a · Argymaq the Unbroken ───────────────────────────────
 
 /** Argymaq's kind (combat/eliteRoster.ts, the renderer-free roster's), as the models and tests name it. */
-export const ARGYMAQ = ARGYMAQ_KIND;
+export const ARGYMAQ = ecology.argymaq;
 export function registerArgymaq(): void {
   if (hasNalatiSpecies(ARGYMAQ) || !hasNalatiSpecies('horse')) return;
   const H = speciesDef('horse');
@@ -566,11 +566,11 @@ export class NalatiElites {
       sound: (name, at) => { play.sound?.(name, at); },
     };
     this.scripts = [
-      new Aqbars(NALATI_ELITE_DEFS['aqbars'] ?? fail('aqbars'), env),
-      new Kokbori(NALATI_ELITE_DEFS['kokbori'] ?? fail('kokbori'), env),
-      new Qyran(NALATI_ELITE_DEFS['qyran'] ?? fail('qyran'), env),
-      new QaraBatyr(NALATI_ELITE_DEFS['qara-batyr'] ?? fail('qara-batyr'), env),
-      new Argymaq(NALATI_ELITE_DEFS['argymaq'] ?? fail('argymaq'), env),
+      new Aqbars(ecology.elites['aqbars'] ?? fail('aqbars'), env),
+      new Kokbori(ecology.elites['kokbori'] ?? fail('kokbori'), env),
+      new Qyran(ecology.elites['qyran'] ?? fail('qyran'), env),
+      new QaraBatyr(ecology.elites['qara-batyr'] ?? fail('qara-batyr'), env),
+      new Argymaq(ecology.elites['argymaq'] ?? fail('argymaq'), env),
     ];
     for (const s of this.scripts) { app.encounters.elite(s.def.id, s, game.levelScope); elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
     // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)

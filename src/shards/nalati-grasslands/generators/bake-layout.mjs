@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import * as world from './layout.ts';
 import * as places from './poiLayout.ts';
 import * as clearings from './clearings.ts';
+import { ecologyRows } from './ecology.mjs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 /** Preserve tuple arity in JSON imports without an executable declaration. */
@@ -23,4 +24,6 @@ for (const [name, source] of Object.entries({ layout: world, poiLayout: places, 
     writer.put(fileURLToPath(new URL(`../${folder}/${name}.generated.d.json.ts`, import.meta.url)), Buffer.from(`// Generated fixed-coordinate types; no runtime declarations.\ndeclare const rows: ${declaration};\nexport default rows;\n`));
   }
 }
+writer.put(fileURLToPath(new URL('../data/ecology.generated.json', import.meta.url)), jsonBytes(ecologyRows()));
+writer.put(fileURLToPath(new URL('../data/ecology.generated.d.json.ts', import.meta.url)), Buffer.from("// Generated data types; no runtime declarations.\nimport type { Ecology } from './ecologyTypes';\ndeclare const rows: Ecology;\nexport default rows;\n"));
 writer.finish();

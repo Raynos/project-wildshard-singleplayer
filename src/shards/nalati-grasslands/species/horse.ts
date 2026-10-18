@@ -1,5 +1,4 @@
-import { HORSE_GAMEPLAY } from '../data/species/faunaGameplay';
-import { NALATI_RIDE } from '../data/modes';
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
@@ -46,7 +45,7 @@ import { wildEnv } from '../creatures/env';
  * Palette keys (VariantDef.tint): coat belly points mane muzzle sock hoof eye earIn dorsal.
  */
 
-export const HORSE_SPEED = NALATI_RIDE.gaits;
+export const HORSE_SPEED = ecology.modes.ride[0].gaits;
 
 export const HORSE = {   // exported: glbCreatures.ts recolours the rigged hull per variant from it
   coat: [0.50, 0.27, 0.14], belly: [0.60, 0.38, 0.22], points: [0.07, 0.055, 0.05], mane: [0.07, 0.055, 0.05],
@@ -201,7 +200,7 @@ export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
 }
 
 export const HORSE_SPECIES: SpeciesDef = {
-  ...HORSE_GAMEPLAY,
+  ...ecology.gameplay.horse,
   rigContract: { skeleton: 'horse.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'horse',
   label: 'Wild horse',

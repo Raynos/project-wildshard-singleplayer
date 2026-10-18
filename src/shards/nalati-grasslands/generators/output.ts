@@ -1,9 +1,9 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with {type:'json'};
 import { NALATI_PLACE_SETS } from './placeSets';
 import terrainScene from '../data/terrainScene.json' with { type: 'json' };
 import oliveColour from '../data/oliveColour.json' with { type: 'json' };
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
-import { NALATI_ELITE_DEFS } from '../data/eliteEncounters';
 import rifle from '../data/rifle.generated.json' with { type: 'json' };
 import { NALATI_HULL_BOOK } from './riggedHulls';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -49,7 +49,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
-const eliteAssembly = { ...headlessAssembly, constants: { ...headlessAssembly.constants, eliteDefs: NALATI_ELITE_DEFS } };
+const eliteAssembly = { ...headlessAssembly, constants: { ...headlessAssembly.constants, eliteDefs: ecology.elites } };
 
 /** Author weather once; page and native owners consume the same admitted numeric program. */
 const dressing = { boulder: dressboulder, slab: dressslab, stone: dressstone, juniper: dressjuniper, rose: dressrose, willow: dresswillow, lupin: dresslupin, daisy: dressdaisy, reed: dressreed, logs: dresslogs, stumps: dressstumps, ovoos: dressovoos, poles: dresspoles, fences: dressfences, gates: dressgates, drifts: dressdrifts, colliders: dresscolliders, clutter: dressclutter };

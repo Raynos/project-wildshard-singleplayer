@@ -9,12 +9,12 @@ const SHARD = '../../src/shards/nalati-grasslands';
 
 /** The recoloured hulls and the species rows the page's coats read (Argymaq derived from the stallion, as combat/elites.ts). */
 export async function nalatiCoatInputs() {
-  const [{ HORSE, HORSE_SPECIES }, { WOLF, WOLF_SPECIES }, { KOKBORI, KOKBORI_SPECIES }, { argymaqDefinition }, { ARGYMAQ }, { CREATURE_HULLS, nalatiCoatUrl }] = await Promise.all([
+  const [{ HORSE, HORSE_SPECIES }, { WOLF, WOLF_SPECIES }, { KOKBORI, KOKBORI_SPECIES }, { argymaqDefinition }, { default: ecology }, { CREATURE_HULLS, nalatiCoatUrl }] = await Promise.all([
     import(`${SHARD}/species/horse.ts`), import(`${SHARD}/species/wolf.ts`), import(`${SHARD}/species/kokbori.ts`),
-    import(`${SHARD}/combat/eliteRoster.ts`), import(`${SHARD}/data/eliteEncounters.ts`), import(`${SHARD}/generators/riggedHulls.ts`)]);
+    import(`${SHARD}/combat/eliteRoster.ts`), import(`${SHARD}/data/ecology.generated.json`, { with: { type: 'json' } }), import(`${SHARD}/generators/riggedHulls.ts`)]);
   const stallion = HORSE_SPECIES.variants.find(v => v.id === 'stallion');
   if (stallion === undefined) throw new Error('Nalati horse has no stallion');
-  const rows = new Map([['horse', HORSE_SPECIES], ['wolf', WOLF_SPECIES], [KOKBORI, KOKBORI_SPECIES], [ARGYMAQ, argymaqDefinition(HORSE_SPECIES, stallion)]]);
+  const rows = new Map([['horse', HORSE_SPECIES], ['wolf', WOLF_SPECIES], [KOKBORI, KOKBORI_SPECIES], [ecology.argymaq, argymaqDefinition(HORSE_SPECIES, stallion)]]);
   return {
     specs: {
       'horse-wild': { palette: HORSE, source: ['horse', 'dun'], keys: ['points', 'coat', 'belly'] },

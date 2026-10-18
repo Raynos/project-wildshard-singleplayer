@@ -1,3 +1,4 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { readBakedGeometry, bakedGeometryBytes } from '@wildshard/sdk/kit/bakedGeometry';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -6,9 +7,8 @@ import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard
 import { Vector3 } from 'three';
 import { Flock, type FlockOpts, type FlockBody, dogWolves } from '../creatures/flock';
 import type { WildlifeOpts } from '../creatures/wildlife';
-import { NALATI_WILDLIFE } from '../data/fauna';
 import { wildEnv } from '../creatures/env';
-import { nalatiFlockRows } from '../creatures/flockRows';
+import { parseFlock } from '@wildshard/format/crowds';
 
 /** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
 export async function readFlockBody(product: Pick<ShardProduct, 'file'>): Promise<FlockBody> {
@@ -34,8 +34,8 @@ export interface NativeFlocks {
   advance: (view: Flock, index: number, speed: number, player: Vector3, dt: number, time: number, step: PreparedCrowds['advance']) => void;
 }
 /** Admit all authored crowds before placement; no legacy flock setup or scheduler runs in the declared branch. */
-export function createNativeFlocks(sky: WildlifeOpts['sky'], seed: number, body: FlockBody, layout = NALATI_WILDLIFE.flocks): NativeFlocks {
-  const rows = nalatiFlockRows(seed, layout);
+export function createNativeFlocks(sky: WildlifeOpts['sky'], seed: number, body: FlockBody, profile: keyof typeof ecology.flocks = 'world'): NativeFlocks {
+  const rows = ecology.flocks[profile].map(row => parseFlock({ ...row, seed: seed + row.seed }));
   const views = new Map<string, Flock>(), observations = new Map<string, CrowdObservation>();
   const runtime = prepareDeclaredCrowds(rows, { flock: row => {
     const observation: CrowdObservation = { player: new Vector3(), playerSpeed: 0, wolves: dogWolves, dog: null };

@@ -1,3 +1,4 @@
+import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
 import type { OwnedId } from '../src/game/loot/Owned';
@@ -5,7 +6,6 @@ import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
 import { FINDS_ELITES, elitePrize, nalatiFinds } from '../src/shards/nalati-grasslands/bag';
-import { NALATI_ELITE_DEFS } from '../src/shards/nalati-grasslands/data/eliteEncounters';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
 const islandCatalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
@@ -41,7 +41,7 @@ test('the named Nalati W3 flag and prize catalogue fits its current Bag owner', 
   ], sections: [
     { title: 'Elites', wide: true, items: FINDS_ELITES.map(({ id, icon }) => {
       const { prize, title } = elitePrize(id);
-      return { label: NALATI_ELITE_DEFS[id]?.name ?? id, icon, flag: `felled:${id}`, prize: title === null ? [prize] : [prize, title] };
+      return { label: ecology.elites[id]?.name ?? id, icon, flag: `felled:${id}`, prize: title === null ? [prize] : [prize, title] };
     }) },
     { title: 'Places', dense: true, items: content.places.map(row => ({ label: row.label, icon: 'pin' as const, flag: `seen:${row.id}` })) },
   ] });

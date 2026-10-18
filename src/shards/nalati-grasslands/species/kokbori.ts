@@ -1,8 +1,8 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { eliteThink, eliteAct, eliteDamageMul } from '../runtime/eliteBrain';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { KOKBORI_DATA } from '../data/species/kokbori';
 
 
 
@@ -24,7 +24,7 @@ const SKY: Record<string, RGB> = {
   back: [0.4, 0.44, 0.5], side: [0.64, 0.68, 0.73], cream: [0.93, 0.94, 0.96], leg: [0.6, 0.64, 0.69], dark: [0.2, 0.22, 0.26],
   eye: [0.78, 0.9, 0.96], earIn: [0.7, 0.7, 0.74],
 };
-const { id: _id, brain: _brain, ...body } = KOKBORI_DATA;
+const { id: _id, brain: _brain, ...body } = ecology.species.kokbori;
 
 function coat(row: SpeciesDef['variants'][number]): SpeciesDef['variants'][number] { return { ...row, tint: SKY, traits: { ruff: 1.45 } }; }
 export const KOKBORI_SPECIES: SpeciesDef = {

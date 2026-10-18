@@ -79,7 +79,18 @@
         "src/shards/nalati-grasslands/generators/poiLayout.ts",
         "src/shards/nalati-grasslands/generators/clearings.ts",
         "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs"
+        "scripts/bake-output.mjs",
+        "src/shards/nalati-grasslands/generators/ecology.mjs",
+        "src/shards/nalati-grasslands/data/ecology.json",
+        "src/shards/nalati-grasslands/data/ecologyTypes.d.ts",
+        "src/sdk/crowds.ts",
+        "src/sdk/species.ts",
+        "src/format",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json",
+        "src/format/package.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/layout.generated.json",
@@ -91,7 +102,9 @@
         "src/shards/nalati-grasslands/data/layout.generated.json",
         "src/shards/nalati-grasslands/data/layout.generated.d.json.ts",
         "src/shards/nalati-grasslands/data/poiLayout.generated.json",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts"
+        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/ecology.generated.json",
+        "src/shards/nalati-grasslands/data/ecology.generated.d.json.ts"
       ],
       "platform": "portable",
       "buildOutputs": {
@@ -104,7 +117,9 @@
         "src/shards/nalati-grasslands/data/layout.generated.json": "0c1fea5a19edda97dedb5b09954a247dfa2f32c6e2c7ca66a626623e51f8de65",
         "src/shards/nalati-grasslands/data/layout.generated.d.json.ts": "b72a09fa458cb1b59c3ef78b1e3e5a2b9c8371e84a02689043bb49915c349a4b",
         "src/shards/nalati-grasslands/data/poiLayout.generated.json": "04da84f5bd551819a189d35a55546c6fa06240ae17c5cbe5c3ceef440984de4a",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts": "7298b7c93b1f048c254f97965924a78b397f2fb3a8c9c28b1b383d627f0a7c04"
+        "src/shards/nalati-grasslands/data/poiLayout.generated.d.json.ts": "7298b7c93b1f048c254f97965924a78b397f2fb3a8c9c28b1b383d627f0a7c04",
+        "src/shards/nalati-grasslands/data/ecology.generated.json": "869c06de7fe88cb7f9d978825c12d95b9eb63c1c3e1232165bb9752ff86c9bd9",
+        "src/shards/nalati-grasslands/data/ecology.generated.d.json.ts": "f6ed6186bf039755ccfab94a34eb6938e7436107a7234f324b3b192173c3f246"
       }
     },
     {

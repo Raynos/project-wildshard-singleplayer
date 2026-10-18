@@ -1,3 +1,4 @@
+import ecology from './data/ecology.generated.json' with { type: 'json' };
 import NALATI_FEATS from './data/feats.json' with { type: 'json' };
 /**
  * Nalati's Bag (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): MAP · GEAR · FINDS · FEATS. No
@@ -16,7 +17,6 @@ import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import content from './data/questContent.json' with { type: 'json' };
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
-import { NALATI_ELITE_DEFS as ELITE_DEFS } from './data/eliteEncounters';
 
 export const NALATI_CHUNK_ID = 'chunk://local/nalati-grasslands';
 
@@ -36,13 +36,13 @@ const SLOT_ICON: Readonly<Record<string, IconId>> = { sabre: 'sword', bow: 'long
 
 /** who drops a skin ("Aqbars the Pale"), or null for one nobody does */
 export function skinSource(skinId: string): string | null {
-  const elite = Object.values(ELITE_DEFS).find((d) => d.drop.skin === skinId);
+  const elite = Object.values(ecology.elites).find((d) => d.drop.skin === skinId);
   return elite?.name ?? OTHER_SOURCE[skinId] ?? null;
 }
 
 /** what an elite pays: its skin ("Irbis skin") or, for Argymaq, himself ("Your horse"), and its FEATS title */
 export function elitePrize(id: string): { prize: string; title: string | null } {
-  const skin = ELITE_DEFS[id]?.drop.skin ?? null;
+  const skin = ecology.elites[id]?.drop.skin ?? null;
   const name = skin === null ? null : NALATI_SKINS.find((s) => s.id === skin)?.name ?? null;
   const title = NALATI_FEATS.find((a) => a.id === id)?.title ?? null;
   return { prize: name === null ? 'Your horse' : `${name} skin`, title };
@@ -64,7 +64,7 @@ export function skinRows(locker: { entries: () => NalatiSkinEntry[] }): SkinRow[
 export function nalatiFinds(flags: { has: (flag: string) => boolean }): FindsView {
   const elites = FINDS_ELITES.map(({ id, icon }) => {
     const { prize, title } = elitePrize(id);
-    return { label: ELITE_DEFS[id]?.name ?? id, icon, found: flags.has(`felled:${id}`), prize: title !== null ? [prize, title] : [prize] };
+    return { label: ecology.elites[id]?.name ?? id, icon, found: flags.has(`felled:${id}`), prize: title !== null ? [prize, title] : [prize] };
   });
   const places = content.places.map((p) => ({ label: p.label, icon: 'pin' as const, found: flags.has(`seen:${p.id}`) }));
   return {

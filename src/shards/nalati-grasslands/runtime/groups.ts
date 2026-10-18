@@ -1,12 +1,11 @@
+import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { PackBrain, type PackPorts, type PackPrey } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../data/brains.json' with { type: 'json' };
-import { NALATI_WILDLIFE } from '../data/fauna';
 import { wildEnv, type WildEnv } from '../creatures/env';
-import { ARGYMAQ } from '../data/eliteEncounters';
 import { nativeHerdPorts, nativePackPorts, passThroughPlayer, type NativeGroupHost, type NativeGroupWorld } from './groupPorts';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { NalatiBody } from './headless';
@@ -116,8 +115,8 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   // shepherd's (creatures/sheepRaid.ts), the horses outside any herd
   ports.bodies.forEach(b => { if (b.boot.kind === 'horse' && b.boot.herd === -1) b.actor.mem['owned'] = 1; });
   // Wildlife.build: its one pack, then its one wild herd
-  const den = NALATI_WILDLIFE.packs[0];
-  if (den === undefined || NALATI_WILDLIFE.packs.length !== 1 || NALATI_WILDLIFE.herds.length !== 1) throw new Error('Nalati headless models one pack and one wild herd');
+  const den = ecology.wildlife.packs[0];
+  if (den === undefined || ecology.wildlife.packs.length !== 1 || ecology.wildlife.herds.length !== 1) throw new Error('Nalati headless models one pack and one wild herd');
   const pack = herdOf(0, 'wolf');
   wolves.push(...pack);
   const data = nativeGroupBrain({ ...brainRows.pack, home: [den.x, den.z], members: pack.map(a => a.entityId) });
@@ -132,7 +131,7 @@ export function installNalatiGroups(host: SimHost, ports: { bodies: readonly Nal
   // reset(0) burst cooldown (combat/goldenKing.ts, his body parked)
   const firstRaid = 150 + host.rng.stream('ai').next() * 90; host.rng.stream('ai').next();
   // Argymaq's herd: the mares and foal Wildlife places for him, then him as its stallion
-  const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ARGYMAQ);
+  const lair = herdOf(3, 'horse'), argymaq = lair.find(a => a.kind === ecology.argymaq);
   if (argymaq === undefined || lair[lair.length - 1] !== argymaq) throw new Error('Argymaq\'s herd has no Argymaq');
   herd(lair.slice(0, -1)).adoptStallion(argymaq);
   const addPack = (members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> => {
