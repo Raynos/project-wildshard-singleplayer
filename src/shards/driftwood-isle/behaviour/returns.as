@@ -7,6 +7,17 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/driftwoodRet
   } else if(signal==Signal.eligible) {
     const dx=get(Field.x)-get(Field.playerX),dz=get(Field.z)-get(Field.playerZ),away=get(Field.away);
     Do.channel(Channel.eligible,get(Field.now)>=get(Field.due)&&(get(Field.nocturnal)==0||get(Field.night)>=.5)&&dx*dx+dz*dz>=away*away?1:0);
+  } else if(signal==Signal.perchScore) {
+    let best:f64=0,index:i32=-1;
+    const count=i32(get(Field.candidates));
+    for(let i:i32=0;i<count;i++) {
+      const site=i+1,score=Read.field(site,Field.awayDistance)*.5-Read.field(site,Field.distance)*.3-Read.field(site,Field.occupied)*30+Read.random()*3;
+      if(!isFinite(score))unreachable();
+      if(index<0||score>best){best=score;index=i;}
+    }
+    Do.channel(Channel.index,index);Do.channel(Channel.score,best);
+  } else if(signal==Signal.perchHeight) {
+    Do.channel(Channel.perchH,Math.max(.5,get(Field.y)-get(Field.ground)+.05));
   } else if(signal==Signal.place) {
     const homeX=get(Field.x),homeZ=get(Field.z),fixed=get(Field.fixed)!=0,water=get(Field.water);
     let x=homeX,z=homeZ;

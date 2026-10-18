@@ -2,7 +2,7 @@
 import type { Animal } from '../../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import { monkeyAttackRandom } from '../../../src/shards/driftwood-isle/species/monkey';
-import { pickPerch, setPerch, type MonkeyMem, ST_PERCH, ST_GROUND_IDLE, ST_ATTACK, ST_DROP, ST_GROUND, ST_RETURN, ST_CLIMB, THROW_R, THROW_DUR, BITE_R, BITE_DUR, UNDER_R, UNDER_T, RUN, HOLD_R } from '../../../src/shards/driftwood-isle/species/monkeyPolicy';
+import { pickPerch, setPerch, type MonkeyMem, ST_PERCH, ST_GROUND_IDLE, ST_ATTACK, ST_DROP, ST_GROUND, ST_RETURN, ST_CLIMB, THROW_R, THROW_DUR, BITE_R, BITE_DUR, UNDER_R, UNDER_T, RUN, HOLD_R } from './monkeyPolicy';
 
 export function legacyMonkeyDecision(a: Animal, c: ThinkCtx): void {
   const m = a.mem as MonkeyMem, rng = c.rng;

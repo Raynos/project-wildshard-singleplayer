@@ -1,3 +1,5 @@
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 import { populationEnvironment } from '../src/game/population/environment';
 import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual shipped native physics owner, without a browser.
@@ -91,7 +93,7 @@ test('made-up salt-marsh roster reserves and adopts a body without draws and res
 test('made-up marsh rows shelter a flock and return nocturnal bodies in reverse death order', () => {
   const herds = [{ kind: 'heron', cx: 4, cz: 0, members: [] }];
   const shelter = new HerdShelter({ herds }, [{ x: 0, z: 0, r: 1, height: 8, cover: 1 }],
-    { kinds: ['heron'], bigTree: 5, reach: 20, homeHold: 2, clear: 1, spotR: 2, homeR: 4, wet: .4, dry: .2, heightBias: 1, coverBias: 2 });
+    { kinds: ['heron'], bigTree: 5, reach: 20, homeHold: 2, clear: 1, spotR: 2, homeR: 4, wet: .4, dry: .2, heightBias: 1, coverBias: 2 }, ReturnProgram.page(program));
   shelter.update(1, 1); expect(shelter.wanderGoal(0, 1)).toEqual({ x: 2, z: 0, r: 2 });
   const saved = shelter.snapshot(); shelter.restore(saved); expect(shelter.snapshot()).toEqual(saved);
   const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 }, night: true } }, 10);
@@ -120,7 +122,7 @@ test('native shelter resolves its actual roster and weather without ports, prese
   if (step === undefined) throw new Error('Missing native weather cadence');
   const air = installWeatherContinuation(host, weather, { phase: 0 }, 'rain');
   const look = { kinds: ['marsh-beast'], bigTree: 5, reach: 20, homeHold: 3, clear: 1, spotR: 2, homeR: 6, wet: .3, dry: .1, heightBias: 0, coverBias: 0 };
-  const rows = { environment: 'fixture.habitat', step: 'marsh.shelter', roster: 'marsh.roster', weather: step, herdLimit: 8, look };
+  const rows = { environment: 'fixture.habitat', step: 'marsh.shelter', roster: 'marsh.roster', weather: step, herdLimit: 8, look, program };
   const shelter = installNativeHerdShelter(host, [[0,0,1,8,1]], rows);
   try {
     expect(() => shelter.snapshot()).toThrow('Missing native population service');
@@ -137,4 +139,43 @@ test('native shelter resolves its actual roster and weather without ports, prese
     const ids = snapshotSimHost(host).adapters.map(row => row.id);
     expect(ids.indexOf(rows.step)).toBeLessThan(ids.indexOf(rows.roster));
   } finally { host.dispose(); }
+});
+
+
+test('projected sites preserve source ties, range admission, exact perch choices and shared RNG rollback', async () => {
+  const { projectedSite } = await import('../src/game/population/projectedSites');
+  const { default: returns } = await import('../src/shards/driftwood-isle/behaviour/returns.generated.json');
+  const { selectCreatureSites } = await import('../src/game/plugin/brain');
+  const guest = ReturnProgram.page(returns), rng = new Rng(317), original = new Rng(317);
+  const points = Array.from({ length: 36 }, (_, i) => ({ x: i - 18, z: i % 7, occupied: i % 3 === 0 ? 1 : 0 }));
+  for (const minimum of [0, 3, 8]) for (const maximum of [12, 30]) {
+    const origin = { x: 2, z: 1 }, away = { x: -4, z: 3 };
+    const expected = selectCreatureSites(points, { count: 1, origin, minDistance: minimum, maxDistance: maximum },
+      (point, _i, distance) => Math.hypot(point.x - away.x, point.z - away.z) * .5 - distance * .3 - point.occupied * 30 + original.next() * 3)[0]?.index ?? null;
+    expect(projectedSite(points, guest, { signal: 'perchScore', limit: 1024, origin, minimum, maximum, observations: {}, away }, rng)?.index ?? null).toBe(expected);
+    expect(rng.snapshot()).toEqual(original.snapshot());
+  }
+  const before = rng.snapshot();
+  const refused = Array.from({ length: 9 }, (_, i) => i < 8 ? { x: i + 1, z: 0, occupied: 0 } : { x: 9, z: 0 });
+  expect(() => projectedSite(refused, guest,
+    { signal: 'perchScore', limit: 1024, origin: { x: 0, z: 0 }, minimum: 0, maximum: 10, observations: {} }, rng)).toThrow();
+  expect(rng.snapshot()).toEqual(before);
+  const shelter = ReturnProgram.page(program), same = [{ x: -2, z: 0, height: 0, cover: 0 }, { x: 2, z: 0, height: 0, cover: 0 }];
+  expect(projectedSite(same, shelter, { signal: 'shelterScore', limit: 16384, origin: { x: 0, z: 0 }, minimum: 2, maximum: 2,
+    observations: { heightBias: 0, height: 0, coverBias: 0, cover: 0 } })?.index).toBe(0);
+  expect(() => projectedSite(same, shelter, { signal: 'shelterScore', limit: 1, origin: { x: 0, z: 0 }, minimum: 0, maximum: 3,
+    observations: {} })).toThrow('Invalid projected site');
+});
+
+
+test('return guests share one module per live owner and refuse declaration drift', async () => {
+  const { Scope } = await import('../src/engine/app/scope');
+  const owner = new Scope('fixture.projections');
+  const first = ReturnProgram.page(program, owner);
+  expect(ReturnProgram.page(structuredClone(program), owner)).toBe(first);
+  expect(() => ReturnProgram.page({ ...program, script: { ...program.script, params: { different: 1 } } }, owner)).toThrow('Shared return declaration changed');
+  const secondOwner = new Scope('fixture.other-projections');
+  expect(ReturnProgram.page(program, secondOwner)).not.toBe(first);
+  owner.dispose(); secondOwner.dispose();
+  expect(() => ReturnProgram.page(program, owner)).toThrow('Return owner disposed');
 });

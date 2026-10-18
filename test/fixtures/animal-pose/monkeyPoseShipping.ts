@@ -1,7 +1,7 @@
 import { MathUtils } from 'three';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '@wildshard/engine/entities/species/rigs';
-import type { MonkeyMem } from '../../../src/shards/driftwood-isle/species/monkeyPolicy';
+import type { MonkeyMem } from '../species-oracle/monkeyPolicy';
 
 type Side = 'L' | 'R';
 type MonkeyBones = Record<'body' | 'spine' | 'chest' | 'head' | `tail${1 | 2 | 3}` | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, AnimalRigJoint>;

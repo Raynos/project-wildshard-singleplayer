@@ -1,3 +1,4 @@
+import { Scope } from '../src/engine/app/scope';
 import { parse } from 'valibot';
 import { PineGrazersSchema, ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
@@ -59,8 +60,9 @@ for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
 const { DRIFTWOOD_LOOKS } = await import('../src/shards/driftwood-isle/species/install');
 const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
 const { MONKEY_CLIPS } = await import('../src/shards/driftwood-isle/generators/monkeyClips');
-const { createMonkeyAnimation } = await import('../src/shards/driftwood-isle/species/monkeyPolicy');
-const monkeyAnimate = createMonkeyAnimation(MONKEY_CLIPS);
+const { MonkeyBinding } = await import('../src/shards/driftwood-isle/species/monkeyBinding');
+const { RETURN_PROGRAM } = await import('../src/shards/driftwood-isle/generators/returnProgram');
+const monkeyAnimate = new MonkeyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM }, new Scope('fixture.monkey')).animate;
 for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));

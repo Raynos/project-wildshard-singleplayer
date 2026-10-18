@@ -3,5 +3,12 @@
   "source": "src/shards/driftwood-isle/species/monkey.ts",
   "sourceHash": "5560d3f0c42209cd8aeef5c2868121bcca8443be5f76ae16725683c4d9ca926e",
   "fixture": "test/fixtures/species-oracle/driftwood-monkey.ts",
-  "fixtureHash": "d8d8691bd2eb2fa78fb670c12685c594805123d7599538a04ce6be7bd670c904"
+  "fixtureHash": "654bed7c725fcf921c134862891f32f4fc7b7cdcf456c87c058c5f71aa9965a2",
+  "adaptation": "Only the helper import changed; the fixed predecessor helpers remain test-only.",
+  "support": {
+    "revision": "5c30f7a7b152dcf5f3c5e394a6fdad86e8e81229",
+    "source": "src/shards/driftwood-isle/species/monkeyPolicy.ts",
+    "fixture": "test/fixtures/species-oracle/monkeyPolicy.ts",
+    "sha256": "1ce353106923594c2375d98a8f8feb29e1d59f4842be782c262b0da2e8c29156"
+  }
 }

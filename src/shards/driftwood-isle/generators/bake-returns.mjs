@@ -2,8 +2,9 @@ import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buil
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const names = ['away','draw','due','fixed','maximum','minimum','night','nocturnal','now','playerX','playerZ','water','x','z'];
-const channels = ['due','eligible','retry','x','z'], signals = ['eligible','place','schedule'];
+const names = ['candidates','away','draw','due','fixed','maximum','minimum','night','nocturnal','now','playerX','playerZ','water','x','z',
+  'ground','awayDistance','distance','occupied','y'];
+const channels = ['due','eligible','retry','x','z','index','score','perchH'], signals = ['eligible','place','schedule','perchScore','perchHeight'];
 const aliases = (values) => Object.fromEntries(values.map(name => [name,name]));
 const registry = (values) => new Map([...values].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const source = { id:'driftwood.returns',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/returns.as',

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
 import { lookAngles, smooth01, bump, step, clamp, squashBody } from '../../../src/engine/entities/species/rigs';
 type CaptainMem=Record<string,number>&{init:number;rise:number;phase:number};
-import type { MonkeyMem } from '../../../src/shards/driftwood-isle/species/monkeyPolicy';
+import type { MonkeyMem } from '../species-oracle/monkeyPolicy';
 type Side='L'|'R';type LegIdx=0|1|2;
 type CrabBones=Record<'body'|'head'|`claw${Side}_${'arm'|'hand'|'tip'}`|`leg${Side}${LegIdx}_${'hip'|'knee'}`,AnimalRigJoint>;
 type MonkeyBones=Record<'body'|'spine'|'chest'|'head'|`tail${1|2|3}`|`arm${Side}_${'sh'|'el'|'hand'}`|`leg${Side}_${'hip'|'knee'|'foot'}`,AnimalRigJoint>;

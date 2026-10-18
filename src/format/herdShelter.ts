@@ -28,6 +28,6 @@ const positive = v.pipe(v.number(), v.finite(), v.minValue(0));
 const lookSchema = v.strictObject({ kinds: v.array(v.pipe(v.string(), v.minLength(1))), bigTree: positive, reach: positive,
   homeHold: positive, clear: positive, spotR: positive, homeR: positive, wet: positive, dry: positive, heightBias: positive, coverBias: positive });
 const rowsSchema = v.strictObject({ environment: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), roster: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), weather: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), step: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
-  herdLimit: v.pipe(positive, v.integer(), v.minValue(1), v.maxValue(1024)), look: lookSchema });
+  program: v.unknown(), herdLimit: v.pipe(positive, v.integer(), v.minValue(1), v.maxValue(1024)), look: lookSchema });
 /** Parse the admitted native shelter rows; the page borrows exactly the same look. */
 export function parsePopulationShelter(input: unknown): v.InferOutput<typeof rowsSchema> { return v.parse(rowsSchema, input); }

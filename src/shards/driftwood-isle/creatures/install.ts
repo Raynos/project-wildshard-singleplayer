@@ -1,4 +1,4 @@
-import { createMonkeyAnimation } from '../species/monkeyPolicy';
+import { MonkeyBinding } from '../species/monkeyBinding';
 import { MONKEY_LOOK } from '../species/monkey';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -19,13 +19,13 @@ const { PRACTICE_CRAB } = authoredLayout;
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export async function installDriftwoodCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {
-  const animate = createMonkeyAnimation(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('poses/monkey.json'))));
+  const monkey = new MonkeyBinding(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('poses/monkey.json'))), ctx.scope);
   const section = ctx.product.section('actors/species-programs'), program = section.program;
   const respawn = section.spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
   if (program === undefined || respawn === undefined) throw new Error('Driftwood requires its admitted creature recipes');
-  ctx.rows.species([...driftwoodSpeciesRows(program,decisions), ...section.page]);
+  ctx.rows.species([...driftwoodSpeciesRows(program,monkey,decisions), ...section.page]);
   // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
-  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look === MONKEY_LOOK ? { ...look, animate } : look))));
+  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look === MONKEY_LOOK ? { ...look, animate: monkey.animate } : look))));
   ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);

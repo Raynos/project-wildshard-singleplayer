@@ -23,6 +23,7 @@
  * Antler King's sealed clearing sets it, so the fight's own fog (×26 on the clock's density) is the whole fog in there.
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -83,10 +84,10 @@ export interface PineWeatherRig { weather: WeatherContinuation; fx: InstanceType
 export async function installWeather(ctx: ShardContext, host: PineWeatherHost): Promise<PineWeatherRig | null> {
   const rows=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.product.file('world/weather.json'))));
   const shelterRows = populationShelter(JSON.parse(new TextDecoder().decode(await ctx.product.file('actors/shelter.json'))));
-  return installPineWeather(host, ctx, rows, shelterRows.look, retainsRuntimeServices(ctx) ? ctx : undefined);
+  return installPineWeather(host, ctx, rows, shelterRows, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, shelterLook: ReturnType<typeof populationShelter>['look'], entered?: ShardContext): PineWeatherRig | null {
+function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, shelterRows: ReturnType<typeof populationShelter>, entered?: ShardContext): PineWeatherRig | null {
   const pine = keyedSkyOf(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -106,7 +107,7 @@ function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: Weather
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
   const baseMist = h.particles?.params.mistOpacity ?? 1;
-  const shelter = new HerdShelter(h.animals, h.trees.map(tree => ({ ...tree, cover: fx.coverAt(tree.x, tree.z) })), shelterLook);
+  const shelter = new HerdShelter(h.animals, h.trees.map(tree => ({ x: tree.x, z: tree.z, r: tree.r, height: tree.height, cover: fx.coverAt(tree.x, tree.z) })), shelterRows.look, ReturnProgram.page(shelterRows.program, ctx.scope));
   const wind = { x: 0, z: 0 };
 
   const veil = { x: { value: 0 }, y: { value: 0 } };

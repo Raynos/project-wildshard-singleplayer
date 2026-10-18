@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
 import authoredSpeciesActions from '../src/shards/driftwood-isle/data/speciesActions.json' with { type: 'json' };
-import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyPolicy';
+import { biteMonkey, throwMonkeyCoconut, type MonkeyStrikePorts } from '../src/shards/driftwood-isle/species/monkeyBinding';
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
 import { DRIFTWOOD_STRIKES } from './fixtures/species/driftwood';

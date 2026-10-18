@@ -200,6 +200,7 @@
     "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts",
     "./shardfile/worldSceneSurface": "./shardfile/worldSceneSurface.ts",
     "./shardfile/worldSceneWeld": "./shardfile/worldSceneWeld.ts",
+    "./population/projectedSites": "./population/projectedSites.ts",
     "./population/environment": "./population/environment.ts",
     "./models/explorerCatalogue": "./models/explorerCatalogue.ts",
     "./shardfile/sceneSources": "./shardfile/sceneSources.ts",

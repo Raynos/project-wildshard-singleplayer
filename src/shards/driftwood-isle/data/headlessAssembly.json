@@ -16,9 +16,6 @@
     "@wildshard/game/quest/killSteps": [
       "installQuestKillSteps"
     ],
-    "src/shards/driftwood-isle/species/monkeyPolicy": [
-      "createMonkeyAnimation"
-    ],
     "src/shards/driftwood-isle/runtime/quest": [
       "driftwoodSpots",
       "installDriftwoodQuest"
@@ -182,7 +179,7 @@
       }
     },
     {
-      "name": "monkeyPoseJson",
+      "name": "monkeyJson",
       "value": {
         "$call": [
           {
@@ -193,19 +190,6 @@
           },
           "poses/monkey.json",
           true
-        ]
-      }
-    },
-    {
-      "name": "monkeyPose",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/driftwood-isle/species/monkeyPolicy", "createMonkeyAnimation"]
-          },
-          {
-            "$ref": ["monkeyPoseJson"]
-          }
         ]
       }
     },
@@ -492,8 +476,8 @@
             "$ref": ["host"]
           },
           {
-            "monkeyPose": {
-              "$ref": ["monkeyPose"]
+            "monkey": {
+              "$ref": ["monkeyJson"]
             },
             "decisions": {
               "$call": [

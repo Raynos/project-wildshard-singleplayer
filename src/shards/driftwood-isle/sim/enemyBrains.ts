@@ -1,14 +1,14 @@
-import type { Vector3 } from 'three';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { EnemyWorld } from '@wildshard/engine/entities/species/registry';
-import { createMemoryActionBrain, createNativeSpeciesContext, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import { createMemoryActionBrain, createNativeSpeciesContext, type SpeciesDecision, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import type { SimValue } from '@wildshard/engine/sim';
 import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from '../species/monkeyPolicy';
+import { biteMonkey, throwMonkeyCoconut, type MonkeyBinding, type MonkeyPerchPorts, type MonkeyStrikePorts } from '../species/monkeyBinding';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { PerchHunterPorts } from '@wildshard/engine/ai/guardianPolicy';
 import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
-
-const { MONKEY_ACTIONS } = authoredSpeciesActions;
 
 /** One live enemy's shipping policy, observing through ports allocated once at its spawn. */
 export interface EnemyBrain { decide: (dt: number) => void; move: (dt: number) => void; snapshot: () => SimValue; restore: (value: SimValue) => void }
@@ -24,7 +24,7 @@ type EnemyBrainPorts = Parameters<typeof createNativeSpeciesContext<EnemyWorld<H
  * tokens, reach by the physics line of sight, and a strike landing on the player as PlayerHurt.creature files it, only
  * inside the 70° strike arc (Driftwood's fight is telegraphed) and with a clear line.
  */
-export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: readonly HuntBody[] | null, shared: EnemyBrainPorts, brains: SpeciesBrains, decisions: SpeciesDecisionAuthority, bite: StrikeSpec): EnemyBrain {
+export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: readonly HuntBody[] | null, shared: EnemyBrainPorts, brains: SpeciesBrains, decisions: SpeciesDecisionAuthority, bite: StrikeSpec, monkey: MonkeyBinding): EnemyBrain {
   const context = createNativeSpeciesContext(shared, actor, herd, label);
   if(kind==='captain') {
     const policy=brains.body(kind,actor,{host:shared.host,stream:shared.rng,decisions,attacks:{kind:'keeper',claim:()=>context.observation.claim(actor)}});
@@ -38,19 +38,23 @@ export function enemyBrain(kind: string, label: string, actor: HuntBody, herd: r
   }
   const actions = brains.actions(kind, actor);
   if (actions !== null) return context.bind(context.observation, actions, actions);
-  const ports = Object.assign(context.observation, {
-    pickPerch: (a: HuntBody, min: number, max: number, away?: Vector3): number => pickPerch(a, ports, min, max, away),
-    setPerch: (a: HuntBody, index: number): void => { setPerch(a, ports, index); },
-  });
-  type Ports = typeof ports;
-  const wrap = (brain: { think: (c: Ports) => void; act: (c: Ports) => void }, policy: { snapshot: () => SimValue; restore: (value: SimValue) => void }): EnemyBrain => context.bind(ports, brain, policy);
   if (brains.kinds.has(kind)) {
     const decision = brains.decision(kind, actor), policy = decision.policy;
-    switch (decision.archetype) {
-      case 'perch-hunter': return wrap(createMemoryActionBrain<HuntBody, Ports>(actor, MONKEY_ACTIONS, { decide: (_a, c) => { decision.policy.think(c); }, effects: new Map([['bite', (a: HuntBody, c: Ports) => { biteMonkey(a, c, bite); }], ['throw', throwMonkeyCoconut]]) }), policy);
-      case 'skirmisher': case 'guardian': case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': throw new Error('Unknown admitted Driftwood enemy decision');
-        default: throw new Error('Unknown admitted Driftwood enemy decision');
-    }
+    return context.bind(context.observation, monkeyActions(monkey, actor, context.observation, decision, bite, context.observation.attackRandom), policy);
   }
   throw new Error(`Driftwood has no enemy policy for ${kind}`);
 }
+
+  /** Page and native owners lend their actual observation and cooldown stream;
+   * the same adapter refreshes each decision before the original action gates. */
+export function monkeyActions<A extends AnimalSim, C extends MonkeyPerchPorts<A> & MonkeyStrikePorts<A> & Omit<PerchHunterPorts<A>, 'pickPerch' | 'setPerch' | 'attackRandom'>>(
+    binding: MonkeyBinding, actor: A, first: C, decision: SpeciesDecision<A>, bite: StrikeSpec, attackRandom: Pick<Rng, 'range'>): ReturnType<typeof createMemoryActionBrain<A, C>> {
+    if (decision.archetype !== 'perch-hunter') throw new Error('Monkey requires its admitted perch guardian');
+    let current = first;
+    const ports = { ...first, attackRandom,
+      pickPerch: (a: A, min: number, max: number, away?: A['position']): number => binding.pickPerch(a, current, min, max, away),
+      setPerch: (a: A, index: number): void => { binding.setPerch(a, current, index); } };
+    return createMemoryActionBrain<A, C>(actor, authoredSpeciesActions.MONKEY_ACTIONS, { decide: (_a, context) => {
+      current = context; Object.assign(ports, context); decision.policy.think(ports);
+    }, effects: new Map([['bite', (a: A, c: C) => { biteMonkey(a, c, bite); }], ['throw', throwMonkeyCoconut]]) });
+  }

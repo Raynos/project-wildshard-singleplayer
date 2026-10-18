@@ -2,16 +2,11 @@ import type { SpeciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { biteMonkey, throwMonkeyCoconut, pickPerch, setPerch } from './monkeyPolicy';
-import { createMemoryActionBrain } from '@wildshard/game/plugin/brain';
-import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
-
-const { MONKEY_ACTIONS } = authoredSpeciesActions;
+import type { MonkeyBinding } from './monkeyBinding';
+import { monkeyActions } from '../sim/enemyBrains';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -38,18 +33,9 @@ const { MONKEY_ACTIONS } = authoredSpeciesActions;
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-export function monkeyCallbacks(brains: SpeciesBrains, bite: StrikeSpec): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
-  if (decision.archetype !== 'perch-hunter') throw new Error('Driftwood monkey requires its authored perch guardian row');
+export function monkeyCallbacks(brains: SpeciesBrains, bite: StrikeSpec, binding: MonkeyBinding): ReturnType<SpeciesBrains['bind']> { return brains.bind('monkey', (actor, decision, ctx) => {
   if (ctx === undefined) throw new Error('Driftwood monkey requires its first callback context');
-  let current = ctx;
-  const ports = { ...ctx,
-    attackRandom: { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) },
-    pickPerch: (a: Animal, min: number, max: number, away?: Animal['position']): number => pickPerch(a, current, min, max, away),
-    setPerch: (a: Animal, index: number): void => { setPerch(a, current, index); },
-  };
-  return createMemoryActionBrain<Animal, ThinkCtx>(actor, MONKEY_ACTIONS, { decide: (_actor, context) => {
-    current = context; Object.assign(ports, context); decision.policy.think(ports);
-  }, effects: new Map([['bite', (a: Animal, c: ThinkCtx) => { biteMonkey(a, c, bite); }], ['throw', throwMonkeyCoconut]]) });
+  return monkeyActions(binding, actor, ctx, decision, bite, { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) });
 }); }
 
 export const MONKEY_LOOK: SpeciesLook = {

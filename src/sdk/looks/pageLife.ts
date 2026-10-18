@@ -68,7 +68,7 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
     }
   }
   const group = (id: string): AmbientGroup => { const value = groups.get(id); if (value === undefined) throw new Error('Unknown ambient group'); return value; };
-  const program = data.program === undefined ? null : ctx.scope.run(() => ReturnProgram.page(data.program));
+  const program = data.program === undefined ? null : ReturnProgram.page(data.program, ctx.scope);
   const project = (signal: string, fields: Readonly<Record<string,number>>): Readonly<Record<string,number>> => {
     if (program === null) throw new Error('Ambient rule requires its admitted guest');
     return program.project(signal, fields);

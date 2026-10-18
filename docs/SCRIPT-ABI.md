@@ -438,3 +438,23 @@ flock pose packing and timed-tool interpolation remain native. Pine's
 `behaviour/life.as` contains its forest rules. The product admits the same
 fixed-page Wasm bytes through `actors/return-scripts`; the existing page
 decision authority prepares its memory before construction. The guest owns no clock, actor or durable save state.
+
+
+### Stateless population site projections
+
+DW declares `perchScore` and `perchHeight`; Pine declares `shelterScore` and
+`shelterPlace`. Site traversal supplies native `Math.hypot` distances and
+preserves candidate/RNG order. Only scoring and site decisions enter AS.
+Per-frame root integration remains counted native TypeScript at its original
+near-pose phase, preserving absent old-save memory keys and the v8 wire (G457).
+
+A projection may receive at most eight transient numeric candidate records.
+`field(0, id)` reads the request; `field(n, id)` reads candidate `n - 1`.
+These are not actor handles. Undeclared fields and out-of-range indices refuse.
+The records are cleared on every exit and never enter guest or host save state.
+Site selection divides its admitted list into eight-site batches, preserving
+source order and the existing 400,000 coarse fuel cap per guest call.
+
+Native and page factories share an admitted module inside the same owner scope.
+An inconsistent declaration for the same module refuses; disposal releases the
+scope's instance. No extra scheduler, actor controller or instance is installed.

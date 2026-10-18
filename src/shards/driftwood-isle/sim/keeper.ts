@@ -9,6 +9,7 @@ import crabClips from '../data/crabClips.generated.json' with { type: 'json' };
 import sailorClips from '../data/sailorClips.generated.json' with { type: 'json' };
 import captainClips from '../data/captainClips.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
+import { MonkeyBinding } from '../species/monkeyBinding';
 import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -47,7 +48,7 @@ const POSE_CALLBACKS = new Map([['crab', numericCreaturePose(crabClips)], ['sail
 /** One body of the island: its id, kind / variant, label, herd slot (−1: none) and recipe; `actor` is null once retired. */
 export interface IslandBody extends NativeCreatureSlot { brain: EnemyBrain | null }
 export interface IslandPorts {
-  readonly monkeyPose: (c: AnimalRigContext) => void;
+  readonly monkey: unknown;
   readonly decisions: SpeciesDecisionAuthority;
   readonly population: SpeciesPrograms;
   readonly launch: BodyLaunchRow;
@@ -144,6 +145,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   publishPoses: () => void;
 } {
   const { program, hunt: settings, spawns } = ports.population;
+  const monkey = new MonkeyBinding(ports.monkey, host);
   const Saved = savedSchema(ports.keeper.volley.count);
   const practiceRule = spawns?.find(row => row.id === 'spawn.driftwood.practice')?.respawn;
   if (program === undefined || settings === undefined || practiceRule === undefined) throw new Error('Driftwood requires its admitted creature recipes');
@@ -175,7 +177,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(ports.launch, from, to, thrower, placed.stream); },
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
-  const callbacks = new Map(POSE_CALLBACKS); callbacks.set('monkey', ports.monkeyPose);
+  const callbacks = new Map(POSE_CALLBACKS); callbacks.set('monkey', monkey.animate);
   const poses = createNativeCreaturePoses([...bake.actors, { kind: 'captain', variant: 'captain', pose: bake.captain.pose }], ROSTER, callbacks);
   // the shared native roster (G454 rows): the island's scale tables, any heightfield as the floor, the melee turn cap, the
   // fauna adopted by the hunting brain, every body on the native pose roster
@@ -188,7 +190,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   const holdFloor = (x: number, z: number, fromY: number): number => bake.holdFloorAt(x, z) ?? intake.floor(x, z, fromY);
   const join = (body: IslandBody, actor: HuntBody): void => {
     if (body.kind === 'sailor' && actor.levelGround) actor.groundHeight = holdFloor;
-    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains, ports.decisions, biteStrike);
+    body.brain = FAUNA.has(body.kind) ? null : enemyBrain(body.kind, body.recipe.spec.label, actor, hunt.herds[body.herd]?.members ?? null, brainPorts, brains, ports.decisions, biteStrike, monkey);
   };
   const { draw } = intake;
   const place = (body: IslandBody): void => { join(body, intake.arrive(body)); };

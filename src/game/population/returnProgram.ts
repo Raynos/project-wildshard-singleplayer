@@ -2,6 +2,7 @@ import { DecisionModule } from '@wildshard/engine/script/decisionModule';
 import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import type { Rng } from '@wildshard/engine/core/rng';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import * as v from 'valibot';
@@ -9,6 +10,7 @@ import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/brain';
 
 const Program = v.strictObject({ script: v.unknown(), bytes: v.string() });
+const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
 /** Event-only, stateless v1 projections. The caller retains its queue, phase and
  * continuation; the guest can read numeric observations and publish channels.
@@ -18,6 +20,7 @@ export class ReturnProgram {
   private readonly script: DecisionScriptRow;
   private readonly layout: ReturnType<typeof scriptV1Layout>;
   private observations: Readonly<Record<string, number>> = {};
+  private candidates: readonly Readonly<Record<string, number>>[] = [];
   private random: Rng | undefined;
   private active = false;
   private constructor(input: unknown, private readonly floor: (x: number, z: number) => number) {
@@ -35,8 +38,9 @@ export class ReturnProgram {
       read: (op, a, b) => {
         if (!this.active) throw new Error('Return read outside a request');
         if (op === 12 && script.reads.includes('random') && a === 0 && b === 0 && this.random !== undefined) return this.random.next();
-        const name = fields[b - 1], value = name === undefined ? undefined : this.observations[name];
-        if (op !== 7 || !script.reads.includes('field') || a !== 0 || !Number.isInteger(b) || value === undefined || !Number.isFinite(value)) throw new Error('Undeclared return observation');
+        const observed = a === 0 ? this.observations : Number.isSafeInteger(a) && a > 0 ? this.candidates[a - 1] : undefined;
+        const name = fields[b - 1], value = name === undefined ? undefined : observed?.[name];
+        if (op !== 7 || !script.reads.includes('field') || !Number.isInteger(b) || value === undefined || !Number.isFinite(value)) throw new Error('Undeclared return observation');
         return value;
       },
       list: (op, a, b, out, cap) => {
@@ -52,18 +56,34 @@ export class ReturnProgram {
     });
     if (this.module.io + this.layout.bytes > this.module.memory.buffer.byteLength) throw new Error('Return IO outside module');
   }
-  /** Built-in terrain owners; callers supply no content callback. */
-  static native(host: SimHost, input: unknown): ReturnProgram { return host.scope.run(() => new ReturnProgram(input, (x, z) => host.groundHeightAt(x, z))); }
-  static page(input: unknown): ReturnProgram { return new ReturnProgram(input, terrainHeight); }
+  private static owned(owner: Scope, input: unknown, floor: (x: number, z: number) => number): ReturnProgram {
+    if (owner.disposed) throw new Error('Return owner disposed');
+    const row = v.parse(Program, input), script = parseDecisionScripts([row.script])[0];
+    if (script === undefined) throw new Error('Missing return script');
+    const declaration = JSON.stringify({ script, bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
+    const previous = modules.get(script.module);
+    if (previous !== undefined) {
+      if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
+      return previous.program;
+    }
+    const program = owner.run(() => new ReturnProgram(input, floor));
+    modules.set(script.module, { declaration, program }); scoped.set(owner, modules);
+    owner.onDispose(() => { modules.delete(script.module); });
+    return program;
+  }
+  /** Built-in terrain owners share one admitted instance per module and scope. */
+  static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
+  static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
 
   /** A request is atomic with its borrowed stream. Refusals publish no channel
    * and restore the stream, including traps after one or more terrain retries. */
-  project(signal: string, observations: Readonly<Record<string, number>>, random?: Rng): Readonly<Record<string, number>> {
+  project(signal: string, observations: Readonly<Record<string, number>>, random?: Rng, candidates: readonly Readonly<Record<string, number>>[] = []): Readonly<Record<string, number>> {
     if (this.active) throw new Error('Reentrant return request');
     const signalId = Object.values(this.script.signals).sort().indexOf(signal) + 1;
-    if (signalId === 0 || Object.values(observations).some(value => !Number.isFinite(value))) throw new Error('Invalid return request');
+    if (signalId === 0 || Object.values(observations).some(value => !Number.isFinite(value))
+      || candidates.length > 8 || candidates.some(candidate => Object.values(candidate).some(value => !Number.isFinite(value)))) throw new Error('Invalid return request');
     const before = random?.snapshot(), { module, layout } = this, base = module.io;
-    module.rewind(); module.begin(400000); this.observations = observations; this.random = random; this.active = true;
+    module.rewind(); module.begin(400000); this.observations = observations; this.candidates = candidates; this.random = random; this.active = true;
     try {
       const set = (slot: number, value: number): void => { module.view.setFloat64(base + slot * 8, value, true); };
       set(0, 0); set(1, 0); set(2, 1); set(3, 0); set(4, 1);
@@ -80,6 +100,6 @@ export class ReturnProgram {
       }
       return result;
     } catch (error) { if (before !== undefined) random?.restore(before); throw error; }
-    finally { this.active = false; this.observations = {}; this.random = undefined; module.rewind(); }
+    finally { this.active = false; this.observations = {}; this.candidates = []; this.random = undefined; module.rewind(); }
   }
 }

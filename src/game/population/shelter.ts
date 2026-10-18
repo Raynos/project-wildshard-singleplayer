@@ -1,3 +1,5 @@
+import { ReturnProgram } from './returnProgram';
+import { projectedSite } from './projectedSites';
 import type { SimHost } from '@wildshard/engine/sim';
 import { populationRoster } from './roster';
 import { populationEnvironment } from './environment';
@@ -19,7 +21,7 @@ interface Herd {
   kind: string; cx: number; cz: number;
   readonly members: readonly { alive: boolean; position: { x: number; z: number } }[];
 }
-interface Tree { x: number; z: number; r: number; height: number; cover: number }
+interface Tree { x: number; z: number; r: number; height: number; cover: number; [field: string]: number }
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, z: finite });
 const saved = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({
@@ -33,25 +35,22 @@ export class HerdShelter<T extends Tree> {
   private shelters = new Map<Herd, Shelter>();
 
   /** `animals` lends the herds; each tree carries its fixed crown-cover sample; `look` supplies the rule's numbers. */
-  constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly look: HerdShelterRows) {
+  constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly look: HerdShelterRows, private readonly program: ReturnProgram) {
     if (trees.length > 16384) throw new Error('Population shelter tree bound exceeded');
     this.kinds = new Set(look.kinds);
     this.big = trees.filter((t) => t.height >= look.bigTree);
   }
 
   private pick(hd: Herd): { x: number; z: number } | null {
-    let best: T | null = null, score = Infinity;
-    for (let index = 0; index < 16384; index++) {
-      const t = this.big[index];
-      if (t === undefined) break;
-      const d = Math.hypot(t.x - hd.cx, t.z - hd.cz);
-      if (d > this.look.reach) continue;
-      const s = d - this.look.heightBias * t.height - this.look.coverBias * t.cover;
-      if (s < score) { score = s; best = t; }
-    }
-    if (best === null) return null;
-    const dx = hd.cx - best.x, dz = hd.cz - best.z, dl = Math.hypot(dx, dz) || 1;
-    return { x: best.x + dx / dl * (best.r + this.look.clear), z: best.z + dz / dl * (best.r + this.look.clear) };
+    const selected = projectedSite(this.big, this.program, { signal: 'shelterScore', limit: 16384, origin: { x: hd.cx, z: hd.cz }, minimum: 0,
+      maximum: this.look.reach, observations: { heightBias: this.look.heightBias, coverBias: this.look.coverBias } });
+    if (selected === null) return null;
+    const t = selected.site;
+    const projected = this.program.project('shelterPlace', { x: t.x, z: t.z, radius: t.r, clear: this.look.clear,
+      homeX: hd.cx, homeZ: hd.cz, distance: Math.hypot(hd.cx - t.x, hd.cz - t.z) || 1 });
+    const x = projected['x'], z = projected['z'];
+    if (x === undefined || z === undefined) throw new Error('Missing shelter projection');
+    return { x, z };
   }
 
   /** Each frame: through the rain every sheltering herd's centre is held under its tree; after it the hold counts down. */
@@ -128,7 +127,7 @@ export function installNativeHerdShelter(host: SimHost, trees: readonly NativeSh
     if (current.length > rows.herdLimit) throw new Error('Shelter herd bound exceeded');
     return current;
   } };
-  const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look);
+  const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look, ReturnProgram.native(host, rows.program));
   const publish = (): void => {
     const rain = nativeWeatherContinuation(host, rows.weather).rain, goals = environment.wanderGoals;
     goals.length = source.herds.length;

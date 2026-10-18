@@ -3,7 +3,6 @@ import { driftwoodBake as module0DriftwoodBake, driftwoodSpecs as module0Driftwo
 import { installIsland as module1InstallIsland } from '../sim/keeper';
 import { installWakeBoss as module2InstallCaptain } from '@wildshard/game/boss/nativeWake';
 import { installQuestKillSteps as module3InstallQuestKillSteps } from '@wildshard/game/quest/killSteps';
-import { createMonkeyAnimation as module4CreateMonkeyAnimation } from '../species/monkeyPolicy';
 import { driftwoodSpots as module5DriftwoodSpots, installDriftwoodQuest as module5InstallDriftwoodQuest } from '../runtime/quest';
 import { DRIFTWOOD_SEA as module6DRIFTWOOD_SEA, LOWERED_SEA as module6LOWERED_SEA } from '../world/sea';
 import { dayClock as declaredDayClock } from '@wildshard/game/looks/dayClock';
@@ -25,7 +24,6 @@ export const headlessModules = {
   'src/shards/driftwood-isle/sim/keeper': { installIsland: module1InstallIsland },
   '@wildshard/game/boss/nativeWake': { installWakeBoss: module2InstallCaptain },
   '@wildshard/game/quest/killSteps': { installQuestKillSteps: module3InstallQuestKillSteps },
-  'src/shards/driftwood-isle/species/monkeyPolicy': { createMonkeyAnimation: module4CreateMonkeyAnimation },
   'src/shards/driftwood-isle/runtime/quest': { driftwoodSpots: module5DriftwoodSpots, installDriftwoodQuest: module5InstallDriftwoodQuest },
   'src/shards/driftwood-isle/world/sea': { DRIFTWOOD_SEA: module6DRIFTWOOD_SEA, LOWERED_SEA: module6LOWERED_SEA },
   '@wildshard/game/looks/dayClock': { dayClock: declaredDayClock },

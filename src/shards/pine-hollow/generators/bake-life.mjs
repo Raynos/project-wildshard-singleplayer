@@ -2,9 +2,10 @@ import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buil
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const fields = ['now','minimum','maximum','draw','scale','kill','arrival','harvest','site','visit','distance','reach','giveUp','present','night','combat'];
-const channels = ['arrival','gather','remove','fade','dim','eligible'];
-const signals = ['arrival','carcass','guide'];
+const fields = ['candidates','now','minimum','maximum','draw','scale','kill','arrival','harvest','site','visit','distance','reach','giveUp','present','night','combat',
+  'heightBias','height','coverBias','cover','radius','clear','homeX','homeZ','x','z'];
+const channels = ['arrival','gather','remove','fade','dim','eligible','index','score','x','z'];
+const signals = ['arrival','carcass','guide','shelterScore','shelterPlace'];
 const aliases = values => Object.fromEntries(values.map(name => [name,name]));
 const registry = values => new Map([...values].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const row = { id:'pine.life', abi:'1.0', side:'sim', module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/life.as',

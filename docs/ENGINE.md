@@ -10094,3 +10094,15 @@ original seconds-based interpolation. The shared primitive keeps multiplication
 and division order explicit, so native storm continuations remain exact.
 The unused `engine/script/viewFields` module and its pending-user claim are
 removed with Signal's `look/dusk.ts`.
+
+
+### Projected population sites (G470)
+
+`game/population/projectedSites.projectedSite` selects one immutable numeric site
+from a bounded source list. A declared `ReturnProgram` receives each admitted
+site, its horizontal `distance`, optional `awayDistance`, and finite caller
+observations. Eight-site guest batches return `index` and `score` channels. Equal scores
+retain source order; each call keeps the existing 400,000 coarse fuel bound.
+Range admission happens before any guest call or RNG draw. A refused batch
+restores the entire lent stream. The caller supplies rows and a prepared guest,
+never a scoring callback. DW perch selection and Pine herd shelters use it.
