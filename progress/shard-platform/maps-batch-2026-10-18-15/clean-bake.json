@@ -1,0 +1,155 @@
+{
+  "sourceTree": "a5cf5d9fe384576723a8d06e0b3afbeaefa79c91",
+  "sourceParent": "b40a86033fb76ebd8613c60c37b068d2cbdf6752",
+  "commitParent": "b40a86033fb76ebd8613c60c37b068d2cbdf6752",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2560,
+  "shards": {
+    "pine-hollow": {
+      "inputHash": "7c6c55646a0f60e7483a11b8b2f892a86b0aeeccb63a9c24f616d0c9a4b3415b",
+      "inputFiles": 290,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "7c6c55646a0f60e7483a11b8b2f892a86b0aeeccb63a9c24f616d0c9a4b3415b",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "ebba66c3da24ad9ac3b9ccf7705c8cbd359aaa1ff60dfbdc869c3763454bcd65",
+      "inputFiles": 166,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "ebba66c3da24ad9ac3b9ccf7705c8cbd359aaa1ff60dfbdc869c3763454bcd65",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "3e263a9117643357e43a296097e9d12861a0dfd7",
+      "owner": "sp-x4",
+      "summary": "Pine trail-follow sampler data precursor",
+      "mapShards": [
+        "pine-hollow"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "e915b81d245ba5eca7394b8ef2c65b52e4d97345",
+      "owner": "sp-x9",
+      "summary": "Nalati kokpar guest and admitted compiler/content/critical module path",
+      "phoneReceipt": ".git/proofs/20261018T091018-sp-x9-kokpar-phone-final-51634.json",
+      "portability": {
+        "receipt": ".git/proofs/20261018T090543-sp-x9-kokpar-portable-20811.json",
+        "jsonSha256": "4a793da29efa657c16b9face51d7c38e4d93251f75658ef2ef86a3d7034894ad",
+        "verdict": "ARM generation, ARM --check and x64 Node24.18.1 --check all rc0; declared transform-types/source-loader flags, no external preload"
+      },
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "behaviour/kokpar.as",
+          "data/layout.generated.json"
+        ]
+      }
+    },
+    {
+      "sha": "15ddf0af526f653adbbf00729e4a3e54455cbdb9",
+      "owner": "sp-x6",
+      "summary": "Map-neutral named JSON schema metadata and validation",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "1df0b3d14fcb917b1688a73d2d48a1c1975bddf9",
+      "owner": "sp-x6",
+      "summary": "Map-neutral script sourceHash and fresh disk admission",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "661f4a56a0c7cbcdf3c96fda6d19e46f6dc9d5c4",
+      "owner": "sp-x7",
+      "summary": "Map-neutral cold WebKit navigation handoff repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "b40a86033fb76ebd8613c60c37b068d2cbdf6752",
+      "owner": "sp-x7",
+      "summary": "Map-neutral admitted-schema and palette parity fixture repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "pine-hollow": [],
+    "nalati-grasslands": [
+      "behaviour/kokpar.as",
+      "data/layout.generated.json"
+    ]
+  }
+}

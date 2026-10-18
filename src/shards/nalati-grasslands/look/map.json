@@ -13,7 +13,9 @@
     "data/oliveColour.json",
     "data/lookGraphs.json",
     "look/light.ts",
-    "look/terrainPainter.ts"
+    "look/terrainPainter.ts",
+    "behaviour/kokpar.as",
+    "data/layout.generated.json"
   ],
   "style": {
     "kind": "ground",
