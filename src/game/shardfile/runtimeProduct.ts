@@ -17,6 +17,7 @@ import { hybridPresentation, type HybridPresentation } from './hybridPresentatio
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
+import { lendLooks } from './lentLooks';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';
 
@@ -306,5 +307,6 @@ export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMater
     Object.assign(target, { bumpMap: map, bumpScale: row.scale }); target.needsUpdate = true;
   }
   library?.bindLooks(ctx.scope, compiled);
+  lendLooks(ctx.scope, compiled);
   return { ...compiled, painted, material };
 }

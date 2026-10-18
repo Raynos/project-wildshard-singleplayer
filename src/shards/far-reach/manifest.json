@@ -281,11 +281,6 @@
       "module": "./look/render",
       "export": "skyReachLook"
     },
-    "roster": {
-      "module": "./roster",
-      "export": "ROSTER",
-      "call": false
-    },
     "load": {
       "module": "./plugin"
     },

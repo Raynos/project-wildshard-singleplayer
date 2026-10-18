@@ -44,8 +44,11 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // the core fields' copies drawn as the shard's models (ShardManifest.fieldModels, E349: Pine Hollow's trees and forest-floor kinds, E315 M2)
   if (fieldModels) await stage('fieldModels', async () => { (await fieldModels)({ sky, renderer: game.renderer, forest, under: null, registry }); });
-  const roster = await stage('roster', () => chunk.roster?.(product));
-  await stage('roster', () => listShardModels({ roster: roster === undefined ? undefined : () => Promise.resolve(roster), style: game.level.creatureStyle ?? 'pbr', sky, renderer: game.renderer, animals: () => animals.animals, registry })); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
+  const roster = await stage('roster', async () => {
+    const native = await chunk.roster?.(product) ?? [];
+    return product.has('explore/catalogue') ? (await import('../models/explorerCatalogue')).explorerRoster(product, native) : native;
+  });
+  await stage('roster', () => listShardModels({ roster: () => Promise.resolve(roster), style: game.level.creatureStyle ?? 'pbr', sky, renderer: game.renderer, animals: () => animals.animals, registry })); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
   const dayNight = sky.dayNight; // the backdrop's shared clock drives night activity
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // The resident clock drives Settings, Explore light presets and the HUD day badge.

@@ -1,5 +1,5 @@
 import { InteractionRules } from '@wildshard/game/quest/interactionRows';
-import { Object3D, PointLight, type Vector3 } from 'three';
+import { Object3D, PointLight, type Vector3, type Group, type Mesh } from 'three';
 import { SiteLights } from '@wildshard/engine/fx/SiteLights';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -7,10 +7,16 @@ import { createQuestPagePrompts, bindClientChannels, bindQuestPageInteractions }
 import type { SignalDunesPlugin } from '../plugin';
 
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from './places';
-import { WORLD, type BakedWorld } from './baked';
-import { fireLight, tickFires } from './fireFx';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { sceneModelSource } from '@wildshard/game/shardfile/sceneSources';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { BakedWorld } from './baked';
+import { addFire, addLampGlow, fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
+
+interface TowerParts { root: Group; colliders: readonly ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
+interface WellParts { root: Group; colliders: readonly ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
+interface BrazierParts { root: Group; colliders: readonly ColliderDesc[]; fire: Group; oil: Mesh; bowlAt: Vector3; glowAt: Vector3; glow: (lit: boolean) => void }
 
 type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 
@@ -37,14 +43,20 @@ const WAY_LIGHT = 9;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
-export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, keepChannels: (channels: ReturnType<typeof bindClientChannels>) => ReturnType<typeof bindClientChannels> = channels => channels): SignalWorld {
+export async function buildWorld(ctx: ShardContext, flags: Flags, _baked: BakedWorld, keepChannels: (channels: ReturnType<typeof bindClientChannels>) => ReturnType<typeof bindClientChannels> = channels => channels): Promise<SignalWorld> {
   const STRINGS = ctx.product.strings(['lit']);
   const source = ctx.product.shardfile;
-  // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
-  // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
-  const pieces = WORLD.placements(ctx.piece, ctx.root, baked);
-  const tower = pieces.add('sunscar.tower', buildPlace('tower',baked)), caravan = pieces.add('sunscar.caravan', buildPlace('caravan',baked)), wellParts = pieces.add('sunscar.well', buildPlace('well',baked));
-  pieces.baked('sunscar.rocks'); pieces.baked('sunscar.dressing');
+  const handles = await installWorldScenes(ctx, ctx.product.section('world/scenes'));
+  const effects = await ctx.product.json<readonly { readonly part: string; readonly pool: string | null; readonly rows: unknown }[]>('world/places-effects.json');
+  for (const effect of effects) {
+    const group = handles.group(effect.part), pool = effect.pool === null ? null : sceneModelSource(ctx.product, 'models').geometry(effect.pool);
+    if (effect.pool !== null && pool === null) throw new Error('Missing declared fire pool');
+    if (typeof effect.rows !== 'object' || effect.rows === null) throw new Error('Invalid declared fire cards');
+    if ('fire' in effect.rows) addFire(group, effect.rows, pool); else addLampGlow(group, effect.rows, pool);
+  }
+  const tower: TowerParts = { root: handles.group('tower.root'), colliders: handles.colliders('tower.colliders'), fire: handles.group('tower.fire'), light: handles.light('tower.light'), brazierAt: handles.vector('tower.brazierAt'), deckY: handles.number('tower.deckY') };
+  const caravan = { root: handles.group('caravan.root'), colliders: handles.colliders('caravan.colliders'), logbookAt: handles.vector('caravan.logbookAt'), lampAt: handles.vector('caravan.lampAt') };
+  const wellParts: WellParts = { root: handles.group('well.root'), colliders: handles.colliders('well.colliders'), bucket: handles.group('well.bucket'), rope: handles.mesh('well.rope'), jar: handles.mesh('well.jar'), crankAt: handles.vector('well.crankAt'), jarAt: handles.vector('well.jarAt'), drop: handles.number('well.drop') };
   const interactables = ctx.game.runtime?.interactables, rules = InteractionRules.fromDeclared(source, flags);
 
   let page: (id: string) => boolean = () => { throw new Error('Quest page interactions are not bound'); };
@@ -64,7 +76,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
 
   // The braziers: pour oil by hand, light with a crack.
   const braziers: Brazier[] = LAYOUT.BRAZIERS.map((_, i) => {
-    const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildPlace('brazier',baked, i, pieces.colliders(`sunscar.brazier.${String(i)}`)));
+    const prefix = `brazier.${String(i)}`, at = handles.vector(`${prefix}.glowAt`), light = fireLight(at), embers = handles.materials(`${prefix}.embers`);
+    const parts: BrazierParts = { root: handles.group(`${prefix}.root`), colliders: handles.colliders(`${prefix}.colliders`), fire: handles.group(`${prefix}.fire`), oil: handles.mesh(`${prefix}.oil`), bowlAt: handles.vector(`${prefix}.bowlAt`), glowAt: at, glow: lit => { light(lit); for (const ember of embers) ember.emissiveIntensity = lit ? 1.1 : 0; } };
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, get lit() { return rules.has(lit); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it

@@ -515,11 +515,6 @@
       "module": "./look/render",
       "export": "signalDunesLook"
     },
-    "roster": {
-      "module": "./roster",
-      "export": "roster",
-      "call": true
-    },
     "load": {
       "module": "./plugin"
     },

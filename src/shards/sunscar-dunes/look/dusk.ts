@@ -1,3 +1,4 @@
+import { sceneScalar } from '@wildshard/game/shardfile/sceneInputs';
 /**
  * The dusk deepens as the quest goes on (E399, council round 1, D5 / D8: mockup A is the spawn at sunset, B the logbook
  * at dusk, C the lit waymarks in a dark violet dusk where the fire is the key light, D the blue hour). `DUSK.value` runs
@@ -5,7 +6,7 @@
  * sky dome, and the look's key and fill lights follow it each frame. Each quest step sets a deeper target and the light
  * eases there over about a minute of play, so the sun sets while the player works; a loaded save starts at its step.
  */
-export const DUSK = { value: 0 };
+export const DUSK = sceneScalar('sunscar-dunes', 'dusk');
 const state = { target: 0 };
 /** How much of the dusk one second of play moves (the light reaches a new step's target in ~50 s). */
 const RATE = 0.02;

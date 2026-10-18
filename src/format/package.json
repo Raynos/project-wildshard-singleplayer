@@ -192,7 +192,9 @@
     "./worldSceneSurface": "./worldSceneSurface.ts",
     "./pageLife": "./pageLife.ts",
     "./worldSceneWeld": "./worldSceneWeld.ts",
-    "./populationEnvironment": "./populationEnvironment.ts"
+    "./populationEnvironment": "./populationEnvironment.ts",
+    "./explorerCatalogue": "./explorerCatalogue.ts",
+    "./sceneDraws": "./sceneDraws.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

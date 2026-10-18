@@ -12,11 +12,7 @@ import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
-import { creature } from '@wildshard/engine/models/creature';
-import { defineModel } from '@wildshard/engine/models/model';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { preparePineGrazers, pineGrazer } from './species/looks';
 import { antlerKing } from './runtime/models/antlerKing';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import { FigureCatalogue } from '@wildshard/sdk/npc/figures';
@@ -31,14 +27,8 @@ export const PINE_FIGURES = new FigureCatalogue('pine-hollow', 'people/catalogue
 
 
 function roster(wildlife: readonly RosterEntry[], gear: readonly RosterEntry[]): readonly RosterEntry[] {
-  const deer = defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts', pipeline: ['code', 'trellis', 'hunyuan'], ...creature('deer', { species: pineGrazer('deer') }) });
-  const elk = defineModel({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true, species: pineGrazer('elk') }) });
 
   return [
-    // the fauna (pine-hollow.ts `fauna`): the shared rigs in Pine Hollow's hulls (scripts/creature-rig-bake.mjs) — the hind
-    // TRELLIS.2, the stag, the boar and the bears Hunyuan3D-2 — and the boar's and elk's thralls (the King's fight)
-    live(deer, { pipeline: ['trellis', 'hunyuan', 'code'] }), live(boar, { pipeline: ['hunyuan', 'code'] }), live(bear, { pipeline: ['hunyuan', 'code'] }),
-    live(elk),
     // the boss (src/shards/pine-hollow/combat/antlerKing.ts): at night in the King's clearing; parked out of the herd list by day
     live(antlerKing, { planned: 1 }),
     // the birds and the hares (src/shards/pine-hollow/life/index.ts)
@@ -59,6 +49,6 @@ export async function preparedRoster(product?: ShardProduct): Promise<readonly R
   const pack = source.section('held/finishes').source;
   if (pack === undefined) throw new Error('Held finishes require their declared geometry source');
   registerPackedGeometrySource(scope, 'held-finishes', { ...pack, label: 'held finishes' });
-  await Promise.all([PINE_FIGURES.prepare(), HeldFinishes.prepare(source, scope, 'held-finishes'), preparePineGrazers(source), HeldEquipment.prepare(source)]);
+  await Promise.all([PINE_FIGURES.prepare(), HeldFinishes.prepare(source, scope, 'held-finishes'), HeldEquipment.prepare(source)]);
   return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models, heldGear(source.section('held/gear')));
 }

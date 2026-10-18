@@ -1,19 +1,9 @@
-import MILL_REST from '../data/millRest.generated.json' with { type: 'json' };
-import HEROES from '../data/heroLibrary.generated.json' with { type: 'json' };
-import files from '../boot/assets.generated.json' with { type: 'json' };
-// The page host and model loader share this exact rig cache key.
-import rows from '../data/runtimeRows.generated.json' with { type: 'json' };
-import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
-import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
-import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
+import { declaredSceneModels } from '@wildshard/game/shardfile/sceneSources';
 import { MeshStandardMaterial, type Texture } from 'three';
 
-type SkyMeshName = keyof typeof files.MODEL_URLS;
-/** Shared admission and caching over authored rest primitives, original atlases and existing rigs. */
-export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: files.SKY_MESHES as SkyMeshName[], preparedMeshes: files.SKY_MESHES as SkyMeshName[], meshUrls: files.MODEL_URLS, hd: [], hdUrls: {}, aoFloor: files.SKY_AO_FLOOR, hdLooks: {},
-  geometryPools: [files.FAN_POOL, ...REST_POOLS, BRIDGES.pool, files.ISLET_POOL, MILL_REST], rigs: rows.species.library, rigLoad: 'manual', mappedFallback: { roughness: 0.85, metalness: 0 } }, '[far-reach]');
-export const HERO_LIBRARY = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: files.SKY_AO_FLOOR, hdLooks: {},
-  geometryPools: [HEROES.pool], paintedModels: HEROES.models }, '[far-reach]');
+/** Native view and declared scenes share the admitted source identities. */
+export const SKY_LIBRARY = declaredSceneModels('far-reach', 'sky');
+export const HERO_LIBRARY = declaredSceneModels('far-reach', 'heroes');
 /** Prepared channels and pivots with independent geometry copies for each owner. */
 export type SkyHd = NonNullable<ReturnType<typeof HERO_LIBRARY.painted>>;
 /** Preload the library and rigs, retaining the caller's yield between painted models. */

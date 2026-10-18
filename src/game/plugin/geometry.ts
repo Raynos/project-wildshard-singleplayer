@@ -1,3 +1,4 @@
+import { isJsonData } from '@wildshard/format/json';
 import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
@@ -1852,13 +1853,19 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
 /** Authored skinned assets and their ordered look declarations. */
 export interface RigLibraryRows { readonly bodies: CreatureBodyRows<string>; readonly looks: readonly CreatureLookRow<string>[] }
 const rigLibraries = new WeakMap<RigLibraryRows, { bodies: CreatureBodies<string>; looks: readonly SpeciesLook[] }>();
+const declaredRigLibraries = new Map<string, { bodies: CreatureBodies<string>; looks: readonly SpeciesLook[] }>();
 /** Resolve one loader per actual descriptor across model, page and Explorer consumers. */
 export function rigLibrary(rows: RigLibraryRows): { bodies: CreatureBodies<string>; looks: readonly SpeciesLook[] } {
-  const prior = rigLibraries.get(rows); if (prior !== undefined) return prior;
+  // Named source JSON and native rows may deserialize the same descriptor twice.
+  // Equal data must retain one actual body cache for live looks and specimens.
+  const identity = isJsonData(rows) ? JSON.stringify(rows, (_key, jsonValue: unknown): unknown => jsonValue !== null && typeof jsonValue === 'object' && !Array.isArray(jsonValue)
+    ? Object.fromEntries(Object.entries(jsonValue as Readonly<Record<string, unknown>>).sort(([a], [b]) => a.localeCompare(b))) : jsonValue) : undefined;
+  const prior = rigLibraries.get(rows) ?? (identity === undefined ? undefined : declaredRigLibraries.get(identity));
+  if (prior !== undefined) { rigLibraries.set(rows, prior); return prior; }
   if (rows.bodies.creatures.length > 1024 || new Set(rows.bodies.creatures).size !== rows.bodies.creatures.length
     || rows.looks.some(row => !rows.bodies.creatures.includes(row.body))) throw new Error('Rig library references an undeclared body');
   const bodies = creatureBodies(rows.bodies), catalogue = { bodies, looks: creatureLooks(bodies, rows.looks) };
-  rigLibraries.set(rows, catalogue); return catalogue;
+  rigLibraries.set(rows, catalogue); if (identity !== undefined) declaredRigLibraries.set(identity, catalogue); return catalogue;
 }
 /** A model specimen is metadata and an existing library rig, with no private builder. */
 export interface ModelSpecimenRow { readonly model: BakedModelMetadata; readonly body: string; readonly specimen: CreatureSpecimenRow }

@@ -152,5 +152,9 @@
   "test/pine-building-owner.test.ts": [
     "pine-hollow"
   ],
-  "test/population-environment.test.ts": []
+  "test/population-environment.test.ts": [],
+  "test/explorer-catalogue.test.ts": [
+    "far-reach",
+    "sunscar-dunes"
+  ]
 }

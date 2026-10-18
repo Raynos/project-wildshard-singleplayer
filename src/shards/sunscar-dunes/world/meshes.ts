@@ -1,25 +1,13 @@
-import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
-import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
-// The page host and model loader share this exact rig cache key.
-import runtimeRows from '../data/runtimeRows.generated.json' with { type: 'json' };
+import { sceneScalar, sceneVectors } from '@wildshard/game/shardfile/sceneInputs';
+import { declaredSceneModels } from '@wildshard/game/shardfile/sceneSources';
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
-import { FIRE_LIGHTS } from './fireFx';
-import { DUSK } from '../look/dusk';
-import SURFACES from '../assets/surfaces.generated.json' with { type: 'json' };
-import MODELS from '../assets/models.generated.json' with { type: 'json' };
 import type { MeshStandardMaterial } from 'three';
+import SURFACES from '../assets/surfaces.generated.json' with { type: 'json' };
 
-/**
- * Signal Dunes' generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs, the textured hero
- * models and the baked creature rigs, loaded once behind the loading screen (`DUNE_LIBRARY.preload`, the plugin's `world`
- * hook) by the SDK model library from `assets/models.generated.json` DUNE_MODELS. A model that fails to load is a page fault, never a
- * silent stand-in: the places and the tower stand undrawn without it.
- */
-
-/** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
-const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
-export const DUNE_LIBRARY = createModelLibrary({ ...MODELS.DUNE_MODELS, geometryPools: REST_POOLS, rigs: runtimeRows.species.library }, '[sunscar-dunes]', SURFACE_INPUTS);
+const SURFACE_INPUTS = { lights: sceneVectors('sunscar-dunes', 'firelights', 4), dusk: sceneScalar('sunscar-dunes', 'dusk') };
+/** The world and Explorer use one admitted library and its original materials. */
+export const DUNE_LIBRARY = declaredSceneModels('sunscar-dunes', 'models');
 
 /** A camp material warmed by each burning fire within ~4.5 m (`assets/surfaces.generated.json` FIRELIGHT): its own fire lights it. */
 export const warmByFire = (m: MeshStandardMaterial): void => { applySurfaceLooks(m, SURFACES.CAMP_SURFACE, SURFACE_INPUTS); };

@@ -1,0 +1,53 @@
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+
+/** Ordered references retain the original native specimen order. */
+export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
+  "version": 1,
+  "entries": [
+    {
+      "kind": "species",
+      "species": "deer",
+      "id": "shared/deer",
+      "file": "src/game/models/creatures.ts",
+      "pipeline": [
+        "trellis",
+        "hunyuan",
+        "code"
+      ]
+    },
+    {
+      "kind": "species",
+      "species": "boar",
+      "id": "shared/boar",
+      "file": "src/game/models/creatures.ts",
+      "pipeline": [
+        "hunyuan",
+        "code"
+      ],
+      "spawnOnly": true
+    },
+    {
+      "kind": "species",
+      "species": "bear",
+      "id": "shared/bear",
+      "file": "src/game/models/creatures.ts",
+      "pipeline": [
+        "hunyuan",
+        "code"
+      ]
+    },
+    {
+      "kind": "species",
+      "species": "elk",
+      "id": "pine-hollow/elk",
+      "file": "src/shards/pine-hollow/models/creatures.ts",
+      "pipeline": [
+        "hunyuan",
+        "code"
+      ],
+      "spawnOnly": true
+    }
+    ,{"kind":"library","library":"native","model":"pine-hollow/antler-king"},
+    {"kind":"posed","file":"look/wildlife-draw.json"}
+  ]
+});

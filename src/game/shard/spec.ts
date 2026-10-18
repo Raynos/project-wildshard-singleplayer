@@ -63,6 +63,9 @@ export function toLevelSpec(manifest: ShardManifest, product?: ShardProduct): Le
     ...(manifest.surfaceAt === undefined ? {} : { surfaceAt: manifest.surfaceAt }),
     ...(manifest.assets === undefined ? {} : { assets: manifest.assets }),
     ...(manifest.explore === undefined ? {} : { explore: manifest.explore }),
-    ...(roster === undefined ? {} : { roster: () => roster(bound()) }),
+    ...((roster === undefined && product?.has('explore/catalogue') !== true) ? {} : { roster: async () => {
+      const native = await roster?.(bound()) ?? [];
+      return product?.has('explore/catalogue') === true ? (await import('../models/explorerCatalogue')).explorerRoster(product, native) : native;
+    } }),
   };
 }

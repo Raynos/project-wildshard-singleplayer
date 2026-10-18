@@ -1,0 +1,109 @@
+/** Client-only Model Explorer adapter. Ordered data selects the existing model
+ * contract; the authoritative simulation never imports this module. */
+import { HeldClaims } from '../loadout/claims';
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { creature } from '@wildshard/engine/models/creature';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import { speciesDef } from '@wildshard/engine/entities/species/registry';
+import { trainingDummy } from '@wildshard/engine/models/trainingDummy';
+import { hoverboard } from '@wildshard/engine/models/hoverboard';
+import { swimHands } from '@wildshard/engine/models/swimHands';
+import type { ExplorerEntryRow } from '@wildshard/format/explorerCatalogue';
+import { ProductError, type ShardProduct } from '../shardfile/shardProduct';
+import { prepareSceneSources, prepareSceneSpecimens, sceneModelDefinition, sceneModelDefinitions, sceneModelSource } from '../shardfile/sceneSources';
+import { declaredHeldSpecimen, declaredNpcSpecimen } from './sceneSpecimens';
+import { scenePartSpecimen } from './scenePartSpecimen';
+
+/** Resolve declarations before registering any card, so an invalid reference
+ * refuses the complete catalogue instead of publishing a partial roster. */
+export async function explorerRoster(product: ShardProduct, native: readonly RosterEntry[] = []): Promise<readonly RosterEntry[]> {
+  try { return await resolveExplorerRoster(product, native); }
+  catch (error) {
+    if (error instanceof ProductError && error.item === 'explore/catalogue') throw error;
+    throw new ProductError(product.slug, 'explore/catalogue', 'schema', error instanceof Error ? error.message : 'Catalogue source admission failed');
+  }
+}
+
+async function resolveExplorerRoster(product: ShardProduct, native: readonly RosterEntry[]): Promise<readonly RosterEntry[]> {
+  if (!product.has('explore/catalogue')) return [];
+  const rows = product.section('explore/catalogue');
+  const sourceKinds = rows.entries.some(row => row.kind === 'rigs' || row.kind === 'held' || row.kind === 'npc' || row.kind === 'scene');
+  if (sourceKinds) await prepareSceneSources(product);
+  const definitions = sourceKinds ? sceneModelDefinitions(product) : [];
+  const prepare = (): Promise<void> => prepareSceneSpecimens(product);
+  const entries: RosterEntry[] = [];
+  for (const row of rows.entries) {
+    if (row.kind === 'species') {
+      const programs = product.has('actors/species-programs') ? product.section('actors/species-programs') : undefined;
+      const declared = programs?.program?.species.find(entry => entry.kind === row.species)
+        ?? programs?.native.find(entry => entry.kind === row.species) ?? programs?.page.find(entry => entry.kind === row.species);
+      const species = declared ?? product.shardfile.rows.species.find(entry => entry.kind === row.species)
+        ?? speciesDef(row.species);
+      if (row.id === undefined || row.file === undefined) throw refusal(product, row, 'Species card requires its original id and file');
+      entries.push(present(defineModel({ ...creature(row.species, { species, ...(row.name === undefined ? {} : { name: row.name }),
+        ...(row.spawnOnly === undefined ? {} : { spawnOnly: row.spawnOnly }) }), id: row.id, file: row.file,
+        pipeline: row.pipeline ?? 'code', ...(row.surface === undefined ? {} : { surface: row.surface }), ...(row.category === undefined ? {} : { category: row.category }) }), row));
+    } else if (row.kind === 'engine') {
+      entries.push(row.model === 'swim-hands' ? present(swimHands, row) : row.model === 'training-dummy' ? present(trainingDummy, row) : present(hoverboard, row));
+    } else if (row.kind === 'rigs') {
+      const source = sceneModelDefinition(product, row.library), specimens = source.specimens;
+      if (specimens === undefined) throw refusal(product, row, 'Library declares no rig specimens');
+      for (const model of sceneModelSource(product, row.library).models(specimens)) entries.push({ ...present(model, row), prepare });
+    } else if (row.kind === 'held') {
+      if (!product.shardfile.items.rows.some(item => item.id === row.item)) throw refusal(product, row, 'Unknown held item');
+      if (product.has('held/arms')) {
+        const arms = product.section('held/arms'), weapon = arms.weapons.find(entry => entry.item === row.item);
+        if (weapon !== undefined) {
+          const cards = arms.cards.filter(card => card.kind === weapon.blade), card = cards[0];
+          if (cards.length !== 1 || card === undefined) throw refusal(product, row, 'Held item requires exactly one existing arms card');
+          const entry = HeldClaims.gear(arms).find(candidate => candidate.id === card.id);
+          if (entry === undefined) throw refusal(product, row, 'Held arms card is absent'); entries.push(entry); continue;
+        }
+      }
+      const matches = definitions.flatMap(source => source.source.held?.filter(model => model.item === row.item).map(model => ({ source: source.id, model })) ?? []), match = matches[0];
+      if (matches.length !== 1 || match === undefined) throw refusal(product, row, 'Held item requires exactly one existing model definition');
+      const model = declaredHeldSpecimen(product, match.source, match.model);
+      if (model === undefined) throw refusal(product, row, 'Held model is absent');
+      entries.push({ ...present(model, row), prepare });
+    } else if (row.kind === 'npc') {
+      if (!product.shardfile.questNpcs?.some(npc => !('kind' in npc) && npc.npc.id === row.npc)) throw refusal(product, row, 'Unknown quest NPC');
+      const matches = definitions.flatMap(source => source.source.npcs?.filter(model => model.npc === row.npc) ?? []), match = matches[0];
+      if (matches.length !== 1 || match === undefined) throw refusal(product, row, 'NPC requires exactly one existing figure definition');
+      const model = declaredNpcSpecimen(product, match);
+      if (model === undefined) throw refusal(product, row, 'NPC model is absent');
+      entries.push({ ...present(model, row), prepare });
+    } else if (row.kind === 'posed') {
+      // The native transition already admits this existing posed library. Select
+      // its actual definitions by id without duplicating its format or builder.
+      const library = await product.json<{ readonly models: readonly { readonly id: string }[] }>(row.file);
+      if (library.models.length === 0 || library.models.length > 32) throw refusal(product, row, 'Invalid posed model library');
+      for (const model of library.models) {
+        const entry = native.find(candidate => candidate.id === model.id);
+        if (entry === undefined) throw refusal(product, row, 'Posed library requires its prepared model definition'); entries.push(entry);
+      }
+    } else if (row.kind === 'library' && row.library === 'native') {
+      const entry = native.find(model => model.id === row.model);
+      if (entry === undefined) throw refusal(product, row, 'Unknown native specimen');
+      entries.push(entry);
+    } else if (row.kind === 'scene') {
+      const matches = definitions.flatMap(source => source.source.scenes?.filter(model => model.part === row.part) ?? []), match = matches[0];
+      if (matches.length !== 1 || match === undefined) throw refusal(product, row, 'Scene part requires exactly one existing specimen definition');
+      const step = product.section('world/scenes').steps.find(entry => entry.id === match.step);
+      if (step === undefined || row.part !== `${step.id}.root` && !Object.keys(step.publish).some(id => row.part === `${step.id}.${id}`)) throw refusal(product, row, 'Scene part is not a declared publication');
+      entries.push(present(scenePartSpecimen(product, match), row));
+    } else throw refusal(product, row, `Unresolved catalogue kind ${row.kind}`);
+  }
+  if (new Set(entries.map(entry => entry.id)).size !== entries.length) throw new ProductError(product.slug, 'explore/catalogue', 'schema', 'Expanded catalogue repeats a model identity');
+  return [...entries, ...native.filter(entry => !entries.some(declared => declared.id === entry.id))];
+}
+
+function refusal(product: ShardProduct, row: ExplorerEntryRow, detail: string): ProductError {
+  return new ProductError(product.slug, 'explore/catalogue', 'schema', `${row.id ?? row.kind}: ${detail}`);
+}
+
+/** Metadata belongs to the roster reference; the existing builder stays intact. */
+function present<P extends object>(model: ModelDef<P>, row: ExplorerEntryRow): RosterEntry {
+  return live({ ...model, ...(row.id === undefined ? {} : { id: row.id }), ...(row.name === undefined ? {} : { name: row.name }),
+    ...(row.file === undefined ? {} : { file: row.file }), ...(row.category === undefined ? {} : { category: row.category }),
+    ...(row.surface === undefined ? {} : { surface: row.surface }) }, row);
+}

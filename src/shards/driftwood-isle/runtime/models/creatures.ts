@@ -6,7 +6,6 @@
  * gulls, one instanced draw, wings in the vertex shader). The deer, boar and bear are shared (src/game/models/creatures.ts).
  */
 import type * as THREE from 'three';
-import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
@@ -15,20 +14,6 @@ import { driftwoodRows } from '../boot/rows';
 import { fixedGeometryReady, loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
 
 const FILE = 'src/shards/driftwood-isle/runtime/models/creatures.ts';
-
-/** the reef crab (custom rig: claws, legs; its shell halves a hit from the front), small and big */
-export const reefCrab: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/reef-crab', file: FILE, pipeline: 'code', ...creature('crab') });
-
-/** the coconut monkey (custom rig: perches in the palm crowns, throws coconuts) and its grey elder */
-export const coconutMonkey: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/coconut-monkey', file: FILE, pipeline: 'code', ...creature('monkey') });
-
-/** the Drowned Sailor (a humanoid custom rig): rises through the wreck's broken deck at night */
-export const drownedSailor: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/drowned-sailor', file: FILE, pipeline: 'code', ...creature('sailor') });
-
-/** the Drowned Captain, the island's boss: a Hunyuan3D-2 mesh (public/assets/models/driftwood-hero/captain/captain.glb,
- *  ../species/captainMesh.ts) bound to the sailor's humanoid rig, code eye spheres on top; no stand-in (a build refuses
- *  before the file loads) */
-export const drownedCaptain: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/drowned-captain', file: FILE, pipeline: ['hunyuan', 'code'], ...creature('captain') });
 
 /** the herring gull: one faceted gull of @wildshard/sdk/looks/ambientFlock (perched, wings folded) — the island's flocks are one
  *  instanced draw of ~36, their wings, head and legs posed in its vertex shader */

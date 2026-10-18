@@ -10016,3 +10016,23 @@ There are no shard callbacks or reflected service paths. The caller retains
 its update phase; native continuations and actor authority are unchanged.
 The completion card publishes its existing entered control for reward carry
 handover. Pine's watch/dawn and Driftwood's ring reward use this same path.
+
+## Declared Explorer catalogue (Z10, G486)
+
+`explore/catalogue` is a bounded, client-only ordered roster of references to
+existing species, held items, rigs, NPCs, scene publications and engine models.
+`toLevelSpec` and session loadout resolve it through `models/explorerCatalogue`;
+a transitional
+`library: "native"` row selects a remaining native specimen by id without
+changing display order. Missing references refuse the catalogue.
+
+`world/scenes` accepts named `models` and `baked` source descriptors. The former
+retains `ModelLibraryRows`, the latter the original baked-kind rows and byte
+resources. Material inputs name stable scalars/vector collections from
+`shardfile/sceneInputs`; descriptors never contain executable builders or owners.
+Steps bind explicit geometry, models, bakes, textures and light rows, publish
+typed handles and optional named material collections, and may select a cube
+or defer construction until requested by the Explorer. A specimen retains its
+original `SceneModelRow` framing and visibility on a fresh copy of that same
+declared step. `sceneDraws` preserves ordered cards, point seeds and pools,
+sharing geometry within one product/scope and disposing it with that scope.

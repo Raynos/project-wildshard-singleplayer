@@ -13,6 +13,8 @@ const bounded = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>
 const strings = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).length <= 128));
 const reference = v.strictObject({ library: id, model: id });
 const library = v.variant('kind', [
+  v.strictObject({ id, kind: v.literal('models'), file: id }),
+  v.strictObject({ id, kind: v.literal('baked'), file: id }),
   v.strictObject({ id, kind: v.literal('owned'), models: bounded(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), file: v.union([id, v.strictObject({ phone: id, desktop: id })]), segments: v.exactOptional(v.pipe(bounded(id, 15), v.minLength(1))), attributes: v.optional(strings, {}) }), 128) }),
   v.strictObject({ id, kind: v.literal('pool'), files: bounded(v.strictObject({ file: id, parts: bounded(id, 128) }), 32), painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
@@ -20,19 +22,26 @@ const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, publishObject: v.exactOptional(id), aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),
     anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1) }),
   v.strictObject({ id, kind: v.literal('lowpoly'), variant: id, properties: v.optional(v.strictObject({ flatShading: v.exactOptional(v.boolean()), roughness: v.exactOptional(finite) }), {}) }),
-  v.strictObject({ id, kind: v.literal('basic'), properties: v.strictObject({ vertexColors: v.exactOptional(v.boolean()), color: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))), side: v.exactOptional(v.picklist([0, 1, 2])) }) }),
+  v.strictObject({ id, kind: v.literal('basic'), properties: v.strictObject({ vertexColors: v.exactOptional(v.boolean()), color: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))), side: v.exactOptional(v.picklist([0, 1, 2])), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(finite), depthWrite: v.exactOptional(v.boolean()), blending: v.exactOptional(v.picklist([0, 1, 2, 3, 4, 5])) }) }),
   v.strictObject({ id, kind: v.literal('look'), look: id, over: v.exactOptional(reference) }),
   v.strictObject({ id, kind: v.literal('standard'), sky: v.exactOptional(v.boolean()), properties: v.strictObject({ color: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))), roughness: v.exactOptional(finite),
     metalness: v.exactOptional(finite), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(finite), depthWrite: v.exactOptional(v.boolean()), vertexColors: v.exactOptional(v.boolean()) }) }),
 ]);
-const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: v.pipe(finite, v.minValue(0)), hy: v.pipe(finite, v.minValue(0)), hz: v.pipe(finite, v.minValue(0)), yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })) });
+const contactSurface = v.exactOptional(v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']));
+const box = v.strictObject({ surface: contactSurface, kind: v.literal('box'), x: finite, y: finite, z: finite, hx: v.pipe(finite, v.minValue(0)), hy: v.pipe(finite, v.minValue(0)), hz: v.pipe(finite, v.minValue(0)), yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })) });
 const surface = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
 const point = v.strictObject({ x: finite, y: finite, z: finite });
 const treads = v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: v.pipe(finite, v.minValue(0)), count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)), surface: v.exactOptional(surface) });
+const hull = v.strictObject({ surface: contactSurface, kind: v.literal('hull'), x: finite, y: finite, z: finite, points: v.pipe(bounded(finite, 24576), v.minLength(12), v.check(points => points.length % 3 === 0)), yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })) });
 const registry = v.strictObject({ id, name: id, file: id, category: v.picklist(['ground', 'nature', 'buildings', 'props']), part: id,
-  colliders: bounded(v.variant('kind', [box, treads]), 2048), surface: v.exactOptional(surface), solidFloor: v.optional(v.boolean(), false) });
+  colliders: bounded(v.variant('kind', [box, treads, hull]), 2048), surface: v.exactOptional(surface), mode: v.exactOptional(v.picklist(['foot', 'board', 'swim', 'ride'])), solidFloor: v.optional(v.boolean(), false) });
 const instance = v.strictObject({ id, position: v.exactOptional(triple), rotation: v.exactOptional(triple) });
-const step = v.strictObject({ id, scene: v.exactOptional(id), variants: v.exactOptional(v.strictObject({ standalone: id, cell: id })),
+const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone', 'cell'])), load: v.exactOptional(v.literal('explorer')), scene: v.exactOptional(id), variants: v.exactOptional(v.strictObject({ standalone: id, cell: id })),
+  models: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
+  textures: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
+  baked: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
+  collectMaterials: v.exactOptional(bounded(id, 16)),
+  lights: v.exactOptional(bounded(v.strictObject({ id, color: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff)), intensity: finite, distance: finite, decay: finite }), 16)),
   geometry: v.optional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128)), {}),
   materials: v.optional(strings, {}), registry: v.optional(bounded(registry, 128), []),
   publish: v.optional(WorldSceneBindingsSchema, {}), repeat: v.exactOptional(bounded(instance, 128)),
@@ -47,8 +56,9 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
-    && row.libraries.every(entry => entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry))))
-    && row.steps.every(entry => (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))), 'Unique scene identities and exactly one recipe source'));
+    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
+    && row.steps.every(entry => (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
+      && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
 export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds'] };
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */

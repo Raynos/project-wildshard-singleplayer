@@ -1,3 +1,4 @@
+import { ExplorerCatalogueSchema, type ExplorerCatalogue } from './explorerCatalogue';
 import { RiggedHullBookSchema, type RiggedHullBook } from './riggedHulls';
 import { ToonLookSchema, type ToonLookRow } from './toonLook';
 import { KEYED_SKY, type KeyedSkyStyle } from './keyedSky';
@@ -22,6 +23,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
   'look/keyed-sky': KeyedSkyStyle;
@@ -47,6 +49,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'explore/catalogue': { schema: ExplorerCatalogueSchema },
   'look/rigged-hulls': { schema: RiggedHullBookSchema },
   'look/toon': { schema: ToonLookSchema },
   'look/keyed-sky': { schema: KEYED_SKY },
@@ -73,6 +76,7 @@ export const PLATFORM_DATA_SECTIONS = {
 /** An explicitly declared new platform-section name; no shard-private name is inferred. */
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
+export function parsePlatformDataSection(name: 'explore/catalogue', value: unknown): ExplorerCatalogue;
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
 export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;
 export function parsePlatformDataSection(name: 'look/toon', value: unknown): ToonLookRow;

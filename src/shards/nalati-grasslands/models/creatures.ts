@@ -13,15 +13,8 @@
  * space.
  */
 import * as THREE from 'three';
-import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { LEOPARD } from '../species/leopard';
-import { KOKBORI } from '../species/kokbori';
-import { EAGLE } from '../species/eagle';
-import { GHOST_RIDER } from '../species/ghostRider';
-import { BALBAL } from '../species/balbal';
-import { GOLDEN_KING } from '../species/goldenKing';
-import { ARGYMAQ, registerArgymaq } from '../combat/elites';
+import { registerArgymaq } from '../combat/elites';
 import { Flock, type FlockBody } from '../creatures/flock';
 import { readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -36,40 +29,6 @@ const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 
 // Argymaq's kind is registered by the elite as he spawns (src/shards/nalati-grasslands/elites.ts); the roster lists him from boot
 registerArgymaq();
-
-/** the steppe horse: the plains herd's mares, foals and stallion (the Hunyuan3D-2 wild horse), the camp's saddled horses,
- *  the shepherd's and Tulpar, your horse (the saddled one) — one rig, every coat */
-export const horse: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/horse', file: FILE, pipeline: ['hunyuan', 'code'], ...creature('horse', { name: 'Steppe horse' }) });
-
-/** Argymaq the Unbroken: the feral black stallion of the Crags' high pasture (the horse's rig at ×1.3), once */
-export const argymaq: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/argymaq', file: FILE, pipeline: ['hunyuan', 'code'], ...creature(ARGYMAQ, { name: 'Argymaq the Unbroken' }) });
-
-/** the steppe wolf (TRELLIS.2 hull): the pack under Kokbori's den, her own pack, the raiders of the flock; Greymane leads */
-export const wolf: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/wolf', file: FILE, pipeline: ['trellis', 'code'], ...creature('wolf') });
-
-/** the camp's sheepdog: a collie (its own Hunyuan3D-2 hull) on the canid rig, herding the flock */
-export const sheepdog: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/sheepdog', file: FILE, pipeline: ['hunyuan', 'code'], ...creature('sheepdog') });
-
-/** Aqbars the Pale, the snow leopard of the Crags (TRELLIS.2 hull, re-generated for the rig) */
-export const aqbars: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/aqbars', file: FILE, pipeline: ['trellis', 'code'], ...creature(LEOPARD, { name: 'Aqbars the Pale' }) });
-
-/** Kokbori, Mother of the Pack: the giant sky-grey she-wolf (the wolf's hull at ×2.6), dusk and night */
-export const kokbori: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/kokbori', file: FILE, pipeline: ['trellis', 'code'], ...creature(KOKBORI, { name: 'Kokbori, Mother of the Pack' }) });
-
-/** Qyran the Storm-Wing: the giant golden eagle over Eagle Rock in a storm (TRELLIS.2 hull, wings spread) */
-export const qyran: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/qyran', file: FILE, pipeline: ['trellis', 'code'], ...creature(EAGLE, { name: 'Qyran the Storm-Wing' }) });
-
-/** the ghost riders' spectral war horse (Hunyuan3D-2 hull; ghostRiders.ts lays its ghost material and a rider over it),
- *  and Qara Batyr the Unburied, their captain */
-export const ghostRider: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/ghost-rider', file: FILE, pipeline: ['hunyuan', 'code'], ...creature(GHOST_RIDER) });
-
-/** the balbal warrior (lofted in code): a statue of the ring or a kurgan crown awake at dusk, and the Golden King's adds
- *  (kurganBalbal.ts's KURGAN_BALBAL is this species). The sleeping statue is ./balbal.ts */
-export const balbalWarrior: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/balbal-warrior', file: FILE, pipeline: 'code', ...creature(BALBAL, { name: 'Balbal warrior' }), surface: 'stone' });
-
-/** the Golden King, the great kurgan's boss: a Hunyuan3D-2 figure (NALATI-MERGE D1, art/nalati-grasslands/round-10-models-merge/)
- *  on his humanoid code rig (src/engine/entities/humanoidRigBake.ts), the crown and the cloak on their own bones */
-export const goldenKing: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'nalati-grasslands/golden-king', file: FILE, pipeline: ['hunyuan', 'code'], ...creature(GOLDEN_KING) });
 
 /** the flock's seed for the card's sheep: its first draws make a cream sheep standing, head up */
 const SHEEP_SEED = 3;

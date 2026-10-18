@@ -1,3 +1,4 @@
+import type { ExplorerCatalogue } from './explorerCatalogue';
 import type { RiggedHullBook } from './riggedHulls';
 import type { ToonLookRow } from './toonLook';
 import type { KeyedSkyStyle } from './keyedSky';
@@ -34,6 +35,8 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  /** Client-only ordered model references, ignored by simulation. */
+  'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
   'look/keyed-sky': KeyedSkyStyle;

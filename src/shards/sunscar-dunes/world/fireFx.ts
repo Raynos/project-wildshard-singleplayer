@@ -1,5 +1,6 @@
+import { sceneVectors } from '@wildshard/game/shardfile/sceneInputs';
 import * as schema from 'valibot';
-import { Mesh, Vector4, type BufferGeometry, type Group, type Material, type Object3D, type Vector3 } from 'three';
+import { Mesh, type BufferGeometry, type Group, type Material, type Object3D, type Vector3 } from 'three';
 import { cardGroup, type CardGroupRow, type CardPrograms } from '@wildshard/sdk/looks/cardField';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
@@ -21,7 +22,7 @@ const fireRows = schema.object({ fire: cards, smoke: cards, embers: schema.objec
  */
 
 /** The existing surface shaders borrow this stable light object, before the fire materials compile. */
-export const FIRE_LIGHTS = { value: [new Vector4(), new Vector4(), new Vector4(), new Vector4()] };
+export const FIRE_LIGHTS = sceneVectors('sunscar-dunes', 'firelights', 4);
 
 /** The compiled fire (one per level build): its card programs, ember and pool materials, quads, the clock and the next light slot. */
 interface Fire { readonly cards: CardPrograms<string, Material>; readonly embers: Material; readonly pool: Material; readonly quads: Readonly<Record<'flame' | 'wisp' | 'glow', BufferGeometry>>; readonly made: BufferGeometry[]; readonly setTime: (t: number) => void; slot: number }
@@ -64,7 +65,8 @@ export function addLampGlow(group: Group, input: unknown, pool: BufferGeometry |
 
 /** Claims a firelight slot at `at`; the switch turns it on or off (`gain`: a lamp is a fraction of a fire). */
 export function fireLight(at: Vector3): (lit: boolean, gain?: number) => void {
-  const f = current(), v = FIRE_LIGHTS.value[f.slot % FIRE_LIGHTS.value.length] ?? new Vector4(); f.slot++;
+  const f = current(), v = FIRE_LIGHTS.value[f.slot % FIRE_LIGHTS.value.length]; f.slot++;
+  if (v === undefined) throw new Error('Missing declared firelight input');
   v.set(at.x, at.y, at.z, 0);
   return (lit, gain = 1) => { v.w = lit ? gain : 0; };
 }

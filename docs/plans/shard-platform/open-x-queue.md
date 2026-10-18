@@ -39,6 +39,7 @@ These entries record Jake's platform approvals while their later users wait for 
 
 | Row | Future adoption | Verification | State |
 |---|---|---|---|
+| Z10 scene draws (G486) | `game/shardfile/sceneDraws.ts`: one actual shard, Signal specimen effects plus its Z7 resident emitter draws. Nine Z7 uses numeric emitter volume only and is not a sceneDraws user. The next matching W3 use (Nine lanterns or Pine fire pits) adopts the same declared ordered draws; until then HOST-BAR is 5/6, failing two-real-users only, by coordinator ratification | Rescore test 1 at the next matching W3 adoption; no invented user or new pending-user tag | open (W3 matching scene-draw consumer) |
 | W3 Nalati colour-ramp fog (G475) | Nalati's authored valley/sky fog rows use `engine/world/Atmosphere.ts` `ColourRampFog` | Same fog colours and distance curve on the existing renderer | open |
 | W3 Nine low-poly material binding (G475) | Nine's toon material rows use `engine/world/lowpolyKit.ts` `bindLowPolyMaterial` | Borrowed material updates and scope teardown retain the current ink look | open |
 | W3 Nine resident world re-entry (G476) | Nine adopts `game/shardfile/hybrid.ts` `HybridResidentWorld`, rebinding movers on return | Fast return; only the last visited shard remains resident, under G476's phone proof | open |

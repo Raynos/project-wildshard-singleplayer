@@ -4,7 +4,7 @@ import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' 
 import groundScene from '../data/groundScene.generated.json' with { type: 'json' };
 import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { createQuestPagePrompts, bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
+import { createQuestPagePrompts, bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import source from '../runtime/source';
 import { SKY_LIBRARY, skyHd } from './meshes';
@@ -12,13 +12,12 @@ import { AdditiveBlending, MeshBasicMaterial, Group, type BufferGeometry, type V
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { WORLD } from './baked';
-import { routeScenePorts, vaneGeometry } from './shapes';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 
 const { SKY_GROUND } = groundScene;
-const { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES, SKY_VANES } = routeScene;
+const { SKY_VANES } = routeScene;
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
-const FILE = 'src/shards/far-reach/world/build.ts';
 /** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
 function skyPlacements(cube: { readonly half: number } | null): typeof STATIC_SCENES.standalone {
   if (cube === null) return STATIC_SCENES.standalone;
@@ -49,7 +48,6 @@ export interface BuiltWorld {
  * it rejects once the cell has unloaded, and the build stops). `looks` are the rope decks' wood and the hover frames' glow (`look.materials`).
  */
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
-  const STRINGS = ctx.product.strings(['islet']);
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = WORLD.placements(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood');
   const groundGeometry = new Map<string, BufferGeometry | null>(SKY_GROUND.isles.map(row => [row.id, isles.get(row.node)?.geometry ?? null]));
@@ -77,52 +75,14 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pieces.scene(staticScene, staticRows.bindings, pause);
   await pause();
 
-  // the rope rails and the hover decks' faint glass are declared in the scene (generators/routeScene.ts, E399)
-  const routePorts = routeScenePorts(new Map<string, Material>([['deck', looks.deck], ['frame', looks.frame]]));
-  const routes = createClientScene(SKY_ROUTE_SCENE, routePorts), hoverDeck = routes.standardMaterial('glass');
-  if (hoverDeck === null) throw new Error('far-reach: the route scene lost its hover glass');
-  await pieces.scene(routes, SKY_ROUTES.bindings, pause);
-  await pause();
-  // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
-  // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
-  // road socket continues there, so no dock
-  const fixed = createWorldScene(staticRows.fixed.recipe, { geometry, materials, textures: new Map([...models].map(([id, model]) => [id, model?.map ?? null])), model: SKY_LIBRARY.model, baked: WORLD.object });
-  for (const id of staticRows.fixed.textureOnly) models.get(id)?.geometry.dispose();
-  for (const row of ISLET_SCENES.pieces) { const object = fixed.parts.get(`islets.${row.id}`); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
-  const posts = WORLD.piece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
-  // OP5: the fixed scene's groups register a piece per task (the crown's three baked pieces were one long road frame); the
-  // same calls in the same order, so the scene root lands where one call per group left it
-  const fixedScene = async (bindings: Parameters<typeof pieces.scene>[1]): Promise<void> => {
-    if (bindings.length === 0) { await pieces.scene(fixed, bindings); return; }
-    for (const [i, binding] of bindings.entries()) { if (i > 0) await pause(); await pieces.scene(fixed, [binding]); }
-  };
-  await fixedScene(staticRows.fixed.bindings.early);
-  await pause();
-
-  // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
+  const handles = await installWorldScenes({ ...ctx, root }, ctx.product.section('world/scenes'));
+  const hoverDeck = handles.standard('routes.glass');
   const state = { raised: false, raising: false };
-  const frames = createWorldScene(SKY_ROUTE_FRAMES.recipe, routePorts);
-  const { fallen, winchAt, notesAt } = bindWorldSceneParts(frames, { fallen: 'group', winchAt: 'vector', notesAt: 'vector' }, SKY_ROUTE_FRAMES.bindings);
+  const fallen = handles.group('frames.fallen'), winchAt = handles.vector('frames.winchAt'), notesAt = handles.vector('frames.notesAt');
   pieces.add(LAYOUT.FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(LAYOUT.FALLEN_BRIDGE.id), active: () => state.raised });
-
-  await pause();
-  await fixedScene(staticRows.fixed.bindings.mill);
-  const millHub = fixed.group('mill.hub'); if (millHub === null) throw new Error('Missing declared mill hub');
-
-  await pause();
-  await fixedScene(staticRows.fixed.bindings.furniture);
-  const [handle,notes] = createQuestPagePrompts(source,new Map([['frames',{winchAt,notesAt}]]),['winch','notes']);
-
-  await pause();
-  const vaneScene = createWorldScene(SKY_VANES.recipe, { geometry: vaneGeometry(), model: SKY_LIBRARY.model, baked: WORLD.object });
-  const vanePorts: Readonly<Record<string, unknown>> = SKY_VANES.ports;
-  await pieces.scene(vaneScene, SKY_VANES.bindings, pause);
-  const vanes = SKY_VANES.rows.map(row => {
-    const { at, rotor } = bindWorldSceneParts(vaneScene, { at: 'vector', rotor: 'group' }, { at: vanePorts[row.at], rotor: vanePorts[row.rotor] });
-    return { id: row.id, flag: row.flag, at, rotor };
-  });
-
-  await fixedScene(staticRows.fixed.bindings.crown);
+  const millHub = handles.object(`fixed-${ctx.cube === null ? 'standalone' : 'cell'}.millHub`);
+  const [handle, notes] = createQuestPagePrompts(source, new Map([['frames', { winchAt, notesAt }]]), ['winch', 'notes']);
+  const vanes = SKY_VANES.rows.map(row => ({ id: row.id, flag: row.flag, at: handles.vector(`vanes.${row.at}`), rotor: handles.object(`vanes.${row.rotor}`) }));
   // the storm: a lit vortex high over the crown only (loop 3), its lightning flashed by the `storm-ring` / `storm-bolt` graphs
   await pause();
   root.add(createClientScene(REST_SCENES.storm, { geometry: SKY_LIBRARY.geometry, materials: new Map(['storm-ring', 'storm-bolt'].map(id => [id, SKY_LIBRARY.look(id) ?? new MeshBasicMaterial({ visible: false })])) }).root);

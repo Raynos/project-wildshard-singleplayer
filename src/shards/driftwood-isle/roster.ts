@@ -5,11 +5,8 @@
  * the island keeps spawning and drawing every copy as before.
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
-import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
-import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
+import { gull } from './runtime/models/creatures';
 import { castaway } from './runtime/models/people';
-import { HeldClaims } from '@wildshard/game/loadout/claims';
-import { driftwoodProduct } from './runtime/boot/rows';
 import { COLLECTIONS } from './runtime/boot/blobAssets';
 import { captainHat, sailclothCape } from './runtime/models/captainHat';
 
@@ -17,16 +14,10 @@ export async function roster(): Promise<readonly RosterEntry[]> {
   await COLLECTIONS.prepare();
   const seaGlassChime = COLLECTIONS.model('chime'), trophyPlaques = COLLECTIONS.model('plaques');
   return [
-  // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here
-  live(boar, { pipeline: 'code' }), live(bear, { pipeline: 'code' }), // no deer since E318
-  // the enemies (src/shards/driftwood-isle/creatures/Enemies.ts) and the boss (src/shards/driftwood-isle/runtime/finalePresentation.ts)
-  live(reefCrab), live(coconutMonkey), live(drownedSailor), live(drownedCaptain),
   // the gulls (src/shards/driftwood-isle/world/Gulls.ts: ≤ 36, one instanced draw)
   live(gull, { copies: 36, drawnAs: 'instanced' }),
   // people
   live(castaway, { copies: 1, drawnAs: 'single' }),
-  // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck)
-  ...HeldClaims.gear(driftwoodProduct().section('held/arms')),
   // the loot (E314, DRIFTWOOD-LOOT): the hut's chime and trophy plaques, the captain's hat and the sailcloth cape — built
   // for review, not placed or worn yet (stage 2 / 3 wires them)
   live(seaGlassChime, { copies: 0, drawnAs: 'single' }), live(trophyPlaques, { copies: 0, drawnAs: 'single' }),

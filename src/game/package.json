@@ -200,7 +200,11 @@
     "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts",
     "./shardfile/worldSceneSurface": "./shardfile/worldSceneSurface.ts",
     "./shardfile/worldSceneWeld": "./shardfile/worldSceneWeld.ts",
-    "./population/environment": "./population/environment.ts"
+    "./population/environment": "./population/environment.ts",
+    "./models/explorerCatalogue": "./models/explorerCatalogue.ts",
+    "./shardfile/sceneSources": "./shardfile/sceneSources.ts",
+    "./shardfile/sceneInputs": "./shardfile/sceneInputs.ts",
+    "./shardfile/sceneDraws": "./shardfile/sceneDraws.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

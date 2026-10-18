@@ -15,12 +15,21 @@ type Handle = NativePart | Vector3 | number | WorldScenePlacement | WorldSceneBa
  * Resources are borrowed: the construction scope retains disposal ownership. */
 export class SceneHandles {
   private readonly values = new Map<string, Handle>();
+  private readonly materialLists = new Map<string, readonly MeshStandardMaterial[]>();
   constructor(private readonly lighting?: Pick<SkyRig, 'setupMaterial'>) {}
   get sky(): Pick<SkyRig, 'setupMaterial'> {
     if (this.lighting === undefined) throw new Error('Scene handles need world sky');
     return this.lighting;
   }
-  has(id: string): boolean { return this.values.has(id); }
+  has(id: string): boolean { return this.values.has(id) || this.materialLists.has(id); }
+  /** Original bake material collections, addressed without reflected owners. */
+  publishMaterials(id: string, materials: readonly MeshStandardMaterial[]): void {
+    if (this.has(id) || id.length === 0 || id.length > 256) throw new Error('Duplicate or invalid scene material collection');
+    this.materialLists.set(id, materials);
+  }
+  materials(id: string): readonly MeshStandardMaterial[] {
+    const materials = this.materialLists.get(id); if (materials === undefined) throw new Error(`Missing scene material collection: ${id}`); return materials;
+  }
   /** Host publication refuses every duplicate, including a cross-kind collision. */
   publish(id: string, value: unknown): void {
     if (id.length === 0 || id.length > 256) throw new Error('Invalid world scene handle');

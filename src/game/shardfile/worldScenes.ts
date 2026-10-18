@@ -1,3 +1,5 @@
+import { prepareSceneSources, sceneModelSource, sceneBakeSource, sceneSourceDeclares } from './sceneSources';
+import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneStepSources';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
@@ -30,7 +32,7 @@ function instances3(value: unknown): value is InstancedMesh { return value insta
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
 interface Library {
   readonly geometry: (id: string) => BufferGeometry | null;
-  readonly models?: ModelLibrary<never, never>;
+  readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
 }
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<SceneHandles>>>();
@@ -54,14 +56,16 @@ export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection,
 
 async function build(ctx: ShardContext, section: WorldScenesSection, resident: Scope): Promise<SceneHandles> {
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
+  if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) await prepareSceneSources(product);
   const slots = new Set(section.materials.map(row => row.id));
   const requireFile = (name: string): void => { if (!product.hasFile(name)) throw new Error(`Missing world scene blob: ${name}`); };
   const reference = (ref: { readonly library: string; readonly model: string }, mapped = false): void => {
     const library = libraryRows.get(ref.library);
-    if (library === undefined || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
+    if (library?.kind === 'models') { if (!sceneSourceDeclares(product, ref.library, ref.model, mapped ? 'painted' : 'geometry')) throw new Error('Missing declared scene source'); return; }
+    if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
@@ -151,8 +155,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       if (!recipes.has(file)) recipes.set(file, parseWorldScene(JSON.parse(decoder.decode(await product.file(file)))));
       const recipe = recipes.get(file);
       if (recipe === undefined) throw new Error('Missing admitted scene recipe');
-      if (recipe.imports.length > 0) throw new Error('World scene import needs a declared library binding');
-      if (recipe.scene.textures.length > 0 || recipe.scene.nodes.some(node => node.kind === 'object' || node.kind === 'anchor')) throw new Error('Scene objects and textures need explicit library bindings');
+      admitWorldSceneStepSources(product, step, recipe);
       const nodes = new Map(recipe.scene.nodes.map(node => [node.id, node]));
       const attributes = new Set<string>();
       for (const row of step.instanceAttributes) {
@@ -169,7 +172,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (step.registry.length > 0 && step.repeat?.some(row => row.rotation !== undefined && (row.rotation[0] !== 0 || row.rotation[2] !== 0)) === true) throw new Error('Collider repeat poses rotate about Y only');
     for (const ref of Object.values(step.geometry)) reference(ref);
     for (const slot of Object.values(step.materials)) if (!slots.has(slot)) throw new Error(`Missing world scene material: ${slot}`);
-    for (const instance of step.repeat ?? [{ id: '' }]) for (const key of [ 'root', ...Object.keys(step.publish)]) {
+    for (const instance of step.repeat ?? [{ id: '' }]) for (const key of [ 'root', ...Object.keys(step.publish), ...step.collectMaterials ?? []]) {
       const id = [step.id, instance.id, key].filter(Boolean).join('.');
       if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
     }
@@ -180,7 +183,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   // Explorer choice, rather than every resident world and inactive profile.
   const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
   const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry;
-  const residentReferences = new Set([...modelGeometry, ...section.steps.flatMap(step => Object.values(step.geometry)),
+  const activeSteps = section.steps.filter(step => step.load !== 'explorer' && (step.cube === undefined || step.cube === (ctx.cube === null ? 'standalone' : 'cell')));
+  const residentReferences = new Set([...modelGeometry, ...activeSteps.flatMap(step => Object.values(step.geometry)),
     ...[...batches.values()].flatMap(row => row.geometry),
     ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
       .concat(row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
@@ -188,7 +192,11 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   try {
     for (const row of section.libraries) {
-      if (row.kind === 'owned') {
+      if (row.kind === 'models') {
+        const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
+        libraries.set(row.id, { geometry: id => models.geometry(id), models });
+      } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
+      } else if (row.kind === 'owned') {
         const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
         for (const model of row.models) {
           if (!residentReferences.has(JSON.stringify([row.id, model.id]))) continue;
@@ -294,7 +302,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles, row.batch === undefined ? undefined : preparedBatches.get(row.batch)));
       }
     }
-    for (const step of section.steps) for (const instance of step.repeat ?? [{ id: '' }]) {
+    for (const step of activeSteps) for (const instance of step.repeat ?? [{ id: '' }]) {
       const file = step.variants === undefined ? step.scene : ctx.cube === null ? step.variants.standalone : step.variants.cell;
       const recipe = file === undefined ? undefined : recipes.get(file); if (recipe === undefined) throw new Error('Missing admitted scene recipe');
       const geometry = new Map<string, BufferGeometry>();
@@ -302,8 +310,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const source = libraries.get(ref.library)?.geometry(ref.model); if (source === undefined || source === null) throw new Error(`Missing scene geometry: ${port}`);
         geometry.set(port, source); owner.onDispose(() => { source.dispose(); });
       }
-      const made = createWorldScene(recipe, { geometry, materials: new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])),
-        model: () => { throw new Error('Undeclared scene model import'); }, baked: () => { throw new Error('Undeclared scene bake import'); } });
+      const sources = worldSceneStepSources(product, step, geometry, new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])));
+      const made = createWorldScene(recipe, sources.ports);
       owner.onDispose(() => { made.dispose(); });
       if (instance.position !== undefined) made.root.position.set(...instance.position);
       if (instance.rotation !== undefined) made.root.rotation.set(...instance.rotation);
@@ -318,12 +326,13 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       const prefix = [step.id, instance.id].filter(Boolean).join('.');
       handles.publish(`${prefix}.root`, made.root);
+      for (const [id, values] of sources.collections) handles.publishMaterials(`${prefix}.${id}`, values);
       const registered = new Map<string, { root: Object3D; colliders: ColliderDesc[] }>();
       const position = instance.position ?? [0, 0, 0], rotation = instance.rotation ?? [0, 0, 0];
       const pose = poseOf({ x: position[0], y: position[1], z: position[2], yaw: rotation[1] });
       for (const row of step.registry) {
         const object = made.parts.get(row.part); if (object === undefined) throw new Error('Missing scene registry part');
-        const native = readColliderRows(row.colliders, { kinds: ['box', 'treads'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] });
+        const native = readColliderRows(row.colliders, { kinds: ['box', 'treads', 'hull'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] });
         registered.set(row.id, { root: object, colliders: pose.upright && pose.x === 0 && pose.y === 0 && pose.z === 0 ? native : native.map(shape => placeCollider(shape, pose)) });
       }
       const kinds = Object.fromEntries(Object.entries(step.publish).map(([key, row]) => [key, row.kind]));
@@ -333,9 +342,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       for (const row of step.registry) {
         const prepared = registered.get(row.id); if (prepared === undefined) throw new Error('Missing scene registry part');
-        withOwner(owner, () => ctx.app.registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor }));
+        withOwner(owner, () => ctx.app.registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(row.mode === undefined ? {} : { mode: row.mode }) }));
         await buildYield(owner);
       }
+      if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) ctx.root.add(made.root);
       await buildYield(owner);
     }
     // Every live/deferred consumer now owns a copy; retire decoder templates.
