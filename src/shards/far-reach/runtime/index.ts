@@ -7,7 +7,7 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { effectField, type EffectFieldRow } from '@wildshard/sdk/looks/effectField';
+import { effectField, type EffectFieldRow } from '@wildshard/engine/fx/effectField';
 import windRows from '../data/wind.generated.json' with { type: 'json' };
 import { FAN_HELD_OWNERS, type WarFanWeapon } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';

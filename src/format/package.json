@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./cueDirector": "./cueDirector.ts",
     "./colourFunction": "./colourFunction.ts",
     "./paintedLook": "./paintedLook.ts",
     "./riggedHulls": "./riggedHulls.ts",

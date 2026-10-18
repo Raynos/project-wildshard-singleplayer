@@ -520,6 +520,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
 // these platform approvals, and an ordinary pending row cannot claim one.
 /** @type {Record<string,string>} */
 const approvedFeatures = {
+  'audio-cue-director':'G478',
   'H6 ambient life':'G474',
   'light emitters':'G478',
   'eased fields':'G484',

@@ -2,6 +2,17 @@
   "schema": "platform-pending-users/1",
   "entries": [
     {
+      "module": "src/game/audio/cueDirector.ts",
+      "documentation": "docs/ENGINE.md",
+      "approvedFeature": {
+        "name": "audio-cue-director",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
+    },
+    {
       "module": "src/game/population/returnProgram.ts",
       "shard": "nalati-grasslands",
       "plan": {

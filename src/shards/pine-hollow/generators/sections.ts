@@ -10,6 +10,7 @@ import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import * as v from 'valibot';
 import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
+import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
@@ -43,7 +44,7 @@ export const NativeViewSchema = v.strictObject({
   BOSS_RIBS: triple, BOSS_ENCOUNTER: v.intersect([RoamingEncounterSchema, v.object({ profile: KingProfileSchema })]), BOSS_PRESENTATION: BossEncounterPresentationSchema,
   KINGS_CLEARING: v.strictObject({ x:number, z:number, r:number, blend:number, clear:number }),
   BEAR_CAVE: v.strictObject({ x:number, z:number, rot:number }), KING_ARENA_FOG:number,
-  KING_FX_LOOKS:v.strictObject({ fog:text, flame:text }), CRAG_LOOK:text, SPRAY_LOOK:text,
+  KING_FX_LOOKS:v.strictObject({ fog:text, flame:text }), KING_CUES:CueDirectorWireSchema, CRAG_LOOK:text, SPRAY_LOOK:text,
   CAVE_LOOK:v.strictObject({ near:number, under:v.strictObject({ height:number, lzMin:number, lzMax:number }), fill:pair, surface:v.literal('rock'),
     shaft:v.strictObject({ look:text, radialSegments:number, heightSegments:number, renderOrder:number, gain:number, sunBase:number, sunGain:number, floor:number }),
     drips:v.strictObject({ color:number, size:number, opacity:number, period:number, periodStep:number, kinds:number, phaseStep:number, gravity:number, hang:number, minDrop:number }) }),

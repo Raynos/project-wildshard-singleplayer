@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "fields": [],
+  "rows": [
+    { "id": "cue.king.bark", "vfx": [{ "kind": "impact", "material": "wood", "count": 8, "reverse": true, "offset": [0, 0, 0] }] },
+    { "id": "cue.king.ember.open", "vfx": [{ "kind": "impact", "material": "sparks", "count": 14, "reverse": true, "offset": [0, 0, 0] }] },
+    { "id": "cue.king.ember.shut", "vfx": [{ "kind": "impact", "material": "sparks", "count": 5, "reverse": true, "offset": [0, 0, 0] }] },
+    { "id": "cue.king.stomp", "vfx": [{ "kind": "impact", "material": "dirt", "count": 24, "reverse": false, "offset": [0, 0.3, 0] }] },
+    { "id": "cue.king.lantern", "vfx": [{ "kind": "impact", "material": "sparks", "count": 16, "reverse": false, "offset": [0, 0.3, 0] }] }
+  ]
+}

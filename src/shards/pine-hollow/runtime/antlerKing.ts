@@ -11,7 +11,7 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { pineGrazer } from '../species/looks';
-import { Impacts } from '@wildshard/engine/fx/Impacts';
+import { CueDirector } from '@wildshard/game/audio/cueDirector';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -21,7 +21,7 @@ import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 import { pineView } from './world/context';
 import { Puffs } from './combat/fxKit';
-import { effectField } from '@wildshard/sdk/looks/effectField';
+import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingLantern, kingOwnSpecies, type KingLook } from './models/antlerKing';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
@@ -120,6 +120,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
   const thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, thrallLane, ctx.reach));
   // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
   const { KINGS_CLEARING: C, KING_ARENA_FOG: R, KING_FX_LOOKS } = pineView();
+  const cues = new CueDirector(ctx.game, pineView().KING_CUES);
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.04, 22, 96, 1, true).translate(0, 11, 0), lentLook(KING_FX_LOOKS.fog));
   wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = 26;
   wall.name = 'antler-king-fog-wall'; scene.add(wall);
@@ -154,9 +155,8 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
         const onDamage = ({ req }: DamageDealt): void => {
           if (req.target !== king) return;
           const { point, dir } = req;
-          _w.copy(dir).negate();
-          Impacts.for(ctx.game).burst('wood', point, _w, 8);
-          if (point.distanceTo(dressed.ribcageWorld(_v)) < dressed.ribcageRadius) Impacts.for(ctx.game).burst('sparks', point, _w, fight.open > 0.5 ? 14 : 5);
+          cues.cue('cue.king.bark', point, dir);
+          if (point.distanceTo(dressed.ribcageWorld(_v)) < dressed.ribcageRadius) cues.cue(fight.open > 0.5 ? 'cue.king.ember.open' : 'cue.king.ember.shut', point, dir);
         };
         if (ctx.onDamage === undefined) app.events.on('damage.dealt', onDamage, ctx.game.levelScope);
         else ctx.onDamage(onDamage);
@@ -183,7 +183,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
         else if (light) { pool.release(light); light = null; }
       },
       action: (k, move) => { k.mem['act'] = actions.get(move) ?? 0; }, roar: k => { voice(ctx.animals, 'bear_roar', k.position); },
-      burst: k => { Impacts.for(ctx.game).burst('dirt', _v.set(k.position.x, k.position.y + 0.3, k.position.z), _w.set(0, 1, 0), 24); },
+      burst: k => { cues.cue('cue.king.stomp', k.position, _w.set(0, 1, 0)); },
       hazard: (i, f, t, event) => {
         const view = fallen[i]; if (view === undefined) return;
         if (event === 'drop') { look?.lanternWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
@@ -191,7 +191,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
           const u = f.fallT, from = view.from;
           view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + 0.3 - from.y) * u * u + Math.sin(u * Math.PI) * 2, from.z + (f.z - from.z) * u);
           view.group.rotation.set(u * 1.3, u * 2, u * 0.4);
-          if (event === 'land') { ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
+          if (event === 'land') { ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); cues.cue('cue.king.lantern', _v, _w.set(0, 1, 0)); }
         } else if (event === 'burn') {
           const ember = fight.darkK > 0 ? 1 - 0.5 * fight.darkK : 1;
           view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);

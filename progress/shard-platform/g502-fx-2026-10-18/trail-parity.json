@@ -1,0 +1,195 @@
+{
+  "feature": "G502 point-follow trail sampler",
+  "landedSource": "3e263a9117643357e43a296097e9d12861a0dfd7",
+  "referenceTree": "626c24b71ff11838e7c516af66267ee2f9a38a46",
+  "candidateTree": "863e1ff72ca9bc77c3e8f5f7c8d76add2333adb8",
+  "referenceVersion": {
+    "build": "626c24b-mvdvqvdr",
+    "time": "2026-10-18T13:47:28.769Z"
+  },
+  "candidateVersion": {
+    "build": "863e1ff-mvdv4ga3",
+    "time": "2026-10-18T13:30:03.153Z"
+  },
+  "method": "Muted Chromium Metal; actual crossbow tryFire; fixed capture30; readPixels after game.snapshot(1); scripts/parity/ssim.mjs. Phone iPhone16Pro DPR2; desktop1600x900 DPR1. Full framebuffer, flight through impact and trail expiry. Candidate sampler/format/crossbow sources match landedSource.",
+  "threshold": 0.9995,
+  "minimum": 0.9999985520147184,
+  "frames": [
+    {
+      "tier": "phone",
+      "frame": 1,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 3,
+      "ssim": 0.9999999617540912,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 6,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 10,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 15,
+      "ssim": 0.9999999535685944,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 24,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 30,
+      "ssim": 0.999999618212072,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 60,
+      "ssim": 0.9999999985359326,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 90,
+      "ssim": 0.9999985520147184,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 150,
+      "ssim": 0.9999998271950895,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "phone",
+      "frame": 210,
+      "ssim": 0.9999999992559376,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 1,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 3,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 6,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 10,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 15,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 24,
+      "ssim": 0.999999999904892,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 30,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 60,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 90,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 150,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    },
+    {
+      "tier": "desktop",
+      "frame": 210,
+      "ssim": 1,
+      "tracerBuffersAndStateExact": true,
+      "clockExact": true,
+      "inFlightExact": true
+    }
+  ]
+}

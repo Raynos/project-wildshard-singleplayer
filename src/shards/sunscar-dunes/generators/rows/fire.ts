@@ -1,5 +1,5 @@
 import type { CardGroupRow, CardRow } from './fireCards';
-import type { EffectFieldRow } from '@wildshard/sdk/looks/effectField';
+import type { EffectFieldRow } from '@wildshard/engine/fx/effectField';
 
 /**
  * Signal Dunes' fires as rows (review R5 / TOP-15 #8, style bible FX) on the platform's fire effect

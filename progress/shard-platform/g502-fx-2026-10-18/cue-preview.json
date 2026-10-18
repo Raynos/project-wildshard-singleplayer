@@ -1,0 +1,557 @@
+{
+  "feature": "G478 cue director, G502 native Pine adoption",
+  "previewCommit": "435d8b28bd52e8c7e0da9b0fb0d70fedb71eb844",
+  "version": {
+    "build": "435d8b2-mvdwse4e",
+    "time": "2026-10-18T14:16:39.235Z"
+  },
+  "sourceBlobs": {
+    "src/engine/fx/effectField.ts": "2c5b4fce34f54256ac97f05d6bc081964d8764a8",
+    "src/format/cueDirector.ts": "65972b0a286dea14faeabfa1bec2cae31d81ac40",
+    "src/game/audio/cueDirector.ts": "c8c822a5f10b2e87c3ad5ad6303b81f4469aff10",
+    "src/shards/pine-hollow/data/kingCues.json": "bbd5e38faf5153270eb0750368e2437f353784c5",
+    "src/shards/pine-hollow/runtime/antlerKing.ts": "9447450f17c5b6a324dbf174216d8d329992f581"
+  },
+  "method": "Muted Chromium Metal, iPhone16Pro DPR2 and desktop1600x900 DPR1; actual retained King body and native applyDamage pipeline, six fixed capture30 frames through native particle expiry; actual crossbow tryFire, eleven frames through projectile impact and trail expiry; raw full GPU framebuffer SSIM against retained pre-trail reference.",
+  "clientErrors": [],
+  "kingNativeImpacts": [
+    {
+      "tier": "phone",
+      "frame": 1,
+      "impact": {
+        "count": 8,
+        "matrix": "661ae76d32bfe3eab3449e12936b168ba25f0206e5359c34ab624d52d033bccd",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.033333333333333,
+        "wall": 10.033333333333333,
+        "frames": 301,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "phone",
+      "frame": 3,
+      "impact": {
+        "count": 8,
+        "matrix": "332218fd394e10273ea4a6a9509f330d65567064243ddeca8ad12931bff6393f",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.1,
+        "wall": 10.1,
+        "frames": 303,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "phone",
+      "frame": 6,
+      "impact": {
+        "count": 8,
+        "matrix": "afd17fa3d5cd7a0fa54c9d27d4dff16344850650cd7586b03026295a7b25b4f5",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.2,
+        "wall": 10.2,
+        "frames": 306,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "phone",
+      "frame": 12,
+      "impact": {
+        "count": 8,
+        "matrix": "4d3bcafafc096f0d5c1d240a627e8654f9fea81a7660c6afbb9a39710f8e0262",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.399999999999999,
+        "wall": 10.399999999999999,
+        "frames": 312,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "phone",
+      "frame": 18,
+      "impact": {
+        "count": 8,
+        "matrix": "175b75f0a5d3070bbbccf488ed1c7eb9c1713de6e4bad846ab979c37060193cd",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.599999999999998,
+        "wall": 10.599999999999998,
+        "frames": 318,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "phone",
+      "frame": 30,
+      "impact": {
+        "count": 0,
+        "matrix": "60f1daab8fbb579f62b43d1b42285d71c5f4f2077fdee59112fc96423983648a",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.999999999999996,
+        "wall": 10.999999999999996,
+        "frames": 330,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 1,
+      "impact": {
+        "count": 8,
+        "matrix": "661ae76d32bfe3eab3449e12936b168ba25f0206e5359c34ab624d52d033bccd",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.033333333333333,
+        "wall": 10.033333333333333,
+        "frames": 301,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 3,
+      "impact": {
+        "count": 8,
+        "matrix": "332218fd394e10273ea4a6a9509f330d65567064243ddeca8ad12931bff6393f",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.1,
+        "wall": 10.1,
+        "frames": 303,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 6,
+      "impact": {
+        "count": 8,
+        "matrix": "afd17fa3d5cd7a0fa54c9d27d4dff16344850650cd7586b03026295a7b25b4f5",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.2,
+        "wall": 10.2,
+        "frames": 306,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 12,
+      "impact": {
+        "count": 8,
+        "matrix": "4d3bcafafc096f0d5c1d240a627e8654f9fea81a7660c6afbb9a39710f8e0262",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.399999999999999,
+        "wall": 10.399999999999999,
+        "frames": 312,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 18,
+      "impact": {
+        "count": 8,
+        "matrix": "175b75f0a5d3070bbbccf488ed1c7eb9c1713de6e4bad846ab979c37060193cd",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.599999999999998,
+        "wall": 10.599999999999998,
+        "frames": 318,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    },
+    {
+      "tier": "desktop",
+      "frame": 30,
+      "impact": {
+        "count": 0,
+        "matrix": "60f1daab8fbb579f62b43d1b42285d71c5f4f2077fdee59112fc96423983648a",
+        "colour": "7686d10fba270dd9b461d4f7e0f528a662b40c836de2a29ee9e509fe35d7d85f"
+      },
+      "king": {
+        "at": [
+          150,
+          3.756601572036743,
+          -30
+        ],
+        "hp": 1499
+      },
+      "clock": {
+        "version": 1,
+        "elapsed": 10.999999999999996,
+        "wall": 10.999999999999996,
+        "frames": 330,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      }
+    }
+  ],
+  "crossbowParity": {
+    "threshold": 0.9995,
+    "minimum": 0.999999618212072,
+    "frames": [
+      {
+        "group": "trails",
+        "key": "phone-1",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-3",
+        "ssim": 0.9999999617540912,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-6",
+        "ssim": 0.9999999004114349,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-10",
+        "ssim": 0.9999998591504705,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-15",
+        "ssim": 0.999999923843903,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-24",
+        "ssim": 0.9999997934980343,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-30",
+        "ssim": 0.999999618212072,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-60",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-90",
+        "ssim": 0.9999999998645213,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-150",
+        "ssim": 0.9999998310843434,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "phone-210",
+        "ssim": 0.9999999969415444,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-1",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-3",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-6",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-10",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-15",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-24",
+        "ssim": 0.999999999938146,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-30",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-60",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-90",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-150",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      },
+      {
+        "group": "trails",
+        "key": "desktop-210",
+        "ssim": 1,
+        "exact": {
+          "trail": true,
+          "inFlight": true,
+          "clock": true
+        }
+      }
+    ]
+  }
+}

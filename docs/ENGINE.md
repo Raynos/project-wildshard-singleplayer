@@ -1589,6 +1589,22 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 ## 15. Audio
 
+The client-only `game/audio/cueDirector` schedules existing sound cues and
+native VFX from `CueDirectorSchema` rows. Construct `CueDirector(game, rows,
+scope?, sounds?)` for impact targets, or use `CueDirector.install(ctx, rows)`
+to prepare effect fields from declared scene-library looks. `cue(id, point,
+direction)` dispatches VFX in row order, then its optional sound and phase.
+Impact targets declare material, count, direction reversal and world offset.
+Field targets declare a field id, horizontal aim distance and world offset;
+all fields in one cue share one cosmetic salt. An optional delay copies the
+source vectors and is cancelled with the scope. Unknown cues, unprepared
+fields and absent required sound owners throw. Field clocks use the entered
+scope's update phase; geometry belongs to that scope and materials remain
+borrowed from the resident scene. `engine/fx/effectField` is the canonical
+seeded-field implementation used by both this director and direct draws.
+G478 approved this director; its pending second user is Sky's gust cue
+row in the Z1 lockstep (G486).
+
 `audio.playback` declares ordered voice controls or recorded-sample
 policies. `audio.voices.playback(recipe, ports)` uses the existing pool,
 listener and RNG, with borrowed lazy clips when declared. It evaluates
