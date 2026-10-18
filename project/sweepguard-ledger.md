@@ -229,3 +229,5 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-17 22:02 · wT:p6 · `cat > tmp/sp-x6-entry/land.py <<'PY' from pathlib import Path import subprocess,os,json root=Path.cwd();s=root/'tmp/sp-x6-entry';env=os.environ.copy();env['GIT_INDEX_FILE']=str(s/'landing-index') def `
 - 2026-10-17 22:54 · wT:p3 · `GIT_INDEX_FILE="$PWD/tmp/sp-x1-c4/index" SKIP_SWEEPGUARD=1 bash .githooks/pre-commit > tmp/sp-x1-c4/precommit.log 2>&1`
 - 2026-10-17 23:03 · wT:p6 · `python3 - <<'PY' from pathlib import Path p=Path('tmp/sp-x6-entry/report.py') s=p.read_text() anchor="s['profiles']=[]" addition="""before=json.loads((root/'quest-parent-ruler.log').read_text().splitl`
+- 2026-10-18 03:00 · wT:pK · `GIT_INDEX_FILE="$PWD/tmp/z10/index" SKIP_SWEEPGUARD=1 .githooks/pre-commit >tmp/z10/precommit-dry.log 2>&1`
+- 2026-10-18 03:03 · wT:pK · `kill -TERM 37533 python3 - <<'PY' from pathlib import Path p=Path('tmp/z10/proof-catalogue.mjs');s=p.read_text().replace('timeout: 120000', 'timeout: 240000');p.write_text(s) PY GIT_INDEX_FILE="$PWD/t`
