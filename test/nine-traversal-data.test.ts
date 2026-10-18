@@ -5,6 +5,7 @@ import plan from '../src/shards/nine-dragon-stack/world/portalPlan.generated.jso
 import before from './fixtures/nine-traversal.json' with { type: 'json' };
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
+import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
 import { walkInRide, type PortalRider } from '../src/shards/nine-dragon-stack/runtime/portals/walkInRide';
 
 // Recorded from executable authoring rows at a242b48db before removing their modules.
@@ -27,7 +28,7 @@ function riderAt(x: number, y: number, z: number) {
       return { from, to: to.id, yaw: to.yaw };
     },
   };
-  const ride = () => walkInRide(rider, () => { /* no veil in the simulation */ }, { entries, trigger: portals.trigger, fade: portals.fade });
+  const ride = (stages: unknown = portalStages) => walkInRide(rider, () => { /* no veil in the simulation */ }, { entries, trigger: portals.trigger, fade: portals.fade, stages });
   return { position, holds, transfers, ride };
 }
 
@@ -54,4 +55,26 @@ test.each(plan.decks)('$edge ring keeps its trigger bounds and mid-fade continua
   expect(at.transfers).toEqual([deck.id, `${plan.square.id}.${deck.edge}`]);
   expect(at.position).toEqual({ x: deck.x, y: deck.y, z: deck.z });
   expect(at.holds).toEqual([true, false, true, false]);
+});
+
+test('product-sorted portal inputs retain authored save bytes without accepting changed bindings', () => {
+  const deck = plan.decks[0];
+  if (deck === undefined) throw new Error('Missing portal deck');
+  const source = riderAt(deck.x, deck.y, deck.z), product = riderAt(deck.x, deck.y, deck.z);
+  const authored = source.ride(), sorted = product.ride({ ...portalStages,
+    inputs: Object.fromEntries(Object.entries(portalStages.inputs).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) });
+  for (let tick = 0; tick < 60; tick++) {
+    authored.step(1 / 60); sorted.step(1 / 60);
+    expect(JSON.stringify(sorted.snapshot())).toBe(JSON.stringify(authored.snapshot()));
+    if (tick === 8) {
+      const saved = authored.snapshot(), held = [...product.holds];
+      sorted.restore(saved);
+      expect(JSON.stringify(sorted.snapshot())).toBe(JSON.stringify(saved));
+      expect(product.holds).toEqual(held); expect(product.transfers).toEqual([]);
+    }
+  }
+  expect(product.holds).toEqual(source.holds); expect(product.transfers).toEqual(source.transfers);
+  expect(product.position).toEqual(source.position);
+  expect(() => product.ride({ ...portalStages, inputs: { ...portalStages.inputs, touch: 'zone:foreign.portal' } }))
+    .toThrow('Changed Nine portal input bindings');
 });

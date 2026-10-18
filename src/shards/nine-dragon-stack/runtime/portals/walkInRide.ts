@@ -11,6 +11,7 @@
 //   const ride = walkInRide(playerRider(player, () => physics, source), veil, { entries, trigger, fade });
 import * as v from 'valibot';
 import { DirectorStageLane } from '@wildshard/game/plugin/director';
+import { parseDirectorStages } from '@wildshard/format/directorStages';
 import portalStages from '../../data/portalStages.json' with { type: 'json' };
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '@wildshard/game/shardfile/portalTraversal';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
@@ -85,7 +86,11 @@ export const PortalRideStateSchema = v.strictObject({
  *  fade, 0 clear to 1 dark */
 export function walkInRide(rider: PortalRider, veil: (k: number) => void, rings: RideRings): PortalRide {
   const { entries, trigger, fade } = rings;
-  const director = new DirectorStageLane(rings.stages ?? portalStages);
+  const stages = parseDirectorStages(rings.stages ?? portalStages);
+  // Product JSON sorts records; keep the authored input order in existing native saves.
+  if (Object.keys(stages.inputs).length !== Object.keys(portalStages.inputs).length
+    || Object.entries(portalStages.inputs).some(([name, binding]) => stages.inputs[name] !== binding)) throw new Error('Changed Nine portal input bindings');
+  const director = new DirectorStageLane({ ...stages, inputs: portalStages.inputs });
   const observation = { touch: false, dark: false, clear: false };
   const actions = new Set(['portal.hold', 'portal.transfer', 'portal.clear']);
   if (director.data.stages.some(stage => stage.do.length > 1 || stage.do.some(action => !('emit' in action) || action.value !== 0 || !actions.has(action.emit)))) throw new Error('Invalid Nine portal director action');
