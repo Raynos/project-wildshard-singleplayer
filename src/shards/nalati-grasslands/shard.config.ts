@@ -1,3 +1,4 @@
+import peopleChannels from './data/peopleChannels.generated.json' with { type: 'json' };
 import weatherChannels from './data/weatherChannels.generated.json' with {type:'json'};
 import { NALATI_MODES } from './data/modes';
 import herdChannels from './data/herdChannels.generated.json' with { type: 'json' };
@@ -39,6 +40,6 @@ export default parseShardfile({ ...base,
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + kokparMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + kokparBytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
-  clientChannels: [...herdChannels.clientChannels,...weatherChannels.clientChannels],
+  clientChannels: [...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels],
   modes: NALATI_MODES, quests: questContent.quests, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

@@ -16,16 +16,22 @@ export interface FigureRig {
 }
 /** Immutable sources are shared; every resident figure gets its own skeleton. */
 export class FigureSkins {
+  /** Shared prepared-skin validation for individual and merged row-owned figures. */
+  static async prepared(url: string): Promise<THREE.SkinnedMesh> {
+    const gltf = await loadRigFile(url), meshes: THREE.SkinnedMesh[] = [];
+    rigRoot(gltf).traverse(node => { if (isSkin(node)) meshes.push(node); });
+    const mesh = meshes[0];
+    if (mesh === undefined || meshes.length !== 1 || !mesh.geometry.hasAttribute('skinIndex')
+      || !mesh.geometry.hasAttribute('skinWeight')) throw new Error(`Invalid prepared figure skin ${url}`);
+    return mesh;
+  }
   private readonly sharedMats = new ResourceMemo<string, THREE.MeshStandardMaterial>();
   private readonly sources = new ResourceMemo<string, Source>(key => { this.sharedMats.invalidate(key); });
   /** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
   load(row: FigureSkinRow): Promise<Source> {
     return this.sources.load(JSON.stringify(row), async () => {
-        const [gltf, appearance] = await Promise.all([loadRigFile(row.url), loadRigFile(row.material)]);
-        const meshes: THREE.SkinnedMesh[] = [];
-        rigRoot(gltf).traverse(node => { if (isSkin(node)) meshes.push(node); });
-        const mesh = meshes[0];
-        if (mesh === undefined || meshes.length !== 1 || mesh.skeleton.bones.length !== LEG_BONE_NAMES.length ||
+        const [mesh, appearance] = await Promise.all([FigureSkins.prepared(row.url), loadRigFile(row.material)]);
+        if (mesh.skeleton.bones.length !== LEG_BONE_NAMES.length ||
             mesh.skeleton.bones.some((bone, i) => bone.name !== LEG_BONE_NAMES[i])) throw new Error(`Invalid baked NPC skin ${row.url}`);
         const surfaces: THREE.MeshStandardMaterial[] = [], look = rigRoot(appearance);
         look.traverse(node => {

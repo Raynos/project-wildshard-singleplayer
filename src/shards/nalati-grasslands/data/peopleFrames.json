@@ -1,7 +1,7 @@
 {
-  "elder": { "file": "elder", "height": 1.95, "neck": [0, 1.5, 0.01], "shoulder": [-0.23, 1.4, 0] },
-  "herderGate": { "file": "herder-dauren", "height": 1.85, "neck": [0, 1.48, 0.01], "shoulder": [-0.22, 1.38, 0] },
-  "herderRail": { "file": "herder-erlan", "height": 1.85, "neck": [0, 1.48, 0.01], "shoulder": [-0.22, 1.38, 0] },
-  "child": { "file": "child", "height": 1.15, "neck": [0, 0.88, 0.01], "shoulder": [-0.13, 0.84, 0] },
-  "cook": { "file": "cook", "height": 1.75, "neck": [0, 1.45, 0.01], "shoulder": [-0.21, 1.34, 0] }
+  "elder": {"file": "elder", "height": 1.95, "neck": [0, 1.5, 0.01], "shoulder": [-0.23, 1.4, 0], "radius": 0.34},
+  "herderGate": {"file": "herder-dauren", "height": 1.85, "neck": [0, 1.48, 0.01], "shoulder": [-0.22, 1.38, 0], "radius": 0.3},
+  "herderRail": {"file": "herder-erlan", "height": 1.85, "neck": [0, 1.48, 0.01], "shoulder": [-0.22, 1.38, 0], "radius": 0.3},
+  "child": {"file": "child", "height": 1.15, "neck": [0, 0.88, 0.01], "shoulder": [-0.13, 0.84, 0], "radius": 0.2},
+  "cook": {"file": "cook", "height": 1.75, "neck": [0, 1.45, 0.01], "shoulder": [-0.21, 1.34, 0], "radius": 0.33}
 }

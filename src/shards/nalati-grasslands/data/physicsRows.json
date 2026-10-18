@@ -457,8 +457,8 @@
     {"id":"nalati-kurgan-seal","name":"The sand seal","category":"buildings","file":"src/shards/nalati-grasslands/world/KurganDungeon.ts","colliders":1,"active":false,"surface":"sand","follows":{"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,-40,140,-95,1],"rotation":true}},
     {"id":"paths","name":"Paths","category":"ground","file":"src/engine/physics/paths.ts","colliders":112,"active":true,"surface":"ground"},
     {"id":"practice-arena","name":"HUD + Weapon Explorer arena","category":"ground","file":"src/engine/practice/TrainingArena.ts","colliders":5,"active":true,"surface":"metal"},
-    {"id":"nalati-camp-people","name":"Camp people","category":"people","file":"src/shards/nalati-grasslands/campPeople.ts","colliders":4,"active":true,"surface":"flesh"},
-    {"id":"nalati-camp-child","name":"Camp child","category":"people","file":"src/shards/nalati-grasslands/campPeople.ts","colliders":1,"active":true,"surface":"flesh"}
+    {"id":"nalati-camp-people","name":"Camp people","category":"people","file":"src/shards/nalati-grasslands/models/people.ts","colliders":4,"active":true,"surface":"flesh"},
+    {"id":"nalati-camp-child","name":"Camp child","category":"people","file":"src/shards/nalati-grasslands/models/people.ts","colliders":1,"active":true,"surface":"flesh"}
   ],
   "solids": [
     {"shape":1,"groups":131071,"friction":0.5,"body":null,"at":[250.1999969482422,170,0],"rot":[0,0,0,1],"half":[1,230,252]},

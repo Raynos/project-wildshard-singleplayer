@@ -8,6 +8,7 @@
     "./quest/chapterDirector": "./quest/chapterDirector.ts",
     "./models/figureCatalogue": "./models/figureCatalogue.ts",
     "./systems/npc/figureRows": "./systems/npc/figureRows.ts",
+    "./systems/npc/figureSkins": "./systems/npc/figureSkins.ts",
     "./looks/coverAppearance": "./looks/coverAppearance.ts",
     "./quest/eliteFeature": "./quest/eliteFeature.ts",
     "./quest/elitePage": "./quest/elitePage.ts",

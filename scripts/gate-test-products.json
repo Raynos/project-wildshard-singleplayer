@@ -187,5 +187,11 @@
     "pine-hollow"
   ],
   "test/sweep-guard.test.ts": [],
-  "test/nalati-kokpar.test.ts": []
+  "test/nalati-kokpar.test.ts": [],
+  "test/nalati-people-loader.test.ts": [
+    "nalati-grasslands"
+  ],
+  "test/nalati-camp-fallback.test.ts": [
+    "nalati-grasslands"
+  ]
 }

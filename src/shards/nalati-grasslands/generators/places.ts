@@ -1768,7 +1768,7 @@ function elder(seed: number): Parts {
   h.add(new THREE.TorusGeometry(0.125, 0.028, 5, 14).rotateX(Math.PI / 2).translate(0, 0.205, 0), campPalette.black);                // its brim
   const a = new PaintKit(seed + 2);
   arm(a, campPalette.indigo, campPalette.skin, 0.44, 0.065);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('elder'), radius: 0.34 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('elder'), radius: peopleFallbackFrames.elder.radius };
 }
 
 /** two boot toes peeking out under a robe */
@@ -1805,7 +1805,7 @@ function herder(seed: number, hat: 'tymaq' | 'kalpak', coat: string): Parts {
   arm(a, coat, campPalette.skin, 0.42, 0.062, hat === 'tymaq'
     ? (k, hand) => { k.add(pole(hand, v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), 0.016, 0.012, 5), campPalette.wood); k.add(pole(v3(hand.x - 0.02, hand.y - 0.02, hand.z + 0.34), v3(hand.x - 0.05, hand.y - 0.5, hand.z + 0.4), 0.007, 0.005, 4), campPalette.boot); } // the qamshy (whip)
     : undefined);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame(hat === 'tymaq' ? 'herderGate' : 'herderRail'), radius: 0.3 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame(hat === 'tymaq' ? 'herderGate' : 'herderRail'), radius: peopleFallbackFrames[hat === 'tymaq' ? 'herderGate' : 'herderRail'].radius };
 }
 
 function child(seed: number): Parts {
@@ -1823,7 +1823,7 @@ function child(seed: number): Parts {
   h.add(lathe([[0.001, 0.15], [0.1, 0.15], [0.098, 0.2], [0.07, 0.23], [0.001, 0.24]], 10), (p) => (Math.floor(Math.atan2(p.x, p.z) * 2.5) % 2 === 0 ? campPalette.cap : campPalette.gold)); // the taqiya
   const a = new PaintKit(seed + 2);
   arm(a, campPalette.shirt, campPalette.skin, 0.28, 0.036);
-  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('child'), radius: 0.2 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('child'), radius: peopleFallbackFrames.child.radius };
 }
 
 function cook(seed: number): Parts {
@@ -1843,7 +1843,7 @@ function cook(seed: number): Parts {
     k.add(pole(hand, v3(hand.x, hand.y - 0.05, hand.z + 0.42), 0.012, 0.012, 5), campPalette.wood);                               // the ladle
     k.add(sphere(0.045, 1, 0.55, 1).translate(hand.x, hand.y - 0.07, hand.z + 0.45), campPalette.iron);
   });
-  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('cook'), radius: 0.33 };
+  return { body: finish(b, true), head: finish(h), arm: finish(a), ...personFrame('cook'), radius: peopleFallbackFrames.cook.radius };
 }
 
 /** each figure's builder (the seeds fix its brush noise) */

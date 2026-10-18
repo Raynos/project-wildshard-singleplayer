@@ -7501,7 +7501,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/data/physics.generated.json": "f0d0557c6b6e25c32db367ace55fc25b55f6a64aecab964ee80df1da79abd4ab"
+        "src/shards/nalati-grasslands/data/physics.generated.json": "ef9af7acda74a7775afc4cfa2fb473afc0f75122f24043931ae4763aa9cb5696"
       },
       "seedOutputs": []
     },
@@ -17663,6 +17663,12 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-people.mjs",
         "src/shards/nalati-grasslands/generators/peopleRig.ts",
+        "src/shards/nalati-grasslands/generators/peopleRows.mjs",
+        "src/shards/nalati-grasslands/generators/peopleMotion.ts",
+        "src/sdk/clientChannels.ts",
+        "src/format/clientChannels.ts",
+        "src/shards/nalati-grasslands/data/peopleMotion.json",
+        "src/shards/nalati-grasslands/data/questContent.json",
         "src/shards/nalati-grasslands/data/peopleFrames.json",
         "public/assets/nalati/models/people",
         "src/sdk/bake/skinned.ts",
@@ -17686,7 +17692,8 @@
         "public/assets/nalati/baked/people/herderGate.phone.glb",
         "public/assets/nalati/baked/people/herderRail.glb",
         "public/assets/nalati/baked/people/herderRail.phone.glb",
-        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json"
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json",
+        "src/shards/nalati-grasslands/data/peopleChannels.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
@@ -17702,7 +17709,8 @@
         "public/assets/nalati/baked/people/herderGate.phone.glb": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
         "public/assets/nalati/baked/people/herderRail.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
         "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
-        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "9fe64f78b5e8b8a2ee01b7d00c50b8c3b3e45c1f82fc22eff599aca98ad015ea"
+        "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "7846b3acfa4008721cdc82580b350c470267c325fe6f0f7c00b96204ed48a62e",
+        "src/shards/nalati-grasslands/data/peopleChannels.generated.json": "b1fd0a886784f8c68d6bcce6637c4acfe913b16c2b4047ce21be4fe81d6ab8ec"
       }
     },
     {

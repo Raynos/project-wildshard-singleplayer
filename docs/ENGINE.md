@@ -10232,3 +10232,17 @@ optional baked placements, and declarative floor policy (`platforms`,
 `registryReach`). It resolves entered scene/sky/player/prompts and the saved
 quest flags internally, owns kit resources in the entry scope, and leaves the
 caller's update phase and event bindings intact.
+
+
+### Prepared figure skins
+
+`FigureSkins.prepared(url)` in `game/systems/npc/figureSkins` reads one
+prepared skinned mesh and refuses missing skin-index/weight channels or
+ambiguous meshes. Pine's standing skin loader and Nalati's merged figures use
+the same intake. The caller retains ownership of geometry, skeleton and
+materials; this function installs no service, clock or save owner.
+
+`FigureRows` also binds the merged figures' borrowed joints and prompt vectors.
+Single-shard atlas packing stays in shard view code. Its per-frame focus and
+gesture expressions are generated client-channel data; terrain contact and
+world-matrix writes keep their original view phase.

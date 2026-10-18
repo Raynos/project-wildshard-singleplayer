@@ -11,15 +11,14 @@ import type { QuestChip, LiveMarker, Places } from '@wildshard/engine/quest/view
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { bindStoryChapters, presentChapterStory } from '@wildshard/game/quest/story';
-import source from './shard.config';
 import type { ShardContext } from '@wildshard/game/shard/context';
 
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { NpcDialogueRowSchema } from '@wildshard/game/plugin/quests';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
-import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
-import type { KokparMount, KokparRound } from './kokpar';
+import { enteredPeople, type CampPeople, type PersonId } from './models/people';
+import type { KokparMount, KokparRound } from './quest/kokpar';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { poiMaterial } from './world/modelView';
@@ -141,11 +140,11 @@ export async function installNalatiAdventure<A extends { kind: string; variant?:
   };
 
   // ── the camp's people ──
-  const people = buildCampPeople(w.sky, floorAt, w.registry ?? null, scope);
+  const people = enteredPeople(w, floorAt);
   if (!w.registry) w.game.scene.add(people.group);
 
   // ── the quest line, the chip, the dialogue ──
-  const line = bindStoryChapters(w.ctx, source, story.chapters, { flags, facts: w.persistence.facts });
+  const line = bindStoryChapters(w.ctx, w.ctx.product.shardfile, story.chapters, { flags, facts: w.persistence.facts });
   const presentation = presentChapterStory(line, story, { scope, ctx: w.ctx, flags,
     figures: people.fig, npcs: content.npcs, places: content.places, prompts: w.prompts,
     toast: text => { w.hud.toast(text); }, sting: () => { w.music.sting('chunk'); }, open: () => { w.audio.weaponSwap(); },

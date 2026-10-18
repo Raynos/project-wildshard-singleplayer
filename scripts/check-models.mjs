@@ -110,7 +110,7 @@ export const DONE = {
     'src/shards/nalati-grasslands/world/dressing/life.ts': { why: 'pollen and seed fluff (an effect), butterflies and the kites (ambient creatures, M5)', counts: { InstancedMesh: 2 } },
     // e6b43b9aa retires the primary; its frozen copy keeps this contract.
     'src/shards/nalati-grasslands-legacy/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
-    'src/shards/nalati-grasslands/campPeople.ts': { why: 'the camp people are People (M5)', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
+    'src/shards/nalati-grasslands-legacy/campPeople.ts': { why: 'Frozen camp retains its original registry piece and fallback batch; primary uses row-owned prepared figures', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
     'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands-legacy/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
@@ -220,11 +220,6 @@ function countsOf(code) {
     mergeGeometries: (code.match(/\bmergeGeometries\(/g) ?? []).length,
   };
 }
-
-// Literal SF54 relocation: these two helpers support Nalati's People model; no directory-wide exception.
-const MODEL_SUPPORT = new Map([
-  ['src/shards/nalati-grasslands/models/npc/figureMotion.ts', 'Publishes the camp figure poses used by the People model and its entered runtime.'],
-]);
 
 const SHARD_MODELS = /^src\/shards\/([^/]+)\/models\//;
 // G463 model-folder moves retain the exact former model contract. Every
@@ -378,7 +373,7 @@ export function checkModels(files) {
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0)
       + (inShardModels ? (code.match(/\b(?:defineGeometryModel|modelCatalogue|defineSpecimenCatalogue)(?:<[^(]*>)?\(/g) ?? []).length : 0);
     if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
-    if (inShardModels && calls === 0 && !MODEL_SUPPORT.has(file)) violations.push(`${file}: a file in a models folder that defines no model`);
+    if (inShardModels && calls === 0) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
       // Pine's unchanged deer specialization retains the defining shared model
