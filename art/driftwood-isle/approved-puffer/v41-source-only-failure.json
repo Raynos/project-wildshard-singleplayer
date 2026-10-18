@@ -1,0 +1,7 @@
+{
+  "status": "unrendered source-only; not accepted",
+  "source": "build_puffer_lowpoly_v41_from_v9.py",
+  "reason": "Source reconstruction passes front and near hero, but far hero retains projected boundary/spoke folds because hull roots lie far behind protected eye planes",
+  "actualRenderCount": 0,
+  "next": "V42 broad front-hull support shape study; no loosened projection guards"
+}

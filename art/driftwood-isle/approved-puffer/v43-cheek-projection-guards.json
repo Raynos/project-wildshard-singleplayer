@@ -1,0 +1,47 @@
+{
+  "-1": {
+    "front": {
+      "spokeCrossings": [],
+      "boundaryCrossings": [],
+      "twistedQuads": []
+    },
+    "hero": {
+      "spokeCrossings": [
+        [
+          6,
+          7
+        ],
+        [
+          7,
+          8
+        ]
+      ],
+      "boundaryCrossings": [
+        [
+          8,
+          5
+        ],
+        [
+          9,
+          10
+        ]
+      ],
+      "twistedQuads": [
+        6,
+        7
+      ]
+    }
+  },
+  "1": {
+    "front": {
+      "spokeCrossings": [],
+      "boundaryCrossings": [],
+      "twistedQuads": []
+    },
+    "hero": {
+      "spokeCrossings": [],
+      "boundaryCrossings": [],
+      "twistedQuads": []
+    }
+  }
+}

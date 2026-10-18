@@ -1,0 +1,11 @@
+{
+  "geometryChanged": false,
+  "paletteChanged": false,
+  "method": "existing broad face regions",
+  "faceCounts": {
+    "ochre": 16,
+    "ivory": 130
+  },
+  "creamBoundary": "Z=.98-.18*abs(X)",
+  "orangeUpperBoundary": "Z=.95+.235*abs(X)"
+}
