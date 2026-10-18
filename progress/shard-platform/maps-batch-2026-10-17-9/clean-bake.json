@@ -1,0 +1,131 @@
+{
+  "sourceTree": "76dd1d5e573b56495faa9ae8a9c95dfc58b2c85f",
+  "sourceParent": "1a3ae518369d57075466ec8b8d2a26dc52615ef5",
+  "commitParent": "751901814d224c89d282d05e0d55df3b0607eff5",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2074,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "ee57839fa48c91713b8e9946ced4a4d14041f98f8ea0da4acc7d8e23a840f299",
+      "inputFiles": 278,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "ee57839fa48c91713b8e9946ced4a4d14041f98f8ea0da4acc7d8e23a840f299",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "2dfdc1e50769a6862b2c77e08df499a8c962b1a9de7aeb8a1e4fd001cc5c07bd",
+      "inputFiles": 273,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "2dfdc1e50769a6862b2c77e08df499a8c962b1a9de7aeb8a1e4fd001cc5c07bd",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "adb3846b5973ebb7f0688dca1c777b58cf2ece2d",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "Delete GroundCover wrapper; direct native streamed cover host with data/coverComposition.json"
+    },
+    {
+      "sha": "4bc6117764def5bae4d3bc65275c2c7e4233eddf",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "Delete world/sites, places, gpuOnlyCopies; ordered assembly and data/placeSets.json"
+    },
+    {
+      "sha": "1a3ae518369d57075466ec8b8d2a26dc52615ef5",
+      "owner": "sp-x1",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "Bake ambientLife into Pine life.as/registered life output; generator/page-life section updates in Pine and Driftwood",
+      "inputs": [
+        "src/shards/pine-hollow/shard.config.ts",
+        "src/shards/pine-hollow/generators/bake-life.mjs",
+        "src/shards/pine-hollow/generators/pageLife.ts",
+        "src/shards/pine-hollow/generators/output.ts",
+        "src/shards/pine-hollow/generators/outputInputs.ts",
+        "src/shards/pine-hollow/generators/sections.ts",
+        "src/shards/driftwood-isle/generators/pageLife.ts",
+        "src/shards/driftwood-isle/generators/output.ts"
+      ],
+      "ownerNet": {
+        "pine-hollow": -259,
+        "driftwood-isle": 0
+      },
+      "ownerAfter": {
+        "pine-hollow": 4541,
+        "driftwood-isle": 3596
+      }
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "data/coverComposition.json",
+      "data/placeSets.json"
+    ],
+    "pine-hollow": []
+  }
+}

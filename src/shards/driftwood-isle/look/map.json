@@ -32,7 +32,9 @@
     "data/rockScenes.generated.json",
     "data/shoreBoulders.generated.json",
     "data/foliageScenes.generated.json",
-    "data/pierScenes.generated.json"
+    "data/pierScenes.generated.json",
+    "data/coverComposition.json",
+    "data/placeSets.json"
   ],
   "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",
   "style": {
