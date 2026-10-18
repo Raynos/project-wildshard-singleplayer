@@ -1,3 +1,5 @@
+import { loadBoundSpecimen } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../../boot/specimens.generated.json' with { type: 'json' };
 /**
  * Nalati dressing (look-pass lever 6, "density") — everything small that makes the steppe feel lived-in between the
  * POIs: boulder clusters with moss and lichen, outcrop slabs, stones lining every road, pebbles / cobbles / driftwood
@@ -47,7 +49,6 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { MOTES_GLSL } from '../../runtime/looks/motesGlsl';
 import { coverGeometry, preloadCover } from '../../creatures/marmots';
-import { loadNalatiModel, modelsOn } from '../modelView';
 import type { Box } from '../solid';
 import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds,
@@ -291,11 +292,8 @@ export class NalatiDressing {
       this.drawn.push({ layer: l, list, descs, place: (how) => place(model, list.map((it) => ({ x: it.x, y: it.y, z: it.z })), how) });
       this.group.add(l.mesh);
     };
-    // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn('rocks')`,
-    // else the procedural blobs — the same plan, sizes and tints either way
-    const rockModels = modelsOn('rocks')
-      ? await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadNalatiModel(this.sky, n, { rim: 0.3, bands: 0.8 }))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
-      : null;
+    // The prepared boulders share the declared material with their Explorer specimens.
+    const rockModels = await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadBoundSpecimen(this.sky, specimenData.assets[n]))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; });
     if (rockModels) {
       const [b1, b2, b3] = rockModels;
       if (b1 && b2 && b3) {

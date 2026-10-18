@@ -68,7 +68,7 @@ function tier(phone: boolean, ground: (x: number, z: number) => number) {
 
     const binding = catalogue.find(row => row.key === 'snowLotus')?.source.asset?.material;
     if (binding === undefined) throw new Error('Missing authored snow lotus look');
-    return { poses: places, look: { rim: binding.rim, bands: binding.bands }, member: member('snow-lotus', places) };
+    return { scene: { version: 1, root: 'lotus', materials: [{kind:'port',id:'material',source:'material'}], nodes: [{kind:'mesh',id:'lotus',name:'nalati-model-snow-lotus',geometry:'model',material:'material',missing:'empty',instances:places.length,matrices:places.flatMap(pose=>placementMatrix(pose).toArray()),castShadow:true,receiveShadow:true}] }, poses: places, look: { rim: binding.rim, bands: binding.bands }, member: member('snow-lotus', places) };
   }
   return { horses: herdRows(), lotus: lotusRows() };
 }

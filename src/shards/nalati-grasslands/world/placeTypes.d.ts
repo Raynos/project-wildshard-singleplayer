@@ -3,7 +3,7 @@ import type { ModelContext, Placement } from '@wildshard/engine/models/model';
 import type { Draw } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
-import type { BoxSpec } from '@wildshard/engine/physics/box';
+import type { BoxSpec, FloorRect } from '@wildshard/engine/physics/box';
 import type { Material } from '@wildshard/engine/physics/surface';
 
 import type { ModelPlacement, ModelLook } from './modelTypes';
@@ -26,7 +26,7 @@ interface PlacementRow { readonly heading?: readonly [number, number]; readonly 
 /** one model's copies in a place, as data */
 export interface MemberRow {
   readonly draw: string; readonly inKit: boolean; readonly placements: readonly PlacementRow[]; readonly boxes: readonly number[];
-  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly PlaceFloorRow[];
+  readonly solid: readonly DescRow[]; readonly descs: readonly DescRow[]; readonly floors: readonly ({ readonly rects: readonly FloorRect[] } | { readonly x: number; readonly z: number; readonly size: number; readonly res: number; readonly data: string })[];
 }
 /** one place: its object (a group by name, or null: its one mesh is the object), meshes, boxes, cloth / smoke, models */
 export interface PlaceRow {

@@ -19,7 +19,6 @@ import type { FlockBody } from '../creatures/flock';
 import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
-import { modelsOn } from '../world/modelView';
 import { TitanBody } from '../combat/stormTitan';
 import { syncTitanCloud } from '../combat/stormTitanLook';
 
@@ -50,7 +49,7 @@ export const sheep: ModelDef<object> = defineModel<object>({
     mesh.instanceMatrix.needsUpdate = true;
     const fit = (): void => { mesh.computeBoundingBox(); mesh.computeBoundingSphere(); };
     fit();
-    if (modelsOn('creatures')) {
+    {
       // the flock swaps in the generated sheep when its rig lands (the same cached load): refit, and show it
       productRiggedHulls('nalati-grasslands').load('sheep').then(() => {
         fit();

@@ -1,6 +1,7 @@
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
 // Frozen shipping round before the AS projection (2026-10-18).
 import * as THREE from 'three';
-import { poiMaterial } from '../../src/shards/nalati-grasslands/world/modelView';
 import { bakedActorGeometry } from '../../src/shards/nalati-grasslands/world/places';
 import layoutRows from '../../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
@@ -40,7 +41,7 @@ export interface KokparRound {
 
 /** the goat: a painterly carcass lying on its side (body, legs, head, the horns) */
 function goatMesh(sky: Sky): THREE.Mesh {
-  const m = new THREE.Mesh(bakedActorGeometry('goat'), poiMaterial(sky));
+  const m = new THREE.Mesh(bakedActorGeometry('goat'), specimenMaterial(sky, specimenData.materials.poi));
   m.castShadow = true; m.receiveShadow = true;
   m.name = 'nalati-kokpar-goat';
   return m;

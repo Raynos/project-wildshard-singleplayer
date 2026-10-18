@@ -1,3 +1,5 @@
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
@@ -5,7 +7,6 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { poiMaterial } from '../world/modelView';
 import { bakedActorGeometry } from '../world/places';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { installChapterStory } from '@wildshard/game/quest/chapter';
@@ -39,7 +40,7 @@ export const KokparRows = v.object({ program: v.unknown(), home: v.object({ x: v
   goals: v.array(v.object({ x: v.number(), z: v.number() })), messages: v.record(v.string(), v.string()) });
 /** The guest owns round rules; this binding only applies its published pose and service effects. */
 export function kokparView(w: KokparViewWorld, floorAt: (x: number, z: number) => number, kokparRows: v.InferOutput<typeof KokparRows>,
-goat: THREE.Mesh = new THREE.Mesh(bakedActorGeometry('goat'), poiMaterial(w.sky))): KokparRound {
+goat: THREE.Mesh = new THREE.Mesh(bakedActorGeometry('goat'), specimenMaterial(w.sky, specimenData.materials.poi))): KokparRound {
   goat.castShadow = true; goat.receiveShadow = true; goat.name = 'nalati-kokpar-goat';
   const home = new THREE.Vector3(kokparRows.home.x, floorAt(kokparRows.home.x, kokparRows.home.z) + 0.16, kokparRows.home.z);
   const lie = (): void => { goat.position.copy(home); goat.rotation.set(0, 0.7, Math.PI / 2 - 0.25); };

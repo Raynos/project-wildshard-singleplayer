@@ -105,7 +105,6 @@ export const DONE = {
     'src/shards/nalati-grasslands/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nalati-grasslands-legacy/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/world/paint.ts': { why: "The frozen PaintKit retains its original POI merge; primary paint now runs offline.", counts: { mergeGeometries: 1 } },
-    'src/shards/nalati-grasslands/world/modelView.ts': { why: "the generated (GLB) models' instancing: one InstancedMesh per model per place (NalatiSet.flush)", counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/Balbals.ts': { why: 'the balbals are placed instanced; an empty mesh stands in for a carved variant no crown wears (B11 hides a waking warrior by instance)', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands/world/dressing/index.ts': { why: 'The existing scatter draw uses CellWindow; two ambient creature draws borrow prepared shapes and platform flock rows (world, §1; M5).', counts: { InstancedMesh: 3 } },

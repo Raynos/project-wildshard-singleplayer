@@ -15,7 +15,6 @@ import { fogLut, syncPaintedFog } from './fog';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
-import { setModelShade } from '../world/modelView';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface LookV2Ctx {
@@ -62,7 +61,6 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
   // the generated models' shading (glbPaint.ts; N20, the user's pick): the clones the builders made of a model get their own bake
-  setModelShade(true, game.scene);
   // phone: the realtime shadow map now holds only what moves (the creatures, the player — bake.ts), so 512² does
   if (PHONE_STATIC_OFF_CSM) {
     sky.csm.shadowMapSize = 512;

@@ -18,7 +18,17 @@ import * as camp from '../src/shards/nalati-grasslands/models/catalogue';
 import * as trail from '../src/shards/driftwood-isle/models/catalogue';
 import campData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
-import { poiMaterial, texturedMaterial } from '../src/shards/nalati-grasslands/world/modelView';
+
+import preparedPlaces from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
+import sourcePlaces from '../src/shards/nalati-grasslands/data/places.json' with { type: 'json' };
+import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
+import { bakedMember } from '../src/shards/nalati-grasslands/world/places';
+import type { MemberRow } from '../src/shards/nalati-grasslands/world/placeTypes';
+import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
+import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';
+import { pathRampDescs } from '../src/engine/physics/paths';
+import { bakedSamplers } from '../src/format/bakedTerrainSampling';
+import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 
 function testSky(): SkyRig {
   const sky: unknown = Object.create(SkyRig.prototype);
@@ -111,17 +121,35 @@ describe('declared specimen catalogue', () => {
     const sky = testSky(), built = catalogue.model('ribbonPole').build(modelContext(sky), {}, new Rng(1));
     if (!(built instanceof THREE.Group)) throw new Error('Expected lazy group');
     const mesh = built.children[0]; if (!(mesh instanceof THREE.Mesh)) throw new Error('Expected painted specimen');
-    expect(mesh.material).toBe(poiMaterial(sky));
+    expect(mesh.material).toBe(specimenMaterial(sky, campData.materials.poi));
     expect(mesh.castShadow).toBe(true); expect(mesh.receiveShadow).toBe(true);
   });
 
   it('shares material identities with the world and recreates disposed material caches', () => {
     const sky = testSky(), row = campMaterialRows.poi;
     const material = specimenMaterial(sky, row);
-    expect(material).toBe(poiMaterial(sky)); expect(material).toBe(texturedMaterial(sky, 'poi'));
+    expect(material).toBe(specimenMaterial(sky, campData.materials.poi));
     expect(painterlyKnobs(material)?.uPRim.value).toBe(0.35);
     expect(painterlyKnobs(material)?.uPFloorAmt.value).toBe(1);
     expect(specimenMaterial(testSky(), row)).not.toBe(material);
     material.dispose(); expect(specimenMaterial(sky, row)).not.toBe(material);
   });
+});
+
+it('retains every POI collider and path-ramp descriptor after floor baking', () => {
+  const original = v.parse(v.custom<readonly PlaceRow[]>(Array.isArray), sourcePlaces.rows);
+  const prepared = preparedPlaces.places.rows as readonly { readonly name: string; readonly colliders: readonly unknown[]; readonly members: readonly (readonly [string, MemberRow])[] }[];
+  const before = original.flatMap(row => row.members.flatMap(([, member]) => member.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))));
+  const after = prepared.flatMap(row => row.members.flatMap(([, member]) => bakedMember(member).floors));
+  for (const row of original) {
+    const actual = prepared.find(candidate => candidate.name === row.name);
+    expect(actual?.colliders).toEqual(row.colliders);
+    expect(actual?.members.map(([id, member]) => [id, member.solid, member.descs])).toEqual(row.members.map(([id, member]) => [id, member.solid, member.descs]));
+  }
+  const grid = parseBakedTerrain(Uint8Array.from(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')).buffer);
+  if (grid === null) throw new Error('Missing native terrain');
+  const field = bakedSamplers(grid);
+  const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR, ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL] as readonly (readonly (readonly [number, number])[])[];
+  const ramps = (floors: readonly ((x: number,z: number) => number | undefined)[]) => pathRampDescs(trails,field.heightAt,(x,z)=>field.normalAt(x,z)[1],{carried:(x,z)=>floors.some(f=>f(x,z)!==undefined)});
+  expect(ramps(after)).toEqual(ramps(before));
 });

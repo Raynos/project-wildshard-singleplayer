@@ -1,6 +1,8 @@
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import { loadBoundSpecimen, specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
-import { instanceModel, poiMaterial, loadNalatiModel, placementMatrix } from './modelView';
 import type { ModelPlacement } from './modelTypes';
 import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
@@ -62,7 +64,8 @@ const GALLOP_HZ = 2.2 * Math.PI * 2, GALLOP_SPREAD = 1.7;
 const GALLOP_GLSL = BOWL_GLSL_FAMILY.glsl(BOWL_GLSL.GALLOP_GLSL, { GALLOP_HZ: GALLOP_HZ.toFixed(4), GALLOP_SPREAD: GALLOP_SPREAD.toFixed(2) });
 
 /** a painterly material for the riders with the gallop bent in (one extra program, for the six riders) */
-function gallopMaterial(sky: Sky, like: THREE.MeshLambertMaterial): THREE.MeshLambertMaterial {
+function gallopMaterial(sky: Sky, like: THREE.Material): THREE.MeshLambertMaterial {
+  if (!(like instanceof THREE.MeshLambertMaterial)) throw new Error('Rider surface needs Lambert material');
   const mat = painterlyMaterial(sky, { map: like.map, rim: 0.8, bands: 0.85 });
   patchShader(mat, 'nalati.gallop', PATCH_ORDER.decorate, (shader) => {
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n${GALLOP_GLSL}`);
@@ -88,8 +91,8 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
   const group = base.object;
   const riders = (bakedPlaceAnchors('kokpar').riders ?? []).map(r => ({ t: r.t, k: r.k, w: r.w, bob: r.bob }));
   let inst: THREE.InstancedMesh | null = null;
-  const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
-  loadNalatiModel(sky, 'kokpar-rider', { rim: 0.8, bands: 0.85 }, PHONE ? 'far' : 'near').then((m) => {
+  const mat = new THREE.Matrix4(), position = new THREE.Vector3(), rotation = new THREE.Euler(0, 0, 0, 'YXZ'), orientation = new THREE.Quaternion(), scale = new THREE.Vector3(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
+  loadBoundSpecimen(sky, PHONE ? specimenData.assets.kokparRiderFar : specimenData.assets.kokparRider).then((m) => {
     inst = new THREE.InstancedMesh(m.geometry, gallopMaterial(sky, m.material), riders.length);
     inst.castShadow = !PHONE; inst.receiveShadow = true;
     inst.name = 'nalati-kokpar-riders';
@@ -113,7 +116,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
       const ph = painterlyUniforms.uPTime.value * GALLOP_HZ + i * GALLOP_SPREAD;
       place.x = p.x; place.z = p.z; place.y = gy + (0.5 + 0.5 * Math.sin(ph * 2 - 0.4)) * 0.16 - 0.06;
       place.rot = p.yaw + Math.sin(ph) * 0.025; place.roll = -0.14 + Math.sin(ph) * 0.03; place.pitch = Math.sin(ph + 1.1) * 0.07;
-      m.setMatrixAt(i, placementMatrix(place, mat));
+      m.setMatrixAt(i, mat.compose(position.set(place.x, place.y, place.z), orientation.setFromEuler(rotation.set(place.pitch ?? 0, place.rot ?? 0, place.roll ?? 0, 'YXZ')), scale.setScalar(place.scale ?? 1)));
     }
     m.instanceMatrix.needsUpdate = true;
   };
@@ -145,8 +148,8 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
   const copies = bakedMember(data.member), put = placer(herdHorse)[1];
   /** hidden within HIDE of the viewer (the AI herd is the near one); on the phone a whole herd goes past FAR */
   const HIDE = 45, FAR = PHONE ? 165 : Infinity;
-  const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
-  loadNalatiModel(sky, 'horse-wild', { rim: 0.8, bands: 0.85 }, 'far').then((m) => {
+  const mat = new THREE.Matrix4(), position = new THREE.Vector3(), rotation = new THREE.Euler(0, 0, 0, 'YXZ'), orientation = new THREE.Quaternion(), scale = new THREE.Vector3(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
+  loadBoundSpecimen(sky, specimenData.assets.herdHorse).then((m) => {
     for (const herd of herds) {
       // one InstancedMesh per herd, bounded by the herd's ground: a herd behind the camera costs nothing
       const im = new THREE.InstancedMesh(m.geometry, m.material, Math.max(1, herd.horses.length));
@@ -188,7 +191,7 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
         h.x = frame.x; h.z = frame.z; h.yaw = frame.yaw; h.turn = frame.turn;
         if (viewer && Math.hypot(h.x - viewer.x, h.z - viewer.z) < HIDE) continue;
         place.x = h.x; place.z = h.z; place.y = ground(h.x, h.z) - 0.04; place.rot = h.yaw; place.scale = h.s;
-        m.setMatrixAt(n, placementMatrix(place, mat));
+        m.setMatrixAt(n, mat.compose(position.set(place.x, place.y, place.z), orientation.setFromEuler(rotation.set(place.pitch ?? 0, place.rot ?? 0, place.roll ?? 0, 'YXZ')), scale.setScalar(place.scale ?? 1)));
         const c = COATS[h.c] ?? [1, 1, 1];
         m.setColorAt(n, col.setRGB(c[0], c[1], c[2]));
         n++;
@@ -208,7 +211,7 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   const group = new THREE.Group();
   group.name = 'nalati-snow-lotus';
   const data = rows[TIER].lotus, copies = bakedMember(data.member), put = placer(snowLotus)[1];
-  loadNalatiModel(sky, 'snow-lotus', data.look).then(model => { group.add(instanceModel(model, data.poses)); return model; })
+  loadBoundSpecimen(sky, specimenData.assets.snowLotus).then(model => { group.add(createClientScene(data.scene, { geometry: new Map([['model',model.geometry]]),materials:new Map([['material',model.material]]) }).root); return model; })
     .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
   return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: data.poses.length * modelMetrics.triangles['snow-lotus'], register: (o) => [put(copies, { ...o, object: group }, group)] };
 }
@@ -224,7 +227,7 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
 export function buildGlacier(ctx: PoiCtx): PoiPiece {
   const { sky } = ctx;
   const geo = bakedActorGeometry('glacier-snout:world');
-  const mesh = new THREE.Mesh(geo, poiMaterial(sky));
+  const mesh = new THREE.Mesh(geo, specimenMaterial(sky, specimenData.materials.poi));
   mesh.name = 'nalati-glacier';
   mesh.receiveShadow = true; mesh.castShadow = false;
   const at = fixed.glacierSnout;

@@ -1,3 +1,5 @@
+import { loadBoundSpecimen, specimenMaterial, type SpecimenAssetRow } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
@@ -12,19 +14,20 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { instanceModel, loadNalatiModel, poiMaterial, texturedMaterial } from './modelView';
-import type { NalatiModelName } from './modelTypes';
 import { yardMaterial } from './Yard';
 import type { NalatiTexName } from '../look/nalatiTextures';
 import type { PoiCtx, PoiPiece, PlaceAnchors } from './types';
 import type { PlaceGeometryRow, PlaceRow, MemberRow, EffectRow, MemberData, SetRegister } from './placeTypes';
-import { placeMember, cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, torFloor, deckFloor } from './painted';
+import { placeMember } from './painted';
+import { floorAtRects } from '@wildshard/engine/physics/box';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import scenes from '../boot/poiScenes.generated.json' with { type: 'json' };
 import prepared from '../boot/placeRuntime.generated.json' with { type: 'json' };
 import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
 import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
 
-interface PreparedPlace extends Omit<PlaceRow, 'meshes' | 'members'> {
+interface PreparedPlace extends Omit<PlaceRow, 'meshes' | 'members' | 'instances'> {
+ readonly instances: readonly (readonly [string, { readonly placements: readonly unknown[]; readonly asset: SpecimenAssetRow; readonly scene: unknown }])[];
  readonly meshes: readonly { readonly geometry: PlaceGeometryRow; readonly offset: number; readonly material: string }[];
  readonly members: readonly (readonly [string, MemberRow])[];
 }
@@ -81,7 +84,12 @@ export function bakedPlaceAnchors(name: string): PlaceAnchors {
 const colliders = (inputs: readonly MemberRow['descs'][number][]): ColliderDesc[] => { const decoded = inputs.map(({ heading, ...row }) => heading === undefined ? row : { ...row, yaw: Math.atan2(...heading) }); return readColliderRows(decoded, { kinds: ['box', 'treads', 'hull', 'capsule', 'ball', 'trimesh'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] }).map((parsed, i) => Object.assign(decoded[i] ?? {}, parsed)); };
 export function bakedMember(input: MemberRow): MemberData {
  const placements = input.placements.map(({ matrix, heading, ...p }): Omit<Placement<object>, 'params'> => ({ ...p, ...(heading === undefined ? {} : { yaw: Math.atan2(...heading) }), ...(matrix === undefined ? {} : { matrix: new THREE.Matrix4().fromArray(matrix) }) }));
- return { draw: input.draw === 'instanced' ? 'instanced' : 'merged', inKit: input.inKit, placements, boxes: [...input.boxes], solid: colliders(input.solid), descs: colliders(input.descs), floors: input.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f)) };
+ return { draw: input.draw === 'instanced' ? 'instanced' : 'merged', inKit: input.inKit, placements, boxes: [...input.boxes], solid: colliders(input.solid), descs: colliders(input.descs), floors: input.floors.map(f => {
+  if ('rects' in f) return (x: number,z: number) => floorAtRects(f.rects,x,z,'highest');
+  const raw=decode(f.data),heights=new Float32Array(raw.buffer,raw.byteOffset,raw.byteLength/4);
+  const sample=bakedSamplers({res:f.res,size:f.size,heights,splat:new Uint8Array(0),undergrowth:null,seed:0,landscapeHash:0}).heightAt;
+  return (x: number,z: number) => { const y=sample(x-f.x,z-f.z); return Number.isFinite(y)?y:undefined; };
+ }) };
 }
 export type Placer = (m: MemberData, o: SetRegister, object: THREE.Object3D) => Placed;
 export const placer = <P extends object>(def: ModelDef<P>): readonly [string, Placer] => [def.id, (m, o, object) => placeMember(def, m, o, object)];
@@ -100,9 +108,9 @@ export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap
  if (row === undefined || recipe === undefined) throw new Error(`Missing place scene ${name}`);
  const bytes = placeBytes(), geos = new Map<string, THREE.BufferGeometry>();
  for (const [i, mesh] of row.meshes.entries()) { geos.set(`mesh-${i}`, geometry(bytes, mesh.offset, mesh.geometry)); yield; }
- const object = createClientScene(recipe, { geometry: geos, materials: new Map(row.meshes.map(mesh => [mesh.material, mesh.material === 'yard' ? yardMaterial(ctx.sky) : mesh.material === 'poi' ? poiMaterial(ctx.sky) : texturedMaterial(ctx.sky, mesh.material as NalatiTexName)])) }).root;
+ const object = createClientScene(recipe, { geometry: geos, materials: new Map(row.meshes.map(mesh => [mesh.material, mesh.material === 'yard' ? yardMaterial(ctx.sky) : mesh.material === 'poi' ? specimenMaterial(ctx.sky, specimenData.materials.poi) : specimenMaterial(ctx.sky, specimenData.materials[mesh.material as NalatiTexName])])) }).root;
  effects(ctx, row.effects);
- for (const [modelName, instance] of row.instances) if (instance.placements.length > 0) { const load = async (): Promise<void> => { try { const model = await loadNalatiModel(ctx.sky, modelName as NalatiModelName, instance.look); object.add(instanceModel(model, instance.placements, { castShadow: instance.castShadow })); } catch (error: unknown) { console.warn('Prepared place model failed', error); } }; void load(); }
+ for (const [, instance] of row.instances) if (instance.placements.length > 0) { const load = async (): Promise<void> => { try { const model = await loadBoundSpecimen(ctx.sky, instance.asset); object.add(createClientScene(instance.scene, { geometry: new Map([['model', model.geometry]]), materials: new Map([['material', model.material]]) }).root); } catch (error: unknown) { console.warn('Prepared place model failed', error); } }; void load(); }
  const members = row.members.map(([id, m]) => [id, bakedMember(m)] as const);
  return { name: row.name, object, colliders: row.colliders.map(box => ({ ...box })), surface: row.surface as Material, tris: row.tris, descs: members.flatMap(([, member]) => member.descs), register: o => members.map(([id, member]) => { const put = placers.get(id); if (put === undefined) throw new Error(`Missing place model ${id}`); return put(member, { ...o, object, ...(split === undefined ? {} : { split }) }, object); }) };
 }

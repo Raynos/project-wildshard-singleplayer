@@ -1,3 +1,5 @@
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 /**
  * Flutter — every piece of cloth on the Nalati POIs in ONE mesh (one draw call): the ribbons on the camp's pole,
  * pennants on the yurt crowns, the cloth strips tied at the Wind Cairn, the prayer-strip lines. Each strip is a
@@ -13,7 +15,6 @@
  *   flutter.setWind(dirX, dirZ, strength01)   // else it follows the shared painterly wind (setPainterlyLook({ wind }))
  */
 import * as THREE from 'three';
-import { poiMaterial } from './modelView';
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -113,7 +114,7 @@ export class Flutter {
     let maxLen = 0; for (const s of this.strips) maxLen = Math.max(maxLen, s.len + Math.hypot(s.sx, s.sy, s.sz));
     const sphere = new THREE.Sphere(); this.bounds.getBoundingSphere(sphere); sphere.radius += maxLen;
     geo.boundingSphere = sphere;
-    this.mesh = new THREE.Mesh(geo, poiMaterial(sky));
+    this.mesh = new THREE.Mesh(geo, specimenMaterial(sky, specimenData.materials.poi));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = true;
     this.update(0);

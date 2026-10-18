@@ -32,9 +32,9 @@ const meshSummary = mesh => ({ sourceMesh: mesh.sourceMesh, name: mesh.name, typ
     matricesSha256: arrayHash(mesh.instances.matrices), coloursSha256: mesh.instances.colours === null ? null : arrayHash(mesh.instances.colours) } });
 
 try {
-  const [{ captureNalatiAuthoredWorld }, { nalatiGroundSource }, { awaitNalatiModelLoads }, { Terrain }] = await Promise.all([
+  const [{ captureNalatiAuthoredWorld }, { nalatiGroundSource }, { awaitSpecimenAssets }, { Terrain }] = await Promise.all([
     import('./nalatiCaptureInventory.ts'), import('./nalatiGroundSource.ts'),
-    import('../world/modelView.ts'), import('@wildshard/engine/world/Terrain'),
+    import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/engine/world/Terrain'),
   ]);
   const nativeTerrain = readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'));
   const capture = await captureNalatiAuthoredWorld({ root, sky, element: environment.element, nativeTerrain,
@@ -45,7 +45,7 @@ try {
       geometry.setIndex(new THREE.BufferAttribute(source.indices, 1));
       const terrain = new Terrain(); terrain.mesh = new THREE.Mesh(geometry, material); terrain.material = material; terrain.group.add(terrain.mesh);
       owned.push(geometry, material); return terrain;
-    }, settleModels: () => awaitNalatiModelLoads(sky),
+    }, settleModels: () => awaitSpecimenAssets(sky),
   });
   const { placements, roots, builds } = capture.inventory;
   const { pageScope } = await import('@wildshard/engine/app/resources');

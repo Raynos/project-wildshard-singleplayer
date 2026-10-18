@@ -1,3 +1,6 @@
+import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
+import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
+import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 /**
  * Balbals — where the kurgan field's stone warriors stand, and B11's handle on them (the model is
  * src/shards/nalati-grasslands/models/balbal.ts: the TRELLIS.2 stele, two carved code variants drawn until it lands).
@@ -18,7 +21,6 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
-import { poiMaterial, placementMatrix } from './modelView';
 import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 import { balbal, wearGenerated, type BalbalCarving, type BalbalParams } from '../models/balbal';
 
@@ -49,7 +51,7 @@ export class Balbals {
     const s = this.statues[i], mesh = this.meshes[s?.variant ?? -1];
     if (!s || !mesh || this.awake[i] === awake) return;
     this.awake[i] = awake;
-    mesh.setMatrixAt(s.slot, awake ? new THREE.Matrix4().makeScale(0, 0, 0) : placementMatrix({ x: s.x, y: s.y, z: s.z, rot: s.yaw, scale: s.scale, roll: s.tilt }));
+    mesh.setMatrixAt(s.slot, awake ? new THREE.Matrix4().makeScale(0, 0, 0) : modelPoseMatrix({ x: s.x, y: s.y, z: s.z, yaw: s.yaw, scale: s.scale, roll: s.tilt }));
     mesh.instanceMatrix.needsUpdate = true;
     // an awake statue's collider no longer blocks (the warrior carries its own)
     s.collider.yTop = awake ? -1e9 : s.y + 2.2 * s.scale;
@@ -74,7 +76,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
     const y = ground(s.x, s.z) - 0.18 * scale;
     // data only here: `Balbals.register` makes each statue its own piece (a woken one stops colliding)
     const collider: Box = { x: s.x, z: s.z, hw: 0.42 * scale, hd: 0.33 * scale, rot: -s.yaw, yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true };
-    placements.push({ x: s.x, y, z: s.z, matrix: placementMatrix({ x: s.x, y, z: s.z, rot: s.yaw, scale, roll: s.tilt ?? 0 }), variant: CARVING[variant] ?? 'bare' });
+    placements.push({ x: s.x, y, z: s.z, matrix: modelPoseMatrix({ x: s.x, y, z: s.z, yaw: s.yaw, scale, roll: s.tilt ?? 0 }), variant: CARVING[variant] ?? 'bare' });
     b.statues.push({ x: s.x, y, z: s.z, yaw: s.yaw, scale, tilt: s.tilt ?? 0, variant, slot, collider });
     colliders.push(collider);
   });
@@ -88,7 +90,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
         const isInstanced = (o: THREE.Object3D | undefined): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
         const mesh = (c: BalbalCarving): THREE.InstancedMesh => {
           const name = `${balbal.id}:${c}:0`, m = placed.object.name === name ? placed.object : placed.object.getObjectByName(name);
-          return isInstanced(m) ? m : new THREE.InstancedMesh(new THREE.BufferGeometry(), poiMaterial(sky), 0);
+          return isInstanced(m) ? m : new THREE.InstancedMesh(new THREE.BufferGeometry(), specimenMaterial(sky, specimenData.materials.poi), 0);
         };
         b.meshes = CARVING.map(mesh);
         wearGenerated(b.meshes, sky);

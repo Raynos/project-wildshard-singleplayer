@@ -8,7 +8,6 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import type { PackPrey } from '../runtime/groupRegistry';
 import { productRiggedHulls, type RiggedHullAsset } from '@wildshard/sdk/looks/riggedHulls';
-import { modelsOn } from '../world/modelView';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import type { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -136,7 +135,7 @@ export class Flock extends GroupBrain<SheepPrey> {
     this.writeInstances();
     // Debug ▸ Creatures = Models (the default): the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
     // it loads — the procedural flock stands in until then
-    if (modelsOn('creatures')) productRiggedHulls('nalati-grasslands').load('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((cause: unknown) => { throw new Error('Nalati sheep rig failed', { cause }); });
+    productRiggedHulls('nalati-grasslands').load('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((cause: unknown) => { throw new Error('Nalati sheep rig failed', { cause }); });
     return this;
   }
 
