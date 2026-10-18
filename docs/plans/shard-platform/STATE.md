@@ -6,7 +6,7 @@
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6 per platform commit; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns unblocking a red gate/CI/smoke (fix forward or revert, no waiting on the owner).
 
-**Batches:** live 114973d17; sixteenth (Z1) pushed, smoke repair 62e14486d landed. Seventeenth closed and baking (Nine volume/LUT −154, Nine C9 −170, Nalati terrain −217, Nine kits −154). Eighteenth ready: x6 W3 audio (−188), x9 Nalati chapter (−68, platform +146), x4 Nine spill (−157), x1 NM2 prerequisite. G504: W3 queue = mini-plan Step 1 batches by component; P0 (Nine graph display-encode lift + sampler3D) → sp-x4 next.
+**Batches:** live 114973d17; sixteenth pushed, smoke fix 62e14486d. Seventeenth closed and baking (Nine volume/LUT −154, Nine C9 −170, Nalati terrain −217, Nine kits −154). Eighteenth ready: x6 W3 audio (−188), x9 Nalati chapter (−68, platform +146), x4 Nine spill (−157), x1 NM2 prerequisite. G504: W3 queue = mini-plan Step 1 batches by component. P0: display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900); sp-x4 on sampler3D + Nine B8 architecture.
 
 **Lanes (7 Codex + sp-x7 deploy; Opus cap 1 until Mon):**
 - CM1 + Pine C9 sp-x9 · C1-DW + C7/C8 sp-x5 · C4 sp-x1 · Sky/Signal: Z2/Z10 sp-x8, Z7/Z9 sp-x4 · G498 rows sp-x6 · switch-point rows sp-x1 · map owner sp-x10 · sp-x7 deploy only (G485/G493).
