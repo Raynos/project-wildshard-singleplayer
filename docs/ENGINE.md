@@ -1789,6 +1789,12 @@ The engine registers world targets and practice overrides with `combat.registerT
 `combat.targetPort(actor, body, impulse?, available?)` adapts a contact body without changing its damage formula.
 The practice predicate isolates the room when true, even when it has no targets. Scope disposal removes the source.
 
+`combat.routeTarget(scope, actor, route)` redirects damage for one exact actor to its owning encounter pipeline.
+The route runs before the outer pipeline's admission, modifiers and events. The supplied callback must use a
+separate pipeline; routing back into the same pipeline would recurse. Duplicate routes and disposed scopes are
+rejected, and disposal removes only the registered route. Callers must explicitly provide equivalent applicable
+weapon/defense rules in the isolated pipeline and verify that world kill, quest and reward listeners cannot fire.
+
 **GAS-lite: effects.** `EffectService` (`app.effects`) applies `EffectDef` rows to an actor or a piece of equipment.
 
 | Export | What it is |
@@ -2492,6 +2498,31 @@ export class JumpCourse implements Playground { readonly id = 'template.jump'; e
 ```
 
 A playground's pieces are registry pieces with `active: () => this.entered`, so they collide only while it is open.
+
+**Decision stun observation.** ABI-v1 appends scalar read 20, `Read.stunned(actor): bool`, without changing
+existing operation IDs. Scripts must declare `stunned` among their read capabilities; only observed actors are
+readable. The value comes from the actual creature simulation stun, independently of hit-event health fraction.
+Borrowed creature authorities cancel the active strike while stunned and reject new strike starts until recovery.
+A guest should retire its queued combo with `Do.stop` and clear its own continuation when this read is true.
+
+**Borrowed decision guard.** A borrowed actor row may declare `guard: { field, activeValue, multiplier }`.
+The field must be a public numeric actor field admitted by that script. An exact value match applies the bounded
+0–4 multiplier to incoming damage after existing body modifiers. The hook is owned by the actor decision scope
+and affects that body only. Values above one represent a declared exposure window. Damage still emits its real post-modifier hit event, allowing a guest to clear its guard
+and schedule separately telegraphed counterplay. The declaration does not grant instant damage, world rewards or
+cross-actor access. Existing `stop` semantics retire the current declared strike before a counter is requested.
+
+**Isolated practice opponent (development API).** `TrainingArena.setOpponent(opponent | null)` may only be called
+while the room is closed. `null` preserves the standard three-dummy mode. A `PracticeOpponent` supplies `targets`,
+`enter(origin)`, `exit()`, `update(dt)` and `raycast(origin, direction, distance)`. In opponent mode the host hides
+dummy models, labels and decorations, disables their colliders, and delegates target/raycast/update lifecycle.
+The caller owns the actor, combat scope, disposal, rewards and persistence isolation. Room support alone does not
+establish complete player damage, loot collection or enemy behavior. `activeTargets` exposes the current mode's
+bodies; do not read the retained dummy array to select an opponent.
+
+The `Animal` view constructor accepts optional `AnimalSimPorts` after `entityId` for explicit height, floor,
+time, random and damage services. Omitted ports retain the existing app-backed behavior. Explicit ports do not
+by themselves isolate rendering ownership or global listeners; an encounter must own and retire those resources.
 
 ## 23. Analytics, session health, capture, debug
 

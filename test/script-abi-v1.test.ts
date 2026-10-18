@@ -6,6 +6,7 @@ it('keeps the declared wire ids and separate view command range', () => {
   expect(SCRIPT_V1_EVENTS['strike.target']).toBe(14);
   expect(SCRIPT_V1_READS.random).toBe(12);
   expect(SCRIPT_V1_READS.bearing).toBe(19);
+  expect(SCRIPT_V1_READS.stunned).toBe(20);
   expect(SCRIPT_V1_LISTS.path).toBe(5);
   expect(SCRIPT_V1_COMMANDS.encounter).toBe(15);
   expect(SCRIPT_V1_COMMANDS['view.channel']).toBe(100);

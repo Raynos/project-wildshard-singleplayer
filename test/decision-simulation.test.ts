@@ -405,3 +405,23 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
     expect(()=>owner.step()).toThrow('normalized body offset');expect(actor.state).toBe(beforeState);expect(actor.yOffset).toBe(depth);
   }finally{sim.dispose();}
 });
+
+test('stunned scalar observes real creature stagger and recovery', async () => {
+  const wasm = await compileScript(`@external("env","ws_read") declare function read(op:i32,a:f64,b:f64):f64;
+    export function ws_abi():i32{return 1;} export function ws_init(lo:i32,hi:i32):void{}
+    export function ws_io():i32{return 16384;} export function ws_handle():i32{store<f64>(${state},read(20,1,0));return 0;}`, { abi: 1 });
+  const f = fixture(wasm), row = f.scripts[0]; if (row === undefined) throw new Error('Missing stun fixture');
+  row.on = ['start', 'tick']; row.tick = 10; row.commands = []; row.reads = ['stunned'];
+  const sim = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+  try {
+    const actor = sim.host.entities.get('actor.a'); if (actor === undefined) throw new Error('Missing actual actor');
+    for (let i = 0; i < 7; i++) sim.host.step();
+    expect(sim.decisions?.host.state(1)).toEqual({ calls: 0 });
+    actor.stagger(actor.position.clone().set(0, 0, 1), 1);
+    for (let i = 0; i < 6; i++) sim.host.step();
+    expect(sim.decisions?.host.state(1)).toEqual({ calls: 1 });
+    for (let i = 0; i < 90; i++) sim.host.step();
+    expect(sim.decisions?.host.state(1)).toEqual({ calls: 0 });
+    expect(sim.decisions?.host.metrics()[0]?.refusals).toBe(0);
+  } finally { sim.dispose(); }
+});

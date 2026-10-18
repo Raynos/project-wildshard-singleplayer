@@ -220,6 +220,7 @@ export class ShardDecisions {
     if (op === 6) return Number(actor?.alive ?? this.sim.player.health.alive);
     if (op === 7) return this.fieldValue(a, b);
     if (op === 15) return Number(this.motions.has(a));
+    if (op === 20) return Number(actor?.stunned ?? false);
     if (op === 16) return ['idle', 'windup', 'active', 'recover', 'cooldown'].indexOf(this.sim.strikes.get(requireValue(this.actors.get(a), 'strike actor'))?.state ?? 'idle');
     throw new Error('Decision read has no authoritative mechanic');
   }

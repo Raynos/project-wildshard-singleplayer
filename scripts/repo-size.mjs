@@ -398,7 +398,10 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
     const added = changes.filter((change) => change.status !== 'D' && change.mode !== '160000' && !before.has(change.oid))
       .map((change) => ({ oid: change.oid, path: change.path }));
     const commitBytes = counted(added);
-    const upstream = exists('refs/remotes/origin/main') ? ['refs/remotes/origin/main'] : [];
+    let tracked = '';
+    try { tracked = git(['rev-parse', '--symbolic-full-name', '@{upstream}']).trim(); } catch { /* detached or no configured upstream */ }
+    const upstream = tracked.startsWith('refs/remotes/') && exists(`${tracked}^{commit}`) ? [tracked]
+      : exists('refs/remotes/origin/main') ? ['refs/remotes/origin/main'] : [];
     const stops = [...upstream, ...(policy.migrationBase ? [policy.migrationBase] : [])];
     const pending = head ? firstSeen(commitsOf([head, ...(stops.length > 0 ? ['--not', ...stops] : [])])) : { added: [], known: new Set() };
     const pushBytes = counted([...pending.added, ...added.filter((item) => !pending.known.has(item.oid))]);

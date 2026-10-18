@@ -232,3 +232,36 @@ it('a blobless clone (CI) checks the pushed range with one batched blob fetch', 
   expect(ci.checkPush(record(base, base), { rangeOnly: true }).commits).toBe(0);
   expect(() => ci.checkPush(record(good, base), { rangeOnly: true })).toThrow(new RegExp(`${bad.slice(0, 10)} art/bad\\.zip`, 'u'));
 });
+
+
+it('uses a non-main remote upstream but still counts new unpublished binaries', () => {
+  const f = fixture(); f.policy({ maxPushBytes: 1000 }); f.commit();
+  f.stage('art/published.bin', binary(800)); const published = f.commit();
+  f.git('remote', 'add', 'origin', 'https://example.invalid/repository.git');
+  f.git('update-ref', 'refs/remotes/origin/gamedev-dot', published);
+  f.git('branch', '--set-upstream-to=origin/gamedev-dot', 'main');
+  f.stage('src/current.ts', 'export const current = true;');
+  expect(f.checker().checkIndex().pushBytes).toBe(0);
+  f.stage('art/new.bin', binary(800, 2)); expect(f.checker().checkIndex().pushBytes).toBe(800); f.commit();
+  f.stage('art/next.bin', binary(800, 3)); expect(() => f.checker().checkIndex()).toThrow('per-push budget');
+});
+it('does not treat a local branch upstream as published history', () => {
+  const f = fixture(); f.policy({ maxPushBytes: 1000 }); f.commit();
+  f.stage('art/one.bin', binary(800)); f.commit();
+  f.git('branch', 'local-base'); f.git('branch', '--set-upstream-to=local-base', 'main');
+  f.stage('art/two.bin', binary(800, 2)); expect(() => f.checker().checkIndex()).toThrow('per-push budget');
+});
+it('falls back to known origin/main when detached or configured upstream was deleted', () => {
+  const f = fixture(); f.policy({ maxPushBytes: 1000 }); f.commit();
+  f.stage('art/published.bin', binary(800)); const published = f.commit();
+  f.git('remote', 'add', 'origin', 'https://example.invalid/repository.git');
+  f.git('update-ref', 'refs/remotes/origin/main', published);
+  f.git('update-ref', 'refs/remotes/origin/gamedev-dot', published);
+  f.git('branch', '--set-upstream-to=origin/gamedev-dot', 'main');
+  f.git('update-ref', '-d', 'refs/remotes/origin/gamedev-dot');
+  f.stage('src/current.ts', 'export const current = true;');
+  expect(f.checker().checkIndex().pushBytes).toBe(0); f.commit();
+  f.git('checkout', '--detach');
+  f.stage('src/current.ts', 'export const current = false;');
+  expect(f.checker().checkIndex().pushBytes).toBe(0);
+});

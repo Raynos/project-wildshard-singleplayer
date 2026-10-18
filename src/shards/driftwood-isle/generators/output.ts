@@ -1,3 +1,10 @@
+import brinePufferClips from '../data/brinePufferClips.generated.json' with { type: 'json' };
+import conchDuelistClips from '../data/conchDuelistClips.generated.json' with { type: 'json' };
+import splinterMantisClips from '../data/splinterMantisClips.generated.json' with { type: 'json' };
+import bellbackClips from '../data/bellbackClips.generated.json' with { type: 'json' };
+import tideRootColossusClips from '../data/tideRootColossusClips.generated.json' with { type: 'json' };
+import { DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_STRIKES } from './driftwoodRegularCombat';
+import { TIDAL_GIANTS_DECISIONS, TIDAL_GIANTS_MOVES, TIDAL_GIANTS_STRIKES } from './tidalGiantsCombat';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
@@ -63,6 +70,12 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
+  nameBlob('poses/brine-puffer.json', 'json', new TextEncoder().encode(encodeCanonicalJson(brinePufferClips))),
+  nameBlob('poses/conch-duelist.json', 'json', new TextEncoder().encode(encodeCanonicalJson(conchDuelistClips))),
+  nameBlob('poses/splinter-mantis.json', 'json', new TextEncoder().encode(encodeCanonicalJson(splinterMantisClips))),
+  nameBlob('poses/bellback.json', 'json', new TextEncoder().encode(encodeCanonicalJson(bellbackClips))),
+  nameBlob('poses/tide-root-colossus.json', 'json', new TextEncoder().encode(encodeCanonicalJson(tideRootColossusClips))),
+
   nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))),
   nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rocks.scene))),
   nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue()))),
@@ -84,7 +97,7 @@ const placements = emitNamedBlobs([
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['look/toon', TOON_LOOK], ['client/plan', clientPlan], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['look/toon', TOON_LOOK], ['client/plan', clientPlan], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['sim/scripts', [...CAPTAIN_DECISION, ...DRIFTWOOD_REGULAR_DECISIONS, ...TIDAL_GIANTS_DECISIONS]], ['actors/moves', [...CAPTAIN_MOVES, ...DRIFTWOOD_REGULAR_MOVES, ...TIDAL_GIANTS_MOVES]], ['actors/strikes', [...CAPTAIN_STRIKES, ...DRIFTWOOD_REGULAR_STRIKES, ...TIDAL_GIANTS_STRIKES]], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

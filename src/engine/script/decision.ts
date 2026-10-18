@@ -327,7 +327,7 @@ export class DecisionHost {
   private read(op: number, a: number, b: number): number {
     const row = this.current(), capability = readNames.get(op);
     check(capability !== undefined && row.script.reads.includes(capability) && Number.isFinite(a) && Number.isFinite(b), 'read capability');
-    if (op <= 9 || op === 13 || op === 15 || op === 16 || op === 19) this.actor(row, a);
+    if (op <= 9 || op === 13 || op === 15 || op === 16 || op === 19 || op === 20) this.actor(row, a);
     if (op === 8 || op === 19) this.actor(row, b);
     if (op === 7) this.id(row, 'fields', b);
     if (op === 10) this.id(row, 'flags', a);

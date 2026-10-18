@@ -1,3 +1,5 @@
+import { DRIFTWOOD_REGULAR_FIELDS } from './driftwoodRegularCombat';
+import { TIDAL_GIANTS_FIELDS } from './tidalGiantsCombat';
 import { CAPTAIN_FIELDS } from './captainFields';
 import LOOT from '../data/loot.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -38,7 +40,7 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
-  ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
+  ...base,state:{...base.state,shared:[...CAPTAIN_FIELDS, ...DRIFTWOOD_REGULAR_FIELDS, ...TIDAL_GIANTS_FIELDS]}, rows: { ...base.rows, loot: [LOOT] },
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: fixed.library,

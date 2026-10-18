@@ -1,3 +1,4 @@
+import { developerToolsEnabled } from '@wildshard/game/shard/runtimeVariant';
 /**
  * Driftwood Isle's live models (E306 / E315 M5, `ShardManifest.roster`): every creature the island can spawn — its fauna's
  * boars and bears, the reef crabs, the coconut monkeys, the Drowned Sailor, the Drowned Captain (before he rises
@@ -6,7 +7,7 @@
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { bear, boar } from '@wildshard/game/models/creatures'; // the creature rows build from registered species: the roster's own entry
-import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
+import { brinePuffer, conchDuelist, splinterMantis, bellback, tideRootColossus, coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './runtime/models/creatures';
 import { castaway } from './runtime/models/people';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
 import { driftwoodProduct } from './runtime/boot/rows';
@@ -21,6 +22,7 @@ export async function roster(): Promise<readonly RosterEntry[]> {
   live(boar, { pipeline: 'code' }), live(bear, { pipeline: 'code' }), // no deer since E318
   // the enemies (src/shards/driftwood-isle/creatures/Enemies.ts) and the boss (src/shards/driftwood-isle/runtime/finalePresentation.ts)
   live(reefCrab), live(coconutMonkey), live(drownedSailor), live(drownedCaptain),
+  ...(developerToolsEnabled() ? [live(brinePuffer, { copies: 0 }), live(conchDuelist, { copies: 0 }), live(splinterMantis, { copies: 0 }), live(bellback, { copies: 0 }), live(tideRootColossus, { copies: 0 })] : []),
   // the gulls (src/shards/driftwood-isle/world/Gulls.ts: ≤ 36, one instanced draw)
   live(gull, { copies: 36, drawnAs: 'instanced' }),
   // people

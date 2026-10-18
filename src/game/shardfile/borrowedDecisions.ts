@@ -11,6 +11,7 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import { ShardDecisions, type DecisionRuntime } from './decisions';
 import { outputDescriptor } from './outputDescriptor';
+import { bindBorrowedGuard } from './borrowedGuard';
 import type { ShardContext } from '../plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
@@ -90,6 +91,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const parsed: BorrowedDecision = v.parse(BorrowedDecisionSchema, input);
     const body = bodyInput === undefined ? undefined : v.parse(CreatureBodyRecipeSchema, bodyInput);
     if (parsed.group !== undefined) {
+      if (parsed.guard !== undefined) throw new Error('Guard requires a single admitted actor owner');
       const control = groups.bind(actor, parsed, body); controls.set(actor, control); return control;
     }
     if (parsed.actor === undefined) throw new Error('Missing borrowed actor');
@@ -114,6 +116,8 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     const script = parseDecisionScripts(sections.get('sim/scripts')).find(value => value.id === row.script);
     if (script === undefined || !Object.values(script.actors).includes(row.actor) || Object.values(script.actors).some(id => id !== row.actor))
       throw new Error('Borrowed decision must own exactly its admitted actor');
+    if (row.guard !== undefined && (!publicFields.some(field => field.name === row.guard?.field)
+      || !Object.values(script.fields).includes(row.guard.field))) throw new Error('Guard requires its admitted numeric actor field');
     const perch = row.perch === undefined ? undefined : worldTargetSpots(parseWorldTargets(sections.get('world/targets'))).get(row.perch);
     const idle = row.idle === undefined ? undefined : parseActorMoves(sections.get('actors/moves')).find(move => move.id === row.idle?.move);
     if (row.idle !== undefined && idle?.kind !== 'rise') throw new Error('Borrowed idle requires its admitted rise move');
@@ -121,6 +125,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     bodies.get(row.actor)?.dispose();
     const scope = ports.scope.child(`decision:${row.actor}`), runner = new StrikeRunner(), state = { tick: 0, phase: 0, fighting: false };
     bodies.set(row.actor, scope);
+    if (row.guard !== undefined) bindBorrowedGuard(ports.events, scope, actor.combatActor(), actor.mem, row.guard);
     scope.onDispose(() => { if (bodies.get(row.actor) === scope) bodies.delete(row.actor); });
     const entities = new Map([[row.actor, actor]]), strikes = new Map([[row.actor, runner]]), catalogue = new Map<string, StrikeSpec>();
     // Movement-only guests have no combat capability to lend. Strike-capable species must be observed by
@@ -165,7 +170,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
       },
       startDeclaredStrike: (id, target, strike) => {
         const spec = catalogue.get(strike), live = observation;
-        if (id !== row.actor || target !== ports.player.id || spec === undefined || live === undefined || runner.busy || !live.reach(actor) || !live.claim(actor)) return false;
+        if (id !== row.actor || target !== ports.player.id || spec === undefined || live === undefined || runner.busy || actor.stunned || !live.reach(actor) || !live.claim(actor)) return false;
         chest.copy(ports.player.position); chest.y += row.strikeEffects.find(effect => effect.strike === strike)?.aimHeight ?? 0;
         runner.start(spec, actor, chest); return true;
       },
@@ -179,6 +184,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
     ports.fixed(`decision:${row.actor}`, () => {
       if (!ports.live(actor)) { scope.dispose(); return; }
       const live = observation; if (live === undefined || scope.disposed) return;
+      if (actor.stunned) { runner.cancel(); actor.cancelAttack(); }
       state.tick++; for (const run of before) run();
       const effect = row.strikeEffects.find(value => value.strike === runner.spec?.id);
       chest.copy(ports.player.position); chest.y += effect?.aimHeight ?? 0;
@@ -233,7 +239,7 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
         registerStrikeCatalogue: (_id, specs) => { for (const spec of specs) catalogue.set(spec.id, { ...spec, weight: () => 1 }); },
         startDeclaredStrike: (id, target, strike) => {
           const member = members.get(id), spec = catalogue.get(strike), observation = member?.observation;
-          if (member === undefined || observation === undefined || spec === undefined || target !== ports.player.id || member.runner.busy
+          if (member === undefined || observation === undefined || spec === undefined || target !== ports.player.id || member.runner.busy || member.actor.stunned
             || !observation.reach(member.actor) || !observation.claim(member.actor)) return false;
           chest.copy(ports.player.position); chest.y += member.effects.find(effect => effect.strike === strike)?.aimHeight ?? 0;
           member.runner.start(spec, member.actor, chest); return true;
@@ -246,7 +252,9 @@ function spawnGroupDecisionAuthority(source: Shardfile, assets: ReadonlyMap<stri
       return decisions;
     };
     ports.fixed(`decision:${groupId}`, () => {
-      owner(); state.tick++; for (const run of before) run();
+      owner();
+      for (const member of members.values()) if (member.actor.stunned) { member.runner.cancel(); member.actor.cancelAttack(); }
+      state.tick++; for (const run of before) run();
       for (const member of members.values()) {
         const observation = member.observation, actor = member.actor;
         if (observation === undefined || !ports.live(actor)) continue;

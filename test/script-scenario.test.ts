@@ -90,3 +90,12 @@ it('field declarations and bounds survive snapshots and still refuse replayed in
   expect(world.read(reads.field, 7, 1, context)).toBe(0); expect(world.read(reads.flag, 3, 0, context)).toBe(0);
   expect(() => world.restore({ actors: [{ id: 7, at: [0, 0, 0], fields: { 1: 0 }, fieldBounds: { 1: { min: Number.NaN, max: 2 } } }] })).toThrow('Non-finite');
 });
+
+
+it('reads actual supplied stun independently from health and strike state', () => {
+  const world = new ScenarioWorld({ actors: [{ id: 7, at: [0, 0, 0], hpShare: .25, stunned: true }] });
+  expect(world.read(reads.stunned, 7, 0, context)).toBe(1);
+  expect(world.read(reads.hpShare, 7, 0, context)).toBe(.25);
+  world.setActor({ id: 7, at: [0, 0, 0], hpShare: .25, stunned: false });
+  expect(world.read(reads.stunned, 7, 0, context)).toBe(0);
+});

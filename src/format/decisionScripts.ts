@@ -136,6 +136,7 @@ export function decisionScriptRules(scripts: readonly DecisionScriptRow[], refer
  */
 export const BorrowedDecisionSchema = v.pipe(v.strictObject({ script: id, actor: v.exactOptional(id), group: v.exactOptional(id), perch: v.exactOptional(id),
   leanField: v.exactOptional(local), bankField: v.exactOptional(local),
+  guard: v.exactOptional(v.strictObject({ field: local, activeValue: finite, multiplier: v.pipe(finite, v.minValue(0), v.maxValue(4)) })),
   marks: v.exactOptional(v.strictObject({ fight: local, phase: local })),
   idle: v.exactOptional(v.strictObject({ move: id, progress: local })),
   strikeEffects: v.pipe(v.array(v.strictObject({ strike: id, aimHeight: finite, speed: v.pipe(finite, v.minValue(0), v.maxValue(40)),

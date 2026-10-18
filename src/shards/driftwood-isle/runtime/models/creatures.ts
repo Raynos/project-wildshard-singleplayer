@@ -45,3 +45,10 @@ export const gull: ModelDef<object> = defineModel<object>({
     return loadingSpecimen('driftwood-isle/gull', [0.95, 0.3, 0.9], async () => { await loadFixedGeometry(); return one(); });
   },
 });
+
+/** Developer-only new combat specimens; no world copies are placed. */
+export const brinePuffer: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/brine-puffer', file: FILE, pipeline: 'code', ...creature('brine-puffer') });
+export const conchDuelist: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/conch-duelist', file: FILE, pipeline: 'code', ...creature('conch-duelist') });
+export const splinterMantis: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/splinter-mantis', file: FILE, pipeline: 'code', ...creature('splinter-mantis') });
+export const bellback: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/bellback', file: FILE, pipeline: 'code', ...creature('bellback') });
+export const tideRootColossus: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/tideRootColossus', file: FILE, pipeline: 'code', ...creature('tideRootColossus') });

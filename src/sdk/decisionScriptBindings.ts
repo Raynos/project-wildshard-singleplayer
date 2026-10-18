@@ -11,6 +11,7 @@ const reads: Record<keyof typeof SCRIPT_V1_READS, Method> = {
   nearestPlayer:{args:'actor:i32',values:'f64(actor)',result:'i32'},flag:{args:'flag:i32',values:'f64(flag)',result:'bool'},
   timerLeft:{args:'timer:i32',values:'f64(timer)'},random:{args:'',values:''},actorInZone:{args:'actor:i32,zone:i32',values:'f64(actor),f64(zone)',result:'bool'},
   playersInZone:{args:'zone:i32',values:'f64(zone)',result:'i32'},moving:{args:'actor:i32',values:'f64(actor)',result:'bool'},
+  stunned:{args:'actor:i32',values:'f64(actor)',result:'bool'},
   strikeState:{args:'actor:i32',values:'f64(actor)',result:'i32'},playerFlag:{args:'player:i32,flag:i32',values:'f64(player),f64(flag)',result:'bool'},
   spawnGroupAlive:{args:'spawn:i32',values:'f64(spawn)',result:'i32'},bearing:{args:'actor:i32,target:i32',values:'f64(actor),f64(target)'},
 };

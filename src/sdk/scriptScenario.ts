@@ -4,7 +4,7 @@ import type { DecisionBinding, DecisionCommit, DecisionContext, DecisionHost, De
 /** Small declared world, not a second mechanics implementation. Tests explicitly supply completion events. */
 export interface ScenarioActor {
   id: number; at: readonly [number, number, number]; yaw?: number; hpShare?: number; alive?: boolean;
-  fields?: Readonly<Record<number, number>>; fieldBounds?: Readonly<Record<number, { min: number; max: number; integer?: boolean }>>; moving?: boolean; strikeState?: number; spawn?: number;
+  fields?: Readonly<Record<number, number>>; fieldBounds?: Readonly<Record<number, { min: number; max: number; integer?: boolean }>>; moving?: boolean; stunned?: boolean; strikeState?: number; spawn?: number;
 }
 export interface ScenarioWorldInput {
   actors?: readonly ScenarioActor[]; players?: readonly ScenarioActor[];
@@ -93,6 +93,7 @@ export class ScenarioWorld implements DecisionWorld {
     if (op === reads.hpShare) return this.actor(a).hpShare ?? 1;
     if (op === reads.alive) return this.actor(a).alive === false ? 0 : 1;
     if (op === reads.moving) return this.actor(a).moving === true ? 1 : 0;
+    if (op === reads.stunned) return Number(this.actor(a).stunned ?? false);
     if (op === reads.strikeState) return this.actor(a).strikeState ?? 0;
     throw new Error(`Unanswered scenario read ${op}; timers and random belong to DecisionHost`);
   }

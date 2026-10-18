@@ -1,3 +1,5 @@
+import { DRIFTWOOD_REGULAR_REWARDS } from './driftwoodRegularCombat';
+import { TIDAL_GIANTS_BOUNTIES } from './tidalGiantsCombat';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 
 type NativeEffectId = `effect.${string}`;
@@ -28,6 +30,7 @@ export const DRIFTWOOD_EFFECTS: readonly NativeEffectRow[] = [
 ];
 /** Existing per-species bounty values. */
 export const DRIFTWOOD_COIN_VALUES: Readonly<Record<string, number>> = {
+  ...DRIFTWOOD_REGULAR_REWARDS, ...TIDAL_GIANTS_BOUNTIES,
   crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25,
 };
 /** Existing six trader goods, names, icons, prerequisites and prices. */
