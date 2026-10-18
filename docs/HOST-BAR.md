@@ -64,5 +64,15 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - `progress/shard-platform/host-audit-2026-10-16/README.md`: the 92 pending-user hosts (77 good, 14 borderline, 1 silly).
 - The Sky and Signal deep dives (2026-10-17): every platform module only those two shards use, scored on the six tests.
+- `progress/shard-platform/builder-calls-audit-2026-10-17/host-rescore.md` (G496): 31 feature hosts since the 10:37
+  pass re-scored; 17 self-scores held, 14 were too high; loadout `held.ts` and the held equipment catalogue score 2 / 6.
+
+## Dated exceptions
+
+- `engine/world/waterSurface.ts` (Pine's water body) stays in the engine until `pine-hollow-legacy` is deleted
+  (SHARD-PLATFORM-NEXT N5) and moves to Pine in that commit (G500); the sealed legacy copy cannot import primary Pine.
+
+## Still owed
+
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they
   land.
