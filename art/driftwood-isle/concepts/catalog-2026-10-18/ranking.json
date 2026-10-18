@@ -1,0 +1,566 @@
+{
+  "title": "Driftwood Isle: 20 additional enemy concepts",
+  "status": "20 AI image concepts generated; all remain unapproved proposals pending owner review. No implementation or tested gameplay claim.",
+  "scope": "Exactly 20 NEW ideas: 12 regular, 5 elite/miniboss, 3 boss. Separate from and additive to the five already approved Puffer, Conch, Mantis, Bellback and Colossus concepts. No existing boar, bear, crab, monkey, sailor or Captain replacements.",
+  "art_direction": "Polished sculpted stylized toon forms, deliberate broad facets, painted material detail, clean presentation, saturated turquoise shallows and warm sand, weathered ship timber, lush mangrove/tropical accents. No primitive assemblies, random spikes, generic humanoid reskins, photoreal horror or muddy bloom. Concepts must work in first-person melee and readable phone-scale views.",
+  "sources": [
+    "docs/plans/DRIFTWOOD-REMASTER-V2.md",
+    "art/driftwood-isle/round-4-remaster/README.md",
+    "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+    "art/driftwood-isle/round-8-assets/ref-boulders.jpg"
+  ],
+  "ranking_method": {
+    "scale": "1–10, higher is better; feasibility means easier relative production. All numbers are design estimates, not tested gameplay, measured quality or acceptance.",
+    "weights": {
+      "island_fit": 0.25,
+      "visual_distinctiveness": 0.25,
+      "readable_tactical_gameplay": 0.25,
+      "roster_variety": 0.15,
+      "production_feasibility": 0.1
+    },
+    "formula": "Weighted sum on a 10-point scale. Ties ordered by stable concept ID; ties are not evidence of meaningful superiority.",
+    "caution": "A high rank prioritizes prototyping, not automatic approval or implementation. Bosses remain expensive even when visually compelling."
+  },
+  "concepts": [
+    {
+      "id": "DI-N01",
+      "name": "Sailfin Skipper",
+      "role": "regular",
+      "rank": 1,
+      "hook": "A squat mudskipper unfurls a painted dorsal fan before committing to a skidding shoreline charge.",
+      "visual_brief": "A broad shovel face, high paired amber eyes and powerful handlike pectoral fins sit beneath one enormous folding sail. Sculpt a continuous muscular fish body, blunt tail paddle and mud-packed fin creases; indigo and persimmon sail panels contrast with matte olive skin and a cream jaw. Keep the sail a thick scalloped fin with deliberate ribs, not a flat triangle or costume. Low forward wedge silhouette becomes a tall semicircle during the tell.",
+      "combat_loop": {
+        "sequence": "Stalk at the wet-sand edge, raise the sail, skid in a straight line, then plant both fins to brake.",
+        "tell": "The sail locks upright and both fins scrape two short parallel grooves.",
+        "counter": "Step across the locked charge line, then close from the side while it digs its fins out.",
+        "reward_idea": "A clear rear-flank stagger window; a sail membrane crafting drop."
+      },
+      "setting": "Warm wet sand between mangrove roots and turquoise shallows.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 10,
+        "roster_variety": 9,
+        "production_feasibility": 9
+      },
+      "rank_rationale": "Best first prototype: a strong transforming silhouette communicates its attack without extra effects, and the grounded move set is economical.",
+      "production_caveat": "Must read as a purposeful sculpted amphibious fish, not a stretched sphere with fins.",
+      "estimated_weighted_score": 9.5,
+      "status": "proposed",
+      "image": "di-n01.webp"
+    },
+    {
+      "id": "DI-N13",
+      "name": "Cargo Pot Octopus",
+      "role": "elite/miniboss",
+      "rank": 2,
+      "hook": "An octopus inside a broken cargo amphora shields itself with pottery lids and must be tricked into opening its den.",
+      "visual_brief": "A flattened rust-red mantle rises from a large asymmetrically cracked cobalt amphora, with four thick foreground arms and four shorter rear arms visibly rooted into one coherent body. Cream suction discs are grouped into readable bands; two arms hold broad terracotta lids like offset fans. A gold-green eye beneath a heavy brow peeks between them. Pottery has real thickness, painted wave motifs, sea-worn chips and sand packed into seams.",
+      "combat_loop": {
+        "sequence": "Alternate left and right lid blocks with short arm sweeps; after both blocks, reach forward with both lids to pinch a wide lane and expose the mantle.",
+        "tell": "The eye tracks the target, both lid edges rotate vertical and the rear arms brace against the amphora.",
+        "counter": "Bait the two-lid pinch, step outside its lane and strike the exposed mantle; do not break random armor pieces.",
+        "reward_idea": "Mantle stagger opens a recovered cargo cache and a patterned ceramic crafting reward."
+      },
+      "setting": "A dry pocket in the wreck’s spilled pottery cargo.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 10,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 10,
+        "production_feasibility": 7
+      },
+      "rank_rationale": "The strongest elite: an instantly specific shipwreck silhouette and a two-stage defense puzzle, with rig complexity as the clear tradeoff.",
+      "production_caveat": "Eight arms need economical authored poses; do not use full tentacle simulation or cover the tell with props.",
+      "estimated_weighted_score": 9.45,
+      "status": "proposed",
+      "image": "di-n13.webp"
+    },
+    {
+      "id": "DI-N02",
+      "name": "Mooring Moray",
+      "role": "regular",
+      "rank": 3,
+      "hook": "A rope-patterned eel anchors its tail in wreck timbers and lashes out until its own coil jams.",
+      "visual_brief": "A tapered serpentine body forms one large readable loop around a bleached piling. Rope-like cream and umber bands are painted skin, with fleshy jaw hinges, tiny rounded gill folds, one ivory brow ridge and a sea-green throat. Give the head a blunt hooked muzzle and staggered, non-gory teeth. The coil is thick and muscular; avoid separate dangling ropes or humanoid equipment.",
+      "combat_loop": {
+        "sequence": "Peek from a piling, perform two short bites, then extend for one long bite that leaves the coil stretched.",
+        "tell": "The throat expands, jaw tilts sideways and the tail visibly tightens around its anchor.",
+        "counter": "Bait the long bite outside its reach and strike the exposed pale neck before it rewinds.",
+        "reward_idea": "Brief neck vulnerability and a recovered salvage token beneath its nest."
+      },
+      "setting": "Half-submerged broken piers and accessible wreck ribs.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 10,
+        "roster_variety": 9,
+        "production_feasibility": 8
+      },
+      "rank_rationale": "A location-specific ambusher with a legible maximum reach and a satisfying punish; excellent contrast to free-roaming melee enemies.",
+      "production_caveat": "Requires an anchored segmented animation and explicit reach limits; keep the tail attachment stable.",
+      "estimated_weighted_score": 9.4,
+      "status": "proposed",
+      "image": "di-n02.webp"
+    },
+    {
+      "id": "DI-N03",
+      "name": "Mangrove Archer",
+      "role": "regular",
+      "rank": 4,
+      "hook": "An armored archerfish uses a raised root basin as a firing perch and spits a narrow water lance.",
+      "visual_brief": "An upright, compact kite-shaped fish body rests on two sturdy lobed fins within a shallow root bowl. A long puckered tubular mouth, swept-back forehead, bronze cheek plates and a fan tail create an unmistakable nozzle silhouette. Painted turquoise bars cross warm pearl scales; swollen translucent-looking cheeks should be opaque shaded volumes. Sculpt a few large scale groups rather than tiny noisy scales.",
+      "combat_loop": {
+        "sequence": "Track the player slowly, fill its cheeks, fire a single straight jet, and lower its head to refill.",
+        "tell": "Cheeks inflate symmetrically while the mouth aligns; an audible water draw accompanies a visible aim line on the ground.",
+        "counter": "Break line of sight behind a root or move laterally after aim locks, then attack during the refill.",
+        "reward_idea": "Refill interruption produces a stagger and a water-polished seed drop."
+      },
+      "setting": "Small mangrove pools beside traversable dry roots.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 10,
+        "roster_variety": 9,
+        "production_feasibility": 9
+      },
+      "rank_rationale": "Adds a clean ranged pressure role while using existing island cover; high feasibility and very readable aim commitment.",
+      "production_caveat": "Do not require swimming combat or simulate liquid; the jet is a short bounded effect.",
+      "estimated_weighted_score": 9.25,
+      "status": "proposed",
+      "image": "di-n03.webp"
+    },
+    {
+      "id": "DI-N18",
+      "name": "Crown-of-Tides",
+      "role": "boss",
+      "rank": 5,
+      "hook": "A colossal five-armed sea star rotates a living crown of causeways, forcing the player to choose a safe gap before each arm falls.",
+      "visual_brief": "Five thick tapering coral-red arms surround a low domed ochre disc. Each arm is sculpted into broad overlapping calcite cushions with cream seams and blunt rounded ridges; the underside reveals turquoise tube-foot bands. The central crown is a natural ring of five low petal plates, not spikes or a literal royal hat. Driftwood, limpets and small pale shell clusters collect only in a few creases. Its broad radial silhouette must read from player height against turquoise shallows.",
+      "combat_loop": {
+        "sequence": "Raise two arms to mark falling lanes while the other three remain grounded, slam the raised pair, then rotate the next pair. After three sets, lift the disc to pull water inward and expose the underside.",
+        "tell": "Raised arm undersides face the player; clear sand impressions mark the two impending slams, followed by a visible central inhale.",
+        "counter": "Choose an unmarked gap, punish a landed arm tip to shorten the cycle, then enter the disc’s safe underside opening during the inhale.",
+        "reward_idea": "Tip staggers build a boss-wide opening; victory reveals a tide-washed shrine cache and a starplate trophy."
+      },
+      "setting": "Broad tidepool basin with five natural approach lanes around the ring shrine.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 10,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 10,
+        "production_feasibility": 5
+      },
+      "rank_rationale": "Top boss direction: iconic island ecology scaled into a legible radial arena puzzle, with clear costs in arena and multi-arm animation.",
+      "production_caveat": "Five arms must remain separately readable from first person; prototype ground markers and camera-scale before detailed sculpting.",
+      "estimated_weighted_score": 9.25,
+      "status": "proposed",
+      "image": "di-n18.webp"
+    },
+    {
+      "id": "DI-N16",
+      "name": "Brine Pitcher Matriarch",
+      "role": "elite/miniboss",
+      "rank": 6,
+      "hook": "A carnivorous mangrove pitcher drinks from the pool to fill three hanging reservoirs, then tips them in a readable sequence.",
+      "visual_brief": "A squat woody root knot supports three unequal bulbous pitcher leaves on thick curved stems. Each pitcher has a rolled cream lip, ribbed maroon belly, a hinged emerald lid and salt-white mineral streaks. One dominant central pitcher establishes a face-like focus without eyes or a human torso. Root buttresses grip a rock shelf; small waxy leaves cluster at joints. The silhouette is a three-bell botanical chandelier, not a walking tree.",
+      "combat_loop": {
+        "sequence": "Draw water into three pitchers, tilt them one at a time to pour narrow brine lanes, then open the central lid for a long refill.",
+        "tell": "Each reservoir swells and its lid lifts in the same visible order as the pours.",
+        "counter": "Track the tilt order and move into the just-cleared lane; attack the central inner lip during refill.",
+        "reward_idea": "Interrupt the refill for a stun and harvest a brine-filter seedpod."
+      },
+      "setting": "A mangrove seep where roots frame a dry circular fighting shelf.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 10,
+        "production_feasibility": 7
+      },
+      "rank_rationale": "Adds a non-animal sequence-reading encounter with strong material contrast; excellent variety, but three simultaneous silhouettes need discipline.",
+      "production_caveat": "Keep the pours sequential and short-lived; no screen-filling poison cloud or mandatory status-system dependency.",
+      "estimated_weighted_score": 9.2,
+      "status": "proposed",
+      "image": "di-n16.webp"
+    },
+    {
+      "id": "DI-N09",
+      "name": "Sundial Dollar",
+      "role": "regular",
+      "rank": 7,
+      "hook": "A thick sand dollar tips onto its rim to roll along one fixed line before wobbling helplessly on its face.",
+      "visual_brief": "A dense lenticular body resembles carved warm limestone with five recessed petal grooves and a scalloped terracotta rim. Tiny tucked locomotion bristles form a soft dark fringe only visible close up. The upper face has broad worn facets, green tide staining and one naturally off-center raised eye cluster. Make the body organic and slightly asymmetric, not a perfect extruded coin or stone wheel with glued eyes.",
+      "combat_loop": {
+        "sequence": "Rock onto its rim, roll straight for a short distance, then fall flat and slowly right itself.",
+        "tell": "A full-body rocking motion exposes the underside before the roll line locks.",
+        "counter": "Move perpendicular to its line and hit the revealed underside when it topples.",
+        "reward_idea": "Strong knockdown opening and a carved-looking mineral plate."
+      },
+      "setting": "Shell-rich beach terraces and shrine approaches.",
+      "estimated_criteria_scores": {
+        "island_fit": 9,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 10,
+        "roster_variety": 8,
+        "production_feasibility": 9
+      },
+      "rank_rationale": "An unusually economical animation set with excellent attack readability; watch the boundary between polished organic design and a primitive coin.",
+      "production_caveat": "Its sculpt must carry the concept; simple cylinder geometry would fail the quality brief.",
+      "estimated_weighted_score": 9.1,
+      "status": "proposed",
+      "image": "di-n09.webp"
+    },
+    {
+      "id": "DI-N14",
+      "name": "Whitecap Stilt",
+      "role": "elite/miniboss",
+      "rank": 8,
+      "hook": "A towering reef heron pins one foot before delivering a long spear-bill thrust, leaving its balance vulnerable.",
+      "visual_brief": "A tall inverted-S neck leads to a long heavy ivory bill; the body is compact beneath a swept crest of three broad white feather blades. Slate-blue wings fold into sculpted overlapping plates, while long ochre legs end in large splayed toes gripping stepping stones. A seafoam neck stripe and dark eye mask frame the face. Maintain organic taper and joint anatomy, with substantial silhouette masses rather than stick legs.",
+      "combat_loop": {
+        "sequence": "Pace between three shallow perches, plant one foot, thrust down a long lane, then balance on one leg while retrieving the bill.",
+        "tell": "The neck compresses into an S and the supporting toes visibly spread.",
+        "counter": "Move sideways at neck compression, then attack the planted ankle during recovery to topple it briefly.",
+        "reward_idea": "A full-body knockdown window and access to its nest salvage."
+      },
+      "setting": "Connected tidepool stepping stones below a lookout.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 9,
+        "production_feasibility": 7
+      },
+      "rank_rationale": "Adds vertical scale and a balance-based punish with clear coastal ecology; needs camera tests so the bill tell remains visible.",
+      "production_caveat": "Keep the head in the player’s view and the punish leg reachable; authored perch transitions avoid navigation surprises.",
+      "estimated_weighted_score": 9.05,
+      "status": "proposed",
+      "image": "di-n14.webp"
+    },
+    {
+      "id": "DI-N19",
+      "name": "Keelmaw",
+      "role": "boss",
+      "rank": 9,
+      "hook": "A shipwreck-channel crocodilian exposes its flank when a failed charge lodges its broad jaw between old hull ribs.",
+      "visual_brief": "A long low crocodilian has a shovel-wide prow-shaped skull, small deep-set amber eyes and a heavy paddle tail. Layered bronze-green osteoderms resemble salt-worn hull strakes through their natural grain and spacing, with cream seams and rounded ridges. A few actual rope loops and limpets cling to its flanks, but no ship is glued onto its back. Thick bent legs, sagging throat folds and chipped ivory teeth give weight and sculpted anatomy.",
+      "combat_loop": {
+        "sequence": "Stalk the shallow channel, choose a straight charge lane, slam forward with jaws open and recover slowly. At intervals, rake the tail across one side before repositioning; a charge into a designated broken rib creates a longer jaw-stuck phase.",
+        "tell": "The shoulders sink and the tail straightens before the charge; a head glance and curled tail precede the separate sweep.",
+        "counter": "Bait a charge toward a clearly marked robust wreck rib, sidestep late, then punish the exposed neck and flank while the jaw is lodged.",
+        "reward_idea": "A long damage phase from successful baiting; victory opens the wreck hold and grants a keel-scale trophy."
+      },
+      "setting": "Wide wreck channel with authored durable rib obstacles and safe side shelves.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 10,
+        "roster_variety": 8,
+        "production_feasibility": 6
+      },
+      "rank_rationale": "A highly readable action boss that makes the wreck functional cover; more familiar body language and environmental scripting lower its novelty and feasibility.",
+      "production_caveat": "Collision must support reliable authored jaw-stuck events; avoid physics-driven lodging, unavoidable narrow lanes or overlap with a generic armored brute.",
+      "estimated_weighted_score": 9.05,
+      "status": "proposed",
+      "image": "di-n19.webp"
+    },
+    {
+      "id": "DI-N05",
+      "name": "Tidecup Anemone",
+      "role": "regular",
+      "rank": 10,
+      "hook": "A rooted tidepool flower closes safe ground into a ring, then opens its vulnerable cup to feed.",
+      "visual_brief": "A stout ochre foot grips black faceted rock below a sculpted cup of broad fleshy coral-pink lobes. Twelve thick curled tentacles form an orderly radial crown, with pale rounded tips and teal inner grooves. The central mouth is a shallow star-shaped fold, not a horror maw. Wet highlights and painted stippling distinguish living tissue from the surrounding stone; no flowerpot, stalk-person or random spines.",
+      "combat_loop": {
+        "sequence": "Curl inward, lay out a ring of short ground lashes, then open the central cup for a recovery breath.",
+        "tell": "The tentacle tips point inward together and a dotted ring traces the coming reach.",
+        "counter": "Stay beyond the ring until the lash resolves, then step into the opening and hit the center.",
+        "reward_idea": "A large center-hit bonus; collect a tide nectar bead."
+      },
+      "setting": "Rock shelves in ankle-deep tidepools, always reachable from dry stepping stones.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 9,
+        "production_feasibility": 9
+      },
+      "rank_rationale": "A cheap stationary spacing teacher that visually belongs in tidepools; strongest when used sparingly rather than carpeting traversal.",
+      "production_caveat": "Bound tentacle count and animation; ensure encounter footprints never block the only mandatory path.",
+      "estimated_weighted_score": 9.0,
+      "status": "proposed",
+      "image": "di-n05.webp"
+    },
+    {
+      "id": "DI-N15",
+      "name": "Hullborer",
+      "role": "elite/miniboss",
+      "rank": 11,
+      "hook": "A huge shipworm travels through a fallen hull beam, exposing itself only after a committed drilling lunge.",
+      "visual_brief": "A heavy cream segmented body protrudes from a salt-blackened curved timber tunnel. Its broad blunt head carries two symmetrical scoop-shaped shell valves like carpentry augers, with concentric amber ridges and soft fleshy hinges. The body has shallow teal annular folds, a squared tail wedge and sawdust-like wood flakes at the mouth. No generic toothy worm maw; the paired wooden-hull boring valves are the focal shape.",
+      "combat_loop": {
+        "sequence": "Travel visibly through a fixed timber route, knock three times beneath the exit, then drill outward across a marked lane and recoil slowly.",
+        "tell": "Wood dust puffs in sequence along the beam and the exit splits open before the head emerges.",
+        "counter": "Leave the exit lane, then strike the soft neck behind the paired valves while it is extended.",
+        "reward_idea": "Neck stagger splits the abandoned beam open to reveal salvage."
+      },
+      "setting": "A grounded wreck section with a few authored connected beams.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 10,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 9,
+        "production_feasibility": 6
+      },
+      "rank_rationale": "Exceptional shipwreck identity and silhouette, but authored tunnel staging and breakage make it more expensive than other elites.",
+      "production_caveat": "Use reusable fixed tunnel modules and staged cracks; avoid dynamic destruction or hidden attacks through arbitrary terrain.",
+      "estimated_weighted_score": 8.95,
+      "status": "proposed",
+      "image": "di-n15.webp"
+    },
+    {
+      "id": "DI-N04",
+      "name": "Sandglass Skate",
+      "role": "regular",
+      "rank": 12,
+      "hook": "A diamond-shaped sand skate raises a pressure ridge, then surfs its own wave across the beach.",
+      "visual_brief": "A wide flattened diamond body has raised eyes, a blunt manta-like forehead and rolled wing edges thick enough to read in silhouette. Sand-colored upper planes carry restrained dark glassy marbling; the curled front lip exposes a saturated turquoise underside. A short ribbon tail finishes in a broad paddle, not a sting spike. Sculpt wet sand collecting along wing creases and asymmetric chips of shell embedded in the skin.",
+      "combat_loop": {
+        "sequence": "Circle on wet sand, lift its front edge, push a slow visible sand ridge, then glide behind that moving screen.",
+        "tell": "Both wings tent upward and a crescent ridge rises before traveling.",
+        "counter": "Move around the ridge end rather than backpedaling through it; hit the exposed underside as the skate banks to turn.",
+        "reward_idea": "A bank-angle stagger window and a smooth lens-stone drop."
+      },
+      "setting": "Open beach flats with enough width to flank the ridge.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 9,
+        "production_feasibility": 8
+      },
+      "rank_rationale": "Excellent broad low silhouette and moving-cover gameplay; slightly less immediate to read than the top charge and aim-lock concepts.",
+      "production_caveat": "Needs consistent ground-following and a readable ridge effect without expensive deformable terrain.",
+      "estimated_weighted_score": 8.9,
+      "status": "proposed",
+      "image": "di-n04.webp"
+    },
+    {
+      "id": "DI-N20",
+      "name": "The Wreck Organ",
+      "role": "boss",
+      "rank": 13,
+      "hook": "A monumental living sponge growing through a sunken hull draws the tide through three chimneys, turning the arena into a readable suction-and-release instrument.",
+      "visual_brief": "Three massive asymmetrical barrel-sponge chimneys rise from one continuous lobed body threaded through broken ship ribs. Burnt sienna exterior pores form broad sculpted clusters, while rolled ivory lips reveal deep turquoise fluted interiors. Small mangrove shoots and white salt crust collect on upper shelves. The central chimney is tall and bent, the side ones squat and wide; the overall form is an organic pipe organ, never a humanoid golem or a stack of cylinders.",
+      "combat_loop": {
+        "sequence": "One side chimney inhales along a single lane, the other exhales a short foam burst, then the central throat opens for a vulnerable resonant breath. Swap active sides each cycle; later cycles shorten the pause but keep the same rules.",
+        "tell": "The active lip folds inward for suction or flares outward for the burst; bubbles and debris clearly travel in that lane before the force applies.",
+        "counter": "Use hull ribs to break the suction lane, cross after the burst and attack the reachable central throat during its open breath.",
+        "reward_idea": "Successful throat hits silence one cycle; victory drains a blocked passage and exposes a wreck-heart pearl."
+      },
+      "setting": "A shallow flooded hold with a dry horseshoe walkway and fixed cover ribs.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 10,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 10,
+        "production_feasibility": 4
+      },
+      "rank_rationale": "The boldest location-specific spectacle and a unique non-chasing boss, ranked lower for water-force tuning, scene integration and material complexity.",
+      "production_caveat": "Make the force zones bounded and survivable; only three authored mouths, no fluid simulation, no inaccessible throat, and no dependency on real-time water levels.",
+      "estimated_weighted_score": 8.9,
+      "status": "proposed",
+      "image": "di-n20.webp"
+    },
+    {
+      "id": "DI-N17",
+      "name": "Pearlglass Medusa",
+      "role": "elite/miniboss",
+      "rank": 14,
+      "hook": "A stranded jellyfish lifts a skirt of hanging ribbons into alternating gates that the player crosses between pulses.",
+      "visual_brief": "A flattened opalescent bell resembles a hand-blown sea-glass bowl with thick rolled edges and six broad downward ribbon arms. Ivory internal ribs show through painted translucent-looking gradients; rose and mint bands give each fold depth. A dense amber central knot is visible beneath the bell. Use elegant continuous fleshy forms and a few barnacle scars, not floating crystal shards, tangled threads or a neon energy orb.",
+      "combat_loop": {
+        "sequence": "Hover just above the sand, lower alternating ribbon pairs to create two open approach gates, pulse the closed lanes, then sag to melee height.",
+        "tell": "Selected ribbons straighten and touch the sand while the amber core contracts.",
+        "counter": "Approach through an open gate and strike the low core after the pulse; back out before the gate alternates.",
+        "reward_idea": "Core stagger shuts off the next pulse and drops a pearlglass lens."
+      },
+      "setting": "A sheltered shallow grotto with a dry sand center.",
+      "estimated_criteria_scores": {
+        "island_fit": 9,
+        "visual_distinctiveness": 10,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 10,
+        "production_feasibility": 6
+      },
+      "rank_rationale": "Beautiful elite silhouette and gate-reading combat, but transparency and hovering contact readability are higher production risks.",
+      "production_caveat": "Prefer opaque painted materials and restrained emissive accents; never require attacks against an unreachable airborne core.",
+      "estimated_weighted_score": 8.85,
+      "status": "proposed",
+      "image": "di-n17.webp"
+    },
+    {
+      "id": "DI-N12",
+      "name": "Foamrunner Amphipod",
+      "role": "regular",
+      "rank": 15,
+      "hook": "A laterally flattened beach hopper springs over the player’s last position and lands facing the wrong way.",
+      "visual_brief": "A crescent shrimp-like body is compressed from side to side, with overlapping ivory and coral chitin saddles, a curled fan tail and two conspicuously large folded hind legs. Small forelimbs tuck tightly beneath a broad cheek shield; blunt antennae sweep backward as a paired arc. No crab claws, mantis striking arms or spines. Sculpt each overlapping segment with undercut seams and painted tide stains.",
+      "combat_loop": {
+        "sequence": "Crouch into a tight crescent, leap to the player’s marked previous position, land hard and take a beat to turn.",
+        "tell": "Both hind legs fold fully and antennae aim at the fixed landing patch.",
+        "counter": "Move once the landing patch locks, then strike its exposed tail before it turns.",
+        "reward_idea": "Rear-hit stagger and light chitin plates."
+      },
+      "setting": "Wrack lines where seaweed gathers on the upper beach.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 8,
+        "production_feasibility": 8
+      },
+      "rank_rationale": "Adds a readable leap-and-reorient rhythm without another armored crab or mantis; small-limb readability costs some distinctiveness.",
+      "production_caveat": "Use few substantial leg pairs and a restrained rig, not a swarm of thin procedural limbs.",
+      "estimated_weighted_score": 8.75,
+      "status": "proposed",
+      "image": "di-n12.webp"
+    },
+    {
+      "id": "DI-N06",
+      "name": "Fruitmask Bat",
+      "role": "regular",
+      "rank": 16,
+      "hook": "A broad-winged island bat shelters behind a fruit-shaped face frill before diving and hanging low to recover.",
+      "visual_brief": "A fox-like bat face is framed by a mango-orange cheek mantle above a compact plum-colored torso. Broad folded wings form a roof silhouette; fleshy finger joints, ribbed russet membranes and cream thumb hooks have sculpted thickness. A small leaf-shaped nose, chest tuft and dark expressive eyes keep the face readable. No fruit helmet or weapon; the resemblance comes from natural fur masses and coloration.",
+      "combat_loop": {
+        "sequence": "Hang from a low branch, unfold into a wide warning pose, dive along a shallow arc, then cling to a reachable trunk.",
+        "tell": "Wing elbows spread and the cream chest flashes before the dive line locks.",
+        "counter": "Sidestep the dive, follow its shallow landing arc and punish the trunk cling at sword height.",
+        "reward_idea": "Guaranteed melee access after a miss and a soft wing-fiber drop."
+      },
+      "setting": "Palm and fruit groves along plateau paths.",
+      "estimated_criteria_scores": {
+        "island_fit": 9,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 9,
+        "production_feasibility": 8
+      },
+      "rank_rationale": "Adds a grounded answer to aerial pressure and strong folded/open pose contrast; less uniquely coastal than the best shoreline creatures.",
+      "production_caveat": "Keep recovery at melee height; do not leave a basic enemy indefinitely airborne.",
+      "estimated_weighted_score": 8.65,
+      "status": "proposed",
+      "image": "di-n06.webp"
+    },
+    {
+      "id": "DI-N08",
+      "name": "Prismback Nudibranch",
+      "role": "regular",
+      "rank": 17,
+      "hook": "A glassy sea slug leaves a short curing trail that can be baited into sealing its own escape route.",
+      "visual_brief": "A low heavy slug has a rippling scalloped skirt and six large translucent-looking leaf lobes arranged in two tidy rows. The lobes use opaque pearlescent gradients from lilac to mint with coral seams, not actual glass shards. Two blunt striped rhinophores lean forward above tiny bead eyes. Sculpt weight, a muscular underside and a thick curling tail; broad painted wet sheen rather than glitter noise.",
+      "combat_loop": {
+        "sequence": "Lay a short glossy trail while retreating, pause as the trail hardens, then turn to dash down a clear lane.",
+        "tell": "Dorsal lobes close like a book while the wet trail develops a pale crust.",
+        "counter": "Flank before it turns and pressure it toward its own hardened strip, forcing a slow crossing.",
+        "reward_idea": "A self-trapped stagger and a pearlescent resin bead."
+      },
+      "setting": "Tidepool gardens beside broken pottery and sea-glass.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 9,
+        "readable_tactical_gameplay": 7,
+        "roster_variety": 9,
+        "production_feasibility": 8
+      },
+      "rank_rationale": "Highly distinctive material and area-control role, but trail states need clearer validation than single-attack enemies.",
+      "production_caveat": "Limit active trail length and lifetime; never rely on color alone to distinguish wet from hardened.",
+      "estimated_weighted_score": 8.65,
+      "status": "proposed",
+      "image": "di-n08.webp"
+    },
+    {
+      "id": "DI-N11",
+      "name": "Driftleaf Flatworm",
+      "role": "regular",
+      "rank": 18,
+      "hook": "A broad ribbon worm folds like a fallen mangrove leaf, then opens into a sweeping living carpet.",
+      "visual_brief": "A single continuous leaf-shaped body curls into an asymmetric saddle. Thick undulating margins are cream and burnt orange, with dark teal lengthwise veins painted into velvety skin. A raised blunt head fold and two small hornlike sensory flaps identify the front without an added face. Give the underside fleshy weight and broad sculpted folds; it must not read as a floating cloth plane.",
+      "combat_loop": {
+        "sequence": "Lie folded beside leaf litter, lift two edges to reveal itself, then unfurl in one broad low sweep and remain spread out.",
+        "tell": "The center ridge rises and both cream edges stand upright well before contact.",
+        "counter": "Retreat out of the unfurl footprint, then close on the thick central ridge during its slow refold.",
+        "reward_idea": "Long recovery punish and a flexible binding strip."
+      },
+      "setting": "Mangrove leaf beds above the tide line.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 9,
+        "production_feasibility": 7
+      },
+      "rank_rationale": "A fresh boneless silhouette with a simple footprint attack; animation and discovery fairness are the main uncertainties.",
+      "production_caveat": "No unavoidable camouflage hits: include idle movement, audible rustle and a generous reveal before the first attack.",
+      "estimated_weighted_score": 8.55,
+      "status": "proposed",
+      "image": "di-n11.webp"
+    },
+    {
+      "id": "DI-N10",
+      "name": "Bloomthroat Iguana",
+      "role": "regular",
+      "rank": 19,
+      "hook": "A low island lizard fans a hibiscus-colored throat and sweeps its heavy tail through a deliberately open arc.",
+      "visual_brief": "A broad triangular skull and muscular low body carry large turquoise cheek scales, sand-gold limbs and a long flattened rudder tail. A pleated magenta dewlap unfolds beneath the chin like a hibiscus petal. Dorsal ridges are low rounded scallops integrated into the spine, not spikes. Thick toes, folded skin around joints and a strongly shaped hip mass give the animal grounded weight.",
+      "combat_loop": {
+        "sequence": "Face the player with a throat display, pivot into one wide tail sweep, then recoil with the forequarters exposed.",
+        "tell": "The dewlap fully opens and the tail curls toward the starting side.",
+        "counter": "Move toward the head-side safe wedge rather than away from the tail, then strike the shoulder.",
+        "reward_idea": "A positional stagger and bright shed-scale material."
+      },
+      "setting": "Sun-warmed rocks bordering dense tropical foliage.",
+      "estimated_criteria_scores": {
+        "island_fit": 9,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 9,
+        "roster_variety": 7,
+        "production_feasibility": 9
+      },
+      "rank_rationale": "A reliable close-range directional lesson with a vivid focal feature, though its familiar quadruped body contributes less roster novelty.",
+      "production_caveat": "Keep the sweep arc readable from first person; avoid adding an unnecessary second attack to the first prototype.",
+      "estimated_weighted_score": 8.45,
+      "status": "proposed",
+      "image": "di-n10.webp"
+    },
+    {
+      "id": "DI-N07",
+      "name": "Hookbill Frigate",
+      "role": "regular",
+      "rank": 20,
+      "hook": "A fork-tailed seabird drags a strip of sailcloth across the sand to herd prey into its landing strike.",
+      "visual_brief": "Long narrow swept wings, a deep fork tail and a massive hooked ochre bill define a sharp arrow silhouette. Charcoal feather blocks have blue-violet painted edges; a small red throat pouch is tucked beneath the jaw. Its bill grips one salt-stiff cream canvas strip, with readable stitched hems and only two large tears. Large feather masses and a visibly sculpted shoulder avoid paper-thin wings.",
+      "combat_loop": {
+        "sequence": "Make a low pass dragging cloth across one lane, bank visibly, then land with a forward bill strike at the lane end.",
+        "tell": "The bird banks toward its chosen landing patch; its tail spreads and canvas pulls taut.",
+        "counter": "Cross behind the cloth after the pass or flank the landing marker, then strike while the bill is briefly stuck in sand.",
+        "reward_idea": "Grounded punish and a useful sailcloth scrap."
+      },
+      "setting": "Wreck beach and exposed sandbars.",
+      "estimated_criteria_scores": {
+        "island_fit": 10,
+        "visual_distinctiveness": 8,
+        "readable_tactical_gameplay": 8,
+        "roster_variety": 8,
+        "production_feasibility": 7
+      },
+      "rank_rationale": "Excellent wreck-beach storytelling, but an aerial actor plus cloth risks visual clutter; prefer authored cloth poses over simulation.",
+      "production_caveat": "Cloth must never obscure the entire screen or imply an unavoidable trip wire; landing timing needs careful tuning.",
+      "estimated_weighted_score": 8.4,
+      "status": "proposed",
+      "image": "di-n07.webp"
+    }
+  ]
+}
