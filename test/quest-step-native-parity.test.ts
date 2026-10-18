@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { ReturnProgram } from '../src/game/population/returnProgram';
 import { driftwoodWitness } from './proof/driftwood-isle/native';
 import { pineWitness } from './proof/pine-hollow/native';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only admitted product and native physics bytes.
@@ -57,6 +58,11 @@ for (const slug of ['driftwood-isle', 'pine-hollow'] as const)
           expect(owner.snapshot()).toEqual(state);
           expect(resident.effects).toEqual([]);
         }
+        const requests = vi.spyOn(ReturnProgram.prototype, 'project');
+        try {
+          for (let tick = 0; tick < 60; tick++) resident.host.step();
+          expect(requests.mock.calls.filter(([signal]) => signal === 'lead')).toHaveLength(10);
+        } finally { requests.mockRestore(); }
       }
     } finally { resident.dispose(); }
   }, 120_000);

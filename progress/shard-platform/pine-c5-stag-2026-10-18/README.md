@@ -67,3 +67,15 @@ unchanged; Pine AS 488, DW AS 130. C5 is now 792 -> 764 (-28). The G499 policy
 charges +166 Pine and +130 DW independently of this leaf. All required
 gates, including both native replays, passed again under proof
 20261018T075735-sp-x9-c5-latest-gates-38592.
+
+G503 correction (2026-10-18): the historical cadence steer above is
+superseded. The page now makes one lead projection per >=100 ms and lets
+Animal integrate its motion every drawn frame. The native adapter projects
+once per six saved 60 Hz host ticks, advancing only its existing elapsed
+clock between decisions. The original i/mode/t envelope remains unchanged;
+no new save field, AS, host API, map input or look change is required.
+Cancellation remains silent; appear/fade/complete each run once per edge.
+Page fixtures cover 30/60/120 Hz and native fixtures cover 60 fixed ticks,
+old-save envelopes and all four original stag modes. Existing strict native
+continuations cover actor/RNG/save ordering. This is the explicitly ordered
+G503 correction before the next C5 whole-module removal.

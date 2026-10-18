@@ -322,6 +322,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     }
     if (chapter.current?.id === 'dawn') clock.request('dawn.request');
     clock.update(dt);
+    // The fixed 60 Hz host tick is already saved; its six-tick phase needs
+    // no new continuation wire. Only the elapsed clock advances between decisions.
+    if (host.state.tick % 6 !== 0) { if (stag.mode !== 'none') stag.t += dt; return; }
     const bend = content.lead.path[stag.i], player = host.player.position;
     leadInput.i = stag.i; leadInput.mode = modes.indexOf(stag.mode); leadInput.elapsed = stag.t; leadInput.dt = dt;
     leadInput.on = Number(chapter.current?.id === 'stag' && ports.night() > 0.5);

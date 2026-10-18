@@ -29,7 +29,7 @@ function fixture() {
   return { lead, actor, animals, effects };
 }
 
-test('page appearance, actor integration, decisions and fade effects retain their phase order', () => {
+test('page decisions precede continuous actor integration and retain ordered fade effects', () => {
   const { lead, actor, animals, effects } = fixture(), player = new Vector3(30, 0, -30);
   lead.update(0.1, 1, true, player);
   expect(lead.active).toBe(true); expect(animals.animals).toEqual([]);
@@ -37,18 +37,18 @@ test('page appearance, actor integration, decisions and fade effects retain thei
   expect(effects.indexOf('update')).toBeLessThan(effects.indexOf('stop'));
   effects.length = 0; player.copy(actor.position);
   lead.update(0.1, 1.1, true, player);
-  expect(effects).not.toContain('trot');
+  expect(effects).toContain('trot');
   effects.length = 0; lead.update(1.4, 2.5, true, player);
-  expect(effects.indexOf('update')).toBeLessThan(effects.indexOf('trot'));
-  expect(effects.indexOf('trot')).toBeLessThan(effects.indexOf('fade-puff'));
+  expect(effects.indexOf('fade-puff')).toBeLessThan(effects.indexOf('update'));
+  expect(effects).not.toContain('trot');
   expect(effects.indexOf('fade-puff')).toBeLessThan(effects.indexOf('call'));
   expect(actor.mesh.visible).toBe(false);
   effects.length = 0; lead.update(1.2, 3.7, true, player);
-  expect(effects.indexOf('update')).toBeLessThan(effects.indexOf('place'));
+  expect(effects.indexOf('place')).toBeLessThan(effects.indexOf('update'));
   expect(effects.indexOf('place')).toBeLessThan(effects.indexOf('appear'));
   effects.length = 0; lead.update(0.1, 3.8, false, player);
   expect(lead.active).toBe(false); expect(actor.alive).toBe(false); expect(actor.hidden).toBe(true);
-  expect(effects).not.toContain('update'); expect(effects).not.toContain('done');
+  expect(effects).not.toContain('update'); expect(effects).not.toContain('done'); expect(effects).not.toContain('call');
 });
 
 test('the shared walk completes all bends once and resumes its existing saved fields', () => {
@@ -86,4 +86,18 @@ test('v1 lead projections preserve cancellations and old-save suffixes', () => {
       expect(result['event']).toBe(event === null ? 0 : event.kind === 'appear' ? event.first ? 1 : 2 : event.kind === 'fade' ? 3 : event.done ? 5 : 4);
     }
   }
+});
+
+for (const hz of [30, 60, 120]) test(`stag decisions stay at <=10 Hz while the actor integrates at ${hz} Hz`, () => {
+  const requests = vi.spyOn(ReturnProgram.prototype, 'project');
+  const { lead, actor, effects } = fixture(), player = new Vector3(30, 0, -30);
+  for (let frame = 1; frame <= hz; frame++) lead.update(1 / hz, frame / hz, true, player);
+  expect(requests.mock.calls.length).toBeGreaterThanOrEqual(8);
+  expect(requests.mock.calls.length).toBeLessThanOrEqual(10);
+  expect(requests.mock.calls.every(([, input]) => (input['dt'] ?? 0) >= 0.1 && input['begin'] === 0)).toBe(true);
+  effects.length = 0;
+  for (let frame = 1; frame <= hz; frame++) lead.update(1 / hz, 1 + frame / hz, true, player);
+  expect(effects.filter(effect => effect === 'update')).toHaveLength(hz);
+  expect(lead.position).toBe(actor.position);
+  requests.mockRestore();
 });

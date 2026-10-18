@@ -14,12 +14,13 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Puffs } from '../runtime/combat/fxKit';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 
-// AS owns the walk; this view preserves appearance before actor integration.
+// AS decides at <=10 Hz; Animal integrates the borrowed motion every frame.
 type StagBody = Pick<Animal, 'position' | 'yaw' | 'herd' | 'setDrawLod' | 'update' | 'sampleTerrain' | 'setMotion' | 'lookTarget' | 'lookWeight' | 'place' | 'mesh' | 'alive' | 'hidden'>;
 
 export class StagLead {
   private a: StagBody | null = null;
   private readonly brain: ReturnProgram;
+  private pending = 0;
   private readonly walk = { i: 0, mode: 0, elapsed: 0 };
   private readonly puffs: Puffs;
   private readonly _v = new THREE.Vector3();
@@ -38,9 +39,19 @@ export class StagLead {
   /** per frame. `on` = the beat is current and it is night; off → the apparition leaves (a burst) */
   update(dt: number, t: number, on: boolean, player: THREE.Vector3): void {
     this.puffs.update(dt, t);
-    const began = this.project(true, 0, on, player);
-    if (began === 4) this.vanish(false);
-    if (began === 1) this.appear(0, player, true);
+    this.pending += dt;
+    if (this.pending >= 0.1) {
+      const point = this.rows.path[this.walk.i], at = this.a?.position;
+      const result = this.brain.project('lead', { ...this.walk, begin: 0, dt: this.pending, on: Number(on),
+        playerX: player.x, playerZ: player.z, atX: at?.x ?? point?.[0] ?? 0, atZ: at?.z ?? point?.[1] ?? 0 });
+      Object.assign(this.walk, result);
+      const event = result['event'];
+      if (event === undefined) throw new Error('Stag projection omitted its event');
+      this.pending = 0;
+      if (event === 4) this.vanish(false);
+      else if (event === 1 || event === 2) this.appear(this.walk.i, player, event === 1);
+      else if (event !== 0) { this.fade(); if (event === 5) this.vanish(true); }
+    }
     const a = this.a;
     if (!a) return;
     a.update(dt, t, true);
@@ -53,19 +64,6 @@ export class StagLead {
       if (next) a.setMotion(Math.atan2(next[0] - a.position.x, next[1] - a.position.z), 4.5, 4);
       a.lookWeight = 0;
     }
-    const event = this.project(false, dt, on, player, a.position);
-    if (event === 2) this.appear(this.walk.i, player, false);
-    else if (event !== 0) { this.fade(); if (event === 5 || event === 4) this.vanish(event === 5); }
-  }
-
-  private project(begin: boolean, dt: number, on: boolean, player: THREE.Vector3, at = this.a?.position): number {
-    const point = this.rows.path[this.walk.i];
-    const result = this.brain.project('lead', { ...this.walk, begin: Number(begin), dt, on: Number(on),
-      playerX: player.x, playerZ: player.z, atX: at?.x ?? point?.[0] ?? 0, atZ: at?.z ?? point?.[1] ?? 0 });
-    Object.assign(this.walk, result);
-    const event = result['event'];
-    if (event === undefined) throw new Error('Stag projection omitted its event');
-    return event;
   }
 
   private spawnAt(x: number, z: number, yaw: number): StagBody {
