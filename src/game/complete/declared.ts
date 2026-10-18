@@ -20,6 +20,11 @@ export interface Completion {
   readonly up: boolean;
   leftMarkers: () => LiveMarker[];
 }
+const completions = new WeakMap<CompletionContext['scope'], Completion>();
+/** Borrow a card already installed in this entry; no new UI or carry owner. */
+export function enteredCompletion(scope: CompletionContext['scope']): Completion | undefined {
+  return scope.disposed ? undefined : completions.get(scope);
+}
 /** Display elapsed play time using whole minutes, retaining the short initial interval. */
 export function fmtPlayTime(s: number): string {
   const m = Math.floor(s / 60);
@@ -92,6 +97,8 @@ export function installCompletion(ctx: CompletionContext, flags: Flags, progress
     offered = true;
     if (rows.trigger === 'quest') open(); else play.hud.toast(`${title}${rows.toastSuffix}`);
   } });
-  return { showAfterReward: () => { if (flags.has(rows.seenFlag)) return false; open(); return true; }, open,
+  const completion: Completion = { showAfterReward: () => { if (flags.has(rows.seenFlag)) return false; open(); return true; }, open,
     get up() { return card.isOpen; }, leftMarkers: () => project().markers };
+  completions.set(ctx.scope, completion);
+  return completion;
 }

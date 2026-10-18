@@ -23,7 +23,6 @@ const admitted = new Map<string, QuestPageInteractionsData>();
 // Frozen from the original play-read tables before moving their assembly to build time.
 const originals = {
   consequences: null,
-  clock: '49215a7ca659d840f9678eeb7a448c0dede081c5e0c152d8283edeb2d462c484',
   transactions: '891ccf64742a1e21d5e75705d91c393e784215317a5dc522da779c37f48be04b',
 };
 beforeAll(async () => {
@@ -122,32 +121,6 @@ test('saved board and shop still decide acceptance, with costs before grants and
   events.length = 0; page.run('contract.finish');
   expect(events.slice(0, 2)).toEqual(['own:hollow-ash', 'wear:hollow-ash']);
 });
-
-test('night and dawn keep durations, lantern order and completion payout; restoring emits nothing', () => {
-  const flags = new Flags('published-clock', false), events: string[] = [];
-  flags.set('wait:night');
-  const ports = { flags, toast: (text: string) => { events.push(text); }, owners: new Map<string, unknown>([
-    ['flags', { set(id: string) { flags.set(id); events.push(id); }, clear(id: string) { flags.clear(id); events.push(`clear:${id}`); } }],
-    ['inventory', { add(id: string, n: number) { events.push(`${id}:${String(n)}`); } }],
-    ['music', { sting(id: string) { events.push(id); } }],
-    ['lamps', { setLit(id: string, on: boolean) { expect(flags.has(`lit:${id}`)).toBe(true); events.push(`lamp:${id}:${String(on)}`); } }],
-    ['caption', { show(on: boolean) { events.push(`caption:${String(on)}`); } }],
-    ['objective', { hide(on: boolean) { events.push(`hide:${String(on)}`); } }],
-    ['native', { fastForward(to: number, seconds: number) { events.push(`forward:${String(to)}:${String(seconds)}`); } }],
-  ]) };
-  const page = bindQuestPageInteractions(rows('clock'), ports);
-  expect(events).toEqual([]); page.run('night.consume'); page.run('night.start');
-  expect(flags.has('wait:night')).toBe(false); expect(events.at(-1)).toBe('forward:0.92:6');
-  events.length = 0; page.run('dawn.sunrise'); expect(events).toEqual(['forward:0.02:7']);
-  events.length = 0; page.run('dawn.lanterns');
-  expect(events).toEqual(['lit:pond', 'lit:ridge', 'lit:den', 'lamp:pond:true', 'lamp:ridge:true', 'lamp:den:true', 'dawn']);
-  events.length = 0; page.run('dawn.caption'); page.run('dawn.finish');
-  expect(events).toEqual(['caption:true', 'hide:true', 'caption:false', 'hide:false', 'amber-resin:4',
-    "Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep", 'seen:dawn']);
-  const saved = flags.all.slice(); events.length = 0; flags.restore(saved);
-  bindQuestPageInteractions(rows('clock'), ports); expect(events).toEqual([]); expect(flags.all).toEqual(saved);
-});
-
 
 test('DW named service rows borrow its original quest flags and keep pickup/glass feedback exact', async () => {
   const product = serviceProducts.get('driftwood-isle'), scope = new Scope('glass services'), flags = new Flags('glass services', false), events: string[] = [];

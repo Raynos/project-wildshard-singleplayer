@@ -9969,3 +9969,16 @@ people and Driftwood's Castaway/Trader use the game host; their dialogue,
 prompt reach, save ownership and gesture laws stay unchanged. The callback
 `NpcRig` wrapper is retired from both current shards, alongside Pine's
 three figure runtime modules. The legacy snapshots still use the old wrapper.
+
+### Chapter director publications
+
+`game/quest/chapterDirector.readChapterDirector(ctx, file)` is client-only.
+It reads closed `format/chapterDirector` rows and the admitted stage/director
+product. The entered chapter supplies its original flags and objective;
+the entered play/world supply inventory, music, clock, player and equipment.
+Rows select observations, ordered flag/item/notice effects, phase advances,
+captions and reward poses. Caller-owned views consume bounded cue values.
+There are no shard callbacks or reflected service paths. The caller retains
+its update phase; native continuations and actor authority are unchanged.
+The completion card publishes its existing entered control for reward carry
+handover. Pine's watch/dawn and Driftwood's ring reward use this same path.

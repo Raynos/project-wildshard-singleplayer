@@ -65,9 +65,11 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
       expect(installQuestFlags(ctx, story.quest.id, flags.level)).toBe(flags);
       expect(() => installQuestFlags(ctx, story.quest.id, 'other-level')).toThrow('differs');
       expect(() => installQuestFlags(ctx, 'unbound', flags.level)).toThrow('declared quest');
+      expect(() => installQuestChapter(ctx, story, { placements: {} })).toThrow('marker placement');
       const next = quest.current;
       const completion = story.quest.id === driftwoodStory.quest.id;
       const chapter = scope.run(() => installQuestChapter(ctx, story, completion ? { completion: true, remainingLabel: 'Still to find' } : {}));
+      expect(() => installQuestChapter(ctx, story)).toThrow('already installed');
       expect(chapter.quest).toBe(quest); expect(flags.all).toEqual(before); expect(log).toEqual([]);
       const places = chapter.discover([{ id: 'road', label: 'Road', x: 999, z: 999, r: 2 }]);
       expect(chapter.places).toBe(places); expect(places.points[0]?.id).toBe('road');
@@ -81,7 +83,6 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
       expect(log).toEqual(stable);
       expect(() => installQuestChapter(ctx, story, { calls: {} })).toThrow();
       expect(() => installQuestChapter(ctx, { ...story, quest: { ...story.quest, id: 'unbound' } })).toThrow('not bound');
-      expect(() => installQuestChapter(ctx, story, { placements: {} })).toThrow('marker placement');
       if (completion) {
         for (const step of def.steps) for (const flag of step.done.all ?? []) flags.set(flag);
         expect(quest.isComplete).toBe(true);

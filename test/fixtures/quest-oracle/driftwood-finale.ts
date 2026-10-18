@@ -11,7 +11,8 @@
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
-import type { FinaleHost } from '../../../src/shards/driftwood-isle/runtime/finalePresentation';
+import type { app as clientApp } from '@wildshard/engine/app/runtime';
+type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
 import type { Adventure, AdventureWorld, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';

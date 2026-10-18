@@ -1,3 +1,4 @@
+import { readChapterDirector } from '@wildshard/game/quest/chapterDirector';
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
@@ -54,7 +55,6 @@ import type { Cabins } from '../runtime/world/homestead';
 import type {DeclaredSoundBank as PineHollowSfx} from '@wildshard/engine/audio/declaredBank';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { PINE_PHASES } from '../look/dayKeys';
-import { DirectorScriptStageLane, readDirectorProduct } from '@wildshard/game/plugin/director';
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
@@ -89,8 +89,8 @@ const _v = new THREE.Vector3();
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ RewardCaption }, { QuestViews, bindQuestPageInteractions }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
-  return { QuestViews, bindQuestPageInteractions, RewardCaption };
+  const { QuestViews, bindQuestPageInteractions } = await import('@wildshard/game/plugin/ui');
+  return { QuestViews, bindQuestPageInteractions };
 }
 export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins | null; landmarks: PineLandmarks | null;
   loadout: HeldLoadout; compendium: ReturnType<typeof installCollectionCompendium>;
@@ -113,11 +113,10 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/lanterns.json'))));
   const consequenceRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/consequences.json'))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/mill-door.json'))));
-  const clockRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/clock.json'))));
   const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/transactions.json'))));
   await Promise.all([(deps.preload ?? (() => PINE_FIGURES.prepare()))(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { QuestViews, bindQuestPageInteractions } = await (deps.loadQuest ?? loadQuest)();
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const figureScenes = new SceneHandles(sky);
   const flags = installQuestFlags(ctx, story.quest.id, h.chunkId);
@@ -345,32 +344,12 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
 
   // ── the clock: Hale's watch till dark, the dawn ──
   const presentation = installQuestChapter(ctx, story);
-  ctx.scope.onDispose(quest.observe({ step: step => { if (step?.id === 'dawn') runDawn(); } }));
-  const questChip=presentation.chip;
-  const objective = questChip.line;
-  const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
+  const questChip = presentation.chip, objective = presentation.objective;
+  const clock = await readChapterDirector(ctx, 'quests/chapter-director.json');
   ui.retainRoot(objective.root, () => { objective.hide(false); });
-  ui.retainRoot(reward.root, () => { reward.show(false); });
-  let ff: { from: number; span: number; t: number; dur: number; to: number } | null = null;
-  const fastForward = (to: number, dur: number): void => {
-    const dn = sky.dayNight; if (!dn) return;
-    const span = (((to - dn.phase) % 1) + 1) % 1;
-    ff = { from: dn.phase, span, t: 0, dur, to };
-  };
-  const clockPage = bindQuestPageInteractions(clockRows, { flags, toast: text => { hud.toast(text); },
-    owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['lamps', lm],
-      ['caption', reward], ['objective', objective], ['native', { fastForward }]]) });
-  const dawnAtBoot = quest.current?.id === 'dawn';
-  const director = await readDirectorProduct(ctx.product, ctx.scope);
-  const clock = DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
-    new Map<string, unknown>([['flags', flags], ['clock', { day: () => sky.dayNight, night }], ['publication', { publish: clockPage.run }]]), ctx.scope);
-  if (dawnAtBoot) clock.request('dawn.request');
-  ctx.scope.onDispose(flags.onChange((f, on) => {
-    if (!on) return;
-    if (f === 'wait:night') clock.request('night.request');
-    if (f.startsWith('lit:')) syncLanterns();
-  }));
-  function runDawn():void { clock.request('dawn.request'); }
+  ui.retainRoot(clock.caption.root, () => { clock.caption.show(false); });
+  ctx.scope.onDispose(flags.onChange((f, on) => { if (on && f.startsWith('lit:')) syncLanterns(); }));
+  function runDawn(): void { clock.request('dawn.request'); }
 
   // ── the quest ──
 
@@ -419,12 +398,6 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
       if (event.arrived === -1) lm?.setCanoeAway(false);
       if (event.hint !== undefined) hud.toast(event.hint);
     }
-    if (ff && sky.dayNight) {
-      ff.t += dt;
-      const k = Math.min(1, ff.t / ff.dur), e = k * k * (3 - 2 * k);
-      sky.dayNight.phase = (ff.from + ff.span * e) % 1;
-      if (k >= 1) { const to = ff.to; ff = null; void sky.dayNight.set(to); }
-    }
     clock.update(dt);
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
       stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
@@ -459,12 +432,11 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
     flags.reset(); for (const f of b.flags) flags.set(f);
     syncLanterns(); syncWheel();
     standAt(b);
-    if (quest.current?.id === 'dawn') runDawn();
   };
   const debug = {
     flags, quest, board, kit, stag, thralls, people, content: native.content,
     jump: goto, goto,
-    dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
+    dawn: runDawn, night: (): void => { clock.run('debug.night'); },
     zip, cables, canoe, movers: motion, lanterns: lanternPrompts, hollow: () => hollow,
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
@@ -476,9 +448,8 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: Cabins
   ctx.debug.expose(`harness.quest.${ctx.manifest.slug}`, () => flags.all.slice().sort());
   if (!ui.exposeBrowser('__pineQuest', debug)) ctx.scope.expose(window, '__pineQuest', debug);
   ctx.scope.onDispose(() => {
-    objective.root.remove(); reward.root.remove();
+    objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
   });
-  if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
   return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };
 }

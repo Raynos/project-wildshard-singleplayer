@@ -95,11 +95,8 @@ const reviewedW2Owners = new Map([
   // Weather and visual fight effects.
   ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
   // C3 review: private ambient orchestration and weather remain counted custom.
-  ['src/shards/pine-hollow/runtime/life/ambientLife.ts', 'C3'],
   ['src/shards/pine-hollow/world/weather.ts', 'C3'],
   ['src/game/plugin/weather.ts', 'C3'],
-  ...['beatEnvelope','harvest','harvestColors','BEAT','voice','beatCancel','beatT','beatCarcass','beatGive','cutsDone','addPitch','addY','lastRx','lastPy','fx','knife','interrupted','previousWeapons','updateBeat'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C6']),
-  ...['AmbientFlockBird','AmbientFlockPlayer','AmbientFlockLook','ForagerPopulation','PlaceGuide','guide','flyCrumbs'].map(name => [`src/shards/pine-hollow/runtime/life/ambientLife.ts#${name}`, 'C3']),
   ...['items','item'].map(name => [`src/shards/pine-hollow/runtime/combat/fxKit.ts#${name}`, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
@@ -109,7 +106,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/combat/spawns.ts', 'C4'],
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
-  ['src/shards/driftwood-isle/runtime/finalePresentation.ts', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/combat/ammo.ts', 'C6'],
   ['src/engine/combat/Firearm.ts#RangedAction', 'C6'],

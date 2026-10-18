@@ -42,6 +42,13 @@ export interface QuestChapter {
   readonly chip: ReturnType<typeof presentQuestStory>['chip'];
   readonly markers: () => LiveMarker[];
 }
+const chapters = new WeakMap<Scope, Map<string, QuestChapter>>();
+/** Framework lookup of the installed chapter, sharing its original objective owner. */
+export function boundQuestChapter(scope: Scope, id: string): QuestChapter {
+  const chapter = chapters.get(scope)?.get(id);
+  if (scope.disposed || chapter === undefined) throw new Error('Chapter presentation is not installed');
+  return chapter;
+}
 /** Respect a piece's owner when a quest borrows it; own only the entry's unowned subtree. */
 export function ownQuestTree(object: Object3D, scope: Scope): void {
   const mine = sceneObjectOwner(object);
@@ -64,6 +71,7 @@ export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknow
   input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
   const story = parseQuestStory(storyInput), rows = v.parse(schema, input);
   const existing = findBoundQuestState(ctx.scope, story.quest.id);
+  if (chapters.get(ctx.scope)?.has(story.quest.id) === true) throw new Error('Chapter presentation is already installed');
   const services = existing === undefined ? boundQuestServices(ctx.scope, story.quest.id) : { flags: existing.flags };
   const ports: Parameters<typeof bindRuntimeQuest>[3] = { ...services, place: marker => story.quest.markers[marker.id] };
   const line = story.chapters === undefined ? null
@@ -103,7 +111,11 @@ export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknow
     return places;
   };
   ctx.scope.onDispose(() => { presentation.chip.line.root.remove(); });
-  return { quest, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers };
+  const chapter: QuestChapter = { quest, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers };
+  let installed = chapters.get(ctx.scope);
+  if (installed === undefined) { installed = new Map(); chapters.set(ctx.scope, installed); }
+  installed.set(story.quest.id, chapter);
+  return chapter;
 }
 
 /** Client-only registration of admitted item and achievement rows in their existing level scope.
