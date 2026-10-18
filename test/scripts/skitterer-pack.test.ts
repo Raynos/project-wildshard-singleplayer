@@ -21,7 +21,7 @@ import { loadRapier } from '../../src/engine/physics/rapier';
 import { createSimHost } from '../../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
 import { prepareRuntimeWorld } from '../../src/game/plugin/simulation';
-import { parseNativeRuntimePlan } from '../../src/format/nativeRuntimePlan';
+import { nativeRuntimeActorIds, parseNativeRuntimePlan } from '../../src/format/nativeRuntimePlan';
 import { borrowedDecisionControl } from '../../src/game/shardfile/borrowedDecisions';
 
 beforeAll(() => {
@@ -33,10 +33,11 @@ async function pack(seed = 6511) {
   const product = await loadHeadlessProduct('out/sunscar-dunes'), source = product.shardfile, descriptor = outputDescriptor(source);
   if (descriptor === undefined) throw new Error('Missing admitted product');
   const { sections } = descriptor;
-  const row = parseDecisionScripts(sections.get('sim/scripts')).find(candidate => 'spawnGroup' in candidate.binding);
+  const rows = parseDecisionScripts(sections.get('sim/scripts'));
+  const row = rows.find(candidate => 'spawnGroup' in candidate.binding);
   if (row === undefined) throw new Error('Missing pack row');
   const registries = buildDecisionRegistries(source, parseActorMoves(sections.get('actors/moves')), parseWorldTargets(sections.get('world/targets')),
-    readCreatureStrikes(sections.get('actors/strikes')));
+    readCreatureStrikes(sections.get('actors/strikes')), rows, source.runtime === null ? nativeRuntimeActorIds(sections.get('sim/runtime-plan')) : []);
   const scripts: DecisionScript[] = [];
   for (const member of actorDecisionRows(row)) scripts.push({ ...member, ids: decisionBindingMap(member, registries).ids,
     state: member.state.map(slot => { if (slot.scope !== 'actor') throw new Error('Pack slots must be actor-scoped'); return { ...slot, scope: slot.scope }; }),
