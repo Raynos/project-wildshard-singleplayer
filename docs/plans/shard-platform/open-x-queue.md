@@ -18,6 +18,7 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | S4 | Sky look-graph builders + Signal fire.ts emit SF59 graph JSON at build | M | sp-o259 | in flight |
 | S5 | Sky/Signal world/ onto hosts or build-time sections (decision table, then moves) | M | sp-o262 picks, Codex moves | in flight |
 | N1 | Nalati private assets into blobs (review §7) | S | Codex (W3) | open |
+| N2 | `engine/world/geometryBake.ts` is Nalati-only since sp-x5's C1-DW landing dropped DW's `withGeometryBake` (+141 Nalati chargeback, global +52 that landing): move it into Nalati generators or delete it | S | Codex (W3) | open |
 | H1 | G456 host audit (`9160141e3`): move shard-named one-user modules into their shards: ambientLife#createAmbientLife 583 + engine/world/waterSurface.ts 303 → Pine, engine/world/painterly.ts 218 → Nalati, game/systems/viewmodel/armRig.ts 205 → Nine | S | next free Codex | open |
 | H2 | Ruler stops counting src/sdk/bake/** and src/sdk/project.ts as one shard's code (G456) | S | sp-x7 | open |
 | H3 | 7 borderline host groups (homeKeeper callbacks, ProjectilePresentation, createReadingRoster save shapes, head-focus/lift flags, MountedBody, GrappleSim, armRig): fixed in the W3 rows that adopt them, or lose credit at W3 end. armRig has Nine runtime plus Driftwood's real build-only `blender/fp-arms/bake.mjs` user; retain in game and grill at wave close (H1 owner review) | — | W3 rows | open |
