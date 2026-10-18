@@ -1,0 +1,40 @@
+{
+  "status": "sampled weighted fin envelope; turning/terrain/stop discontinuities not accepted",
+  "sourceSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "poseSamples": 18432,
+  "finEvaluations": 73728,
+  "worstFloor": {
+    "minimumY": 0.0028739289704155305,
+    "parameters": {
+      "stage": 0,
+      "clock": 0,
+      "phase": 0.0,
+      "idle": -1,
+      "move": 1,
+      "flinch": 0,
+      "dead": 0.25,
+      "bone": "finR"
+    }
+  },
+  "minimumTriangleArea": {
+    "ratio": 0.5936202313611431,
+    "parameters": {
+      "stage": 1,
+      "clock": 0.82,
+      "phase": 0.0,
+      "idle": -1,
+      "move": 0,
+      "flinch": 0,
+      "dead": 1,
+      "bone": "finL"
+    }
+  },
+  "minimumRelativeNormalCosine": 0.8435860891807127,
+  "maximumCapToBellyError": 0.0,
+  "limitations": [
+    "abrupt stop may jump12cm",
+    "no world terrain/ragdoll or yaw-turn contact proof",
+    "sampled envelope not continuous guarantee"
+  ]
+}

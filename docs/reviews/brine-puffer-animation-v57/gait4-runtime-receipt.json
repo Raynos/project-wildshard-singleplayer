@@ -1,0 +1,32 @@
+{
+  "candidate": "V57 rig1 gait4",
+  "status": "unaccepted; review pending",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "poseSha256": "501c9c6a16fa29a7f87780e263cb4ed1df9c9c2ac53077455f6a2eee08fdb4f0",
+  "configSha256": "1b96957fa56aaace6cec8677e44f698afc4728308e753e46bfc82ad7dea40366",
+  "failedBuild": "Initial app allowlist rejected gait4; original log retained. Product passed. Added gait4 to isolated preview mode allowlist; typed lint and app retry passed. No schema limits raised.",
+  "runtimeStart": "2026-10-18T21:27:14.212Z",
+  "runtimeEnd": "2026-10-18T21:28:19.596Z",
+  "errors": [],
+  "httpErrors": [],
+  "meanObservedHz": 23.792137216608644,
+  "buffer": [
+    390,
+    844
+  ],
+  "pixelRatio": 1,
+  "diagnosticPostOff": true,
+  "knownStopStep": {
+    "fromTime": 20.039800000000746,
+    "toTime": 20.08,
+    "speedFrom": 0.15106538261173608,
+    "speedTo": 0,
+    "finLPositionDeltaMetres": 0.07505622716454972,
+    "finRPositionDeltaMetres": 0.05649080867158668
+  },
+  "rawVideo": "page@3a29c149a91f7faa4d89bd353b9e47e3.webm",
+  "rawVideoSha256": "ce8b3310c22dbfcf973b5c69dfd9955c514e610aaa82fe07dfd3b8aca01b5a82",
+  "visualAcceptance": false,
+  "phonePerformanceClaim": false,
+  "plantingClaim": false
+}

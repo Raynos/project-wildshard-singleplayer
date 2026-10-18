@@ -28,7 +28,7 @@ export const pufferPreviewConfig = defineConfig(({ command }) => {
   if (typeof receiptPreview !== 'object' || receiptPreview === null || !('metadataSha256' in receiptPreview) || !('packedSha256' in receiptPreview) || typeof receiptPreview.packedSha256 !== 'string'
     || receiptPreview.metadataSha256 !== hash(join(preview, 'pack/metadata.json')) || receiptPreview.packedSha256 !== hash(join(preview, 'pack/payload.bin'))
     || !bake.file.includes(receiptPreview.packedSha256)) throw new Error('Native preview body receipt mismatch');
-  if (!('mode' in receiptPreview) || typeof receiptPreview.mode !== 'string' || !['rest', 'inflate-105', 'inflate-110', 'attack'].includes(receiptPreview.mode)) throw new Error('Unknown Puffer preview mode');
+  if (!('mode' in receiptPreview) || typeof receiptPreview.mode !== 'string' || !['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4'].includes(receiptPreview.mode)) throw new Error('Unknown Puffer preview mode');
   const mode = receiptPreview.mode;
   if (!('candidate' in receiptPreview) || typeof receiptPreview.candidate !== 'string' || !/^V[0-9]+(?: · UNACCEPTED WIP)?$/u.test(receiptPreview.candidate)) throw new Error('Invalid Puffer candidate identity');
   const candidate = receiptPreview.candidate.split(' ')[0];
