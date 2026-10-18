@@ -1,34 +1,36 @@
-// Wet-ground streaks, merged from the neon lab (the dev labs (deleted in E357 F7), "cards"): one instanced additive
-// card per emitter, lying where optics puts its reflection — between the mirror points of the emitter's top and bottom,
-// c / (c + h) of the way from the eye — stretched along the view ray by the gloss, broken on the same flagstone joints
-// as the ground (STONES_GLSL, shared with the Jiehua ground), with a jagged two-octave ripple edge, striation, dashes and
-// grain. It replaces the quarter-res mirror pass. The reflecting plane is the square's floor at `uGroundY` (the square and
-// its street), or (round 14, dome C1's stair-street) a stair flight's slope: a card set on each flight's plane half a rise
-// under its nosing line, so the depth test shows each card on the back half of every tread only — the per-step broken
-// reflection — and a flat set on each landing.
-// SHARD-PLATFORM M3: the card sets are the SDK's reflection cards (@wildshard/sdk/looks/reflectionCards); the card
-// program's GLSL and row, the look, the cut and the stair's row are data (data/streaks.ts).
-import { type Mesh, Vector4 } from 'three';
-import { type ReflectCardProgram, type StairCardPlan, reflectionCards, stairReflectionCards } from '../runtime/looks/reflectionCards';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import type { Emitter } from '../runtime/looks/emitterCards';
-import { STAIR_CARDS, STREAK_CUT, STREAK_LOOK, STREAK_PROGRAMS } from '../runtime/looks/streaks';
-import { LOOK_FRAGMENTS, type Shared } from './style';
+import { AddEquation, CustomBlending, Float32BufferAttribute, Mesh, OneFactor, Vector3, Vector4, ZeroFactor } from 'three';
+import { type Emitter, emitterCardsGeometry } from '../runtime/looks/emitterCards';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import type { StairCardPlan } from '../runtime/looks/reflectionCards';
+import type { Shared } from './style';
 
-const STREAK_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, STREAK_PROGRAMS);
+/** Shared performance knobs; the graph reads these before every frame. */
+export const STREAK_PERF = new Vector4(2.5, 0.3, 0, 0);
 
-/** the cards' perf knobs, shared by every card set (one object): x the tail-by-brightness reference (0 = off), y a
- *  brightness floor (0 = off), w −1 = no whole-card reject (the A / B harness) */
-export const STREAK_PERF = new Vector4(STREAK_CUT.tails, STREAK_CUT.floor, 0, 0);
+/** Receiver constants are geometry channels, so all planes share one compiled graph. */
+function cards(emitters: readonly Emitter[], hole: Vector4, origin: Vector3, u: Vector3, n: Vector3, clip = new Vector4(-1e5, -1e5, 1e5, 1e5), stair = false, lift = 0): Mesh {
+  const geometry = emitterCardsGeometry(emitters);
+  const attributes = { aPlaneO: origin.toArray(), aPlaneU: u.normalize().toArray(), aPlaneN: n.normalize().toArray(), aClip: clip.toArray(), aHole: hole.toArray(),
+    aSpread: [0.9, 0.95, stair ? 0.12 : 0.3, 0.6], aCardK: [1.15 * (stair ? 1.3 : 1), stair ? 0.8 : 0.6, 0.45, 1], aLift: [lift] };
+  for (const [name, value] of Object.entries(attributes)) geometry.setAttribute(name, new Float32BufferAttribute(Array.from({ length: 4 }, () => value).flat(), value.length));
+  const material = lentLook('nine-streaks');
+  material.blending = CustomBlending; material.blendEquation = AddEquation; material.blendSrc = OneFactor; material.blendDst = OneFactor;
+  material.blendSrcAlpha = ZeroFactor; material.blendDstAlpha = OneFactor;
+  const mesh = new Mesh(geometry, material); mesh.frustumCulled = false; mesh.renderOrder = 4;
+  return mesh;
+}
 
-const program = (shared: Shared): ReflectCardProgram<'card'> => ({ family: STREAK_FAMILY, program: 'card', shared: shared.u, look: STREAK_LOOK, perf: STREAK_PERF });
-
-/** the square's card set: on its floor at `uGroundY`, none in the Well's open shaft (`hole`) */
+/** Square and street share their floor; the Well's open shaft never reflects. */
 export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4): Mesh {
-  return reflectionCards(program(shared), emitters, { groundY: shared.u.uGroundY.value, hole });
+  return cards(emitters, hole, new Vector3(0, shared.u.uGroundY.value, 0), new Vector3(1, 0, 0), new Vector3(0, 1, 0));
 }
 
-/** (render, round 14, dome C1) the wet stair-street's card sets: one per flight and per landing (data/streaks.ts STAIR_CARDS) */
-export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan: StairCardPlan): Mesh[] {
-  return stairReflectionCards(program(shared), emitters, plan, STAIR_CARDS);
+/** One sloped receiver under each flight's nosings, one flat receiver per landing. */
+export function stairStreaks(_shared: Shared, emitters: readonly Emitter[], plan: StairCardPlan): Mesh[] {
+  const slope = plan.rise / plan.run, hole = new Vector4();
+  return [...plan.flights.map(f => cards(emitters, hole, new Vector3(f.x0, f.y0 + plan.rise * 0.5, 0), new Vector3(1, slope, 0), new Vector3(-slope, 1, 0), new Vector4(f.x0, plan.z0, f.x1, plan.z1), true, plan.rise * 0.42)),
+    ...plan.landings.map(l => cards(emitters, hole, new Vector3(0, l.y, 0), new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector4(l.x0, plan.z0, l.x1, plan.z1), true))];
 }
+
+/** Existing post controls keep their graph parameter. */
+export function setStreakOn(value: number): void { setLentParam('nine-streaks', 'cardOn', value); }

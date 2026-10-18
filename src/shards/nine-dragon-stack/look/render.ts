@@ -16,7 +16,7 @@ import { gradeUniforms, loadLut } from './light/grade';
 import { lightSources } from './light/install';
 import { LUT_URL } from '../runtime/looks/light';
 import { type Halos, buildHalos } from './light/halos';
-import { STREAK_PERF } from './streaks';
+import { STREAK_PERF, setStreakOn } from './streaks';
 import { clearLanterns, updateLanterns } from './lanterns';
 import { JiehuaEffect } from './render/jiehua';
 import { PASS_FAMILY } from './render/family';
@@ -37,9 +37,11 @@ import { BANDS } from '../runtime/looks/look';
  * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
  */
 const SILK_FOG = 'nine-silk-fog';
-const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner'] as const;
+const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks'] as const;
 const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
 function syncSilkFog(shared: Shared): void {
+  setLentParam('nine-streaks', 'time', shared.u.uTime.value);
+  setLentParam('nine-streaks', 'perf', STREAK_PERF.toArray());
   const u = shared.u, o = silkOut;
   setLentParam('nine-scroll', 'linePx', u.uLinePx.value);
   for (const id of SILK_MATERIALS) {
@@ -57,7 +59,7 @@ function syncSilkFog(shared: Shared): void {
     setLentParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
     setLentParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
     setLentParam(id, 'puff', u.uPuff.value.toArray(o.puff));
-    if (id === SILK_FOG) continue;
+    if (id === SILK_FOG || id === 'nine-streaks') continue;
     setLentParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
     setLentParam(id, 'ink0', u.uInk0.value.toArray(o.col));
     setLentParam(id, 'ink1', u.uInk1.value.toArray(o.col));
@@ -177,7 +179,9 @@ export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
   // the painted sky (world/build.ts, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
   let skyMesh: Object3D | null = null;
-  const onEye = (root: Object3D, shared: Shared): void => {
+  const onEye = (root: Object3D, shared: Shared, camera: PerspectiveCamera): void => {
+    setLentParam('nine-streaks', 'projection', [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]]);
+    setLentParam('nine-streaks', 'flagJoint', shared.u.uFlagJoint.value);
     if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
     skyMesh?.position.copy(shared.u.uCam.value);
     syncSilkFog(shared);
@@ -217,6 +221,7 @@ export function shardRender(): LookStrategy {
         // reflection pass runs) and, without the bleed pyramid, the phone's light halos
         const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.root, 'uCardOn');
         for (const u of cardOns) u.value = reflect === null ? 1 : CARD_ON;
+        setStreakOn(reflect === null ? 1 : CARD_ON);
         if (reflect === null) phoneCardGain(streaks);
         const world = ndRuntime().world, src = lightSources();
         const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
@@ -235,7 +240,7 @@ export function shardRender(): LookStrategy {
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       // the streak cards (look/streaks.ts): found by their own uniform
       const { meshes: streaks, uniforms: cardOns } = meshesWithUniform(c.scene, 'uCardOn');
-      const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; };
+      const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; setStreakOn(v); };
       setCardOn(reflect === null ? 1 : CARD_ON);
       if (reflect === null) phoneCardGain(streaks);
       // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
@@ -260,7 +265,7 @@ export function shardRender(): LookStrategy {
         const view = rt.camera;
         world.shared.u.uCam.value.setFromMatrixPosition(view.matrixWorld);
         world.shared.bandWindow();
-        onEye(world.root, world.shared);
+        onEye(world.root, world.shared, view);
         world.shared.u.uNear.value = view.near;
         updateLanterns(view);
         return;
@@ -270,7 +275,7 @@ export function shardRender(): LookStrategy {
       // late hooks pose the camera, so it lags a frame — and a posed capture camera would fog from the player's eye)
       world.shared.u.uCam.value.setFromMatrixPosition(handle.camera.matrixWorld);
       world.shared.bandWindow();
-      onEye(world.root, world.shared);
+      onEye(world.root, world.shared, handle.camera);
       world.shared.u.uNear.value = handle.camera.near;
       // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
       updateLanterns(handle.camera);

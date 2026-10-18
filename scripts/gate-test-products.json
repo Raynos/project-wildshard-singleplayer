@@ -1,5 +1,7 @@
 {
-  "test/nalati-dressing-product.test.ts": ["nalati-grasslands"],
+  "test/nalati-dressing-product.test.ts": [
+    "nalati-grasslands"
+  ],
   "test/nalati-boss-fights.test.ts": [],
   "test/nalati-king-pose.test.ts": [],
   "test/nalati-titan-decisions.test.ts": [],
@@ -215,5 +217,6 @@
     "nalati-grasslands"
   ],
   "test/nine-light-spill.test.ts": [],
-  "test/nine-explorer-catalogue.test.ts": []
+  "test/nine-explorer-catalogue.test.ts": [],
+  "test/nine-look-graphs.test.ts": []
 }
