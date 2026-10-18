@@ -1,3 +1,7 @@
+import { unzlibSync } from 'fflate';
+import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
+import lightRows from '../src/shards/nine-dragon-stack/data/light.json' with { type: 'json' };
+import paintArray from '../src/shards/nine-dragon-stack/data/paintArray.generated.json' with { type: 'json' };
 import { burstGraphs } from '../src/shards/nine-dragon-stack/generators/burstGraphs';
 import { effectField } from '../src/engine/fx/effectField';
 import burstRows from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
@@ -102,4 +106,63 @@ test('lantern LOD packing keeps authored seeds and all distance bands', async ()
   expect(lanterns.emitters.map(e => e.at.z)).toEqual([-10, -50, -100]);
   for (const level of levels) level.mesh.geometry.dispose();
   clearLanterns(); for (const cleanup of cleanups) cleanup(); material.dispose();
+});
+
+test('halo discs compile with additive alpha preservation inside the existing caps', async () => {
+  const { haloGraph } = await import('../src/shards/nine-dragon-stack/generators/haloGraph');
+  const graph = haloGraph(), compiled = compileGraph(graph, { trustedBudget: true });
+  expect(graph.budget?.nodes).toBeLessThanOrEqual(4096);
+  expect(new TextEncoder().encode(JSON.stringify(graph)).length).toBeLessThanOrEqual(64000);
+  const cleanups: (() => void)[] = [];
+  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-halo', compiled.material]]),
+    setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => compiled.material });
+  const { buildHalos } = await import('../src/shards/nine-dragon-stack/look/light/halos');
+  const shared = { u: { uHalo: { value: new THREE.Vector4(2, 1.2, 5, 0.12) } } } as Shared;
+  const halos = buildHalos(shared, { lanterns: [], shops: [], signs: [] });
+  expect(halos.mesh.material.depthWrite).toBe(false);
+  expect(halos.mesh.material.blendSrcAlpha).toBe(THREE.ZeroFactor);
+  expect(halos.mesh.material.blendDstAlpha).toBe(THREE.OneFactor);
+  halos.mesh.geometry.dispose(); for (const cleanup of cleanups) cleanup();
+  expect(graph.params?.['uHalo']?.value).toEqual([2, 1.2, 5, 0.12]);
+  expect(Object.values(graph.nodes).filter(node => node.op === 'attribute').map(node => node.name).sort((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual(['aAt', 'aCol', 'aCorner', 'aR']);
+  expect(Object.values(graph.nodes).some(node => node.op === 'viewDepth')).toBe(true);
+  compiled.material.dispose();
+});
+
+
+test('paint chunks cover every layer exactly with a neutral unmasked alpha', () => {
+  for (const row of Object.values(paintArray)) {
+    const ends = Array.from({ length: row.layers }, () => 0);
+    for (const part of row.parts) {
+      const bytes = unzlibSync(Uint8Array.from(atob(part.packed), char => char.codePointAt(0) ?? 0));
+      expect(part.offset).toBe(ends[part.layer]);
+      expect(bytes.length).toBe(Math.min(196608, row.size * row.size * 4 - part.offset));
+      ends[part.layer] = part.offset + bytes.length;
+      if ([2, 3, 4, 5, 6, 7].includes(part.layer)) {
+        for (let i = 3; i < bytes.length; i += 4) if (bytes[i] !== 128) throw new Error('Unmasked paint alpha changed');
+      }
+    }
+    expect(ends).toEqual(Array.from({ length: row.layers }, () => row.size * row.size * 4));
+  }
+});
+
+test('filament graph binds the simulated rope and preserves target alpha', async () => {
+  const { filamentGraph } = await import('../src/shards/nine-dragon-stack/generators/filamentGraph');
+  const { Filament, Rope } = await import('../src/shards/nine-dragon-stack/runtime/looks/ropeFilament');
+  const graph = filamentGraph(), compiled = compileGraph(graph, { trustedBudget: true }), cleanups: (() => void)[] = [];
+  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-filament', compiled.material]]),
+    setParam: (_id, name, value) => { compiled.setParam(name, value); }, setTexture: () => undefined, bindMeshMap: () => compiled.material });
+  const { filamentGeometry } = await import('../src/shards/nine-dragon-stack/generators/filamentGeometry');
+  const rope = new Rope(), line = new Filament(rope.n, filamentGeometry(rope.n), filamentRows, lightRows.haloState);
+  rope.reset(new THREE.Vector3(0, 1, -2), new THREE.Vector3(4, 2, -8));
+  line.u.uRes.value.set(768, 1366); line.u.uProjection.value.set(1.5, 1.8); line.update(rope);
+  const position = line.mesh.geometry.getAttribute('position'), previous = line.mesh.geometry.getAttribute('aPrev');
+  expect(position.count).toBe(rope.n * 2);
+  expect(position.getX(0)).toBe(rope.p[0]); expect(previous.getX(0)).toBe(rope.p[0]);
+  expect(position.getX(position.count - 1)).toBe(rope.p[rope.p.length - 3]);
+  expect(compiled.material.blendSrcAlpha).toBe(THREE.ZeroFactor);
+  expect(compiled.material.blendDstAlpha).toBe(THREE.OneFactor);
+  expect(graph.budget?.nodes).toBeLessThanOrEqual(4096);
+  expect(new TextEncoder().encode(JSON.stringify(graph)).length).toBeLessThanOrEqual(64000);
+  line.mesh.geometry.dispose(); compiled.material.dispose(); for (const cleanup of cleanups) cleanup();
 });

@@ -14,7 +14,8 @@ import { ndRuntime } from '../runtime/state';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
 import { lightSources } from './light/install';
-import { LUT_URL } from '../runtime/looks/light';
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../boot/lookTypes.generated';
 import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF, setStreakOn } from './streaks';
 import { clearLanterns, updateLanterns } from './lanterns';
@@ -31,6 +32,8 @@ import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture } from './facadeMaterial';
 import { BANDS } from '../runtime/looks/look';
 
+const light = metadata.looks.light as LookRows['light'];
+
 /**
  * The silk fog for the look graphs (O11): data/lookGraphs.json 'nine-silk-fog' is FOG_GLSL's silkFog as a `kind: 'fog'`
  * graph, and the graph looks that select it (`effectState.fog`: the Well's mist sheets) are fogged by it in the engine's
@@ -38,7 +41,7 @@ import { BANDS } from '../runtime/looks/look';
  * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
  */
 const SILK_FOG = 'nine-silk-fog';
-const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows'] as const;
+const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo'] as const;
 const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
 function syncSilkFog(shared: Shared): void {
   syncArchitecture(shared.u);
@@ -183,6 +186,7 @@ export function shardRender(): LookStrategy {
   // the painted sky (world/build.ts, the 'nine-sky' look) is a sphere round the eye: it stands on uCam (the root's frame)
   let skyMesh: Object3D | null = null;
   const onEye = (root: Object3D, shared: Shared, camera: PerspectiveCamera): void => {
+    shared.u.uHaloProjection.value = camera.projectionMatrix.elements[5];
     setLentParam('nine-streaks', 'projection', [camera.projectionMatrix.elements[0], camera.projectionMatrix.elements[5]]);
     setLentParam('nine-streaks', 'flagJoint', shared.u.uFlagJoint.value);
     if (skyMesh?.parent !== root) skyMesh = root.getObjectByName('sky') ?? null;
@@ -191,7 +195,7 @@ export function shardRender(): LookStrategy {
   };
   const glow = glowUniforms();
   const grade = gradeUniforms();
-  void (async (): Promise<void> => { const t = await loadLut(LUT_URL); grade.uLut.value = t; grade.uLutAmt.value = 1; })();
+  void (async (): Promise<void> => { const t = await loadLut(light.lut); grade.uLut.value = t; grade.uLutAmt.value = 1; })();
   let lastPr = 0;
   /** (SF63) inside a grid cell (no compose, no handle): the page's renderer, for the line widths and the buffer size */
   let cellBuffer: Buffer | null = null;
@@ -211,7 +215,7 @@ export function shardRender(): LookStrategy {
     sky: { clouds: false, planet: true, ownSky: true },
     // the learned LUT its composite applies, declared so a grid cell (which carries the engine chain, not this compose)
     // can carry it too (op-lut20; behind the grid's default-off Debug row)
-    lut: LUT_URL,
+    lut: light.lut,
     // the same composite inside a grid cell (op-frame21, SF63 / G158; behind the grid's default-off Debug row): it is the
     // whole colour chain, as standalone, where the chain slot holds the composite alone
     cell: {

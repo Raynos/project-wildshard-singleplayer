@@ -6,20 +6,23 @@
 // vertex stage, the fragment is a gaussian. A disc is pulled toward the eye by its radius so the wall a lantern hangs
 // on does not slice it, fades out close to the eye (walking under a lantern never fills the screen), its screen size
 // is capped (the fill cost), and a disc too dim to see is collapsed before rasterising.
-import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, type ShaderMaterial, Uint16BufferAttribute, Vector4 } from 'three';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { HALO, HALO_PROGRAMS } from '../../runtime/looks/light';
-import { LOOK_FRAGMENTS, type Shared } from '../style';
+import { Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, type Material, Uint16BufferAttribute, type Vector4 } from 'three';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
+import metadata from '../../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../../boot/lookTypes.generated';
+import type { Shared } from '../style';
 import type { EmitterLike } from './install';
+
+const light = metadata.looks.light as LookRows['light'];
 
 const isLamp = (e: EmitterLike): boolean => e.w < 0.5 && e.h < 0.5;
 
 // SHARD-PLATFORM M3: the halos' tuning, GLSL and program row are data (data/light.ts HALO, HALO_PROGRAMS)
-const HALO_FAMILY = new ShaderFamily(LOOK_FRAGMENTS, HALO_PROGRAMS);
+const HALO = light.halo;
 
 export interface HaloSources { lanterns: readonly EmitterLike[]; shops: readonly EmitterLike[]; signs: readonly EmitterLike[] }
 
-export interface Halos { mesh: Mesh<InstancedBufferGeometry, ShaderMaterial>; knobs: Vector4 }
+export interface Halos { mesh: Mesh<InstancedBufferGeometry, Material>; knobs: Vector4 }
 
 export function buildHalos(shared: Shared, src: HaloSources): Halos {
   const at: number[] = [], col: number[] = [], rad: number[] = [];
@@ -48,9 +51,8 @@ export function buildHalos(shared: Shared, src: HaloSources): Halos {
   g.setAttribute('aCol', new InstancedBufferAttribute(new Float32Array(col), 4));
   g.setAttribute('aR', new InstancedBufferAttribute(new Float32Array(rad), 1));
   g.instanceCount = n;
-  const mat = HALO_FAMILY.material('halo', shared.u);
-  const knobs: unknown = mat.uniforms['uHalo']?.value;
-  if (!(knobs instanceof Vector4)) throw new Error('halos: no uHalo knobs');
+  const mat = lentLook('nine-halo'), knobs = shared.u.uHalo.value;
+  mat.setValues(light.haloState);
   const mesh = new Mesh(g, mat);
   mesh.name = 'halos';
   mesh.frustumCulled = false;

@@ -9,12 +9,14 @@ import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import type { Rng } from '@wildshard/sdk/random';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { person } from './heroFigures';
 import { KitX, curve, merge } from './kitx';
 import { curvedRoof } from './gate';
 import { placeSet } from './props3d';
 import { BOOTH, PAV, type StallRect } from '../data/specimenDims';
+
+const SURF = paint.surfaces;
 
 const { HAWKER, STALL, Y0 } = NINE_LAYOUT_PLAN;
 

@@ -3,7 +3,9 @@
 // (../generators/towers.ts, well-bridges.ts lay those out at build time, baked: ./layoutBake.ts).
 import { Vector3 } from 'three';
 import { E, K, Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
+
+const SURF = paint.surfaces;
 
 /** the train (its own mesh; main.ts slides it along x) */
 export function trainKit(): Kit {

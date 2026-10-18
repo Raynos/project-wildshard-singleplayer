@@ -25,13 +25,15 @@ import { dragonHook } from './props';
 import { hipRoof } from './hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairPlan';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import { PLANTER } from '../data/specimenDims';
 import { MIN, NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
+
+const SURF = paint.surfaces;
 
 const { STAIR, Y0 } = NINE_LAYOUT_PLAN;
 

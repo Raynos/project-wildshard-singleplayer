@@ -11,7 +11,10 @@
 // SHARD-PLATFORM M3: the uniforms' rows and both GLSL pieces are data (data/light.ts: GLOW_UNIFORMS, GLOW_PRE_GLSL,
 // GLOW_COMP_GLSL).
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
-import { GLOW_UNIFORMS } from '../../runtime/looks/light';
+import metadata from '../../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../../boot/lookTypes.generated';
+
+const light = metadata.looks.light as LookRows['light'];
 
 /** the glow's live uniforms (data/light.ts GLOW_UNIFORMS) */
-export function glowUniforms(): UniformsOf<typeof GLOW_UNIFORMS> { return uniformsFrom(GLOW_UNIFORMS); }
+export function glowUniforms(): UniformsOf<typeof light.glow> { return uniformsFrom(light.glow); }

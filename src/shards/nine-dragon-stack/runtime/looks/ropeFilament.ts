@@ -4,9 +4,11 @@
 // tension pulse that runs back down the line, and a faint energy crawl along it.
 //   slack > 1 → the line sags and whips (paying out in flight, the reel-back after a miss); slack → 1 → taut.
 import {
-  BufferAttribute, BufferGeometry, Color, CustomBlending, DoubleSide, Mesh, OneFactor, ShaderMaterial, Vector2, type Vector3,
-  ZeroFactor,
+  BufferGeometryLoader, Mesh, type MaterialParameters, Vector2, Vector3,
 } from 'three';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { type UniformsOf, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
+import type { FilamentRows } from './filamentRows';
 
 export class Rope {
   readonly n: number;
@@ -97,98 +99,27 @@ export class Rope {
   load(s: { p: Float32Array; q: Float32Array; live: boolean }): void { this.p.set(s.p); this.q.set(s.q); this.live = s.live; }
 }
 
-const VS = /* glsl */ `
-attribute vec3 aPrev;
-attribute vec3 aNext;
-attribute vec2 aSide;
-uniform vec2 uRes;
-uniform float uCorePx;
-uniform float uHaloPx;
-varying vec2 vUv;
-void main() {
-  vec4 c = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  vec4 cp = projectionMatrix * modelViewMatrix * vec4(aPrev, 1.0);
-  vec4 cn = projectionMatrix * modelViewMatrix * vec4(aNext, 1.0);
-  // keep the ribbon in front of the near plane
-  float w = max(c.w, 1e-3);
-  vec2 s = c.xy / w * uRes;
-  vec2 sp = cp.xy / max(cp.w, 1e-3) * uRes;
-  vec2 sn = cn.xy / max(cn.w, 1e-3) * uRes;
-  vec2 dir = normalize((sn - sp) + vec2(1e-5, 0.0));
-  vec2 nrm = vec2(-dir.y, dir.x);
-  float half_ = uCorePx * 0.5 + uHaloPx;
-  c.xy += nrm * aSide.x * half_ * 2.0 / uRes * w;
-  vUv = vec2(aSide.y, aSide.x * half_);
-  gl_Position = c;
-}
-`;
-const FS = /* glsl */ `
-uniform float uCorePx;
-uniform float uHaloPx;
-uniform float uI;
-uniform float uPulse;
-uniform float uLen;
-uniform float uTime;
-uniform vec3 uCore;
-uniform vec3 uHalo;
-varying vec2 vUv;
-void main() {
-  float s = vUv.x;
-  float px = abs(vUv.y);
-  float core = clamp(uCorePx * 0.5 + 0.7 - px, 0.0, 1.0);
-  float halo = exp(-pow(px / max(uHaloPx * 0.45, 0.5), 2.0));
-  float crawl = 0.85 + 0.3 * smoothstep(0.4, 1.0, sin(s * uLen * 6.0 - uTime * 38.0));
-  float dp = (s - uPulse) / 0.05;
-  float pulse = exp(-dp * dp) * 3.5;
-  vec3 col = (uCore * core * 2.4 + uHalo * halo * 0.8) * uI * (crawl + pulse);
-  gl_FragColor = vec4(col, 0.0);
-}
-`;
-
 /** the ribbon that draws a Rope (node positions pushed every frame) */
 export class Filament {
   readonly mesh: Mesh;
-  readonly u = {
-    uRes: { value: new Vector2(1, 1) },
-    uCorePx: { value: 3.0 },
-    uHaloPx: { value: 16 },
-    uI: { value: 1 },
-    uPulse: { value: -1 },
-    uLen: { value: 10 },
-    uTime: { value: 0 },
-    uCore: { value: new Color(0.6, 0.97, 1.0) },
-    uHalo: { value: new Color(0.12, 0.8, 1.0) },
-  };
+  readonly u: UniformsOf<FilamentRows>;
+  private readonly names = ['uRes', 'uProjection', 'uCorePx', 'uHaloPx', 'uI', 'uPulse', 'uLen', 'uTime', 'uCore', 'uHalo'] as const;
+  private readonly pair = [0, 0];
+  private readonly triple = [0, 0, 0];
   private readonly pos: Float32Array;
   private readonly prev: Float32Array;
   private readonly next: Float32Array;
   private readonly n: number;
 
-  constructor(n: number) {
+  constructor(n: number, topology: unknown, rows: FilamentRows, state: MaterialParameters) {
+    this.u = uniformsFrom(rows);
     this.n = n;
-    const g = new BufferGeometry();
-    this.pos = new Float32Array(n * 2 * 3);
-    this.prev = new Float32Array(n * 2 * 3);
-    this.next = new Float32Array(n * 2 * 3);
-    const side = new Float32Array(n * 2 * 2);
-    const idx: number[] = [];
-    for (let i = 0; i < n; i++) {
-      side[i * 4] = -1; side[i * 4 + 1] = i / (n - 1);
-      side[i * 4 + 2] = 1; side[i * 4 + 3] = i / (n - 1);
-      if (i < n - 1) {
-        const a = i * 2;
-        idx.push(a, a + 1, a + 3, a, a + 3, a + 2);
-      }
-    }
-    g.setAttribute('position', new BufferAttribute(this.pos, 3));
-    g.setAttribute('aPrev', new BufferAttribute(this.prev, 3));
-    g.setAttribute('aNext', new BufferAttribute(this.next, 3));
-    g.setAttribute('aSide', new BufferAttribute(side, 2));
-    g.setIndex(idx);
-    const m = new ShaderMaterial({
-      uniforms: this.u, vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, depthTest: true, side: DoubleSide,
-      blending: CustomBlending, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor,
-    });
+    const g = new BufferGeometryLoader().parse(topology);
+    const pos = g.getAttribute('position').array, prev = g.getAttribute('aPrev').array, next = g.getAttribute('aNext').array;
+    if (!(pos instanceof Float32Array) || !(prev instanceof Float32Array) || !(next instanceof Float32Array)
+      || [pos, prev, next].some(values => values.length !== n * 6)) throw new Error('Rope ribbon topology differs');
+    this.pos = pos; this.prev = prev; this.next = next;
+    const m = lentLook('nine-filament'); m.setValues(state);
     this.mesh = new Mesh(g, m);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 10;
@@ -211,6 +142,15 @@ export class Filament {
       if (i > 0) len += Math.hypot((p[i * 3] ?? 0) - (p[ip * 3] ?? 0), (p[i * 3 + 1] ?? 0) - (p[ip * 3 + 1] ?? 0), (p[i * 3 + 2] ?? 0) - (p[ip * 3 + 2] ?? 0));
     }
     this.u.uLen.value = len;
+    for (let i = 0; i < 10; i++) {
+      const name = this.names[i]; if (name === undefined) continue;
+      const value = this.u[name].value;
+      if (typeof value === 'number') { setLentParam('nine-filament', name, value); continue; }
+      const tuple = value instanceof Vector2 ? this.pair : this.triple;
+      tuple[0] = value.x; tuple[1] = value.y;
+      if (value instanceof Vector3) tuple[2] = value.z;
+      setLentParam('nine-filament', name, tuple);
+    }
     const g = this.mesh.geometry;
     for (const k of ['position', 'aPrev', 'aNext'] as const) {
       const at = g.getAttribute(k);

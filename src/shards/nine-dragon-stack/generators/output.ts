@@ -1,3 +1,7 @@
+import filamentRows from '../data/filament.json' with { type: 'json' };
+import lightRows from '../data/light.json' with { type: 'json' };
+import { filamentGeometry } from './filamentGeometry';
+import paintArray from '../data/paintArray.generated.json' with { type: 'json' };
 import { grappleCourseScene } from './courseScene';
 import course from '../data/grappleCourse.json' with { type: 'json' };
 import * as v from 'valibot';
@@ -25,7 +29,7 @@ import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
 
 const burstSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
 const effectRows = v.parse(v.strictObject({ muzzle: burstSchema, bite: burstSchema, dock: burstSchema, sparks: burstSchema }), bursts);
-const equipmentRows = { portraitFov: 78, aim, bursts: effectRows } satisfies GrappleRows;
+const equipmentRows = { portraitFov: 78, aim: { ...aim, ribbon: filamentGeometry(aim.ropePoints), filament: filamentRows, filamentState: lightRows.haloState }, bursts: effectRows } satisfies GrappleRows;
 
 // JSON numbers erase -0; the numeric reviver restores its original float32 sign bit.
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
@@ -37,7 +41,9 @@ const viewmodel = buildViewmodelParts();
 const glyphBlobs = Object.entries(glyphs).flatMap(([tier, row]) => [
     nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS, parts: row.packed.length })),
   ].concat(row.packed.map((part, index) => nameBlob(`signs/glyphs-${tier}-${index}.rg8`, 'bin', Uint8Array.from(atob(part), byte => byte.codePointAt(0) ?? 0), { decoded: 2_097_152, gpu: Math.ceil(2_097_152 * 4 / 3) }))));
-const emitted = emitNamedBlobs(glyphBlobs.concat(signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
+const paintBlobs = Object.entries(paintArray).flatMap(([tier, row]) => row.parts.map(part =>
+  nameBlob(`looks/paint/${tier}/${part.layer}-${part.offset}.bin`, 'bin', Uint8Array.from(atob(part.packed), byte => byte.codePointAt(0) ?? 0))));
+const emitted = emitNamedBlobs(glyphBlobs.concat(paintBlobs, signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),

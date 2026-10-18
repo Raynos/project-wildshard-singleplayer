@@ -15,13 +15,15 @@ import { NEONS } from './towers';
 import { WORDS } from './words';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
 import type { Ctx } from './ctx';
 import { type BandKits, CROSSINGS, type Crossing, DECK_TOP, LOW, type WellPlan, snapFloor } from './well-plan';
 import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from './wellBounds';
 import { ghostLevels } from './well-lower-deep';
+
+const SURF = paint.surfaces;
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 

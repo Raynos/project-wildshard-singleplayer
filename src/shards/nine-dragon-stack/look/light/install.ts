@@ -5,7 +5,11 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadLut } from './grade';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { LIGHT_DEFAULTS, LUT_URL, type LightSettings } from '../../runtime/looks/light';
+import type { LightSettings } from './types';
+import metadata from '../../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../../boot/lookTypes.generated';
+
+const light = metadata.looks.light as LookRows['light'];
 // SHARD-PLATFORM M3: the settings, the lab's tuning and the LUT's URL are data (data/light.ts).
 
 export interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
@@ -61,7 +65,7 @@ export function installLight(opt: {
     u.uLpVolB.value = b.tex; u.uLpMinB.value.fromArray(b.row.min); u.uLpInvB.value.fromArray(b.row.inv);
     square = a.row.stats; well = b.row.stats; lights = a.row.lights; u.uLpMax.value = a.row.maximum;
   };
-  let cur: LightSettings = { ...LIGHT_DEFAULTS };
+  let cur: LightSettings = { ...light.defaults };
   let lutLoaded = false;
   const apply = (): void => {
     u.uLpGain.value.set(cur.poolGain, cur.sheen, u.uLpGain.value.z, cur.pools);
@@ -72,7 +76,7 @@ export function installLight(opt: {
     opt.pipe.grade.uLutAmt.value = lutLoaded ? cur.grade : 0;
   };
   const ready = (async (): Promise<void> => {
-    const lut = loadLut(LUT_URL);
+    const lut = loadLut(light.lut);
     await bakeVolumes();
     const t = await lut;
     opt.pipe.grade.uLut.value = t; lutLoaded = true;

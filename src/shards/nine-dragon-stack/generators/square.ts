@@ -5,7 +5,7 @@ import { buildBanyan } from './banyan';
 import { mahjongSeats } from './figures';
 import type { Ctx } from './ctx';
 import { buildGate } from './gate';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
@@ -14,6 +14,8 @@ import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
 import { BOOTH, WELL_BALUSTRADE_AT } from '../data/specimenDims';
 import { Rng } from '@wildshard/sdk/random';
+
+const SURF = paint.surfaces;
 
 const { GATE, PLAZA, STALL, STREET, Y0 } = NINE_LAYOUT_PLAN;
 

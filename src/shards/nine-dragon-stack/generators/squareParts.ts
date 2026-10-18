@@ -3,12 +3,14 @@
 // (../models/wellBalustrade.ts, balustradePanel.ts, lotusFinial.ts, inKit.ts) — both build-time (G285: the specimens are
 // baked, ./specimens.ts; the hip roof the entry decks still draw at load is ../world/hipRoof.ts).
 import { Box3, type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { lionOnPost, placeSet } from './props3d';
 import { KitX, merge } from './kitx';
 import { K, Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import type { Rng } from '@wildshard/sdk/random';
+
+const SURF = paint.surfaces;
 
 const { PLAZA, STREET, WELL } = NINE_LAYOUT_PLAN;
 

@@ -12,12 +12,14 @@
 //   the temple an island in the cloud sea: the temple on a rock root the view straight down ends on,
 //   the walls  painted shells to far below, and a dark backstop under everything (no visible floor).
 import { Vector3 } from 'three';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { FLOOR_H } from './well-galleries';
 import { dressLower } from './well-lower-life';
 import { deepTemple, ghostLevels } from './well-lower-deep';
 import { type BandKits, CROSSINGS, LOW, SPLIT, type WallPlan, type WellPlan, wallPlan } from './well-plan';
 import { WELL_RECTS } from './wellBounds';
+
+const SURF = paint.surfaces;
 
 /** band B's floors and the ghosts under it */
 const B_TOP = LOW - FLOOR_H, B_FLOORS = 12, GHOST_TOP = B_TOP - B_FLOORS * FLOOR_H, GHOST_FLOORS = 12;

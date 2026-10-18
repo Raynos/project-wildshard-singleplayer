@@ -8,10 +8,12 @@
 import { IcosahedronGeometry, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 import { FLOOR_H } from './well-galleries';
 import { figure, kitLantern, litLantern, lowWin } from './well-lower-life';
+
+const SURF = paint.surfaces;
 
 const UP = new Vector3(0, 1, 0);
 

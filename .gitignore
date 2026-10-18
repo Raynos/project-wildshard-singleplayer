@@ -2062,3 +2062,9 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # Nalati species build outputs.
 /src/shards/nalati-grasslands/data/species.generated.json
 /public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin
+/src/shards/nine-dragon-stack/data/paintArray.generated.json
+/src/shards/nine-dragon-stack/data/paint.d.json.ts
+/src/shards/nine-dragon-stack/data/light.d.json.ts
+/src/shards/nine-dragon-stack/data/canopy.d.json.ts
+/src/shards/nine-dragon-stack/data/filament.d.json.ts
+/src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts

@@ -1,0 +1,90 @@
+{
+  "layers": [
+    {
+      "name": "flag",
+      "scale": 2.5,
+      "alpha": true
+    },
+    {
+      "name": "flag2",
+      "scale": 2.5,
+      "alpha": true
+    },
+    {
+      "name": "stone",
+      "scale": 2,
+      "alpha": false
+    },
+    {
+      "name": "panel",
+      "scale": 2,
+      "alpha": false
+    },
+    {
+      "name": "concrete",
+      "scale": 2,
+      "alpha": false
+    },
+    {
+      "name": "tiles",
+      "scale": 3,
+      "alpha": false
+    },
+    {
+      "name": "lacquer",
+      "scale": 2,
+      "alpha": false
+    },
+    {
+      "name": "wood",
+      "scale": 2.5,
+      "alpha": false
+    },
+    {
+      "name": "poster",
+      "scale": 1,
+      "alpha": true
+    }
+  ],
+  "surfaces": {
+    "auto": 0,
+    "none": 1,
+    "stone": 2,
+    "concrete": 3,
+    "lacquer": 4,
+    "wood": 5,
+    "poster": 6
+  },
+  "uniforms": {
+    "uPaintK": {
+      "v4": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "uPaintK2": {
+      "v4": [
+        0.5,
+        0.5,
+        1,
+        1
+      ]
+    },
+    "uPaintInk": {
+      "rgb": 2898514
+    }
+  },
+  "sizes": {
+    "phone": 512,
+    "desktop": 1024
+  },
+  "chunkBytes": 196608,
+  "flag": {
+    "rh": 0.62,
+    "l0": 0.64,
+    "lr": 0.28,
+    "bond": 1.1
+  }
+}

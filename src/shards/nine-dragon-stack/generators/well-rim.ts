@@ -15,10 +15,12 @@ import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import { NEONS } from './towers';
 import { WORDS } from './words';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
 import { type BandKits, SPLIT, type WellPlan, snapFloor } from './well-plan';
 import { RIM } from './wellBounds';
+
+const SURF = paint.surfaces;
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 

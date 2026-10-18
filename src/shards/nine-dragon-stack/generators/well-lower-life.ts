@@ -18,7 +18,7 @@
 import { Color, IcosahedronGeometry, Matrix4, Vector3, Vector4 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { NEONS } from './towers';
 import { WORDS } from './words';
 import { hungLine } from './props';
@@ -26,6 +26,8 @@ import { laundryLine, laundryPole } from './wellParts';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
+
+const SURF = paint.surfaces;
 
 const { Y0 } = NINE_LAYOUT_PLAN;
 

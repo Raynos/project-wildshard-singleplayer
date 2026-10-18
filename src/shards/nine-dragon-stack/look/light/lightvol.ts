@@ -17,13 +17,16 @@
 //    `poolLight × wet × uLpGain.y` (the wet stone's blurred reflection of the pool's light).
 import { Data3DTexture } from 'three';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
-import { LIGHTVOL_UNIFORMS } from '../../runtime/looks/light';
+import metadata from '../../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../../boot/lookTypes.generated';
+
+const light = metadata.looks.light as LookRows['light'];
 // The boxes and exact RGBA8 splat are offline in generators/lightVolumes.ts.
 // The page only lends the restored voxel textures and their transform uniforms.
 
 /** uniforms the architecture programs share (add them to the clean room's Shared.u): the two volumes and data/light.ts'
  *  rows (the min / inv vectors after their volume, in the old order) */
-export function lightVolUniforms(): { uLpVolA: { value: Data3DTexture }; uLpVolB: { value: Data3DTexture } } & UniformsOf<typeof LIGHTVOL_UNIFORMS> {
-  const { uLpMinA, uLpInvA, ...rest } = uniformsFrom(LIGHTVOL_UNIFORMS);
-  return { uLpVolA: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, uLpMinA, uLpInvA, uLpVolB: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, ...rest };
+export function lightVolUniforms(): { uLpVolA: { value: Data3DTexture }; uLpVolB: { value: Data3DTexture } } & UniformsOf<typeof light.volume> & UniformsOf<typeof light.haloUniforms> {
+  const { uLpMinA, uLpInvA, ...rest } = uniformsFrom(light.volume);
+  return { uLpVolA: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, uLpMinA, uLpInvA, uLpVolB: { value: new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1) }, ...rest, ...uniformsFrom(light.haloUniforms) };
 }

@@ -16,9 +16,11 @@ import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { type KitX, curve } from './kitx';
 import { type BanyanPlan, type CanopyLump, banyanOut } from './banyanPlan';
+
+const SURF = paint.surfaces;
 
 const { BANYAN, Y0 } = NINE_LAYOUT_PLAN;
 

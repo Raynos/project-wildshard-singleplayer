@@ -3,8 +3,10 @@
 // terraces' kit, with the leaves, colours and stone it shares with the rest of the stair.
 import { Color, IcosahedronGeometry, Vector3 } from 'three';
 import { K, type Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import type { Rng } from '@wildshard/sdk/random';
+
+const SURF = paint.surfaces;
 
 const UP = new Vector3(0, 1, 0);
 

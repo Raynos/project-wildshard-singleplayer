@@ -9,12 +9,14 @@
 import { Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { laundry, stool } from './props';
 import { NEONS } from './towers';
 import { WORDS } from './words';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
+
+const SURF = paint.surfaces;
 
 const { Y0 } = NINE_LAYOUT_PLAN;
 

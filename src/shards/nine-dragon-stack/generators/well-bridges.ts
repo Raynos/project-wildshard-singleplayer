@@ -19,7 +19,7 @@ import type { Ctx, InKit } from './ctx';
 import { buildGate } from './gate';
 import type { KitX } from './kitx';
 import { E, K, type Kit, type Look } from './kit';
-import { SURF } from '../look/paint';
+import paint from '../data/paint.json' with { type: 'json' };
 import { dragonHook } from './props';
 import { hipRoof } from './hipRoof';
 import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
@@ -28,6 +28,8 @@ import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
 import { Rng } from '@wildshard/sdk/random';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+
+const SURF = paint.surfaces;
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';
 

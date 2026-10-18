@@ -104,7 +104,7 @@ export interface GrappleAimRules<C extends GrappleAimCourse, T extends GrappleAi
 function makeTracer(ctx: EquipmentHost, row: GrappleAimRow) {
   // Lab P9's fixed-step rope and screen-width ribbon replace the straight world-space cylinders.
   const rope = new Rope(row.ropePoints);
-  const line = new Filament(rope.n);
+  const line = new Filament(rope.n, row.ribbon, row.filament, row.filamentState);
   line.mesh.name = `${row.name}:filament`;
   const claw = new Group();
   const brass = new MeshBasicMaterial({ color: row.claw });
@@ -135,6 +135,7 @@ function makeTracer(ctx: EquipmentHost, row: GrappleAimRow) {
     draw(end: Vector3, flying: boolean, pulse: number, time: number): void {
       if (!rope.active) return;
       line.u.uRes.value.copy(ctx.game.renderer.getDrawingBufferSize(res));
+      line.u.uProjection.value.set(ctx.game.camera.projectionMatrix.elements[0], ctx.game.camera.projectionMatrix.elements[5]);
       line.u.uPulse.value = pulse;
       line.u.uTime.value = time;
       line.u.uI.value = 1.1;

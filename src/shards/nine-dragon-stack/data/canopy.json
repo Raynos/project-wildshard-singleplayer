@@ -1,0 +1,49 @@
+{
+  "atlas": {
+    "url": "/assets/nine-dragon/lab/organic/leaf-atlas.webp",
+    "anisotropy": 4,
+    "wrapS": 1001,
+    "wrapT": 1001
+  },
+  "draws": [
+    {
+      "geometry": "core",
+      "look": "nine-canopy-inner",
+      "order": 0,
+      "state": {}
+    },
+    {
+      "geometry": "cards",
+      "look": "nine-canopy-cards",
+      "order": 1,
+      "state": {
+        "alphaToCoverage": true,
+        "depthWrite": true,
+        "blending": 5,
+        "blendEquation": 100,
+        "blendEquationAlpha": 100,
+        "blendSrc": 201,
+        "blendDst": 200,
+        "blendSrcAlpha": 200,
+        "blendDstAlpha": 201
+      }
+    },
+    {
+      "geometry": "cards",
+      "look": "nine-canopy-depth",
+      "order": 2,
+      "state": {
+        "alphaToCoverage": false,
+        "depthWrite": false,
+        "blending": 5,
+        "blendEquation": 100,
+        "blendEquationAlpha": 100,
+        "blendSrc": 200,
+        "blendDst": 201,
+        "blendSrcAlpha": 201,
+        "blendDstAlpha": 200,
+        "depthFunc": 4
+      }
+    }
+  ]
+}

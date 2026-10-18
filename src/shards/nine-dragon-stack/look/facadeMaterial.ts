@@ -9,7 +9,7 @@ export type Uniforms = Record<string, IUniform>;
 const tuple2 = [0, 0], tuple3 = [0, 0, 0], tuple4 = [0, 0, 0, 0];
 const textureBooks = new WeakMap<Readonly<Uniforms>, Map<string, Texture>>();
 const paramBooks = new WeakMap<Readonly<Uniforms>, Map<string, string[]>>();
-const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows'];
+const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo'];
 function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
 /** Uniform writes only. Existing shared handles still own day, paint, Explorer and light tuning. */
 export function syncArchitecture(shared: Readonly<Uniforms>, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {

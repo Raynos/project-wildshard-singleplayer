@@ -34,12 +34,13 @@ import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
 import { FigureCrowd } from '../runtime/cull/figureCrowd';
 import { CROWD_LEVELS } from '../data/lod';
-import { buildCardCanopy } from '../runtime/looks/cardCanopy';
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows } from '../boot/lookTypes.generated';
 import { placeSquareProps } from './squareProps';
 import signRows from '../data/signView.json' with { type: 'json' };
 import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
@@ -63,6 +64,7 @@ import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
+const canopyRows = metadata.looks.canopy as LookRows['canopy'];
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
@@ -206,7 +208,18 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   phaseStart = performance.now();
   const canopy = specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null;
   if (canopy !== null) await loadSpill([['canopy-cards', canopy.cards], ['canopy-core', canopy.core]], tier, entryCaps);
-  const crown = await buildCardCanopy({ cards: 'nine-canopy-cards', plateau: 'nine-canopy-depth', core: 'nine-canopy-inner', atlas: '/assets/nine-dragon/lab/organic/leaf-atlas.webp' }, canopy);
+  const crown: Mesh[] = [];
+  if (canopy !== null) {
+    const leafAtlas = opts.scope.own(await loadTextureRow(canopyRows.atlas)), image: unknown = leafAtlas.image;
+    if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image)
+      || typeof image.width !== 'number' || typeof image.height !== 'number' || image.width <= 0 || image.height <= 0) throw new Error('Canopy atlas needs its pixel dimensions');
+    setLentTexture('nine-canopy-cards', 'atlas', leafAtlas);
+    setLentParam('nine-canopy-cards', 'atlasSize', [image.width, image.height]);
+    for (const row of canopyRows.draws) {
+      const mesh = new Mesh(canopy[row.geometry], lentLook(row.look));
+      mesh.material.setValues(row.state); mesh.renderOrder = row.order; crown.push(mesh);
+    }
+  }
   for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));

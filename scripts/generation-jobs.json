@@ -18597,21 +18597,28 @@
         "src/shards/nine-dragon-stack/data/strings.json",
         "src/shards/nine-dragon-stack/generators/manifestRows.ts",
         "src/shards/nine-dragon-stack/generators/places.ts",
+        "src/shards/nine-dragon-stack/data/layoutPlan.ts",
         "src/shards/nine-dragon-stack/data",
         "scripts/manifest-declaration.mjs",
         "src/shards/nine-dragon-stack/data/discovery.json",
         "src/shards/nine-dragon-stack/explore",
         "src/shards/nine-dragon-stack/thumbs",
         "src/shards/nine-dragon-stack/data/budgets.ts",
-        "src/shards/nine-dragon-stack/generators/mockupCameras.ts"
+        "src/shards/nine-dragon-stack/generators/mockupCameras.ts",
+        "src/shards/nine-dragon-stack/data/paint.json",
+        "src/shards/nine-dragon-stack/data/light.json",
+        "src/shards/nine-dragon-stack/data/canopy.json",
+        "src/shards/nine-dragon-stack/data/filament.json"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/boot/metadata.generated.json",
-        "src/shards/nine-dragon-stack/boot/declaration.generated.ts"
+        "src/shards/nine-dragon-stack/boot/declaration.generated.ts",
+        "src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts"
       ],
       "buildTimeOutputs": [
         "src/shards/nine-dragon-stack/boot/metadata.generated.json",
-        "src/shards/nine-dragon-stack/boot/declaration.generated.ts"
+        "src/shards/nine-dragon-stack/boot/declaration.generated.ts",
+        "src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts"
       ],
       "platform": "portable"
     },
@@ -20424,6 +20431,46 @@
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "nine-paint-array",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-paint-array.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-paint-array.mjs"
+      ],
+      "inputRoots": [
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/image.ts",
+        "src/sdk/bake/worldImage.ts",
+        "src/shards/nine-dragon-stack/generators/bake-paint-array.mjs",
+        "src/shards/nine-dragon-stack/data/paint.json",
+        "public/assets/nine-dragon/paint",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/nine-dragon-stack/data/light.json",
+        "src/shards/nine-dragon-stack/data/canopy.json",
+        "src/shards/nine-dragon-stack/data/filament.json"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/paintArray.generated.json",
+        "src/shards/nine-dragon-stack/data/paint.d.json.ts",
+        "src/shards/nine-dragon-stack/data/light.d.json.ts",
+        "src/shards/nine-dragon-stack/data/canopy.d.json.ts",
+        "src/shards/nine-dragon-stack/data/filament.d.json.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/paintArray.generated.json",
+        "src/shards/nine-dragon-stack/data/paint.d.json.ts",
+        "src/shards/nine-dragon-stack/data/light.d.json.ts",
+        "src/shards/nine-dragon-stack/data/canopy.d.json.ts",
+        "src/shards/nine-dragon-stack/data/filament.d.json.ts"
       ],
       "platform": "portable"
     }
