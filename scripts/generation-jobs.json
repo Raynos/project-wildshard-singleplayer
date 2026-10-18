@@ -8825,46 +8825,6 @@
       }
     },
     {
-      "id": "nalati-raid-director",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
-        "src/shards/nalati-grasslands/behaviour/director.as",
-        "src/shards/nalati-grasslands/data/director.json",
-        "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/director.generated.json",
-        "src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/behaviour/director.generated.json": "fa7b67a7ed284b103f38de59730335dac1e8a837ef76e1aeef98def4de97b1bd",
-        "src/shards/nalati-grasslands/assets/077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646": "077258690108c4ffde5eb0c46105e323ff854070323da971c08586751e427646"
-      }
-    },
-    {
       "id": "nalati-ghost-volley-director",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs",
@@ -20232,6 +20192,32 @@
         "public/assets/nalati/baked/gear-specimens.bin",
         "src/shards/nalati-grasslands/boot/gear.generated.json",
         "src/shards/nalati-grasslands/boot/weaponEffects.generated.ts"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "nalati-pasture",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-pasture.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-pasture.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/shards/nalati-grasslands/generators/bake-pasture.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/pasture.generated.json"
       ],
       "platform": "portable"
     }

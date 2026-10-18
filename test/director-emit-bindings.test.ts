@@ -3,8 +3,6 @@ import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/pl
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import module from '../src/shards/driftwood-isle/behaviour/director.json';
 import rows from '../src/shards/driftwood-isle/data/finaleStages.json';
-import { prepareNalatiRaidDirector } from '../src/shards/nalati-grasslands/runtime/raidDirector';
-import raidRows from '../src/shards/nalati-grasslands/data/raidStages.json';
 import type { DirectorAction } from '../src/format/directorStages';
 
 const observe = (): Record<string, number> => ({ altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 });
@@ -61,10 +59,10 @@ test('matching sources refuse bootstrap and wrong-key events while optional pres
 });
 
 test('matching numeric events lend their admitted payload without replacing the row literal', async () => {
-  const create = await prepareNalatiRaidDirector(), script = create(12), seen: number[] = [];
-  vi.spyOn(script, 'step').mockReturnValue([{ director: script.data.id, tick: 0, key: 'raid.clock', type: 'number', value: 23.5 }]);
-  const callbacks = new Map(['raid.try', 'raid.finish', 'raid.abandon', 'raid.clock', 'raid.pending'].map(key =>
+  const create = await prepareEmbeddedDirector(declaration, module, 12), script = create(), seen: number[] = [];
+  vi.spyOn(script, 'step').mockReturnValue([{ director: script.data.id, tick: 0, key: 'captain.restore', type: 'number', value: 23.5 }]);
+  const callbacks = new Map(keys.map(key =>
     [key, (value: number) => { seen.push(value); }]));
-  new DirectorScriptStageLane(raidRows, script, { observe: () => ({}), emits: { source: 'matching', actions: callbacks } });
+  new DirectorScriptStageLane(rows, script, { observe: () => ({}), emits: { source: 'matching', actions: callbacks } });
   expect(seen).toEqual([23.5]);
 });

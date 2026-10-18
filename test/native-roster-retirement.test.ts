@@ -1,3 +1,7 @@
+import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with { type: 'json' };
+import { PastureRaid } from '../src/shards/nalati-grasslands/creatures/pasture';
+import { AnimalSim } from '../src/engine/entities/AnimalSim';
+import type { PackPrey } from '../src/engine/ai/pack';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native ownership tests use the actual shipped Rapier binary.
 import { readFileSync } from 'node:fs';
@@ -183,4 +187,51 @@ test('AS sheepdog retains guard, fetch and rest behaviour on the 10 Hz decision 
   expect(program.project('restorePack', { herd: 4, expected: 4, variants: 3, elite: 1 })).toEqual({ accept: 0 });
   expect(program.project('restoreBody', { id: 35, initial: 35, nextId: 40, retired: 0 })).toEqual({ accept: 1 });
   expect(program.project('restoreBody', { id: 40, initial: 35, nextId: 40, retired: 0 })).toEqual({ accept: 0 });
+});
+
+function pastureFixture() {
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing actor fixture');
+  const rng = new Rng(53), author = ReturnProgram.page(pasture);
+  const body = (id: string, x: number) => {
+    const actor = new AnimalSim(sample.spec, .5, 1, id, { heightAt: () => 0, random: () => .5 });
+    actor.position.set(x, 0, 0); return actor;
+  };
+  const horse = body('horse', 1), wolf = body('wolf', 3), sheep = body('sheep', 0);
+  const pack = { members: [wolf], alpha: wolf, alive: 3, phase: 'roam', prey: null as PackPrey | null,
+    findPrey: undefined, raid: vi.fn((prey: PackPrey) => { pack.prey = prey; pack.phase = 'raid'; return true; }), scare: vi.fn() };
+  const packs: typeof pack[] = [], spawn = vi.fn(() => { pack.alive = 3; pack.phase = 'roam'; packs.push(pack); return pack; }), cues: string[] = [];
+  const flock = { n: 40, alive: 40, cx: 0, cz: 0, nearest: () => 0 };
+  const raid = new PastureRaid(author, rng, horse, flock, packs, () => sheep, spawn, .1, key => { cues.push(key); });
+  return { raid, author, rng, horse, wolf, sheep, pack, packs, spawn, cues, flock };
+}
+
+test('pasture v1 owns spawn guards, one real pack, the sheep outcome and the two-pack session cap', () => {
+  const f = pastureFixture();
+  expect(f.raid.start(false, { x: 221, z: 0 })).toBe(false); expect(f.spawn).not.toHaveBeenCalled();
+  f.flock.alive = 19; expect(f.raid.start(true)).toBe(false);
+  f.flock.alive = 40; expect(f.raid.start(true)).toBe(true);
+  expect(f.spawn).toHaveBeenCalledExactlyOnceWith(-80, -8, ['grey', 'tawny', 'scout']);
+  expect(f.raid.start(true)).toBe(false); expect(f.raid.raids).toBe(1);
+  f.sheep.alive = false; f.pack.prey = null; f.pack.phase = 'roam';
+  f.raid.update(2.1, { x: 0, z: 0 }, [], 0);
+  expect(f.raid.taken).toBe(1); expect(f.raid.raiding).toBe(false); expect(f.cues).toEqual(['start', 'taken']);
+  f.pack.alive = 0; expect(f.raid.start(true)).toBe(true); expect(f.spawn).toHaveBeenCalledTimes(2);
+  f.pack.prey = null; f.pack.phase = 'roam'; f.raid.update(2.1, { x: 0, z: 0 }, [], .1);
+  f.pack.alive = 0; expect(f.raid.start(true)).toBe(false); expect(f.spawn).toHaveBeenCalledTimes(2);
+});
+
+test('pasture decisions run at ten Hz; the second whip crack breaks the actual pack and restore stays quiet', () => {
+  const f = pastureFixture(), project = vi.spyOn(f.author, 'project');
+  f.raid.start(true); project.mockClear();
+  for (let i = 0; i < 5; i++) f.raid.update(1/60, { x: 0, z: 0 }, [f.wolf], i/60);
+  expect(project).not.toHaveBeenCalled();
+  f.raid.update(1/60, { x: 0, z: 0 }, [f.wolf], .1);
+  expect(f.raid.cracks).toBe(1); expect(f.wolf.mem['lunge']).toBe(3); expect(f.pack.scare).not.toHaveBeenCalled();
+  for (let i = 0; i < 14; i++) f.raid.update(.1, { x: 0, z: 0 }, [f.wolf], .2+i*.1);
+  expect(f.raid.cracks).toBe(2); expect(f.pack.scare).toHaveBeenCalledExactlyOnceWith(3, 0, 25);
+  const saved = f.raid.snapshot(), entropy = f.rng.snapshot(), cues = [...f.cues]; project.mockClear();
+  f.raid.restore(saved);
+  expect(project).not.toHaveBeenCalled(); expect(f.rng.snapshot()).toEqual(entropy); expect(f.cues).toEqual(cues); expect(f.raid.snapshot()).toEqual(saved);
+  expect(() => f.raid.restore({ ...saved, pack: 200 })).toThrow('Unknown raid pack');
+  expect(f.raid.snapshot()).toEqual(saved);
 });

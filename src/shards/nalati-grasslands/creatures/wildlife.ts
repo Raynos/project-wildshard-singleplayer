@@ -53,7 +53,7 @@ export interface WildlifeControllers {
   pack: (members: Animal[], x: number, z: number) => PackController;
   herd: (members: Animal[]) => HerdController;
 }
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; admission: unknown; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; admission: unknown; pasture: unknown; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock: (options: FlockOpts, index: number) => Flock }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -69,6 +69,7 @@ export class Wildlife {
   onSound?: ((name: string, position: THREE.Vector3) => void) | undefined;
   private rng: Rng;
   private readonly placement: ReturnProgram;
+  readonly pastureAuthor: ReturnProgram;
   private prev = new THREE.Vector3(); private speed = 0; private init = false;
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
@@ -76,7 +77,7 @@ export class Wildlife {
   private readonly preyBindings = new Map<string, PackPrey>();
   private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.placement = ReturnProgram.page(opts.admission); this.controllers = opts.controllers ?? this.declaredControllers(); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.pastureAuthor = ReturnProgram.page(opts.pasture); this.rng = new Rng(opts.seed ^ 0x3a17); this.placement = ReturnProgram.page(opts.admission); this.controllers = opts.controllers ?? this.declaredControllers(); }
 
   private declaredControllers(): WildlifeControllers {
     return declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),

@@ -2,21 +2,6 @@
   "version": 1,
   "modules": [
     {
-      "source": "behaviour/director.as",
-      "maximumPages": 1,
-      "assets": "assets",
-      "bindings": [
-        "data/director.json"
-      ],
-      "embedded": [
-        {
-          "file": "behaviour/director.generated.json",
-          "generated": "DO-NOT-EDIT: generated from retained behaviour/director.as with the pinned SDK compiler; regenerate and compare hashes."
-        }
-      ],
-      "director": "data/director.json"
-    },
-    {
       "source": "behaviour/ghostVolley.as",
       "maximumPages": 1,
       "assets": "assets",

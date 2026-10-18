@@ -4,9 +4,6 @@
     "@wildshard/format/weatherProgram": [
       "parseWeatherProgram"
     ],
-    "src/shards/nalati-grasslands/runtime/raidDirector": [
-      "prepareNalatiRaidDirector"
-    ],
     "src/shards/nalati-grasslands/runtime/baked": [
       "nalatiBake",
       "NALATI_GROUND_RES",
@@ -135,19 +132,6 @@
           {
             "$ref": [
               "weatherJson"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "name": "raidDirector",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "src/shards/nalati-grasslands/runtime/raidDirector",
-              "prepareNalatiRaidDirector"
             ]
           }
         ]
@@ -1113,22 +1097,6 @@
                 "boot": {
                   "$ref": [
                     "boot"
-                  ]
-                },
-                "raidDirector": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "raidDirector"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "shard",
-                        "identity",
-                        "seed"
-                      ]
-                    }
                   ]
                 },
                 "elites": {

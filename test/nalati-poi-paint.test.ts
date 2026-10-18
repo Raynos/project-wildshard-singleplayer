@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/placeBake';
-import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/sheepRaid';
+import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/shepherdView';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { modelContext } from '../src/engine/models/model';
 import { Rng } from '../src/engine/core/rng';

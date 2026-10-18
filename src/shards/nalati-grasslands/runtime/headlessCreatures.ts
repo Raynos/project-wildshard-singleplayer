@@ -1,6 +1,5 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { createNativeHunt, createNativeSpeciesContext } from '@wildshard/game/plugin/brain';
-import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { NativeManager } from '@wildshard/game/population/nativeManager';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { admitNativeRosterServices, createNativeCreatureRoster, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
@@ -37,7 +36,7 @@ import type { NalatiBake, NalatiBootHerd, NalatiBootRows } from './baked';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';
-import { HeadlessSheepRaid } from './headlessRaid';
+import { PastureRaid } from '../creatures/pasture';
 import type { NalatiGroups } from './groups';
 import type { NalatiBody } from './headless';
 import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
@@ -101,7 +100,7 @@ type SavedMemory = v.InferOutput<typeof Memory>;
 export interface NalatiHostCreatures {
   readonly hunt: StalkerBrain<NalatiHuntBody>; readonly rng: Rng; readonly bodies: readonly NalatiHuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, r?: number) => void;
-  readonly raid: HeadlessSheepRaid; readonly marmots: ReturnType<typeof marmotColonies>;
+  readonly raid: PastureRaid<AnimalSim, PackBrain<AnimalSim>>; readonly marmots: ReturnType<typeof marmotColonies>;
   readonly spawnElite: (kind: 'leopard' | 'kokbori', x: number, z: number, yaw: number, variant: string) => NalatiHuntBody;
   /** Adoption uses the existing manager stream and identity allocator, followed by the shipping place/scale order. */
   readonly spawnBondedHorse: (x: number, z: number, yaw: number, argymaq: boolean) => NalatiHuntBody;
@@ -143,7 +142,7 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  */
 export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootRows; bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
   trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
-  raidDirector: DirectorLane; wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: EliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
+  wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: EliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
   const author = ReturnProgram.native(host, ports.boot.admission);
   const rng = new Rng(ports.boot.streamSeed);
@@ -432,9 +431,10 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   const firstFlock = flocks[0] ?? null;
   const horse = bodies.find(a => a.kind === 'horse' && a.herd === -1 && firstFlock !== null
     && a.position.x === firstFlock.cx + 12 && a.position.z === firstFlock.cz + 16) ?? null;
-  const raid = new HeadlessSheepRaid(host, groups, firstFlock, horse, i => {
+  const raid = new PastureRaid<AnimalSim, PackBrain<AnimalSim>>(ReturnProgram.native(host, ports.boot.pasture), host.rng.stream('ai'), horse, firstFlock, groups.packs, i => {
     const prey = preyRows[0]?.[i]; if (prey === undefined) throw new Error('Unknown Nalati sheep'); return prey;
-  }, spawnPack, ports.raidDirector);
+  }, spawnPack, groups.firstRaid);
+  host.onStep('nalati.raid', () => undefined, { snapshot: () => raid.snapshot(), restore: value => { raid.restore(value); } });
   /** AnimalManager.think for a self-thinking species: the dead and the stunned hold, else its own decision, the herd's centre after */
   const missingElite = new Error('Nalati leopard has no hosted elite brain');
   const decide = (a: NalatiHuntBody, dt: number): void => {
@@ -487,7 +487,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
       if (h.stampeding) for (let j = 0; j < GROUP_MAX; j++) { const p = groups.packs[j]; if (p === undefined) break; p.scare(h.cx, h.cz, 20); }
     }
     // Ride.update follows Wildlife and precedes the manager's think loop on the page.
-    ports.rideUpdate?.(dt); raid.update(dt, wolves);
+    ports.rideUpdate?.(dt); raid.update(dt, host.player.position, wolves, host.clock.now);
     // the manager's think loop
     if (!speed.seen) { speed.prev.set(player.x, 0, player.z); speed.seen = true; }
     const moved = Math.hypot(player.x - speed.prev.x, player.z - speed.prev.z);

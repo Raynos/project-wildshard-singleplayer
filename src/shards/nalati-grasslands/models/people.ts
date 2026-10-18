@@ -15,7 +15,7 @@ import * as v from 'valibot';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { TIER } from '@wildshard/engine/core/tier';
 import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
-import { shepherdRider } from '../creatures/sheepRaid';
+import { shepherdRider } from '../creatures/shepherdView';
 
 const finite = v.pipe(v.number(), v.finite()), text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 /** A prepared skin and its original atlas images. Joint names and canvas cells

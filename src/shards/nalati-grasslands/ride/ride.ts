@@ -17,7 +17,7 @@ import { RideHUD } from './RideHUD';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { Reins } from './Reins';
-import { SheepRaid } from '../creatures/sheepRaid';
+import { SheepRaid } from '../creatures/shepherdView';
 import { DataPanel } from '@wildshard/sdk/dataPanels';
 import type { PanelDefinition } from '@wildshard/format/panelTemplate';
 import { cleanHorseName } from './horseNames';

@@ -58,7 +58,7 @@ export interface NalatiBootBody {
 export interface NalatiBootHerd { readonly kind: string; readonly cx: number; readonly cz: number; readonly members: readonly NalatiBootBody[] }
 /** The product's deterministic boot and deferred native recipe rows. */
 export interface NalatiBootRows {
-  readonly admission: unknown;
+  readonly admission: unknown; readonly pasture: unknown;
   readonly streamSeed: number; readonly phases: readonly string[];
   readonly roster: { readonly bodies: readonly NalatiBootBody[]; readonly herds: readonly NalatiBootHerd[];
     readonly stream: RngState; readonly wildStream: RngState };

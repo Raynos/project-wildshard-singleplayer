@@ -2049,3 +2049,5 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 # Nalati held gear is rebuilt from the retained C6 recipe.
 /public/assets/nalati/baked/gear-specimens.bin
+
+/src/shards/nalati-grasslands/behaviour/pasture.generated.json
