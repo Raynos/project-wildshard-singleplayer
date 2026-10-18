@@ -181,5 +181,6 @@
   ],
   "test/pine-king-kit-reentry.test.ts": [
     "pine-hollow"
-  ]
+  ],
+  "test/sweep-guard.test.ts": []
 }

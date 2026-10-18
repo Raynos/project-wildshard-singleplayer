@@ -27,6 +27,13 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   - `git add` only a **new** file, then the same pathspec commit;
   - blocked: `git add -A` / `.` / `-u`, `git add <tracked file>`, `git commit -a`, and any `git commit` without
     `-- <paths>`. Rare escape: `SKIP_SWEEPGUARD=1`; every use lands in `project/sweepguard-ledger.md`.
+  - **Private-index recognition (G498):** the sweep guard accepts tracked-file
+    staging and index-only commits with an inherited `GIT_INDEX_FILE` or a
+    per-command literal absolute `GIT_INDEX_FILE=/path/lane.index`. It checks
+    symlinks and hard links against the shared index. Shell substitutions and
+    earlier shell statements cannot prove isolation: use a literal on each Git
+    invocation. Bulk staging (`-A`, `.`, `-u`) and `commit -a` stay blocked.
+    Recognized private indexes need no bypass ledger; all Git hooks still run.
   - A pathspec commit takes the **whole file**. If the file also carries another agent's uncommitted hunk, wait for
     them, or commit only your hunks through a private index (`.claude/skills/prepare-to-exit/SKILL.md` step 1).
   - **Preferred lane path:** validate a private message with `python3 .githooks/commit-msg-conventions <file>`, run

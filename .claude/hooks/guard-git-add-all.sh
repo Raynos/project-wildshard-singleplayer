@@ -33,6 +33,11 @@ if printf '%s' "$cmd" | grep -qE '(^|[;&|])[[:space:]]*([A-Za-z_][A-Za-z_0-9]*=[
   exit 0
 fi
 
+# G498: distinguish an isolated caller-owned index from the shared index.
+# Bulk staging and -a remain forbidden, including with a private index.
+repo="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+cmd="$(printf '%s' "$cmd" | python3 "$repo/scripts/sweep-guard-command.py")"
+
 deny() {
   cat >&2 <<EOF
 BLOCKED by .claude/hooks/guard-git-add-all.sh: "$1"
