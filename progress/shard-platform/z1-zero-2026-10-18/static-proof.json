@@ -1,0 +1,174 @@
+{
+  "candidate": "0ac15030431d7c2f48adde271781dc95ab333404",
+  "baseline": "8efba3196",
+  "views": {
+    "count": 20,
+    "drawsTrianglesExact": true,
+    "pixelExact": 18,
+    "residualPixels": [
+      {
+        "tier": "phone",
+        "pose": "crown",
+        "count": 1,
+        "xy": [
+          767,
+          496
+        ],
+        "base": [
+          1,
+          1,
+          1,
+          255
+        ],
+        "native": [
+          124,
+          105,
+          91,
+          255
+        ]
+      },
+      {
+        "tier": "desktop",
+        "pose": "crown",
+        "count": 1,
+        "xy": [
+          522,
+          109
+        ],
+        "base": [
+          20,
+          16,
+          6,
+          255
+        ],
+        "native": [
+          85,
+          73,
+          64,
+          255
+        ]
+      }
+    ]
+  },
+  "gpu": {
+    "phone": {
+      "base": 170266834,
+      "native": 170265994,
+      "delta": -840,
+      "programs": [
+        173,
+        174
+      ]
+    },
+    "desktop": {
+      "base": 317706430,
+      "native": 317705590,
+      "delta": -840,
+      "programs": [
+        173,
+        174
+      ]
+    }
+  },
+  "contacts": {
+    "pieces": 43,
+    "colliders": 1184,
+    "orderChanges": 77,
+    "valueDifferences": [],
+    "base": "29e8f24e6dbcfdc3086b9758f79a4740f10211a99833ed98a29cba97de2fbe8e",
+    "native": "29e8f24e6dbcfdc3086b9758f79a4740f10211a99833ed98a29cba97de2fbe8e"
+  },
+  "quest": {
+    "pass": true,
+    "errors": [],
+    "diffs": [],
+    "cases": [
+      "fresh",
+      "eligible-old-save",
+      "raised-old-save"
+    ],
+    "liveRoost": [
+      {
+        "id": "far.roost.0",
+        "killed": true,
+        "alive": false
+      },
+      {
+        "id": "far.roost.1",
+        "killed": true,
+        "alive": false
+      },
+      {
+        "id": "far.roost.2",
+        "killed": true,
+        "alive": false
+      }
+    ]
+  },
+  "walk": {
+    "routes": 10,
+    "stuck": 0,
+    "errors": []
+  },
+  "crownMaterial": {
+    "phone": {
+      "geometryAttributeHashesEqual": true,
+      "instanceMatrixHash": "b162a462cf2ec846ca9e993b6e391fdac61088a16615fd310b9a870c903e58ec",
+      "instanceMatrixEqual": true,
+      "shaderHashes": [
+        {
+          "vertex": "86deae5b88a983829a3488d29e12759f22ac26cbb6178e1e7fb21052a7105c7a",
+          "fragment": "8b199760ccc0ef666bb6ac52cd9412404ba3acc9dce43c21991a8f80d82b44bd"
+        },
+        {
+          "vertex": "86deae5b88a983829a3488d29e12759f22ac26cbb6178e1e7fb21052a7105c7a",
+          "fragment": "69a9aed83ccf187a0592ea952dd7765ce8c191ded06698a68149bf09c8552931"
+        }
+      ],
+      "shaderBytesEqual": true,
+      "accessibleUniformValuesEqual": true,
+      "receiveShadow": [
+        false,
+        false
+      ],
+      "castShadow": [
+        false,
+        false
+      ]
+    },
+    "desktop": {
+      "geometryAttributeHashesEqual": true,
+      "instanceMatrixHash": "b162a462cf2ec846ca9e993b6e391fdac61088a16615fd310b9a870c903e58ec",
+      "instanceMatrixEqual": true,
+      "shaderHashes": [
+        {
+          "vertex": "b37d34932d96d461ab96bc4588b519abbb5747685c5941025d0c1b2e80652355",
+          "fragment": "124e1ecf201ef8c433795ddd4e4edaf14c54e5764b4cacb6aeb71fd9c2c4895c"
+        },
+        {
+          "vertex": "b37d34932d96d461ab96bc4588b519abbb5747685c5941025d0c1b2e80652355",
+          "fragment": "fd8710379d2cc66661cafeeeabf4b845653f365bbfd93875ad10aa2c294ade1c"
+        }
+      ],
+      "shaderBytesEqual": true,
+      "accessibleUniformValuesEqual": true,
+      "receiveShadow": [
+        false,
+        false
+      ],
+      "castShadow": [
+        false,
+        false
+      ]
+    }
+  },
+  "residualAcceptance": "Coordinator via sp-x8: G415 permits crown one-pixel-per-tier and -840 GPU bytes with identical geometry, transforms and shaders; no source/rendering cut.",
+  "proofs": [
+    "20261018T101914-sp-x5-native-final-start-26567",
+    "20261018T101941-sp-x5-z1-sky-native-28380",
+    "20261018T101941-sp-x5-z1-sky-quest-roost-28381",
+    "20261018T101941-sp-x5-z1-sky-walk-28378",
+    "20261018T102232-sp-x5-contact-diagnostic-41734",
+    "20261018T102830-sp-x5-crown-light2-66929"
+  ]
+}

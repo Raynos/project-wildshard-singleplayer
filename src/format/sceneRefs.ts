@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 
 /** Exact Z2 publication names, never paths into a shard-owned object. */
-export const HandleIdSchema = v.pipe(v.string(), v.minLength(1), v.maxLength(256), v.regex(/^[a-z0-9][a-z0-9.-]*$/));
+export const HandleIdSchema = v.pipe(v.string(), v.minLength(1), v.maxLength(256), v.regex(/^[a-z0-9][a-zA-Z0-9.-]*$/));
 export type HandleId = v.InferOutput<typeof HandleIdSchema>;
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite());

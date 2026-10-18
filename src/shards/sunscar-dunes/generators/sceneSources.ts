@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { SceneDrawsSchema } from '@wildshard/format/sceneDraws';
 import { FIRE_GRAPH_IDS } from './rows/fire';
+import { signalEmberBuffer } from './emberBuffers';
 import restScenes from '../data/restScenes.generated.json' with { type: 'json' };
 import { QUEST_NPC } from './questNpc';
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -27,7 +28,7 @@ function effects(source: typeof restScenes.bindings.tower | typeof restScenes.bi
         draws.push({ kind: 'card', material, geometry: { library: 'models', model: `fire-${card.quad}` }, name: group.name, order: card.order ?? group.order, scale: card.scale, at: card.at ?? [0, 0, 0] }); }
     };
     if ('fire' in effect.rows) { cards(effect.rows.fire); const ember = effect.rows.embers;
-      draws.push({ kind: 'points', material: FIRE_GRAPH_IDS.embers, name: ember.name, count: ember.count, scale: ember.scale, y: ember.y }); cards(effect.rows.smoke);
+      draws.push({ kind: 'buffered', material: FIRE_GRAPH_IDS.embers, file: signalEmberBuffer(ember.count, ember.name), scale: ember.scale, y: ember.y }); cards(effect.rows.smoke);
     } else cards(effect.rows.halo);
     if (effect.pool !== null) draws.push({ kind: 'pool', material: FIRE_GRAPH_IDS.pool, geometry: { library: 'models', model: effect.pool } });
     return { part: effect.part, draws: v.parse(SceneDrawsSchema, draws) };

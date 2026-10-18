@@ -1,5 +1,26 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Read critical terrain blobs from the exact admitted product inventory.
+import { readFile } from 'node:fs/promises';
+// oxlint-disable-next-line import/no-nodejs-modules -- Check content-addressed proof bytes before native terrain decoding.
+import { createHash } from 'node:crypto';
+import { clientPageGround } from '../src/game/shardfile/clientGround';
+import { needsTerrainCollider } from '../src/engine/level/spec';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { readCreatureStrikes } from '../src/format/creatures';
+import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { headlessSections } from '../src/sdk/headlessSections';
+import { runtimeAccountedBytes } from '../src/format/runtimeCost';
+import { clientHomeBytes } from '../src/game/shardfile/clientResidency';
 import { expect, it } from 'vitest';
-import { parseNativeRuntimePlan } from '../src/format/nativeRuntimePlan';
+import { parseNativeRuntimePlan, nativeRuntimeActorIds } from '../src/format/nativeRuntimePlan';
+import { pagePopulationRows } from '../src/game/population/pageRows';
+import { SKY_SPAWNS } from '../src/shards/far-reach/generators/rows/spawns';
+import { SIGNAL_SPAWNS } from '../src/shards/sunscar-dunes/generators/rows/spawns';
+import { SKY_CLIENT_PLAN } from '../src/shards/far-reach/generators/clientPlan';
+import { SIGNAL_CLIENT_PLAN } from '../src/shards/sunscar-dunes/generators/clientPlan';
+import { clientOwnershipRules } from '../src/format/clientOwnership';
+import { skyProductRows } from '../src/shards/far-reach/generators/product';
+import { signalProductRows } from '../src/shards/sunscar-dunes/generators/product';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { SKY_NATIVE_WORLD } from '../src/shards/far-reach/generators/rows/nativeWorld';
 import { SIGNAL_NATIVE_WORLD } from '../src/shards/sunscar-dunes/generators/rows/nativeWorld';
@@ -44,4 +65,99 @@ it('retains director input order through canonical output for existing saves', (
   expect(Object.keys(decoded.recipe.population.owner.stages.inputs))
     .toEqual(Object.keys(SKY_NATIVE_WORLD.population.owner.stages.inputs));
   expect(() => parseNativeRuntimePlan({ ...decoded, ownerInputs: ['foreign'] })).toThrow();
+});
+
+it('data pages allocate the original native roster, looks and stable actor identities', () => {
+  for (const [recipe, expected] of [[SKY_NATIVE_WORLD, SKY_SPAWNS], [SIGNAL_NATIVE_WORLD, SIGNAL_SPAWNS]] as const) {
+    const plan = parseNativeRuntimePlan({ kind: 'held-melee', recipe, baked: { pieces: [] } });
+    expect(pagePopulationRows(plan)).toEqual(expected);
+    expect(nativeRuntimeActorIds(plan)).toEqual(recipe.population.rows.homes.map(row => row.id)
+      .concat('boss' in recipe.population.rows ? [recipe.population.rows.boss.id] : []));
+    const duplicate = plan.recipe.population.rows.homes[0];
+    if (duplicate === undefined) throw new Error('Missing authored body');
+    const repeated = { ...plan, recipe: { ...plan.recipe, population: { ...plan.recipe.population,
+      rows: { ...plan.recipe.population.rows, homes: [...plan.recipe.population.rows.homes, duplicate] } } } };
+    expect(() => nativeRuntimeActorIds(repeated)).toThrow('duplicate');
+  }
+});
+
+it('both data pages require their complete real feature, quest and encounter owners', () => {
+  for (const [legacy, client, recipe] of [[skyProductRows(), SKY_CLIENT_PLAN, SKY_NATIVE_WORLD], [signalProductRows(), SIGNAL_CLIENT_PLAN, SIGNAL_NATIVE_WORLD]] as const) {
+    const source = { ...legacy, runtime: null };
+    const sections = new Map<string, unknown>([['client/plan', client], ['world/scenes', {}], ['world/targets', {}], ['actors/species-programs', {}],
+      ['look/painted', {}], ['sim/scripts', []], ['sim/runtime-plan', { kind: 'held-melee', recipe, baked: { pieces: [] } }]]);
+    expect(clientOwnershipRules(source, sections)).toEqual([]);
+    for (const kind of ['held.melee', 'quest.page', 'population.homes', 'motion.channels', 'species.program'] as const) {
+      sections.set('client/plan', { ...client, features: client.features.filter(row => row.kind !== kind) });
+      expect(clientOwnershipRules(source, sections)).toContain(`Data page requires ${kind}`);
+    }
+    sections.set('client/plan', client);
+    const motion = client.features.find(row => row.kind === 'motion.channels');
+    const channel = motion?.rows.frames[0]?.program ?? motion?.rows.groups[0]?.programs[0];
+    if (channel === undefined) throw new Error('Missing original motion program');
+    expect(clientOwnershipRules({ ...source, clientChannels: source.clientChannels?.filter(row => row.id !== channel) ?? [] }, sections))
+      .toContain('Data page motion requires every declared channel program');
+    sections.delete('world/targets');
+    expect(clientOwnershipRules(source, sections)).toContain('Data page requires world/targets');
+    sections.delete('sim/runtime-plan');
+    expect(clientOwnershipRules(source, sections)).toContain('Data page requires sim/runtime-plan');
+  }
+});
+
+it('both data homes retain the reviewed client floor and ordinary sim allocation', () => {
+  for (const source of [skyProductRows(), signalProductRows()]) {
+    expect(source.runtime).toBeNull();
+    const floor = source.budgets.client;
+    if (floor === undefined) throw new Error('Missing retained client measurement');
+    expect(clientHomeBytes(source.budgets)).toBe(Math.max(source.budgets.sim.resident, runtimeAccountedBytes(floor)));
+    expect(clientHomeBytes(source.budgets, 'img')).toBe(Math.max(source.budgets.sim.resident, runtimeAccountedBytes(floor.imagesFirst ?? floor)));
+    const larger = clientHomeBytes(source.budgets) + 1;
+    expect(clientHomeBytes({ ...source.budgets, sim: { ...source.budgets.sim, resident: larger } })).toBe(larger);
+  }
+});
+
+it('build admission carries the verified native plan into its renderer-free worker context', () => {
+  for (const recipe of [SKY_NATIVE_WORLD, SIGNAL_NATIVE_WORLD]) {
+    const plan = parseNativeRuntimePlan({ kind: 'held-melee', recipe, baked: { pieces: [] } });
+    const strikes = readCreatureStrikes(recipe.population.rows.program.strikes);
+    const emitted = emitPlatformSections(new Map<'sim/runtime-plan' | 'actors/strikes', unknown>([['sim/runtime-plan', plan], ['actors/strikes', strikes]]));
+    const payloads = outputPlatformPayloads(emitted);
+    expect(headlessSections(payloads).get('sim/runtime-plan')).toEqual(plan);
+    expect(headlessSections(payloads).get('actors/strikes')).toEqual(strikes);
+    const first = emitted.sections[0]; if (first === undefined) throw new Error('Missing native plan');
+    const files = new Map(emitted.files), original = files.get(first.path);
+    if (original === undefined) throw new Error('Missing verified native bytes');
+    const forged = original.slice(); forged[0] = 32; files.set(first.path, forged);
+    expect(() => outputPlatformPayloads({ sections: emitted.sections, files })).toThrow('hash or size mismatch');
+  }
+});
+
+it('native page entries retain their sampled collider and structure-floor policies', async () => {
+  for (const [slug, collision, height] of [['far-reach', false, SKY_NATIVE_WORLD.ground.height], ['sunscar-dunes', true, null]] as const) {
+    const product = await loadHeadlessProduct(`out/${slug}`), source = product.shardfile;
+    const files = outputDescriptor(source)?.index.files;
+    if (files === undefined) throw new Error('Missing native product index');
+    const refs = source.terrain === null ? [] : [source.terrain.collider, ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file])];
+    const assets = new Map<string, Uint8Array>();
+    for (const ref of new Set(refs)) {
+      const file = files.find(entry => entry.hash === ref);
+      if (file === undefined) throw new Error('Missing admitted terrain file');
+      const bytes = await readFile(`out/${slug}/${file.path}`);
+      expect(bytes.length).toBe(file.compressed);
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(file.hash);
+      assets.set(ref, Uint8Array.from(bytes));
+    }
+    const ground = clientPageGround(source, assets);
+    expect(needsTerrainCollider({ ground })).toBe(collision);
+    if (height !== null) expect(ground.terrain.heightAt(0, 0)).toBe(height);
+    else {
+      expect(Number.isFinite(ground.terrain.heightAt(0, 70))).toBe(true);
+      expect(() => clientPageGround(source, new Map())).toThrow('Missing admitted terrain');
+    }
+  }
+});
+
+it('native scene declarations preserve required and debug-selected graph ownership', () => {
+  expect(SKY_CLIENT_PLAN.features.find(row => row.kind === 'world.scenes')?.graphs).toBe('required');
+  expect(SIGNAL_CLIENT_PLAN.features.find(row => row.kind === 'world.scenes')?.graphs).toBe('debug');
 });

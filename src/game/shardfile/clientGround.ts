@@ -2,6 +2,9 @@ import { bilinearTerrainSamplers, decodeTerrainTile, terrainTileHeight } from '@
 import type { TerrainField } from '@wildshard/engine/level/data';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCollisionBytes';
+import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { outputDescriptor } from './outputDescriptor';
 
 /** Keep temporary byte readers outside the context retained by height/normal/water callbacks. */
 function samplingQueries(profile: NonNullable<NonNullable<Shardfile['terrain']>['sampling']>, assets: ReadonlyMap<string, Uint8Array>, nativeDatum?: number) {
@@ -18,6 +21,8 @@ function meshQueries(tiles: NonNullable<Shardfile['meshCollision']>['tiles'], as
 
 /** Baked collider samples supply the existing player's terrain queries; they never allocate an analytic collider. */
 export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, nativeDatum?: number): TerrainField {
+  const rawPlan = hasDeclaredClientPage(source) ? outputDescriptor(source)?.sections.get('sim/runtime-plan') : undefined;
+  const ground = rawPlan === undefined ? undefined : parseNativeRuntimePlan(rawPlan).recipe.ground;
   const bytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
   if (source.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain queries');
   const data = bytes === undefined || (source.terrain?.form === 'query' && source.terrain.collider === source.terrain.sampling.file) ? null : decodeTerrainTile(bytes);
@@ -25,6 +30,7 @@ export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint
   const queries = profile === undefined ? null : samplingQueries(profile, assets, nativeDatum);
   const mesh = source.meshCollision === null ? undefined : meshQueries(source.meshCollision.tiles, assets);
   const heightAt = (x: number, z: number): number => {
+    if (queries === null && mesh === undefined && data === null) return ground?.height ?? 0;
     if (queries !== null && mesh === undefined) return queries.heightAt(x, z);
     if (x < -250 || x > 250 || z < -250 || z > 250) return 0;
     if (mesh !== undefined) {
@@ -44,4 +50,11 @@ export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint
     return [dx / length, 2 * eps / length, dz / length];
   }), splatAt: queries?.splatAt ?? (() => [1, 0, 0, 0]), trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0,
     waterLevel: () => source.water.find((row) => row.kind === 'sea')?.level ?? -250, trails: [], cabinSites: [], pond: null };
+}
+
+/** Native pages keep the recipe's real terrain collision policy at both entry points.
+ * Structure floors omit a terrain collider; sampled terrain uses the normal level bootstrap. */
+export function clientPageGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): { paths: 'plugin'; terrain: TerrainField; structures?: true } {
+  const plan = parseNativeRuntimePlan(outputDescriptor(source)?.sections.get('sim/runtime-plan'));
+  return { paths: 'plugin', terrain: clientGround(source, assets), ...(plan.recipe.terrain === 'none' ? { structures: true } : {}) };
 }

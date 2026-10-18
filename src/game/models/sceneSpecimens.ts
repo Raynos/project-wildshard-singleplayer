@@ -3,10 +3,10 @@ import type { BufferGeometry, Texture, MeshStandardMaterial } from 'three';
 import { defineSceneModels, type SceneModelRow, type ModelDef } from '@wildshard/engine/models/model';
 import type { PrivateScene } from '@wildshard/format/clientChannels';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
-import { createHeldPresentation, type HeldMeleeRecipe } from '../plugin/weaponFamily';
-import { questNpcSpecimen, type QuestNpcModelRow, type ClientScenePorts } from '../plugin/ui';
+import { createHeldPresentation, type HeldMeleeRecipe, type HeldPresentationPorts } from '../plugin/weaponFamily';
+import { questNpcSpecimen, type QuestNpcModelRow, type QuestNpcModelSource, type ClientScenePorts } from '../plugin/ui';
 import { applySurfaceLooks } from '../systems/looks/surfaceLooks';
-import { sceneModelSource, sceneBakeSource, sceneSurfaceInputs } from '../shardfile/sceneSources';
+import { sceneModelSource, sceneBakeSource, sceneSurfaceInputs, sceneModelDefinitions } from '../shardfile/sceneSources';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { ModelFit } from '../plugin/geometry';
 
@@ -59,18 +59,44 @@ function resources(product: ShardProduct, input: SceneSpecimenResources, source:
     decorators: new Map((input.decorators ?? []).map(row => [row.id, (material: MeshStandardMaterial) => { applySurfaceLooks(material, row.rows, sceneSurfaceInputs(product, source)); }])),
   };
 }
+function heldPresentationParts(product: ShardProduct, source: string, row: SceneHeldSpecimen): { recipe: HeldMeleeRecipe; model: HeldPresentationPorts } {
+  return { recipe: { ...row.recipe,
+    ...(row.attachments === undefined ? {} : { attachments: row.attachments.map(attachment => ({ id: attachment.id, row: attachment.row, parent: attachment.parent })) }) },
+    model: { scene: resources(product, row.resources, source), attachments: new Map(row.attachments?.map(attachment => [attachment.id, resources(product, attachment.resources, source)])) } };
+}
+/** The live controller and Explorer resolve the same data-only resource book.
+ * Callers receive independent geometry copies and the original shared textures. */
+export function resolveSceneHeld(product: ShardProduct, item: string): { recipe: HeldMeleeRecipe; model: HeldPresentationPorts } {
+  const matches = sceneModelDefinitions(product).flatMap(({ id, source }) => source.held?.filter(row => row.item === item).map(row => ({ source: id, row })) ?? []);
+  const match = matches[0];
+  if (matches.length !== 1 || match === undefined) throw new Error(`Expected one declared held model ${item}`);
+  return heldPresentationParts(product, match.source, match.row);
+}
 /** Use the live weapon's actual playback and private scene, including its hand. */
 export function declaredHeldSpecimen(product: ShardProduct, source: string, row: SceneHeldSpecimen): ModelDef<Record<string, never>> | undefined {
-  return defineSceneModels([row.definition], [[row.definition.builder, () => createHeldPresentation({ ...row.recipe,
-    ...(row.attachments === undefined ? {} : { attachments: row.attachments.map(attachment => ({ id: attachment.id, row: attachment.row, parent: attachment.parent })) }) },
-  { scene: resources(product, row.resources, source), attachments: new Map(row.attachments?.map(attachment => [attachment.id, resources(product, attachment.resources, source)])) })]])[0];
+  return defineSceneModels([row.definition], [[row.definition.builder, () => {
+    const { recipe, model } = heldPresentationParts(product, source, row);
+    return createHeldPresentation(recipe, model);
+  }]])[0];
+}
+function npcModelSource(product: ShardProduct, row: SceneNpcSpecimen): QuestNpcModelSource {
+  const library = sceneModelSource(product, row.library);
+  return row.model.kind === 'mesh' ? { kind: 'mesh', read: () => {
+    const geometry = library.mesh(row.model.id); if (geometry === null) throw new Error(`Missing declared NPC mesh ${row.model.id}`); return geometry;
+  } }
+    : { kind: 'pivots', read: () => {
+      const copied = library.painted(row.model.id); if (copied === null) throw new Error(`Missing declared NPC pivots ${row.model.id}`); return copied;
+    },
+      material: map => sceneModelSource(product, row.materialLibrary ?? row.library).mappedLook(row.model.material ?? '', map) };
+}
+/** Live quests borrow the same named model source as their Explorer figure. */
+export function resolveSceneNpc(product: ShardProduct, npc: string): { row: QuestNpcModelRow; source: QuestNpcModelSource } {
+  const matches = sceneModelDefinitions(product).flatMap(({ source }) => source.npcs?.filter(row => row.npc === npc) ?? []);
+  const match = matches[0];
+  if (matches.length !== 1 || match === undefined) throw new Error(`Expected one declared NPC model ${npc}`);
+  return { row: match.model, source: npcModelSource(product, match) };
 }
 /** Use the quest NPC's actual figure and library copy in its original rest pose. */
 export function declaredNpcSpecimen(product: ShardProduct, row: SceneNpcSpecimen): ModelDef<Record<string, never>> | undefined {
-  return defineSceneModels([row.definition], [[row.definition.builder, () => {
-    const library = sceneModelSource(product, row.library);
-    return row.model.kind === 'mesh' ? questNpcSpecimen(product.shardfile, row.npc, row.model, { kind: 'mesh', read: () => library.mesh(row.model.id) })
-      : questNpcSpecimen(product.shardfile, row.npc, row.model, { kind: 'pivots', read: () => library.painted(row.model.id),
-        material: map => sceneModelSource(product, row.materialLibrary ?? row.library).mappedLook(row.model.material ?? '', map) });
-  }]])[0];
+  return defineSceneModels([row.definition], [[row.definition.builder, () => questNpcSpecimen(product.shardfile, row.npc, row.model, npcModelSource(product, row))]])[0];
 }

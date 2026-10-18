@@ -1,4 +1,5 @@
 import { prepareSceneSources, sceneModelSource, sceneBakeSource, sceneSourceDeclares } from './sceneSources';
+import { drawSceneRows, prepareSceneDrawRows } from './sceneDraws';
 import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneStepSources';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
@@ -150,6 +151,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     await buildYield(resident);
   }
   for (const step of section.steps) {
+    await prepareSceneDrawRows(product, step.draws ?? []);
+    for (const row of step.draws ?? []) if (!slots.has(row.material)) throw new Error(`Missing scene draw slot: ${row.material}`);
     const files = step.variants === undefined ? [step.scene] : [step.variants.standalone, step.variants.cell];
     for (const file of files) {
       if (file === undefined) throw new Error('Missing world scene recipe');
@@ -186,12 +189,25 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
   const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry;
   const activeSteps = section.steps.filter(step => step.load !== 'explorer' && (step.cube === undefined || step.cube === (ctx.cube === null ? 'standalone' : 'cell')));
+  // Collision predicates may only read an already published scalar from the
+  // selected scene graph. Reject absent, wrong-kind and future refs before any
+  // geometry, physics piece or active callback can be installed.
+  const activeNumbers = new Set<string>();
+  for (const step of activeSteps) for (const instance of step.repeat ?? [{ id: '' }]) {
+    const prefix = [step.id, instance.id].filter(Boolean).join('.');
+    for (const [id, row] of Object.entries(step.publish)) if (row.kind === 'number') activeNumbers.add(`${prefix}.${id}`);
+    for (const row of step.registry) if (row.active !== undefined && !activeNumbers.has(row.active)) throw new Error(`Scene collision requires a published scalar: ${row.active}`);
+  }
   const residentReferences = new Set([...modelGeometry, ...activeSteps.flatMap(step => Object.values(step.geometry)),
     ...[...batches.values()].flatMap(row => row.geometry),
     ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
       .concat(row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
+  if (section.cosmeticDraws !== undefined) {
+    const random = ctx.app.rng.stream('cosmetic');
+    for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
+  }
   try {
     for (const row of section.libraries) {
       if (row.kind === 'models') {
@@ -316,6 +332,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       const sources = worldSceneStepSources(product, step, geometry, new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])));
       const made = createWorldScene(recipe, sources.ports);
       owner.onDispose(() => { made.dispose(); });
+      drawSceneRows(product, step.draws ?? [], made.root, owner, materials);
       if (instance.position !== undefined) made.root.position.set(...instance.position);
       if (instance.rotation !== undefined) made.root.rotation.set(...instance.rotation);
       for (const row of step.bounds) {
@@ -345,7 +362,9 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       for (const row of step.registry) {
         const prepared = registered.get(row.id); if (prepared === undefined) throw new Error('Missing scene registry part');
-        withOwner(owner, () => ctx.app.registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(row.mode === undefined ? {} : { mode: row.mode }) }));
+        const scalar = row.active;
+        const active = scalar === undefined ? undefined : () => handles.number(scalar) !== 0;
+        withOwner(owner, () => ctx.app.registry.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(active === undefined ? {} : { active }), ...(row.mode === undefined ? {} : { mode: row.mode }) }));
         await buildYield(owner);
       }
       if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) ctx.root.add(made.root);

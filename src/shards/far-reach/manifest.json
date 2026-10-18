@@ -151,11 +151,10 @@
     }
   },
   "entries": {
-    "legacy": true,
+    "legacy": false,
     "shardfile": true,
     "public": "shardfile"
   },
-  "gridShardfile": "/shardfiles/far-reach/shard.json",
   "ground": {
     "structures": true,
     "paths": "plugin"
@@ -224,7 +223,6 @@
     "coins": true
   },
   "spawns": [],
-  "runtimeEntry": "runtime/index.ts",
   "audio": {
     "ambience": "none",
     "score": "far.silent"
@@ -280,11 +278,9 @@
     "render": {
       "platform": "painted"
     },
-    "load": {
-      "module": "./plugin"
-    },
     "ktx2": {
       "module": "./ktx2.generated"
     }
-  }
+  },
+  "shardfile": "/shardfiles/far-reach/shard.json"
 }

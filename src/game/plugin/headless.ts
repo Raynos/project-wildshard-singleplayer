@@ -1,43 +1,26 @@
-import { publishBoundQuest } from '../quest/boundState';
-import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
-import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { installCableModes, playerModes } from '@wildshard/engine/player/modes';
+import { bindPageHomes, bindPageBoss, bindPageActor, spawnPageHome } from '../population/pageHomes';
+import { installPageItems, bindPageMelee, installPageItemContexts } from '../shardfile/pageItems';
+import { bindPageQuest } from '../quest/pageState';
+import { createQuestLedger } from '../quest/ledger';
+import type { installCableModes } from '@wildshard/engine/player/modes';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';
-import { floorBelow } from '@wildshard/engine/physics/query';
-import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
-import { outputDescriptor } from '../shardfile/outputDescriptor';
-import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
-import type { startMeleeSecondary } from './simulation';
-import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindDeclaredFight, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
-import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
-import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
-import { rigLibrary, type RigLibraryRows } from "./geometry";
-import { bossesSave } from '../saves';
-import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags, type BossViewRows, type installBossOwnerRow } from '../shardfile/bossRow';
-import { admitSpeciesProgram, type SpeciesProgramRows, type SpeciesBrains, type SpeciesPageCatalogue, type SpeciesCataloguePorts, type SpeciesDecisionAuthority } from "./brain";
 import type { Progress } from "../Progress";
-import { Vector3, type Object3D } from 'three';
-import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
-import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { EquipmentIcon, EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import { legacyContentIdentity } from "../shard/list";
+import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
-import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
+import type { QuestState, QuestMarker } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import { type ShardContext, ShardPlugin } from './context';
-import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
-import { Ledger, LedgerEmitter, type LedgerReceipt } from "../ledger";
+import type { ShardContext } from './context';
+import type { LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
-import { declaredItemContext, installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
+import type { DeclaredItems, DeclaredItemPorts } from "../shardfile/items";
 import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
-import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
-import type { ShardProduct } from '../shardfile/shardProduct';
+import type { RuntimeActorRow, RuntimeBossRow } from "@wildshard/format/runtimeSpawns";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from "../shardfile/runtimeState";
 
-import { installRuntimeAudio } from "./audio";
-import { installRuntimeLoot, type ScopedLoot } from "../loot/runtime";
 
 /**
  * The runtime-owner binding (SHARD-PLATFORM M3, E435). A hybrid shard's trusted runtime owns its world and its play scope;
@@ -160,17 +143,7 @@ export interface RuntimeFacts {
  */
 export function bindRuntimeLedger(ctx: Pick<ShardContext, 'app'>, source: Shardfile, instance: string): RuntimeFacts {
   requireBound(source, 'ledger');
-  const identity = { instance, shard: source.identity.slug, revision: source.identity.revision };
-  const ledger = new Ledger(ctx.app.saves, [{ id: instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], []);
-  const emit = (name: string, entity: string): LedgerReceipt => {
-    const rule = source.ledger.find((row) => row.fact === name);
-    if (rule === undefined) throw new Error(`Undeclared ledger fact ${name}`);
-    return new LedgerEmitter(ledger, { ...identity }, rule.origin, () => 0, []).emit(name, entity);
-  };
-  return Object.assign(emit, { flush: () => ledger.flush(), achievement: (id: string) => {
-    const row = ledger.state().achievements[JSON.stringify([identity.shard, id])];
-    return row === undefined ? undefined : { count: row.count, earned: row.earned };
-  } });
+  return createQuestLedger(ctx.app.saves, source, instance);
 }
 
 /** Project an existing runtime ledger into its caller-owned Progress view. The emitter remains the sole grant/write
@@ -219,27 +192,7 @@ export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'> & Part
   requireBound(source, 'quests');
   const modeSource = runtimeBinds(source).has('modes') ? ctx.product : null;
   if (modeSource === undefined) throw new Error('Runtime-bound modes require an admitted product');
-  const declared = source.quests.quests.find((row) => row.id === id);
-  if (declared === undefined) throw new Error(`Undeclared quest ${id}`);
-  const fact = declared.onComplete?.fact ?? null, facts = ports.facts;
-  if (fact !== null && (facts === undefined || !source.ledger.some((rule) => rule.fact === fact))) throw new Error(`Quest ${id} completes with fact ${fact}, which needs the bound ledger`);
-  const place = (marker: MarkerRow): QuestMarker => ({ ...marker, at: ports.place?.(marker) ?? marker.at });
-  const steps = declared.steps.map((step): QuestStep => {
-    const chip = ports.chip?.(step) ?? step.chip;
-    return { ...step, ...(chip === undefined ? {} : { chip }), ...(step.markers === undefined ? {} : { markers: step.markers.map(place) }) };
-  });
-  const intro = declared.intro === undefined ? undefined : { ...declared.intro, ...(declared.intro.markers === undefined ? {} : { markers: declared.intro.markers.map(place) }) };
-  const state = new QuestState({ id: declared.id, title: declared.title, completeFlag: declared.completeFlag, steps,
-    ...(declared.startWhen === undefined ? {} : { startWhen: declared.startWhen }), ...(intro === undefined ? {} : { intro }) }, ports.flags, ctx.app.events, ctx.scope);
-  if (fact !== null && facts !== undefined) {
-    const witness = (): void => { facts(fact, declared.id); };
-    if (state.isComplete) witness();
-    ctx.scope.onDispose(state.observe({ complete: witness }));
-  }
-  const modes = modeSource === null ? source.modes : modeSource.shardfile.modes;
-  const bound = { state, declared, cables: installCableModes(ctx.scope, modes?.traverse ?? [], ports.flags), reward: { coins: declared.onComplete?.coins ?? 0, fact } };
-  publishBoundQuest(ctx.scope, state);
-  return bound;
+  return bindPageQuest(ctx, source, id, ports, modeSource === null ? source.modes : modeSource.shardfile.modes);
 }
 
 /** What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. */
@@ -258,19 +211,7 @@ export interface RuntimeItemPorts {
  */
 export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>, source: Shardfile, ports: RuntimeItemPorts): DeclaredItems {
   requireBound(source, 'items');
-  if (source.items.rows.some(row => row.hook !== null && (ports.hooks?.get(row.id) === null || ports.hooks?.get(row.id) === undefined))) throw new Error('Runtime-bound items require their admitted composed hooks');
-  const camera = (): NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>['game']['camera'] => {
-    const world = ctx.game.runtime?.world; if (world === null || world === undefined) throw new Error('Runtime-bound items need the normal world'); return world.game.camera;
-  };
-  const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
-  const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
-  return installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: ports.kit ?? new Map(), icon: ports.icon,
-    shardFamilies: { slug: shardContentIdentity(source.identity.slug), families: ports.families }, contexts: 'runtime',
-    aim: () => ({ origin: camera().getWorldPosition(new Vector3()), direction: camera().getWorldDirection(new Vector3()) }),
-    runtime: row => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play', targets: () => [], hook: row.hook === null ? null : ports.hooks?.get(row.id) ?? null,
-      effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },
-    }),
-  });
+  return installPageItems(ctx, source, ports);
 }
 
 type RuntimeWeaponFamily = Extract<ItemFamily, { kind: 'weapon' }>;
@@ -283,21 +224,8 @@ export interface RuntimeMeleePorts<W extends ReturnType<RuntimeWeaponFamily['cre
 /** Resolve the primary row's family and retain that exact instance; no second controller or actor. */
 export function bindRuntimeMelee<W extends ReturnType<RuntimeWeaponFamily['create']>>(
   ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile, ports: RuntimeMeleePorts<W>): W {
-  const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
-  if (primary?.kind !== 'weapon') throw new Error('Declared melee needs its primary weapon row');
-  const owner: { weapon: W | null } = { weapon: null };
-  const family: RuntimeWeaponFamily = { kind: 'weapon',
-    ...(primary.profile === undefined ? {} : { profiles: [primary.profile.family] }),
-    ...(ports.presentation === undefined ? {} : { presentation: ports.presentation }),
-    create: (row, spec, binding) => {
-      if (owner.weapon !== null) throw new Error('Declared melee family must own one primary');
-      const weapon = ports.create(row, spec, binding); owner.weapon = weapon; return weapon;
-    },
-  };
-  const bound = bindRuntimeItems(ctx, source, { families: new Map([[primary.family, family]]), icon: ports.icon,
-    ...(ports.hooks === undefined ? {} : { hooks: ports.hooks }) });
-  if (owner.weapon === null || bound.primary !== owner.weapon) throw new Error('Declared melee primary differs from its owned instance');
-  return owner.weapon;
+  requireBound(source, 'items');
+  return bindPageMelee(ctx, source, ports);
 }
 
 /**
@@ -306,13 +234,7 @@ export function bindRuntimeMelee<W extends ReturnType<RuntimeWeaponFamily['creat
  */
 export function bindRuntimeItemContexts(ctx: ShardContext, source: Shardfile): void {
   requireBound(source, 'items');
-  for (const row of source.items.contexts) {
-    const definition = declaredItemContext(row, { get mode() { const player = ctx.game.runtime?.world?.player; return player === undefined ? ctx.app.player?.mode ?? 'foot' : playerModes(player).current(); },
-      get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return ctx.game.runtime?.hooks.questFlags?.() ?? []; } });
-    const description = { rows: row.extra?.describe ?? [] };
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
-    else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
-  }
+  installPageItemContexts(ctx, source);
 }
 
 /** A runtime's coin port: what a declared quest or an encounter pays, in whole coins. */
@@ -367,9 +289,7 @@ export interface RuntimeHomePorts {
 }
 /** The existing page manager allocates a home identity and replaces its retired body. */
 export function spawnRuntimeHome(animals: Pick<Animals, 'spawn' | 'replace'>, home: RuntimeHome, variant: string | undefined, retained: boolean, decisionActors: readonly string[] = []): Animal {
-  const declared = retained || decisionActors.includes(home.id);
-  return declared && home.animal !== null ? animals.replace(home.animal, home.x, home.z, home.yaw, variant, {})
-    : animals.spawn(home.kind, home.x, home.z, home.yaw, variant, declared ? { entityId: home.id } : undefined);
+  return spawnPageHome(animals, home, variant, retained, decisionActors);
 }
 /** The declared homes as kept: every home, every creature alive in one, and each held body by its row id. */
 export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly all: () => Animal[]; readonly held: (id: string) => Animal | null }
@@ -385,79 +305,8 @@ export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'run
 /** Construct the same roster in allocation order, yielding between bodies before publishing the completed keeper. */
 export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts, pause: () => Promise<void>): Promise<RuntimeHomes>;
 export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts, pause?: () => Promise<void>): RuntimeHomes | Promise<RuntimeHomes> {
-  const work = runtimeHomeWork(ctx, source, ports);
-  const advance = (): IteratorResult<void, RuntimeHomes> => work.next();
-  if (pause === undefined) { let step = advance(); while (!step.done) step = advance(); return step.value; }
-  return (async () => {
-    let step = advance();
-    while (!step.done) {
-      await pause();
-      if (ctx.scope.disposed) throw new Error('Runtime home preparation left its owner');
-      step = advance();
-    }
-    return step.value;
-  })();
-}
-
-function* runtimeHomeWork(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts): Generator<void, RuntimeHomes, void> {
-  const declared = runtimeSpawnRows(source), rows = declared.homes, animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx);
-  const addresses = new Set([...rows, ...(declared.actors ?? []), ...declared.bosses].map(row => row.id));
-  const bodyHomes = new Map(ports.bodyHomes?.rows.map(row => [row.id, row.home]));
-  if (ports.bodyHomes !== undefined && (ports.bodyHomes.rows.length > 1024 || bodyHomes.size !== ports.bodyHomes.rows.length
-    || ports.bodyHomes.rows.some(row => !addresses.has(row.id) || ![row.home.x, row.home.y, row.home.z, row.home.r].every(Number.isFinite) || row.home.r <= 0))) throw new Error('Invalid declared runtime body homes');
-  const placements = ports.held?.placements;
-  if (placements !== undefined && (ports.held?.late !== undefined || placements.length > 1024 || new Set(placements.map(row => row.id)).size !== placements.length
-    || placements.some(row => !ports.held?.order.includes(row.id) || !addresses.has(row.id) || ![row.fromY, row.y].every(Number.isFinite)))) throw new Error('Invalid declared runtime late placements');
-  const holds = ports.holds;
-  if (holds !== undefined && (holds.rows.length > 1024 || holds.system.length === 0 || holds.rows.some(row => !Number.isInteger(row.home) || row.home < 0 || row.home >= rows.length
-    || row.field.length === 0 || row.until.length === 0))) throw new Error('Invalid declared runtime memory holds');
-  const dress = (animal: Animal, id: string): void => { const home = bodyHomes.get(id); if (home !== undefined) ports.bodyHomes?.authority?.home(animal.kind, animal, home); };
-  const homes: RuntimeHome[] = rows.map((row: RuntimeHomeRow) => ({ id: row.id, kind: row.kind, x: row.at[0], z: row.at[1], yaw: row.yaw, respawn: row.respawn, animal: null, wait: 0 }));
-  const look = new Map(rows.map((row) => [row.id, row.look]));
-  const spawn = (home: RuntimeHome): void => {
-    const variant = look.get(home.id);
-    home.animal = animals === undefined ? null : spawnRuntimeHome(animals, home, variant, retained, ports.decisionActors);
-    home.wait = 0;
-    if (home.animal) { ports.spawned?.(home.animal); dress(home.animal, home.id); }
-  };
-  const held = new Map<string, NonNullable<Animal>>();
-  const cleanup = (): void => { for (const home of homes) if (home.animal) animals?.retire(home.animal); for (const body of held.values()) animals?.retire(body); };
-  const forget = ctx.scope.capture('disposers', cleanup);
-  for (const home of homes) { spawn(home); yield; }
-  if (homes.length > 0) {
-    ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });
-    ctx.system({ id: ports.system, phase: 'update', run: (dt) => {
-      for (const home of homes) {
-        if (retained && home.animal?.alive === false && home.wait <= 0) home.wait = home.respawn;
-        if (home.wait <= 0) continue;
-        home.wait -= dt;
-        if (home.wait <= 0) { if (home.animal) animals?.retire(home.animal); spawn(home); }
-      }
-    } });
-  }
-  yield* holdBodies(ctx, source, ports.held, retained, held, dress);
-  forget(); ctx.scope.onDispose(cleanup);
-  if (holds !== undefined) ctx.system({ id: holds.system, phase: 'update', run: () => {
-    for (const row of holds.rows) { const actor = homes[row.home]?.animal; if (actor) actor.mem[row.field] = holds.flags === null || holds.flags.has(row.until) ? 0 : 1; }
-  } });
-
-  return { homes, all: () => homes.flatMap((h) => h.animal ? [h.animal] : []), held: (id) => held.get(id) ?? null };
-}
-
-/** Spawn the runtime's held one-shot bodies (`RuntimeHomePorts.held`): the early ones now, the late ones after them. */
-function* holdBodies(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, hold: RuntimeHomePorts['held'], retained: boolean, held: Map<string, NonNullable<Animal>>, dress: (animal: Animal, id: string) => void): Generator<void, Map<string, NonNullable<Animal>>, void> {
-  if (hold === undefined) return held;
-  const bosses = new Set(runtimeSpawnRows(source).bosses.map((row) => row.id)), native = { identity: 'runtime' } as const;
-  const land = (id: string, placement?: { readonly y?: number; readonly fromY?: number }): void => {
-    const animal = bosses.has(id) ? bindRuntimeBoss(ctx, source, id, undefined, native).spawn() : bindRuntimeActor(ctx, source, id, undefined, native).spawn(placement);
-    if (animal) { held.set(id, animal); hold.dress?.(animal, id); dress(animal, id); }
-  };
-  const late = hold.order.flatMap((id) => { const at = hold.placements?.find(row => row.id === id) ?? hold.late?.(id); return at === undefined ? [] : [{ id, at }]; });
-  for (const id of hold.order) if (!late.some((row) => row.id === id)) { land(id); yield; }
-  let due = !retained;
-  ctx.system({ id: hold.settle, phase: 'fixed.post', run: () => { if (!due) return; due = false; for (const row of late) land(row.id, { fromY: row.at.fromY }); } });
-  if (retained) for (const row of late) { land(row.id, { y: row.at.y }); yield; }
-  return held;
+  const rows = runtimeSpawnRows(source);
+  return pause === undefined ? bindPageHomes(ctx, rows, ports) : bindPageHomes(ctx, rows, ports, pause);
 }
 
 /** A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. */
@@ -474,15 +323,7 @@ export interface RuntimeBossOptions {
 }
 /** Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body. */
 export function bindRuntimeBoss(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string, spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeBoss {
-  const row = runtimeSpawnRows(source).bosses.find((boss) => boss.id === id); if (row === undefined) throw new Error(`Undeclared runtime boss ${id}`);
-  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx) && options.identity !== 'runtime', [x, z] = row.at;
-  return { row,
-    spawn: (retired) => {
-      const a = retained && retired !== undefined ? animals?.replace(retired, x, z, row.yaw, row.look, {}) ?? null
-        : animals?.spawn(row.kind, x, z, row.yaw, row.look, retained ? { entityId: row.id } : undefined) ?? null;
-      if (a) spawned?.(a); return a;
-    },
-    retire: (a) => { animals?.retire(a); } };
+  return bindPageBoss(ctx, runtimeSpawnRows(source), id, spawned, options);
 }
 
 /** A finite declared body, without home refill or encounter behaviour. Placement timing remains runtime-owned. */
@@ -498,14 +339,7 @@ export interface RuntimeActor {
  */
 export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string,
   spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeActor {
-  const row = runtimeSpawnRows(source).actors?.find((actor) => actor.id === id);
-  if (row === undefined) throw new Error(`Undeclared runtime actor ${id}`);
-  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx) && options.identity !== 'runtime';
-  return { row, spawn: (placement) => {
-    const animal = animals?.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { ...placement, ...(retained ? { entityId: row.id } : {}) }) ?? null;
-    if (animal !== null) spawned?.(animal);
-    return animal;
-  }, retire: (animal) => { animals?.retire(animal); } };
+  return bindPageActor(ctx, runtimeSpawnRows(source), id, spawned, options);
 }
 
 type BuildEquipment = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
@@ -616,504 +450,4 @@ export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0]
   return bindRuntimeItems(ctx, source, { families: new Map(), kit: families, icon: name => {
     const entry = entries.find(value => value.native.ui.icon === name); if (entry === undefined) throw new Error('Unknown runtime item icon'); return entry.native.ui.icon;
   } });
-}
-type AnimalBody = NonNullable<Animal>;
-/** The combat targets `buildEquipment` lends a hybrid runtime's weapon. */
-export type HybridTargets = Parameters<BuildEquipment>[0];
-/** What a hybrid runtime declares (G345; Signal Dunes and Sky Reach): the host installs it in one fixed order. */
-export interface HybridRuntimeRows {
-  /** the debug name captures read it under (`__wildshard.shard.<expose>`) */
-  readonly expose: string;
-  readonly strings: Parameters<ShardContext['strings']>[0];
-  /** the held weapon's row: its content row and the cues its swings play */
-  readonly weapon: EquipmentRow;
-  readonly encounters: Parameters<ShardContext['rows']['encounter']>[0];
-  /** the flag the session's quest probe reports once `quest` is complete */
-  readonly complete: string;
-  /** Install declared page motion after the saved quest, on its existing channel owner. */
-  readonly clientMotion?: Parameters<ReturnType<typeof bindClientChannels>['installMovers']>[3];
-  /** One declared held owner, installed at the original kit/equipment stage. */
-  readonly melee?: HybridMeleeRows;
-  readonly audio?: Parameters<typeof installRuntimeAudio>[1];
-  readonly cues?: Parameters<typeof installRuntimeAudio>[2];
-  /** Serializable entry configuration; the host supplies all callbacks. */
-  readonly boot?: {
-    readonly bounds?: { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number; readonly floor: number };
-    readonly pitch?: number;
-    readonly itemContexts?: Shardfile | 'source';
-  };
-  /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
-  readonly species: (() => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null }) | {
-    readonly program: SpeciesProgramRows; readonly page: Parameters<SpeciesBrains['catalogue']>[0];
-    readonly looks?: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly library?: RigLibraryRows; readonly homes?: SpeciesCataloguePorts['homes']; readonly shove?: boolean;
-  };
-  readonly population?: {
-    readonly system: string; readonly held?: RuntimeHomePorts['held']; readonly bodyHomes?: NonNullable<RuntimeHomePorts['bodyHomes']>['rows'];
-    readonly holds?: Omit<NonNullable<RuntimeHomePorts['holds']>, 'flags'>;
-    readonly groups?: Readonly<Record<string, readonly { readonly id: string }[]>>;
-    readonly witness: { readonly groups: readonly string[] } | { readonly kinds: readonly string[] };
-  };
-  /** Original read-only capture names, resolved against actual owners rather than private shard fields. */
-  readonly inspect?: { readonly actors?: Readonly<Record<string, { readonly held: string } | { readonly home: number }>>; readonly roster?: string; readonly boss?: string };
-  readonly fight?: BossViewRows;
-  /** Existing held/spawned fight ports resolved at the caller's original phase. */
-  readonly pageFight?: { readonly kind: 'held' | 'spawned'; readonly armed: boolean | BorrowedOwnerPath; readonly bindStages?: boolean; readonly dress?: BorrowedOwnerPath };
-  /** Optional declared saved page quest, installed before the shard play hook. */
-  readonly pageQuest?: HybridPageQuestRows;
-  /** Borrowed libraries and style owners; reserved plugin/scope/quest owners are supplied by the host. */
-  readonly owners?: Readonly<Record<string, unknown>>;
-}
-/** Page-only held installation; resources borrow the same sealed owner map as quest presentation. */
-export interface HybridMeleeRows {
-  readonly recipe: HeldMeleeRecipe;
-  readonly stage: 'kit' | 'equipment'; readonly targets: 'scan' | 'raycast';
-  readonly expose?: string; readonly composed?: boolean;
-  readonly presentation?: RuntimeWeaponFamily['presentation']; readonly legacySlot?: EquipmentRow['legacySlot'];
-  readonly stowedMode?: string;
-  readonly decorate?: { readonly call: BorrowedOwnerPath; readonly value: BorrowedOwnerPath };
-}
-
-/** Page-only saved quest composition; every binding borrows an existing owner. */
-export interface HybridPageQuestRows {
-  readonly data: PersistedQuestRows & { readonly capture?: QuestCaptureRows };
-  readonly flags?: BorrowedOwnerPath;
-  readonly model: { readonly kind: 'mesh' | 'pivots'; readonly read: BorrowedOwnerPath; readonly material?: BorrowedOwnerPath };
-  readonly dress?: readonly { readonly call: BorrowedOwnerPath; readonly args: readonly ('group' | 'scope' | { readonly instances: boolean })[] }[];
-  readonly capture?: Readonly<Record<string, BorrowedOwnerPath>>;
-  readonly progress?: boolean;
-  readonly stages?: QuestPageStageBindings;
-}
-
-/** Bounded capture steps invoke real gameplay owners without introducing saved state. */
-export type QuestCaptureRows = Readonly<Record<string, readonly ({ readonly flag: string } | { readonly call: string })[]>>;
-
-/** A held weapon the host wires: its viewmodel and its swing cues. */
-export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { onSwing: ((heavy: boolean) => void) | null; readonly model: Object3D };
-
-/**
- * The shared host of a hybrid shard's trusted plugin (G345). The shard declares `rows` and keeps only what genuinely
- * differs in its hooks; the host runs every stage in one order. world: strings, then `build`. kit: the weapon row, the
- * species catalogue (rows, looks), the encounters, `prepare`, then `buildEquipment` (`arm`, with the swing cues wired).
- * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `install`, the quest's
- * complete flag (from the `quest` that `install` set), then the debug name.
- */
-export abstract class HybridRuntimePlugin extends ShardPlugin {
-  /** Assemble host rows from the admitted product at world time, once per plugin. */
-  protected abstract rows(product: ShardProduct): HybridRuntimeRows;
-  private rowState: { readonly product: ShardProduct; readonly source: Shardfile; readonly rows: HybridRuntimeRows } | null = null;
-  private get runtimeRows(): HybridRuntimeRows {
-    if (this.rowState === null) throw new Error('Hybrid rows require world preparation');
-    return this.rowState.rows;
-  }
-  private get runtimeSource(): Shardfile {
-    if (this.rowState === null) throw new Error('Hybrid source requires world preparation');
-    return this.rowState.source;
-  }
-  /** The page's borrowed channel views and motion owner, retired with its scope. */
-  protected clientChannels: ReturnType<typeof bindClientChannels> | null = null;
-  protected clientMotion: Awaited<ReturnType<ReturnType<typeof bindClientChannels>['installMovers']>> | null = null;
-  protected keepClientChannels(ctx: ShardContext, channels: ReturnType<typeof bindClientChannels>): ReturnType<typeof bindClientChannels> {
-    if (ctx.scope.disposed || this.clientChannels !== null) throw new Error('Page channels require one living scope');
-    this.clientChannels = channels;
-    ctx.scope.onDispose(() => {
-      channels.dispose();
-      if (this.clientChannels === channels) this.clientChannels = null;
-      this.clientMotion = null;
-    });
-    return channels;
-  }
-  /** The player's position when the world has no motor (a renderer-free page). */
-  readonly player = new Vector3();
-  /** The runtime's quest, once `install` has made it. */
-  quest: QuestState | null = null;
-  private witness: ((actor: AnimalBody) => string | null) | null = null;
-  protected populationBrains: SpeciesBrains | null = null;
-  protected populationCatalogue: SpeciesPageCatalogue | null = null;
-  protected populationControl: ReturnType<SpeciesBrains['held']> = null;
-  private decisionAuthority: SpeciesDecisionAuthority | null = null;
-  private readonly decisionAssets = new Map<string, Uint8Array>();
-  private populationPush: ((yaw: number, speed: number, lift: number) => void) | null = null;
-  private populationHomes: RuntimeHomes | null = null;
-  private aliasesBound = false;
-  private heldOwner: ReturnType<typeof createDeclaredHeldMelee> | null = null;
-  private heldFactory: typeof createDeclaredHeldMelee | null = null;
-  private heldSecondary: typeof startMeleeSecondary | null = null;
-  /** The actual primary held owner; no reconstructed presentation instance. */
-  protected get heldMelee(): ReturnType<typeof createDeclaredHeldMelee> | null { return this.heldOwner; }
-  private meleeOwners(ctx: ShardContext): ReadonlyMap<string, unknown> {
-    const borrowed = Object.entries(this.runtimeRows.owners ?? {});
-    if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid held owners');
-    return new Map([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
-  }
-  private createMelee(ctx: ShardContext, contacts: unknown, targets?: HybridTargets, charge?: number): ReturnType<typeof createDeclaredHeldMelee> {
-    const row = this.runtimeRows.melee, create = this.heldFactory;
-    if (row === undefined || create === null || this.heldOwner !== null) throw new Error('Declared held owner is not ready');
-    if (row.targets === 'raycast' && targets === undefined) throw new Error('Held raycast needs its equipment targets');
-    const owners = this.meleeOwners(ctx);
-    const weapon = create(ctx.app, row.recipe, { model: { owners }, contacts,
-      ...(charge === undefined ? {} : { charge }),
-      ...(row.targets === 'raycast' && targets !== undefined ? { raycast: targets.raycast.bind(targets) }
-        : { targets: () => ctx.app.combat.targets().filter(target => target.hittable) }),
-    });
-    this.heldOwner = weapon;
-    if (row.decorate !== undefined) {
-      const value = readBorrowedOwner(owners, row.decorate.value)?.value;
-      if (value !== null && value !== undefined) bindBorrowedMethod(owners, row.decorate.call)(weapon.parts, value);
-    }
-    return weapon;
-  }
-  /** Complete the same held owner with a declared direct action or its composed item hook. */
-  protected bindHeldActions(ctx: ShardContext, hooks: NonNullable<RuntimeItemPorts['hooks']>, tick: () => number): void {
-    const rows = this.runtimeRows.melee, source = this.runtimeSource, weapon = this.heldOwner, start = this.heldSecondary;
-    if (rows?.composed !== true || weapon === null || start === null) throw new Error('Declared held script binding is not ready');
-    const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
-    if (primary?.kind !== 'weapon' || primary.secondary === undefined) throw new Error('Held owner needs its admitted secondary');
-    const secondary = primary.secondary, hook = hooks.get(primary.id);
-    if (secondary.code !== undefined && hook === undefined) throw new Error('Held owner needs its admitted composed hook');
-    const native = weapon.row;
-    bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
-      if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
-    }, hooks, create: (row, spec, ports) => {
-      if (ports.contacts === undefined || ports.secondary === undefined) throw new Error('Held owner needs its admitted secondary contact');
-      const code = secondary.code;
-      weapon.bindSecondary(family => code === undefined ? (family.claim(secondary.move) ? secondary.move : null)
-        : start(family, hook ?? null, { tick: tick(), dt: 1 / 60, action: code, move: secondary.move }), spec.charge);
-      weapon.row = { ...row, ...(rows.legacySlot === undefined ? {} : { legacySlot: rows.legacySlot }), meta: native.meta };
-      return weapon;
-    } });
-  }
-  presentedBoss: ReturnType<typeof installBossOwnerRow>['boss'] | null = null;
-  private savedPageQuest: (PersistedQuest & { readonly coins: RuntimeCoins }) | null = null;
-  /** Resident saved quest; missing declared composition refuses instead of inventing a quest. */
-  protected get pageQuest(): PersistedQuest & { readonly coins: RuntimeCoins } {
-    if (this.savedPageQuest === null) throw new Error('Page quest is not installed');
-    return this.savedPageQuest;
-  }
-  /** The caller's existing page runtime and saved quest, without another owner. */
-  protected pageEntry(ctx: ShardContext): { readonly runtime: ShardContext['game']['runtime']; readonly position: Vector3; readonly quest: PersistedQuest & { readonly coins: RuntimeCoins } } {
-    const runtime = ctx.game.runtime;
-    return { runtime, position: runtime?.world?.player.position ?? this.player, quest: this.pageQuest };
-  }
-  /** Bind the existing fight at the shard's original population/quest phase. */
-  protected async bindPageFight(ctx: ShardContext): Promise<ReturnType<typeof bindDeclaredFight>> {
-    const source = this.runtimeSource, row = this.runtimeRows.pageFight, definition = this.runtimeRows.fight;
-    if (row === undefined || definition === undefined) throw new Error('Missing declared page fight');
-    const { position, quest } = this.pageEntry(ctx);
-    const owners = new Map<string, unknown>([...Object.entries(this.runtimeRows.owners ?? {}), ['plugin', this]]);
-    const armed = typeof row.armed === 'boolean' ? row.armed : readBorrowedOwner(owners, row.armed)?.value;
-    if (typeof armed !== 'boolean') throw new Error('Page fight requires its owned armed field');
-    const { bindDeclaredFight: bindFight } = await import('./ui');
-    const common = { player: position, flags: quest.flags, facts: quest.facts, armed };
-    let fight: ReturnType<typeof bindDeclaredFight>;
-    if (row.kind === 'held') {
-      const record = quest.persistence.boss;
-      if (record === null) throw new Error('Missing declared held boss record');
-      fight = bindFight(ctx, definition, { ...common, kind: 'held', held: this.actor(definition.id), catalogue: this.populationCatalogue,
-        reward: quest.reward.spawn, record: { saved: record.read(), persist: record.write } });
-    } else {
-      const dress = row.dress === undefined ? undefined : bindBorrowedMethod(owners, row.dress);
-      fight = bindFight(ctx, definition, { ...common, kind: 'spawned', source, coins: quest.coins,
-        ...(dress === undefined ? {} : { dress: animal => { dress(animal.mesh, ctx.scope); } }) });
-    }
-    this.populationControl = fight.control; this.presentedBoss = fight.boss;
-    if (row.bindStages) this.bindPageStages(ctx, { fight });
-    return fight;
-  }
-  private pageStageFactory:typeof bindBorrowedPageQuestStages|null=null;
-  /** Bind page stages with the resident flags and current borrowed owners. */
-  protected bindPageStages(ctx:ShardContext,extra:Readonly<Record<string,unknown>>={}):PageQuestStages {
-    const source=this.runtimeSource,rows=this.runtimeRows.pageQuest?.stages,factory=this.pageStageFactory;
-    if(rows===undefined||factory===null)throw new Error('Missing page stage rows');
-    const owners=new Map<string,unknown>([...Object.entries(this.runtimeRows.owners??{}),['plugin',this],...Object.entries(extra)]);
-    if(owners.size>64||Object.hasOwn(extra,'plugin'))throw new Error('Invalid page stage owners');
-    return factory(ctx,source,this.pageQuest.flags,rows,owners,this.actor.bind(this),{
-      ...(this.clientMotion===null?{}:{motion:this.clientMotion}),toast:text=>{ctx.game.runtime?.play?.hud.toast(text);}});
-  }
-  private questCapture: ((name: string) => void) | null = null;
-  /** Stage a declared quest through its live flags and callbacks; unknown capture names do nothing. */
-  stage(name: string): void { this.questCapture?.(name); }
-  /** Preflight bounded stage rows before any effect; saves continue to use the original flag and reward owners. */
-  protected bindQuestCapture(rows: QuestCaptureRows, flags: Pick<Flags, 'set'>, calls: ReadonlyMap<string, () => void>): void {
-    const entries = Object.entries(rows);
-    if (entries.length > 64) throw new Error('Quest capture stage roster must be bounded');
-    const compiled = new Map(entries.map(([name, steps]) => {
-      if (name.length === 0 || name.length > 96 || steps.length > 64) throw new Error('Invalid quest capture stage');
-      const run = steps.map(step => {
-        if ('flag' in step) {
-          if (step.flag.length === 0 || step.flag.length > 96) throw new Error('Invalid quest capture flag');
-          return () => { flags.set(step.flag); };
-        }
-        const call = calls.get(step.call);
-        if (call === undefined) throw new Error(`Missing quest capture action ${step.call}`);
-        return call;
-      });
-      return [name, () => { for (const action of run) action(); }] as const;
-    }));
-    this.questCapture = name => { compiled.get(name)?.(); };
-  }
-  /** The world, behind the loading screen (after the strings). */
-  protected abstract build(ctx: ShardContext): Promise<void> | void;
-  /** The primary weapon for `buildEquipment`. */
-  protected arm(ctx: ShardContext, targets: HybridTargets): HybridWeapon {
-    if (this.heldOwner !== null) return this.heldOwner;
-    const source = this.runtimeSource, rows = this.runtimeRows.melee;
-    if (rows === undefined) throw new Error('Missing declared held equipment');
-    return bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
-      if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
-    }, create: (_row, spec, ports) => this.createMelee(ctx, ports.contacts, targets, spec.charge) });
-  }
-  /** The weapon now built (null before `buildEquipment`). */
-  protected armed(): HybridWeapon | null { return this.heldOwner; }
-  /** The bodies the SF27 activation receipt reports. */
-  protected witnessed(): readonly AnimalBody[] {
-    const row = this.runtimeRows.population?.witness;
-    if (row === undefined) return [];
-    return 'groups' in row ? row.groups.flatMap(group => this.actors(group))
-      : (this.populationHomes?.all() ?? []).filter(actor => row.kinds.includes(actor.kind));
-  }
-  /** Actual retained actor under its declared placement id, never a reconstructed copy. */
-  actor(id: string): AnimalBody | null { return this.populationHomes?.held(id) ?? this.populationHomes?.homes.find(home => home.id === id)?.animal ?? null; }
-  protected actors(group: string): AnimalBody[] {
-    const rows = this.runtimeRows.population?.groups?.[group];
-    if (rows === undefined) throw new Error('Unknown declared population group');
-    return rows.flatMap(row => this.actor(row.id) ?? []);
-  }
-  protected populate(ctx: ShardContext, source: Shardfile, ports?: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }): void;
-  protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }, pause: () => Promise<void>): Promise<void>;
-  protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null } = {}, pause?: () => Promise<void>): void | Promise<void> {
-    const row = this.runtimeRows.population; if (row === undefined) throw new Error('Missing declared population installation');
-    const installation: RuntimeHomePorts = { system: row.system,
-      decisionActors: parseDecisionScripts(outputDescriptor(source)?.sections.get('sim/scripts') ?? []).filter(script => 'spawnGroup' in script.binding).flatMap(script => Object.values(script.actors)),
-      ...(row.held === undefined ? {} : { held: row.held }), spawned: animal => {
-        ports.spawned?.(animal); this.populationCatalogue?.prepareHeld(animal.kind, animal);
-      },
-      ...(row.bodyHomes === undefined ? {} : { bodyHomes: { rows: row.bodyHomes, authority: this.populationBrains } }),
-      ...(row.holds === undefined ? {} : { holds: { ...row.holds, flags: ports.flags ?? null } }) };
-    if (pause === undefined) { this.populationHomes = bindRuntimeHomes(ctx, source, installation); return; }
-    return bindRuntimeHomes(ctx, source, installation, pause).then(homes => { this.populationHomes = homes; return undefined; });
-  }
-  /** Everything after the loot, in the shard's own order. */
-  protected abstract install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
-  /** Kit work after the rows, before `buildEquipment`. */
-  protected prepare(_ctx: ShardContext): void { /* none by default */ }
-  /** The weapon's look once it is in the viewmodel (the host takes it out again with the scope). */
-  protected dress(_ctx: ShardContext, _weapon: HybridWeapon): void { /* none by default */ }
-  /** Play work before the audio. */
-  protected enter(_ctx: ShardContext): void { /* none by default */ }
-
-  override async world(ctx: ShardContext): Promise<void> {
-    if (this.rowState === null) {
-      const source = ctx.product.shardfile, rows = this.rows(ctx.product);
-      this.rowState = { product: ctx.product, source, rows };
-    } else if (this.rowState.product !== ctx.product) throw new Error('Hybrid rows belong to another product');
-    const index = outputDescriptor(ctx.product.shardfile)?.index;
-    if (ctx.product.has('sim/scripts')) await Promise.all(ctx.product.section('sim/scripts').filter(row => row.side === 'sim').map(async row => {
-      const hash = row.module.slice('blobs/wasm/'.length, -'.wasm'.length), file = index?.files.find(value => value.hash === hash);
-      if (file?.name === undefined) throw new Error('Decision module needs its admitted logical name');
-      this.decisionAssets.set(hash, await ctx.product.file(file.name));
-    }));
-    ctx.scope.onDispose(() => { this.decisionAssets.clear(); this.decisionAuthority = null; });
-    ctx.strings(this.runtimeRows.strings); await this.build(ctx);
-    if (this.runtimeRows.melee !== undefined) {
-      // Keep presentation out of renderer-free imports and use the existing phase/contact owner.
-      const held = await import('./weaponFamily'); this.heldFactory = held.createDeclaredHeldMelee;
-      if (this.runtimeRows.melee.composed === true) this.heldSecondary = (await import('./simulation')).startMeleeSecondary;
-    }
-    const bounds = this.runtimeRows.boot?.bounds, runtime = ctx.game.runtime;
-    if (bounds !== undefined && runtime !== undefined) {
-      if (![bounds.x0, bounds.x1, bounds.z0, bounds.z1, bounds.floor].every(Number.isFinite) || bounds.x0 >= bounds.x1 || bounds.z0 >= bounds.z1) throw new Error('Invalid declared runtime bounds');
-      runtime.hooks.levelBounds = () => ({ ...bounds });
-    }
-  }
-  override kit(ctx: ShardContext): void {
-    const rows = this.runtimeRows, rt = ctx.game.runtime;
-    if (!this.aliasesBound) {
-      const aliases = new Map<string, () => unknown>();
-      const add = (name: string, read: () => unknown): void => {
-        if (aliases.size >= 1024 || aliases.has(name)) throw new Error('Population inspection aliases must be bounded and unique');
-        aliases.set(name, read);
-      };
-      for (const [name, row] of Object.entries(rows.inspect?.actors ?? {})) {
-        if ('held' in row ? row.held.length === 0 : !Number.isSafeInteger(row.home) || row.home < 0) throw new Error('Invalid population inspection address');
-        add(name, () => 'held' in row ? this.actor(row.held) : this.populationHomes?.homes[row.home]?.animal ?? null);
-      }
-      if (rows.melee?.expose !== undefined) add(rows.melee.expose, () => this.heldOwner);
-      if (rows.inspect?.roster !== undefined) add(rows.inspect.roster, () => this.populationHomes);
-      if (rows.inspect?.boss !== undefined) add(rows.inspect.boss, () => this.presentedBoss);
-      for (const name of aliases.keys()) if (name in this || !/^[A-Za-z][A-Za-z0-9]*$/u.test(name)) throw new Error('Population inspection alias conflicts with its owner');
-      for (const [name, get] of aliases) Object.defineProperty(this, name, { get, configurable: false, enumerable: true });
-      this.aliasesBound = true;
-    }
-    ctx.rows.weapon(rows.weapon);
-    let species: { rows: Parameters<ShardContext['rows']['species']>[0]; looks: Parameters<ShardContext['rows']['speciesLook']>[0]; witness: (actor: AnimalBody) => string | null };
-    if (typeof rows.species === 'function') species = rows.species();
-    else {
-      const program = rows.species, brains = admitSpeciesProgram(program.program);
-      this.populationBrains = brains;
-      const catalogue = brains.catalogue(program.page, { decisions: { bind: (actor, row, body) => {
-        const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;
-        if (world === null || world === undefined || physics === null || health === null) throw new Error('Decision body requires its actual page world');
-        this.decisionAuthority ??= borrowedDecisionAuthority(this.runtimeSource, this.decisionAssets, outputDescriptor(this.runtimeSource)?.sections ?? new Map(), {
-          scope: ctx.scope, events: ctx.app.events, flags: this.pageQuest.flags, physics,
-          player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, health, motor: world.player.motor },
-          groundHeightAt: (x, z) => { const hit = floorBelow(physics, x, z, world.player.position.y + 500, 1000);
-            if (hit === undefined) throw new Error('Decision ground query has no floor'); return hit; },
-          live: candidate => ctx.game.runtime?.play?.animals.animals.some(value => value === candidate) === true,
-          fixed: (id, run, scope) => { ctx.app.addSystem({ id, phase: 'fixed.post', when: () => !scope.disposed && ctx.app.state === 'play', run }, scope); },
-        });
-        return this.decisionAuthority.bind(actor, row, body);
-      } }, ...(program.homes === undefined ? {} : { homes: program.homes }),
-        ...(program.shove === true ? { held: { shove: (yaw, speed, lift) => { this.populationPush?.(yaw, speed, lift); } } } : {}) });
-      this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks ?? (program.library === undefined ? [] : rigLibrary(program.library).looks), witness: brains.witness };
-    }
-    this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
-    ctx.rows.encounter(rows.encounters);
-    if (rows.melee?.stage === 'kit') {
-      const primary = this.runtimeSource.items.rows.find(row => row.id === this.runtimeSource.items.loadout.primary);
-      if (primary?.kind !== 'weapon' || primary.contacts === undefined) throw new Error('Held kit needs admitted contact rows');
-      this.createMelee(ctx, primary.contacts);
-    }
-    this.prepare(ctx);
-    if (rt) rt.buildEquipment = runtimeEquipment([{ slot: 'primary', create: (targets) => {
-      const primary = this.arm(ctx, targets);
-      primary.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(rows.weapon, 'heavy'); else rt.play?.cues.fire(rows.weapon); };
-      return primary;
-    } }]);
-  }
-  override async play(ctx: ShardContext): Promise<void> {
-    const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
-    if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); ctx.scope.onDispose(() => { weapon.model.removeFromParent(); }); this.dress(ctx, weapon); }
-    if (typeof this.runtimeRows.species !== 'function' && this.runtimeRows.species.shove === true) {
-      const push = bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).directed;
-      installEnteredRuntimeService(ctx, scope => { this.populationPush = push; scope.onDispose(() => { if (this.populationPush === push) this.populationPush = null; }); });
-    }
-    const boot = this.runtimeRows.boot;
-    if (boot?.pitch !== undefined && rt?.world) {
-      if (!Number.isFinite(boot.pitch)) throw new Error('Invalid declared entry pitch');
-      rt.world.player.pitch = boot.pitch;
-    }
-    const contexts = boot?.itemContexts === 'source' ? this.runtimeSource : boot?.itemContexts;
-    if (contexts !== undefined) bindRuntimeItemContexts(ctx, contexts);
-    const stowedMode = this.runtimeRows.melee?.stowedMode;
-    if (stowedMode !== undefined && this.heldOwner !== null) this.heldOwner.stowed = () => ctx.app.player?.mode === stowedMode;
-    this.enter(ctx);
-    const audio = this.runtimeRows.audio ?? this.runtimeSource.audio;
-    installRuntimeAudio(ctx, audio, this.runtimeRows.cues);
-    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
-    const page = this.runtimeRows.pageQuest;
-    if (page !== undefined) {
-      const source = this.runtimeSource;
-      const borrowed = Object.entries(this.runtimeRows.owners ?? {});
-      if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid page quest owners');
-      const owners = new Map<string, unknown>([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
-      // Page presentation is never imported by the renderer-free native host.
-      const { installBorrowedPageQuest, bindBorrowedPageQuestStages } = await import('./ui');
-      this.pageStageFactory=bindBorrowedPageQuestStages;
-      const installed = installBorrowedPageQuest(ctx, source, page, owners, bindRuntimeCoins(ctx, loot?.purse ?? null), rt?.world?.player.position ?? this.player);
-      this.savedPageQuest = installed; this.quest = installed.quest;
-      if (page.progress === true) installed.persistence.bindProgress(rt?.play?.progress);
-      owners.set('quest', installed);
-      const calls = new Map(Object.entries(page.capture ?? {}).map(([id, row]) => {
-        const method = bindBorrowedMethod(owners, row);
-        return [id, () => { method(); }] as const;
-      }));
-      this.bindQuestCapture(page.data.capture ?? {}, installed.flags, calls);
-    }
-    const motion = this.runtimeRows.clientMotion;
-    if (motion !== undefined) {
-      const source = this.runtimeSource, channels = this.clientChannels;
-      if (channels === null || rt?.world === undefined || rt.world === null) throw new Error('Declared page motion needs its source, channels and world');
-      const { runtimeProduct } = await import('../shardfile/runtimeProduct');
-      this.clientMotion = await channels.installMovers(ctx, rt.world, source, motion, this.pageQuest.flags, runtimeProduct(source).assets);
-      if (ctx.scope.disposed) { this.clientMotion = null; throw new Error('Page motion scope ended during installation'); }
-    }
-    // Install only the mode section assigned to this runtime owner.
-    if (this.runtimeSource.runtime?.binds?.includes('modes') === true) {
-      bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).columns(this.runtimeSource.modes?.traverse ?? [],
-        () => rt?.world?.player.position ?? this.player, () => ctx.app.player?.mode === 'board',
-        (id, run) => { ctx.system({ id, phase: 'fixed.pre', run }); });
-    }
-    await this.install(ctx, loot);
-    if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.runtimeRows.complete] : [];
-    ctx.debug.expose(this.runtimeRows.expose, this);
-  }
-  /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
-  brainWitness(): { id: string; kind: string; family: string | null }[] {
-    return this.witnessed().map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.witness?.(actor) ?? null }));
-  }
-
-}
-
-/** Bind a boss's original legacy seed once, retaining its admitted state or flag
- * owner as the only writer. Both hybrid browser encounters use this path. */
-export function bindRuntimeBossRecord(ctx: Pick<ShardContext, 'app' | 'scope'> & Partial<Pick<ShardContext, 'manifest'>>, source: Shardfile, row: BossRecordRow,
-  flags?: BossRowFlags, instance = source.identity.slug): {
-  readonly read: () => ReturnType<typeof parseBossRecord>; readonly write: (saved: ReturnType<typeof parseBossRecord>) => void; readonly flush: () => boolean;
-} {
-  if (row.kind === 'flags') {
-    if (flags === undefined) throw new Error('Boss flag record requires its actual flag owner');
-    const legacy = bossesSave.read(ctx.manifest?.slug ?? source.identity.slug)[row.actor];
-    if (legacy?.defeated === true) flags.set(row.names.defeated);
-    if (legacy?.rewardTaken === true) flags.set(row.names.paid);
-    const record = bossFlagRecord(flags, row.names);
-    return { read: () => record.saved, write: record.persist, flush: () => true };
-  }
-  const state = bindRuntimeState(ctx, source, row.key, () => JSON.stringify(bossesSave.read(source.identity.slug)[row.actor]
-    ?? { defeated: false, rewardTaken: false, kills: 0 }), instance);
-  return { read: () => {
-    const saved = state.read(); if (typeof saved !== 'string') throw new Error(row.jsonError);
-    const parsed: unknown = JSON.parse(saved); return parseBossRecord(parsed);
-  }, write: saved => { if (!state.write(JSON.stringify(parseBossRecord(saved)))) throw new Error(row.writeError); },
-  flush: () => state.write(state.read()) };
-}
-
-/** Authored persistence sources; legacy booleans are read only, never a second writer. */
-export interface RuntimePersistenceRows {
-  readonly reward: { readonly kind: 'state' | 'flag'; readonly key: string; readonly legacy: string };
-  readonly boss?: { readonly record: BossRecordRow; readonly defeated: { readonly fact: string; readonly entity: string } };
-}
-/** One read-only legacy reward slot per save store and key. A runtime admitted again (a grid cell entered a second time
- *  after its region retired) binds its persistence again, and the store refuses a second definition of one id
- *  ("Duplicate save definition: shard/sunscar.signal" refused Signal's re-entry, W1 grid-ready check 2026-10-14). */
-const legacyRewardSlots = new WeakMap<SaveStore, Map<string, SaveSlot<boolean>>>();
-function legacyRewardSlot(saves: SaveStore, key: string): SaveSlot<boolean> {
-  let slots = legacyRewardSlots.get(saves);
-  if (slots === undefined) { slots = new Map(); legacyRewardSlots.set(saves, slots); }
-  let slot = slots.get(key);
-  if (slot === undefined) { slot = saves.define({ key, scope: 'shard', version: 1, schema: v.boolean(), initial: () => false }); slots.set(key, slot); }
-  return slot;
-}
-/** One reward owner and one projected ledger for browser continuation. */
-export interface RuntimePersistence {
-  readonly facts: RuntimeFacts;
-  readonly rewarded: { read: () => boolean; write: (value: boolean) => void };
-  readonly boss: ReturnType<typeof bindRuntimeBossRecord> | null;
-  readonly legacyPaid: boolean;
-  readonly bindProgress: (progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined) => void;
-}
-export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  rows: RuntimePersistenceRows & { readonly boss: NonNullable<RuntimePersistenceRows['boss']> },
-  flags?: Pick<Flags, 'has' | 'set'>, instance?: string): RuntimePersistence & { readonly boss: ReturnType<typeof bindRuntimeBossRecord> };
-export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  rows: RuntimePersistenceRows, flags?: Pick<Flags, 'has' | 'set'>, instance?: string): RuntimePersistence;
-/** Bind declared reward/encounter persistence and drain every durable owner before checkpointing. */
-export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
-  rows: RuntimePersistenceRows, flags?: Pick<Flags, 'has' | 'set'>, instance = source.identity.slug): RuntimePersistence {
-  const row = rows.reward;
-  const legacy = legacyRewardSlot(ctx.app.saves, row.legacy);
-  const state = row.kind === 'state' ? bindRuntimeState(ctx, source, row.key, () => legacy.read(source.identity.slug), instance) : null;
-  if (row.kind === 'flag' && flags === undefined) throw new Error('Declared reward needs its flag owner');
-  const rewarded = { read: (): boolean => {
-    const value = state === null ? flags?.has(row.key) : state.read();
-    if (typeof value !== 'boolean') throw new Error('Reward state must be boolean'); return value;
-  }, write: (value: boolean): void => {
-    if (state !== null) { if (!state.write(value)) throw new Error('Reward checkpoint is not durable'); }
-    else { if (flags === undefined) throw new Error('Missing reward flag owner'); flags.set(row.key, value); }
-  } };
-  const boss = rows.boss === undefined ? null : bindRuntimeBossRecord(ctx, source, rows.boss.record, flags, instance);
-  const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), undefined);
-  if (boss?.read().defeated === true && rows.boss !== undefined) facts(rows.boss.defeated.fact, rows.boss.defeated.entity);
-  return { facts, rewarded, boss, legacyPaid: legacy.read(instance), bindProgress: progress => {
-    facts.bindProgress(progress, () => { const reward = state === null || state.write(state.read()), encounter = boss?.flush() ?? true, ledger = facts.flush(); return reward && encounter && ledger; });
-  } };
 }

@@ -35,7 +35,9 @@ async function runtimeClientPhase(ctx: ShardContext, phase: ClientPhase, residen
 export interface HybridResident {
   readonly instance: string;
   readonly slug: string;
-  readonly declaration: RuntimeDeclaration;
+  readonly declaration: RuntimeDeclaration | null;
+  /** Required actual admitted product when compiled client features own every stage. */
+  readonly product?: ShardProduct;
   readonly firstParty: boolean;
   readonly scope: Scope;
   readonly runtime: ShardRuntime;
@@ -387,7 +389,13 @@ export class HybridRuntimeSession {
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.prepared.get(instance); if (prior !== undefined) return prior;
-    const prepared = prepareTrustedRuntime(resident.declaration, resident.slug, resident.firstParty, this.entries);
+    const prepared = resident.declaration === null ? Promise.resolve().then(() => {
+      const product = resident.product;
+      if (product === undefined || !product.has('client/plan')) throw new Error('Data resident requires its admitted client plan');
+      admitClientPlan(product.section('client/plan'), product);
+      // The lifecycle remains staged, but every authored operation is a compiled data feature.
+      return class extends ShardPlugin {};
+    }) : prepareTrustedRuntime(resident.declaration, resident.slug, resident.firstParty, this.entries);
     this.prepared.set(instance, prepared);
     void prepared.catch(() => { if (this.prepared.get(instance) === prepared) this.prepared.delete(instance); });
     return prepared;

@@ -9,12 +9,19 @@ import mill from '../data/millScene.generated.json' with { type: 'json' };
 import world from '../data/worldRows.generated.json' with { type: 'json' };
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
+import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import ground from '../data/groundScene.generated.json' with { type: 'json' };
+import rest from '../data/restScenes.generated.json' with { type: 'json' };
+import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY } from './islandScenes';
+import { SKY_MEADOW_BLOB, SKY_MEADOW_FILE } from './meadowScene';
 
 interface Reference { readonly library: string; readonly model: string }
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
-export const SKY_SCENE_BLOBS = [...SKY_SOURCE_BLOBS];
+export const SKY_SCENE_BLOBS = [...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, SKY_MEADOW_BLOB];
 const steps: unknown[] = [], materials = new Map<string, unknown>();
-const geometry = (name: string): Reference => name === 'post-hd' ? { library: 'heroes', model: `hero-${name}` }
+const geometry = (name: string): Reference => SKY_ISLAND_LIBRARY.models.some(row => row.id === name) ? { library: 'islands', model: name }
+  : name.startsWith('hero-') ? { library: 'heroes', model: name }
+  : name === 'post-hd' ? { library: 'heroes', model: `hero-${name}` }
   : heroes.pool.parts.includes(name) ? { library: 'heroes', model: name } : { library: 'sky', model: name };
 function material(source: string): string {
   if (materials.has(source)) return source;
@@ -49,8 +56,20 @@ const contact = (piece: string, baked?: string, cube: 'standalone' | 'cell' = 's
 const registration = (piece: string, part: string, colliders: readonly unknown[]) => {
   const row = world.pieces.find(value => value.id === piece);
   if (row === undefined) throw new Error(`Missing original scene piece ${piece}`);
-  return { id: row.id, name: row.name, file: row.file, category: row.category, surface: row.surface, part, colliders, ...('mode' in row ? { mode: row.mode } : {}) };
+  return { id: row.id, name: row.name, file: row.file, category: row.category, ...(row.surface === undefined ? {} : { surface: row.surface }), part, colliders, ...('mode' in row ? { mode: row.mode } : {}) };
 };
+scene('ground', ground.SKY_GROUND.recipe, {
+  registry: ground.SKY_GROUND.bindings.map(row => registration(row.piece, row.part, contact(row.piece))),
+});
+for (const cube of ['standalone', 'cell'] as const) {
+  const row = fixed[cube];
+  // Native scene bindings omit colliders for visual-only groups; baked imports
+  // and explicitly declared contact rows retain the original arrays.
+  scene(`static-${cube}`, row.recipe, { cube,
+    registry: row.bindings.map(binding => registration(binding.piece, binding.part,
+      'baked' in binding ? contact(binding.piece, row.recipe.imports.find(entry => entry.id === binding.baked && entry.kind === 'baked')?.piece, cube) : fixed[cube].fixed.colliders.find(piece => piece.id === binding.piece)?.colliders ?? [])),
+  });
+}
 scene('routes', { scene: routes.SKY_ROUTE_SCENE, imports: [] }, {
   publish: { glass: { kind: 'standard-material', part: 'glass' } },
   registry: routes.SKY_ROUTES.bindings.map(row => registration(row.piece, row.part, contact(row.piece))),
@@ -60,7 +79,12 @@ scene('posts', { scene: { version: 1, root: 'root', materials: [], nodes: [
 ] }, imports: [{ id: 'bake', kind: 'baked', piece: 'islet-rig' }] }, {
   registry: [{ id: 'far.islet.posts', name: STRINGS.islet, file: 'src/shards/far-reach/world/build.ts', category: 'props', surface: 'wood', part: 'bake', colliders: contact('', 'islet-rig') }],
 });
-scene('frames', routes.SKY_ROUTE_FRAMES.recipe, { publish: routes.SKY_ROUTE_FRAMES.bindings });
+scene('frames', routes.SKY_ROUTE_FRAMES.recipe, {
+  registry: [{ ...registration(LAYOUT.FALLEN_BRIDGE.id, routes.SKY_ROUTE_FRAMES.bindings.fallen.part,
+    contact(LAYOUT.FALLEN_BRIDGE.id)), active: 'frames.winch-up' }],
+  publish: { ...routes.SKY_ROUTE_FRAMES.bindings, 'winch-up': { kind: 'number', value: 0 },
+    'winch-at': routes.SKY_ROUTE_FRAMES.bindings.winchAt, 'notes-at': routes.SKY_ROUTE_FRAMES.bindings.notesAt },
+});
 scene('vanes', routes.SKY_VANES.recipe, {
   publish: routes.SKY_VANES.ports,
   registry: routes.SKY_VANES.bindings.map(row => registration(row.piece, row.part, contact(row.piece))),
@@ -81,6 +105,20 @@ for (const cube of ['standalone', 'cell'] as const) {
   recipe.scene.nodes.push({ kind: 'group', id: 'islets.far.islet.rails', children: [] });
   scene(`fixed-${cube}`, recipe, { cube, registry, publish: { millHub: { kind: 'object', part: 'mill.hub' } } });
 }
+scene('storm', { scene: rest.storm, imports: [] });
+const moving = parseWorldScene({ scene: islets.scene, imports: [] });
+moving.scene.nodes = moving.scene.nodes.map(node => {
+  if (node.kind !== 'object' || !node.source.startsWith('islet.')) return node;
+  const { source, ...frame } = node;
+  return { ...frame, kind: 'mesh', geometry: source, material: 'isle-paint', missing: 'empty' };
+});
+moving.scene.materials.push({ kind: 'port', id: 'isle-paint', source: 'isle-paint' });
+// Painted meshes use ShaderMaterial; the existing mesh binding requires a
+// MeshStandardMaterial. Motion borrows their actual Object3D identities.
+scene('moving-islets', moving, { publish: Object.fromEntries(moving.scene.nodes.filter(node => node.id !== 'root').map(node => [node.id, { kind: node.kind === 'mesh' ? 'object' : 'group', part: node.id }])) });
+scene('meadow', { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: [] }], materials: [] }, imports: [] }, {
+  draws: [{ kind: 'buffered', file: SKY_MEADOW_FILE, material: material('meadow') }],
+});
 // The Explorer's original neutral kit and vane are separate model steps. They
 // borrow the same actual source geometry, never a rebuilt TS specimen.
 scene('specimen-bridge', { scene: routes.SKY_BRIDGE_KIT, imports: [] }, { load: 'explorer' });
@@ -92,4 +130,5 @@ millRecipe.scene.textures.push({ kind: 'port', id: 'foot-map', source: 'mill-foo
 // The tower's mapped look uses the same original atlas as the live mill.
 for (const row of millRecipe.scene.materials) if (row.kind === 'port' && row.source === 'tower') row.source = 'mill-tower:mill-tower';
 scene('specimen-mill', millRecipe, { load: 'explorer', publish: mill.MILL_SCENE.bindings });
-export const SKY_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: SKY_SOURCE_LIBRARIES, materials: [...materials.values()], steps });
+export const SKY_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: [...SKY_SOURCE_LIBRARIES, SKY_ISLAND_LIBRARY], materials: [...materials.values()], steps,
+  cosmeticDraws: ground.SKY_GROUND.cosmeticDraws });

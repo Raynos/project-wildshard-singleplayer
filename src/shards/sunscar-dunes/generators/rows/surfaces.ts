@@ -1,4 +1,4 @@
-import type { HdLookRow } from '@wildshard/sdk/looks/modelLibrary';
+import type { HdLookRow } from '@wildshard/game/plugin/geometry';
 import type { FirelightLook, SurfaceLook, ViewerLightLook } from '@wildshard/format/surfaceLooks';
 import type { DuneHdName } from './files';
 

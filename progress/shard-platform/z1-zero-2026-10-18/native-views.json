@@ -1,0 +1,2646 @@
+{
+  "sky-before": {
+    "build": "8efba31-mvdvfzm1",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, time and cloud time 10, sun-shaft pulse 1, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "956487565cc872f20b2a17cc31793ce921e96a3b65d6d60327dae6ac5efc72a3",
+        "gpuBytes": 170266834,
+        "programs": 173,
+        "shaderCount": 222,
+        "shaders": "a08dd67c1495ac379f4ed7adc1b15eab2c765addb98faef032d797b17a502db4"
+      },
+      "desktop": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "956487565cc872f20b2a17cc31793ce921e96a3b65d6d60327dae6ac5efc72a3",
+        "gpuBytes": 317706430,
+        "programs": 173,
+        "shaderCount": 222,
+        "shaders": "964766c792165d1f56d8258482cb79bca50601ad83fd9b009f6b5f92e15d77ae"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunrest-sun",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 127,
+        "triangles": 1731113,
+        "lit": 1094883,
+        "pixels": "9849981f71a66a24a16ec812df858a22777117296fcced386c2756d97d687918",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-sunrest-sun.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-east",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 84,
+        "triangles": 1562558,
+        "lit": 1094814,
+        "pixels": "8a0cf039e5a542513cc182eb30a8f02c45ec0bbdf2106362dbfe4fd5dbbd1919",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-sunrest-east.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-back",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 71,
+        "triangles": 1521872,
+        "lit": 1092420,
+        "pixels": "6076c03f2012974ba80661422aaa160aad6d2ccd18060e8f46ce9d6d25d0fb91",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-sunrest-back.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "windmill-sea",
+        "player": [
+          6,
+          31,
+          -60
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 86,
+        "triangles": 1559125,
+        "lit": 1094605,
+        "pixels": "c77304916c7aa4a5836c3ccbd7326c0ec59f4fb5aa5324209441df2070ffeb9d",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-windmill-sea.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "crown",
+        "player": [
+          0,
+          45,
+          -190
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 202,
+        "triangles": 1955146,
+        "lit": 1086840,
+        "pixels": "e9d0cf9989d9d8942dee44b2348c8eba40d0ace6c70f58fe32a6d9731b769ff7",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-crown.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "roost",
+        "player": [
+          60,
+          35,
+          -12
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 144,
+        "triangles": 1723563,
+        "lit": 1094650,
+        "pixels": "25910d377e7c518637b2a671d6473f321887ffe29643719fa1c086e76d583c95",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-roost.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:driftRay",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 900,
+        "lit": 25967,
+        "pixels": "6090efc7c639270f400823d262cb49f8d2f099ed5e6f8ee71f85a3c9e3744448",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-creature-driftRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:galeWisp",
+        "player": [
+          1,
+          3,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 136,
+        "lit": 42798,
+        "pixels": "90791c608a1ffa62cf06a2716783c3c99b3d77a42e9d5d2cc57b4ba57f77c8e6",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-creature-galeWisp.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:skyGoat",
+        "player": [
+          0.982,
+          6,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1087,
+        "lit": 42039,
+        "pixels": "8baa1ab12cc03be55f19e8d2939d697401aae7d10684a4d36522759c5f0ba9c2",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-creature-skyGoat.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:stormRoc",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 11760,
+        "lit": 68855,
+        "pixels": "785175e5f9dd0a62a94dd36c6276e4d789b3d791849a98d419957a47d3cf5c70",
+        "raw": "tmp/sp-x5-sky-static/current-base/phone-creature-stormRoc.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-sun",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 133,
+        "triangles": 1924131,
+        "lit": 615663,
+        "pixels": "acda7b7911d2086f32a857edd1cc901d280429502b5f7bad15ea74ff2567533b",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-sunrest-sun.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-east",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 84,
+        "triangles": 1799228,
+        "lit": 615663,
+        "pixels": "64e3b6224111202fe10261f9c6bd439699bf2a488e57a75e14907aff41407bac",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-sunrest-east.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-back",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 75,
+        "triangles": 1757124,
+        "lit": 615663,
+        "pixels": "2090140e6721672fd4aa34d549c4c7f8848bd599bf1722ba078f3289299a8789",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-sunrest-back.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "windmill-sea",
+        "player": [
+          6,
+          31,
+          -60
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 86,
+        "triangles": 1722075,
+        "lit": 615647,
+        "pixels": "72712de4a35c418e7ca3e96b3f9edf7b86154f77e302a738a3972aa7f0da2cef",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-windmill-sea.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "crown",
+        "player": [
+          0,
+          45,
+          -190
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 208,
+        "triangles": 2164294,
+        "lit": 613075,
+        "pixels": "b0614e9d66e16db59e4b29d97932c0e993a4eab154b32eee3352009e0ce06aac",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-crown.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "roost",
+        "player": [
+          60,
+          35,
+          -12
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 148,
+        "triangles": 1919967,
+        "lit": 615627,
+        "pixels": "446a448dd5027ae7217496fcea08da37a91e8a580f3731311cd6de3b93ed5868",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-roost.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:driftRay",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 900,
+        "lit": 14619,
+        "pixels": "88c4f7e0cc0dc9dba6149a9d0bc156f83368b604a99960083675df5e1320c1b8",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-creature-driftRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:galeWisp",
+        "player": [
+          1,
+          3,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 136,
+        "lit": 24053,
+        "pixels": "3d0a9feca424d60eedfc6619951e5118276bde1f6c238387475d1a5e2a62247d",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-creature-galeWisp.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:skyGoat",
+        "player": [
+          0.982,
+          6,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1087,
+        "lit": 23636,
+        "pixels": "ef53190eb7664b10d3b2ad610a51755814f7bfcefa8e7557ea32eb8889abfca6",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-creature-skyGoat.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:stormRoc",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 11760,
+        "lit": 38699,
+        "pixels": "febaad46287b37ae1376dca36e32c50f11f2d68b91f4f1f38d53748460a49a1b",
+        "raw": "tmp/sp-x5-sky-static/current-base/desktop-creature-stormRoc.rgba"
+      }
+    ]
+  },
+  "sky-after": {
+    "build": "0ac1503-mvdz0e8d",
+    "profile": "iPhone 16 Pro / DPR2 / Metal; plain scene render, time and cloud time 10, sun-shaft pulse 1, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "0d17b040c4e9191d8e90837212c2a2b9d936cd4d6ce2852473cc81d6531c1bcc",
+        "gpuBytes": 170265994,
+        "programs": 174,
+        "shaderCount": 224,
+        "shaders": "abc80e36dd72f974eff19da39d4970fbafa6d6c33214f374f470f94381036420"
+      },
+      "desktop": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "0d17b040c4e9191d8e90837212c2a2b9d936cd4d6ce2852473cc81d6531c1bcc",
+        "gpuBytes": 317705590,
+        "programs": 174,
+        "shaderCount": 224,
+        "shaders": "42797d33931af5999441c5d49fd1534bfb4bb2aebe61328edb4bb0b51d5d305f"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunrest-sun",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 127,
+        "triangles": 1731113,
+        "lit": 1094883,
+        "pixels": "9849981f71a66a24a16ec812df858a22777117296fcced386c2756d97d687918",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-sunrest-sun.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-east",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 84,
+        "triangles": 1562558,
+        "lit": 1094814,
+        "pixels": "8a0cf039e5a542513cc182eb30a8f02c45ec0bbdf2106362dbfe4fd5dbbd1919",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-sunrest-east.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-back",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 71,
+        "triangles": 1521872,
+        "lit": 1092420,
+        "pixels": "6076c03f2012974ba80661422aaa160aad6d2ccd18060e8f46ce9d6d25d0fb91",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-sunrest-back.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "windmill-sea",
+        "player": [
+          6,
+          31,
+          -60
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 86,
+        "triangles": 1559125,
+        "lit": 1094605,
+        "pixels": "c77304916c7aa4a5836c3ccbd7326c0ec59f4fb5aa5324209441df2070ffeb9d",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-windmill-sea.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "crown",
+        "player": [
+          0,
+          45,
+          -190
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 202,
+        "triangles": 1955146,
+        "lit": 1086840,
+        "pixels": "627801bd45a186624c14be29c4c62980e633b6a2d5647819fc031ddfbd886d8e",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-crown.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "roost",
+        "player": [
+          60,
+          35,
+          -12
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 144,
+        "triangles": 1723563,
+        "lit": 1094650,
+        "pixels": "25910d377e7c518637b2a671d6473f321887ffe29643719fa1c086e76d583c95",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-roost.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:driftRay",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 900,
+        "lit": 25967,
+        "pixels": "6090efc7c639270f400823d262cb49f8d2f099ed5e6f8ee71f85a3c9e3744448",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-creature-driftRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:galeWisp",
+        "player": [
+          1,
+          3,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 136,
+        "lit": 42798,
+        "pixels": "90791c608a1ffa62cf06a2716783c3c99b3d77a42e9d5d2cc57b4ba57f77c8e6",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-creature-galeWisp.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:skyGoat",
+        "player": [
+          0.982,
+          6,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1087,
+        "lit": 42039,
+        "pixels": "8baa1ab12cc03be55f19e8d2939d697401aae7d10684a4d36522759c5f0ba9c2",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-creature-skyGoat.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:stormRoc",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 11760,
+        "lit": 68855,
+        "pixels": "785175e5f9dd0a62a94dd36c6276e4d789b3d791849a98d419957a47d3cf5c70",
+        "raw": "tmp/sp-x5-sky-static/z1-native/phone-creature-stormRoc.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-sun",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 133,
+        "triangles": 1924131,
+        "lit": 615663,
+        "pixels": "acda7b7911d2086f32a857edd1cc901d280429502b5f7bad15ea74ff2567533b",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-sunrest-sun.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-east",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 84,
+        "triangles": 1799228,
+        "lit": 615663,
+        "pixels": "64e3b6224111202fe10261f9c6bd439699bf2a488e57a75e14907aff41407bac",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-sunrest-east.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-back",
+        "player": [
+          0,
+          31,
+          3
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 75,
+        "triangles": 1757124,
+        "lit": 615663,
+        "pixels": "2090140e6721672fd4aa34d549c4c7f8848bd599bf1722ba078f3289299a8789",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-sunrest-back.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "windmill-sea",
+        "player": [
+          6,
+          31,
+          -60
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 86,
+        "triangles": 1722075,
+        "lit": 615647,
+        "pixels": "72712de4a35c418e7ca3e96b3f9edf7b86154f77e302a738a3972aa7f0da2cef",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-windmill-sea.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "crown",
+        "player": [
+          0,
+          45,
+          -190
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 208,
+        "triangles": 2164294,
+        "lit": 613075,
+        "pixels": "7b89cbfdf524e74e021831eeb60d4cf80e8c25eb06f2a38ef0f43c24392db062",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-crown.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "roost",
+        "player": [
+          60,
+          35,
+          -12
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 148,
+        "triangles": 1919967,
+        "lit": 615627,
+        "pixels": "446a448dd5027ae7217496fcea08da37a91e8a580f3731311cd6de3b93ed5868",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-roost.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:driftRay",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 900,
+        "lit": 14619,
+        "pixels": "88c4f7e0cc0dc9dba6149a9d0bc156f83368b604a99960083675df5e1320c1b8",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-creature-driftRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:galeWisp",
+        "player": [
+          1,
+          3,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 136,
+        "lit": 24053,
+        "pixels": "3d0a9feca424d60eedfc6619951e5118276bde1f6c238387475d1a5e2a62247d",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-creature-galeWisp.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:skyGoat",
+        "player": [
+          0.982,
+          6,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1087,
+        "lit": 23636,
+        "pixels": "ef53190eb7664b10d3b2ad610a51755814f7bfcefa8e7557ea32eb8889abfca6",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-creature-skyGoat.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:stormRoc",
+        "player": [
+          1,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 11760,
+        "lit": 38699,
+        "pixels": "febaad46287b37ae1376dca36e32c50f11f2d68b91f4f1f38d53748460a49a1b",
+        "raw": "tmp/sp-x5-sky-static/z1-native/desktop-creature-stormRoc.rgba"
+      }
+    ]
+  },
+  "signal-before": {
+    "build": "8efba31-mvdvfzm1",
+    "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain render, actual owner time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 144501472,
+        "programs": 82,
+        "shaderCount": 125,
+        "shaders": "d710e886f225bc49f37e5217960019846026c0370de007f8f3f0ea9753042ed2"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 211273088,
+        "programs": 82,
+        "shaderCount": 125,
+        "shaders": "9b53143df1a708b43d040eabae35129e667dd89ab94a17f0c4e5d74c68cea507"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "spawn-tower",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 137658,
+        "lit": 1095048,
+        "pixels": "79dbd57d3dffd2d3386201f61c01c1a7d46f45e54efeb58b93ce255c3097a36f",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-spawn-tower.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "spawn-back",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 39,
+        "triangles": 87158,
+        "lit": 1095041,
+        "pixels": "2bd5e1daffc94beed5968074b1b9f1f285312076a55522eb5e84096e4e158b21",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-spawn-back.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "caravan",
+        "player": [
+          -59.99999761813888,
+          14.53285123832058,
+          39.999999688211545
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 52,
+        "triangles": 142128,
+        "lit": 1095026,
+        "pixels": "b8552d6c295e93511aeb356209b9e89fed6025258d8424e3d6fd6741ad71c1b1",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-caravan.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "well",
+        "player": [
+          70.00001545021314,
+          14.439366929322478,
+          6.000054546895626
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 48,
+        "triangles": 88547,
+        "lit": 1095048,
+        "pixels": "22dea6432a9cdc15bcde40cd7b28771d529a74276cbab6d7743df3d79d4963a8",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-well.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "basin",
+        "player": [
+          -14.000010541542451,
+          3.8513768560041175,
+          -100.00006004776515
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 41,
+        "triangles": 90078,
+        "lit": 1095045,
+        "pixels": "1c08608221c690f231f9dda8de8c70c5902c24d104343bd0fdd6bbd5c314a45e",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-basin.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "edge-out",
+        "player": [
+          0,
+          22.363867328746412,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 42,
+        "triangles": 88182,
+        "lit": 848116,
+        "pixels": "c220d4cbd1d52d122a47589cac90d612383e33e3ddd29feada6ffc74bc7aad69",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-edge-out.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32214,
+        "pixels": "33b34bf6707aa7c3eaca9c3146c066a5da4a3742e2b13131a14212dbcc212b6b",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-creature-duneRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 65883,
+        "pixels": "2a25a51db176f4e4ca47c2be29dedb5c059f3a6147dac6c5bf15d879d08c7245",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 21547,
+        "pixels": "74462611c8f276a49f78ddf8fb3cd6910761c112f594d958cbd021dadbe2f13c",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/phone-creature-sandSkitterer.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-tower",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 72,
+        "triangles": 138906,
+        "lit": 615663,
+        "pixels": "2249e10fc37525e4413e6ba6363c3f0517329e1750c9db3da5b6a0e721873e23",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-spawn-tower.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-back",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 50,
+        "triangles": 89446,
+        "lit": 615659,
+        "pixels": "929e42ba41dff977978393635b53052a0247b249d18f3ba36966245d3790a208",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-spawn-back.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "caravan",
+        "player": [
+          -59.99999761813888,
+          14.53285123832058,
+          39.999999688211545
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 53,
+        "triangles": 143728,
+        "lit": 615653,
+        "pixels": "ded63556b8325e775cd63889ea99ae299ae7750af6222017841896e24e9f0981",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-caravan.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "well",
+        "player": [
+          70.00001545021314,
+          14.439366929322478,
+          6.000054546895626
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 48,
+        "triangles": 88547,
+        "lit": 615663,
+        "pixels": "9803b4387ad2889676ca67289bd91f94325a2951cbe76efb6c56ddc839451b62",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-well.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "basin",
+        "player": [
+          -14.000010541542451,
+          3.8513768560041175,
+          -100.00006004776515
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 99078,
+        "lit": 615662,
+        "pixels": "7763ecdeae0fe7aad2ee9d8fe6b5a07bd6214cfc0422f6cf4d0b7761d947d486",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-basin.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "edge-out",
+        "player": [
+          0,
+          22.363867328746412,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 88182,
+        "lit": 476810,
+        "pixels": "638166409f329480c05f9925e7ccb259cd4426f8d941ebd608e52cf0ce057492",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-edge-out.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18085,
+        "pixels": "5f22e5bd86664ecd22ffd675646e2cbcf80d21a720b014c53a69b6e6b4fa9c29",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-creature-duneRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 37039,
+        "pixels": "db9f2ea9e81477756ea654be1382ba48b540f274c0a961e4f6eec2650437d3f6",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 12112,
+        "pixels": "46824f918f8baba484c0c36f5b86006caf65589bb5a2f966f614f37413d02e9c",
+        "raw": "tmp/sp-x8-zero/z1-current-signal-day-base/desktop-creature-sandSkitterer.rgba"
+      }
+    ]
+  },
+  "signal-after": {
+    "build": "0ac1503-mvdz0e8d",
+    "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain render, actual owner time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 144501472,
+        "programs": 86,
+        "shaderCount": 130,
+        "shaders": "6cf9453bbdfc7cb6e69e2930069cf0bab83048b339e6496e5f7d8efc3278e839"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 211273088,
+        "programs": 86,
+        "shaderCount": 130,
+        "shaders": "f5b6020cf17fe12917d771a4402ad18f099f6cc7e2cae68f7d69d0c498b7adb1"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "spawn-tower",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 137658,
+        "lit": 1095048,
+        "pixels": "79dbd57d3dffd2d3386201f61c01c1a7d46f45e54efeb58b93ce255c3097a36f",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-spawn-tower.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "spawn-back",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 39,
+        "triangles": 87158,
+        "lit": 1095041,
+        "pixels": "2bd5e1daffc94beed5968074b1b9f1f285312076a55522eb5e84096e4e158b21",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-spawn-back.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "caravan",
+        "player": [
+          -59.99999761813888,
+          14.53285123832058,
+          39.999999688211545
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 52,
+        "triangles": 142128,
+        "lit": 1095026,
+        "pixels": "b8552d6c295e93511aeb356209b9e89fed6025258d8424e3d6fd6741ad71c1b1",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-caravan.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "well",
+        "player": [
+          70.00001545021314,
+          14.439366929322478,
+          6.000054546895626
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 48,
+        "triangles": 88547,
+        "lit": 1095048,
+        "pixels": "22dea6432a9cdc15bcde40cd7b28771d529a74276cbab6d7743df3d79d4963a8",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-well.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "basin",
+        "player": [
+          -14.000010541542451,
+          3.8513768560041175,
+          -100.00006004776515
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 41,
+        "triangles": 90078,
+        "lit": 1095045,
+        "pixels": "1c08608221c690f231f9dda8de8c70c5902c24d104343bd0fdd6bbd5c314a45e",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-basin.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "edge-out",
+        "player": [
+          0,
+          22.363867328746412,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 42,
+        "triangles": 88182,
+        "lit": 848116,
+        "pixels": "c220d4cbd1d52d122a47589cac90d612383e33e3ddd29feada6ffc74bc7aad69",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-edge-out.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32214,
+        "pixels": "33b34bf6707aa7c3eaca9c3146c066a5da4a3742e2b13131a14212dbcc212b6b",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-creature-duneRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 65883,
+        "pixels": "2a25a51db176f4e4ca47c2be29dedb5c059f3a6147dac6c5bf15d879d08c7245",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 21547,
+        "pixels": "74462611c8f276a49f78ddf8fb3cd6910761c112f594d958cbd021dadbe2f13c",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/phone-creature-sandSkitterer.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-tower",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 72,
+        "triangles": 138906,
+        "lit": 615663,
+        "pixels": "2249e10fc37525e4413e6ba6363c3f0517329e1750c9db3da5b6a0e721873e23",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-spawn-tower.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-back",
+        "player": [
+          0,
+          21.345231730397792,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 50,
+        "triangles": 89446,
+        "lit": 615659,
+        "pixels": "929e42ba41dff977978393635b53052a0247b249d18f3ba36966245d3790a208",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-spawn-back.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "caravan",
+        "player": [
+          -59.99999761813888,
+          14.53285123832058,
+          39.999999688211545
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 53,
+        "triangles": 143728,
+        "lit": 615653,
+        "pixels": "ded63556b8325e775cd63889ea99ae299ae7750af6222017841896e24e9f0981",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-caravan.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "well",
+        "player": [
+          70.00001545021314,
+          14.439366929322478,
+          6.000054546895626
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 48,
+        "triangles": 88547,
+        "lit": 615663,
+        "pixels": "9803b4387ad2889676ca67289bd91f94325a2951cbe76efb6c56ddc839451b62",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-well.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "basin",
+        "player": [
+          -14.000010541542451,
+          3.8513768560041175,
+          -100.00006004776515
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 99078,
+        "lit": 615662,
+        "pixels": "7763ecdeae0fe7aad2ee9d8fe6b5a07bd6214cfc0422f6cf4d0b7761d947d486",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-basin.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "edge-out",
+        "player": [
+          0,
+          22.363867328746412,
+          70
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 88182,
+        "lit": 476810,
+        "pixels": "638166409f329480c05f9925e7ccb259cd4426f8d941ebd608e52cf0ce057492",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-edge-out.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18085,
+        "pixels": "5f22e5bd86664ecd22ffd675646e2cbcf80d21a720b014c53a69b6e6b4fa9c29",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-creature-duneRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 37039,
+        "pixels": "db9f2ea9e81477756ea654be1382ba48b540f274c0a961e4f6eec2650437d3f6",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 12112,
+        "pixels": "46824f918f8baba484c0c36f5b86006caf65589bb5a2f966f614f37413d02e9c",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-day/desktop-creature-sandSkitterer.rgba"
+      }
+    ]
+  },
+  "signal-night-before": {
+    "build": "8efba31-mvdvfzm1",
+    "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain render, actual owner time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 146987016,
+        "programs": 102,
+        "shaderCount": 135,
+        "shaders": "90fe8c2779af9958995b527b58e600139b56b07b8507fe1323954ca4bf165439"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 213758632,
+        "programs": 102,
+        "shaderCount": 135,
+        "shaders": "f51755dce08cfb9c55e89039d8c686f3c2b33a1f3103a249e010da4ed208fbc0"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunset",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "d3f659c9c0410deac9741e757ea198bda100b6ced92216fa591d5751840a2bd6",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-sunset.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "scout",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "db76ead051b72bf02d49c9e8ac4b785a9b72dd673f9343e0ffad2361f1e1157c",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-scout.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "logbook",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "57f3b40c2807086f20845a3ff1eef866efa5cfaacea2b8ae3e75b0c113634e88",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-logbook.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "oil",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "7a70325b1efca93178ede601d0be02a477bf0cb8cdfea7cf5baf66a1359debab",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-oil.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-one",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 148462,
+        "lit": 1095048,
+        "pixels": "5b524111bd411426eeee7faaee30e1c345ba1cff0cdffbaadc8af93a9d77f11a",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-brazier-one.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-two",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 74,
+        "triangles": 148986,
+        "lit": 1095048,
+        "pixels": "d3385c3886d4a64d169121a0bc5be31fcccf80aa9f769a92b2776c3fd0463856",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-brazier-two.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-three",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 83,
+        "triangles": 149542,
+        "lit": 1095048,
+        "pixels": "7e1c8bda479382f7d60fb46e7aa41dc74197e33c300b5733e741056236a21ddc",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-brazier-three.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "signal-night",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 90,
+        "triangles": 149554,
+        "lit": 1095048,
+        "pixels": "7bcbff9769f60bc53c5090add86feda28b341cc8e14686bd894ca95bb2f78512",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-signal-night.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneMatriarch",
+        "player": [
+          3.6,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32213,
+        "pixels": "f56d048a21a628db73b528c0a61103c6427a3c0e6f6e0b6389f35a3110391807",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-creature-duneMatriarch.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32214,
+        "pixels": "55568910e82f409b72b2f78dba40737c115cf609d77dbde8f0305ccd859f67e2",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-creature-duneRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 65883,
+        "pixels": "0ba798dbcecae99ac6c4160f18c770675fe9eac4cfea7579423fd15742db25e1",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 21547,
+        "pixels": "ebeebec39b58e45cad4b2536936579d89f31ab180afa50056095f96080581a01",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/phone-creature-sandSkitterer.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunset",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "93dbd29ef9ce17f332e270ffe64566efba8cb6d511861123fbeb69a1233bac7a",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-sunset.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "scout",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "e1baacf6970996e9e56a67250a7c180ecdfdc785cfa13c6280c99f4e6d21abd5",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-scout.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "logbook",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "100d22f88680513eb413d3127f2ae4ce898b258e5c3ca3bedc29c505a04f8f84",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-logbook.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "oil",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "6ad64d0f42fe9e951ae7c4da74d41f3dde7aab54074b06e76f705a41b7daafdf",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-oil.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-one",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 70,
+        "triangles": 158086,
+        "lit": 615663,
+        "pixels": "bb07a564e7cb7dc32dc41e9a23ae3feb271a4006b35c94ddfa8c757b6080972e",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-brazier-one.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-two",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 78,
+        "triangles": 158610,
+        "lit": 615663,
+        "pixels": "fa1fcd8b9a7e883fe15ca0fa90e041d9d02d3076cffaf1382db7e75184655cbc",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-brazier-two.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-three",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 87,
+        "triangles": 159166,
+        "lit": 615663,
+        "pixels": "8a44b6347c5ee83b63cea64a8bc5a02b9f7fcd71ca857bcfb11a3cac1f93bfa3",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-brazier-three.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "signal-night",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 94,
+        "triangles": 159178,
+        "lit": 615663,
+        "pixels": "c70408ac64a2b3b15a53120106e966d5e68820bf76cbef9b05ec5542f3ce091e",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-signal-night.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneMatriarch",
+        "player": [
+          3.6,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18086,
+        "pixels": "27af86ba5bd44e69b7706b6cd48c4f5b208e1eb52d60762e876b287c989eb4c1",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-creature-duneMatriarch.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18085,
+        "pixels": "0eb71d370408fe8718065d6052f769154123e3c32a2c33ec22d779ad357267ac",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-creature-duneRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 37039,
+        "pixels": "2c8304f5f21ea79a39963b94cd19504753df30fca379b24c20554ad470584e55",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 12112,
+        "pixels": "87bbc4bf3db503c521dd72600331cf9f24c899e639e2494ff627cb63b98322fa",
+        "raw": "tmp/sp-x8-zero/z1-signal-quest-light-base/desktop-creature-sandSkitterer.rgba"
+      }
+    ]
+  },
+  "signal-night-after": {
+    "build": "0ac1503-mvdz0e8d",
+    "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain render, actual owner time and cloud time 10, viewmodel hidden",
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 146987016,
+        "programs": 106,
+        "shaderCount": 140,
+        "shaders": "8598e62f6e50a519bd605f1e22c4fe7bc7bddaad5cd6d0fb75e91f0d0e93fa7a"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 213758632,
+        "programs": 106,
+        "shaderCount": 140,
+        "shaders": "909b1457ab921e96bf78d95b20bf3958e3c624ace7c43b1fbb3e45ba99a93600"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunset",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "d3f659c9c0410deac9741e757ea198bda100b6ced92216fa591d5751840a2bd6",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-sunset.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "scout",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "db76ead051b72bf02d49c9e8ac4b785a9b72dd673f9343e0ffad2361f1e1157c",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-scout.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "logbook",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "57f3b40c2807086f20845a3ff1eef866efa5cfaacea2b8ae3e75b0c113634e88",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-logbook.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "oil",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "lit": 1095048,
+        "pixels": "7a70325b1efca93178ede601d0be02a477bf0cb8cdfea7cf5baf66a1359debab",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-oil.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-one",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 148462,
+        "lit": 1095048,
+        "pixels": "5b524111bd411426eeee7faaee30e1c345ba1cff0cdffbaadc8af93a9d77f11a",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-brazier-one.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-two",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 74,
+        "triangles": 148986,
+        "lit": 1095048,
+        "pixels": "d3385c3886d4a64d169121a0bc5be31fcccf80aa9f769a92b2776c3fd0463856",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-brazier-two.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-three",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 83,
+        "triangles": 149542,
+        "lit": 1095048,
+        "pixels": "7e1c8bda479382f7d60fb46e7aa41dc74197e33c300b5733e741056236a21ddc",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-brazier-three.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "signal-night",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 804,
+        "height": 1362,
+        "calls": 90,
+        "triangles": 149554,
+        "lit": 1095048,
+        "pixels": "7bcbff9769f60bc53c5090add86feda28b341cc8e14686bd894ca95bb2f78512",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-signal-night.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneMatriarch",
+        "player": [
+          3.6,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32213,
+        "pixels": "f56d048a21a628db73b528c0a61103c6427a3c0e6f6e0b6389f35a3110391807",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-creature-duneMatriarch.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 32214,
+        "pixels": "55568910e82f409b72b2f78dba40737c115cf609d77dbde8f0305ccd859f67e2",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-creature-duneRay.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 65883,
+        "pixels": "0ba798dbcecae99ac6c4160f18c770675fe9eac4cfea7579423fd15742db25e1",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 21547,
+        "pixels": "ebeebec39b58e45cad4b2536936579d89f31ab180afa50056095f96080581a01",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/phone-creature-sandSkitterer.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunset",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "93dbd29ef9ce17f332e270ffe64566efba8cb6d511861123fbeb69a1233bac7a",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-sunset.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "scout",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "e1baacf6970996e9e56a67250a7c180ecdfdc785cfa13c6280c99f4e6d21abd5",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-scout.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "logbook",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "100d22f88680513eb413d3127f2ae4ce898b258e5c3ca3bedc29c505a04f8f84",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-logbook.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "oil",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "lit": 615663,
+        "pixels": "6ad64d0f42fe9e951ae7c4da74d41f3dde7aab54074b06e76f705a41b7daafdf",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-oil.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-one",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 70,
+        "triangles": 158086,
+        "lit": 615663,
+        "pixels": "bb07a564e7cb7dc32dc41e9a23ae3feb271a4006b35c94ddfa8c757b6080972e",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-brazier-one.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-two",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 78,
+        "triangles": 158610,
+        "lit": 615663,
+        "pixels": "fa1fcd8b9a7e883fe15ca0fa90e041d9d02d3076cffaf1382db7e75184655cbc",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-brazier-two.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-three",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 87,
+        "triangles": 159166,
+        "lit": 615663,
+        "pixels": "8a44b6347c5ee83b63cea64a8bc5a02b9f7fcd71ca857bcfb11a3cac1f93bfa3",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-brazier-three.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "signal-night",
+        "player": [
+          1.9999858394780858,
+          17.889293739325716,
+          -59.99993520516
+        ],
+        "clock": {
+          "version": 1,
+          "elapsed": 10,
+          "wall": 10,
+          "frames": 300,
+          "captureFps": 30,
+          "paused": false,
+          "scale": 1
+        },
+        "width": 603,
+        "height": 1021,
+        "calls": 94,
+        "triangles": 159178,
+        "lit": 615663,
+        "pixels": "c70408ac64a2b3b15a53120106e966d5e68820bf76cbef9b05ec5542f3ce091e",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-signal-night.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneMatriarch",
+        "player": [
+          3.6,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18086,
+        "pixels": "27af86ba5bd44e69b7706b6cd48c4f5b208e1eb52d60762e876b287c989eb4c1",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-creature-duneMatriarch.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "player": [
+          1.133,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "lit": 18085,
+        "pixels": "0eb71d370408fe8718065d6052f769154123e3c32a2c33ec22d779ad357267ac",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-creature-duneRay.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "player": [
+          1.001,
+          7,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "lit": 37039,
+        "pixels": "2c8304f5f21ea79a39963b94cd19504753df30fca379b24c20554ad470584e55",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-creature-duneStrider.rgba"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "player": [
+          0.972,
+          5,
+          0
+        ],
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "lit": 12112,
+        "pixels": "87bbc4bf3db503c521dd72600331cf9f24c899e639e2494ff627cb63b98322fa",
+        "raw": "tmp/sp-x8-zero/z1-signal-final-night/desktop-creature-sandSkitterer.rgba"
+      }
+    ]
+  }
+}

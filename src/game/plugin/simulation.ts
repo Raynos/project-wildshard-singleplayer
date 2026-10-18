@@ -1,3 +1,4 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
 import { ShardDecisions } from '../shardfile/decisions';
@@ -216,7 +217,8 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
     const reactions = ownsTargets || row.weapon.worldReactionAction === undefined ? undefined : (() => {
-      const declarations = quest.page?.world;
+      const page = quest.page;
+      const declarations = page === undefined || 'version' in page ? undefined : page.world;
       if (declarations === undefined) throw new Error('Missing admitted quest world reactions');
       return bindQuestWorldReactions(declarations, { flags: host.flags });
     })();
@@ -1224,7 +1226,7 @@ export function bindQuestWorldReactions(input: QuestWorldReactionsData, ports: Q
 
 /** Select only the admitted root composition; missing or unbound rows refuse before any borrowed owner is read. */
 export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
-  if (source.questHost === undefined || source.questHost === null || source.runtime?.binds?.includes('quests') !== true) throw new Error('Missing admitted native quest host');
+  if (source.questHost === undefined || source.questHost === null || source.runtime?.binds?.includes('quests') !== true && !hasDeclaredClientPage(source)) throw new Error('Missing admitted native quest host');
   return installQuestHost(host, source.quests, source.questHost, ports);
 }
 

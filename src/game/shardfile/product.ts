@@ -1,3 +1,4 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -193,6 +194,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const worst = receipt?.worst ?? preflightDeclaredCosts(source, options.memory).worst;
   if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
+  if (hasDeclaredClientPage(source) && !options.firstParty) throw new Error('Native page features require a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && isOutputIndex(visited.source) && version(visited.source) === SHARDFILE_VERSION) {
     let previous: unknown;
     try { previous = await resolveDescriptor(visited.source, { ...options, offline: true }); }

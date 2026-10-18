@@ -1,3 +1,4 @@
+import type { Shardfile } from './shardSchema';
 import * as v from 'valibot';
 
 /**
@@ -27,9 +28,6 @@ import * as v from 'valibot';
  * - `terrain` (G227, "the shardfile is the bake"): the compiled 62.5 m terrain tiles and their critical collider. The data
  *   client draws and collides none of them; the runtime binds them (`bindRuntimeTerrain`, ./runtimeWorld.ts), streaming the
  *   admitted tiles through the shardfile's residency in place of its code-built ground. The edge rows stay platform data.
- *   Left unbound in a hybrid whose other unbound data is only the look's family materials, the data client runs
- *   presentation-only (G345): it draws the tiles in those materials and lends them and the ground's queries to the
- *   runtime (`runtimePresentation`, `@wildshard/game/shardfile/runtimeProduct`), with no kit, play stage or simulation.
  * - `loot`: the trusted runtime consumes the original economy rows; only the secondary data client omits them.
  * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
  *   runtime keeps the behaviour of the pieces it dresses.
@@ -40,3 +38,9 @@ export type RuntimeBoundSection = (typeof RUNTIME_BOUND_SECTIONS)[number];
 /** `runtime.binds`: the declared capability that replaces the implicit "empty apart from audio, edges and colliders" rule. */
 export const RuntimeBindsSchema = v.pipe(v.array(v.picklist(RUNTIME_BOUND_SECTIONS)), v.maxLength(RUNTIME_BOUND_SECTIONS.length),
   v.check((sections) => new Set(sections).size === sections.length, 'unique runtime-bound sections'));
+
+/** Typed page declarations select a data owner; disk admission must also prove
+ * that its complete compiled client plan and native program are present. */
+export function hasDeclaredClientPage(source: Partial<Pick<Shardfile, 'runtime' | 'questHost'>>): boolean {
+  return source.runtime === null && source.questHost?.page !== undefined && 'version' in source.questHost.page;
+}

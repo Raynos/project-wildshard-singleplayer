@@ -1,3 +1,4 @@
+import { hasDeclaredClientPage } from './runtimeBinds';
 import { admitScriptContract, type ScriptContract } from './scriptContract';
 import { glbBuffers } from './glbBuffers';
 import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
@@ -557,7 +558,7 @@ export function performanceReport(source: Shardfile, observations: PerformanceOb
   const graphs: PerformanceReport['graphs'] = [];
   // inline graphs (a graph file is checked with its bytes at product admission; a preset is engine-owned, under its own budget)
   for (const [id, material] of Object.entries(source.look.materials)) if (material.family === 'graph' && 'graph' in material) {
-    const result = validateGraph(material.graph, { trustedBudget: source.runtime !== null });
+    const result = validateGraph(material.graph, { trustedBudget: source.runtime !== null || hasDeclaredClientPage(source) });
     if (!result.ok) throw new Error(`Report requires an admitted material graph: ${id}`);
     graphs.push({ id, ...result.cost });
     for (const metric of ['nodes', 'samplers', 'instructions'] as const) check(`graph ${id} ${metric}`, result.cost[metric], (result.graph.budget ?? DEFAULT_GRAPH_BUDGET)[metric]);

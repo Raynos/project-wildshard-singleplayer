@@ -24,7 +24,7 @@ await runTickWorker(async raw => {
   const sections = headlessSections(payload.sections);
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
   if (payload.trustedRuntime !== undefined) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier }, payload.trustedRuntime, payload.snapshot);
-  if (sections.has('sim/runtime-plan')) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier }, undefined, payload.snapshot);
+  if (sections.has('sim/runtime-plan')) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier, sections }, undefined, payload.snapshot);
   let commands: ReadonlyMap<string, number> = new Map();
   let effects: HeadlessEffect[] = [];
   const ports = { rapier, sections, commands: () => commands, quest: {

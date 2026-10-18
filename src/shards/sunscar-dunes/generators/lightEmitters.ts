@@ -1,6 +1,7 @@
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
 import rest from '../data/restScenes.generated.json' with { type: 'json' };
 import { FIRE_GRAPH_IDS } from './rows/fire';
+import { signalEmberBuffer } from './emberBuffers';
 
 const rows: unknown[] = [];
 const material = (program: string): string => {
@@ -20,7 +21,7 @@ for (const [id, source] of [
     if ('fire' in effect.rows) {
       cards(effect.rows.fire);
       const embers = effect.rows.embers;
-      draws.push({ kind: 'points', name: embers.name, count: embers.count, scale: embers.scale, y: embers.y, material: FIRE_GRAPH_IDS.embers });
+      draws.push({ kind: 'buffered', file: signalEmberBuffer(embers.count, embers.name), scale: embers.scale, y: embers.y, material: FIRE_GRAPH_IDS.embers });
       cards(effect.rows.smoke);
     } else cards(effect.rows.halo);
     if (effect.pool !== null) draws.push({ kind: 'pool', geometry: { library: 'models', model: effect.pool }, material: FIRE_GRAPH_IDS.pool });

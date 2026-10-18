@@ -1,6 +1,8 @@
 /** Client-only data sources shared by world scenes, held models and Explorer
  * specimens. Descriptors retain the existing library and baked-kind formats. */
 import { sceneScalar, sceneVectors } from './sceneInputs';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { LentLooks } from './lentLooks';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { createModelLibrary, type ModelLibraryRows, type ModelLibrary, type ModelSpecimenRow } from '../plugin/geometry';
@@ -84,6 +86,16 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
   pending.set(product, prepare);
   void prepare.catch(() => { if (pending.get(product) === prepare) pending.delete(product); });
   return prepare;
+}
+/** Full data clients lend their actual compiled look book to the same model
+ * libraries used by world scenes, held models and NPCs. No source recompiles. */
+export async function bindSceneSourceLooks(product: ShardProduct, scope: Scope, looks: LentLooks): Promise<void> {
+  const live = (): void => { if (scope.disposed) throw new Error('Scene source looks require a living resident'); };
+  live();
+  await prepareSceneSources(product);
+  live();
+  for (const row of product.section('world/scenes').libraries)
+    if (row.kind === 'models') sceneModelSource(product, row.id).bindLooks(scope, looks);
 }
 /** Resolve an admitted data source for the scene host. */
 export function sceneModelSource(product: ShardProduct, id: string): Library { return need(libraries, product.slug, id); }

@@ -5,8 +5,6 @@ import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { workSlice } from '@wildshard/engine/core/workSlice';
-import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
-import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
@@ -1868,53 +1866,10 @@ export function rigLibrary(rows: RigLibraryRows): { bodies: CreatureBodies<strin
 }
 /** A model specimen is metadata and an existing library rig, with no private builder. */
 export interface ModelSpecimenRow { readonly model: BakedModelMetadata; readonly body: string; readonly specimen: CreatureSpecimenRow }
-/** A private-scene specimen declares its held recipe and original Explorer framing. */
-export type SceneCatalogueRow = Parameters<typeof defineSceneModels>[0][number] & {
-  readonly specimen?: { readonly kind: 'held'; readonly recipe: HeldMeleeRecipe } | BorrowedNpcSpecimen;
-};
-/** Sealed resource owners and existing non-held builders; declaration creates no model or preload. */
-export interface SceneCataloguePorts {
-  readonly owners: ReadonlyMap<string, unknown>;
-  readonly builds?: Parameters<typeof defineSceneModels>[1];
-  readonly source?: Shardfile;
-}
-/** Resolve old rig specimens and declared held scenes through the same ordered catalogue. */
-export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<ModelLibrary<string, string>, 'rig'>): ReturnType<typeof defineSceneModels>;
-export function modelCatalogue<Rows extends readonly SceneCatalogueRow[]>(rows: Rows, ports: SceneCataloguePorts): ReturnType<typeof defineSceneModels<Rows>>;
-export function modelCatalogue(rows: readonly (ModelSpecimenRow | SceneCatalogueRow)[], library: Pick<ModelLibrary<string, string>, 'rig'> | SceneCataloguePorts): ReturnType<typeof defineSceneModels> {
-  if ('rig' in library) {
-    const rigs = rows.map(row => { if (!('body' in row)) throw new Error('Rig catalogue needs its original body row'); return row; });
-    return defineSceneModels(rigs.map((row, index) => ({ model: row.model, builder: `body${String(index)}` })),
-      rigs.map((row, index) => [`body${String(index)}`, () => creatureSpecimen(library.rig(row.body), row.specimen)] as const));
-  }
-  const scenes = rows.map(row => { if (!('builder' in row)) throw new Error('Scene catalogue needs its original builder id'); return row; });
-  const builders = [...library.builds ?? []];
-  let heldFactory: typeof createHeldPresentation | null = null;
-  let npcFactory:typeof borrowedNpcSpecimen|null=null;
-  let preparation:Promise<void>|null=null;
-  const prepare=scenes.some(row=>row.specimen!==undefined)?():Promise<void>=>{
-    preparation??=(async()=>{
-      if(scenes.some(row=>row.specimen?.kind==='held'))heldFactory=(await import('./weaponFamily')).createHeldPresentation;
-      const npcs=scenes.flatMap(row=>row.specimen?.kind==='npc'?[row.specimen]:[]);
-      if(npcs.length>0){
-        if(library.source===undefined)throw new Error('NPC catalogue needs its admitted source');
-        const renderer=await import('./ui');npcFactory=renderer.borrowedNpcSpecimen;
-        for(const npc of npcs)await renderer.prepareBorrowedNpcSpecimen(npc,library.owners);
-      }
-    })();return preparation;
-  }:undefined;
-  for(const row of scenes)if(row.specimen!==undefined){
-    const specimen=row.specimen;
-    builders.push([row.builder,()=>{
-      if(specimen.kind==='held'){
-        if(heldFactory===null)throw new Error('Held catalogue must prepare before building');
-        return heldFactory(specimen.recipe,{owners:library.owners});
-      }
-      if(npcFactory===null||library.source===undefined)throw new Error('NPC catalogue must prepare before building');
-      return npcFactory(library.source,specimen,library.owners);
-    }]);
-  }
-  return defineSceneModels(scenes, builders, prepare);
+/** Resolve the ordered native rig catalogue without private scene owners. */
+export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<ModelLibrary<string, string>, 'rig'>): ReturnType<typeof defineSceneModels> {
+  return defineSceneModels(rows.map((row, index) => ({ model: row.model, builder: `body${String(index)}` })),
+    rows.map((row, index) => [`body${String(index)}`, () => creatureSpecimen(library.rig(row.body), row.specimen)] as const));
 }
 
 /** One authored index range in a shared posed draw; instances still own all clocks. */

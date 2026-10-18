@@ -6,9 +6,12 @@ import pieces from '../assets/pieces.generated.json' with { type: 'json' };
 import world from '../data/worldBakes.generated.json' with { type: 'json' };
 import { SIGNAL_SOURCE_LIBRARIES, SIGNAL_SOURCE_BLOBS } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';
+import { SIGNAL_EMBER_BLOBS } from './emberBuffers';
+import { SIGNAL_EMITTERS } from './lightEmitters';
 
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
-export const SIGNAL_SCENE_BLOBS = [...SIGNAL_SOURCE_BLOBS, ...SIGNAL_SKIRT_BLOBS];
+const emitterFiles = new Set(SIGNAL_EMITTERS.rows.flatMap(row => row.draws.flatMap(draw => draw.kind === 'buffered' ? [draw.file] : [])));
+export const SIGNAL_SCENE_BLOBS = [...SIGNAL_SOURCE_BLOBS, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? ''))];
 const steps: unknown[] = [], effects: { readonly part: string; readonly pool: string | null; readonly rows: unknown }[] = [];
 /** Original order, native hierarchy and fields. Sources remain the existing
  * model libraries and kind bakes; this only declares their assembly bindings. */
@@ -33,7 +36,8 @@ for (const [id, piece, source, colliders] of definitions) {
   if (metadata === undefined) throw new Error('Missing original place registration');
   const publish = Object.fromEntries(Object.entries(source?.fields ?? {}).filter(([name]) => name !== 'root')
     .map(([name, binding]) => [name, binding.kind === 'colliders' ? { ...binding, part: piece } : binding] as const));
-  for (const [from, to] of [['brazierAt', 'brazier-at'], ['lampAt', 'lamp-at'], ['bowlAt', 'bowl-at'], ['glowAt', 'glow-at']]) {
+  for (const [from, to] of [['brazierAt', 'brazier-at'], ['lampAt', 'lamp-at'], ['bowlAt', 'bowl-at'], ['glowAt', 'glow-at'],
+    ['logbookAt', 'logbook-at'], ['crankAt', 'crank-at'], ['jarAt', 'jar-at']]) {
     if (from !== undefined && to !== undefined && publish[from] !== undefined) publish[to] = publish[from];
   }
   for (const node of recipe.scene.nodes) if (node.id !== recipe.scene.root && !(node.id in publish)) Object.assign(publish, {

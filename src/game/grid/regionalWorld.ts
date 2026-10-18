@@ -1,3 +1,13 @@
+import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { clientPageGround } from '../shardfile/clientGround';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+import { setting } from '@wildshard/engine/ui/Settings';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { bindSceneSourceLooks } from '../shardfile/sceneSources';
+import { bindPaintedMaterialMaps } from '../looks/paintedLook';
+import { leaseClientLibrary } from '../shardfile/clientLibrary';
+import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
+import type { ResidencyAllocator } from './allocator';
 /**
  * The concrete regional world of a trusted hybrid cell (SHARD-PLATFORM SF47 / M3, E452): the foundation that
  * `createRegionalRuntimeFactory` composes, so an admitted first-party runtime can run as a neighbour cell instead of the
@@ -27,10 +37,8 @@
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
  *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
  *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
- * - a presentation-only hybrid's ground (G345): when its runtime leaves the terrain to its data client, which a region
- *   does not run, the region draws the tiles in the look's materials exactly as that client does standalone (the same
- *   calls), lends them to its runtime under its own scope (`lendHybridPresentation`), and ticks the materials and
- *   follows the viewer while entered.
+ * - declared page materials and terrain, compiled once under the resident and lent directly to scene/model sources;
+ *   the entered frame ticks their existing curves and follows the viewer through ordinary tile residency.
  * - its own post composite (SF63 / G158, op-frame21): where its look declares one (`ExtendLook.cell`; Jake G322: always),
  *   it is built once its world exists and run by the frame owner while it carries the
  *   frame (`FrameLookPort.composite`); a composite that is its whole chain carries a neutral engine chain beside it.
@@ -80,12 +88,9 @@ import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct, runtimeProduct, shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
-import { lendSceneMaterials } from '../shardfile/lentLooks';
+import { lendLooks, lendSceneMaterials } from '../shardfile/lentLooks';
 import { clientWorld } from '../shardfile/clientWorld';
 import { clientViews } from '../shardfile/clientViews';
-import { clientGround } from '../shardfile/clientGround';
-import { lendHybridPresentation } from '../shardfile/hybridPresentation';
-import { withoutRuntimeRows } from '../plugin/headless';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
@@ -130,31 +135,38 @@ export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: L
   return new Terrain().build(level.ground, resolved?.terrainPainter, scope, binding);
 }
 
-/**
- * G345: the ground of a trusted hybrid whose runtime leaves its terrain to the data client (presentation-only), which an
- * entered region does not run: its tiles drawn under `root` in the look's materials through the shardfile's residency, lit
- * from the collider lattice, with the materials and the ground lent to its runtime while `scope` lives, exactly as the data
- * client's presentation mode draws them standalone (the residency starting at `start`, the level's spawn). Null when the
- * runtime binds its terrain (or it has no tiles). The caller
- * ticks the materials and moves the residency with the viewer (`follow`, region-local metres) while entered.
- */
-async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
-  const full = admitted.source, data = withoutRuntimeRows(full), terrain = data.terrain;
-  if (full.runtime === null || terrain === null || terrain.tiles.length === 0) return null;
+/** Compile the actual data page's materials, scene sources and drawn terrain under its regional owner.
+ * Static resources survive re-entry; their curves and viewer residency advance only while entered. */
+async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky']): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+  const full = admitted.source;
+  if (!hasDeclaredClientPage(full)) return null;
+  const data = full, terrain = data.terrain;
   // the region's product reader (`provideRuntimeProduct`): the admitted files, and the collider read through it when the
   // admission left it to the required-ground loader
-  const assets = runtimeProduct(full).assets, collider = await assets.read(terrain.collider);
+  const assets = runtimeProduct(full).assets, collider = terrain === null ? undefined : await assets.read(terrain.collider);
   if (scope.disposed) throw new Error('Regional world left while reading its presentation collider');
   // a runtime-bound host field keeps its declared default for the look's curves until the runtime answers (bindState)
-  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope);
-  const material = presentation.materials.get(terrain.family);
-  if (material === undefined) throw new Error('Regional terrain requires its admitted family material');
-  lendSceneMaterials(scope, full.identity.slug, new Map([[terrain.family, material]]));
-  const host = lendHybridPresentation(full.identity.slug, presentation, clientGround(data, assets.retained), scope);
-  presentation.graphs.bind({ hour, state: host });
-  const tiles = await clientWorld({ ...data, props: null }, assets, { scope, x: start.x, z: start.z,
-    views: clientViews({ root, terrain: terrain.family, terrainShadow: terrain.shadow, terrainOrder: terrain.order, ...presentation, lattice: decodeTerrainTile(collider) }) });
-  const distance = terrain.follow ?? 5;
+  const plan = parseClientPlan(outputDescriptor(full)?.sections.get('client/plan'));
+  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope, { trustedGraphs: true, graphs: plan.features.some(row => row.kind === 'world.scenes' && row.graphs === 'required') || setting('graphMaterials') === 'on' });
+  if (terrain !== null) {
+    const material = presentation.materials.get(terrain.family);
+    if (material === undefined) throw new Error('Regional terrain requires its admitted family material');
+    sky.setupMaterial(material);
+    lendSceneMaterials(scope, full.identity.slug, new Map([[terrain.family, material]]));
+  }
+  {
+    const product = shardProductFromAdmission(admitted, scope);
+    leaseClientLibrary(full, assets.retained, { scope, allocator, owner: instance, textures: ktx2TranscodeSupport(renderer) });
+    lendLooks(scope, presentation);
+    bindPaintedMaterialMaps(product, scope, presentation);
+    await bindSceneSourceLooks(product, scope, presentation);
+    presentation.graphs.bind({ hour });
+  }
+  const tiles = await clientWorld(data, assets, { scope, x: start.x, z: start.z,
+    residency: { allocator, owner: instance },
+    views: clientViews({ root, terrain: terrain?.family ?? null, terrainShadow: terrain?.shadow, terrainOrder: terrain?.order, ...presentation,
+      ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }) });
+  const distance = terrain?.follow ?? 5;
   let priorX = start.x, priorZ = start.z;
   return { tick: presentation.tick, follow: (x, z) => {
     if (Math.hypot(x - priorX, z - priorZ) < distance) return;
@@ -220,7 +232,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     if (request.scope.disposed) throw new Error('Regional world requires a live runtime scope');
     const { cell, page } = request, app = page.context.app, home = page.world, game = home.game, sky = home.sky;
     // the look and roster loaders read the cell's admitted product (the one its ShardContext gets), never shard.config
-    const level = ports.level === undefined ? toLevelSpec(request.manifest, shardProductFromAdmission(request.admitted, request.scope)) : ports.level(request.manifest);
+    const level = ports.level === undefined ? toLevelSpec(hasDeclaredClientPage(request.admitted.source) ? { ...request.manifest, ground: clientPageGround(request.admitted.source, request.admitted.assets) } : request.manifest, shardProductFromAdmission(request.admitted, request.scope)) : ports.level(request.manifest);
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
@@ -269,7 +281,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
-      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null);
+      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
@@ -330,7 +342,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 resident.onDispose(hang(cell.instance, { weight: (w) => { drawn = w; }, state: () => ({ weight: drawn, drawn: drawn > 0, bytes: 0, reserved: 0 }) }));
               };
               const made: { backdrop: LayeredBackdrop | null; environment: (() => Texture | null) | null } = { backdrop: null, environment: null };
-              const measured = textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
+              const measured = request.admitted.source.runtime === null ? undefined : textures.mode === 'img' ? request.manifest.runtimeCost?.imagesFirst ?? request.manifest.runtimeCost : request.manifest.runtimeCost;
               const outcome = await buildRegionSky<LayerAttachable>({ instance: cell.instance, look, allocator: request.allocator, scope: resident,
                 ...(measured?.residentBaseMB === undefined ? {} : { coveredBy: request.claim.id }), layered: async () => {
                 const make = levelLook?.backdrop;

@@ -3,6 +3,7 @@ import { parsePaintedLook, type PaintedLookRow } from '@wildshard/format/painted
 import { MaterialsSchema } from '@wildshard/format/materials';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import * as v from 'valibot';
+import { SKY_WORLD_PREPARATION } from './worldTextures';
 
 /** Resolve the fixed golden-hour look, image samplers and dressing graphs offline. */
 export function paintedLookRows(): unknown {
@@ -18,7 +19,9 @@ export function skyPaintedPresentation(): PaintedLookRow {
   const cards = (row: typeof dressing.glow.cards | typeof dressing.cumulus.cards, graph: string, image?: string) => row.cards.map(card => ({ name: row.name, graph,
     ...(image === undefined ? {} : { image }), order: row.order, geometry: { kind: 'plane', size: row.plane, instances: card.instances } }));
   return parsePaintedLook({ look: { ...look, lightScope: 'page', clock: SKY_PAINTED.day, sky: { kind: 'haze', row: SKY_PAINTED.haze } },
-    lut: '/assets/lut/far-reach.bin', images: { pano: images.pano, cloud: images.rest[0], sea: images.rest[1], vortex: images.rest[2] },
+    lut: '/assets/lut/far-reach.bin', images: { pano: images.pano, cloud: images.rest[0], sea: images.rest[1], vortex: images.rest[2],
+      ...Object.fromEntries(SKY_WORLD_PREPARATION.textures.map(({ id, phase: _phase, ...image }) => [id, image])) },
+    bumps: SKY_WORLD_PREPARATION.bumps.map(({ material, texture, channel, scale }) => ({ material, image: texture, channel, scale })),
     dome: { graph: { phone: 'sky-dome-phone', desktop: 'sky-dome-desktop' }, image: 'pano' },
     dressing: { name: 'far.sky-dressing', draws: [...cards(dressing.glow.cards, 'sky-glow'), disc(dressing.maelstrom.disc, 'sky-maelstrom', 'vortex'),
       ...dressing.seas.map((row, i) => disc(row.disc, `sky-sea-${i}`, 'sea')), ...cards(dressing.cumulus.cards, 'sky-cumulus', 'cloud')] } });

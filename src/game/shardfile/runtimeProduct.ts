@@ -1,5 +1,5 @@
-import { loadPaintedTexture, type PaintedSampler, type ModelLibrary } from '../plugin/geometry';
-import type { Material, Texture } from 'three';
+import { lendLooks } from './lentLooks';
+import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
@@ -12,12 +12,10 @@ import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
-import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
-import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
+import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
-import { lendLooks } from './lentLooks';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';
 
@@ -164,6 +162,11 @@ export function provideManifestAdmission(manifest: ShardManifest, admitted: Admi
   manifestAdmissions.set(manifest, { admitted, options });
 }
 
+/** Actual hydrated source for page lifecycle selection, without another descriptor or metadata mirror. */
+export function manifestAdmittedSource(manifest: ShardManifest): Shardfile | undefined {
+  return manifestAdmissions.get(manifest)?.admitted.source;
+}
+
 /** Load a configured output before its plugin constructor, independent of entry mode. */
 export function loadManifestProduct(manifest: ShardManifest, scope: Scope): Promise<ShardProduct> {
   const installed = manifestAdmissions.get(manifest);
@@ -225,12 +228,6 @@ export function bindRuntimeProductTerrain(scope: Scope, source: Shardfile, ports
   return bindRuntimeTerrain({ scope }, product.source, { ...ports, assets: product.assets });
 }
 
-/** Bind a runtime's declared props tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeProps`. */
-export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: Omit<RuntimePropsPorts, 'assets'>): Promise<void> {
-  const product = runtimeProduct(source);
-  return bindRuntimeProps({ scope }, product.source, { ...ports, assets: product.assets });
-}
-
 /**
  * A trusted runtime's own look materials (`look.materials`, graph entries included) compiled on its world's renderer under
  * its scope, from its product reader (`runtimeProduct`), for the meshes it still builds itself (read from its world stage).
@@ -259,55 +256,15 @@ export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'ga
   return clientMaterials(shard, assets, renderer, ctx.scope, { trustedGraphs: true, ...(graphs === undefined ? {} : { graphs }) });
 }
 
-/**
- * What its data client lends a trusted runtime (`HybridPresentation`): the built look materials by id, the drawn terrain's
- * queries and the host-state port of the look's curves. A grid region runs no data client: it lends a presentation-only
- * hybrid's drawn ground the same way (`lendHybridPresentation`) while it is resident. Null when nothing lends one (a LEGACY
- * entry, or a runtime that owns every stage). Read it from a hook that runs after the data client's world stage (the
- * hybrid's runtime world, kit or play) or the region's presentation.
- */
-export function runtimePresentation(source: Shardfile): HybridPresentation | null {
-  return hybridPresentation(source.identity.slug);
-}
-
-/** Ordered preparation rows for existing hybrid world textures and graph materials. */
-export interface ClientWorldPreparation {
-  readonly textures?: readonly { readonly id: string; readonly url: string; readonly name: string; readonly warn: string; readonly sampler?: PaintedSampler; readonly phase?: number }[];
-  readonly materials?: readonly string[];
-  readonly requiredMaterials?: readonly string[];
-  /**
-   * A prepared texture (`texture`, a `textures` id) laid on a compiled look material (`material`) as its bump, read on UV set
-   * `channel` (default 0) at `scale`: a graph cannot output a normal, so a painted relief (a tower's stone courses) rides the
-   * material's own bump slot, and every mesh-map binding of that look inherits it. A missing texture or a material without
-   * a bump slot (a family preset with graphs off) keeps the look unbumped.
-   */
-  readonly bumps?: readonly { readonly material: string; readonly texture: string; readonly channel?: number; readonly scale: number }[];
-}
-/** Prepare borrowed world assets under their existing scope, never installing another host. */
-export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, rows: ClientWorldPreparation,
-  library?: Pick<ModelLibrary<string, string>, 'bindLooks' | 'material' | 'geometry'>): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & {
-  readonly painted: ReadonlyMap<string, Texture | null>; readonly material: (id: string) => Material;
-}> {
-  const textures = rows.textures ?? [], required = rows.requiredMaterials ?? [], bumps = rows.bumps ?? [];
-  if (textures.length > 64 || required.length > 64 || bumps.length > 16 || bumps.some(row => ![0, 1, 2, 3].includes(row.channel ?? 0) || !Number.isFinite(row.scale)) || new Set(textures.map(row => row.id)).size !== textures.length
-    || textures.some(row => !/^[a-z][a-zA-Z0-9.:-]{0,127}$/u.test(row.id) || !Number.isSafeInteger(row.phase ?? 0) || (row.phase ?? 0) < 0 || (row.phase ?? 0) > 7)) throw new Error('Invalid bounded client world preparation');
-  const painted = new Map<string, Texture | null>();
-  for (const phase of [...new Set(textures.map(row => row.phase ?? 0))].sort((a, b) => a - b)) {
-    const group = textures.filter(row => (row.phase ?? 0) === phase);
-    const loaded = await Promise.all(group.map(row => loadPaintedTexture(row.url, row.name, row.warn, row.sampler)));
-    if (ctx.scope.disposed) { for (const texture of loaded) texture?.dispose(); throw new Error('Client world preparation left its owner'); }
-    for (const [index, row] of group.entries()) { const texture = loaded[index] ?? null; if (texture !== null) ctx.scope.own(texture); painted.set(row.id, texture); }
-  }
+/** Prepare the requested original graph materials for resident effects and boss storms. */
+export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile,
+  rows: { readonly materials?: readonly string[]; readonly requiredMaterials?: readonly string[] }): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & { readonly material: (id: string) => Material }> {
+  const required = rows.requiredMaterials ?? [];
+  if (required.length > 64) throw new Error('Unbounded required materials');
   const compiled = await runtimeLookMaterials(ctx, source, true, rows.materials);
-  const material = (id: string): Material => { const value = compiled.materials.get(id); if (value === undefined) throw new Error(`Missing prepared world material ${id}`); return value; };
-  for (const id of required) material(id);
-  for (const row of bumps) {
-    const relief = painted.get(row.texture) ?? null, target = compiled.materials.get(row.material);
-    if (relief === null || target === undefined || !('bumpMap' in target)) continue;
-    const map = ctx.scope.own(relief.clone()); map.channel = row.channel ?? 0;
-    Object.assign(target, { bumpMap: map, bumpScale: row.scale }); target.needsUpdate = true;
-  }
-  library?.bindLooks(ctx.scope, compiled);
+  for (const id of required) if (!compiled.materials.has(id)) throw new Error(`Missing prepared world material ${id}`);
   lendLooks(ctx.scope, compiled);
-  return { ...compiled, painted, material };
+  return Object.assign(compiled, { material: (id: string): Material => {
+    const value = compiled.materials.get(id); if (value === undefined) throw new Error(`Missing prepared world material ${id}`); return value;
+  } });
 }

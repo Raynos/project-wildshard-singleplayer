@@ -1,3 +1,4 @@
+import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 /** Author-only format-2 emission and on-disk inventory validation. */
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI owns its explicit product output directory.
 import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -65,10 +66,8 @@ export interface OutputProductOptions {
   readonly namedFiles?: readonly OutputFile[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
-/** The platform sections a decision row resolves against: its rows and the moves they bind. */
-export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts', 'actors/moves', 'world/targets'] as const;
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
-export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = DECISION_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
+export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = HEADLESS_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
   const payloads = new Map<string, unknown>();
   for (const entry of platform?.sections ?? []) {
     if (!names.includes(entry.name)) continue;

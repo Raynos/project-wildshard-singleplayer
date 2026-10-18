@@ -11,7 +11,7 @@ import bridges from '../data/bridgeRest.generated.json' with { type: 'json' };
 import mill from '../data/millRest.generated.json' with { type: 'json' };
 import world from '../data/worldRows.generated.json' with { type: 'json' };
 import fixed from '../data/staticScenes.generated.json' with { type: 'json' };
-import type { BakedByteResource, WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
+import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
 import { SKY_RIG_LIBRARY, SKY_MODEL_SPECIMENS } from './rigLibrary';
 import { GEAR_SCENE_ROWS } from './rows/gearModels';
 import { FAN_HELD_RECIPE } from './rows/heldWeapon';
@@ -35,7 +35,7 @@ const sky = { rows: { meshes: files.SKY_MESHES, preparedMeshes: files.SKY_MESHES
 const hero = { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR,
   geometryPools: [heroes.pool], paintedModels: heroes.models } } satisfies SceneModelSource;
 const bakeRows = Object.fromEntries(Object.entries(world.bakes).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind, ...('paint' in kind ? { look: 'isle-paint' } : {}) })) }]));
-const baked = { rows: bakeRows, urls: files.BAKED_URLS, resources: files.WORLD_BYTES as readonly BakedByteResource[],
+const baked = { rows: bakeRows, urls: files.BAKED_URLS,
   placements: { rows: world.pieces as readonly WorldPieceRow[], colliders: fixed.standalone.fixed.colliders },
   materialLibrary: 'sky', attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' } } satisfies SceneBakeSource;
 const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(rows)));

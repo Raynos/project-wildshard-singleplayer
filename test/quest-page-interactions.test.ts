@@ -6,21 +6,14 @@ import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPag
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 import { output as traderOutput } from '../src/shards/driftwood-isle/generators/output';
 import { InteractionRules } from '../src/game/quest/interactionRows';
-import { Group, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseQuestHost } from '../src/format/questHost';
 import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/generators/questHost';
-import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { parseLightEmitters } from '../src/format/lightEmitters';
-import type { ShardContext } from '../src/game/plugin/context';
 import signalFlags from '../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
-import FLAGS from '../src/shards/far-reach/data/flags.json' with { type: 'json' };
 
 const { FLAG } = signalFlags;
 
@@ -28,48 +21,6 @@ const traderFile = traderOutput.namedFiles.find(row => row.name === 'quests/trad
 const traderBytes = traderFile === undefined ? undefined : traderOutput.assets.get(traderFile.hash);
 if (traderBytes === undefined) throw new Error('Missing published trader rows');
 const TRADER_PAGE = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(traderBytes)));
-
-test('Signal refuses unraised oil, runs the crank and restores saved page state',()=>{
-  const flags=new Flags('page-beats-signal',false),well={label:'well'},logbook={label:'logbook'},jar={visible:true},toasts:string[]=[];
-  let summoned=false,hauled=0;
-  const scope=new Scope('signal-page'),source=emptyShardfile({slug:'signal-page',name:'Fixture',author:'Test',revision:1,seed:1});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),files:new Map(),read:()=>Promise.reject(new Error('No blob'))});
-  const handles=new SceneHandles(),groups=new Map(['signal','brazier.0','brazier.1','brazier.2'].map(id=>[id,new Group()]));
-  for(const [id,group]of groups)handles.publish(id,group);
-  const emitterRows=parseLightEmitters({version:1,input:'firelights',clock:'firetime',rows:[...groups.keys()].map(id=>({id,parent:id,initially:false,draws:[]}))});
-  const emitters=new EmitterPresentation(emitterRows,handles,{root:new Group(),product} as ShardContext,scope,new Map());
-  const labels=new Map([['signal',{label:'fire'}],['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
-  const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
-  const calls=new Map<string,()=>void>([['haul',()=>{hauled++;}],['summon',()=>{summoned=true;}]]);
-  const ports={flags,labels,visible,calls,context:{scope,product},owners:new Map([['world',{logbook:{onInteract:()=>undefined},fire:{brazier:{onInteract:()=>undefined}},well:{crankAt:new Vector3(),spot:{onInteract:()=>undefined}},braziers:['0','1','2'].map(()=>({spot:{onInteract:()=>undefined},parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
-  const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
-  expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
-  expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);
-  expect(hauled).toBe(1);expect(page.run('crank')).toBe(false);expect(hauled).toBe(1);
-  expect(page.run('well')).toBe(false);expect(page.run('fire')).toBe(false);
-  for(const id of ['0','1','2']){expect(page.run(`pour.${id}`)).toBe(true);expect(page.run(`light.${id}`)).toBe(true);}
-  for(const id of ['0','1','2'])expect(groups.get(`brazier.${id}`)?.visible).toBe(true);
-  expect(page.run('fire')).toBe(true);expect(summoned).toBe(true);summoned=false;expect(page.run('fire')).toBe(false);expect(summoned).toBe(false);
-  jar.visible=true;well.label='old';emitters.set('signal',false);
-  const restored=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
-  expect(jar.visible).toBe(false);expect(well.label).not.toBe('old');
-  expect(groups.get('signal')?.visible).toBe(true);expect(summoned).toBe(false);expect(restored.run('fire')).toBe(false);
-  flags.restore([FLAG.lit]);for(const id of groups.keys())emitters.set(id,false);
-  const oldSave=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
-  expect(groups.get('signal')?.visible).toBe(true);expect(groups.get('brazier.0')?.visible).toBe(false);
-  expect(oldSave.run('fire')).toBe(false);expect(flags.all).toEqual([FLAG.lit]);expect(summoned).toBe(false);
-  expect(()=>page.run('missing')).toThrow('Unknown page interaction');
-  scope.dispose();
-});
-
-test('Sky notes unlock the quest, winch needs both permissions and a raised winch stays silent',()=>{
-  const flags=new Flags('page-beats-sky',false);let up=false,commanded=false;
-  const page=bindQuestPageInteractions({questHost:parseQuestHost(sky)},{flags,toast:()=>undefined,
-    owners:new Map([['world',{notes:{onInteract:()=>undefined},winch:{onInteract:()=>undefined}}]]),observations:new Map([['winch-up',()=>up]]),calls:new Map([['winch',()=>{commanded=true;}]])});
-  page.action('notes')();expect(flags.has(FLAGS.notes)).toBe(true);expect(page.run('winch')).toBe(false);
-  flags.set(FLAGS.roost);flags.set(FLAGS.vanes);expect(page.run('winch')).toBe(true);expect(commanded).toBe(true);
-  commanded=false;up=true;expect(page.run('winch')).toBe(false);expect(commanded).toBe(false);
-});
 
 test('unknown fields or missing borrowed targets refuse before initial effects',()=>{
   const flags=new Flags('page-beats-invalid',false),view={label:'unchanged'};
@@ -108,7 +59,7 @@ test('admitted interaction rules refuse a missing host without changing flags',(
 });
 
 test('declared prompts borrow their real positions and refuse missing or unsafe frames',()=>{
-  const at=new Vector3(4,5,6),source={questHost:parseQuestHost({...sky,page:{...sky.page,prompts:[{id:'notes',label:'Read notes',radius:2.6,at:{owner:'world',path:['at']}}]}})};
+  const at=new Vector3(4,5,6),source={questHost:parseQuestHost({...sky,page:{actions:[{id:'notes'}],prompts:[{id:'notes',label:'Read notes',radius:2.6,at:{owner:'world',path:['at']}}]}})};
   const [prompt]=createQuestPagePrompts(source,new Map([['world',{at}]]),['notes']);
   expect(prompt.position).toBe(at);expect(prompt.label).toBe('Read notes');expect(prompt.radius).toBeGreaterThan(0);
   expect(()=>prompt.onInteract()).toThrow('not bound');

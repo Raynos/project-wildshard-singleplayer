@@ -10,7 +10,7 @@ import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { createWorldScene } from '../plugin/ui';
 import type { SceneDraw } from '@wildshard/format/sceneDraws';
-import { drawSceneRows } from '../shardfile/sceneDraws';
+import { drawSceneRows, prepareSceneDrawRows } from '../shardfile/sceneDraws';
 import { prepareSceneSpecimens, sceneModelSource } from '../shardfile/sceneSources';
 import { admitWorldSceneStepSources, worldSceneStepSources } from '../shardfile/worldSceneStepSources';
 import { hasLentLook, lendLooks, lentLook, lentMappedLook } from '../shardfile/lentLooks';
@@ -37,7 +37,10 @@ export function scenePartSpecimen(product: ShardProduct, row: ScenePartSpecimen)
   let source: Prepared | undefined;
   const library = () => row.materialLibrary === undefined ? undefined : sceneModelSource(product, row.materialLibrary);
   const look = (id: string): Material | undefined => library()?.look(id);
-  const ready = async (): Promise<void> => { source = await prepare(product, row.step); };
+  const ready = async (): Promise<void> => {
+    await Promise.all((row.effects ?? []).map(effect => prepareSceneDrawRows(product, effect.draws)));
+    source = await prepare(product, row.step);
+  };
   const [model] = defineSceneModels([row.definition], [[row.definition.builder, () => {
     if (source === undefined) throw new Error('Scene specimen is not prepared');
     const { step, recipe } = source;

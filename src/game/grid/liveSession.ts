@@ -1,3 +1,4 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 /**
  * The live crossing inside EXPERIMENTAL Wildshard (SHARD-PLATFORM SF18a / SF20a / SF17b, the grid client step 2): what
@@ -596,7 +597,7 @@ export class LiveGridSession {
     const costs = gridPostCosts(this.ports.allocator), own = postStackCost(source, (hash) => assets.get(hash)).cost;
     const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
     if (pair !== null) throw new Error(pair);
-    if (source.runtime !== null) return await this.admitRuntime(cell, retained);
+    if (source.runtime !== null || hasDeclaredClientPage(source)) return await this.admitRuntime(cell, retained);
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -682,19 +683,25 @@ export class LiveGridSession {
 
   private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>): Promise<LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
-    if (manifest === undefined || declaration === null || manifest.trustedRuntime === undefined) throw new GridCellWaitingError('Missing declared trusted regional entry');
+    const dataPage = hasDeclaredClientPage(retained.admitted.source);
+    if (manifest === undefined || !dataPage && (declaration === null || manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
     const page = this.page.runtimePage?.();
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
-    if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
-    const entry = manifestRuntimeEntry(manifest), textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
-    await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
-    const { slug: identity } = entry;
-    if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
+    const textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
+    const prepareEntry = async (): Promise<void> => {
+      if (declaration === null) return;
+      if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
+      const entry = manifestRuntimeEntry(manifest);
+      await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
+      const { slug: identity } = entry;
+      if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
+    };
+    await prepareEntry();
     const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
     this.durability.set(cell.instance, saved);
     let closed = false;
     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
-    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: async () => { await prepareTrustedRuntime(declaration, cell.slug, true, [entry]); }, create: async (_prior, claim) => {
+    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
         prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),

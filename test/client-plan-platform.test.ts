@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
+import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct, ProductError } from '../src/game/shardfile/shardProduct';
-import { admitClientPlan, installClientPhase, clientSceneHandles } from '../src/game/shardfile/clientPlan';
+import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';

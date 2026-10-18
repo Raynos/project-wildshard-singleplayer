@@ -1,4 +1,4 @@
-import { drawSceneRows } from './sceneDraws';
+import { drawSceneRows, prepareSceneDrawRows } from './sceneDraws';
 import { Object3D, PointLight, Vector3, type Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { LightEmitters } from '@wildshard/engine/fx/lightEmitters';
@@ -80,6 +80,7 @@ export class EmitterPresentation {
 export async function installLightEmitters(ctx: ShardContext, input: unknown, handles: SceneHandles, scope: Scope): Promise<void> {
   if (installed.get(scope)?.has(ctx.product.slug) === true) return;
   const rows = parseLightEmitters(input);
+  for (const row of rows.rows) await prepareSceneDrawRows(ctx.product, row.draws);
   if (!ctx.product.shardfile.state.shared.some(field => field.name === rows.clock && field.privacy === 'host' && field.type === 'f64')) throw new Error('Emitter clock requires its declared host field');
   const ids = [...new Set(rows.rows.flatMap(row => row.draws.map(draw => draw.material)))];
   const prepared = await prepareClientWorld({ scope, game: ctx.game }, ctx.product.shardfile, { materials: ids, requiredMaterials: ids });

@@ -1,0 +1,219 @@
+{
+  "version": {
+    "build": "0ac1503-mvdz0e8d",
+    "time": "2026-10-18T15:18:52.348Z"
+  },
+  "api": "native",
+  "device": "muted iPhone 16 Pro DPR2 Metal",
+  "rows": [
+    {
+      "stage": "initial",
+      "state": {
+        "hp": 420,
+        "alive": true,
+        "boss": {
+          "state": "armed",
+          "phase": 0,
+          "checkpoint": 0,
+          "attempts": 1,
+          "t": 0,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": false,
+            "rewardTaken": false,
+            "kills": 0
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":1,\"stage\":0}}"
+        },
+        "flags": [
+          "seen:far.sunrest"
+        ],
+        "coins": 0
+      }
+    },
+    {
+      "stage": "entered",
+      "state": {
+        "hp": 420,
+        "alive": true,
+        "boss": {
+          "state": "fight",
+          "phase": 0,
+          "checkpoint": 0,
+          "attempts": 1,
+          "t": 1.5000000000000013,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": false,
+            "rewardTaken": false,
+            "kills": 0
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":135,\"stage\":2}}"
+        },
+        "flags": [
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 0
+      }
+    },
+    {
+      "stage": "hit0",
+      "hit": {
+        "before": 420,
+        "killed": false,
+        "after": 273
+      },
+      "state": {
+        "hp": 277.2,
+        "alive": true,
+        "boss": {
+          "state": "fight",
+          "phase": 1,
+          "checkpoint": 1,
+          "attempts": 1,
+          "t": 1.5000000000000013,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": false,
+            "rewardTaken": false,
+            "kills": 0
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":240,\"stage\":3}}"
+        },
+        "flags": [
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 0
+      }
+    },
+    {
+      "stage": "hit1",
+      "hit": {
+        "before": 277.2,
+        "killed": false,
+        "after": 130.2
+      },
+      "state": {
+        "hp": 138.6,
+        "alive": true,
+        "boss": {
+          "state": "fight",
+          "phase": 2,
+          "checkpoint": 2,
+          "attempts": 1,
+          "t": 1.5000000000000013,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": false,
+            "rewardTaken": false,
+            "kills": 0
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":317,\"stage\":3}}"
+        },
+        "flags": [
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 0
+      }
+    },
+    {
+      "stage": "hit2",
+      "hit": {
+        "before": 138.6,
+        "killed": true,
+        "after": 0
+      },
+      "state": {
+        "hp": 0,
+        "alive": false,
+        "boss": {
+          "state": "victory",
+          "phase": 2,
+          "checkpoint": 2,
+          "attempts": 1,
+          "t": 2.4666666666666677,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": true,
+            "rewardTaken": false,
+            "kills": 1
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":318,\"stage\":4}}"
+        },
+        "flags": [
+          "far.roc.down",
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 25
+      }
+    },
+    {
+      "stage": "settled",
+      "state": {
+        "hp": 0,
+        "alive": false,
+        "boss": {
+          "state": "victory",
+          "phase": 2,
+          "checkpoint": 2,
+          "attempts": 1,
+          "t": 6.4666666666666535,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": true,
+            "rewardTaken": false,
+            "kills": 1
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":318,\"stage\":4}}"
+        },
+        "flags": [
+          "far.roc.down",
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 25
+      }
+    },
+    {
+      "stage": "reloaded",
+      "state": {
+        "hp": 420,
+        "alive": true,
+        "boss": {
+          "state": "armed",
+          "phase": 0,
+          "checkpoint": 0,
+          "attempts": 1,
+          "t": 0,
+          "skipT": 0,
+          "short": false,
+          "saved": {
+            "defeated": true,
+            "rewardTaken": false,
+            "kills": 1
+          },
+          "director": "{\"version\":2,\"contract\":{\"version\":2,\"id\":\"far.roc.encounter\",\"inputs\":{\"arena\":\"zone:boss.arena\",\"beat\":\"event:boss.beat-ready\",\"dead\":\"actor:boss.dead\",\"intro\":\"event:boss.intro-ready\",\"phase\":\"event:boss.phase-ready\"},\"stages\":[{\"id\":\"ready\",\"do\":[],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"arena\",\"when\":\"arena\",\"do\":[{\"emit\":\"boss.intro\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"intro\",\"when\":\"intro\",\"do\":[{\"emit\":\"boss.fight\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"beat\",\"when\":\"beat\",\"do\":[{\"emit\":\"boss.resume\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"dead\",\"when\":\"dead\",\"do\":[{\"emit\":\"boss.won\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]},{\"id\":\"phase\",\"when\":\"phase\",\"do\":[{\"emit\":\"boss.phase\",\"value\":0}],\"next\":[{\"target\":\"arena\",\"when\":\"arena\"},{\"target\":\"intro\",\"when\":\"intro\"},{\"target\":\"beat\",\"when\":\"beat\"},{\"target\":\"dead\",\"when\":\"dead\"},{\"target\":\"phase\",\"when\":\"phase\"}]}],\"script\":null},\"state\":{\"tick\":1,\"stage\":0}}"
+        },
+        "flags": [
+          "far.roc.down",
+          "seen:far.crown",
+          "seen:far.sunrest"
+        ],
+        "coins": 25
+      }
+    }
+  ],
+  "errors": [],
+  "diffs": [],
+  "pass": true
+}

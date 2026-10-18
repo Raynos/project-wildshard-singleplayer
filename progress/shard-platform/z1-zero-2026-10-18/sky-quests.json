@@ -1,0 +1,1122 @@
+{
+  "build": "0ac1503-mvdz0e8d",
+  "api": "native",
+  "profile": "muted iPhone 16 Pro DPR2 Metal; real notes/winch prompts; actual roost AnimalView damage; v2 legacy flags",
+  "rows": [
+    {
+      "id": "fresh",
+      "initial": {
+        "flags": [
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "notes"
+          },
+          "index": 0,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "notes": {
+        "flags": [
+          "far.notes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "roost"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "locked": {
+        "flags": [
+          "far.notes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "roost"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "roostDamage": [
+        {
+          "id": "far.roost.0",
+          "killed": true,
+          "alive": false
+        },
+        {
+          "id": "far.roost.1",
+          "killed": true,
+          "alive": false
+        },
+        {
+          "id": "far.roost.2",
+          "killed": true,
+          "alive": false
+        }
+      ],
+      "roost": {
+        "flags": [
+          "far.notes",
+          "far.roost",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "vanes"
+          },
+          "index": 2,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "onePermission": {
+        "flags": [
+          "far.notes",
+          "far.roost",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "vanes"
+          },
+          "index": 2,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "ready": {
+        "flags": [
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "raise"
+          },
+          "index": 3,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "raised": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "repeated": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "reload": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      }
+    },
+    {
+      "id": "eligible-old-save",
+      "initial": {
+        "flags": [
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": "raise"
+          },
+          "index": 3,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "Turn the winch",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": false,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0.671033,
+            0.315322,
+            -0.671033,
+            0,
+            -0.222967,
+            0.948985,
+            0.222967,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "raised": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "repeated": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "reload": {
+        "flags": [
+          "far.bridge",
+          "far.complete",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.step",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": true
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      }
+    },
+    {
+      "id": "raised-old-save",
+      "initial": {
+        "flags": [
+          "far.bridge",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "raised": {
+        "flags": [
+          "far.bridge",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "repeated": {
+        "flags": [
+          "far.bridge",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      },
+      "reload": {
+        "flags": [
+          "far.bridge",
+          "far.notes",
+          "far.roost",
+          "far.vane.grove",
+          "far.vane.keeper",
+          "far.vane.ruin",
+          "far.vanes",
+          "seen:far.sunrest"
+        ],
+        "coins": 0,
+        "rewarded": false,
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "far.quest",
+            "started": true,
+            "currentId": null
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "notes": {
+          "label": "Read the keeper's notes",
+          "radius": 2.6,
+          "at": [
+            -61,
+            33.8,
+            -62
+          ]
+        },
+        "winch": {
+          "label": "The crown bridge is up",
+          "radius": 3,
+          "at": [
+            -60.8,
+            45.2,
+            -136.3570357417579
+          ]
+        },
+        "bridge": {
+          "active": true,
+          "matrix": [
+            0.707107,
+            0,
+            0.707107,
+            0,
+            0,
+            1,
+            0,
+            0,
+            -0.707107,
+            0,
+            0.707107,
+            0,
+            -55.827942,
+            44,
+            -134.172058,
+            1
+          ],
+          "colliders": 3
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "diffs": [],
+  "pass": true
+}

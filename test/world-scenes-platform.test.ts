@@ -155,8 +155,17 @@ test('fictional shard builds ordered, repeated, cube-selected rows and typed han
 });
 
 test('resident owns one build across entries and frees owned geometry and materials', async () => {
-  const context = fixture(), resident = new Scope('resident'), rows = section();
+  const context = fixture(), resident = new Scope('resident'), rows = { ...section(), cosmeticDraws: 976 };
+  let draws = 0, drawsAtGeometry = 0;
+  Object.defineProperty(context.app, 'rng', { value: { stream: (name: string) => {
+    expect(name).toBe('cosmetic'); return { next: () => { draws++; return 0.5; } };
+  } } });
+  const file = context.product.file.bind(context.product);
+  vi.spyOn(context.product, 'file').mockImplementation(name => {
+    if (name === 'models/stone.glb') drawsAtGeometry = draws; return file(name);
+  });
   const a = await installWorldScenes(context, rows, resident), b = await installWorldScenes(context, rows, resident);
+  expect(draws).toBe(976); expect(drawsAtGeometry).toBe(976);
   expect(a).toBe(b);
   const mesh = a.group('harbour.root').children[0]; if (!(mesh instanceof Mesh)) throw new Error('Missing fixture mesh');
   const material: unknown = mesh.material; if (!(material instanceof MeshStandardMaterial)) throw new Error('Missing fixture material');
@@ -435,5 +444,41 @@ test('inactive tier sources are skipped before blob admission and decoding', asy
   try {
     const handles = await installWorldScenes(context, rows);
     expect(handles.group('harbour.root')).toBeInstanceOf(Group);
+  } finally { context.scope.dispose(); }
+});
+
+
+test('native scalar observations gate original contacts without adding a second body', async () => {
+  const context = fixture(), rows = section(), step = rows.steps[0];
+  if (step?.registry[0] === undefined) throw new Error('Missing contact fixture');
+  step.publish['enabled'] = { kind: 'number', value: 0 };
+  step.registry[0] = { ...step.registry[0], active: 'harbour.enabled' };
+  try {
+    const handles = await installWorldScenes(context, rows);
+    const piece = context.app.registry.pieces.find(row => row.id === 'harbour-wall');
+    if (piece?.active === undefined) throw new Error('Missing original contact predicate');
+    expect(piece.active()).toBe(false);
+    const contacts = piece.colliders;
+    handles.setNumber('harbour.enabled', 1);
+    expect(piece.active()).toBe(true);
+    expect(piece.colliders).toBe(contacts);
+    expect(context.app.registry.pieces.filter(row => row.id === 'harbour-wall')).toHaveLength(1);
+    handles.setNumber('harbour.enabled', 0);
+    expect(piece.active()).toBe(false);
+    expect(() => handles.setNumber('harbour.enabled', Number.NaN)).toThrow('finite');
+    expect(() => handles.setNumber('harbour.at', 1)).toThrow('Expected scene number');
+  } finally { context.scope.dispose(); }
+});
+
+test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s refuses before scene mutation', async active => {
+  const context = { ...fixture(), root: new Group() }, rows = section(), step = rows.steps[0], later = rows.steps[1];
+  if (step === undefined || later === undefined || step.registry[0] === undefined) throw new Error('Missing contact fixture');
+  step.registry[0].active = active;
+  later.publish['enabled'] = { kind: 'number', value: 1 };
+  try {
+    await expect(installWorldScenes(context, rows)).rejects.toThrow('published scalar');
+    expect(context.root.children).toHaveLength(0);
+    expect(context.app.registry.pieces).toHaveLength(0);
+    expect(() => parseWorldScenes({ ...rows, steps: [{ ...step, registry: [{ ...step.registry[0], mode: 'board' }] }] })).toThrow();
   } finally { context.scope.dispose(); }
 });

@@ -36,7 +36,10 @@ export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'>
       return play.inventory.take(item, count);
     }, effect => {
       if (effect.kind === 'sting') play.music.sting(effect.name);
-      else play.hud.toast(effect.counter === undefined ? effect.text
+      else if (effect.progress !== undefined) {
+        const progress = effect.progress, count = progress.flags.filter(flag => state.flags.has(flag)).length;
+        play.hud.toast(count === progress.flags.length ? progress.complete : `${effect.text} · ${String(count)}/${String(progress.flags.length)}`);
+      } else play.hud.toast(effect.counter === undefined ? effect.text
         : `${effect.text} · ${String(state.flags.count(effect.counter.prefix))} / ${String(effect.counter.of)}`);
     });
   } else commit(effects, context.flags, (item, count) => { creditNativeInventory(context, owner, { item, count }); },

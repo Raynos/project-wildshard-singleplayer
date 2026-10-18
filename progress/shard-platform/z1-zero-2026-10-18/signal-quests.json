@@ -1,0 +1,1189 @@
+{
+  "version": {
+    "build": "0ac1503-mvdz0e8d",
+    "time": "2026-10-18T15:18:52.348Z"
+  },
+  "device": "muted iPhone 16 Pro DPR2 Metal",
+  "api": "native",
+  "rows": [
+    {
+      "id": "fresh",
+      "initial": {
+        "flags": [
+          "seen:sunscar.crest"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "scout"
+          },
+          "index": 0,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "Read the logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The bucket hangs down the well",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Light the signal fire",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 0
+      },
+      "oil": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.logbook",
+          "sunscar.oil"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "waymarks"
+          },
+          "index": 3,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Light the signal fire",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 0
+      },
+      "waymarks": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.logbook",
+          "sunscar.oil"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "fire"
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          false,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Light the signal fire",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 0
+      },
+      "lit": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "repeat": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "reload": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      }
+    },
+    {
+      "id": "eligible-old-save",
+      "initial": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.logbook",
+          "sunscar.oil",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "fire"
+          },
+          "index": 4,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          false,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Light the signal fire",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 0
+      },
+      "lit": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "repeat": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "reload": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.lit",
+          "sunscar.logbook",
+          "sunscar.oil",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "matriarch"
+          },
+          "index": 5,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "labels": [
+          {
+            "label": "The caravan logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The well is empty",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "Waymark lit",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      }
+    },
+    {
+      "id": "lit-only-old-save",
+      "initial": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.lit",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "logbook"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "Read the logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The bucket hangs down the well",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "lit": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.lit",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "logbook"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "Read the logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The bucket hangs down the well",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "repeat": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.lit",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "logbook"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "Read the logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The bucket hangs down the well",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      },
+      "reload": {
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.lit",
+          "sunscar.scout"
+        ],
+        "quest": {
+          "state": {
+            "version": 1,
+            "id": "sunscar.signal",
+            "started": true,
+            "currentId": "logbook"
+          },
+          "index": 1,
+          "started": true,
+          "complete": false
+        },
+        "fire": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "labels": [
+          {
+            "label": "Read the logbook",
+            "radius": 2.4,
+            "at": [
+              -76.96553114894765,
+              16.00003837781969,
+              30.356878061377472
+            ]
+          },
+          {
+            "label": "The bucket hangs down the well",
+            "radius": 2.6,
+            "at": [
+              84,
+              16.82022199588854,
+              -6
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              58,
+              26.6,
+              -34
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              -44,
+              19.411776491606524,
+              -22
+            ]
+          },
+          {
+            "label": "An empty waymark brazier",
+            "radius": 3,
+            "at": [
+              34,
+              10.372193895564756,
+              -102
+            ]
+          },
+          {
+            "label": "Signal fire lit",
+            "radius": 2.6,
+            "at": [
+              7.6,
+              26.161264166119512,
+              -75.5
+            ]
+          }
+        ],
+        "bosses": 1
+      }
+    }
+  ],
+  "errors": [],
+  "diffs": [],
+  "pass": true
+}

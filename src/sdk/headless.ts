@@ -1,3 +1,4 @@
+import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native validation reads the SDK's distributed physics binary.
 import { existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate distributed or workspace physics bytes.
@@ -25,7 +26,7 @@ export class HeadlessSimulation {
   /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
   static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; trustedRuntime?: TrustedHeadlessRuntime; sections?: ReadonlyMap<string, unknown> } = {}): Promise<HeadlessSimulation> {
     const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };
-    const sections = headlessSections(options.sections);
+    const sections = headlessSections(options.sections ?? outputDescriptor(shard)?.sections);
     const memory = offlineMemoryAdmission('refuse');
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, scriptAdmissionRows(sections));
     for (const report of memory?.reports() ?? []) console.warn(`Headless memory report-only (G433): ${report.id}: ${report.playingBytes} playing bytes`);

@@ -83,6 +83,12 @@ export class SceneHandles {
   mesh(id: string): Mesh { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!mesh3(value)) throw new Error(`Expected scene mesh: ${id}`); return value; }
   vector(id: string): Vector3 { const value = this.value(id); if (!(value instanceof Vector3)) throw new Error(`Expected scene vector: ${id}`); return value; }
   number(id: string): number { const value = this.value(id); if (typeof value !== 'number') throw new Error(`Expected scene number: ${id}`); return value; }
+  /** Native presentation observations update an already declared scalar. */
+  setNumber(id: string, value: number): void {
+    this.number(id);
+    if (!Number.isFinite(value)) throw new Error('Scene scalar must remain finite');
+    this.values.set(id, value);
+  }
   light(id: string): PointLight { const value = this.value(id); if (!(value instanceof PointLight)) throw new Error(`Expected scene light: ${id}`); return value; }
   colliders(id: string): readonly ColliderDesc[] { const value = this.value(id); if (!colliderRows(value)) throw new Error(`Expected scene colliders: ${id}`); return value; }
   /** A point is a published vector or an object's world origin; offsets are world-space. */

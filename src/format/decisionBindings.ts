@@ -62,9 +62,9 @@ export function decisionSpawnGroups(source: Pick<Shardfile, 'creatures'>, script
  * scripts supplies declared spawn-group membership alongside the existing actor spawn ids.
  */
 export function buildDecisionRegistries(source: Pick<Shardfile, 'creatures' | 'rows' | 'state' | 'quests' | 'audio' | 'targets' | 'ledger' | 'clientChannels' | 'movers'> & Partial<Pick<Shardfile, 'runtime'>>,
-  moves: readonly ActorMove[], worldTargets?: WorldTargets, nativeStrikeRows: readonly CreatureStrikes[number][] = [], scripts: readonly DecisionScriptRow[] = []): DecisionRegistries {
+  moves: readonly ActorMove[], worldTargets?: WorldTargets, nativeStrikeRows: readonly CreatureStrikes[number][] = [], scripts: readonly DecisionScriptRow[] = [], nativeActors: readonly string[] = []): DecisionRegistries {
   const runtime = source.runtime?.spawns;
-  const actors = [...source.creatures.spawns, ...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].map(row => row.id);
+  const actors = [...source.creatures.spawns, ...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].map(row => row.id).concat(nativeActors);
   return {
     actors: catalogue(actors),
     moves: catalogue(moves.map(row => row.id)), strikes: catalogue([...source.rows.strikes, ...nativeStrikeRows].map(row => row.id)),

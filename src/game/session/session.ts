@@ -39,7 +39,7 @@ import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
 import { installProductGround, installProductSampling } from '../shardfile/productGround';
 import { installProductNavigation } from '../shardfile/productNavigation';
-import { loadManifestProduct } from '../shardfile/runtimeProduct';
+import { loadManifestProduct, manifestAdmittedSource } from '../shardfile/runtimeProduct';
 import { absentShardProduct } from '../shardfile/shardProduct';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
@@ -67,7 +67,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     session.arrival = consumeTitleArrival(selected);
     // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
     const mode = options.mode ?? bootPageMode(selected);
-    session.ownedGridHome = useOwnedGridHome(mode, isDev(), manifest);
+    session.ownedGridHome = useOwnedGridHome(mode, isDev(), manifest, manifestAdmittedSource(manifest));
     const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));

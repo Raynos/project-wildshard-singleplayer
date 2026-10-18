@@ -2,6 +2,7 @@ import { BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, Icosah
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
 import { PALETTE } from './palette';
+import { fallGeometry } from './fallGeometry';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by scripts/bake-sky-world.mjs into baked/geometries.glb + data/geometries.json;
@@ -174,22 +175,9 @@ function firGeometry(): BufferGeometry {
   return g;
 }
 
-/** A falling sheet: white at the lip fading to nothing far below (vertex alpha), a slight outward bow. */
-function fallGeometry(length: number, width: number): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], rows = 6, c = new Color();
-  for (let r = 0; r < rows; r++) {
-    const t0 = r / rows, t1 = (r + 1) / rows, y0 = -t0 * length, y1 = -t1 * length, b0 = Math.sin(t0 * 1.4) * 1.5, b1 = Math.sin(t1 * 1.4) * 1.5;
-    const a0 = 1 - t0, a1 = 1 - t1;
-    const quad: [number, number, number, number][] = [[-width / 2, y0, b0, a0], [width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y1, b1, a1]];
-    for (const [x, y, z, a] of quad) { pos.push(x, y, z); c.setRGB(0.95, 0.97, 1); col.push(c.r, c.g, c.b, a * 0.8); }
-  }
-  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 4));
-  return g;
-}
-
 /** The shapes as named kinds (one identity instance each), in plain standard materials: the client draws them in its own. */
-export function buildGeometries(): (readonly [string, InstancedMesh])[] {
-  const one = (geometry: BufferGeometry): InstancedMesh => { const mesh = new InstancedMesh(geometry, new MeshStandardMaterial({ vertexColors: true }), 1); mesh.setMatrixAt(0, new Matrix4()); return mesh; };
+export function buildGeometries(): (readonly [string, InstancedMesh<BufferGeometry, MeshStandardMaterial>])[] {
+  const one = (geometry: BufferGeometry): InstancedMesh<BufferGeometry, MeshStandardMaterial> => { const mesh = new InstancedMesh(geometry, new MeshStandardMaterial({ vertexColors: true }), 1); mesh.setMatrixAt(0, new Matrix4()); return mesh; };
   return [['clump', one(clumpGeometry())], ['flower', one(flowerGeometry())], ['boulder', one(stoneGeometry())], ['pine', one(pineGeometry())], ['fir', one(firGeometry())],
     ['fall', one(fallGeometry(1, 1))]];
 }

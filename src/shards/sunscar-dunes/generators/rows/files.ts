@@ -1,4 +1,4 @@
-import type { ModelLibraryRows } from '@wildshard/sdk/looks/modelLibrary';
+import type { ModelLibraryRows } from '@wildshard/game/plugin/geometry';
 import { HD_LOOKS } from './surfaces';
 import FACET_AO_FLOOR from '../../data/facets.json' with { type: 'json' };
 

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
@@ -34,7 +35,12 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (strikeEntry !== undefined && strikeBytes === undefined) throw new Error('Missing declared native strike section bytes');
   if (strikeEntry !== undefined && strikeBytes !== undefined && (strikeBytes.length !== strikeEntry.bytes || hashImmutableBytes(strikeBytes) !== strikeEntry.hash)) throw new Error('Native strike section hash or size mismatch');
   const strikes = strikeBytes === undefined ? [] : readCreatureStrikes(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(strikeBytes)));
-  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes, rows), authored, options);
+  const nativeEntry = platform?.sections.find(row => row.name === 'sim/runtime-plan');
+  const nativeBytes = nativeEntry === undefined ? undefined : platform?.files.get(nativeEntry.path);
+  if (nativeEntry !== undefined && (nativeBytes === undefined || nativeBytes.length !== nativeEntry.bytes || hashImmutableBytes(nativeBytes) !== nativeEntry.hash)) throw new Error('Native plan section hash or size mismatch');
+  const nativeActors = source.runtime === null && nativeBytes !== undefined
+    ? nativeRuntimeActorIds(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(nativeBytes))) : [];
+  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes, rows, nativeActors), authored, options);
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);
   for (const row of platform?.sections ?? []) if (row.name === 'sim/scripts') files.delete(row.path);

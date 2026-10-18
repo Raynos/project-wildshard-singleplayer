@@ -1,22 +1,37 @@
 import * as v from 'valibot';
+import { HandleIdSchema } from './sceneRefs';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const names = v.pipe(v.array(name), v.maxLength(128));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
 const toast = v.strictObject({ kind: v.literal('toast'), text: v.pipe(v.string(), v.maxLength(4096)),
+  progress: v.exactOptional(v.strictObject({ flags: names, complete: v.pipe(v.string(), v.maxLength(4096)) })),
   counter: v.exactOptional(v.strictObject({ prefix: name, of: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(8192)) })) });
 const sting = v.strictObject({ kind: v.literal('sting'), name: v.picklist(['pickup', 'death', 'chunk', 'dawn']) });
-const effect = v.variant('kind', [
+/** Client presentation addresses published resources and native services by identity.
+ * Page actions and quest steps share these effect kinds and the same dispatcher. */
+export const QuestSceneEffectSchema = v.variant('kind', [
+  v.strictObject({ kind: v.literal('label'), prompt: name, text: v.pipe(v.string(), v.maxLength(4096)) }),
+  v.strictObject({ kind: v.literal('visible'), part: HandleIdSchema, value: v.boolean() }),
+  v.strictObject({ kind: v.literal('light'), part: HandleIdSchema, intensity: v.pipe(finite, v.minValue(0)) }),
+  v.strictObject({ kind: v.literal('mover'), id: name, command: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(3)) }),
+  v.strictObject({ kind: v.literal('emitter'), target: name, value: v.boolean() }),
+  v.strictObject({ kind: v.literal('mark'), target: name, value: v.boolean() }),
+]);
+export type QuestSceneEffect = v.InferOutput<typeof QuestSceneEffectSchema>;
+/** Ordered effects, admitted identically for page actions and quest step rows. */
+export const QuestEffectSchema = v.union([QuestSceneEffectSchema, v.variant('kind', [
   toast, sting,
   v.strictObject({ kind: v.literal('flag'), flag: name, value: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('item'), item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),
   v.strictObject({ kind: v.literal('command'), script: name, type: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)),
     target: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(2147483647)), value: finite }),
   v.strictObject({ kind: v.literal('notice'), text: v.pipe(v.string(), v.maxLength(2048)) }),
-]);
+])]);
+export type QuestEffect = v.InferOutput<typeof QuestEffectSchema>;
 const base = { id: name, when: v.exactOptional(condition), once: v.exactOptional(name),
-  effects: v.pipe(v.array(effect), v.minLength(1), v.maxLength(32)) };
+  effects: v.pipe(v.array(QuestEffectSchema), v.minLength(1), v.maxLength(32)) };
 const signal = v.strictObject({ ...base, kind: v.picklist(['talk', 'kill', 'collect', 'lead', 'follow', 'interact']), target: v.exactOptional(name) });
 const step = v.union([signal,
   v.strictObject({ ...base, kind: v.literal('deliver'), target: name, item: name, count: v.pipe(finite, v.safeInteger(), v.minValue(1)) }),

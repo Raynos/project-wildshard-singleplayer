@@ -193,5 +193,12 @@
   ],
   "test/nalati-camp-fallback.test.ts": [
     "nalati-grasslands"
+  ],
+  "test/quest-page-refs.test.ts": [],
+  "test/scene-motion-refs.test.ts": [],
+  "test/scene-buffers.test.ts": [],
+  "test/native-runtime-plan.test.ts": [
+    "far-reach",
+    "sunscar-dunes"
   ]
 }

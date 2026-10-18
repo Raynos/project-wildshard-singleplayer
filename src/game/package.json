@@ -212,7 +212,8 @@
     "./shardfile/sceneDraws": "./shardfile/sceneDraws.ts",
     "./shardfile/lightEmitters": "./shardfile/lightEmitters.ts",
     "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts",
-    "./shardfile/customSchema": "./shardfile/customSchema.ts"
+    "./shardfile/customSchema": "./shardfile/customSchema.ts",
+    "./shardfile/clientSceneHandles": "./shardfile/clientSceneHandles.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

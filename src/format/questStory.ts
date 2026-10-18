@@ -59,7 +59,7 @@ const bossRecord = v.variant('kind', [
   v.strictObject({ kind: v.literal('flags'), names: v.strictObject({ defeated: text, paid: text }), actor: text }),
 ]);
 const pageStage = v.strictObject({ system: text, data: v.unknown(), initial: v.array(v.record(text, v.boolean())) });
-const PersistedPage = v.strictObject({
+export const PersistedQuestPageSchema = v.strictObject({
   id: text, rewardId: text, npc: text,
   strings: v.looseObject({ reward: v.string(), newQuest: v.string(), quest: v.string(), rewardKicker: v.string(), rewardSubtitle: v.string() }),
   persistence: v.strictObject({ reward: v.strictObject({ kind: v.picklist(['state', 'flag']), key: text, legacy: text }),
@@ -77,6 +77,6 @@ const PersistedPage = v.strictObject({
   capture: v.exactOptional(v.record(text, v.pipe(v.array(v.union([v.strictObject({ flag: text }), v.strictObject({ call: text })])), v.maxLength(64)))),
 });
 /** Page policy borrows existing flag, reward and presentation owners; it adds no saved cursor. */
-export type PersistedQuestPage = v.InferOutput<typeof PersistedPage>;
+export type PersistedQuestPage = v.InferOutput<typeof PersistedQuestPageSchema>;
 /** Validate compiled page JSON before the existing shared quest owner installs it. */
-export function parsePersistedQuestPage(input: unknown): PersistedQuestPage { return v.parse(PersistedPage, input); }
+export function parsePersistedQuestPage(input: unknown): PersistedQuestPage { return v.parse(PersistedQuestPageSchema, input); }

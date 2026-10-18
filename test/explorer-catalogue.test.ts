@@ -11,7 +11,7 @@ import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
-import { drawSceneRows } from '../src/game/shardfile/sceneDraws';
+import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
 import * as sceneSources from '../src/game/shardfile/sceneSources';
 import { admitWorldSceneStepSources, worldSceneStepSources } from '../src/game/shardfile/worldSceneStepSources';
 import { createModelLibrary, rigLibrary } from '../src/game/plugin/geometry';
@@ -19,6 +19,7 @@ import { sceneScalar, sceneScalarValue, sceneVectors } from '../src/game/shardfi
 import type { ShardContext } from '../src/game/plugin/context';
 import { output as sky } from '../src/shards/far-reach/generators/output';
 import { output as signal } from '../src/shards/sunscar-dunes/generators/output';
+import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dunes/generators/emberBuffers';
 
 const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
 const emptyLibrary = { rows: { meshes: [], hd: [], meshUrls: {}, hdUrls: {}, hdLooks: {}, aoFloor: 1 } };
@@ -118,11 +119,15 @@ test('made-up second scene user binds declared lights, sources and cube membersh
   } finally { scope.dispose(); }
 });
 
-test('draw fields keep original float32 seeds, order, visibility and ownership', () => {
-  const product = fixture('fixture-points', { version: 1, entries: [] }), scope = new Scope('fixture-points'), root = new Group(), material = new MeshStandardMaterial();
-  drawSceneRows(product, [{ kind: 'points', name: 'sparks', material: 'glow', count: 3, scale: 2, y: 4 }], root, scope, new Map([['glow', material]]));
-  const points = root.children[0]; if (!(points instanceof Points)) throw new Error('Missing point field');
-  expect(points.name).toBe('sparks'); expect(points.frustumCulled).toBe(false); expect(points.position.y).toBe(4); expect(points.scale.toArray()).toEqual([2, 2, 2]);
+test('draw fields keep original float32 seeds, order, visibility and ownership', async () => {
+  const file = signalEmberBuffer(3, 'sparks'), blob = SIGNAL_EMBER_BLOBS.find(row => row.file.name === file);
+  if (blob === undefined) throw new Error('Missing fixture ember bytes');
+  const product = fixture('fixture-points', { version: 1, entries: [] }, undefined, [blob]), scope = new Scope('fixture-points'), root = new Group(), material = new MeshStandardMaterial();
+  const rows = [{ kind: 'buffered', file, material: 'glow', scale: 2, y: 4 }];
+  await prepareSceneDrawRows(product, rows);
+  drawSceneRows(product, rows, root, scope, new Map([['glow', material]]));
+  const field = root.children[0], points = field?.children[0]; if (!(points instanceof Points)) throw new Error('Missing point field');
+  expect(points.name).toBe('sparks'); expect(points.frustumCulled).toBe(false); expect(field?.position.y).toBe(4); expect(field?.scale.toArray()).toEqual([2, 2, 2]);
   const shape: unknown = points.geometry; if (!(shape instanceof BufferGeometry)) throw new Error('Missing point geometry');
   const attribute: unknown = shape.getAttribute('aSeed'); if (!(attribute instanceof BufferAttribute)) throw new Error('Missing point seeds');
   expect(Array.from(attribute.array)).toEqual(Array.from(new Float32Array([0, 0.618034, (2 * 0.618034) % 1])));

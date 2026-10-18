@@ -11,7 +11,6 @@ import { AUDIO } from './rows/audio';
 import tiles from '../data/tiles.json' with { type: 'json' };
 import { SIGNAL_LEDGER } from './rows/ledger';
 import { WHIP_ITEMS } from './rows/items';
-import { SIGNAL_SPAWNS } from './rows/spawns';
 import { SIGNAL_BUCKET_CHANNELS, SIGNAL_BUCKET_MOVERS } from './bucket';
 import { SIGNAL_QUESTS } from './quests';
 import sandMaps from '../data/sandMaps.json' with { type: 'json' };
@@ -51,7 +50,7 @@ const sand = { ...fields, ground: { ...fields.ground,
   keyShadow: { map: ref('shadow'), ...fields.ground.keyShadow } } };
 const library = { resident: maps.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: maps.reduce((sum, file) => sum + file.compressed, 0) };
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
-const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + decisionMemory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels', 'movers'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
+const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + decisionMemory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, client: SIGNAL_DUNES_RUNTIME_COST, library, sim }, accent: 'orchid', runtime: null, audio: AUDIO, directors: [bossStages, signalStages],
   clientChannels: SIGNAL_BUCKET_CHANNELS, movers: SIGNAL_BUCKET_MOVERS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
   migrations: slotMigrations, state: { ...base.state, version: 2, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }, { id: 4, name: 'burrow', type: 'f64', privacy: 'public', default: 1, min: 0, max: 1 }] },

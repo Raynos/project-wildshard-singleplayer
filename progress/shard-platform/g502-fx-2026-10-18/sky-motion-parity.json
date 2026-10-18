@@ -1,0 +1,187 @@
+{
+  "feature": "G502 Sky fx.trail and G478 cue VFX targets",
+  "baselineCommit": "8efba3196194586fe09f73cae6ae52bf622de7a1",
+  "candidateCommit": "0ac15030431d7c2f48adde271781dc95ab333404",
+  "sourceBlobs": {
+    "src/engine/combat/view/slashTrail.ts": "0f6211be5a69ab0bd1c113866923f020e7cfbfdd",
+    "src/engine/fx/effectField.ts": "2c5b4fce34f54256ac97f05d6bc081964d8764a8",
+    "src/game/audio/cueDirector.ts": "c8c822a5f10b2e87c3ad5ad6303b81f4469aff10",
+    "src/format/clientTrails.ts": "a739cdf028fdbfcca08fa9fa89126b05d3b71b55",
+    "src/game/shardfile/clientTrails.ts": "007c015188a9ce9a0078e1e3b08d2e64d97e8c21",
+    "src/format/clientCues.ts": "8b66ad16c079955cc0cc80777f5920d8852ea085",
+    "src/game/shardfile/clientCues.ts": "8049de30ff2219c730dd0cdf7bf514e52fdacaa6",
+    "src/shards/far-reach/generators/clientPlan.ts": "fab264a5bec3e2034ebc139a45e8da7c7f3c2236"
+  },
+  "method": "Muted Chromium Metal; iPhone 16 Pro DPR2 and desktop1600x900 DPR1; capture30. Actual hoverboard riding alongside live moving rays, then actual held fan gust. Six board and four gust frames per surface. Raw full GPU framebuffer SSIM, native effect geometry attributes/matrices and actual player/ray/hover state.",
+  "pageErrors": [],
+  "before": {
+    "build": "8efba31-mvdvfzm1",
+    "time": "2026-10-18T13:39:00.907Z"
+  },
+  "after": {
+    "build": "0ac1503-mvdz0e8d",
+    "time": "2026-10-18T15:18:52.348Z"
+  },
+  "results": [
+    {
+      "key": "phone-board-1",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-board-3",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-board-12",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-board-30",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-board-60",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-board-90",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-gust-1",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-gust-6",
+      "ssim": 0.9999988771148669,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-gust-15",
+      "ssim": 0.9999999920806235,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "phone-gust-30",
+      "ssim": 0.9999999923514935,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-1",
+      "ssim": 0.9999993629375834,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-3",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-12",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-30",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-60",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-board-90",
+      "ssim": 1,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-gust-1",
+      "ssim": 0.999999994156635,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-gust-6",
+      "ssim": 0.9999994363750163,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-gust-15",
+      "ssim": 0.9999993164569443,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    },
+    {
+      "key": "desktop-gust-30",
+      "ssim": 0.9999999999472744,
+      "effectsExact": true,
+      "playerExact": true,
+      "raysExact": true,
+      "hoverExact": true
+    }
+  ]
+}

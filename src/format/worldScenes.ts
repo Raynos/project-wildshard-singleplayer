@@ -5,6 +5,7 @@ import { WorldSceneBindingsSchema } from './clientChannels';
 import { WorldScenePlacementSchema } from './worldScenePlacement';
 import { WorldSceneBatchSchema } from './worldSceneBatch';
 import { WorldSceneWeldSourceSchema } from './worldSceneWeld';
+import { SceneDrawsSchema } from './sceneDraws';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -34,9 +35,10 @@ const point = v.strictObject({ x: finite, y: finite, z: finite });
 const treads = v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: v.pipe(finite, v.minValue(0)), count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)), surface: v.exactOptional(surface) });
 const hull = v.strictObject({ surface: contactSurface, kind: v.literal('hull'), x: finite, y: finite, z: finite, points: v.pipe(bounded(finite, 24576), v.minLength(12), v.check(points => points.length % 3 === 0)), yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })) });
 const registry = v.strictObject({ id, name: id, file: id, category: v.picklist(['ground', 'nature', 'buildings', 'props']), part: id,
-  colliders: bounded(v.variant('kind', [box, treads, hull]), 2048), surface: v.exactOptional(surface), mode: v.exactOptional(v.picklist(['foot', 'board', 'swim', 'ride'])), solidFloor: v.optional(v.boolean(), false) });
+  colliders: bounded(v.variant('kind', [box, treads, hull]), 2048), surface: v.exactOptional(surface), mode: v.exactOptional(v.picklist(['foot', 'board', 'swim', 'ride'])), solidFloor: v.optional(v.boolean(), false), active: v.exactOptional(id) });
 const instance = v.strictObject({ id, position: v.exactOptional(triple), rotation: v.exactOptional(triple) });
 const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone', 'cell'])), load: v.exactOptional(v.literal('explorer')), scene: v.exactOptional(id), variants: v.exactOptional(v.strictObject({ standalone: id, cell: id })),
+  draws: v.exactOptional(SceneDrawsSchema),
   models: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
   textures: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
   baked: v.exactOptional(v.pipe(v.record(id, reference), v.check(rows => Object.keys(rows).length <= 128))),
@@ -52,12 +54,13 @@ const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(ro
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */
 export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World scenes require plain JSON'),
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
+    cosmeticDraws: v.exactOptional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1000000))),
     batches: v.optional(bounded(WorldSceneBatchSchema, 32), []),
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
     && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' ? unique(entry.models) : new Set(entry.files.flatMap(file => file.parts)).size === entry.files.flatMap(file => file.parts).length && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
-    && row.steps.every(entry => (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
+    && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
       && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
 export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds'] };

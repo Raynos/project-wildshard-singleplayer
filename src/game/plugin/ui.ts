@@ -1,6 +1,10 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { productPaintedLook } from '../looks/paintedLook';
+import { bindPageQuest } from '../quest/pageState';
+import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../quest/pagePersistence';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
-import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
+import { readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { createClientChannels, type ClientTubeFrame, type ClientConnectorFrame, type ClientChannelObservation, type ClientChannelFrame } from './channels';
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
@@ -37,7 +41,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
 import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from './director';
-import { type HybridPageQuestRows, bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import { bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -83,7 +87,7 @@ import { admitProduct, boundedResponse, readProductInput, type AdmittedProduct, 
 import { provideManifestAdmission } from '../shardfile/runtimeProduct';
 import { ClientAssets } from '../shardfile/clientAssets';
 import type { ShardfileClientBindings } from '../shardfile/client';
-import { clientGround } from '../shardfile/clientGround';
+import { clientGround, clientPageGround } from '../shardfile/clientGround';
 import { shardfileWater } from '../shardfile/water';
 import { clientResidency } from '../shardfile/clientResidency';
 import { firstPartyInstance } from '../grid/instances';
@@ -1091,7 +1095,7 @@ export interface RewardedQuestPorts extends RuntimeQuestPorts {
  */
 export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: RewardedQuestPorts): { quest: QuestState; reward: QuestReward; view: () => QuestPresentation | null } {
   const { strings: s, player } = o;
-  const bound = bindRuntimeQuest(ctx, source, o.id, { flags: o.flags, ...(o.facts === undefined ? {} : { facts: o.facts }), ...(o.place === undefined ? {} : { place: o.place }) });
+  const bound = bindPageQuest(ctx, source, o.id, { flags: o.flags, ...(o.facts === undefined ? {} : { facts: o.facts }), ...(o.place === undefined ? {} : { place: o.place }) });
   const quest = bound.state, paidAtLoad = o.paid();
   const reward = questReward(ctx, { player, coins: o.coins, amount: bound.reward.coins, paid: o.paid, markPaid: o.markPaid, toast: s.reward });
   const giver = o.npc?.() ?? null, npc = giver === null ? null
@@ -1325,59 +1329,6 @@ export function bindPageQuestStages(ctx: Pick<ShardContext, 'system'>, source: P
   } };
 }
 
-/** Bounded borrowed stage observations, existing actions and event callback fields. */
-export interface QuestPageStageBindings {
-  readonly observations?: readonly (BorrowedOwnerPath & { readonly id: string })[];
-  /** Admitted mover endpoints feed the existing quest stages, without view callbacks. */
-  readonly movers?: readonly { readonly id: string; readonly mover: string; readonly stage: string; readonly toast?: string }[];
-  readonly actions?: readonly (BorrowedOwnerPath & { readonly id: string; readonly action: DirectorActionBinding['action'] })[];
-  readonly events?: readonly (BorrowedOwnerPath & { readonly id: string })[];
-}
-/** Bind the admitted page lane at its existing install point; all owners preflight before quiet seeding. */
-export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,source:Pick<Shardfile,'questHost'>,
-  flags:Pick<Flags,'has'|'set'>,rows:QuestPageStageBindings,owners:ReadonlyMap<string,unknown>,
-  actor:(id:string)=>{readonly alive:boolean}|null,
-  published?:{readonly motion?:Pick<MoverRuntime,'atEnd'|'drainEndEvents'|'data'>&Partial<Pick<MoverRuntime,'pose'>>;readonly toast?:(text:string)=>void}):PageQuestStages {
-  const host=source.questHost;if(host===undefined||host===null)throw new Error('Missing admitted page quest host');
-  const ids=new Set(host.stages.map(stage=>stage.row.id));
-  for(const list of [rows.observations??[],rows.actions??[],rows.events??[],rows.movers??[]])if(list.length>64)throw new Error('Unbounded page stage bindings');
-  const observations=new Map((rows.observations??[]).map(row=>{
-    const field=readBorrowedOwner(owners,row);if(field===null||typeof field.value!=='boolean')throw new Error('Missing page stage observation');
-    return [row.id,()=>{const value=field.receiver[field.key];if(typeof value!=='boolean')throw new Error('Page stage observation changed type');return value;}] as const;
-  }));
-  const moverRows=rows.movers??[],motion=published?.motion;
-  if(new Set(moverRows.map(row=>row.mover)).size!==moverRows.length||new Set(moverRows.map(row=>row.id)).size!==moverRows.length)throw new Error('Duplicate quest mover endpoint');
-  for(const row of moverRows){
-    if(motion===undefined||!ids.has(row.stage)||observations.has(row.id))throw new Error('Unbound quest mover endpoint');
-    motion.atEnd(row.mover);
-    if(row.toast!==undefined&&(published?.toast===undefined||row.toast.length>4096))throw new Error('Missing or invalid mover endpoint toast owner');
-    observations.set(row.id,()=>motion.atEnd(row.mover));
-  }
-  const bindings=new Map<string,DirectorActionBinding[]>();
-  for(const row of rows.actions??[]){
-    if(!ids.has(row.id))throw new Error('Undeclared page stage action');
-    const call=bindBorrowedMethod(owners,row),list=bindings.get(row.id)??[];
-    list.push({action:row.action,run:()=>{call();}});bindings.set(row.id,list);
-  }
-  const events=(rows.events??[]).map(row=>{
-    if(!ids.has(row.id))throw new Error('Undeclared page stage event');
-    const field=readBorrowedOwner(owners,row);if(field===null||field.value!==null&&typeof field.value!=='function')throw new Error('Missing page stage event');
-    return {field,id:row.id};
-  });
-  const stages=bindPageQuestStages(ctx,source,{flags,actor,observations,bindings,...(motion===undefined?{}:{motion})});
-  if(moverRows.length>0&&motion!==undefined)ctx.system({id:`${host.graph.step}.mover-endpoints`,phase:'fixed.post',run:()=>{
-    for(const event of motion.drainEndEvents()){
-      const row=moverRows.find(entry=>entry.mover===event.mover);if(row===undefined||!event.atEnd)continue;
-      const savedFlag=motion.data.find(entry=>entry.id===row.mover)?.restoreFrom?.flag;
-      const already=savedFlag!==undefined&&flags.has(savedFlag);
-      stages.advance(row.stage);
-      if(!already&&row.toast!==undefined)published?.toast?.(row.toast);
-    }
-  }});
-  for(const {field,id} of events)field.receiver[field.key]=()=>{stages.advance(id);};
-  return stages;
-}
-
 /** A declared NPC's existing copied geometry provider; prepared pivots stay prepared. */
 export type QuestNpcModelSource =
   { readonly kind: 'mesh'; readonly read: () => BufferGeometry | null } |
@@ -1418,7 +1369,7 @@ export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: strin
 /** Saved quest presentation rows shared by native and flag-backed rewards. */
 export interface PersistedQuestRows {
   readonly id: string; readonly rewardId: string; readonly npc: string;
-  readonly strings: RewardedQuestStrings; readonly persistence: RuntimePersistenceRows;
+  readonly strings: RewardedQuestStrings; readonly persistence: PagePersistenceRows;
   readonly model?: QuestNpcModelRow;
   readonly places: readonly PlacePoint[];
   readonly markers?: Readonly<Record<string, NonNullable<ReturnType<NonNullable<RuntimeQuestPorts['place']>>>>>;
@@ -1437,94 +1388,20 @@ export interface PersistedQuestPorts {
   readonly player: Vector3; readonly flags?: Flags; readonly coins?: RuntimeCoins;
   readonly model: QuestNpcPorts['model'] | QuestNpcModelSource; readonly dress?: QuestNpcPorts['dress'];
 }
-function borrowedNpcModel(row:QuestNpcModelRow,binding:HybridPageQuestRows['model'],owners:ReadonlyMap<string,unknown>):QuestNpcModelSource {
-  if(row.kind!==binding.kind)throw new Error('Page quest needs its matching model row');
-  const read = bindBorrowedMethod(owners,binding.read);
-  const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
-  const isTexture = (value: unknown): value is Texture => value instanceof Texture;
-  let model: QuestNpcModelSource;
-  if (binding.kind === 'mesh') model = { kind: 'mesh', read: () => {
-    const geometry = read(row.id);
-    if (geometry === null || isGeometry(geometry)) return geometry;
-    throw new Error('Page quest model must return copied geometry or null');
-  } };
-  else {
-    if (binding.material === undefined || row.material === undefined) throw new Error('Prepared page quest needs its material binding');
-    const material = bindBorrowedMethod(owners,binding.material), materialId = row.material;
-    const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object';
-    model = { kind: 'pivots', read: () => {
-      const made = read(row.id);
-      if (made === null) return null;
-      if (!record(made)) throw new Error('Invalid prepared page quest model');
-      const geometry = made['geometry'], map = made['map'], pivots = made['pivots'];
-      if (!(isGeometry(geometry)) || !(isTexture(map))) throw new Error('Invalid prepared page quest model');
-      if (!record(pivots)) throw new Error('Missing authored NPC pivots');
-      const body = pivots['body'], head = pivots['head'], arm = pivots['arm'], fore = pivots['fore'];
-      if (!(isGeometry(body)) || !(isGeometry(head))
-        || !(isGeometry(arm)) || !(isGeometry(fore))) throw new Error('Missing authored NPC pivots');
-      return { geometry, map, pivots: { body, head, arm, fore } };
-    }, material: map => {
-      const made = material(materialId, map);
-      if (!(made instanceof Material)) throw new Error('Invalid page quest material');
-      return made;
-    } };
-  }
-  return model;
-}
-
-/** Borrowed NPC Explorer metadata uses the same model copy and material owners as play. */
-export interface BorrowedNpcSpecimen { readonly kind:'npc';readonly npc:string;readonly figure:HybridPageQuestRows['model']&{readonly materialId?:string};readonly prepare?:BorrowedOwnerPath }
-/** Prepare the same borrowed model library before a cold Explorer specimen. */
-export async function prepareBorrowedNpcSpecimen(row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Promise<void> {
-  if(row.prepare!==undefined)await bindBorrowedMethod(owners,row.prepare)();
-}
-/** Build the admitted figure through the page copier; no world or quest is installed. */
-export function borrowedNpcSpecimen(source:Pick<Shardfile,'questNpcs'>,row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Group {
-  const binding=source.questNpcs?.find(entry=>entry.npc.id===row.npc);
-  if(binding===undefined||'kind'in binding)throw new Error(`Undeclared quest NPC ${row.npc}`);
-  const model={id:binding.npc.figure.model,kind:row.figure.kind,...(row.figure.materialId===undefined?{}:{material:row.figure.materialId})};
-  return questNpcSpecimen(source,row.npc,model,borrowedNpcModel(model,row.figure,owners));
-}
-
-/** Install declared page composition using its original library, material and resource owners. */
-export function installBorrowedPageQuest(ctx: ShardContext, source: Shardfile, rows: HybridPageQuestRows,
-  owners: ReadonlyMap<string, unknown>, coins: RuntimeCoins, player: Vector3): PersistedQuest & { readonly coins: RuntimeCoins } {
-  const method = (row: BorrowedOwnerPath): ((...args: readonly unknown[]) => unknown) => bindBorrowedMethod(owners, row);
-  let flags: Flags | undefined;
-  if (rows.flags !== undefined) {
-    const field = readBorrowedOwner(owners, rows.flags);
-    if (!(field?.value instanceof Flags)) throw new Error('Page quest needs its actual flag owner');
-    flags = field.value;
-  }
-  const row = rows.data.model;
-  if(row===undefined)throw new Error('Page quest needs its matching model row');
-  const model=borrowedNpcModel(row,rows.model,owners);
-  if ((rows.dress?.length ?? 0) > 16) throw new Error('Page quest dressing must be bounded');
-  const dress = (rows.dress ?? []).map(step => {
-    if (step.args.length > 16 || step.args.some(arg => typeof arg === 'string' ? !['group', 'scope'].includes(arg)
-      : Object.keys(arg).length !== 1 || typeof arg.instances !== 'boolean')) throw new Error('Invalid page quest dressing arguments');
-    return { call: method(step.call), args: step.args };
-  });
-  const installed = installPersistedQuest(ctx, source, rows.data, { player,
-    ...(flags === undefined ? {} : { flags }), coins, model,
-    dress: group => { for (const step of dress) step.call(...step.args.map(arg => arg === 'group' ? group : arg === 'scope' ? ctx.scope : arg)); } });
-  return Object.assign(installed, { coins });
-}
-
 /** Live quest services over the original durable flag, reward and boss owners. */
 export interface PersistedQuest {
   readonly quest: QuestState; readonly flags: Flags; readonly reward: QuestReward; readonly burst: CoinBurst;
-  readonly view: QuestPresentation | null; readonly persistence: RuntimePersistence;
-  readonly facts: RuntimePersistence['facts']; readonly finished: () => void;
+  readonly view: QuestPresentation | null; readonly persistence: PagePersistence;
+  readonly facts: PagePersistence['facts']; readonly finished: () => void;
 }
 export function installPersistedQuest(ctx: ShardContext, source: Shardfile,
-  rows: PersistedQuestRows & { readonly persistence: RuntimePersistenceRows & { readonly boss: NonNullable<RuntimePersistenceRows['boss']> } },
-  ports: PersistedQuestPorts): PersistedQuest & { readonly persistence: RuntimePersistence & { readonly boss: NonNullable<RuntimePersistence['boss']> } };
+  rows: PersistedQuestRows & { readonly persistence: PagePersistenceRows & { readonly boss: NonNullable<PagePersistenceRows['boss']> } },
+  ports: PersistedQuestPorts): PersistedQuest & { readonly persistence: PagePersistence & { readonly boss: NonNullable<PagePersistence['boss']> } };
 export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows: PersistedQuestRows, ports: PersistedQuestPorts): PersistedQuest;
 /** Compose declared NPCs, saved rewards and flag stages without replacing a save owner. */
 export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows: PersistedQuestRows, ports: PersistedQuestPorts): PersistedQuest {
   const flags = ports.flags ?? new Flags(ctx.manifest.slug);
-  const persistence = bindRuntimePersistence(ctx, source, rows.persistence, flags, ctx.manifest.slug);
+  const persistence = bindPagePersistence(ctx, source, rows.persistence, flags, ctx.manifest.slug);
   if (rows.projectProgress === true) persistence.bindProgress(ctx.game.runtime?.play?.progress);
   if (rows.repair !== undefined) {
     const repairRow = rows.repair;
@@ -1692,6 +1569,7 @@ export type DeclaredFightPorts = { readonly player: Vector3; readonly flags: Pic
   readonly kind: 'held'; readonly held: Animal | null; readonly catalogue: SpeciesPageCatalogue | null;
   readonly record: RowBossRecord; readonly reward: (amount: number, label: string) => void;
 } | { readonly kind: 'spawned'; readonly source: Shardfile; readonly coins?: RuntimeCoins;
+  readonly body: RuntimeBoss;
   readonly dress?: (animal: Animal) => void;
 });
 /** Bind authored boss presentation at the caller's original phase, on its
@@ -1714,8 +1592,8 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
     boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: control, victory, record: ports.record });
   } else {
     if (row.record === undefined) throw new Error('Spawned presentation requires its declared record');
-    const body = bindRuntimeBoss(ctx, ports.source, row.id, ports.dress);
-    const record = bindRuntimeBossRecord(ctx, ports.source, row.record, ports.flags);
+    const body = ports.body;
+    const record = bindPageBossRecord(ctx, ports.source, row.record, ports.flags);
     const presentation = parseMarkedBossPresentation(row.presentation);
     boss = new RowBossView(ctx, rows, { player: ports.player, body, record: { saved: record.read(), persist: record.write }, presentation,
       reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory, source: ports.source });
@@ -1923,7 +1801,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
+    render: product => product.has('look/painted') ? productPaintedLook(product) : Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
     load: async () => { const { ShardfileClient } = await import('../shardfile/client'); return { default: class extends ShardfileClient { constructor() { super(source, assets, clientBindings); } } }; },
   };
   provideManifestAdmission(result, admitted, options);
@@ -1978,7 +1856,15 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const admitted = await admitProduct(source, productOptions);
   const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
   const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
-  const installed = { ...client,
+  // First-party declared pages keep their authored scalar level presentation and boot inventory.
+  // The admitted client owns ground, navigation and all executable stages; no shard loader survives.
+  const page: ShardManifest = hasDeclaredClientPage(source) ? { ...manifest,
+    ground: clientPageGround(source, admitted.assets), spawns: [],
+    ...(client.navigation === undefined ? {} : { navigation: client.navigation }),
+    ...(client.render === undefined ? {} : { render: client.render }),
+    ...(client.load === undefined ? {} : { load: client.load }),
+  } : client;
+  const installed = { ...page,
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)

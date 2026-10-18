@@ -1,4 +1,5 @@
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
+import { hasDeclaredClientPage } from './runtimeBinds';
 import { diverPreset } from '@wildshard/format/flyers';
 import { grazerPreset } from '@wildshard/format/grazers';
 import { ShardFiniteSchema as finite, ShardReferenceSchema as ref, ShardNamesSchema as names, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
@@ -183,8 +184,9 @@ export interface Shardfile {
 /** Semantic format violations, including reference integrity and the acyclic dependency graph. */
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
-  errors.push(...questNpcBindingRules(s.questNpcs ?? [], s.quests.flags, s.runtime?.binds?.includes('quests') === true));
-  errors.push(...questHostBindingRules(s.questHost, s.quests.flags, s.runtime?.binds?.includes('quests') === true));
+  const pageOwner = hasDeclaredClientPage(s);
+  errors.push(...questNpcBindingRules(s.questNpcs ?? [], s.quests.flags, pageOwner || s.runtime?.binds?.includes('quests') === true));
+  errors.push(...questHostBindingRules(s.questHost, s.quests.flags, pageOwner || s.runtime?.binds?.includes('quests') === true));
   errors.push(...entrywayRules(s));
   errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
   errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));
@@ -202,7 +204,7 @@ export function shardfileRules(s: Shardfile): string[] {
     const field = s.state.shared.find(candidate => candidate.id === trigger.field);
     if (field === undefined || field.type === 'string' || typeof field.default !== typeof row.trigger.equals) errors.push('mover trigger requires an admitted numeric or boolean shared field');
   }
-  if (!s.runtime?.binds?.includes('movers') && s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
+  if (!pageOwner && !s.runtime?.binds?.includes('movers') && s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
   if (s.movers.some(row => row.execution !== 'native' && (!s.sim.scripts.includes(row.module) || !s.critical.includes(row.module) || s.files.find(asset => asset.hash === row.module)?.kind !== 'wasm'))) errors.push('mover modules are admitted critical sim scripts');
   const liftIds = new Set(socketLiftEntries(s.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]));
   const liftModules = new Set(s.movers.filter(row => liftIds.has(row.id)).map(row => row.module));
@@ -230,7 +232,7 @@ export function shardfileRules(s: Shardfile): string[] {
     }
   }
   errors.push(...stateRules(s.state));
-  if ((s.clientChannels?.length ?? 0) > 0 && s.runtime?.binds?.includes('clientChannels') !== true) errors.push('native visual channels require runtime.binds clientChannels');
+  if ((s.clientChannels?.length ?? 0) > 0 && !pageOwner && s.runtime?.binds?.includes('clientChannels') !== true) errors.push('native visual channels require their declared page or runtime owner');
   if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host' && !(field.privacy === 'public' && field.type !== 'string' && (s.runtime?.spawns?.bosses.length ?? 0) > 0)))) errors.push('runtime-bound state supports host fields and retained-actor numeric fields');
   errors.push(...materialGraphRules(s), ...materialCurveRules(s), ...textureSamplerRules(s.look), ...postStackRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
@@ -271,9 +273,9 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...targetRules(s.targets, s, { panels: s.props?.panels ?? [], colliders: [...s.props?.colliders ?? [], ...s.meshCollision?.panels ?? []] }));
   errors.push(...itemRules(s.items, s.sim.scripts));
   if (s.migrations.some(step => step.equipmentSlots?.some(rename => !s.items.rows.some(row => row.kind === 'weapon' && row.slot === rename.to)))) errors.push('migration equipment slots resolve declared weapons');
-  if ((s.items.runtimeContexts?.length ?? 0) > 0 && s.runtime?.binds?.includes('items') !== true) errors.push('runtime input context references require runtime.binds items');
+  if ((s.items.runtimeContexts?.length ?? 0) > 0 && !pageOwner && s.runtime?.binds?.includes('items') !== true) errors.push('native input contexts require their declared page or runtime owner');
   if (s.items.rows.some((row) => row.kind === 'tool' && row.action === null) && s.runtime?.binds?.includes('items') !== true) errors.push('native tools require runtime.binds items');
-  if (s.modes !== undefined && (s.modes.traverse.some(row => row.kind !== 'ladder') || (s.modes.ride?.length ?? 0) > 0 || (s.modes.grapple?.length ?? 0) > 0) && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require runtime.binds modes until the data client owns their player phase');
+  if (s.modes !== undefined && (s.modes.traverse.some(row => row.kind !== 'ladder') || (s.modes.ride?.length ?? 0) > 0 || (s.modes.grapple?.length ?? 0) > 0) && !pageOwner && s.runtime?.binds?.includes('modes') !== true) errors.push('traverse modes require their declared page or runtime player phase');
   if (s.runtime !== null && s.modes?.traverse.some(row => row.kind === 'ladder')) errors.push('ladder traversal requires the data-only player owner');
   errors.push(...skinLookRules(s));
   errors.push(...clientScriptRules(s));
@@ -292,7 +294,7 @@ export function shardfileRules(s: Shardfile): string[] {
   if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');
   if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');
   if (s.terrain !== null && (!s.critical.includes(s.terrain.collider) || files.get(s.terrain.collider)?.kind !== 'binary' || s.terrain.tiles.some((payload) => files.get(payload.file)?.kind !== 'binary' || !s.tiles.some((row) => row.lod === payload.lod && row.x === payload.x && row.z === payload.z && row.files.includes(payload.file))))) errors.push('declared terrain payload references');
-  if (s.terrain?.form === 'query' && s.runtime?.binds?.includes('terrain') !== true) errors.push('query terrain requires runtime.binds terrain');
+  if (s.terrain?.form === 'query' && !pageOwner && s.runtime?.binds?.includes('terrain') !== true) errors.push('query terrain requires its declared page or runtime owner');
   if (s.terrain?.sampling !== undefined && (!s.critical.includes(s.terrain.sampling.file) || files.get(s.terrain.sampling.file)?.kind !== 'binary')) errors.push('declared terrain sampling reference');
   if (s.terrain?.sampling !== undefined && s.meshCollision !== null) errors.push('terrain sampling and mesh ground are mutually exclusive');
   if (s.look.families.some((family) => !materialExists({}, family)) || (s.terrain !== null && s.terrain.form !== 'query' && !materialExists(s.look.materials, s.terrain.family)) || s.rows.looks.some((row) => row.material !== null && !materialExists(s.look.materials, row.material))) errors.push('declared platform material family');

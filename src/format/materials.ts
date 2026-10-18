@@ -1,3 +1,4 @@
+import { hasDeclaredClientPage } from './runtimeBinds';
 import * as v from 'valibot';
 import {
   FAMILY_IDS, FamilyMaterialSchema, GRAPH_PRESET_VERSION, paintedTerrainTextureRefs, parseEmissiveLook, parsePainterlyLook, parseToonLook, presetRefusal,
@@ -115,7 +116,7 @@ export interface GraphBindingSources { readonly day: ReadonlyMap<string, 'float'
  * (`curveStateFields`), its host-owned numeric fields when a trusted runtime binds `state` (the runtime hands the client
  * their live values). Admission and the client's compile both use these lists, never a compiler default that allows any name.
  */
-export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'> & { readonly runtime?: Shardfile['runtime'] }): GraphBindingSources {
+export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>): GraphBindingSources {
   const day = new Map<string, 'float' | 'vec3'>();
   if (source.look.keys.length > 0) {
     for (const path of ['sky.zenith', 'sky.horizon', 'fog.colour', 'sun.colour', 'ambient.sky', 'ambient.ground']) day.set(path, 'vec3');
@@ -124,7 +125,7 @@ export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'> & 
       day.set('fog.near', 'float'); day.set('fog.far', 'float');
     }
   }
-  return { day, state: [...curveStateFields({ state: source.state, runtime: source.runtime ?? null })] };
+  return { day, state: [...curveStateFields({ state: source.state, runtime: source.runtime ?? null, ...(source.questHost === undefined ? {} : { questHost: source.questHost }) })] };
 }
 /** The `<scope>.<name>` keys of the numeric state fields of one privacy. */
 function numericFields(state: Shardfile['state'], privacy: 'public' | 'host'): string[] {
@@ -137,7 +138,7 @@ function numericFields(state: Shardfile['state'], privacy: 'public' | 'host'): s
  * programs are held to `PRESET_GRAPH_BUDGET` by the engine's own tests, never the author caps); a graph file must be a
  * JSON file of the library closure (`files` / `library` given: its bytes are validated by product admission, `graphFileRules`).
  */
-export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'files' | 'library' | 'runtime'>>): string[] {
+export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'files' | 'library' | 'runtime' | 'questHost'>>): string[] {
   const errors: string[] = [];
   const { day: dayChannels, state: stateFields } = graphBindingSources(source);
   const files = new Map((source.files ?? []).map((row) => [row.hash, row])), closure = new Set<string>(), pending = [...source.library ?? []];
@@ -149,7 +150,7 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
       continue;
     }
     if ('preset' in material) { const refusal = presetRefusal(material.preset); if (refusal !== null) errors.push(`material ${materialId}: ${refusal}`); continue; }
-    const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined });
+    const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined || hasDeclaredClientPage(source) });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
     errors.push(...bindingTypeErrors(materialId, checked.graph, dayChannels));
     const fog = checked.graph.effectState?.fog;
@@ -165,7 +166,7 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
  * one `kind: "material"` graph that validates under the author caps against the shard's admitted bindings, and every
  * texture param names a KTX2 file its row declares as a direct dependency (so the texture is charged with the closure).
  */
-export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files'> & Partial<Pick<Shardfile, 'runtime'>>, bytes: (hash: string) => Uint8Array | undefined): string[] {
+export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>, bytes: (hash: string) => Uint8Array | undefined): string[] {
   const errors: string[] = [];
   const { day: dayChannels, state: stateFields } = graphBindingSources(source);
   const files = new Map(source.files.map((row) => [row.hash, row]));
@@ -173,7 +174,7 @@ export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files
     if (material.family !== 'graph' || !('file' in material)) continue;
     let ir: unknown;
     try { ir = graphFileJson(material.file, bytes); } catch (error) { errors.push(`material ${materialId}: ${error instanceof Error ? error.message : 'graph file'}`); continue; }
-    const checked = validateGraph(ir, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined });
+    const checked = validateGraph(ir, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined || hasDeclaredClientPage(source) });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
     if (checked.graph.kind !== 'material') { errors.push(`material ${materialId}: a graph file in a material slot holds a material graph, not a post pass`); continue; }
     const deps = new Set(files.get(material.file)?.dependencies);
@@ -270,11 +271,11 @@ export function curvedParams(params: FamilyMaterialParams, curves: readonly { re
  * The fields a material curve may read: every public numeric field, and, when a trusted runtime binds `state`
  * (`runtime.binds`), its host-owned numeric shared fields too (the runtime hands the client their live values).
  */
-function curveStateFields(source: Pick<Shardfile, 'state' | 'runtime'>): ReadonlySet<string> {
-  return new Set([...numericFields(source.state, 'public'), ...(source.runtime?.binds?.includes('state') === true ? numericFields(source.state, 'host') : [])]);
+function curveStateFields(source: Pick<Shardfile, 'state' | 'runtime'> & Partial<Pick<Shardfile, 'questHost'>>): ReadonlySet<string> {
+  return new Set([...numericFields(source.state, 'public'), ...(source.runtime?.binds?.includes('state') === true || hasDeclaredClientPage(source) ? numericFields(source.state, 'host') : [])]);
 }
 /** Check each curve's material, field and param: a family catalogue entry, a readable numeric field (`curveStateFields`), a movable number. */
-export function materialCurveRules(source: Pick<Shardfile, 'look' | 'state' | 'runtime'>): string[] {
+export function materialCurveRules(source: Pick<Shardfile, 'look' | 'state' | 'runtime'> & Partial<Pick<Shardfile, 'questHost'>>): string[] {
   const errors: string[] = [], fields = curveStateFields(source);
   for (const [materialId, rows] of Object.entries(source.look.curves ?? {})) {
     const entry = source.look.materials[materialId];

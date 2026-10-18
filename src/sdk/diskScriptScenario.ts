@@ -3,6 +3,7 @@ import { existsSync, realpathSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- A validated output folder stays inside the explicit product root.
 import { resolve } from 'node:path';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
+import { nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
 import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups } from '@wildshard/format/decisionBindings';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
@@ -26,7 +27,9 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
   const row = rows.find(value => value.id === id), ordinal = rows.findIndex(value => value.id === id);
   if (row === undefined) throw new Error(`Missing simulation scenario script ${id}`);
   const moves = parseActorMoves(sections.get('actors/moves') ?? []), targets = sections.get('world/targets');
-  const registries = buildDecisionRegistries(shard, moves, targets === undefined ? undefined : parseWorldTargets(targets), readCreatureStrikes(sections.get('actors/strikes') ?? []), rows);
+  const nativePlan = sections.get('sim/runtime-plan');
+  const nativeActors = shard.runtime === null && nativePlan !== undefined ? nativeRuntimeActorIds(nativePlan) : [];
+  const registries = buildDecisionRegistries(shard, moves, targets === undefined ? undefined : parseWorldTargets(targets), readCreatureStrikes(sections.get('actors/strikes') ?? []), rows, nativeActors);
   const map = decisionBindingMap(row, registries), handles = Object.values(map.ids.actors ?? {});
   const script: DecisionScript = { ...row, ids: map.ids, state: row.state.map(slot => {
     if (slot.scope === 'local') throw new Error('Simulation scenario cannot use local-only slots');

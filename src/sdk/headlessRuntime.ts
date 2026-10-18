@@ -1,8 +1,10 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
-import { ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
+import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
@@ -21,8 +23,9 @@ import { prepareHeadlessAssembly, type HeadlessAssemblyModules } from './headles
 export interface TrustedHeadlessRuntime { module: string }
 /** The same admitted bytes and native physics implementation used by the ordinary headless worker. */
 export interface HeadlessRuntimePreparation { shard: Shardfile; assets: ReadonlyMap<string, Uint8Array>; rapier: Rapier; readonly product: ShardProduct }
-/** Existing native callers may omit the facade; the Node boundary then reads their built out/<slug> product. */
-export type HeadlessRuntimeInput = Omit<HeadlessRuntimePreparation, 'product'> & { readonly product?: ShardProduct };
+/** Build workers carry verified native sections before any output exists.
+ * Existing native callers may instead supply or explicitly load their built product. */
+export type HeadlessRuntimeInput = Omit<HeadlessRuntimePreparation, 'product'> & { readonly product?: ShardProduct; readonly sections?: ReadonlyMap<string, unknown> };
 /** Current tick inputs and buffered effects; only a completed tick publishes them to the parent. */
 export interface HeadlessRuntimeInstallation {
   readonly combat?: NativeCombatFrame;
@@ -132,26 +135,33 @@ export interface TrustedHeadlessResident {
  * fall back to a shard source path. Both paths verify product/level identity. */
 export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
-  let product = provided.product;
-  if (product === undefined) {
-    const { loadHeadlessProduct } = await import('./headlessProduct');
-    product = await loadHeadlessProduct(`out/${provided.shard.identity.slug}`);
+  let plan: HeadlessRuntimePlan, source = provided.shard;
+  if (entry === undefined && provided.sections !== undefined) {
+    const declaration = parseNativeRuntimePlan(provided.sections.get('sim/runtime-plan'));
+    plan = await prepareRuntimePlan(source, provided.assets, declaration.baked, declaration.recipe, provided.sections);
+  } else {
+    let product = provided.product;
+    if (product === undefined) {
+      const { loadHeadlessProduct } = await import('./headlessProduct');
+      product = await loadHeadlessProduct(`out/${provided.shard.identity.slug}`);
+    }
+    const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
+    if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
+    const preparation: HeadlessRuntimePreparation = { ...provided, product };
+    source = product.shardfile;
+    plan = entry === undefined ? await prepareProductRuntimePlan(product, provided.assets) : await (async () => {
+      const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
+      if (hasFactory(loaded)) return loaded.prepareHeadlessRuntime(preparation);
+      if (hasAssemblyModules(loaded)) return prepareHeadlessAssembly(preparation, loaded.headlessModules);
+      throw new Error('Trusted runtime must export prepareHeadlessRuntime or headlessModules');
+    })();
   }
-  const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
-  if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
-  const preparation: HeadlessRuntimePreparation = { ...provided, product };
-  const plan = entry === undefined ? await prepareProductRuntimePlan(product, provided.assets) : await (async () => {
-    const loaded: unknown = await import(/* @vite-ignore */ trustedHeadlessModule(entry.module));
-    if (hasFactory(loaded)) return loaded.prepareHeadlessRuntime(preparation);
-    if (hasAssemblyModules(loaded)) return prepareHeadlessAssembly(preparation, loaded.headlessModules);
-    throw new Error('Trusted runtime must export prepareHeadlessRuntime or headlessModules');
-  })();
-  const identity = { id: preparation.shard.identity.slug, seed: preparation.shard.identity.seed };
+  const identity = { id: source.identity.slug, seed: source.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
   return { ...plan, install: (host, context) => {
-    installCableModes(host.scope, preparation.shard.modes?.traverse ?? [], host.flags).bindNative(host);
-    const carried = preparation.product.shardfile.runtime?.binds?.includes('movers') === true
-      ? preparation.product.shardfile.movers.filter(row => row.carry !== undefined) : [];
+    installCableModes(host.scope, source.modes?.traverse ?? [], host.flags).bindNative(host);
+    const carried = source.runtime?.binds?.includes('movers') === true || hasDeclaredClientPage(source)
+      ? source.movers.filter(row => row.carry !== undefined) : [];
     if (carried.length > 0) {
       let motion: MoverRuntime | null = null;
       host.onStep('movers.commands', () => {
@@ -161,8 +171,8 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry
           motion.command(command.actorId, command.value);
         }
       });
-      motion = new MoverScriptDriver(carried, host).install(host, { content: { identity: preparation.shard.identity,
-        sim: { ...preparation.shard.sim, bindings: [] }, state: preparation.shard.state }, assets: new Map(),
+      motion = new MoverScriptDriver(carried, host).install(host, { content: { identity: source.identity,
+        sim: { ...source.sim, bindings: [] }, state: source.state }, assets: new Map(),
         rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 } },
       { id: 'movers.carried', restoring: context.restoring, restoreFlags: new Set(host.flags.all), drive: true });
     }

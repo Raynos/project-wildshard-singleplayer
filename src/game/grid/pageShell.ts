@@ -6,11 +6,12 @@ import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 
 
 /** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads. */
-export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>): boolean {
-  return mode === 'grid' && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
+export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
+  return mode === 'grid' && (manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined || source !== undefined && hasDeclaredClientPage(source));
 }
 
 /**

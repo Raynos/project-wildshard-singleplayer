@@ -1,0 +1,272 @@
+{
+  "build": "0ac1503-mvdz0e8d",
+  "profile": "muted iPhone 16 Pro DPR2 Metal",
+  "results": [
+    {
+      "id": "day",
+      "snap": {
+        "dusk": 0,
+        "renderDusk": 0,
+        "flags": [
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      },
+      "eased": {
+        "dusk": 0.019999999999999993,
+        "renderDusk": 0.019999999552965164,
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.scout"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      },
+      "reload": {
+        "dusk": 0.5,
+        "renderDusk": 0.5,
+        "flags": [
+          "seen:sunscar.crest",
+          "sunscar.scout"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "scout",
+      "snap": {
+        "dusk": 0.5,
+        "renderDusk": 0.5,
+        "flags": [
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "logbook",
+      "snap": {
+        "dusk": 0.52,
+        "renderDusk": 0.5199999809265137,
+        "flags": [
+          "sunscar.logbook",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "oil",
+      "snap": {
+        "dusk": 0.56,
+        "renderDusk": 0.5600000023841858,
+        "flags": [
+          "sunscar.oil",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "one",
+      "snap": {
+        "dusk": 0.62,
+        "renderDusk": 0.6200000047683716,
+        "flags": [
+          "sunscar.oil",
+          "sunscar.brazier.2",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": true,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "two",
+      "snap": {
+        "dusk": 0.74,
+        "renderDusk": 0.7400000095367432,
+        "flags": [
+          "sunscar.brazier.0",
+          "sunscar.brazier.2",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": true,
+            "visible": true
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": true,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "three",
+      "snap": {
+        "dusk": 0.86,
+        "renderDusk": 0.8600000143051147,
+        "flags": [
+          "sunscar.brazier.0",
+          "sunscar.brazier.1",
+          "sunscar.brazier.2",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": false,
+        "braziers": [
+          {
+            "lit": true,
+            "visible": true
+          },
+          {
+            "lit": true,
+            "visible": true
+          },
+          {
+            "lit": true,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "signal-only-old-save",
+      "snap": {
+        "dusk": 1,
+        "renderDusk": 1,
+        "flags": [
+          "sunscar.lit",
+          "sunscar.scout",
+          "seen:sunscar.crest"
+        ],
+        "fire": true,
+        "braziers": [
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          },
+          {
+            "lit": false,
+            "visible": false
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "diffs": [],
+  "pass": true
+}

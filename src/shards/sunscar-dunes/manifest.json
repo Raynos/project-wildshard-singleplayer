@@ -391,11 +391,10 @@
   },
   "pois": [],
   "entries": {
-    "legacy": true,
+    "legacy": false,
     "shardfile": true,
     "public": "shardfile"
   },
-  "gridShardfile": "/shardfiles/sunscar-dunes/shard.json",
   "boundary": {
     "visible": false
   },
@@ -458,7 +457,6 @@
     0.07
   ],
   "spawns": [],
-  "runtimeEntry": "runtime/index.ts",
   "audio": {
     "ambience": "none",
     "score": "sunscar.silent"
@@ -513,15 +511,11 @@
     },
     "render": {
       "platform": "painted"
-    },
-    "ground": {
-      "module": "./boot/ground",
-      "export": "GROUND"
-    },
-    "entry": {
-      "legacy": "./runtime/index",
-      "retainHomeRuntime": true,
-      "stagesOwner": "declared"
     }
+  },
+  "shardfile": "/shardfiles/sunscar-dunes/shard.json",
+  "ground": {
+    "structures": true,
+    "paths": "plugin"
   }
 }

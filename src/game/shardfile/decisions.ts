@@ -1,4 +1,5 @@
 import type { DecisionPublication } from '@wildshard/format/decisionPublication';
+import { nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
 import * as v from 'valibot';
 import { actorDecisionRows, parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
@@ -107,7 +108,9 @@ export class ShardDecisions {
     const nativeStrikes = readCreatureStrikes(sections.get('actors/strikes') ?? []);
     const targets = sections.has('world/targets') ? parseWorldTargets(sections.get('world/targets')) : undefined;
     this.spots = targets === undefined ? new Map() : worldTargetSpots(targets);
-    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared);
+    const nativePlan = sections.get('sim/runtime-plan');
+    const nativeActors = source.runtime === null && nativePlan !== undefined ? nativeRuntimeActorIds(nativePlan) : [];
+    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared, nativeActors);
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
     this.strikes = new Map(simStrikes(source.rows));
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
@@ -127,7 +130,7 @@ export class ShardDecisions {
         const spawn = source.creatures.spawns.find(value => value.id === name);
         const borrowed = sim.borrowedActors?.has(name) === true;
         const runtime = source.runtime?.spawns;
-        if (owners.has(name) || (borrowed ? spawn !== undefined || ![...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].some(value => value.id === name)
+        if (owners.has(name) || (borrowed ? spawn !== undefined || !nativeActors.includes(name) && ![...runtime?.homes ?? [], ...runtime?.bosses ?? [], ...runtime?.actors ?? []].some(value => value.id === name)
           : spawn?.brain !== null)) throw new Error('Decision actor has two controllers');
         const body = requireValue(sim.entities.get(name), 'absent actor');
         if (bodies.has(body)) throw new Error('Decision body has two controllers');
@@ -231,7 +234,6 @@ export class ShardDecisions {
       if (output.length < 2) return 0;
       output[0] = Math.sin(a) * b; output[1] = Math.cos(a) * b; return 2;
     }
-
     if (op === 3 || op === 4) {
       if (Math.abs(a) > 250 || Math.abs(b) > 250) throw new Error('Decision query outside cell');
       const y = this.sim.groundHeightAt(a, b);

@@ -67,9 +67,7 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house':
   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
   geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb', dressing: '/assets/far-reach/baked/dressing.glb' };
 /** The meadow's blades, deflated (world/meadow.ts; SHARD-PLATFORM M3, generators/meadowBlades.ts). */
-export const MEADOW_BLADES_URL = '/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin';
 /** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
-export const ISLES_URL = '/assets/far-reach/baked/isles.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
 export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
 /** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */
@@ -84,10 +82,3 @@ export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/asse
 export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 /** The painted 360° sky (look/sky.ts), one strip per tier. */
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
-
-
-/** Byte companions of the mesh world, consumed by the existing grass and island views. */
-export const WORLD_BYTES = [
-  { id: 'blades', url: MEADOW_BLADES_URL, compression: 'deflate', fault: { level: 'warn', message: '[far-reach] the meadow blades did not load; the meadow stands bare:' } },
-  { id: 'isles', url: ISLES_URL, compression: 'deflate', fault: { level: 'error', message: '[far-reach] the baked islands did not load; they stand undrawn:' } },
-] as const;

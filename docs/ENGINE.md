@@ -5357,13 +5357,14 @@ Legacy graphs and the explicit graph-materials Debug choice retain their
 existing family-preset behavior.
 
 `prepareClientWorld(ctx, source, rows)` in `game/shardfile/runtimeProduct`
-prepares up to 64 named painted textures in ordered phases (0–7), owns
-them on the existing scope, and compiles the existing product materials.
-Rows retain sampler settings and optional required material IDs; missing
-required materials and an unloaded owner refuse. `painted` contains the
-named texture handles, `material(id)` requires a compiled material, and
-the existing graph/material bindings remain available on the result.
-Sky world boot and Signal graph preparation consume the same binding.
+compiles the requested admitted graph materials for resident emitters and
+boss storms. Optional required IDs are bounded to 64; missing materials
+and an unloaded owner refuse. `material(id)` requires the actual compiled
+material. Painted images and relief bindings are declared in `look/painted`;
+`productPaintedImage(product, id)` reads a prepared image, and
+`bindPaintedMaterialMaps` binds its original UV channel and bump scale.
+The model source receives that same compiled book through
+`bindSceneSourceLooks`, before any world or held copies are created.
 
 
 `@wildshard/game/plugin/simulation` defines `readRuntimeWorldMetadata`
@@ -5712,11 +5713,9 @@ the authored `mappedFallback` roughness/metalness in a model viewer.
 Sky world materials and Signal's fire book use these same library ports.
 They borrow resources and release the look-book references with the scope.
 
-NPC `SceneCatalogueRow.specimen` rows use the same model catalogue as
-held scenes. `BorrowedNpcSpecimen` and `borrowedNpcSpecimen` borrow the
-admitted figure, copied geometry and original material methods; a
-bounded prepare path loads the original library before cold Explorer
-builds. The page and Explorer share one copier admission path.
+Declared NPC specimens and live quests use `resolveSceneNpc(product, id)`
+from the actual model-source definition. Copied geometry, pivot preparation
+and material identity are shared with Explorer; a missing asset refuses.
 
 ### Native equipment selection
 
@@ -5738,12 +5737,6 @@ restoration remain the owners of interaction and restored presentation.
 `QuestPageInteractionPorts.interactables` optionally registers the actual
 preflighted prompts in binding-row order, after restored presentation is
 seeded. Invalid prompt objects refuse before the host list is changed.
-
-`prepareClientWorld` accepts optional model-library ports as its fourth
-argument. It lends the compiled look book at the return boundary, after
-ordered paint/material preparation and bumps, before caller graph state
-bindings. Sky and Signal use this same step; absent ports keep the original
-preparation result with no library binding.
 
 ### Native posed-volume contacts
 
@@ -9574,6 +9567,17 @@ specifies; this change does not introduce a second effect dispatcher.
 
 ## World scene assembly (Z2, G480/G483)
 
+An ordered scene step may include `draws` from `SceneDrawsSchema`. A
+`buffered` draw names a verified `SceneBuffersSchema` JSON file and material
+slot. Admission reads and validates those bytes before visual allocation.
+The client-only `sceneBuffers` constructor restores typed plain or instanced
+attributes, shared interleaved buffers, index storage, instance counts and
+authored bounds. A count may select its original prefix through an admitted
+numeric plumbing knob. Optional LOD rows retain child insertion order while
+three.js sorts the distance table. Geometry and scene roots retire with the
+resident scope; missing files and invalid storage refuse without fallback.
+The same buffered draw rows serve resident scenes and emitter presentation.
+
 `@wildshard/game/shardfile/worldScenes.installWorldScenes(context, rows,
 resident)` builds the client-only `world/scenes` platform section once per
 resident scope and product. The optional resident defaults to the context scope; transitional resident
@@ -9945,13 +9949,71 @@ The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 |---|---|---|---|
 | `strings.register` | world / 0 | entered | `ui/strings` |
 | `world.scenes` | world / 20 | resident | `world/scenes` |
+| `light.emitters` | world / 30 | resident | `world/scenes` |
+| `motion.channels` | world / 40 | entered | `world/scenes` |
+| `player.enter` | world / 50, play / 25 | entered | none |
+| `held.melee` | kit / 10, play / 20 | entered | `look/painted` |
+| `species.program` | kit / 20 | entered | species, scripts, native plan |
+| `quest.page` | play / 10, play / 80 | entered | scenes, targets, painted look |
+| `boss.spawned` | play / 50 | entered | native plan |
+| `population.homes` | play / 60 | entered | native plan, scripts |
+| `boss.held` | play / 70 | entered | native plan |
+| `boss.telegraph` | play / 75 | entered | native plan, strikes |
+| `audio.cues` | play / 30 | entered | scenes |
+| `weather.fields` | play / 40 | entered | none |
+| `fx.trail` | play / 90 | entered | scenes |
 | `debug.expose` (`name`) | play / 100 | entered | none |
 
 `installClientPhase(ctx, plan, phase, resident)` uses the shared frame budget.
 `clientSceneHandles(product, resident)` reads Z2's typed resident results.
-Debug exposes the platform runtime diagnostic object; rows cannot traverse
-or invoke it.
+Debug exposes actual native owner references and the admitted capture actions;
+rows cannot traverse or invoke reflected objects.
 There is no dynamic loader, condition, loop or TS hook in a plan.
+
+A typed `questHost.page` and complete client plan replace the runtime owner.
+`clientOwnershipRules` verifies the actual quest/NPC, primary item, native
+roster and held/spawned encounter before allocation. Compiled features keep
+references to the existing native bodies, item controller, quest flags,
+reward/save owners and mover driver; they create no second simulation.
+Native ground follows the admitted recipe: sampled terrain uses the level's
+real heightfield collider, while structure floors retain their analytic floor.
+Terrain tiles share the collider normal lattice and the frame's cascade binding.
+The `world.scenes.graphs` row retains required versus Debug-selected graph
+compilation without changing the graph-materials setting.
+Both standalone and grid use the same phase order. Grid data pages reuse
+the existing regional terrain, herd, equipment, continuation and entered
+service lifecycle, with no shard module load.
+
+`budgets.client` optionally retains a reviewed whole-client memory floor
+with its original provenance. Data homes charge the maximum of that floor
+and their sim declaration, while library and render claims stay visible.
+No ceiling changes. Host-owned material fields and existing declared graph
+ceilings are admitted for the typed page owner; native page admission still
+requires first-party provenance before client construction.
+
+`world/scenes.cosmeticDraws` is the bounded Z2 seeded-draw declaration
+(G483 design §5.12). It consumes the cosmetic stream once per resident,
+before resource intake; repeated entry reuses the built scene and stream.
+
+`format/declaredQuestPage` admits ordered prompts, conditional labels,
+flag/mark/mover observations and the existing quest effect kinds. The internal
+`game/quest/declaredPage.bindDeclaredPage` resolves the whole resource book
+before registering prompts or restoring presentation. Accepted actions use
+`InteractionRules`; the existing quest flags, rewards and saved cursor remain
+the authorities. Restores apply only declared presentation and never replay
+rewards or summon actions.
+
+`motion.channels` reads `format/sceneMotion` groups and typed scene targets.
+The internal `SceneMotionBinding` borrows the existing channel programs and
+native mover driver, including permissions, prompts and saved continuation.
+Frame rows select admitted channels and material scalars; they introduce no
+new clock, physics body or executable hook.
+
+SDK build admission carries the hash- and size-verified `sim/runtime-plan`
+section directly into the headless worker. It selects the existing native
+interpreter before an output folder exists. Built-product validation uses
+that same plan; an explicit trusted runtime keeps its existing identity check.
+
 `wildshard/no-client-plan-reflection` walks imported section schemas and refuses
 `BorrowedOwnerPath` and `{owner,path}` reflection.
 

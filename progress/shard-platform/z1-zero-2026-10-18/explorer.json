@@ -1,0 +1,322 @@
+{
+  "version": {
+    "build": "0ac1503-mvdz0e8d",
+    "time": "2026-10-18T15:18:52.348Z"
+  },
+  "device": "muted iPhone 16 Pro DPR2 Metal",
+  "rows": [
+    {
+      "slug": "far-reach",
+      "roster": [
+        {
+          "id": "far-reach/war-fan",
+          "species": null
+        },
+        {
+          "id": "far-reach/windmill",
+          "species": null
+        },
+        {
+          "id": "far-reach/rope-bridge",
+          "species": null
+        },
+        {
+          "id": "far-reach/wind-vane",
+          "species": null
+        },
+        {
+          "id": "far-reach/storm-roc",
+          "species": "stormRoc"
+        },
+        {
+          "id": "far-reach/sky-goat",
+          "species": "skyGoat"
+        },
+        {
+          "id": "far-reach/drift-ray",
+          "species": "driftRay"
+        },
+        {
+          "id": "far-reach/keeper",
+          "species": null
+        }
+      ],
+      "specimens": [
+        {
+          "id": "shared/training-dummy",
+          "name": "Training dummy",
+          "category": "props",
+          "file": "src/engine/models/trainingDummy.ts",
+          "variants": [
+            {
+              "id": "wood",
+              "label": "Wood"
+            },
+            {
+              "id": "straw-cloth",
+              "label": "Straw + cloth"
+            },
+            {
+              "id": "wood-steel",
+              "label": "Wood + steel"
+            }
+          ],
+          "meshes": 1,
+          "vertices": 24
+        },
+        {
+          "id": "shared/hoverboard",
+          "name": "Hoverboard",
+          "category": "gear",
+          "file": "src/engine/models/hoverboard.ts",
+          "variants": [],
+          "meshes": 9,
+          "vertices": 3444
+        },
+        {
+          "id": "far-reach/war-fan",
+          "name": "War fan",
+          "category": "gear",
+          "file": "src/shards/far-reach/models/gear.ts",
+          "variants": [],
+          "meshes": 14,
+          "vertices": 15967
+        },
+        {
+          "id": "far-reach/windmill",
+          "name": "Old windmill",
+          "category": "buildings",
+          "file": "src/shards/far-reach/world/mill.ts",
+          "variants": [],
+          "meshes": 9,
+          "vertices": 46153
+        },
+        {
+          "id": "far-reach/rope-bridge",
+          "name": "Rope bridge",
+          "category": "buildings",
+          "file": "src/shards/far-reach/models/gear.ts",
+          "variants": [],
+          "meshes": 8,
+          "vertices": 9191
+        },
+        {
+          "id": "far-reach/wind-vane",
+          "name": "Wind vane",
+          "category": "props",
+          "file": "src/shards/far-reach/models/gear.ts",
+          "variants": [],
+          "meshes": 2,
+          "vertices": 2658
+        },
+        {
+          "id": "far-reach/storm-roc",
+          "name": "Storm Roc",
+          "category": "creatures",
+          "file": "src/shards/far-reach/generators/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 35280
+        },
+        {
+          "id": "far-reach/sky-goat",
+          "name": "Sky goat",
+          "category": "creatures",
+          "file": "src/shards/far-reach/generators/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 3261
+        },
+        {
+          "id": "far-reach/drift-ray",
+          "name": "Drift ray",
+          "category": "creatures",
+          "file": "src/shards/far-reach/generators/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 2700
+        },
+        {
+          "id": "far-reach/keeper",
+          "name": "Old Tamsin, bridge-keeper",
+          "category": "people",
+          "file": "src/shards/far-reach/models/gear.ts",
+          "variants": [],
+          "meshes": 3,
+          "vertices": 42000
+        }
+      ]
+    },
+    {
+      "slug": "sunscar-dunes",
+      "roster": [
+        {
+          "id": "sunscar-dunes/bullwhip",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/dune-ray",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/sand-skitterer",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/dune-strider",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/dune-matriarch",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/caravan-scout",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/signal-tower",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/caravan",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/dry-well",
+          "species": null
+        },
+        {
+          "id": "sunscar-dunes/waymark-brazier",
+          "species": null
+        }
+      ],
+      "specimens": [
+        {
+          "id": "shared/training-dummy",
+          "name": "Training dummy",
+          "category": "props",
+          "file": "src/engine/models/trainingDummy.ts",
+          "variants": [
+            {
+              "id": "wood",
+              "label": "Wood"
+            },
+            {
+              "id": "straw-cloth",
+              "label": "Straw + cloth"
+            },
+            {
+              "id": "wood-steel",
+              "label": "Wood + steel"
+            }
+          ],
+          "meshes": 1,
+          "vertices": 24
+        },
+        {
+          "id": "shared/hoverboard",
+          "name": "Hoverboard",
+          "category": "gear",
+          "file": "src/engine/models/hoverboard.ts",
+          "variants": [],
+          "meshes": 9,
+          "vertices": 3444
+        },
+        {
+          "id": "sunscar-dunes/bullwhip",
+          "name": "Bullwhip",
+          "category": "gear",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 4,
+          "vertices": 21099
+        },
+        {
+          "id": "sunscar-dunes/dune-ray",
+          "name": "Dune ray",
+          "category": "creatures",
+          "file": "src/shards/sunscar-dunes/generators/rows/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 27000
+        },
+        {
+          "id": "sunscar-dunes/sand-skitterer",
+          "name": "Sand skitterer",
+          "category": "creatures",
+          "file": "src/shards/sunscar-dunes/generators/rows/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 624
+        },
+        {
+          "id": "sunscar-dunes/dune-strider",
+          "name": "Dune strider",
+          "category": "creatures",
+          "file": "src/shards/sunscar-dunes/generators/rows/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 4800
+        },
+        {
+          "id": "sunscar-dunes/dune-matriarch",
+          "name": "The Dune Matriarch",
+          "category": "creatures",
+          "file": "src/shards/sunscar-dunes/generators/rows/rigLibrary.ts",
+          "variants": [],
+          "meshes": 1,
+          "vertices": 27000
+        },
+        {
+          "id": "sunscar-dunes/caravan-scout",
+          "name": "Sefa, the caravan scout",
+          "category": "people",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 3,
+          "vertices": 26973
+        },
+        {
+          "id": "sunscar-dunes/signal-tower",
+          "name": "Signal tower",
+          "category": "buildings",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 26,
+          "vertices": 14999
+        },
+        {
+          "id": "sunscar-dunes/caravan",
+          "name": "Half-buried caravan",
+          "category": "props",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 23,
+          "vertices": 50591
+        },
+        {
+          "id": "sunscar-dunes/dry-well",
+          "name": "Dry well",
+          "category": "buildings",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 7,
+          "vertices": 5126
+        },
+        {
+          "id": "sunscar-dunes/waymark-brazier",
+          "name": "Waymark brazier",
+          "category": "props",
+          "file": "src/shards/sunscar-dunes/models/gear.ts",
+          "variants": [],
+          "meshes": 13,
+          "vertices": 15129
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "diffs": [],
+  "pass": true
+}

@@ -4,6 +4,7 @@ import { InteractionRowsSchema, QuestPageInteractionsSchema } from './questInter
 import { NpcRowSchema } from './npcs';
 import { DirectorStagesSchema } from './directorStages';
 import { compileDirectorWhen } from './directorWhen';
+import { DeclaredQuestPageSchema } from './declaredQuestPage';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));
@@ -12,7 +13,7 @@ const initial = v.pipe(v.array(observations), v.maxLength(64));
 const inputs = v.pipe(v.record(name, v.pipe(name, v.regex(/^(?:flag|event):[a-z][a-z0-9.-]*$/u))), v.check(value => Object.keys(value).length <= 16, 'Bounded quest command inputs'));
 const raw = v.strictObject({
   version: v.literal(1), graph: QuestGraphSchema, interactions: InteractionRowsSchema,
-  page: v.exactOptional(QuestPageInteractionsSchema),
+  page: v.exactOptional(v.union([QuestPageInteractionsSchema, DeclaredQuestPageSchema])),
   npcs: v.pipe(v.array(NpcRowSchema), v.maxLength(64)), drive: v.picklist(['commands', 'external']),
   actors: v.strictObject({ ids: names, error: name }),
   observations: v.pipe(v.array(v.variant('kind', [
@@ -43,6 +44,12 @@ const raw = v.strictObject({
 });
 /** Bounded native quest composition. Actual bodies, mover poses, commands and effects are borrowed from their owners. */
 export type QuestHostRow = v.InferOutput<typeof raw>;
+type PageAction = NonNullable<QuestHostRow['page']>['actions'][number];
+type PageEffect = NonNullable<PageAction['before']>[number];
+function pageActionEffects(action: PageAction): readonly PageEffect[] {
+  const refused: Readonly<Record<string, readonly PageEffect[]>> = action.refused ?? {};
+  return [...action.before ?? [], ...action.after ?? [], ...Object.values(refused).flat()];
+}
 
 /** Refuse dangling routes, observations, continuations and stage requests before a native host installs anything. */
 export function questHostRules(row: QuestHostRow): readonly string[] {
@@ -81,11 +88,12 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
   const interactionIds=new Set(row.interactions.rows.map(entry=>entry.id)),marks=new Set(row.interactions.marks.map(mark=>mark.id));
   for(const action of row.page?.actions??[]) {
     if(action.interaction!==undefined&&!interactionIds.has(action.interaction))errors.push('Declared page interaction rule');
-    for(const effect of [...action.before??[],...action.after??[],...Object.values(action.refused??{}).flat()])if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
+    for(const effect of pageActionEffects(action))if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   }
   const pageActions=new Set(row.page?.actions.map(action=>action.id));
-  for(const prompt of row.page?.bindings?.prompts??[])if(!pageActions.has(prompt.target))errors.push('Declared page prompt action');
-  for(const reaction of row.page?.world??[])if(reaction.action!==undefined&&!pageActions.has(reaction.action))errors.push('Declared world reaction action');
+  const legacyPage = row.page !== undefined && !('version' in row.page) ? row.page : undefined;
+  for(const prompt of legacyPage?.bindings?.prompts??[])if(!pageActions.has(prompt.target))errors.push('Declared page prompt action');
+  for(const reaction of legacyPage?.world??[])if(reaction.action!==undefined&&!pageActions.has(reaction.action))errors.push('Declared world reaction action');
   for(const seed of row.page?.initial??[])for(const effect of seed.effects)if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   return errors;
 }
@@ -120,14 +128,17 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
     if (stage.seed !== undefined) check([stage.seed.flag]);
     for (const command of stage.row.stages.flatMap(entry => entry.do)) if ('flag' in command) check([command.flag.key]);
   }
-  const observed=new Set(row.observations.flatMap(entry=>entry.kind==='owner'?[entry.owner]:[]));
-  const pageCheck=(condition:{all?:string[];any?:string[];none?:string[]}):void=>check(reads(condition).filter(flag=>!observed.has(flag)&&!row.page?.bindings?.observations?.some(binding=>binding.target===flag)),true);
+  const legacyPage = row.page !== undefined && !('version' in row.page) ? row.page : undefined;
+  const declaredPage = row.page !== undefined && 'version' in row.page ? row.page : undefined;
+  const observed=new Set([...row.observations.flatMap(entry=>entry.kind==='owner'?[entry.owner]:[]), ...declaredPage?.observations.map(entry=>entry.id)??[]]);
+  const pageCheck=(condition:{all?:string[];any?:string[];none?:string[]}):void=>check(reads(condition).filter(flag=>!observed.has(flag)&&!legacyPage?.bindings?.observations?.some(binding=>binding.target===flag)),true);
   for(const action of row.page?.actions??[]) {
     for(const need of action.needs??[])pageCheck(need);
-    for(const effect of [...action.before??[],...action.after??[],...Object.values(action.refused??{}).flat()])if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
+    for(const effect of pageActionEffects(action))if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
   }
-  for(const prompt of row.page?.prompts??[]){if(prompt.when!==undefined)pageCheck(prompt.when);for(const label of prompt.labels??[])pageCheck(label.when);}
-  for(const reaction of row.page?.world??[]){if(reaction.needs!==undefined)pageCheck(reaction.needs);check(reaction.sets??[],true);}
+  for(const prompt of row.page?.prompts??[])if(!('channel' in prompt)){if(prompt.when!==undefined)pageCheck(prompt.when);for(const label of prompt.labels??[])pageCheck(label.when);}
+  for(const reaction of legacyPage?.world??[]){if(reaction.needs!==undefined)pageCheck(reaction.needs);check(reaction.sets??[],true);}
+  for(const entry of declaredPage?.observations??[]){if('flag' in entry.source)check([entry.source.flag]);if('mark' in entry.source)check([entry.source.mark],true);}
   for(const seed of row.page?.initial??[])pageCheck(seed.when);
   return [...new Set(errors)];
 }

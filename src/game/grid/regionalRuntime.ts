@@ -1,3 +1,5 @@
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -53,6 +55,7 @@ export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 's
   const { source } = admitted;
   const { slug: declaredIdentity } = source.identity, { slug: registeredIdentity } = manifest;
   if (declaredIdentity !== registeredIdentity) throw new Error('Regional runtime identity differs from its trusted manifest');
+  if (hasDeclaredClientPage(source)) return clientHomeBytes(source.budgets, textureMode);
   const declared = source.runtime?.cost, measured = manifest.runtimeCost;
   if (declared === undefined || measured === undefined) throw new Error('Regional runtime requires reviewed whole-runtime measurements');
   const bytes = runtimeAccountedBytes(declared);
@@ -155,7 +158,7 @@ export interface RegionalRuntimeFactoryPorts {
 export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts): RegionalRuntimeFactory {
   return async request => {
     const declaration = request.admitted.source.runtime;
-    if (declaration === null) throw new Error('Regional factory requires a declared trusted runtime');
+    if (declaration === null && !hasDeclaredClientPage(request.admitted.source)) throw new Error('Regional factory requires an admitted page owner');
     const bytes = regionalRuntimeAccountedBytes(request.admitted, request.manifest, request.textures?.mode);
     const { slug: cellIdentity } = request.cell, { slug: manifestIdentity } = request.manifest;
     if (cellIdentity !== manifestIdentity) throw new Error('Regional factory identity differs from its catalogue cell');
@@ -165,12 +168,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
     try {
-      const measured = request.textures?.mode === 'img' ? declaration.cost?.imagesFirst ?? declaration.cost : declaration.cost;
+      const measured = request.textures?.mode === 'img' ? declaration?.cost?.imagesFirst ?? declaration?.cost : declaration?.cost;
       if (measured?.residentBaseMB !== undefined) {
         if (claim.id !== `sim:${request.cell.instance}`) throw new Error('Measured runtime coverage requires its own instance lease');
         request.allocator.markMeasuredPage(claim.id);
       }
-      coverRuntimeAssets(request.allocator, scope, request.claim);
+      if (declaration !== null) coverRuntimeAssets(request.allocator, scope, request.claim);
       const foundation = await prepare({ ...request, scope });
       if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
       scope.onDispose(foundation.region.dispose);
@@ -217,7 +220,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         return progress && inventory && native && logical;
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
-        scope, runtime: parent, retainRuntime: true, context: (owner, runtime) => {
+        scope, product: shardProductFromAdmission(request.admitted, scope), runtime: parent, retainRuntime: true, context: (owner, runtime) => {
           viewmodelSets ??= startViewmodelTextures(request.manifest.boot?.viewmodelSets ?? false);
           localRuntime = runtime; runtime.world = { ...world, registry: view.registry }; runtime.play = null;
           runtime.interactables.length = 0; runtime.overhead.length = 0;

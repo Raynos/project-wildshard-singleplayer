@@ -35,9 +35,11 @@ const draw = v.strictObject({ name: id, graph: id, image: v.exactOptional(id), o
 export const PaintedLookSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Painted look requires plain JSON'), v.strictObject({ look: PaintedNumbersSchema, materialSun: v.exactOptional(v.strictObject({ x: scalar, y: scalar, z: scalar })), materialOptOut: v.exactOptional(id), state: v.exactOptional(id), lut: v.exactOptional(id),
   terrain: v.exactOptional(v.literal('declared')),
   images: v.optional(v.pipe(v.record(id,tierImage),v.maxEntries(16)), {}),
+  bumps: v.exactOptional(v.pipe(v.array(v.strictObject({ material: id, image: id, channel: v.picklist([0, 1, 2, 3]), scale: scalar })), v.maxLength(16))),
   dome: v.exactOptional(v.strictObject({ graph: v.strictObject({phone:id,desktop:id}), image:id })),
   dressing: v.exactOptional(v.strictObject({ name:id, draws:v.pipe(v.array(draw),v.maxLength(64)) })),
 }), v.check(row => (row.look.state === undefined) === (row.state === undefined) && (row.dome === undefined || row.images[row.dome.image] !== undefined)
+  && (row.bumps?.every(entry => row.images[entry.image] !== undefined) ?? true)
   && (row.dressing?.draws.every(entry => entry.image === undefined || row.images[entry.image] !== undefined) ?? true), 'Declared state and image bindings'));
 export type PaintedLookRow = v.InferOutput<typeof PaintedLookSchema>;
 export function parsePaintedLook(input: unknown): PaintedLookRow { return v.parse(PaintedLookSchema,input); }

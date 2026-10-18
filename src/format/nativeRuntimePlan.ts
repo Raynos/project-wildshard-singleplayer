@@ -75,3 +75,12 @@ export const NativeRuntimePlanSchema = v.pipe(v.unknown(), v.check(isJsonData, '
 export type NativeRuntimePlanData = v.InferOutput<typeof NativeRuntimePlanSchema>;
 /** No module URL, callback, fallback or independent simulation owner is admitted. */
 export function parseNativeRuntimePlan(input: unknown): NativeRuntimePlanData { return v.parse(NativeRuntimePlanSchema, input); }
+
+/** The real native keeper's body identities, used by author compilation,
+ * headless scenarios and rendered decision guests after runtime/ is removed. */
+export function nativeRuntimeActorIds(input: unknown): readonly string[] {
+  const rows = parseNativeRuntimePlan(input).recipe.population.rows;
+  const ids = rows.homes.map(row => row.id).concat(rows.boss === undefined ? [] : [rows.boss.id]);
+  if (new Set(ids).size !== ids.length) throw new Error('Native roster has duplicate actor identities');
+  return ids;
+}

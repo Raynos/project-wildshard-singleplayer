@@ -16,5 +16,5 @@ export const SKY_PAGE_PROGRAM = { species: { program, page: SKY_PAGE_ROWS, homes
     victory: { flag: FLAGS.roc, fact: 'far-reach.roc', once: true, again: STRINGS.rocDown, rewardLabel: STRINGS.bossReward } },
 } as const;
 export const SKY_NATIVE_POPULATION = { program, step: FLOCK_STEP, seed: 6417, admission: 'install',
-  homes: SKY_FLOCK_ROWS.map(row => ({ id: row.id, kind: row.kind, at: row.at, yaw: row.yaw, respawn: 0, late: 'ground' as const })),
+  homes: SKY_FLOCK_ROWS.map(row => ({ id: row.id, kind: row.kind, at: row.at, yaw: row.yaw, look: row.look, respawn: 0, late: 'ground' as const })),
   attackers: null, think: 'legacy', killY: SKY_KILL_Y, placement: SKY_FLOCK_PLACEMENT } as const;
