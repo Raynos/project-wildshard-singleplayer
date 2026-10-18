@@ -11,6 +11,7 @@
   "doubleSided": true,
   "effectState": {
    "blend": "alpha",
+   "fog": "nalati-fog",
    "depthWrite": false,
    "singlePass": true
   },

@@ -162,5 +162,8 @@
   ],
   "test/light-emitters.test.ts": [],
   "test/eased-weather-fields.test.ts": [],
-  "test/signal-skirt-scene.test.ts": []
+  "test/signal-skirt-scene.test.ts": [],
+  "test/quest.test.ts": [],
+  "test/loot.test.ts": [],
+  "test/look-regressions.test.ts": []
 }
