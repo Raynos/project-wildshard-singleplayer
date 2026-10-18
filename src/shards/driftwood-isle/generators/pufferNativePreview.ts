@@ -22,7 +22,7 @@ const decisions = DRIFTWOOD_REGULAR_DECISIONS.filter(row => row.id === 'driftwoo
 const strikes = DRIFTWOOD_REGULAR_STRIKES.filter(row => row.id === 'strike.brine-puffer.burst');
 const species: typeof DRIFTWOOD_REGULAR_SPECIES = [];
 for (const row of DRIFTWOOD_REGULAR_SPECIES) {
-  if (row.kind === 'brine-puffer') species.push({ ...row, label: 'Brine Puffer V23 · UNACCEPTED WIP' });
+  if (row.kind === 'brine-puffer') species.push({ ...row, label: 'Brine Puffer Native · UNACCEPTED WIP' });
 }
 const materials = ['driftwood-creature', 'driftwood-creature-glowing',
   'driftwood-fp-arms', 'driftwood-fp-wood', 'driftwood-fp-iron', 'driftwood-fp-swim'] as const;

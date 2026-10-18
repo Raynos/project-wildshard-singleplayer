@@ -104,3 +104,68 @@ plus frozen animation/cloud/camera time and honest portrait screenshots. Paint
 there is unlit vertex paint plus the game's grading, not raw albedo. No rendered
 proof, geometric containment result, collider acceptance or phone result is
 claimed by the source tests or this document.
+
+
+## Explicit newer candidates (source support, no rendered proof)
+
+The V23 default remains pinned to its original source and dimensions. A new
+optional fourth positional CLI argument is a JSON candidate descriptor:
+`{ "candidate": "V38", "source": "project-relative/native.json", "sourceSha256": "64 lowercase hex characters", "measurement": "project-relative/measurement.json" }`.
+Source and receipt must remain inside the project. The receipt must match both
+source hash and exact dimensions-file bytes and state both acceptance flags false.
+The preview banner/build identity derives from this checked candidate; species
+uses the version-neutral `Brine Puffer Native · UNACCEPTED WIP` label.
+
+Prepare dimensions without Blender or an app build:
+
+```sh
+python3 art/driftwood-isle/approved-puffer/measure_native_preview.py --source art/driftwood-isle/approved-puffer/unaccepted-native-v38.json --sha256 34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b --candidate V38 --output NEW_MEASUREMENT_DIRECTORY
+```
+
+Custom measurement selects vertices by positive skin influence on named body/belly,
+head and individual fin bones, across all merged parts; it does not depend on part
+labels. The head sphere encloses the entire head-weighted region, not merely eyes.
+It is a conservative diagnostic envelope, not anatomical or gameplay tuning. The
+V23 no-argument measurement keeps the original selection and dimensions unchanged.
+Each measurement output refuses overwrites.
+
+The reviewed V38 input is preserved as `unaccepted-native-v38.json`,
+`unaccepted-native-v38-preview-dimensions.json`, `native-v38-preview-measurements.json`
+and `native-v38-preview-candidate.json` beside this document. Source SHA-256 is
+`34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b`.
+The descriptor uses repository-relative paths. Originals remain in scratch.
+V39 scratch measurements are exploratory only; its framing failure leaves it a
+hero-only study and it is not the selected preview candidate. If a source changes,
+prepare a new receipt instead of editing an old identity.
+
+Root-owned build commands, **not run by this source audit**:
+
+```sh
+python3 scripts/heavy-lane.py build -- node scripts/build-puffer-native-preview.mjs art/driftwood-isle/approved-puffer/unaccepted-native-v38-preview-dimensions.json rest tmp/puffer-native-preview/v38-rest art/driftwood-isle/approved-puffer/native-v38-preview-candidate.json
+PUFFER_PREVIEW_DIR=tmp/puffer-native-preview/v38-rest python3 scripts/heavy-lane.py build -- node scripts/build-puffer-native-preview.mjs --app tmp/puffer-native-preview-v38-rest-dist
+```
+
+V38 is the selected input. Use a new output for each of
+`rest`, `inflate-105`, `inflate-110`, `attack`. Native pivots resolve by name:
+body/belly Y≈0.60, head Y≈0.83 and tail Y≈0.58. Head local Y≈0.23 and Z=0.5.
+The pose source needs no changes; no independent head channel is introduced and
+attack remains 2.1 seconds. All rest/1.05/1.10 geometry checks precede attack tuning.
+
+Source checks: `node --test scripts/puffer-preview-input.test.mjs` and
+`python3 test/puffer-preview-measurement_test.py`. These cover preserved V23
+identity/dimensions, pinned source/dimension rejection, merged weight selection,
+current pivot inputs and parent rejection. They do not render or approve inflation.
+
+### Full Driftwood Noon remains outside this preview
+
+No lighting admission was added. Actual Driftwood's `generators/toonPresentation.ts`
+emits TOON_LOOK as `look/toon`, with authored lighting/shadows, sky channel programs,
+dome/cloud graphs, environment capture and asset dependencies. Its skyDay named
+Noon is phase .42 (fixed midday .4166666667), not the empty clock's .5. ModelExplorer
+pins the real host clock via `pin('noon')`. Replacing a label or manifest scalars,
+or using the simpler shardfileLook/dataLook sky, does not install that presentation.
+A future isolated adapter must admit its exact dependencies and real LUT bytes,
+bind/pin the light rig, then freeze cloud/animation/camera time. It must avoid
+importing the full world output generator or rebaking other enemies. Until then
+this is the actual-engine arena with the previously documented empty-look,
+fixed-light/no-LUT limitations, not final Noon Solid/Paint palette proof.

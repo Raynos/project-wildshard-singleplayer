@@ -13,20 +13,18 @@ import { pathToFileURL } from 'node:url';
 import { rapierAlias } from '../vite/rapier.ts';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
+import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
 
 /** Pack one native source and compile one unchanged decision through the official SDK pipeline. */
-export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`)) {
+export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null) {
   assertHeavyLease('build');
   if (!['rest', 'inflate-105', 'inflate-110', 'attack'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
   if (typeof dimensions !== 'string') throw new Error('Supply an explicit dimensions JSON; collider tuning is unaccepted');
   const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
   // Refuse stale/foreign output rather than silently deleting data or leaving an invalid mixed inventory.
   if (existsSync(destination) && readdirSync(destination).length > 0) throw new Error('Practice output must be a new or empty directory');
-  const source = resolve(root, 'art/driftwood-isle/approved-puffer/unaccepted-native-v23.json');
-  const sourceBytes = readFileSync(source);
-  if (createHash('sha256').update(sourceBytes).digest('hex') !== '18e8847e87e9e6d9546000572e1775cced8b20b78c0317e2a0599b5fb3a4fd68') throw new Error('Preserved V23 source hash changed; review candidate identity first');
+  const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = resolvePufferPreviewInput(root, descriptor, dimensions);
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
-  const dimensionBytes = readFileSync(dimensions);
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });
   execFileSync('python3', [resolve(root, 'art/driftwood-isle/approved-puffer/native_export.py'), source,
@@ -58,8 +56,8 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode);
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
-    schema: 'wildshard.puffer.native-preview.v1', candidate: 'V23 · UNACCEPTED WIP', mode,
-    source: 'art/driftwood-isle/approved-puffer/unaccepted-native-v23.json', sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
+    schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
+    source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     dimensionsSha256: hash(dimensionBytes), colliderAcceptance: false, visualAcceptance: false,
     rendering: 'Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof',
     packedSha256: hash(readFileSync(resolve(packed, 'payload.bin'))), bodyFile: metadata.file,
@@ -78,7 +76,7 @@ if (command !== undefined && import.meta.url === pathToFileURL(resolve(command))
         ...(outDir === undefined ? {} : { build: { ...config.build, outDir: resolve(outDir) } }) });
     } else {
     const dimensions = process.argv.at(2), mode = process.argv.at(3) ?? 'rest', output = process.argv.at(4);
-    const index = await buildPufferNativePreview(dimensions, mode, output === undefined ? undefined : resolve(output));
+    const index = await buildPufferNativePreview(dimensions, mode, output === undefined ? undefined : resolve(output), process.argv.at(5));
     console.info(JSON.stringify({ slug: index.identity.slug, sourceHash: index.build.sourceHash,
       mode, files: index.files.length, wasm: index.files.filter(file => file.kind === 'wasm').length,
       visualAcceptance: false, colliderAcceptance: false }));

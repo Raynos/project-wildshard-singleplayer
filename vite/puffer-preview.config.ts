@@ -27,15 +27,17 @@ export const pufferPreviewConfig = defineConfig(({ command }) => {
     || !bake.file.includes(receiptPreview.packedSha256)) throw new Error('Native preview body receipt mismatch');
   if (!('mode' in receiptPreview) || typeof receiptPreview.mode !== 'string' || !['rest', 'inflate-105', 'inflate-110', 'attack'].includes(receiptPreview.mode)) throw new Error('Unknown Puffer preview mode');
   const mode = receiptPreview.mode;
+  if (!('candidate' in receiptPreview) || typeof receiptPreview.candidate !== 'string' || !/^V[0-9]+(?: · UNACCEPTED WIP)?$/u.test(receiptPreview.candidate)) throw new Error('Invalid Puffer candidate identity');
+  const candidate = receiptPreview.candidate.split(' ')[0];
   const bodyFile = bake.file.slice(1);
   const assets = [ 'assets/models/driftwood-fp/fp-arms.glb', 'assets/physics/rapier.wasm'];
   return { publicDir: false, base: './', resolve: { alias: rapierAlias },
-    define: { __DEVSERVER__: true, __BUILD_ID__: JSON.stringify(`puffer-native-v23-unaccepted-${mode}`), __SAVE_NAMESPACES__: '[]',
+    define: { __DEVSERVER__: true, __BUILD_ID__: JSON.stringify(`puffer-native-${candidate}-unaccepted-${mode}`), __SAVE_NAMESPACES__: '[]',
       __SHARDFILE_VALIDATOR__: JSON.stringify(receipt.revision), __SHARDFILE_VERDICTS__: JSON.stringify([receipt]) },
     build: { outDir, target: 'es2022', sourcemap: false, cssCodeSplit: false,
       rolldownOptions: { input: resolve('practice.html') } },
     plugins: [rapierPreviewPlugin(), { name: 'puffer-native-preview-closure',
-      transformIndexHtml(html) { return html.replace('Wildshard practice demo', 'Puffer V23 · UNACCEPTED WIP').replace('Developer arena · rejected meshes', 'Puffer V23 · UNACCEPTED WIP').replace('These five creature meshes were rejected. Approved replacement art is still in progress.', 'One unaccepted native Puffer candidate. Diagnostic pose and collider dimensions are experimental.').replace('<body>', `<body><p style="position:fixed;top:0;left:0;right:0;z-index:10000;background:#351e10;color:white;text-align:center;font:12px sans-serif;pointer-events:none">V23 UNACCEPTED WIP · ${mode} · actual-engine arena · collider tuning unaccepted</p>`); }, configResolved(config) {
+      transformIndexHtml(html) { return html.replace('Wildshard practice demo', `Puffer ${candidate} · UNACCEPTED WIP`).replace('Developer arena · rejected meshes', `Puffer ${candidate} · UNACCEPTED WIP`).replace('These five creature meshes were rejected. Approved replacement art is still in progress.', 'One unaccepted native Puffer candidate. Diagnostic pose and collider dimensions are experimental.').replace('<body>', `<body><p style="position:fixed;top:0;left:0;right:0;z-index:10000;background:#351e10;color:white;text-align:center;font:12px sans-serif;pointer-events:none">${candidate} UNACCEPTED WIP · ${mode} · actual-engine arena · collider tuning unaccepted</p>`); }, configResolved(config) {
         destinationRoot = config.build.outDir;
         if (command === 'build' && existsSync(destinationRoot) && readdirSync(destinationRoot).length > 0) throw new Error('Puffer preview output must be new or empty');
       }, closeBundle() {
