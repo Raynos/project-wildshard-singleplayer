@@ -162,6 +162,25 @@ The boot purge is fine at 153k files. These are disk findings.
   `elites-cold-generation-20261017T153442-44564` 1.7 GB, `sp-x1-road8` 1.6 GB, `sp-x7-deploy` 1.3 GB, `sp-x7-ci8` 1.1 GB.
   They are in the right place, but nothing deletes them when the task ends.
 
+## 7. 2026-10-18 00:47 check: `./tmp` 36 → 56 GB in 4 h, from preview builds (OPEN)
+
+The boot purge is fine at 171k files. `./tmp` went 240k → 313k files and the repo went 55 → 75 GB.
+
+- **`serve-build` previews are the growth: about 22 builds of roughly 1.5 GB each, about 25 GB in total.**
+  - Top-level `tmp/serve/`: 7 builds, 10.5 GB (`20261017-225022-4403` … `20261018-004547-4402`).
+  - **Nested inside mirror slots:** `tmp/build-mirror/check/tree/tmp/serve/` has 12 builds (**9.6 GB**) and
+    `check3/tree/tmp/serve/` has 3 (5.5 GB). A preview started from inside a mirror slot resolves `./tmp` to the
+    *slot's* tree, and the slot's `git read-tree -u` sync never removes untracked files. So they pile up out of sight,
+    and that is why `check` doubled from 7.6 to 14 GB.
+- **9 `vite preview` servers are alive** (ports 4400–4410), one per build. About 13 of the 22 builds have no server.
+  Nothing stops a server or deletes its build when the agent that started it moves on.
+- `check3/tree/tmp/vitest` holds 276 MB: the Vitest TMPDIR fix also writes inside the slot when tests run there.
+- **Fix:**
+  1. Resolve serve and scratch output against the **main checkout's** `./tmp`, never a slot's tree.
+  2. Have `serve-build` keep at most N builds (say 3), stop the server and delete the build of any older one, and
+     delete builds whose port has no listener.
+  3. Have the mirror sync clean ignored scratch (`tmp/`) inside each slot tree before reuse.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
