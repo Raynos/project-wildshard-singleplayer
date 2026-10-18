@@ -29,7 +29,7 @@ const { HITCH_HORSE_SPOTS } = poiLayoutRows;
  * one instanced crowd (`Flock`).
  *
  *   const wildlife = new Wildlife(animals, { scene, sky, seed }).build();         // NALATI_WILDLIFE layout by default
- *   game.onUpdate((dt, t) => wildlife.update(dt, t, player));
+ *   game.onUpdate((dt, t) => wildlife.update(dt, t, player, extra, advanceFlock));
  *   wildlife.disturb(x, z)     an arrow / javelin landed: a herd within 15 m stampedes, the flock panics
  *   wildlife.scare(x, z, r)    lightning / an explosion: packs within 20 m break, herds within r stampede
  *   wildlife.raycastSheep(o, dir, max) → { flock, index, distance } | null ; wildlife.killSheep(hit)
@@ -188,8 +188,8 @@ export class Wildlife {
   /** the trample map's push, read when called (wildEnv.trample is rebound when the grass is wired) */
   private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { wildEnv.trample(x, z, r, s, vx, vz); };
   /** every frame: the player into wildEnv, the flocks' crowd update */
-  update(dt: number, t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number } = {},
-    advanceFlock?: (flock: Flock, index: number, playerSpeed: number) => void): void {
+  update(dt: number, _t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number },
+    advanceFlock: (flock: Flock, index: number, playerSpeed: number) => void): void {
     const p = player.position;
     if (!this.init) { this.prev.copy(p); this.init = true; }
     const moved = Math.hypot(p.x - this.prev.x, p.z - this.prev.z);
@@ -205,7 +205,7 @@ export class Wildlife {
     // the grass parts around every moving wolf / horse / dog near the player (GrassTrample's live movers + the map)
     pushWildMovers(this.animals.animals, p.x, p.z, this.pushTrample);
     for (const [index, f] of this.flocks.entries()) {
-      if (advanceFlock !== undefined) advanceFlock(f, index, this.speed); else f.update(dt, t, p, this.speed, dogWolves);
+      advanceFlock(f, index, this.speed);
     }
     this.marmots?.update(dt, p, this.speed, player.crouching);
     // a wolf pack running through the flock scatters it (Flock reads the wolves); a stampede scatters packs in its path

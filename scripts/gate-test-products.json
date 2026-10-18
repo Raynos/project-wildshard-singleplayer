@@ -1,4 +1,5 @@
 {
+  "test/native-roster-retirement.test.ts": [],
   "test/cue-director.test.ts": [],
   "test/navigation-arrival.test.ts": [],
   "test/follow-trail.test.ts": [],

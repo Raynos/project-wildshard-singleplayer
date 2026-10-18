@@ -6471,9 +6471,12 @@ All paths, arguments and effects resolve before registration or writes.
 
 `createNativeHunt(host, row, ports)` binds the existing body bands and
 StalkerBrain to the host's navigation, reach queries and creature blows.
-`huntRosterContinuation` shares clock/noise/sight/memory/herd continuation
-with authored roster bounds and optional historical memory fields; shard
-adapters retain their existing versioned wire fields and policy state.
+`game/population/nativeManager.NativeManager` shares hunting clock, noise,
+sight, memory and herd continuation over concrete built-in owners. Its
+snapshot and restore methods resolve ordered actor ids against the host;
+null slots retain retired positions. Rows bound capacity and select optional
+historical memory fields. Adapters retain versioned wire fields and policy
+state. No shard resolver or callback enters this manager.
 `orderedNativeReinstall` restores actor registration order before/after
 the keeper step and returns an idempotent settle callback for later spawns.
 No helper creates a second simulation or random stream.

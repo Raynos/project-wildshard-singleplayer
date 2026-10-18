@@ -2,11 +2,11 @@ import { populationEnvironment } from './environment';
 import { installNativeLimbPoses } from '../animation/limbPopulation';
 import * as v from 'valibot';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
-import { Vector3 } from 'three';
 import { fnv1a32, Rng } from '@wildshard/engine/core/rng';
 import { ANIMAL_STATES, type AnimalSim, type AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
-import { createNativeHunt, huntRosterContinuation } from '../plugin/brain';
+import { createNativeHunt } from '../plugin/brain';
+import { NativeManager } from './nativeManager';
 import { createNativeCreatureRoster, type NativeCreatureSlot, type NativeRosterSaved } from '../shardfile/homeKeeper';
 import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -101,7 +101,9 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
     if (row.kind !== kind || row.variant !== r.variant.id || row.seed !== r.seed || row.scale !== r.scale) throw new Error(`native population roster diverges from the page at ${id}`);
     return { id, spec: row.spec, seed: r.seed, scale: r.scale, variant: r.variant.id };
   };
-  const seen: boolean[] = [];
+  const continuation = new NativeManager(host, hunt, rng, { limit: settings.limit, sightSlots: 0, initialSight: false,
+    ...(settings.memoryFields === undefined ? {} : { memoryFields: settings.memoryFields }) });
+  const seen = continuation.sight;
   const slot = (id: string, kind: string, variant: string, spec: AnimalSimSpec, seed: number, scale: number, at: { x: number; y: number; z: number }, yaw: number): NativeCreatureSlot =>
     ({ id, kind, variant, herd: -1, range: [scale, scale], actor: null, recipe: { id, spec, seed, scale, at, yaw } });
   /** a body the shared roster made, out of any herd; the reserved encounter's pose joins his; a listed body joins the manager's list */
@@ -167,8 +169,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   herdOwners();
 
   booted = true;
-  const speed = { seen: false, prev: new Vector3(), speed: 0 };
-  const continuation = huntRosterContinuation(hunt, settings, { rng, bodies: () => list, actor: body => body.actor, noise: speed, sight: seen });
+  const speed = continuation.noise;
   const cadence = hunt.bindRoster({ limit: LIVE_MAX, order: 'combined', at: i => list[i], actor: body => body.actor,
     id: body => body.id, player, noise: speed, sight: seen, reach,
     brainDt: (id, urgent) => host.brainDt(id, urgent) });
@@ -184,7 +185,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
       const step = host.bodyDt(body.id); if (step > 0) hunt.advanceCharge(a, step, player);
     }
   }, {
-    snapshot: () => { const common = continuation.snapshot(); return ({ version: 3, rng: common.rng, clock: common.clock, speed: { init: common.noise.seen, x: common.noise.prev[0], z: common.noise.prev[2], v: common.noise.speed }, next: intake.identities.allocatorState().next,
+    snapshot: () => { const ids = list.map(body => body.id), common = continuation.snapshot(ids, ids); return ({ version: 3, rng: common.rng, clock: common.clock, speed: { init: common.noise.seen, x: common.noise.prev[0], z: common.noise.prev[2], v: common.noise.speed }, next: intake.identities.allocatorState().next,
       bodies: list.map((b, i) => {
         const memory = common.memories[i]; if (memory === undefined || memory === null) throw new Error(`native population body ${b.id} has no memory`);
         return { id: b.id, kind: b.kind, seen: seen[i] === true, memory };
@@ -195,7 +196,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
       if (state.bodies.length !== list.length || state.herds.length !== hunt.herds.length || state.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible native population roster continuation');
       intake.identities.restoreAllocator({ next: state.next, used: Array.from({ length: state.next }, (_, i) => `creature:${String(i)}`) });
       continuation.restore({ rng: state.rng, clock: state.clock, noise: { seen: state.speed.init, prev: [state.speed.x, 0, state.speed.z], speed: state.speed.v },
-        memories: state.bodies.map(body => body.memory), sight: state.bodies.map(body => body.seen), herds: state.herds });
+        memories: state.bodies.map(body => body.memory), sight: state.bodies.map(body => body.seen), herds: state.herds }, list.map(body => body.id), list.map(body => body.id));
       herdOwners();
     },
   });

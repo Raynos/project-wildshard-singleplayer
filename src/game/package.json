@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./population/nativeManager": "./population/nativeManager.ts",
     "./audio/cueDirector": "./audio/cueDirector.ts",
     "./quest/chapterDirector": "./quest/chapterDirector.ts",
     "./models/figureCatalogue": "./models/figureCatalogue.ts",

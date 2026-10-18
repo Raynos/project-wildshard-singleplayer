@@ -2,6 +2,9 @@ import { expect, it } from 'vitest';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../src/shards/nalati-grasslands-legacy/species/sheep';
 import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
 import { readFlockBody } from '../src/shards/nalati-grasslands/runtime/flockDeclared';
+import { FlockBrain } from '../src/engine/ai/flock';
+import { nalatiFlockRows } from '../src/shards/nalati-grasslands/creatures/flockRows';
+import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
 const source = () => {
   const { bytes, ...row } = bakeSheepBody();
@@ -39,4 +42,18 @@ it('keeps every frozen sheep vertex, rig weight, index and animation bound exact
 it('refuses truncated product bytes before a flock can build', async () => {
   const product = source();
   await expect(readFlockBody({ file: name => name === 'actors/sheep.bin' ? Promise.resolve(product.bytes.slice(1)) : product.file(name) })).rejects.toThrow('declared blocks');
+});
+
+it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', () => {
+  const heightAt = (x: number, z: number): number => x * 0.1 + z * 0.2;
+  const centre = (): void => undefined, trample = (): void => undefined;
+  const original = new ShippingFlock({ heightAt, normalAt: () => [0, 1, 0], wetAt: () => false,
+    playerCrouched: false, grassHeightAt: () => 0, trample, centre }, { x: 0, z: 0, count: 1, seed: 3 });
+  const row = nalatiFlockRows(3, [{ x: 0, z: 0, count: 1, dog: false }])[0];
+  if (row === undefined) throw new Error('Missing specimen flock row');
+  const declared = new FlockBrain({ heightAt, normalY: () => 1,
+    inBounds: (x, z, margin) => Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin,
+    wetAt: () => false, playerCrouched: () => false, grassHeightAt: () => 0, trample, centre }, row);
+  original.initialize(); declared.initialize();
+  expect(declared.state()).toEqual(original.state());
 });

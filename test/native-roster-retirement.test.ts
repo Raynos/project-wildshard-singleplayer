@@ -2,7 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
-import type { HuntBody } from '../src/engine/ai/hunt';
+import { HuntBrain, type HuntBody } from '../src/engine/ai/hunt';
+import { NativeManager } from '../src/game/population/nativeManager';
+import { BOAR } from '../src/game/systems/species/boar';
+import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
@@ -40,5 +43,39 @@ test('native replacement retains the recipe slot, herd/identity order and six sp
     if (actor === null) throw new Error('Missing replacement actor'); actor.alive = false;
     expect(intake.retireDead('next')).toBe(body); expect(body.actor).toBeNull(); expect(rows[1]?.members).toEqual([]); expect(host.entities.has('next')).toBe(false);
     expect(() => intake.retire(body)).toThrow('Foreign'); expect(rng.snapshot()).toEqual(before);
+  } finally { host.dispose(); }
+});
+
+test('native continuation resolves real identities and preserves detached ordered state', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), rng = new Rng(71);
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native recipe');
+  const hunt = new HuntBrain<HuntBody>({ rng, fight: {}, faunaTuning: () => undefined, species: () => BOAR }, {
+    ground: { heightAt: () => 0, normalY: () => 1, trailDistance: () => Infinity, cabinMask: () => 0,
+      inChunk: () => true, streamAt: () => null, waterLevel: () => -20, pond: () => null, sea: () => false,
+      wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => true, chunkHalf: 16 },
+    nav: () => null, reach: () => true, wanderGoal: () => null, unaware: () => false,
+    now: () => 0, sound: () => undefined, charge: () => undefined,
+  }, host.player.position);
+  const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng, hunt, hunted: 'every', spawnY: 10 });
+  try {
+    const body = intake.body('first', sample.spec.kind, sample.spec.variant, 0, { x: 2, z: 3 }, 0, [1, 1]);
+    const actor = intake.arrive(body); intake.remember(body);
+    const memory = hunt.memory(actor);
+    if (memory === undefined) throw new Error('Missing adopted memory');
+    memory.path = [new Vector3(2, 0, 3)];
+    const manager = new NativeManager(host, hunt, rng, { limit: 2, sightSlots: 2, initialSight: null });
+    manager.advance(0.125); manager.sight[1] = true; manager.noise.prev.set(4, 0, 8);
+    const saved = manager.snapshot([null, 'first'], ['first']), stream = rng.snapshot();
+    expect(saved.memories[0]).toBeNull(); expect(saved.memories[1]?.['path']).toEqual([[2, 0, 3]]);
+    memory.path[0]?.set(8, 0, 9); rng.next(); manager.advance(0.25); manager.noise.prev.set(0, 0, 0);
+    manager.restore(saved, [null, 'first'], ['first']);
+    expect(manager.snapshot([null, 'first'], ['first'])).toEqual(saved);
+    expect(rng.snapshot()).toEqual(stream); expect(memory.path[0]).toEqual(new Vector3(2, 0, 3));
+    expect(() => manager.restore(saved, [null, 'foreign'], ['foreign'])).toThrow('Foreign');
+    expect(() => manager.restore(saved, ['first', 'first'], ['first'])).toThrow('roster');
+    expect(() => manager.restore(saved, [null, 'first'], ['missing'])).toThrow('roster');
+    expect(manager.snapshot([null, 'first'], ['first'])).toEqual(saved); expect(rng.snapshot()).toEqual(stream);
+    expect([...host.entities.keys()]).toEqual(['first']);
   } finally { host.dispose(); }
 });

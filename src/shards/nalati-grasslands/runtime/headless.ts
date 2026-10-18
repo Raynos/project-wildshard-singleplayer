@@ -4,7 +4,7 @@ import { castRay } from '@wildshard/engine/physics/query';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
-import type { NalatiEliteBindings } from './headlessElites';
+import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
 import type { RngState } from '@wildshard/engine/core/rng';
 import { SEED, TERRAIN, RIVER } from '../world/terrain';
 import type { NalatiGrassView } from './groups';
@@ -206,7 +206,7 @@ export interface NalatiBody { readonly boot: NalatiBootBody; readonly baked: Nal
  * terrain itself when that is the ground's heightfield). The Golden King stays parked (no body), as the page parks him.
  * The host runs on the page's distance bands, installed before any spawn (and before a restoring host restores its clocks).
  */
-export function installNalatiRoster(host: SimHost, ports: { boot: NalatiBootRows; bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: { readonly phase: string; readonly storm: boolean }; elites: NalatiEliteBindings }): {
+export function installNalatiRoster(host: SimHost, ports: { boot: NalatiBootRows; bake: NalatiBake; grid: BakedGrid; spawnY: number; clock: { readonly phase: string; readonly storm: boolean }; elites: EliteBindings }): {
   bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake } = ports, s = bakedSamplers(ports.grid);

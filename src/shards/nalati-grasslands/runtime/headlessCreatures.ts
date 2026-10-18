@@ -1,4 +1,5 @@
 import type { DirectorLane } from '@wildshard/game/plugin/director';
+import { NativeManager } from '@wildshard/game/population/nativeManager';
 import * as v from 'valibot';
 import { ForagerContinuation as MarmotContinuation } from '@wildshard/format/ambientLife';
 import { marmotColonies } from '../creatures/marmotBrain';
@@ -6,7 +7,7 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { HURT_ARC, ATTACK_TURN, spawnRolls, type HuntBody, type HuntGround, type HuntMemory, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
+import { HURT_ARC, ATTACK_TURN, spawnRolls, type HuntBody, type HuntGround, type HuntNav, type HuntSpecies, type HuntTree } from '@wildshard/engine/ai/hunt';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
@@ -40,7 +41,7 @@ import { castRay } from '@wildshard/engine/physics/query';
 import { HeadlessSheepRaid } from './headlessRaid';
 import type { NalatiGroups } from './groups';
 import type { NalatiBody } from './headless';
-import type { NalatiEliteBindings } from './headlessElites';
+import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
 
 /** The creatures' fixed-step id (its continuation's adapter). */
 export const NALATI_CREATURES_STEP = 'nalati.creatures';
@@ -95,24 +96,6 @@ const Saved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject
   bonded: v.exactOptional(v.pipe(v.array(BondedSpawn), v.maxLength(1))), hiddenStallions: v.exactOptional(v.pipe(v.array(v.string()), v.maxLength(2))),
   retired: v.array(v.string()), nextId: v.pipe(finite, v.integer(), v.minValue(0)), dodgeCd: v.pipe(finite, v.minValue(0)) });
 type SavedMemory = v.InferOutput<typeof Memory>;
-const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Nalati hunting path'); return [p.x, p.y, p.z]; };
-function saveMemory(memory: HuntMemory): SavedMemory {
-  const out: SavedMemory = {};
-  Object.keys(memory).forEach(key => {
-    const value: unknown = Reflect.get(memory, key);
-    out[key] = Array.isArray(value) ? value.map(point) : typeof value === 'boolean' ? value : Number(value);
-  });
-  return out;
-}
-function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
-  const keys = Object.keys(memory);
-  if (keys.length !== Object.keys(saved).length) throw new Error('Incompatible Nalati hunting memory');
-  keys.forEach(key => {
-    const value = saved[key], known: unknown = Reflect.get(memory, key);
-    if (value === undefined || Array.isArray(value) !== Array.isArray(known) || (!Array.isArray(value) && typeof value !== typeof known)) throw new Error(`Incompatible Nalati hunting memory ${key}`);
-    Reflect.set(memory, key, Array.isArray(value) ? value.map(([x, y, z]) => new Vector3(x, y, z)) : value);
-  });
-}
 
 /** The host's creatures, for its tests: the hunting brain over the manager's stream and the bodies it decides for, the
  *  flocks, and Wildlife's `scare` (a lightning strike's: the packs break, the herds stampede, the flocks bolt). */
@@ -161,7 +144,7 @@ export function nalatiCreaturesOf(host: SimHost): NalatiHostCreatures | undefine
  */
 export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootRows; bodies: readonly NalatiBody[]; herds: readonly NalatiBootHerd[]; groups: NalatiGroups; grid: BakedGrid; nav: HuntNav;
   trees: (x: number, z: number, r: number) => readonly HuntTree[]; stream: ReturnType<Rng['snapshot']>;
-  raidDirector: DirectorLane; wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: NalatiEliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
+  raidDirector: DirectorLane; wildStream: ReturnType<Rng['snapshot']>; bake: NalatiBake; spawnY: number; elites: EliteBindings; rideUpdate?: (dt: number) => void; mounted?: () => boolean; crouching?: () => boolean; snapshot?: Readonly<SimSnapshot> }): NalatiHostCreatures {
   const { groups } = ports, player = host.player.position, env = groups.env;
   const rng = new Rng(ports.boot.streamSeed);
   // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it (its tags per kind, made once)
@@ -261,9 +244,8 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   const knocked = { x: 0, z: 0 };
   env.onKnockdown = (x, z, strength) => { knockdownDash(x, z, strength, knocked); host.dashPlayer(knocked.x, knocked.z, KNOCKDOWN_TIME); };
 
-  const speed = { init: false, x: 0, z: 0, v: 0 }, wild = { init: false, x: 0, z: 0, v: 0 };
-  const seen = bodies.map(() => false);
-  let clock = 0;
+  const manager = new NativeManager(host, hunt, rng, { limit: BODY_MAX, sightSlots: bodies.length, initialSight: false });
+  const speed = manager.noise, seen = manager.sight, wild = { init: false, x: 0, z: 0, v: 0 };
   // AnimalManager.thinkCtx / customContext: one context, its per-body fields set before each call
   const c = {
     dt: 0, t: 0, player, playerSpeed: 0, rng, calm: false, herd: null as NalatiHuntBody[] | null,
@@ -280,7 +262,7 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
   let current: NalatiHuntBody | null = null;
   c.hurt = damage => { const a = current; if (a !== null && hunt.facing(a, player, HURT_ARC) && canReach(a, player, host.physics)) charge(a, damage); };
   const context = (a: NalatiHuntBody, dt: number): typeof c => {
-    c.dt = dt; c.t = host.clock.now; c.playerSpeed = speed.v; current = a;
+    c.dt = dt; c.t = host.clock.now; c.playerSpeed = speed.speed; current = a;
     c.herd = a.herd >= 0 ? hunt.herds[a.herd]?.members ?? null : null;
     return c;
   };
@@ -521,11 +503,11 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
     // Ride.update follows Wildlife and precedes the manager's think loop on the page.
     ports.rideUpdate?.(dt); raid.update(dt, wolves);
     // the manager's think loop
-    if (!speed.init) { speed.x = player.x; speed.z = player.z; speed.init = true; }
-    const moved = Math.hypot(player.x - speed.x, player.z - speed.z);
-    speed.x = player.x; speed.z = player.z;
-    speed.v += (Math.min(moved / dt, 9) - speed.v) * (1 - 0.5 ** (dt * 10));
-    hunt.beginTick(dt); clock += dt; hunt.resetRepaths();
+    if (!speed.seen) { speed.prev.set(player.x, 0, player.z); speed.seen = true; }
+    const moved = Math.hypot(player.x - speed.prev.x, player.z - speed.prev.z);
+    speed.prev.set(player.x, 0, player.z);
+    speed.speed += (Math.min(moved / dt, 9) - speed.speed) * (1 - 0.5 ** (dt * 10));
+    manager.advance(dt); hunt.resetRepaths();
     // player.dodge is queued until fixed.post. Its public cooldown rises ONLY on an accepted input in the player step;
     // observe that edge now, where the page notices dodgeFx.id, before the ordinary per-body decision loop.
     const dodged = host.playerDodge.cd > dodgeCd; dodgeCd = host.playerDodge.cd;
@@ -547,24 +529,22 @@ export function installNalatiCreatures(host: SimHost, ports: { boot: NalatiBootR
       if (brain > 0) { a.sampleTerrain(); decide(a, brain); }
     }
   }, {
-    snapshot: () => ({ ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ argymaq: row.argymaq, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
-      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd, nextId, retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: { ...rng.snapshot() }, clock, speed: { ...speed }, seen: [...seen],
-      memories: bodies.flatMap(a => { const m = hunt.memory(a); return m === undefined ? [] : [[a.entityId, saveMemory(m)] as [string, SavedMemory]]; }),
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), groups: decided().map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()), marmots: marmots.snapshot(), placement: { ...placement.snapshot() }, raids: savePacks(raids) }),
+    snapshot: () => {
+      const ids = bodies.map(a => a.entityId), common = manager.snapshot(ids, ids);
+      return ({ ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ argymaq: row.argymaq, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
+      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd, nextId, retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
+      memories: bodies.flatMap((a, i) => { const memory = common.memories[i]; return memory === null || memory === undefined ? [] : [[a.entityId, memory] as [string, SavedMemory]]; }),
+      herds: common.herds, groups: decided().map(g => g.snapshot()), wild: { ...wild }, flocks: flocks.map(f => f.snapshot()), marmots: marmots.snapshot(), placement: { ...placement.snapshot() }, raids: savePacks(raids) });
+    },
     restore: value => {
       const saved = v.parse(Saved, value);
       if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible Nalati creatures continuation');
       dodgeCd = saved.dodgeCd;
-      marmots.restore(saved.marmots); placement.restore(saved.placement); rng.restore(saved.rng); Object.assign(speed, saved.speed); saved.seen.forEach((s, i) => { seen[i] = s; });
-      // the brain's clock is a sum of the same steps: a fresh brain takes the saved sum exactly
-      hunt.beginTick(saved.clock - clock); clock = saved.clock;
-      const memories = new Map(saved.memories);
-      bodies.forEach(a => {
-        const m = hunt.memory(a), s = memories.get(a.entityId);
-        if ((m === undefined) !== (s === undefined)) throw new Error(`Incompatible Nalati hunting memory for ${a.entityId}`);
-        if (m !== undefined && s !== undefined) loadMemory(m, s);
-      });
-      saved.herds.forEach(([cx, cz], i) => { const h = hunt.herds[i]; if (h !== undefined) { h.cx = cx; h.cz = cz; } });
+      marmots.restore(saved.marmots); placement.restore(saved.placement);
+      const memories = new Map(saved.memories), ids = bodies.map(a => a.entityId);
+      manager.restore({ rng: saved.rng, clock: saved.clock, noise: { seen: saved.speed.init, speed: saved.speed.v,
+        prev: [saved.speed.x, 0, saved.speed.z] }, sight: saved.seen,
+        memories: ids.map(id => memories.get(id) ?? null), herds: saved.herds }, ids, ids);
       saved.groups.forEach((state, i) => { decided()[i]?.restore(state); });
       Object.assign(wild, saved.wild); saved.flocks.forEach((state, i) => { flocks[i]?.restore(state); });
     },

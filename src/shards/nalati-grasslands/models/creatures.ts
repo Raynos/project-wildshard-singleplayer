@@ -15,8 +15,8 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { registerArgymaq } from '../combat/elites';
-import { Flock, type FlockBody } from '../creatures/flock';
-import { readFlockBody } from '../runtime/flockDeclared';
+import type { FlockBody } from '../creatures/flock';
+import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { modelsOn } from '../world/modelView';
@@ -45,7 +45,9 @@ export const sheep: ModelDef<object> = defineModel<object>({
   prepare: async () => { sheepBody ??= await readFlockBody(await loadFirstPartyProduct('nalati-grasslands')); },
   build: (ctx) => {
     if (sheepBody === null) throw new Error('Sheep model requires its prepared body');
-    const mesh = new Flock(ctx.sky, { x: 0, z: 0, count: 1, seed: SHEEP_SEED }, sheepBody).build().mesh;
+    const options = { x: 0, z: 0, count: 1, seed: SHEEP_SEED };
+    const flock = createNativeFlocks(ctx.sky, SHEEP_SEED, sheepBody, [{ x: 0, z: 0, count: 1, dog: false }]);
+    const mesh = flock.factory(options, 0).mesh;
     mesh.setMatrixAt(0, new THREE.Matrix4());   // the flock stood it on the terrain near (0, 0): its own space instead
     mesh.instanceMatrix.needsUpdate = true;
     const fit = (): void => { mesh.computeBoundingBox(); mesh.computeBoundingSphere(); };

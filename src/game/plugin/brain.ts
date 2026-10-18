@@ -2,7 +2,6 @@ import { BorrowedDecisionSchema, type BorrowedDecision } from '@wildshard/format
 import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import { StalkerBrain } from "@wildshard/engine/ai/stalker";
-import { huntMemoryCodec } from "@wildshard/engine/ai/huntPattern";
 import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig, type HuntSpecies } from "@wildshard/engine/ai/hunt";
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
@@ -1383,49 +1382,4 @@ export function createNativeSpeciesContext<W, A extends HuntBody = HuntBody>(sha
     move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); },
     snapshot: () => policy.snapshot(), restore: value => { policy.restore(value); },
   }) };
-}
-
-export interface NativeHuntContinuation {
-  readonly clock: number; readonly rng: ReturnType<Rng['snapshot']>;
-  readonly noise: { readonly seen: boolean; readonly speed: number; readonly prev: readonly [number, number, number] };
-  readonly sight: readonly (boolean | null | undefined)[]; readonly memories: readonly unknown[];
-  readonly herds: readonly (readonly [number, number])[];
-}
-/** Detached scalar/vector state; adapters map it into their existing saved wire. */
-export interface NativeHuntSnapshot {
-  clock: number; rng: { [K in keyof ReturnType<Rng['snapshot']>]: ReturnType<Rng['snapshot']>[K] };
-  noise: { seen: boolean; speed: number; prev: [number, number, number] };
-  sight: (boolean | null)[]; memories: (ReturnType<typeof huntMemoryCodec.save> | null)[];
-  herds: [number, number][];
-}
-/** Common native continuation; shard adapters retain their versioned field names and policy payloads. */
-export function huntRosterContinuation<B>(hunt: StalkerBrain<HuntBody>, row: { readonly limit: number; readonly memoryFields?: readonly string[] }, ports: {
-  readonly rng: Rng; readonly bodies: () => readonly B[]; readonly actor: (body: B) => HuntBody | null;
-  readonly participates?: (body: B) => boolean;
-  readonly noise: { seen: boolean; speed: number; prev: Vector3 }; readonly sight: (boolean | null | undefined)[];
-}): { readonly clock: number; advance: (dt: number) => void; snapshot: () => NativeHuntSnapshot; restore: (state: NativeHuntContinuation) => void } {
-  let clock = 0;
-  const memory = (body: B) => { const actor = ports.actor(body); return actor === null || ports.participates?.(body) === false ? undefined : hunt.memory(actor); };
-  return {
-    get clock(): number { return clock; },
-    advance(dt: number): void { hunt.beginTick(dt); clock += dt; },
-    snapshot(): NativeHuntSnapshot {
-      const bodies = ports.bodies(); if (bodies.length > row.limit) throw new Error('Native hunt roster exceeds its bound');
-      return { clock, rng: { ...ports.rng.snapshot() }, noise: { seen: ports.noise.seen, speed: ports.noise.speed, prev: [ports.noise.prev.x, ports.noise.prev.y, ports.noise.prev.z] as [number, number, number] },
-        sight: ports.sight.map(value => value ?? null), memories: bodies.map(body => { const m = memory(body); return m === undefined ? null : huntMemoryCodec.save(m, row.memoryFields); }),
-        herds: hunt.herds.map(herd => [herd.cx, herd.cz] as [number, number]) };
-    },
-    restore(state: NativeHuntContinuation): void {
-      const bodies = ports.bodies();
-      if (bodies.length > row.limit || state.memories.length !== bodies.length || state.sight.length !== ports.sight.length || state.herds.length !== hunt.herds.length || !Number.isFinite(state.clock)) throw new Error('Incompatible native hunt continuation');
-      ports.rng.restore(state.rng); hunt.beginTick(state.clock - clock); clock = state.clock;
-      ports.noise.seen = state.noise.seen; ports.noise.speed = state.noise.speed; ports.noise.prev.set(...state.noise.prev);
-      state.sight.forEach((seen, i) => { ports.sight[i] = seen; });
-      state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
-      bodies.forEach((body, i) => { const m = memory(body), saved = state.memories[i];
-        if ((saved === null) !== (m === undefined)) throw new Error('Incompatible native hunt memory');
-        if (m !== undefined) huntMemoryCodec.restore(m, saved, row.memoryFields === undefined);
-      });
-    },
-  };
 }

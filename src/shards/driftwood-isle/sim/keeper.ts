@@ -1,7 +1,8 @@
 import { installPopulationEnvironment, populationEnvironment } from '@wildshard/game/population/environment';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
-import { createNativeHunt, huntRosterContinuation, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import { createNativeHunt, type SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import { NativeManager } from '@wildshard/game/population/nativeManager';
 import { createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot } from '@wildshard/game/shardfile/homeKeeper';
 import { createNativeCreaturePoses, stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
@@ -210,10 +211,12 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   /** AnimalManager.stillAttacking: a charger while it charges, a self-thinking species while its strike runs */
   const still = (a: HuntBody): boolean => a.alive && (FAUNA.has(a.kind) ? a.state === 'charge' : a.attackPhase >= 0);
   /** AnimalManager.visibility: whether each aggressive body last had a clear line to the player (null: never asked) */
-  const sight = Array.from({ length: ROSTER }, (): boolean | null => null);
+  const continuation = new NativeManager(host, hunt, rng, { limit: settings.limit, sightSlots: ROSTER, initialSight: null,
+    ...(settings.memoryFields === undefined ? {} : { memoryFields: settings.memoryFields }) });
+  const sight = continuation.sight;
   /** the manager's smoothed player ground speed, the player where the last step saw it (once one has), and the hunting
    *  brain's world clock */
-  const tracked = { speed: 0, prev: new Vector3(), seen: false };
+  const tracked = continuation.noise;
   if (saved === undefined) {
     for (const [i, row] of roster.bodies.entries()) {
       const body = bootBody(row); if (row.stream !== null) rng.restore(row.stream);
@@ -290,8 +293,6 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       if (body.brain === null && a.alive && a.position.distanceToSquared(player) < 36) clearBody(a, player);
     },
   });
-  const continuation = huntRosterContinuation(hunt, settings, { rng, bodies: () => bodies, actor: body => body.actor,
-    participates: body => body.brain === null, noise: tracked, sight });
   const keep = (): void => { host.onStep(ISLAND_STEP, dt => {
     // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)
     service.post(dt);
@@ -311,7 +312,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     if (ReturnGate.step(practice, { ...practiceRule, fade: SHELL_FADE }, dt, crab.alive,
       Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z)) === 'replace') replacePractice(practice.body);
   }, {
-    snapshot: () => { const common = continuation.snapshot(); return ({ version: 8, rng: common.rng, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
+    snapshot: () => { const common = continuation.snapshot(bodies.map(body => body.actor === null ? null : body.id),
+      bodies.flatMap(body => body.actor !== null && body.brain === null ? [body.id] : [])); return ({ version: 8, rng: common.rng, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(bodies.map(b => b.actor?.entityId ?? '')) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: common.clock, speed: common.noise.speed, prev: common.noise.seen ? common.noise.prev : null,
@@ -336,7 +338,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       state.bodies.forEach((b, i) => { if (b.policy !== null) bodies[i]?.brain?.restore(v.parse(v.string(), JSON.parse(b.policy))); });
       if (state.captain !== null) captain?.brain?.restore(state.captain.policy);
       continuation.restore({ clock: state.fauna.clock, rng: state.rng, noise: { speed: state.fauna.speed, seen: state.fauna.prev !== null,
-        prev: state.fauna.prev ?? [0, 0, 0] }, sight: state.fauna.sight, memories: state.fauna.memories, herds: state.herds });
+        prev: state.fauna.prev ?? [0, 0, 0] }, sight: state.fauna.sight, memories: state.fauna.memories, herds: state.herds },
+        bodies.map(body => body.actor === null ? null : body.id), bodies.flatMap(body => body.actor !== null && body.brain === null ? [body.id] : []));
     },
     // the restored world holds the coconuts' native bodies: a body service over it adopts them by handle
     physicsRestored: () => { service = new Bodies(host.physics, player); volley.bind(service); },
