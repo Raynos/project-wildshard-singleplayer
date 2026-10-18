@@ -6,7 +6,7 @@
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns a red gate; G496 shrink-only custom sections, attribution SHAs to the coordinator first; G498 legacy copies take crash fixes only.
 
-**Batches:** twentieth 9f77d61bd pushed and LIVE (9f77d61bd-mved29kd, 16:54 Cancun; CI, smoke, deploy green). Twenty-first all landed (B10 b4684bed9, B4 08ffac96d, B7 b8b5a6bbc, boss 22b54b699, C9 dda2b863a, canopy 5d380ae82, NM2 0a765219d closed) and baking; freeze until PUSHED. **Twenty-first:** sealed 2ba606e3d (Nine + Nalati maps), pushing (sp-x7); elites 062a09f731 (−204) + budget fix 1529554259 in it.
+**Batches:** twentieth 9f77d61bd pushed and LIVE (9f77d61bd-mved29kd, 16:54 Cancun; CI, smoke, deploy green). Twenty-first all landed (B10 b4684bed9, B4 08ffac96d, B7 b8b5a6bbc, boss 22b54b699, C9 dda2b863a, canopy 5d380ae82, NM2 0a765219d closed) and baking; freeze until PUSHED. **Twenty-first:** sealed 2ba606e3d (Nine + Nalati maps), pushed. Twenty-second window open, cutoff 19:30 Cancun, no landing order; elites 062a09f731 (−204) + budget fix 1529554259 in it.
 
 **P0:** display-encode lift on main (b835bba67, 13acb03ba, 0ccd5c900), validated against the 9190f1569 GLSL (16 captures SSIM ≥ 0.9995). Nine B8 is 5,153 nodes / ~186 KB against the 4,096-node and 64,000-byte graph caps, which stay; sampler3D adoption is row N3D.
 
