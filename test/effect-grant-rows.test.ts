@@ -1,31 +1,30 @@
-import { declaredLootEconomy } from '../src/game/shard/declaredRows';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
-import { parseRows } from '../src/format/rows';
+import { parseItems } from '../src/format/items';
+import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { Events } from '../src/engine/events/events';
 import { PlayerHealth } from '../src/engine/combat/health';
 import { EffectService, selectEffectGrants } from '../src/engine/combat/effects/EffectService';
-import type { OwnedId } from '../src/game/loot/Owned';
-import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
+import { isOwnedId, type OwnedId } from '../src/game/loot/Owned';
+import { bindFixtureEffects } from './fixtures/item-effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 import { NalatiSkinLocker, NALATI_SKINS } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
 
-const economy = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot);
 
 test('Driftwood selects ordered live grants, highest upgrades and worn cosmetics', () => {
   const have = new Set<OwnedId>(), worn = new Set<string>();
   const scope = new Scope('ordered-grants'), effects = new EffectService(DRIFTWOOD_EFFECTS);
   const health = new PlayerHealth(new Events(), { now: () => 0, dodging: () => false, dodgeGuard: () => false, position: () => new Vector3() });
-  const sword = { attributes: { damage: 24, heavyDamageMul: 1 }, damage: 24, heavyMult: 1 };
+  const attributes = { damage: 24, heavyDamageMul: 1 };
+  const sword = { attributes, get damage() { return attributes.damage; }, get heavyMult() { return attributes.heavyDamageMul; } };
   let changed = (): void => { /* Bound below. */ };
-  const owned: Parameters<typeof bindDriftwoodEffects>[0]['owned'] = {
-    has: id => have.has(id), worn: id => worn.has(id), onChange: run => { changed = run; return () => { changed = () => undefined; }; },
+  const owned: Parameters<typeof bindFixtureEffects>[0]['owned'] = {
+    has: id => isOwnedId(id) && have.has(id), worn: id => worn.has(id), onChange: run => { changed = run; return () => { changed = () => undefined; }; },
   };
   const sync = vi.spyOn(effects, 'sync');
   const refresh = (): void => { sync.mockClear(); changed(); };
-  bindDriftwoodEffects({ grants: economy.grants, effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [sword], hitCap: Infinity, slug: 'driftwood-isle' });
+  bindFixtureEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [sword], hitCap: Infinity });
   const playerGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === health)?.[1] ?? [];
   const weaponGrants = (): Parameters<EffectService['sync']>[1] => sync.mock.calls.find(call => call[0] === sword)?.[1] ?? [];
   expect(playerGrants()).toEqual([]);
@@ -70,4 +69,14 @@ test('invalid grant capacities and stacks refuse before reading ownership', () =
   expect(() => selectEffectGrants([{ ...row, key: '' }], has)).toThrow('grant rows');
   expect(reads).toBe(0);
   expect(selectEffectGrants([], has)).toEqual([]);
+});
+
+test('item grant bindings refuse missing and duplicate equipment before installation', () => {
+  const items = parseItems(DRIFTWOOD_SWORDS), rows = items.loadout.effects;
+  if (rows === undefined) throw new Error('Missing item effect fixture');
+  const binding = rows.weapons[0]; if (binding === undefined) throw new Error('Missing weapon grant fixture');
+  expect(() => parseItems({ ...items, loadout: { ...items.loadout, effects: { ...rows,
+    weapons: [{ ...binding, items: ['weapon.missing'] }] } } })).toThrow();
+  expect(() => parseItems({ ...items, loadout: { ...items.loadout, effects: { ...rows,
+    weapons: [{ ...binding, items: [binding.items[0], binding.items[0]] }] } } })).toThrow();
 });

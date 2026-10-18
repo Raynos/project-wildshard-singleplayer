@@ -1,3 +1,4 @@
+import { PlayerHealth } from '../health';
 import type { Scope } from '../../app/scope';
 import { Vector3 } from 'three';
 import type { Events } from '../../events/events';
@@ -15,7 +16,7 @@ const playerBindings = new WeakMap<EffectService, WeakMap<Actor, { movement: obj
 
 /** Bind player-owned movement channels and periodic damage once for the same player/service lifetime. */
 export function bindPlayerEffects(o: { effects: EffectService; target: Actor;
-  movement: { effectMoveLocked: boolean; effectMoveScale: number };
+  movement: { effectMoveLocked: boolean; effectMoveScale: number; dodgeCooldownScale?: number };
   combat: CombatPipeline; position: () => Vector3; scope: Scope }): void {
   const { effects, target, movement, scope } = o;
   let targets = playerBindings.get(effects);
@@ -30,7 +31,12 @@ export function bindPlayerEffects(o: { effects: EffectService; target: Actor;
   scope.onDispose(() => { if (active.get(target) === binding) active.delete(target); });
   effects.setBase(target, 'moveLocked', 0);
   effects.setBase(target, 'moveSpeedMul', 1);
-  effects.bind(target, () => {
+  if (movement.dodgeCooldownScale !== undefined) effects.setBase(target, 'dodgeCooldownMul', 1);
+  effects.bind(target, (previous) => {
+    if (target instanceof PlayerHealth) {
+      const max = target.attributes.maxHealth; target.attributes.maxHealth = previous['maxHealth'] ?? max; target.setMaxHealth(max);
+    }
+    if (movement.dodgeCooldownScale !== undefined) movement.dodgeCooldownScale = target.attributes['dodgeCooldownMul'] ?? 1;
     movement.effectMoveLocked = (target.attributes['moveLocked'] ?? 0) > 0;
     movement.effectMoveScale = target.attributes['moveSpeedMul'] ?? 1;
   }, scope);

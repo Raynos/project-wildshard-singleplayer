@@ -10,7 +10,7 @@ import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/k
 import { COLLECTIONS } from '../runtime/boot/blobAssets';
 import { captainHat, sailclothCape } from '../runtime/models/captainHat';
 import { driftwoodRows } from '../runtime/boot/rows';
-import { bindDriftwoodEffects } from '../loot/effects';
+import { installItemEffects } from '@wildshard/game/loadout/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
 import { installQuestHints } from '@wildshard/game/quest/hints';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
@@ -41,7 +41,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
-  bindDriftwoodEffects({ grants: economy.grants, effects, scope: ctx.scope, owned: h.owned, health, player, swords, hitCap: ctx.manifest.fight?.maxHitDamage ?? Infinity, slug: ctx.manifest.slug });
+  installItemEffects(ctx);
   await installDeclaredCollectionKeepsakes(ctx, driftwoodRows('custom/collections').keepsakes, economy,
     new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
       models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));

@@ -10,7 +10,7 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { EffectService } from '../src/engine/combat/effects/EffectService';
 import { Owned } from '../src/game/loot/Owned';
 import { Purse } from '../src/game/loot/Purse';
-import { bindDriftwoodEffects } from '../src/shards/driftwood-isle/loot/effects';
+import { bindFixtureEffects } from './fixtures/item-effects';
 import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 
@@ -22,7 +22,7 @@ test('GEAR borrows live player max health through upgrades, revokes and other he
   const effects = new EffectService(DRIFTWOOD_EFFECTS);
   const purse = new Purse('driftwood-isle', { read: () => 0, write: () => true });
   try {
-    bindDriftwoodEffects({ grants: economy.grants, effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20, slug: 'driftwood-isle' });
+    bindFixtureEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20 });
     const view = await driftwoodLootPresentation({ economy, adventure: { flags: new Flags('driftwood-isle', false), trader: null },
       owned, health, scope, audio: { voices: { play: () => undefined } }, toast: () => undefined, hold: () => undefined });
     const check = (max: number, hearts: number): void => {

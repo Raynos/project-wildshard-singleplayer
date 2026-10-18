@@ -7,7 +7,7 @@ import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisio
 import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
 import type { CustomSections } from './productSections.generated.d.ts';
 import { preloadKingKit } from './models/antlerKing';
-import { installEnteredRuntimeService, installEnteredRuntimeUpdate, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, installEnteredRuntimeUpdate, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '@wildshard/game/plugin/audio';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { pineLooks, preparePineGrazers } from '../species/looks';
@@ -21,7 +21,7 @@ import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { pineRifleFloor } from '../quest/rifleFloor';
-import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
+import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Cabins, loadCabinRows } from './world/homestead';
@@ -56,7 +56,7 @@ import { installWeather, loadPineRain } from '../world/weather';
 import { HeldFirearm } from '@wildshard/game/plugin/heldFirearm';
 import { HeldLauncher } from '@wildshard/game/plugin/heldLauncher';
 import { readItemEquipment, readItemAmmunition, readItemInventory } from '@wildshard/game/plugin/nativeItems';
-import { heldFinishEffect } from '@wildshard/game/loadout/effects';
+import { installItemEffects, heldFinishEffect } from '@wildshard/game/loadout/effects';
 import type { SkinId } from '@wildshard/engine/player/Skins';
 import { parseTradeCatalogue } from '../quest/rows';
 import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
@@ -228,9 +228,7 @@ export class PineHollow extends ShardPlugin {
     if (loadout.hasRifle || params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') rifleDrop?.dispose();
     rt.hooks.disposeRifleDrop = () => { rifleDrop?.dispose(); };
     rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); skinDrops.update(dt, t, game.renderer, game.camera, player.position); };
-    if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
-    installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
-      retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
+    installItemEffects(ctx);
     // SF67: the King's and his parked thralls' models, each in its own task before the combat install's prewarm spawns them
     // (the same cached models it would build in one stretch; the factory builds each from its own key's seed)
     await ctx.scope.run(() => animals.factory.prepareModels([

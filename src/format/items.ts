@@ -1,6 +1,6 @@
 import { InputExtraSchema, inputExtraRules } from './inputDeclarations';
 import { BodyLaunchSchema, NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
-import { ClaimedPickupSchema } from './lootEconomy';
+import { ClaimedPickupSchema, LootEconomySchema } from './lootEconomy';
 import * as v from 'valibot';
 import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
@@ -70,7 +70,11 @@ const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.varia
   pickups: v.exactOptional(v.pipe(v.record(name, ClaimedPickupSchema), v.maxEntries(128))),
   contexts: v.pipe(v.array(ItemContextSchema), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
-  loadout: v.strictObject({ runtime: v.exactOptional(v.strictObject({
+  loadout: v.strictObject({ effects: v.exactOptional(v.strictObject({
+    statuses: v.boolean(), player: LootEconomySchema.entries.grants.entries.player, worn: LootEconomySchema.entries.grants.entries.worn,
+    weapons: v.pipe(v.array(v.strictObject({ items: v.pipe(v.array(weaponId), v.minLength(1), v.maxLength(64)), grants: LootEconomySchema.entries.grants.entries.weapons })), v.maxLength(64)),
+    hitCap: v.exactOptional(effect),
+  })), runtime: v.exactOptional(v.strictObject({
     pause: v.boolean(), sliceMs: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(1000))),
     owners: v.pipe(v.array(v.strictObject({ item: weaponId, slot: v.picklist(['primary', 'rifle', 'secondary', 'extra']),
       row: v.picklist(['native', 'declared']), presentation: v.exactOptional(v.boolean()) })), v.minLength(1), v.maxLength(16)),
@@ -148,6 +152,9 @@ export type ShardItems = v.InferOutput<typeof raw>;
 export function itemRules(items: ShardItems, modules?: readonly string[]): string[] {
   const errors: string[] = [], ids = items.rows.map((r) => r.id), weapons = items.rows.filter((r) => r.kind === 'weapon');
   const runtimeContexts = items.runtimeContexts ?? [];
+  if (items.loadout.effects?.weapons.some(binding => new Set(binding.items).size !== binding.items.length
+    || binding.items.some(id => !weapons.some(entry => entry.id === id && entry.equipment?.legacySlot !== undefined))) === true)
+    errors.push('item effect targets need unique native equipment ids');
   if (weapons.some(row => row.profile !== undefined && !row.family.includes('.') && row.family !== row.profile.family && !(row.family === 'swept' && row.profile.family === 'melee'))) errors.push('weapon profile matches declared family');
   if (weapons.some(row => row.profile?.family === 'cone' && (row.light.range !== row.heavy.range
     || row.light.width !== row.heavy.width || row.light.width > Math.PI || row.light.effect !== null || row.heavy.effect !== null

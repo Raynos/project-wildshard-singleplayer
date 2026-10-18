@@ -1818,6 +1818,21 @@ the native `RigArms` loader, without an injected loader port. The fixture
 `test/held-arms-platform.test.ts` drives invented harbour material/lighting rows
 on the native rig file path, including release, glow and swim behaviour.
 
+**Item effects.** `game/loadout/effects` defines the client-only
+`installItemEffects(context)` installer. `combat/items.loadout.effects` selects
+status icons, ordered owned/worn player grants, and grants for explicit native
+weapon item ids. Optional `hitCap` selects an effect only when the manifest has
+a finite fight cap. Build admission rejects missing or duplicate native targets.
+The installer resolves player, equipment, ownership and entered/resident lifetimes
+from the context; no shard callbacks or reflected paths cross its API. Pine's
+status binding and Driftwood's owned perks use this same installer. Engine
+`bindPlayerEffects` combines status movement, periodic damage, max-health changes
+and dodge cooldown modifiers in one observer, so one effect cannot overwrite
+another attribute adapter. The existing health, ownership and weapon saves remain
+authoritative; the installer creates no save slot. A scope releases every grant
+listener and restores native attribute bases. Weapon damage keeps its integer
+rounding, while heavy multipliers remain unrounded.
+
 **Held melee claims (G475).** `game/loadout/claims` defines the client-only
 `HeldClaims` host. The platform `held/arms` section (`format/heldArms`) contains
 one rig/look identity, native item ids and blade families, cold Explorer cards,
