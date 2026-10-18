@@ -9231,6 +9231,28 @@ Named RNG authorities stay with the death owner and remain absent until the
 first declared scheduling draw. Identity allocation, variant rolls and native
 bodies remain with the roster at the due event.
 
+`game/population/returnProgram.ReturnProgram` runs event-only stateless ABI-v1
+projections for queue policies. The actors/return-scripts catalogue admits the
+same critical Wasm blob in product validation and worker context. The constructor
+checks the embedded bytes against the declared module hash, admits fixed pages,
+and rejects durable slots, timers, ticks, body commands and undeclared reads. Requests
+supply numeric observations and optionally the actual spawn Rng; guest channels
+are validated before publication and a refusal restores that stream. Native/page
+factories use their built-in terrain authorities. This owner neither advances a
+second clock nor changes the existing v8 creature envelope. Delay, sight/night
+gates and six-attempt land placement are Driftwood's behaviour/returns.as.
+
+RespawnQueue can select this concrete policy owner; place retains entry
+identity when a guest defers it. ReturnGate keeps native corpse/fade clocks in
+the existing save object, or observes the page body's real hidden state.
+`game/population/pageReturns.installPageReturns` binds the page's actual manager,
+ordered deaths,
+night clock and spawn stream using rows.
+`game/population/pageGroups.PageActorGroups` owns
+grouped placement, training refills and perches over the real manager; it changes
+neither body AI nor existing herd membership. All three owners are the approved
+G474/G475 actor-spawn feature and have independent salt-marsh fixture coverage.
+
 SDK defining facades are `sdk/populationRoster`, `sdk/populationShelter`
 and `sdk/populationRespawn`; they
 borrow the same game implementation and install nothing on import.

@@ -22,6 +22,8 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { enemyBrain, type EnemyBrain } from './enemyBrains';
 import type { DriftwoodBake, NativeEnemyPlacements, NativeKeeperRows } from './baked';
 import { RespawnQueue } from '@wildshard/sdk/populationRespawn';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { ReturnGate } from '@wildshard/game/population/respawn';
 
 const poseSailor = numericCreaturePose(sailorClips);
 
@@ -248,11 +250,10 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
   // Reusable native recipe slots are cold-allocated; only host.spawn materializes an entity on a due event.
   const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', 'crab', 'small', -1, { x: 0, z: 0 }, 0));
-  const land = (x: number, z: number): boolean => heightAt(x, z) > ports.waterLevel + 0.15;
   const spawnRandom = (): number => host.rng.stream('spawn').next();
   const allocated = { id: '', yaw: 0 };
   const allocateRespawn = (): typeof allocated => { allocated.id = entityIds.allocate(); allocated.yaw = spawnRandom() * Math.PI * 2; return allocated; };
-  const queue = new RespawnQueue(roster.ecology.rules, roster.ecology.outOfSight), ecology = { now: 0, check: 0 };
+  const queue = new RespawnQueue(roster.ecology.rules, roster.ecology.outOfSight, undefined, ReturnProgram.native(host, roster.ecology.program)), ecology = { now: 0, check: 0 };
   const pendingIds = new Map<(typeof queue.pending)[number], string>();
   host.events.on('actor.died', ({ actor }) => {
     const body = bodies.find(b => b.actor?.combatActor() === actor), a = body?.actor;
@@ -269,12 +270,9 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const due = queue.take(ecology.now, player.x, player.z, host.dayClock?.night ?? 0);
     for (let n = 0; n < ROSTER; n++) {
       const entry = due[n]; if (entry === undefined) break;
-      let x = entry.x, z = entry.z;
-      if (entry.kind !== 'sailor') for (let k = 0; k < 6; k++) {
-        const ang = spawnRandom() * Math.PI * 2, r = 1 + spawnRandom() * 4, tx = entry.x + Math.cos(ang) * r, tz = entry.z + Math.sin(ang) * r;
-        if (land(tx, tz)) { x = tx; z = tz; break; }
-      }
-      if (!land(x, z) && entry.kind !== 'sailor') { entry.due = ecology.now + 60; queue.pending.push(entry); continue; }
+      const at = queue.place(entry, ecology.now, ports.waterLevel, entry.kind === 'sailor', host.rng.stream('spawn'));
+      if (at === null) continue;
+      const { x, z } = at;
       if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
       const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, allocateRespawn);
       draw(body, !FAUNA.has(body.kind));
@@ -320,11 +318,8 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     respawns(dt);
     const crab = practice.body?.actor ?? null;
     if (crab === null || crab.alive || practice.body === null) return;
-    practice.dead += dt;
-    if (practice.fade >= 0) practice.fade += dt;
-    if (practice.dead < practiceRule.delay || Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z) < practiceRule.away) return;
-    if (practice.fade < 0) { practice.fade = 0; return; }
-    if (practice.fade >= SHELL_FADE) replacePractice(practice.body);
+    if (ReturnGate.step(practice, { ...practiceRule, fade: SHELL_FADE }, dt, crab.alive,
+      Math.hypot(player.x - PRACTICE_AT.x, player.z - PRACTICE_AT.z)) === 'replace') replacePractice(practice.body);
   }, {
     snapshot: () => { const common = continuation.snapshot(); return ({ version: 8, rng: common.rng, ecology: { ...ecology, pending: queue.pending.map(entry => ({ ...entry, variant: entry.variant ?? '', id: pendingIds.get(entry) ?? '' })) },
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(bodies.map(b => b.actor?.entityId ?? '')) },

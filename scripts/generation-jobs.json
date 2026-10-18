@@ -10737,6 +10737,34 @@
       }
     },
     {
+      "id": "driftwood-returns",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-returns.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-returns.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/driftwood-isle/behaviour/captain.as",
+        "src/shards/driftwood-isle/behaviour/director.as",
+        "src/shards/driftwood-isle/behaviour/returns.as",
+        "src/shards/driftwood-isle/generators/bake-returns.mjs"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/behaviour/returns.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/behaviour/returns.generated.json"
+      ]
+    },
+    {
       "id": "driftwood-director",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs",
@@ -17802,7 +17830,6 @@
         "src/shards/nine-dragon-stack/generators/glyphField.ts",
         "src/shards/nine-dragon-stack/data/words.ts",
         "src/shards/nine-dragon-stack/util.ts",
-        "src/shards/nine-dragon-stack/tier.ts",
         "src/shards/nine-dragon-stack/data/signs.ts"
       ],
       "outputs": [
@@ -17872,7 +17899,6 @@
         "src/shards/nine-dragon-stack/generators/signAtlas.ts",
         "src/shards/nine-dragon-stack/generators/signMath.ts",
         "src/shards/nine-dragon-stack/data/signs.ts",
-        "src/shards/nine-dragon-stack/tier.ts",
         "src/shards/nine-dragon-stack/data/layout.generated.json",
         "src/shards/nine-dragon-stack/data/fixedKits.generated.json"
       ],

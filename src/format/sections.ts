@@ -68,6 +68,8 @@ export interface PlatformSections {
   /** new (KA5): sim-side steering mechanics, independently selected by decisions. */
   'actors/moves': ActorMoves;
   'actors/spawn-scripts': SpawnScriptRows[];
+  /** Stateless return-policy modules are admitted but never auto-scheduled. */
+  'actors/return-scripts': DecisionScriptRow[];
   /** Callback-free gameplay species, in each owning world's original registration order. */
   'actors/species-programs': SpeciesPrograms;
   'actors/creatures': Pick<Shardfile, 'creatures'>;

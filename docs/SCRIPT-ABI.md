@@ -369,6 +369,33 @@ These are findings, not additional API promises or code changes:
   advance story state. These are the actual implementations, not guarantees
   of queue boundedness or story recovery. [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) [game/shardfile/decisions.ts:149](../src/game/shardfile/decisions.ts#L149)
 
+## Stateless return projections (G475)
+
+ReturnProgram is an additive event-only owner of ABI-v1 modules, separate from
+DecisionHost's scheduled and saved bindings. It runs a single signal event in
+the caller's existing death/one-second queue phase. There are no durable state
+slots, timers, tick subscription, actor writes or second simulation scheduler.
+The actors/return-scripts catalogue admits the module as a critical Wasm blob
+in the official product inventory and native worker context. Embedded bytes must
+hash to the named module. The IO layout, generated handlers, byte admission,
+scratch rewind, finite guards, 400,000-fuel call bound and 32-command output
+bound are the same v1 transport.
+
+The only scalar reads are declared numeric field(0, field) observations and
+random() from the explicitly lent real spawn stream. The only lists are
+groundHeight(x,z) from the built-in native/page terrain and radial(yaw,radius)
+with the existing [sin(yaw)*radius, cos(yaw)*radius] convention. Fields, signals
+and result channels resolve in sorted declared-target order. Only declared
+channel outputs may publish; duplicate/unknown channels and invalid values
+refuse. A refusal rewinds the borrowed RNG and publishes nothing. The projection
+has no private save payload: the caller's existing queue and RNG continuation are
+still authoritative. Scheduled decision bindings retain next-step commit rules.
+
+Driftwood uses this for scheduling, return eligibility and terrain retry policy.
+Its v8 keeper adapter retains every saved field and actor/adapter order. The page
+uses the same guest on its existing update clock. The generic corpse ReturnGate
+is fixed-step engine mechanics driven by delay, distance and fade rows.
+
 ### Owned elite programs (G473, G484)
 
 Named encounters use the same concrete native/page `SpawnScript` owner as

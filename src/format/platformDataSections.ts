@@ -34,6 +34,7 @@ export interface PlatformDataSections {
   'actors/species-programs': SpeciesPrograms;
   'actors/moves': ActorMoves;
   'actors/spawn-scripts': SpawnScriptRows[];
+  'actors/return-scripts': DecisionScripts;
   'actors/strikes': CreatureStrikes;
   'sim/scripts': DecisionScripts;
   'ui/strings': UiStrings;
@@ -57,6 +58,7 @@ export const PLATFORM_DATA_SECTIONS = {
   'actors/species-programs': { schema: SpeciesProgramsSchema },
   'actors/moves': { schema: ActorMovesSchema },
   'actors/spawn-scripts': { schema: SpawnScriptsSchema },
+  'actors/return-scripts': { schema: DecisionScriptsSchema },
   'actors/strikes': { schema: CreatureStrikesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
   'ui/strings': { schema: UiStringsSchema },
@@ -81,7 +83,7 @@ export function parsePlatformDataSection(name: 'actors/species-programs', value:
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
 export function parsePlatformDataSection(name: 'actors/spawn-scripts', value: unknown): SpawnScriptRows[];
-export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): DecisionScripts;
+export function parsePlatformDataSection(name: 'actors/return-scripts' | 'sim/scripts', value: unknown): DecisionScripts;
 export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;

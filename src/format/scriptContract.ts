@@ -35,5 +35,6 @@ export function decisionModuleContracts(input: readonly DecisionScripts[number][
 /** Every explicitly owned v1 module participates in byte, memory and inventory admission. */
 export function scriptAdmissionRows(sections?: ReadonlyMap<string, unknown>): DecisionScripts {
   const spawn = v.parse(SpawnScriptsSchema, sections?.get('actors/spawn-scripts') ?? []);
-  return parseDecisionScripts([...decisionScriptsFromSections(sections), ...spawn.map(row => row.script)]);
+  return parseDecisionScripts([...decisionScriptsFromSections(sections), ...spawn.map(row => row.script),
+    ...parseDecisionScripts(sections?.get('actors/return-scripts') ?? [])]);
 }

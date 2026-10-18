@@ -18,7 +18,6 @@ import { ITEMS } from '@wildshard/game/bag/itemCatalog';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { OCEAN } from '../world/sites';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' };
 import { installAdventureInteractables } from './interactLifetime';
@@ -37,7 +36,7 @@ import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { installDirectorFinale, type Finale } from '../runtime/finalePresentation';
 import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
-import { installEcology } from './Ecology';
+import { installPageReturns } from '@wildshard/game/population/pageReturns';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import { Zipline } from '../world/Zipline';
 
@@ -229,7 +228,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
   adventure.finale = await installDirectorFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
-  adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
+  adventure.ecology = installPageReturns(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('sim/returns.json'))));
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──
   if (w.bridgeFloor) {

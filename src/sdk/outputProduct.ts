@@ -65,7 +65,7 @@ export interface OutputProductOptions {
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
 /** The platform sections a decision row resolves against: its rows and the moves they bind. */
-export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/spawn-scripts', 'actors/moves', 'world/targets'] as const;
+export const DECISION_CONTEXT_SECTIONS = ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts', 'actors/moves', 'world/targets'] as const;
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
 export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = DECISION_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
   const payloads = new Map<string, unknown>();
@@ -84,7 +84,7 @@ export function outputDecisionScripts(platform?: EmittedSections): DecisionScrip
 }
 /** Exact contracts for both generic actor decisions and population-owned directors. */
 export function outputScriptAdmissionRows(platform?: EmittedSections): DecisionScripts {
-  return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts']));
+  return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts']));
 }
 function checkWorldTargets(source: Shardfile, input: unknown): void {
   if (input === undefined) return;

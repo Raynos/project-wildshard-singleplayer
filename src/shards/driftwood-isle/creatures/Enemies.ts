@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCreatureSpawner } from '@wildshard/game/plugin/brain';
+import { PageActorGroups } from '@wildshard/game/population/pageGroups';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { SEED } from '@wildshard/engine/core/config';
@@ -79,17 +79,16 @@ export class Enemies {
   private dActive = 0;
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
   /** the practice crab now (E308; a new one after its admitted respawn delay), and s since it died */
-  practiceCrab: Animal | null = null;
-  private practiceDead = 0;
+  get practiceCrab(): Animal | null { return this.creatures.practice; }
   private playerPos = new THREE.Vector3();
   // Read-only Captain presentation. The guest owns every transition and destination.
   private captainView: {actor:Animal|null;state:number;bubbles:number} = {actor:null,state:0,bubbles:0};
 
   private disposed = false;
-  private readonly creatures: ReturnType<typeof createCreatureSpawner<Animal>>;
+  private readonly creatures: PageActorGroups;
   constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) {
     if (this.contact === undefined) throw new Error('Driftwood requires its admitted coconut contact');
-    this.creatures = createCreatureSpawner(animals); this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
+    this.creatures = new PageActorGroups(animals); this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
   }
   dispose(): void {
     if (this.disposed) return;
@@ -113,14 +112,7 @@ export class Enemies {
     live(); this.volleySlots = new RowBodySlots<Animal>(placement.volley, app.bodies, { kind: 'coconut' });
     // ── the pieces the AIs read (AnimalManager.habitat) ──
     const W = animals.habitat;
-    if (opts.palms?.length) {
-      W.perches = []; W.perchBases = [];
-      for (const p of opts.palms) {
-        const base = heightAt(p.x, p.z) - 0.2;
-        W.perches.push(new THREE.Vector3(p.x + Math.cos(p.leanDir) * p.lean * p.h, base + p.h + 0.5, p.z + Math.sin(p.leanDir) * p.lean * p.h));
-        W.perchBases.push(new THREE.Vector3(p.x, base + 0.2, p.z));
-      }
-    }
+    this.creatures.perches(opts.palms ?? [], { foot: .2, crown: .5, base: .2 });
     W.throwCoconut = (from, to, thrower) => { this.throwCoconut(from, to, thrower); };
     W.splash = (at, strength) => { this.splash(at, strength); };
     // ── coconuts: one InstancedMesh in the kit's still look, the husk's brown as its vertex paint ──
@@ -157,42 +149,17 @@ export class Enemies {
     if (SEED !== placement.seed) throw new Error('Enemy placements require their authored seed');
     const rows = placement.page[TIER];
     this.rng.restore(rows.stream);
-    const first = this.animals.animals.length, ordered = rows.enemies.filter(row => row.herd >= 0).sort((a, b) => a.herd - b.herd);
     this.creatures.place(rows.centres, rows.kinds, rows.enemies);
-    for (const [index, row] of ordered.entries()) {
-      const actor = this.animals.animals[first + index]; if (actor === undefined) throw new Error('Missing placed enemy');
-      if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
-      if(row.kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
-    }
-    rows.kinds.forEach((kind, i) => { if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++; });
+    this.placed = { crabs: this.creatures.count('crab'), monkeys: this.creatures.count('monkey'), sailors: this.creatures.count('sailor'),
+      troops: this.creatures.count('monkey', true), crabGroups: this.creatures.count('crab', true) - Number(this.opts.practice !== undefined) };
     const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor, placement.hold);
-  }
-
-  /** the lone small crab on the path at the pier's foot (E308): a herd of one, so no big crab's death scatters it */
-  private placePracticeCrab(): void {
-    const at = this.opts.practice;
-    if (at === undefined) return;
-    const [a] = this.creatures.group('crab', at, [{ kind: 'crab', ...at, yaw: 0, variant: 'small' }]);
-    if (a === undefined) throw new Error('Missing practice crab');
-    this.practiceCrab = a; this.practiceDead = 0;
-    this.placed.crabs++;
-  }
-
-  /** a dead practice crab returns after the admitted delay, while the player is far enough away: its shell fades, a new one is placed */
-  private tickPractice(dt: number, playerPos: THREE.Vector3): void {
-    const c = this.practiceCrab, at = this.opts.practice;
-    if (c === null || at === undefined || c.alive) return;
-    this.practiceDead += dt;
-    if (this.practiceDead < this.opts.respawn.delay || Math.hypot(playerPos.x - at.x, playerPos.z - at.z) < this.opts.respawn.away) return;
-    if (!c.hidden) { c.fadeOut(); return; } // a crab leaves no carcass of its own (no corpseFade): the old shell goes first
-    this.placePracticeCrab();
   }
 
   private placeSailor(spot: EnemyPlacements['native']['enemies'][number], centre: EnemyPlacements['hold']): void {
     const wreck = this.opts.wreck;
     if (wreck === null || wreck === undefined) return;
     this.animals.habitat.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
-    const a = this.creatures.spawn('sailor', spot.x, spot.z, spot.yaw, 'sailor');
+    const a = this.creatures.loose(spot);
     a.herd = -1;
     const light = new THREE.PointLight(0x7fe8ff, 0, 7, 2);
     light.castShadow = false;
@@ -224,7 +191,8 @@ export class Enemies {
   update(dt: number, t: number, playerPos: THREE.Vector3): void {
     this.playerPos.copy(playerPos);
     if (this.disposed) return;
-    this.tickPractice(dt, playerPos);
+    if (this.opts.practice !== undefined) this.creatures.updatePractice(dt, playerPos, this.opts.respawn);
+    this.placed.crabs = this.creatures.count('crab');
     const captain=this.animals.animals.find(a=>a.kind==='captain'),view=this.captainView;
     if(captain?.alive===true){
       if(view.actor!==captain){view.actor=captain;view.state=0;view.bubbles=0;}

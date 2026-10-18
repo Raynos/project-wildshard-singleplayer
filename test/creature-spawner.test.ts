@@ -1,6 +1,12 @@
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { createCreatureSpawner } from '../src/game/plugin/brain';
+import { PageActorGroups } from '../src/game/population/pageGroups';
+import { ReturnGate } from '../src/game/population/respawn';
+import { manager as realManager } from './fake/manager';
+import { speciesDef } from '../src/engine/entities/species/registry';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { overrideTerrain } from '../src/engine/world/Heightfield';
 
 test('materializes ordered groups through the manager and retires only owned actors', () => {
   interface Actor { herd: number; kind: string; pose: number[]; roll: number }
@@ -36,4 +42,40 @@ test('materializes ordered groups through the manager and retires only owned act
   expect(retired).toEqual(actors.filter(actor => actor !== foreign));
   expect(() => spawner.spawn('crab', 0, 0, 0)).toThrow('disposed');
   expect(() => spawner.group('crab', { x: 0, z: 0 }, [])).toThrow();
+});
+
+test('salt-marsh page rows retain actual AI, herd order, training refills and ownership', () => {
+  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const fixture = realManager(), animals = fixture.manager, groups = new PageActorGroups(animals), variant = speciesDef('boar').variants[0]?.id;
+  if (variant === undefined) throw new Error('Missing fixture species');
+  const foreign = animals.spawn('boar', -10, -10, 0, variant);
+  try {
+    const row = { kind: 'boar', variant, x: 3, z: 4, yaw: .2, herd: 0, practice: true } as const;
+    groups.place([{ x: 3, z: 4 }], ['boar'], [row]);
+    const actor = groups.practice; if (actor === null) throw new Error('Missing training body');
+    expect(actor.scripted).toBe(false); expect(animals.herds[actor.herd]?.members).toContain(actor);
+    expect(groups.count('boar')).toBe(1); expect(groups.count('boar', true)).toBe(1);
+    actor.alive = false;
+    const rule = { ...row, delay: 2, away: 5 };
+    groups.updatePractice(2, { x: 3, z: 4 }, rule); expect(groups.practice).toBe(actor);
+    groups.updatePractice(0, { x: 8, z: 4 }, rule); expect(actor.hidden).toBe(false);
+    actor.hidden = true; groups.updatePractice(0, { x: 8, z: 4 }, rule);
+    const replacement = groups.practice;
+    expect(replacement).not.toBe(actor); expect(replacement?.scripted).toBe(false);
+    expect(replacement?.entityId).not.toBe(actor.entityId); expect(groups.count('boar')).toBe(2);
+    expect(animals.animals).toContain(actor); // the old fading shell remains until the owning manager retires it
+    setTerrainHeight(() => 10);
+    groups.perches([{ x: 1, z: 2, h: 3, lean: .5, leanDir: 0 }], { foot: 1, crown: 2, base: .25 });
+    expect(animals.habitat.perches?.[0]?.toArray()).toEqual([2.5, 14, 2]);
+    expect(animals.habitat.perchBases?.[0]?.toArray()).toEqual([1, 9.25, 2]);
+    groups.dispose(); groups.dispose(); expect(animals.animals).toEqual([foreign]);
+  } finally { groups.dispose(); animals.retire(foreign); restore(); setTerrainHeight(() => 0); }
+});
+
+test('native corpse gates keep the original fade clock while the player returns near', () => {
+  const state = { dead: 0, fade: -1 }, row = { delay: 2, away: 5, fade: 1.5 };
+  expect(ReturnGate.step(state, row, 1, true, 10)).toBe('none'); expect(state.dead).toBe(0);
+  expect(ReturnGate.step(state, row, 2, false, 5)).toBe('fade'); expect(state).toEqual({ dead: 2, fade: 0 });
+  expect(ReturnGate.step(state, row, 1.5, false, 4)).toBe('none'); expect(state.fade).toBe(1.5);
+  expect(ReturnGate.step(state, row, 0, false, 5)).toBe('replace');
 });
