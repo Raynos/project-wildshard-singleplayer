@@ -87,6 +87,7 @@ const CUE_CATALOGUE_POLICY:CueCataloguePolicy={tolerance:0.05,arrayFamilies:fals
 /** Same recording bytes and slice offsets, with owned lazy promises and a shared boot-clip loan. */
 export class CueCatalogue {
   readonly manifest:Record<string,unknown>|undefined;
+  private disposed=false;
   private readonly loops=new Map<string,SampleLoop>();
   private readonly shots=new Map<string,SampleClip[]>();
   private readonly beds=new Map<string,Promise<CatalogueLoop|undefined>>();
@@ -94,9 +95,12 @@ export class CueCatalogue {
   private spriteLoad:Promise<void>|undefined;
   private readonly key:string;private readonly read:AudioRead;private readonly decode:AudioDecode;private readonly policy:CueCataloguePolicy;
   constructor(key:string,read:AudioRead,decode:AudioDecode,policy:CueCataloguePolicy=CUE_CATALOGUE_POLICY) {this.key=key;this.read=read;this.decode=decode;this.policy=policy;this.manifest=cueManifest(key);}
-  get available():boolean {return this.manifest!==undefined&&(this.policy.available?.()??true);}
-  get decoded():string[] {return [...new Set([...(this.policy.shared?.keys()??[]),...this.shots.keys()])];}
-  clips(family:string):SampleClip[]|undefined {return this.shots.get(family)??this.policy.shared?.get(family);}
+  private live():boolean {return !this.disposed;}
+  get available():boolean {return this.live()&&this.manifest!==undefined&&(this.policy.available?.()??true);}
+  get decoded():string[] {if(!this.live())return [];return [...new Set([...(this.policy.shared?.keys()??[]),...this.shots.keys()])];}
+  clips(family:string):SampleClip[]|undefined {if(!this.live())return undefined;return this.shots.get(family)??this.policy.shared?.get(family);}
+  /** Release owned decoded loans at runtime retirement; other catalogues keep their shared slices. */
+  dispose():void {this.disposed=true;this.loops.clear();this.shots.clear();this.beds.clear();this.loading.clear();this.spriteLoad=undefined;}
   private files(family:string):string[] {return cueFamilyNames(this.manifest,family).map(name=>cueFile(this.key,name)).filter((url):url is string=>url!==undefined);}
   private whole(buffer:AudioBuffer,gain=1):SampleClip {return {buffer,offset:0,duration:buffer.duration,gain};}
   private cut(sprite:CueSprite,buffer:AudioBuffer,into:Map<string,SampleClip[]>):void {cutCueSprite(this.manifest,sprite,buffer,into,this.policy);}
@@ -111,7 +115,7 @@ export class CueCatalogue {
       if(!this.available)return undefined;
       const rows=this.manifest?.['beds'],row=obj(rows)?rows[name]:undefined;if(!obj(row))return undefined;
       const url=cueFile(this.key,row['file']);if(url===undefined)return undefined;
-      try{return this.loop(await this.decode(await this.read(url)),row,url);}
+      try{const buffer=await this.decode(await this.read(url));return this.live()?this.loop(buffer,row,url):undefined;}
       catch(error){console.info(`[sfx] ${url}: ${error instanceof Error?error.message:String(error)} — that bed stays silent`);return undefined;}
     })();this.beds.set(name,pending);return pending;
   }
@@ -122,35 +126,36 @@ export class CueCatalogue {
     const sprite=cueSprite(this.key,this.manifest);
     if(sprite!==undefined){
       this.spriteLoad??=(async()=>{
-        try{this.cut(sprite,await this.decode(await this.read(sprite.url)),this.shots);}
+        try{const buffer=await this.decode(await this.read(sprite.url));if(this.live())this.cut(sprite,buffer,this.shots);}
         catch(error){console.info(`[sfx] ${sprite.url}: ${error instanceof Error?error.message:String(error)} — the one-shots stay silent for now`);this.spriteLoad=undefined;}
       })();return;
     }
     const urls=this.files(family);if(urls.length===0)return;this.loading.add(family);
     void(async()=>{const clips:SampleClip[]=[];for(const url of urls){try{clips.push(this.whole(await this.decode(await this.read(url))));}catch{/* This take remains silent. */}}
-      this.loading.delete(family);if(clips.length>0)this.shots.set(family,clips);
+      this.loading.delete(family);if(this.live()&&clips.length>0)this.shots.set(family,clips);
     })();
   }
   shotFiles():string[] {const sprite=cueSprite(this.key,this.manifest);if(sprite!==undefined)return [sprite.url];const rows=this.manifest?.['oneshots'];return obj(rows)?[...new Set(Object.keys(rows).flatMap(id=>this.files(id)))]:[];}
   async decodeShots(onFile?:()=>void):Promise<void> {
-    const rows=this.manifest?.['oneshots'];if(!obj(rows))return;
+    const rows=this.manifest?.['oneshots'];if(!this.live()||!obj(rows))return;
     const sprite=cueSprite(this.key,this.manifest),into=this.policy.shared??this.shots;
     if(sprite!==undefined){
-      try{this.cut(sprite,await this.decode(await this.read(sprite.url)),into);}
+      try{const buffer=await this.decode(await this.read(sprite.url));if(this.live())this.cut(sprite,buffer,into);}
       catch(error){console.info(`[sfx] ${sprite.url}: ${error instanceof Error?error.message:String(error)} — the one-shots decode on first play`);}
       onFile?.();return;
     }
     await Promise.all(Object.keys(rows).map(async family=>{const clips:SampleClip[]=[];
       for(const url of this.files(family)){try{clips.push(this.whole(await this.decode(await this.read(url))));}catch(error){console.info(`[sfx] ${url}: ${error instanceof Error?error.message:String(error)} — that take is skipped`);}onFile?.();}
-      if(clips.length>0)into.set(family,clips);
+      if(this.live()&&clips.length>0)into.set(family,clips);
     }));
   }
   /** Eager banks still decode every counted file concurrently, then admit loops and shots in manifest order. */
   async decodeAll(onFile?:()=>void):Promise<CueBank> {
-    const raw=this.manifest,bank={loops:this.loops,shots:this.shots};if(raw===undefined)return bank;
+    const raw=this.manifest,bank={loops:this.loops,shots:this.shots};if(raw===undefined||!this.live())return bank;
     const buffers=new Map<string,AudioBuffer>();
     await Promise.all(cueFiles(this.key).map(async url=>{try{buffers.set(url,await this.decode(await this.read(url)));}
       catch(error){console.info(`[sfx] ${url}: ${error instanceof Error?error.message:String(error)} — synth kept`);}finally{onFile?.();}}));
+    if(!this.live())return bank;
     for(const section of ['beds','hums']){
       const rows=raw[section];if(!obj(rows))continue;
       for(const [name,row] of Object.entries(rows)){

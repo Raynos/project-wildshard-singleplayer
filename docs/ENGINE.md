@@ -8497,6 +8497,13 @@ borrow the same per-set clip cache without copying AudioBuffers. `bank.barks`
 selects the family prefix and gain; sorted decoded families, the cosmetic RNG
 stream and immediate-repeat exclusion retain their original order.
 
+A playback bank retires its catalogue with its scope. `CueCatalogue.dispose()`
+clears local loop/shot loans and ignores late decode results. Shared boot slices
+remain while another playback catalogue owns them; the final scope retires boot
+loans and clears the shared map. Late boot decodes cannot refill it. The process
+memo holds weak references, so it cannot retain retired recordings by itself.
+Boot profiles borrow the cache without owning PCM life.
+
 Voice bindings can target `bank.playback.play(action, parameters, options)`
 directly. `bank.spatial(id, position, listener, yaw)` uses declared full-3D range,
 attenuation and tap IDs, tries the native sampled shot first, and executes the

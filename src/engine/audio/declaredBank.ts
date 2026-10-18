@@ -16,11 +16,29 @@ import type { AudioRead } from './SetScore';
 export interface DeclaredBankAudio extends Pick<Audio,'ready'|'listenerYaw'|'ambient'|'shot'|'playPhrase'> {
  readonly voices:Pick<Audio['voices'],'register'|'prewarm'|'playback'>;
 }
-const shared=new Map<string,Map<string,SampleClip[]>>();
-/** Boot and playback borrow the same decoded sprite slices, without copying buffers. */
+const shared=new Map<string,WeakRef<Map<string,SampleClip[]>>>();
+const catalogues=new WeakMap<Map<string,SampleClip[]>,Set<WeakRef<CueCatalogue>>>();
+/** Live boot/playback catalogues share sprite slices; the memo never owns retired PCM. */
 export function declaredCatalogue(row:NonNullable<AudioBank['catalogue']>,read:AudioRead=cachedBytes):CueCatalogue {
- let clips=shared.get(row.set);if(clips===undefined){clips=new Map();shared.set(row.set,clips);}
- return new CueCatalogue(row.set,read,decodeBytes,{...row,available:()=>getSfxSet()!=='synth',shared:clips});
+ let clips=shared.get(row.set)?.deref();if(clips===undefined){clips=new Map();shared.set(row.set,new WeakRef(clips));}
+ const catalogue=new CueCatalogue(row.set,read,decodeBytes,{...row,available:()=>getSfxSet()!=='synth',shared:clips});
+ let users=catalogues.get(clips);if(users===undefined){users=new Set();catalogues.set(clips,users);}
+ users.add(new WeakRef(catalogue));return catalogue;
+}
+// Boot profiles borrow the map; only live playback catalogues own its decoded lifetime.
+const borrowers=new WeakMap<Map<string,SampleClip[]>,Set<WeakRef<CueCatalogue>>>();
+function ownCatalogue(catalogue:CueCatalogue,key:string,scope?:Scope):void {
+ const clips=shared.get(key)?.deref();if(clips===undefined)throw new Error('Missing shared catalogue clips');
+ let users=borrowers.get(clips);if(users===undefined){users=new Set();borrowers.set(clips,users);}
+ const live=users,ref=new WeakRef(catalogue);live.add(ref);
+ scope?.onDispose(()=>{
+  catalogue.dispose();live.delete(ref);
+  for(const user of live)if(user.deref()===undefined)live.delete(user);
+  if(live.size===0){
+   const loans=catalogues.get(clips);for(const loan of loans??[])loan.deref()?.dispose();
+   loans?.clear();clips.clear();
+  }
+ });
 }
 /** Native bank construction owns generator closures; the caller supplies only validated recipes. */
 export function declaredVoiceTable(rows:Pick<AudioData,'bank'|'pcm'>):VoiceTable {
@@ -49,6 +67,7 @@ export class DeclaredSoundBank {
   for(const row of Object.values(bank.spatial))if(rows.synth?.[row.phrase]===undefined)throw new Error(`Missing phrase: ${row.phrase}`);
   this.bank=bank;this.samples=bank.catalogue===undefined?undefined:declaredCatalogue(bank.catalogue);
   const catalogue=this.samples;
+  if(catalogue!==undefined&&bank.catalogue!==undefined)ownCatalogue(catalogue,bank.catalogue.set,scope);
   this.playback=audio.voices.playback(playback,catalogue===undefined?undefined:{available:()=>catalogue.available,samples:{clips:id=>catalogue.clips(id),load:id=>{catalogue.load(id);}}});
   audio.voices.register(table,scope);
  }

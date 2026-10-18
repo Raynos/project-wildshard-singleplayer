@@ -4,7 +4,8 @@ import {Scope} from '@wildshard/engine/app/scope';
 import {app} from '@wildshard/engine/app/runtime';
 import {parseAudioData} from '@wildshard/format/audio';
 import {installDeclaredAudio} from '@wildshard/engine/audio/declared';
-import {declaredVoiceTable,type DeclaredBankAudio} from '@wildshard/engine/audio/declaredBank';
+import {DeclaredSoundBank,declaredCatalogue,declaredVoiceTable,type DeclaredBankAudio} from '@wildshard/engine/audio/declaredBank';
+import {CueCatalogue} from '@wildshard/engine/audio/Cues';
 import {impact,renderPcm} from '@wildshard/engine/audio/gen';
 import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
 import {tap} from '@wildshard/engine/core/harnessTap';
@@ -77,4 +78,40 @@ it('selects decoded bark families in order with the same cosmetic draw and no im
  expect(draw.mock.calls).toEqual([[0,2],[0,1]]);
  bank.shot('leverDry');expect(play).toHaveBeenLastCalledWith('shot',{family:'leverDry'},{});
  scope.dispose();
+});
+
+it('keeps shared sprite slices until the last playback scope retires',async()=>{
+ const tables=await import('@wildshard/engine/boot/tables');
+ const preload=await import('@wildshard/engine/audio/preload');
+ const {pcmBuffer}=await import('./engine/audio/pcm-buffer');
+ const buffer=pcmBuffer(48000),set='catalogue-lifetime-fixture';
+ const manifest=vi.spyOn(tables,'sfxManifests').mockReturnValue({[set]:{
+  sprite:{file:'shots.m4a',clips:{take:[.1,.2]}},oneshots:{shot:{files:['take'],gain:.7}}
+ }});
+ const bytes=vi.spyOn(tables,'publicBytes').mockReturnValue({[`/assets/sfx/${set}/shots.m4a`]:1});
+ const decode=vi.spyOn(preload,'decodeBytes').mockResolvedValue(buffer);
+ try{
+  const row={set,tolerance:.05,arrayFamilies:false,familyGain:true,loopGain:1};
+  const read=():Promise<ArrayBuffer>=>Promise.resolve(new ArrayBuffer(1));
+  if(pine.bank===undefined)throw new Error('Missing fixture bank');
+  const rows={...pine,bank:{...pine.bank,catalogue:row}},a=new Scope('catalogue.a'),b=new Scope('catalogue.b');
+  const {audio}=nativeAudio(),first=new DeclaredSoundBank(audio,rows,a),second=new DeclaredSoundBank(audio,rows,b);
+  const boot=declaredCatalogue(row,read);await boot.decodeShots();
+  const clips=boot.clips('shot');
+  expect(first.catalogue.clips('shot')).toBe(clips);expect(second.catalogue.clips('shot')).toBe(clips);
+  expect(clips).toEqual([{buffer,offset:.1,duration:.2,gain:.7}]);
+  const owned=new CueCatalogue(set,read,preload.decodeBytes),loan=await owned.decodeAll();
+  expect(loan.shots.size).toBe(1);owned.dispose();expect(loan.shots.size).toBe(0);
+  a.dispose();expect(first.catalogue.clips('shot')).toBeUndefined();
+  expect(second.catalogue.clips('shot')).toBe(clips);expect(boot.clips('shot')).toBe(clips);
+  b.dispose();expect(boot.clips('shot')).toBeUndefined();
+  expect(second.catalogue.decoded).toEqual([]);expect(second.catalogue.available).toBe(false);
+  first.prewarm(['shot']);second.prewarm(['shot']);expect(decode).toHaveBeenCalledTimes(2);
+  expect(declaredCatalogue(row,read).clips('shot')).toBeUndefined();
+  let finish:(value:ArrayBuffer)=>void=()=>{throw new Error('Decode fixture not ready');};
+  const delayed=new Promise<ArrayBuffer>(resolve=>{finish=resolve;}),pending=declaredCatalogue(row,()=>delayed),observer=declaredCatalogue(row,read);
+  const lateScope=new Scope('catalogue.late'),lateBank=new DeclaredSoundBank(audio,rows,lateScope);
+  const work=pending.decodeShots();lateScope.dispose();finish(new ArrayBuffer(1));await work;
+  expect(observer.clips('shot')).toBeUndefined();expect(lateBank.catalogue.decoded).toEqual([]);
+ }finally{manifest.mockRestore();bytes.mockRestore();decode.mockRestore();}
 });
