@@ -8,6 +8,20 @@ describe('model contract after client relocation', () => {
       .toEqual([expect.stringContaining('2 × mergeGeometries')]);
   });
 
+  it.each([
+    ['src/shards/driftwood-isle-legacy/world/rockKit.ts', 1],
+    ['src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts', 8],
+    ['src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts', 4],
+  ] as const)('retains only the exact frozen merge ceiling at %s', (file, ceiling) => {
+    const merge = 'mergeGeometries(parts);';
+    expect(checkModels({ [file]: merge.repeat(ceiling) }).violations).toEqual([]);
+    expect(checkModels({ [file]: merge.repeat(ceiling + 1) }).violations)
+      .toEqual([expect.stringContaining(`${ceiling + 1} × mergeGeometries`)]);
+    const primary = file.replace('-legacy/', '/');
+    expect(checkModels({ [primary]: merge }).violations)
+      .toEqual([expect.stringContaining('1 × mergeGeometries')]);
+  });
+
   it('keeps the frozen crag on the model contract', () => {
     expect(checkModels({ 'src/shards/nalati-grasslands-legacy/cragRock.ts': 'registerSolid(piece);' }).violations)
       .toContainEqual(expect.stringContaining('on the model contract — it places models'));

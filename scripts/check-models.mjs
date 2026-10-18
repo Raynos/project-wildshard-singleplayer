@@ -77,6 +77,7 @@ export const ON_CONTRACT = [
  */
 export const DONE = {
   'driftwood-isle': {
+    'src/shards/driftwood-isle-legacy/world/rockKit.ts': { why: 'Frozen rock kit retains the original stone-part weld (rockKit.ts:373); primary uses baked rock scene models (8e830e0be)', counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
@@ -135,6 +136,9 @@ export const DONE = {
     'src/shards/pine-hollow/runtime/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders (SHARD-PLATFORM W2a, moved from world/landmarks.ts, whose entry still covers its frozen legacy copy)", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow-legacy/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow-legacy/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
+    // 2d0e3fcb7 removed the primary gun builds; immutable hashes remain in legacy-shards.json:391-392.
+    'src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts': { why: 'Frozen held rifle: original rigid-group geometry and display merges (LeverRifle.ts:121,557,811,813,822,827,828,840); primary uses held firearm rows', counts: { mergeGeometries: 8 } },
+    'src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts': { why: 'Frozen held crossbow: original display, stock, brass and iron merges (Crossbow.ts:178,356,375,404); primary uses held launcher rows', counts: { mergeGeometries: 4 } },
     'src/shards/pine-hollow-legacy/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
   },
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or

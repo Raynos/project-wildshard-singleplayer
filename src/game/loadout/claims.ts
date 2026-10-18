@@ -7,16 +7,14 @@ import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
-import { defineModel } from '@wildshard/engine/models/model';
-import { live, type RosterEntry } from '@wildshard/engine/models/live';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import type { RosterEntry } from '@wildshard/engine/models/live';
 import { HeldArmsSchema, type HeldArmsRows } from '@wildshard/format/heldArms';
 import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/ui';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from '../plugin/headless';
 import { readItemEquipment } from '../plugin/nativeItems';
-import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
+import { heldArmsGear } from '../models/heldGear';
 import { ToonArms } from '../systems/viewmodel/toonArms';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
@@ -167,10 +165,6 @@ export class HeldClaims {
   }
   /** Define cold cards from admitted rows; loading and dressing remain inside this host. */
   static gear(input: unknown): readonly RosterEntry[] {
-    const rows = v.parse(HeldArmsSchema, input), arms = ToonArms.admit(rows.look);
-    return rows.cards.map(row => live(defineModel<object>({ id: row.id, name: row.name, category: 'gear', pipeline: ['blender','code'], file: row.file, defaults: {},
-      build: context => loadingSpecimen(row.id, row.size, async () => {
-        await arms.prepareExplorer(context, await loadFirstPartyProduct(rows.slug)); return arms.specimen(context.sky, row.kind);
-      }) }), { copies: row.copies }));
+    return heldArmsGear(input);
   }
 }
