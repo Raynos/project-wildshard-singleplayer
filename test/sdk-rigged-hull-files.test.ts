@@ -3,13 +3,29 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { afterEach, expect, it, vi } from 'vitest';
-import { riggedHullMap, riggedHulls, type RiggedHullFamilyRow } from '@wildshard/sdk/looks/riggedHulls';
+import { riggedHullMap, riggedHulls } from '@wildshard/sdk/looks/riggedHulls';
+import { parseRiggedHullBook, type RiggedHullFamilyRow } from '@wildshard/format/riggedHulls';
+import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
 import { WILDLIFE_DRAW } from '../src/shards/pine-hollow/generators/wildlifeDraw';
 import { PINE_HULLS } from '../src/shards/pine-hollow/generators/creatureHulls';
-import { pineCoatUrl, pineRigFiles } from '../src/shards/pine-hollow/runtime/species/rigs';
+import { PINE_HULL_BOOK, pineHullResources } from '../src/shards/pine-hollow/generators/riggedHulls';
+import { NALATI_HULL_BOOK } from '../src/shards/nalati-grasslands/generators/riggedHulls';
 
 afterEach(() => { vi.restoreAllMocks(); });
+
+it('admits two complete books and rejects executable or missing resource rows before loading', () => {
+  expect(parseRiggedHullBook(PINE_HULL_BOOK)).toEqual(PINE_HULL_BOOK);
+  expect(parsePlatformDataSection('look/rigged-hulls', PINE_HULL_BOOK)).toEqual(PINE_HULL_BOOK);
+  expect(parsePlatformDataSection('look/rigged-hulls', NALATI_HULL_BOOK)).toEqual(NALATI_HULL_BOOK);
+  expect(parseRiggedHullBook(NALATI_HULL_BOOK)).toEqual(NALATI_HULL_BOOK);
+  expect(() => parseRiggedHullBook({ ...PINE_HULL_BOOK, load: () => undefined })).toThrow('plain data');
+  const bad = structuredClone(PINE_HULL_BOOK);
+  expect(() => parseRiggedHullBook({ ...bad, tiers: { ...bad.tiers, phone: { ...bad.tiers.phone, files: {} } } })).toThrow('Missing hull resource');
+  expect(() => parsePlatformDataSection('look/rigged-hulls', { ...bad, tiers: { ...bad.tiers, phone: { ...bad.tiers.phone, files: {} } } })).toThrow('Missing hull resource');
+  expect(NALATI_HULL_BOOK.tiers.phone.vertexColours).toBe(true);
+  expect(NALATI_HULL_BOOK.tiers.desktop.doubleSided).toEqual(['eagle']);
+});
 
 const compressed = (colorSpace: string): THREE.CompressedTexture => {
   const t = new THREE.CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4, THREE.RGBA_ASTC_4x4_Format);
@@ -31,44 +47,62 @@ it('keeps a separate normal map in its file\'s colour space, as GLTFLoader left 
   }
 });
 
-it('reads a hull in `files` from its rig URL, never the `rig` callback, and keeps it procedural when a file fails', async () => {
+it('reads the declared rig URL and refuses a failed resource without a procedural fallback', async () => {
   const row: RiggedHullFamilyRow = { label: 'test', rigs: ['deer-hind'], hulls: { 'deer:hind': 'deer-hind' } };
   const asked: string[] = [];
   vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation((url: string) => { asked.push(url); return Promise.reject(new Error('no file in Node')); });
-  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-  const rig = vi.fn((hull: string) => `/old/${hull}.rigged.glb`);
   const family = riggedHulls(row, {
-    rig, files: { 'deer-hind': { rig: '/blob/rig-hash', base: '/blob/base-hash', normal: '/blob/normal-hash' } },
-    coat: () => 'key', coatImage: () => undefined,
+    files: { 'deer-hind': { rig: '/blob/rig-hash', base: '/blob/base-hash', normal: '/blob/normal-hash' } }, coats: {},
   });
-  await family.preload();
+  await expect(family.preload()).rejects.toThrow('no file in Node');
   expect(asked).toEqual(['/blob/rig-hash']);
-  expect(rig).not.toHaveBeenCalled();
-  expect(warn).toHaveBeenCalledWith('[test] creature rig deer-hind failed', expect.any(Error));
-  expect(family.skin('deer', 'hind', [])).toBeNull();
+  expect(() => family.skin('deer', 'hind', [])).toThrow('not prepared');
+  expect(family.skin('deer', 'unmapped', [])).toBeNull();
+});
+
+it('preserves baked vertex AO, rest joints and sheet-sidedness on the shared loader', async () => {
+  const file = await new GLTFLoader().parseAsync(JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [] }], nodes: [] }), '');
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+  geometry.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1], 2));
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(12), 4));
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 4));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute([1, 0.5, 0.25, 0.5, 1, 1, 1, 1, 0.5, 0.25, 1, 0], 4));
+  geometry.setIndex([0, 1, 2]);
+  const bone = new THREE.Bone(); bone.name = 'body'; bone.position.y = 2;
+  const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshStandardMaterial());
+  mesh.add(bone); mesh.bind(new THREE.Skeleton([bone])); file.scene.add(mesh);
+  vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(file);
+  const family = riggedHulls({ label: 'fixture', rigs: ['wing'], hulls: { 'bird:adult': 'wing' } },
+    { files: { wing: '/wing.glb' }, coats: {}, vertexColours: true, doubleSided: ['wing'] });
+  await family.preload();
+  const hull = family.skin('bird', 'adult', [{ name: 'body', parent: null, pos: [0, 0, 0] }]);
+  expect(hull?.doubleSided).toBe(true);
+  expect(hull?.bones[0]?.pos).toEqual([0, 2, 0]);
+  expect(hull?.geometry.getAttribute('color').array).toEqual(new Float32Array([0.7, 0.35, 0.175, 1, 1, 1, 0.2, 0.1, 0.4]));
+  expect(() => family.skin('bird', 'adult', [])).toThrow('does not match');
 });
 
 it('names Pine\'s rigs and maps as the producer\'s blobs (generators/rigBlobs.mjs), per tier', () => {
-  const product = { url: (name: string): string => `/shardfiles/pine-hollow/${name}` };
   for (const tier of ['phone', 'desktop'] as const) {
-    const files = pineRigFiles(product, PINE_HULLS.rigs, tier), dot = tier === 'phone' ? '.phone' : '';
+    const { files } = pineHullResources(tier), dot = tier === 'phone' ? '.phone' : '';
     expect(Object.keys(files)).toEqual([...PINE_HULLS.rigs]);
     for (const hull of PINE_HULLS.rigs) {
-      expect(files[hull]).toEqual({ rig: `/shardfiles/pine-hollow/models/creatures/${hull}${dot}.rigged.glb`,
-        base: `/shardfiles/pine-hollow/models/creatures/${hull}${dot}.base.ktx2`, normal: `/shardfiles/pine-hollow/models/creatures/${hull}${dot}.normal.ktx2` });
+      expect(files[hull]).toEqual({ rig: `models/creatures/${hull}${dot}.rigged.glb`,
+        base: `models/creatures/${hull}${dot}.base.ktx2`, normal: `models/creatures/${hull}${dot}.normal.ktx2` });
     }
   }
 });
 
 it('keeps every baked coat\'s cache key on the rig\'s original public path', () => {
   for (const tier of ['phone', 'desktop'] as const) {
-    const keys = new Set(Object.entries(PINE_HULLS.hulls).map(([kv, hull]) => { const [kind = '', variant = ''] = kv.split(':'); return pineCoatUrl(hull, kind, variant, tier); }));
+    const keys = new Set(Object.values(pineHullResources(tier).coats).map(row => row.key));
     const baked = Object.keys(coatPages.tiers[tier]);
     expect(baked.length).toBeGreaterThan(0);
     for (const key of baked) expect(keys.has(key)).toBe(true);
   }
-  expect(pineCoatUrl('bear-black', 'bear', 'black', 'phone')).toBe('procedural:/assets/pine-hollow/creatures/bear-black.phone.bear.black.coat.png');
-  expect(pineCoatUrl('boar', 'boar', 'thrall', 'desktop')).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
+  expect(pineHullResources('desktop').coats['boar:boar:thrall']?.key).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
 });
 
 it('names Pine\'s bird blobs as the producer does (generators/birdBlobs.mjs), per tier', () => {

@@ -1,24 +1,27 @@
 import * as THREE from 'three';
-import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { loadRigFile, rigRoot } from '@wildshard/engine/anim/rig';
+import { fetchImage } from '@wildshard/engine/boot/bytes';
+import { isJsonData } from '@wildshard/format/json';
+import type { RiggedHullFamilyRow, RiggedHullFiles, RiggedHullFlap, RiggedHullUrls } from '@wildshard/format/riggedHulls';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { ktx2File, ktx2Texture, prepareCompressedTexture } from '@wildshard/engine/core/ktx2';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { CreatureHull } from '@wildshard/engine/entities/species/look';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
+import { TIER } from '@wildshard/engine/core/tier';
 
 /**
  * Rigged creature hulls (SHARD-PLATFORM W2 C2, one generic family): generated hulls pre-skinned offline to the procedural
  * species' own skeletons, so the species' bones, gaits and AI drive them. A shard declares its family as a row
  * (`RiggedHullFamilyRow`, pure data) and says where its files are; nothing here knows a shard.
  *
- *   const family = riggedHulls(row, { rig: (hull) => url, coat: (hull, kind, variant) => key, coatImage: (key) => url });
- *   const built = riggedHulls(row, { files: { [hull]: { rig, base, normal } }, coat, coatImage });  // a product's blobs
+ *   const family = riggedHulls(row, { files: { [hull]: { rig, base, normal } }, coats: {} });
  *   await family.preload();                                  // every rig, before a herd spawns (a look's `preload`)
  *   const h = family.skin(kind, variant, bones);              // null → keep the procedural mesh (a look's `skin`)
  *   h.geometry (position, normal, uv, color, skinIndex, skinWeight[, the extras' attributes]; one group)  h.map  h.normalMap
  *
  * Each rig (`<hull>[.phone].rigged.glb`) is a glTF skin whose joints are the species' bones by name and order, with the
- * hull's PBR base colour + normal map, or (`files`, a built product's named blobs) an image-free rig beside its separate
+ * hull's PBR base colour + normal map, or an image-free rig beside its separate
  * KTX2 base colour and normal maps, sampled exactly as the glTF maps were (`riggedHullMap`). A rig is only used when its joint names match the variant's bones (in order); the
  * model then takes the rig's joint positions. Every variant of a hull wears it, in its authored baked coat (a KTX2 key,
  * else its lossless image; a variant with no baked coat wears the hull's own atlas). A hull's generator flap (the row's
@@ -26,79 +29,50 @@ import type { BoneDef } from '@wildshard/engine/entities/species/registry';
  * to its hull in the same single draw (`parts`, merged once per variant and flagged `overgrown`), e.g. glowing eyes.
  */
 
-/** A generator flap: the back plane z(y) = z0 + (y - y0) · slope; every vertex above `yMin` behind it is pressed onto it,
- *  keeping `keep` of its depth; `bulge` (m) rounds the pressed patch out into a dome (0 at its rim). */
-export interface RiggedHullFlap {
-  readonly yMin: number; readonly y0: number; readonly z0: number; readonly slope: number; readonly keep: number; readonly bulge: number;
-}
-
-/** A coat's fur sheen and backlit rim (sRGB 0..1) worn over its variant's own. */
-export interface RiggedHullFur {
-  readonly rim: readonly [number, number, number];
-  readonly sheenColor: readonly [number, number, number];
-}
-
-/** A rigged-hull family as data. */
-export interface RiggedHullFamilyRow {
-  /** the log prefix (`[<label>] creature rig …`) */
-  readonly label: string;
-  /** every hull the family preloads, in order */
-  readonly rigs: readonly string[];
-  /** `kind:variant` → its hull; a variant missing here stays procedural */
-  readonly hulls: Readonly<Record<string, string>>;
-  /** per hull, the generator flap pressed onto its body */
-  readonly flaps?: Readonly<Record<string, RiggedHullFlap>>;
-  /** per hull, per variant id, the fur's sheen and rim */
-  readonly fur?: Readonly<Record<string, Readonly<Record<string, RiggedHullFur>>>>;
-}
-
-/**
- * A hull's files as data (a built product's named-blob URLs for this tier): its image-free rig and its separate KTX2
- * maps, which the rig's material no longer carries. Both maps are sampled as the glTF maps they replace (`riggedHullMap`).
- */
-export interface RiggedHullFiles {
-  /** the image-free rigged GLB */
-  readonly rig: string;
-  /** the base colour map (KTX2, sampled sRGB) */
-  readonly base: string;
-  /** the tangent-space normal map (KTX2, in its file's own colour space) */
-  readonly normal: string;
-}
-
-/** Where a family's files are, and a variant's optional extra geometry. */
-export interface RiggedHullUrls {
-  /** a hull's rig for this tier, its maps in the rig's material (a hull in `files` reads that instead) */
-  rig?: (hull: string) => string;
-  /** per hull, its rig and separate maps (data: URLs only); a hull listed here ignores `rig` and the GLB's material maps */
-  files?: Readonly<Record<string, RiggedHullFiles>>;
-  /** a baked coat's KTX2 table key */
-  coat: (hull: string, kind: string, variant: string) => string;
-  /** a baked coat's lossless image (undefined: no baked coat, the hull's own atlas) */
-  coatImage: (key: string) => string | undefined;
-  /**
-   * A variant's baked rigid parts (null: none), appended to its hull once: position, normal, uv, color and per vertex
-   * `_bone` (the one bone it rides, an index into the variant's bones) and `_glow` (0..1), as a static GLB node loads them.
-   * The merged hull's `aOvergrown` = (1: the part's own colour instead of the atlas, glow) on the parts, 0 on the hull.
-   */
-  parts?: (kind: string, variant: string) => THREE.BufferGeometry | null;
+const productFamilies = new Map<string, RiggedHulls>();
+/** Client-only row admission shared by creature factories and cold specimens.
+ * The API takes a product id and reads its typed look section; it installs no per-shard callbacks. */
+export function productRiggedHulls(slug: string): RiggedHulls {
+  const key = slug, cached = productFamilies.get(key);
+  if (cached !== undefined) return cached;
+  let family: RiggedHulls | undefined, loading: Promise<RiggedHulls> | undefined;
+  const prepare = (): Promise<RiggedHulls> => {
+    loading ??= (async () => {
+      const { loadFirstPartyProduct } = await import('@wildshard/game/shardfile/runtimeProduct');
+      const product = await loadFirstPartyProduct(slug), book = product.section('look/rigged-hulls');
+      const source = book.tiers[TIER], resources = book.productFiles ? { ...source,
+        files: Object.fromEntries(Object.entries(source.files).map(([name, entry]) => [name, typeof entry === 'string' ? product.url(entry)
+          : { rig: product.url(entry.rig), base: product.url(entry.base), normal: product.url(entry.normal) }])),
+        ...(source.parts === undefined ? {} : { parts: { ...source.parts, file: product.url(source.parts.file) } }) } : source;
+      family = riggedHulls(book.family, resources); return family;
+    })();
+    return loading;
+  };
+  const ready = (): RiggedHulls => { if (family === undefined) throw new Error('Rigged hull book is not prepared'); return family; };
+  const result: RiggedHulls = { load: async name => (await prepare()).load(name), preload: async () => (await prepare()).preload(),
+    hullOf: (kind, variant) => ready().hullOf(kind, variant), skin: (kind, variant, bones) => ready().skin(kind, variant, bones) };
+  productFamilies.set(key, result); return result;
 }
 
 /** A shard's live rigged-hull family. */
 export interface RiggedHulls {
+  /** One declared rest rig, including coats, borrowed by a specialised view. */
+  load: (name: string) => Promise<RiggedHullAsset>;
   /** the hull for (kind, variant), or null */
   hullOf: (kind: string, variant: string) => string | null;
-  /** every rig loaded (failures are logged: those species stay procedural); every baked coat adopted */
+  /** Every declared rig and coat loaded; missing assets refuse. */
   preload: () => Promise<void>;
-  /** the rigged hull for (kind, variant) bound to `bones`, or null (no hull, not loaded, or baked against other bones) */
+  /** The declared hull bound to `bones`; null only for a variant with no hull. */
   skin: (kind: string, variant: string, bones: readonly BoneDef[]) => CreatureHull | null;
 }
 
-interface Rig {
+export interface RiggedHullAsset {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   joints: { name: string; pos: THREE.Vector3 }[];
 }
 
 const isSkinned = (o: THREE.Object3D): o is THREE.SkinnedMesh => (o as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
+const isMesh = (object: THREE.Object3D): object is THREE.Mesh => object instanceof THREE.Mesh;
 
 function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute {
   const n = a.count, k = a.itemSize, out = new Float32Array(n * k);
@@ -135,26 +109,39 @@ async function loadHullMaps(hull: string, files: RiggedHullFiles): Promise<{ map
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */
-function jointsMatch(rig: Rig, bones: readonly BoneDef[]): boolean {
+function jointsMatch(rig: RiggedHullAsset, bones: readonly BoneDef[]): boolean {
   return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
 }
 
 /** A family of rigged hulls from its row. */
 export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): RiggedHulls {
-  const adopting = new WeakMap<Rig, Promise<void>>();
-  const loading = new Map<string, Promise<Rig>>();
-  const ready = new Map<string, Rig>();
+  if (!isJsonData(row) || !isJsonData(urls)) throw new Error('Rigged hull resources require plain data');
+  const adopting = new WeakMap<RiggedHullAsset, Promise<void>>();
+  const loading = new Map<string, Promise<RiggedHullAsset>>();
+  const ready = new Map<string, RiggedHullAsset>();
   const extraGeo = new Map<string, THREE.BufferGeometry | null>();
   const coats = new Map<string, THREE.Texture>();
+  const parts = new Map<string, THREE.BufferGeometry>();
+  let partsLoading: Promise<void> | undefined;
+  const prepareParts = (): Promise<void> => {
+    const source = urls.parts;
+    if (source === undefined) return Promise.resolve();
+    partsLoading ??= loadRigFile(source.file).then(gltf => {
+      rigRoot(gltf).traverse(object => { if (isMesh(object)) parts.set(object.name, object.geometry); });
+      for (const name of Object.values(source.nodes)) if (!parts.has(name)) throw new Error(`Missing hull part: ${name}`);
+      return undefined;
+    });
+    return partsLoading;
+  };
 
   const hullOf = (kind: string, variant: string): string | null => row.hulls[`${kind}:${variant}`] ?? null;
 
   /** load one rig (cached): its geometry in the skeleton's rest space, its textures, the joints' rest positions */
-  const loadRig = (name: string): Promise<Rig> => {
+  const loadRig = (name: string): Promise<RiggedHullAsset> => {
     let p = loading.get(name);
     if (!p) {
-      const files = urls.files?.[name];
-      const url = files?.rig ?? urls.rig?.(name);
+      const entry = urls.files[name], files = typeof entry === 'string' ? undefined : entry;
+      const url = typeof entry === 'string' ? entry : files?.rig;
       if (url === undefined) return Promise.reject(new Error(`creature rig ${name}: no rig file`));
       const maps = files === undefined ? Promise.resolve(null) : loadHullMaps(name, files);
       p = Promise.allSettled([loadRigFile(url), maps]).then(([file, separateMaps]) => {
@@ -186,7 +173,13 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
         }
         const n = geometry.getAttribute('position').count;
         // the fur material reads vertex colours: white (the atlas carries the coat)
-        geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+        const rgb = new Float32Array(n * 3).fill(1);
+        if (urls.vertexColours === true && src.hasAttribute('color')) {
+          const color = src.getAttribute('color');
+          for (let i = 0; i < n; i++) { const ao = color.itemSize === 4 ? 0.4 + 0.6 * color.getW(i) : 1;
+            rgb[i * 3] = color.getX(i) * ao; rgb[i * 3 + 1] = color.getY(i) * ao; rgb[i * 3 + 2] = color.getZ(i) * ao; }
+        }
+        geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
         geometry.clearGroups(); geometry.addGroup(0, index ? index.count : n, 0);
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
@@ -197,7 +190,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
         if (map && separate === null) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
         if (normalMap && separate === null) normalMap.anisotropy = 4;
         const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
-        const out: Rig = { geometry, map, normalMap, joints };
+        const out: RiggedHullAsset = { geometry, map, normalMap, joints };
         retainCachedResources(out);
         cacheUntilDisposed(out, () => {
           if (ready.get(name) === out) { ready.delete(name); loading.delete(name); }
@@ -212,18 +205,19 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
   };
 
   /** Every repaint is an authored, hash-checked image; the compressed path retains its original KTX2 identity. */
-  const adoptBakedCoats = async (name: string, rig: Rig): Promise<void> => {
+  const adoptBakedCoats = async (name: string, rig: RiggedHullAsset): Promise<void> => {
     const map = rig.map;
     if (map === null) return;
     await Promise.all(Object.entries(row.hulls).filter(([, hull]) => hull === name).map(async ([kv]) => {
       const [kind = '', variant = ''] = kv.split(':');
-      const key = urls.coat(name, kind, variant);
-      const image = urls.coatImage(key);
-      if (image === undefined) return; // this hull's unchanged own atlas needs no repaint
-      const tex = await ktx2Texture(key) ?? await new THREE.TextureLoader().loadAsync(image);
+      const coat = urls.coats[`${name}:${kind}:${variant}`];
+      if (coat === undefined) return;
+      const tex = await ktx2Texture(coat.key) ?? (urls.coatDecode === 'bitmap'
+        ? new THREE.Texture(await fetchImage(coat.image, Infinity, false)) : await new THREE.TextureLoader().loadAsync(coat.image));
       tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.name = `${map.name}:${name}:${kv}`;
+      if (urls.coatDecode === 'bitmap') tex.needsUpdate = true;
       const identity = `${name}:${kv}`;
       coats.set(identity, retainCachedResources(tex));
       cacheUntilDisposed(tex, () => { if (coats.get(identity) === tex) coats.delete(identity); adopting.delete(rig); });
@@ -231,38 +225,39 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
   };
 
   /** each loaded rig's coats are adopted once: a later visit's preload reuses them instead of retaining a fresh set */
-  const adoptOnce = (name: string, rig: Rig): Promise<void> => {
+  const adoptOnce = (name: string, rig: RiggedHullAsset): Promise<void> => {
     let p = adopting.get(rig);
     if (p === undefined) { p = adoptBakedCoats(name, rig); adopting.set(rig, p); }
     return p;
   };
 
-  const preload = async (): Promise<void> => {
-    await Promise.all(row.rigs.map((n) => loadRig(n).then((rig) => adoptOnce(n, rig))
-      .catch((e: unknown) => { console.warn(`[${row.label}] creature rig ${n} failed`, e); })));
+  const load = async (name: string): Promise<RiggedHullAsset> => {
+    const rig = await loadRig(name); await adoptOnce(name, rig); return rig;
   };
+  const preload = async (): Promise<void> => { await prepareParts(); await Promise.all(row.rigs.map(load)); };
 
   const skin = (kind: string, variant: string, bones: readonly BoneDef[]): CreatureHull | null => {
     const name = hullOf(kind, variant);
     if (name === null) return null;
     const rig = ready.get(name);
-    if (!rig) return null;
-    if (!jointsMatch(rig, bones)) { console.warn(`[${row.label}] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-bake its rig`); return null; }
+    if (!rig) throw new Error(`Creature rig ${name} is not prepared`);
+    if (!jointsMatch(rig, bones)) throw new Error(`Creature rig ${name} does not match ${kind}:${variant} bones`);
     const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
     const key = `${name}:${kind}:${variant}`;
     const map = coats.get(key) ?? rig.map;
     let extra = extraGeo.get(key);
     if (extra === undefined) {
-      const parts = urls.parts?.(kind, variant) ?? null;
-      extra = parts === null ? null : withParts(rig.geometry, parts);
+      const node = urls.parts?.nodes[`${kind}:${variant}`], geometry = node === undefined ? undefined : parts.get(node);
+      if (node !== undefined && geometry === undefined) throw new Error(`Missing hull part: ${node}`);
+      extra = geometry === undefined ? null : withParts(rig.geometry, geometry);
       extraGeo.set(key, extra);
     }
     const f = row.fur?.[name]?.[variant];
     const fur = f === undefined ? undefined : { rim: [f.rim[0], f.rim[1], f.rim[2]] satisfies RGB, sheenColor: [f.sheenColor[0], f.sheenColor[1], f.sheenColor[2]] satisfies RGB };
-    return { geometry: extra ?? rig.geometry, map, normalMap: rig.normalMap, bones: out, overgrown: extra !== null, ...(fur !== undefined ? { fur } : {}) };
+    return { geometry: extra ?? rig.geometry, map, normalMap: rig.normalMap, bones: out, overgrown: extra !== null, ...(fur !== undefined ? { fur } : {}), ...(urls.doubleSided === undefined ? {} : { doubleSided: urls.doubleSided.includes(name) }) };
   };
 
-  return { hullOf, preload, skin };
+  return { hullOf, load, preload, skin };
 }
 
 /** the hull geometry + baked rigid parts (`RiggedHullUrls.parts`), `aOvergrown` = (own colour, glow) per vertex */

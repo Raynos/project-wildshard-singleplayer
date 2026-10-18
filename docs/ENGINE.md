@@ -2427,15 +2427,24 @@ fault)` uploads the dune-shadow, trail and grain maps with the grain tile's mean
 binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 
 **Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/riggedHulls` (`src/sdk/looks/riggedHulls.ts`)
-`riggedHulls(row, urls)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
+`riggedHulls(row, resources)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
 skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
-hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its `RiggedHullUrls` (a
-hull's rig file per tier, a baked coat's KTX2 key and lossless image, and an optional per-variant `parts`: baked rigid
-geometry with per-vertex `_bone` and `_glow`, as a static GLB node loads it, appended once to the hull in the same draw
-and flagged `overgrown`). `preload()` loads every rig and adopts its baked coats once; `skin(kind, variant, bones)` is a
-species look's `skin` (null keeps the procedural mesh: no hull, not loaded, or baked against other bones). `pressFlap(pos, nrm, index, flap)` collapses a flap in place.
-Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
-baked by `generators/bake-pine-thrall-extras.mjs`).
+hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its data-only `RiggedHullUrls`:
+`files` maps each hull to an embedded-map rig URL or a `RiggedHullFiles` row (a built product's named blobs: an
+image-free rig and its separate KTX2 `base` and `normal` maps, loaded with `ktx2File` and sampled by `riggedHullMap` as
+the glTF maps were: flipY false, repeat wrap, anisotropy 4, the base sRGB, the normal in its file's colour space).
+`coats` indexes a baked coat's KTX2 key and lossless image by `hull:kind:variant`. Optional `parts` names a GLB file and
+`kind:variant` → node rows for rigid geometry with per-vertex `_bone` and `_glow`, appended once in the same draw and
+flagged `overgrown`. `vertexColours` preserves the authored RGB and folds vertex alpha AO into it;
+`doubleSided` lists sheet hulls; `coatDecode: 'bitmap'` retains bitmap image decoding. No loader or geometry callback is accepted.
+`preload()` loads every declared rig, parts book and coat; `load(name)` borrows one prepared rest rig for a specialised view.
+`skin(kind, variant, bones)` returns null only for an unmapped variant; missing resources or incompatible bones fail loudly.
+`productRiggedHulls(slug)` shares the typed `look/rigged-hulls` section across factories and cold specimens.
+`@wildshard/format/riggedHulls` defines its data types, schema and parser; product admission rejects missing resource rows.
+The client selects its current tier and resolves logical file names when `productFiles` is true, retaining original coat cache keys.
+Pine and Nalati emit this section from their `generators/riggedHulls.ts`; Pine retains its separate PBR maps,
+bear flaps, fur colours and thrall extras, while Nalati retains its embedded atlases, vertex AO and double-sided eagle wings.
+`pressFlap(pos, nrm, index, flap)` collapses a generator flap in place.
 
 **Weather reactions + keyed sky (G474/G477).** `look/keyed-sky` is an admitted
 platform section defined by `@wildshard/format/keyedSky`. The client-only

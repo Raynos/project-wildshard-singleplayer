@@ -40,7 +40,7 @@ import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
-import { pineBackdrop } from '../look/skyBackdrop';
+import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
 import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, type WeatherProgram } from '@wildshard/format/weatherProgram';
@@ -87,7 +87,7 @@ export async function installWeather(ctx: ShardContext, host: PineWeatherHost): 
 }
 
 function installPineWeather(h: PineWeatherHost, ctx: ShardContext, rows: WeatherProgram, shelterLook: ReturnType<typeof populationShelter>['look'], entered?: ShardContext): PineWeatherRig | null {
-  const pine = pineBackdrop(h.sky);
+  const pine = keyedSkyOf(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
   const dev={paused:false};

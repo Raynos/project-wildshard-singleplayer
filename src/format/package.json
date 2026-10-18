@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./riggedHulls": "./riggedHulls.ts",
     "./chapterDirector": "./chapterDirector.ts",
     "./figures": "./figures.ts",
     "./coverAppearance": "./coverAppearance.ts",

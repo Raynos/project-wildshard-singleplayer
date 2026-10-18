@@ -1,3 +1,4 @@
+import { RiggedHullBookSchema, type RiggedHullBook } from './riggedHulls';
 import { ToonLookSchema, type ToonLookRow } from './toonLook';
 import { KEYED_SKY, type KeyedSkyStyle } from './keyedSky';
 import { SpawnScriptsSchema, type SpawnScriptRows } from './spawnScripts';
@@ -21,6 +22,7 @@ import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRun
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
   'look/keyed-sky': KeyedSkyStyle;
   'client/plan': ClientPlan;
@@ -45,6 +47,7 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS = {
+  'look/rigged-hulls': { schema: RiggedHullBookSchema },
   'look/toon': { schema: ToonLookSchema },
   'look/keyed-sky': { schema: KEYED_SKY },
   'client/plan': { schema: ClientPlanSchema },
@@ -71,6 +74,7 @@ export const PLATFORM_DATA_SECTIONS = {
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
+export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;
 export function parsePlatformDataSection(name: 'look/toon', value: unknown): ToonLookRow;
 export function parsePlatformDataSection(name: 'held/finishes', value: unknown): HeldFinishesRows;
 export function parsePlatformDataSection(name: 'held/gear', value: unknown): HeldGearRows;

@@ -2,7 +2,7 @@ import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
 import { installEnteredKingBindings } from './kingLifetime';
 import { kingFight, type KingFight } from '../combat/kingFight';
-import { pineBackdrop } from '../look/skyBackdrop';
+import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
@@ -252,7 +252,7 @@ export function antlerKingFight(ctx: PineCtx, seed:number, program:SpeciesProgra
     }
     sky.hemi.intensity = dimHemi.apply(sky.hemi.intensity, 1 - 0.8 * dark);
     scene.environmentIntensity = dimEnv.apply(scene.environmentIntensity, 1 - 0.75 * dark);
-    const dome = pineBackdrop(sky)?.dome.material;
+    const dome = keyedSkyOf(sky)?.dome.material;
     if (dome instanceof THREE.ShaderMaterial) {
       const ga = dome.uniforms['uGainA'], gb = dome.uniforms['uGainB'], dk = 1 - 0.85 * dark;
       if (ga && typeof ga.value === 'number') ga.value = dimDome[0]?.apply(ga.value, dk) ?? ga.value;

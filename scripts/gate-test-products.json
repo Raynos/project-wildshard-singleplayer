@@ -1,4 +1,5 @@
 {
+  "test/sdk-rigged-hull-files.test.ts": [],
   "test/frame-floor-output-entry.test.ts": [],
   "test/texture-scope-lifetime.test.ts": [],
   "test/chapter-director-product.test.ts": [

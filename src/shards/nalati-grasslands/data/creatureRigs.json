@@ -1,0 +1,11 @@
+{
+  "rigs": ["horse-wild", "horse-saddled", "wolf", "snow-leopard", "sheep", "eagle", "collie", "ghost-horse", "golden-king"],
+  "hulls": {
+    "horse:bay": "horse-wild", "horse:chestnut": "horse-wild", "horse:dun": "horse-wild", "horse:grey": "horse-wild",
+    "horse:black": "horse-wild", "horse:foal-bay": "horse-wild", "horse:foal-chestnut": "horse-wild", "horse:stallion": "horse-wild",
+    "argymaq:stallion": "horse-wild", "horse:camp-bay": "horse-saddled", "horse:camp-black": "horse-saddled", "horse:tulpar": "horse-saddled",
+    "wolf:grey": "wolf", "wolf:tawny": "wolf", "wolf:dark": "wolf", "wolf:scout": "wolf", "wolf:alpha": "wolf",
+    "kokbori:kokbori": "wolf", "leopard:aqbars": "snow-leopard", "eagle:qyran": "eagle", "sheepdog:collie": "collie",
+    "ghost-rider:rider": "ghost-horse", "ghost-rider:captain": "ghost-horse", "golden-king:king": "golden-king"
+  }
+}

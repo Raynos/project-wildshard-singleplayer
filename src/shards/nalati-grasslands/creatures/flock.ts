@@ -18,7 +18,7 @@ import * as THREE from 'three';
 
 
 import type { PackPrey } from '../runtime/groupRegistry';
-import { loadCreatureRig, type RigAsset } from '../species/hulls';
+import { productRiggedHulls, type RiggedHullAsset } from '@wildshard/sdk/looks/riggedHulls';
 import { modelsOn } from '../world/modelView';
 
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
@@ -176,12 +176,12 @@ export class Flock extends GroupBrain<SheepPrey> {
     this.writeInstances();
     // Debug ▸ Creatures = Models (the default): the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
     // it loads — the procedural flock stands in until then
-    if (modelsOn('creatures')) loadCreatureRig('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((e: unknown) => { console.warn('[nalati] sheep rig failed', e); });
+    if (modelsOn('creatures')) productRiggedHulls('nalati-grasslands').load('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((cause: unknown) => { throw new Error('Nalati sheep rig failed', { cause }); });
     return this;
   }
 
   /** the flock's geometry from a baked rig: its skin folded into aRig (the two strongest parts), the atlas as the map */
-  private useRig(rig: RigAsset, mat: THREE.MeshLambertMaterial): void {
+  private useRig(rig: RiggedHullAsset, mat: THREE.MeshLambertMaterial): void {
     if (rig.joints.length !== this.body.parts.length || rig.joints.some((j, i) => j.name !== this.body.parts[i])) { console.warn('[nalati] sheep rig: not the flock parts'); return; }
     const src = rig.geometry, si = src.getAttribute('skinIndex'), sw = src.getAttribute('skinWeight'), n = si.count;
     const aRig = new Float32Array(n * 3);

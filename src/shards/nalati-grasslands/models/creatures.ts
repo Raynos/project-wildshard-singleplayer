@@ -25,7 +25,7 @@ import { ARGYMAQ, registerArgymaq } from '../combat/elites';
 import { Flock, type FlockBody } from '../creatures/flock';
 import { readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { loadCreatureRig } from '../species/hulls';
+import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { modelsOn } from '../world/modelView';
 import { buildMarmotGeometry } from '../creatures/marmots';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
@@ -93,11 +93,11 @@ export const sheep: ModelDef<object> = defineModel<object>({
     fit();
     if (modelsOn('creatures')) {
       // the flock swaps in the generated sheep when its rig lands (the same cached load): refit, and show it
-      loadCreatureRig('sheep').then(() => {
+      productRiggedHulls('nalati-grasslands').load('sheep').then(() => {
         fit();
         if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: 'nalati-grasslands/sheep' } }));
         return null;
-      }).catch(() => { /* the flock keeps the code sheep, and says so */ });
+      }).catch((cause: unknown) => { throw new Error('Nalati sheep specimen rig failed', { cause }); });
     }
     return mesh;
   },

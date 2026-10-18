@@ -1,4 +1,5 @@
 import { CHAPTER_DIRECTOR } from './chapterDirector';
+import { PINE_HULL_BOOK } from './riggedHulls';
 import { PAGE_LIFE, LIFE_WASM } from './pageLife';
 import logKit from '../data/logKit.json' with { type: 'json' };
 import { PLACE_SETS } from './placeSets';
@@ -127,7 +128,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['look/keyed-sky', keyedSky], ['client/plan', clientPlan], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script]], ['sim/scripts', KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['look/rigged-hulls', PINE_HULL_BOOK], ['look/keyed-sky', keyedSky], ['client/plan', clientPlan], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS],['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script]], ['sim/scripts', KING_DECISION],['actors/moves',KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

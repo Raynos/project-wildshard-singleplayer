@@ -4,7 +4,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { registerSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
-import { creatureHull, creatureRigs, type CreatureRigs } from './hulls';
+import { productRiggedHulls, type RiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { preloadNalatiBodies } from './bodies';
 import { HORSE_SPECIES } from './horse';
 import { WOLF_SPECIES } from './wolf';
@@ -15,6 +15,8 @@ import { LEOPARD_SPECIES } from './leopard';
 import { EAGLE_SPECIES } from './eagle';
 import { GHOSTRIDER_SPECIES } from './ghostRider';
 import { KOKBORI_SPECIES } from './kokbori';
+
+const creatureRigs = productRiggedHulls('nalati-grasslands');
 
 export const NALATI_DEFINITIONS: readonly SpeciesDef[] = [HORSE_SPECIES, WOLF_SPECIES, SHEEPDOG_SPECIES, BALBAL_SPECIES, GOLDENKING_SPECIES, LEOPARD_SPECIES, EAGLE_SPECIES, GHOSTRIDER_SPECIES, KOKBORI_SPECIES];
 function variantRow(v: VariantDef): SpeciesVariant {
@@ -28,7 +30,7 @@ export function nalatiRow(def: SpeciesDef): SpeciesRow {
     ...(spawnOnly === undefined ? {} : { spawnOnly: spawnOnly.map(variantRow) }) };
 }
 /** `rigs`: the page's creature rigs unless a test passes its own */
-export function nalatiLook(def: SpeciesDef, rigs: CreatureRigs = creatureRigs): SpeciesLook {
+export function nalatiLook(def: SpeciesDef, rigs: RiggedHulls = creatureRigs): SpeciesLook {
   const row = nalatiRow(def);
   const { rigContract, fur, build, pose, gait, postPose, rig, animate, damageMul, eyeGlow, eyeGlowIntensity } = def;
   return { id: `look.nalati.${def.kind}`, species: row.id, kind: def.kind, rigContract, fur, build,
@@ -43,8 +45,8 @@ export function nalatiLook(def: SpeciesDef, rigs: CreatureRigs = creatureRigs): 
     material: painterlyAnimalMaterial,
     // the rigged hulls and the baked bodies (species/bodies.ts): the factory awaits both before the first herd
     preload: () => Promise.all([rigs.preload(), preloadNalatiBodies()]).then(() => undefined),
-    hasSkin: v => creatureHull(def.kind, v.id) !== null,
-    loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await rigs.load(name); },
+    hasSkin: v => rigs.hullOf(def.kind, v.id) !== null,
+    loadSkin: async v => { const name = rigs.hullOf(def.kind, v.id); if (name !== null) await rigs.load(name); },
     skin: (v, bones) => { const hull = rigs.skin(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },
   };
 }

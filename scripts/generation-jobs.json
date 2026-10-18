@@ -611,7 +611,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/shards/pine-hollow/data/skyLook.ts"
+        "src/shards/pine-hollow/data/skyLook.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/skyChannels.generated.json"

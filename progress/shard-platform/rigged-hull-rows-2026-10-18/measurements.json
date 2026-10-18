@@ -1,0 +1,1021 @@
+{
+  "baselineRevision": "be3924670c374573564c7e31821d12fe01d2fa4a",
+  "candidateRevision": "a3439ec76ddc4d81cdb42eec3e66b667b8dace76",
+  "comparisons": [
+    {
+      "name": "pine-midday",
+      "baselineBuild": "be39246-mvdi4j2f",
+      "candidateBuild": "a3439ec-mvdk51pf",
+      "frames": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "width": 804,
+          "height": 1362,
+          "draws": 73,
+          "triangles": 993685,
+          "baseline": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764",
+          "candidate": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "width": 804,
+          "height": 1362,
+          "draws": 63,
+          "triangles": 908269,
+          "baseline": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe",
+          "candidate": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "width": 804,
+          "height": 1362,
+          "draws": 48,
+          "triangles": 844956,
+          "baseline": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9",
+          "candidate": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "width": 804,
+          "height": 1362,
+          "draws": 44,
+          "triangles": 801689,
+          "baseline": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895",
+          "candidate": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "width": 804,
+          "height": 1362,
+          "draws": 39,
+          "triangles": 796026,
+          "baseline": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a",
+          "candidate": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "width": 804,
+          "height": 1362,
+          "draws": 102,
+          "triangles": 1129254,
+          "baseline": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e",
+          "candidate": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4498,
+          "baseline": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae",
+          "candidate": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 2927,
+          "baseline": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe",
+          "candidate": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4000,
+          "baseline": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e",
+          "candidate": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4500,
+          "baseline": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3",
+          "candidate": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "width": 603,
+          "height": 1021,
+          "draws": 170,
+          "triangles": 6432911,
+          "baseline": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709",
+          "candidate": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "width": 603,
+          "height": 1021,
+          "draws": 126,
+          "triangles": 6041308,
+          "baseline": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a",
+          "candidate": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "width": 603,
+          "height": 1021,
+          "draws": 91,
+          "triangles": 5795644,
+          "baseline": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0",
+          "candidate": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "width": 603,
+          "height": 1021,
+          "draws": 84,
+          "triangles": 5754237,
+          "baseline": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4",
+          "candidate": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "width": 603,
+          "height": 1021,
+          "draws": 77,
+          "triangles": 5630076,
+          "baseline": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16",
+          "candidate": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "width": 603,
+          "height": 1021,
+          "draws": 203,
+          "triangles": 7508744,
+          "baseline": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d",
+          "candidate": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 6988,
+          "baseline": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661",
+          "candidate": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 5477,
+          "baseline": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443",
+          "candidate": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 7996,
+          "baseline": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481",
+          "candidate": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 8999,
+          "baseline": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1",
+          "candidate": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1",
+          "ssim": 1
+        }
+      ],
+      "census": {
+        "baseline": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 290115164,
+            "programs": 166,
+            "shaderCount": 268,
+            "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64",
+            "shaderCode": "e7407bf33130bcdf2f80d73dc692ae03d58f0a8dae1255d6ac9c7d22d965cd3f"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 607318452,
+            "programs": 182,
+            "shaderCount": 290,
+            "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c",
+            "shaderCode": "48bb574f9ff29c799d40f238eaa1a0a6dc84aa44c7191499375baec249004526"
+          }
+        },
+        "candidate": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 290115164,
+            "programs": 166,
+            "shaderCount": 268,
+            "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64",
+            "shaderCode": "e7407bf33130bcdf2f80d73dc692ae03d58f0a8dae1255d6ac9c7d22d965cd3f"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 607318452,
+            "programs": 182,
+            "shaderCount": 290,
+            "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c",
+            "shaderCode": "48bb574f9ff29c799d40f238eaa1a0a6dc84aa44c7191499375baec249004526"
+          }
+        }
+      }
+    },
+    {
+      "name": "pine-night",
+      "baselineBuild": "be39246-mvdi4j2f",
+      "candidateBuild": "a3439ec-mvdk51pf",
+      "frames": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "width": 804,
+          "height": 1362,
+          "draws": 76,
+          "triangles": 1001753,
+          "baseline": "7581177f224370251656dd7d0601ebc0d1c250c1d32de0215985d14655ca54ba",
+          "candidate": "7581177f224370251656dd7d0601ebc0d1c250c1d32de0215985d14655ca54ba",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "width": 804,
+          "height": 1362,
+          "draws": 66,
+          "triangles": 916337,
+          "baseline": "da86931f68d341fb6c65bb85ff598e2c2087c4ad0743c032cd5b0684508e43e2",
+          "candidate": "da86931f68d341fb6c65bb85ff598e2c2087c4ad0743c032cd5b0684508e43e2",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "width": 804,
+          "height": 1362,
+          "draws": 51,
+          "triangles": 853024,
+          "baseline": "e672200cfb9a7d0ad1f03566c5454286c087687ea2ea428ec79b95aac6a8376e",
+          "candidate": "e672200cfb9a7d0ad1f03566c5454286c087687ea2ea428ec79b95aac6a8376e",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "width": 804,
+          "height": 1362,
+          "draws": 47,
+          "triangles": 809757,
+          "baseline": "c73819fa41ec8c3f034c1b9a0e37610489a1e0bd8d78c8c62366d6edca2f2699",
+          "candidate": "c73819fa41ec8c3f034c1b9a0e37610489a1e0bd8d78c8c62366d6edca2f2699",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "width": 804,
+          "height": 1362,
+          "draws": 42,
+          "triangles": 804094,
+          "baseline": "8dfc8202bd1d28f46b66a57d83899a24063dd6cd6d70fad1e3417c3de74958cf",
+          "candidate": "8dfc8202bd1d28f46b66a57d83899a24063dd6cd6d70fad1e3417c3de74958cf",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "width": 804,
+          "height": 1362,
+          "draws": 104,
+          "triangles": 1137320,
+          "baseline": "3840276274c28099d8fb9fcda6bc5bd0eca6436b785bab780214983a5563ed78",
+          "candidate": "3840276274c28099d8fb9fcda6bc5bd0eca6436b785bab780214983a5563ed78",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4498,
+          "baseline": "d6cd705834446b35795fb81c3c2de238a7dacdd41c69cdf1f16ea96b08e2b72d",
+          "candidate": "d6cd705834446b35795fb81c3c2de238a7dacdd41c69cdf1f16ea96b08e2b72d",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 2927,
+          "baseline": "6cd22d693545954badbb3d7159ae5015f4115ff1da63b805be1fe197784e4199",
+          "candidate": "6cd22d693545954badbb3d7159ae5015f4115ff1da63b805be1fe197784e4199",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4000,
+          "baseline": "8991bfb0dff77620f8eb10dfd9629cc338125377bbdea048b262f1cb605010a8",
+          "candidate": "8991bfb0dff77620f8eb10dfd9629cc338125377bbdea048b262f1cb605010a8",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "width": 804,
+          "height": 1362,
+          "draws": 1,
+          "triangles": 4500,
+          "baseline": "f2c29cf5fe044aea7549e7a2d30aa1ace1a0838e09b7b7bd56561bf23601ed8b",
+          "candidate": "f2c29cf5fe044aea7549e7a2d30aa1ace1a0838e09b7b7bd56561bf23601ed8b",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "width": 603,
+          "height": 1021,
+          "draws": 156,
+          "triangles": 6355727,
+          "baseline": "8c71d014ba8ced99d8bbc535354991241a79e3157b6405d3f58173e01ad67435",
+          "candidate": "8c71d014ba8ced99d8bbc535354991241a79e3157b6405d3f58173e01ad67435",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "width": 603,
+          "height": 1021,
+          "draws": 129,
+          "triangles": 6009850,
+          "baseline": "64182a79c4c2a073f8f0d437dc10564b82f93f36b5cf76bea26e40f6e0be37f6",
+          "candidate": "64182a79c4c2a073f8f0d437dc10564b82f93f36b5cf76bea26e40f6e0be37f6",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "width": 603,
+          "height": 1021,
+          "draws": 93,
+          "triangles": 5759298,
+          "baseline": "3b708e5e908e81303d687d67c72028b2098e005c02ed00d049ac3ff469f5c7d5",
+          "candidate": "3b708e5e908e81303d687d67c72028b2098e005c02ed00d049ac3ff469f5c7d5",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "width": 603,
+          "height": 1021,
+          "draws": 87,
+          "triangles": 5722779,
+          "baseline": "5c9ee84548502285a9a7927b9b2b3314c6101641d09ad9b8f9a19008ae8afede",
+          "candidate": "5c9ee84548502285a9a7927b9b2b3314c6101641d09ad9b8f9a19008ae8afede",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "width": 603,
+          "height": 1021,
+          "draws": 80,
+          "triangles": 5611156,
+          "baseline": "6eeeaf413508ec7110be1e73fdb171d14bf785ccd7510e447432cb7770172f68",
+          "candidate": "6eeeaf413508ec7110be1e73fdb171d14bf785ccd7510e447432cb7770172f68",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "width": 603,
+          "height": 1021,
+          "draws": 205,
+          "triangles": 7477284,
+          "baseline": "0f2d24aa3fa3ea9f1a3a8b1149cf108074ab0ffd69e87996b5abcbe6cf0019a7",
+          "candidate": "0f2d24aa3fa3ea9f1a3a8b1149cf108074ab0ffd69e87996b5abcbe6cf0019a7",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 6988,
+          "baseline": "5e424eee9d460b452eca6adf7f46dc2dc8962d588fa83af5cc39be5fe48c4f8d",
+          "candidate": "5e424eee9d460b452eca6adf7f46dc2dc8962d588fa83af5cc39be5fe48c4f8d",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 5477,
+          "baseline": "f8619a6b792d3c08843c64576a8d78572c4aeac7534e05159d5046f44fe93f2a",
+          "candidate": "f8619a6b792d3c08843c64576a8d78572c4aeac7534e05159d5046f44fe93f2a",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 7996,
+          "baseline": "c9e569b785394f67ce4826b53aa5a7e3c05c9f28a6d29640b3797204bec16fc3",
+          "candidate": "c9e569b785394f67ce4826b53aa5a7e3c05c9f28a6d29640b3797204bec16fc3",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "width": 603,
+          "height": 1021,
+          "draws": 1,
+          "triangles": 8999,
+          "baseline": "ac7efd5e525674181913f7cc6595192d2781b2f7b99bac186ae56cc542d33d55",
+          "candidate": "ac7efd5e525674181913f7cc6595192d2781b2f7b99bac186ae56cc542d33d55",
+          "ssim": 1
+        }
+      ],
+      "census": {
+        "baseline": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 275329604,
+            "programs": 169,
+            "shaderCount": 271,
+            "shaders": "9c882aff6daf53da923face64352e63c6170667d55f03ac483507725fcc6b73b",
+            "shaderCode": "e9179e9aa574e992e2d4db28e0114f067c0e6f3f70ccc24cfeea8788042822e3"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 607318452,
+            "programs": 185,
+            "shaderCount": 293,
+            "shaders": "36ae2977c48215ac92f4aa0a71feb09c64b529e2ac5e41d67a515d83974b5c6d",
+            "shaderCode": "0dfe217208b91e63321c495952ea74b15ffa6237b9804e4fcadc2845a643d41c"
+          }
+        },
+        "candidate": {
+          "phone": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 275329604,
+            "programs": 169,
+            "shaderCount": 271,
+            "shaders": "9c882aff6daf53da923face64352e63c6170667d55f03ac483507725fcc6b73b",
+            "shaderCode": "e9179e9aa574e992e2d4db28e0114f067c0e6f3f70ccc24cfeea8788042822e3"
+          },
+          "desktop": {
+            "pieces": 50,
+            "colliderCount": 2034,
+            "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+            "gpuBytes": 607318452,
+            "programs": 185,
+            "shaderCount": 293,
+            "shaders": "36ae2977c48215ac92f4aa0a71feb09c64b529e2ac5e41d67a515d83974b5c6d",
+            "shaderCode": "0dfe217208b91e63321c495952ea74b15ffa6237b9804e4fcadc2845a643d41c"
+          }
+        }
+      }
+    },
+    {
+      "name": "nalati",
+      "baselineBuild": "be39246-mvdi4j2f",
+      "candidateBuild": "a3439ec-mvdk51pf",
+      "frames": [
+        {
+          "tier": "phone",
+          "pose": "camp",
+          "width": 804,
+          "height": 1362,
+          "draws": 75,
+          "triangles": 1175918,
+          "baseline": "b39ef86766bf54a6cfa996bd52b31950c77ee162d81e9929d48f5a7c649e6c59",
+          "candidate": "b39ef86766bf54a6cfa996bd52b31950c77ee162d81e9929d48f5a7c649e6c59",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "plateau",
+          "width": 804,
+          "height": 1362,
+          "draws": 58,
+          "triangles": 997985,
+          "baseline": "58fb454e2ac1ac4deef2b162c6da5f04ba5c1bc063d95b6bd8f5c380be730b0f",
+          "candidate": "58fb454e2ac1ac4deef2b162c6da5f04ba5c1bc063d95b6bd8f5c380be730b0f",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "horses",
+          "width": 804,
+          "height": 1362,
+          "draws": 59,
+          "triangles": 974413,
+          "baseline": "1b9b298adbe3a9c029b3aa8e26d18f6ff9d00056bc2e389ca429b5722f3873e4",
+          "candidate": "1b9b298adbe3a9c029b3aa8e26d18f6ff9d00056bc2e389ca429b5722f3873e4",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "gully",
+          "width": 804,
+          "height": 1362,
+          "draws": 76,
+          "triangles": 1115876,
+          "baseline": "04f5307d63361f7079f63b94a3d7b8382ca6fab8a25aff34aa2c14b8adc37833",
+          "candidate": "04f5307d63361f7079f63b94a3d7b8382ca6fab8a25aff34aa2c14b8adc37833",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "rail",
+          "width": 804,
+          "height": 1362,
+          "draws": 66,
+          "triangles": 1034726,
+          "baseline": "63a0d4ed076f9f2c145dc192db4becd871c1d6af7e7c65d139a72eb650dfb9e3",
+          "candidate": "63a0d4ed076f9f2c145dc192db4becd871c1d6af7e7c65d139a72eb650dfb9e3",
+          "ssim": 1
+        },
+        {
+          "tier": "phone",
+          "pose": "kurgan",
+          "width": 804,
+          "height": 1362,
+          "draws": 57,
+          "triangles": 918258,
+          "baseline": "9e7d444783d07d3005ee033a89dc64a2be09d2718c9471517a788c5db62e12fd",
+          "candidate": "9e7d444783d07d3005ee033a89dc64a2be09d2718c9471517a788c5db62e12fd",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "camp",
+          "width": 603,
+          "height": 1021,
+          "draws": 196,
+          "triangles": 3469047,
+          "baseline": "2de88e0bb8b71169550db13330484b0cd47aec32b55a6df9c64dbe6d01d43a23",
+          "candidate": "2de88e0bb8b71169550db13330484b0cd47aec32b55a6df9c64dbe6d01d43a23",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "plateau",
+          "width": 603,
+          "height": 1021,
+          "draws": 100,
+          "triangles": 2794452,
+          "baseline": "b51578376b2577259df504dde61ab75b4fe0c052bccebfe230f1502f7276a9e7",
+          "candidate": "b51578376b2577259df504dde61ab75b4fe0c052bccebfe230f1502f7276a9e7",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "horses",
+          "width": 603,
+          "height": 1021,
+          "draws": 100,
+          "triangles": 2705325,
+          "baseline": "c223d4b31320bc3a8cb4500d730590025bc4f797143218b24795102d0d6e37f4",
+          "candidate": "c223d4b31320bc3a8cb4500d730590025bc4f797143218b24795102d0d6e37f4",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "gully",
+          "width": 603,
+          "height": 1021,
+          "draws": 317,
+          "triangles": 3562565,
+          "baseline": "c83ed0138740bd87939db5e29f9d21a90556abfece2b8fbcd29937b2f97695b1",
+          "candidate": "c83ed0138740bd87939db5e29f9d21a90556abfece2b8fbcd29937b2f97695b1",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "rail",
+          "width": 603,
+          "height": 1021,
+          "draws": 166,
+          "triangles": 3011080,
+          "baseline": "b6fe20c0648aed5989dcd9accb5c9e10cc339df3b8fb8634616a1ac4bdb5dde0",
+          "candidate": "b6fe20c0648aed5989dcd9accb5c9e10cc339df3b8fb8634616a1ac4bdb5dde0",
+          "ssim": 1
+        },
+        {
+          "tier": "desktop",
+          "pose": "kurgan",
+          "width": 603,
+          "height": 1021,
+          "draws": 123,
+          "triangles": 2627372,
+          "baseline": "3bda40ca6bb4e2f8ab1aa358931287a3f43e32e2fb9d1c0a37ce68eed9472f45",
+          "candidate": "3bda40ca6bb4e2f8ab1aa358931287a3f43e32e2fb9d1c0a37ce68eed9472f45",
+          "ssim": 1
+        }
+      ],
+      "census": {
+        "baseline": {
+          "phone": {
+            "pieces": 81,
+            "colliderCount": 2682,
+            "colliders": "ab8288c38557aa0d01740772c14cd3412a68701bd43df2a81acb0672eab1b6d4",
+            "residentBootBytes": 1919156224,
+            "residentFinalBytes": 1747976192,
+            "gpuBytes": 229192952,
+            "programs": 147,
+            "shaderCount": 224,
+            "shaders": "51b3f0cbbfadd2444c3e5d88d5ce4bde672a953c84ba2c59e67fd8a9a5207efc"
+          },
+          "desktop": {
+            "pieces": 82,
+            "colliderCount": 2770,
+            "colliders": "e04c7266bf148ffe6617b9f2756b9cd068bacf892ad8d053e02f31b8e1455814",
+            "residentBootBytes": 2347745280,
+            "residentFinalBytes": 2233253888,
+            "gpuBytes": 553133406,
+            "programs": 163,
+            "shaderCount": 246,
+            "shaders": "2e5b834483b99d6de275a126a72f84dc230cf44496a72ab8163773196201ff98"
+          }
+        },
+        "candidate": {
+          "phone": {
+            "pieces": 81,
+            "colliderCount": 2682,
+            "colliders": "ab8288c38557aa0d01740772c14cd3412a68701bd43df2a81acb0672eab1b6d4",
+            "residentBootBytes": 1837367296,
+            "residentFinalBytes": 1781858304,
+            "gpuBytes": 229192952,
+            "programs": 147,
+            "shaderCount": 224,
+            "shaders": "51b3f0cbbfadd2444c3e5d88d5ce4bde672a953c84ba2c59e67fd8a9a5207efc"
+          },
+          "desktop": {
+            "pieces": 82,
+            "colliderCount": 2770,
+            "colliders": "e04c7266bf148ffe6617b9f2756b9cd068bacf892ad8d053e02f31b8e1455814",
+            "residentBootBytes": 2226536448,
+            "residentFinalBytes": 2169716736,
+            "gpuBytes": 553133406,
+            "programs": 163,
+            "shaderCount": 246,
+            "shaders": "2e5b834483b99d6de275a126a72f84dc230cf44496a72ab8163773196201ff98"
+          }
+        }
+      }
+    }
+  ],
+  "sourceRuler": {
+    "baselineRevision": "c0cfec73801ab960a064b700c651f72292dddfc3",
+    "candidateRevision": "a3439ec76ddc4d81cdb42eec3e66b667b8dace76",
+    "shards": {
+      "_template": {
+        "baseline": {
+          "total": 1000
+        },
+        "candidate": {
+          "total": 1000
+        },
+        "net": 0
+      },
+      "blender-template": {
+        "baseline": {
+          "total": 106
+        },
+        "candidate": {
+          "total": 106
+        },
+        "net": 0
+      },
+      "driftwood-isle": {
+        "baseline": {
+          "total": 3384,
+          "components": {
+            "C1": 1196,
+            "C2": 181,
+            "C3": 0,
+            "C4": 729,
+            "C5": 589,
+            "C6": 148,
+            "C7": 0,
+            "C8": 29,
+            "C9": 512
+          }
+        },
+        "candidate": {
+          "total": 3384,
+          "components": {
+            "C1": 1196,
+            "C2": 181,
+            "C3": 0,
+            "C4": 729,
+            "C5": 589,
+            "C6": 148,
+            "C7": 0,
+            "C8": 29,
+            "C9": 512
+          }
+        },
+        "net": 0
+      },
+      "far-reach": {
+        "baseline": {
+          "total": 518,
+          "components": {
+            "C1": 284,
+            "C2": 70,
+            "C3": 54,
+            "C4": 0,
+            "C5": 8,
+            "C6": 19,
+            "C7": 0,
+            "C8": 0,
+            "C9": 83
+          }
+        },
+        "candidate": {
+          "total": 518,
+          "components": {
+            "C1": 284,
+            "C2": 70,
+            "C3": 54,
+            "C4": 0,
+            "C5": 8,
+            "C6": 19,
+            "C7": 0,
+            "C8": 0,
+            "C9": 83
+          }
+        },
+        "net": 0
+      },
+      "ink-cel-valley": {
+        "baseline": {
+          "total": 1122
+        },
+        "candidate": {
+          "total": 1122
+        },
+        "net": 0
+      },
+      "nalati-grasslands": {
+        "baseline": {
+          "total": 20485
+        },
+        "candidate": {
+          "total": 20333
+        },
+        "net": -152
+      },
+      "nine-dragon-stack": {
+        "baseline": {
+          "total": 11890
+        },
+        "candidate": {
+          "total": 11890
+        },
+        "net": 0
+      },
+      "pastel-plain": {
+        "baseline": {
+          "total": 733
+        },
+        "candidate": {
+          "total": 733
+        },
+        "net": 0
+      },
+      "pine-hollow": {
+        "baseline": {
+          "total": 4065,
+          "components": {
+            "C1": 1073,
+            "C2": 347,
+            "C3": 172,
+            "C4": 695,
+            "C5": 784,
+            "C6": 225,
+            "C7": 7,
+            "C8": 24,
+            "C9": 738
+          }
+        },
+        "candidate": {
+          "total": 4011,
+          "components": {
+            "C1": 1070,
+            "C2": 342,
+            "C3": 172,
+            "C4": 649,
+            "C5": 784,
+            "C6": 225,
+            "C7": 7,
+            "C8": 24,
+            "C9": 738
+          }
+        },
+        "net": -54
+      },
+      "sunscar-dunes": {
+        "baseline": {
+          "total": 392,
+          "components": {
+            "C1": 152,
+            "C2": 123,
+            "C3": 50,
+            "C4": 0,
+            "C5": 7,
+            "C6": 12,
+            "C7": 0,
+            "C8": 0,
+            "C9": 48
+          }
+        },
+        "candidate": {
+          "total": 392,
+          "components": {
+            "C1": 152,
+            "C2": 123,
+            "C3": 50,
+            "C4": 0,
+            "C5": 7,
+            "C6": 12,
+            "C7": 0,
+            "C8": 0,
+            "C9": 48
+          }
+        },
+        "net": 0
+      }
+    },
+    "platformSourceLines": 85,
+    "generatorCodeLines": 44
+  },
+  "floor": {
+    "base": {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "complete": true,
+      "pass": false,
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "pose": "spawn",
+          "frames": 120,
+          "p95Ms": 33.4,
+          "workP95Ms": 13.3,
+          "maxMs": 33.4,
+          "pass": false,
+          "cpuPass": true,
+          "calls": 274,
+          "triangles": 8860216,
+          "contextLost": false
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": "cabin",
+          "frames": 120,
+          "p95Ms": 33.4,
+          "workP95Ms": 16.4,
+          "maxMs": 33.4,
+          "pass": false,
+          "cpuPass": true,
+          "calls": 279,
+          "triangles": 9121322,
+          "contextLost": false
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": "pond",
+          "frames": 120,
+          "p95Ms": 33.2,
+          "workP95Ms": 11,
+          "maxMs": 33.4,
+          "pass": false,
+          "cpuPass": true,
+          "calls": 181,
+          "triangles": 5115759,
+          "contextLost": false
+        }
+      ]
+    },
+    "candidate": {
+      "sha": "a3439ec76ddc4d81cdb42eec3e66b667b8dace76",
+      "complete": true,
+      "pass": true,
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "pose": "spawn",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "workP95Ms": 10.6,
+          "maxMs": 16.8,
+          "pass": true,
+          "cpuPass": true,
+          "calls": 274,
+          "triangles": 8860216,
+          "contextLost": false
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": "cabin",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "workP95Ms": 11.1,
+          "maxMs": 16.8,
+          "pass": true,
+          "cpuPass": true,
+          "calls": 279,
+          "triangles": 9079370,
+          "contextLost": false
+        },
+        {
+          "shard": "pine-hollow",
+          "pose": "pond",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "workP95Ms": 9.5,
+          "maxMs": 16.8,
+          "pass": true,
+          "cpuPass": true,
+          "calls": 181,
+          "triangles": 5111768,
+          "contextLost": false
+        }
+      ]
+    }
+  }
+}

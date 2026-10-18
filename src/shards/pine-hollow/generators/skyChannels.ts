@@ -4,7 +4,7 @@
 // and under the deck), the deck's grey and its flat colour (the fog's × 1.05), read from the clock owner the graph day sky
 // fills (`@wildshard/game/looks/graphDaySky`).
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { SKY_LOOKS } from '../data/skyLook';
+import SKY_LOOKS from '../data/skyLook.json' with { type: 'json' };
 
 export const PINE_SKY_CHANNELS = 'pine.sky';
 type Expr = NumericChannelOutput['expr'];

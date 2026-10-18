@@ -1,3 +1,4 @@
+import type { RiggedHullBook } from './riggedHulls';
 import type { ToonLookRow } from './toonLook';
 import type { KeyedSkyStyle } from './keyedSky';
 import type { SpawnScriptRows } from './spawnScripts';
@@ -33,6 +34,7 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
   'look/keyed-sky': KeyedSkyStyle;
   /** Client-only compiled feature declarations; ignored by the authoritative simulation. */

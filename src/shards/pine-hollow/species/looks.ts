@@ -2,9 +2,12 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { speciesDef, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
-import { preloadPineCreatures, skinPineHull } from '../runtime/species/hulls';
+import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import type { PineGrazers, ThrallLook } from '../runtime/productSections.generated.d.ts';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
+
+const hulls = productRiggedHulls('pine-hollow');
+const preloadPineCreatures = hulls.preload, skinPineHull = hulls.skin;
 
 let admitted: PineGrazers | null = null;
 /** The page and cold Explorer read the same build-validated grazer section. */

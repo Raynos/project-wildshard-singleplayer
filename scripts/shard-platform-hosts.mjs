@@ -2,6 +2,7 @@
 // This is a census table, not a runtime installer. No authoring import supplies
 // a runtime user. Metadata-only sections have no independent executable host.
 const hosts = {
+  'look/rigged-hulls': ['sdk/looks/riggedHulls#productRiggedHulls'],
   'look/toon': ['game/looks/toonLook#toonLook'],
   'client/plan': ['game/shardfile/clientPlan#installClientPhase', 'game/shard/declaredEntry#declaredRuntimeEntry'],
   'world/tiles': ['game/shardfile/clientViews#clientTileViews'],
