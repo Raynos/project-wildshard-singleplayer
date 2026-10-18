@@ -3,13 +3,13 @@ import { commitQuestEffects, readQuestServiceActions } from '../src/game/quest/e
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { QuestState } from '../src/engine/quest/core';
 import { Scope } from '../src/engine/app/scope';
-import { createShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
+import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 import steps from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { readProjectAssets } from '../src/sdk/project';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../src/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
@@ -26,22 +26,15 @@ const originals = {
   transactions: '891ccf64742a1e21d5e75705d91c393e784215317a5dc522da779c37f48be04b',
 };
 beforeAll(async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
-    const project = slug === 'pine-hollow' ? loaded : await readProjectAssets(`src/shards/${slug}`);
-    const file = project.output.namedFiles?.find(row => row.name === 'quests/services.json');
-    if (file === undefined) throw new Error('Missing admitted quest service rows');
-    serviceProducts.set(slug, createShardProduct({ slug, revision: 1, shardfile: project.shard, sections: new Map(),
-      files: new Map([['quests/services.json', { hash: file.hash, url: '/services.json' }]]), read: hash => {
-        const bytes = project.assets.get(hash); if (bytes === undefined) throw new Error('Missing quest service bytes'); return Promise.resolve(bytes);
-      } }));
+    const product = await loadHeadlessProduct(`out/${slug}`);
+    expect(product.hasFile('quests/services.json')).toBe(true);
+    serviceProducts.set(slug, product);
   }
-
+  const loaded = serviceProducts.get('pine-hollow');
+  if (loaded === undefined) throw new Error('Missing admitted Pine product');
   for (const [name, hash] of Object.entries(originals)) {
-    const file = loaded.output.namedFiles?.find(row => row.name === `quests/${name}.json`);
-    if (file?.kind !== 'json') throw new Error(`Missing admitted quest actions: ${name}`);
-    const bytes = loaded.assets.get(file.hash);
-    if (bytes === undefined) throw new Error(`Missing quest action bytes: ${name}`);
+    const bytes = await loaded.file(`quests/${name}.json`);
     if (hash !== null) expect(hashImmutableBytes(bytes)).toBe(hash);
     admitted.set(name, parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))));
   }
