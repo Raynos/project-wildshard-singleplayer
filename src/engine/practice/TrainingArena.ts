@@ -277,6 +277,15 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
   return { root, colliders };
 }
 
+/** Data-fed opponent host. The caller owns combat, rewards and persistence isolation. */
+export interface PracticeOpponent {
+  readonly targets: readonly TargetAnimal[];
+  enter: (origin: { x: number; y: number; z: number }) => void;
+  exit: () => void;
+  update: (dt: number) => void;
+  raycast: (origin: THREE.Vector3, direction: THREE.Vector3, distance: number) => TargetHit | null;
+}
+
 export class TrainingArena {
   readonly scope = uiScope('trainingArena');
   /** E357 F2 read-only practice state for the pause/resume snapshot. */
@@ -286,6 +295,8 @@ export class TrainingArena {
   private readonly overlay: HTMLElement;
   private readonly floats: FloatingText[] = [];
   private active = false;
+  private opponent: PracticeOpponent | null = null;
+  private readonly dummyDecorations: THREE.Object3D[] = [];
   private modelsReady = false;
   private loadPromise: Promise<void> | null = null;
   private readonly preparation: HTMLElement;
@@ -320,13 +331,13 @@ export class TrainingArena {
       target.bodies = addTrainingTarget(physics, target, x, Y, z);
       target.bodies.setEnabled(false); // E300: shot at only while the room is open (enter / exit)
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.012, 6, 48).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: CYAN, fog: false, toneMapped: false }));
-      ring.position.set(spot.x, 0.01, spot.z); root.add(ring);
+      ring.position.set(spot.x, 0.01, spot.z); root.add(ring); this.dummyDecorations.push(ring);
       target.onDamage = (amount, point) => { this.float(String(amount), point, 'hit'); };
       return target;
     });
     const combatTargets = this.targets.map((target, index) =>
       app.combat.targetPort(practiceActor(target, `practice.${String(index)}`), target, undefined,
-        () => !game.levelScope.disposed && app.levelScope === game.levelScope && this.active && target.ready));
+        () => !game.levelScope.disposed && app.levelScope === game.levelScope && this.active && this.opponent === null && target.ready));
     app.combat.registerTargets(game.levelScope, () => combatTargets, () => app.levelScope === game.levelScope && this.active);
     // Dummies are children of the room for visibility; their static solid bodies and separate hitboxes live in Rapier.
     for (const target of this.targets) root.add(target.model.root);
@@ -334,6 +345,14 @@ export class TrainingArena {
   }
 
   get entered(): boolean { return this.active; }
+  get activeTargets(): readonly TargetAnimal[] { return this.opponent?.targets ?? this.targets; }
+
+  /** Select only outside a running bout; default null preserves the three-dummy room. */
+  setOpponent(opponent: PracticeOpponent | null): void {
+    if (this.active) throw new Error('Exit practice before replacing its opponent');
+    this.opponent?.exit();
+    this.opponent = opponent;
+  }
 
   /**
    * Fetch, decode and upload the three figures before the room opens, so it is full on its first frame (E291: it opened
@@ -341,6 +360,7 @@ export class TrainingArena {
    * them ahead of the room (G187 / SF47: they are not resident while the player is out in the world).
    */
   preload(): Promise<void> {
+    if (this.opponent !== null) return Promise.resolve();
     this.loadPromise ??= this.prepareModels();
     return this.loadPromise;
   }
@@ -351,6 +371,7 @@ export class TrainingArena {
       const model = await dummyFigure(target.variant, 'arena'); // the model's builder (src/engine/models/trainingDummy.ts)
       if (this.game.levelScope.disposed) return;
       target.install(model, renderer);
+      target.model.root.visible = this.opponent === null;
       await this.upload(model.root);
     }));
     this.modelsReady = true;
@@ -393,12 +414,14 @@ export class TrainingArena {
     app.setState('practice');
     practiceFps.on = true; // mobile targets 60 in here (E290, tier.ts frameCapFps)
     this.player = player;
-    for (const t of this.targets) { t.attacker = player.position; t.bodies?.setEnabled(true); }
+    for (const t of this.targets) { t.attacker = player.position; t.bodies?.setEnabled(this.opponent === null); t.model.root.visible = this.opponent === null; t.label.hidden = this.opponent !== null; }
+    for (const decoration of this.dummyDecorations) decoration.visible = this.opponent === null;
+    this.opponent?.enter({ x: this.center.x, y: Y, z: this.center.z - 7 });
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     app.events.emit('practice.active', true);
     this.overlay.parentElement?.classList.add('practice-active');
     // still loading: the procedural figures stand in at once, never an empty room; the meshes replace them on arrival
-    if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(dummyStandIn(t.variant), this.game.renderer);
+    if (this.opponent === null && !this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(dummyStandIn(t.variant), this.game.renderer);
     this.preparation.hidden = true;
     void this.preload();
     weapons.lendAll(); // the weapon explorer: every weapon this shard has, only while in here (E298 A)
@@ -411,6 +434,7 @@ export class TrainingArena {
   }
 
   exit(): void {
+    this.opponent?.exit();
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
     app.setState('play');
     for (const t of this.targets) t.bodies?.setEnabled(false); // E300: no dummy volume left for the world's rays over the shard
@@ -425,6 +449,7 @@ export class TrainingArena {
   }
 
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
+    if (this.active && this.opponent !== null) return this.opponent.raycast(origin, dir, maxDist);
     if (!this.active || !this.targets.every((t) => t.ready)) return null;
     const hit = trainingTargetRaycast(this.physics, origin, dir, maxDist);
     const target = this.targets.find((t) => t === hit?.target);
@@ -441,8 +466,10 @@ export class TrainingArena {
   private update(dt: number): void {
     // the hoverboard has no place in the room: it kills the dodge (E285); the H key would otherwise bring it back
     if (this.player?.hover === true) this.player.setHover(false);
+    this.opponent?.update(dt);
     const W = innerWidth, H = innerHeight;
     for (const target of this.targets) {
+      if (this.opponent !== null) continue;
       target.update(dt);
       const p = _label.copy(target.position);
       p.y += LABEL_Y;

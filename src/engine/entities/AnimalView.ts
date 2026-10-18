@@ -11,7 +11,7 @@ import type { AnimalMaterial, AnimalModel, AnimalRig } from './AnimalFactory';
 import { variantMods, type RigAnimCtx } from './species/registry';
 import { app, gameplayRandom } from '../app/runtime';
 import type { DamageRequest } from '../combat/pipeline';
-import { AnimalSim, damageFor as simDamageFor, type AnimalPoseSample, type AnimalVolumePort } from './AnimalSim';
+import { AnimalSim, damageFor as simDamageFor, type AnimalPoseSample, type AnimalVolumePort, type AnimalSimPorts } from './AnimalSim';
 import { floorBelow } from '../physics/query';
 
 /**
@@ -180,13 +180,15 @@ export class Animal extends AnimalSim {
     this.rigCtx.mem = sim.mem;
   }
 
-constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`) {
+/** Optional per-host simulation ports keep isolated encounter state out of the active world. */
+constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`, ports?: AnimalSimPorts) {
     const v = model.variantDef;
     super({ kind: model.kind, label: v.label || model.species.label, variant: v.id, rarity: v.rarity,
       hp: v.hp ?? model.species.tuning?.hp ?? (model.species.aggressive === true ? 100 : 60),
       aggressive: model.species.aggressive ?? false, dims: model.dims, mods: variantMods(model.species, v),
       ...(model.species.flight === undefined ? {} : { flight: model.species.flight }),
-      ...(model.species.lockable === undefined ? {} : { lockable: model.species.lockable }) }, seed, scale, entityId, {
+      ...(model.species.lockable === undefined ? {} : { lockable: model.species.lockable }) }, seed, scale, entityId, ports ?? {
+      hit: (request) => app.combat.hit(request),
       heightAt: (x, z) => heightAt(x, z), random: gameplayRandom, now: () => diagnosticNow(),
       floorBelow: (x, z, fromY, maxDrop) => app.physics === null ? heightAt(x, z) : floorBelow(app.physics, x, z, fromY, maxDrop),
     });
@@ -303,11 +305,11 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
    */
   override applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
-    return app.combat.hit({ source: 'env', sourceTags: ['dmg.legacy', 'cover.checked'], target: this.combatActor(), amount, point: hitPoint, dir })?.killed ?? false;
+    return super.applyDamage(amount, hitPoint, dir);
   }
 
   override get dims(): AnimalModel['dims'] { return this.model.dims; }
-  protected override hitTime(): number { return diagnosticNow(); }
+  protected override hitTime(): number { return super.hitTime(); }
 
   /** Stable bridge for weapons until the creature runtime supplies its own Actor. */
 

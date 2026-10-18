@@ -1,3 +1,6 @@
+import { EncounterSession } from '../practice/EncounterSession';
+import { PracticeCreature, practiceCreatureSupport } from '../practice/PracticeCreature';
+import { installPracticePicker } from '../practice/PracticePicker';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { weaponInputContext } from '@wildshard/engine/input/gameplay';
@@ -104,6 +107,40 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   game.hudBaseline = shellHud.size;
   game.hudRetained = shellHud;
   arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
+  const practiceArena = arena;
+  const program = product.has('actors/species-programs') ? product.section('actors/species-programs').program : undefined;
+  if (program !== undefined) {
+    const choices = program.species.flatMap(species => species.variants.map(variant => ({
+      id: `${species.kind}:${variant.id}`, label: `${species.label} · ${variant.label}`, species, variant: variant.id,
+      support: practiceCreatureSupport(species, variant.id),
+    })));
+    let reportPractice: (message: string) => void = () => undefined;
+    const encounter = new EncounterSession<string, PracticeCreature>({
+      load: async id => {
+        const selected = choices.find(choice => choice.id === id);
+        if (selected === undefined || !selected.support.supported) throw new Error('This opponent has no isolated practice adapter.');
+        const actor = await PracticeCreature.create({ species: selected.species, strikes: program.strikes, variant: selected.variant,
+          scene: game.rootScene, sky, physics: world.physics, player: player.position, owner: game.levelScope,
+          onPlayerDamage: (_damage, remaining) => { reportPractice(`Practice health: ${remaining}/100. World health unchanged.`); },
+          onDamage: (amount, _point, died) => {
+            if (died) { encounter.defeat(actor); reportPractice('Opponent defeated. Practice reward recorded once; no world progress.'); }
+            else reportPractice(`Hit: ${amount}. Practice health: ${actor.playerHealth}/100.`);
+          },
+        });
+        return actor;
+      },
+      dispose: actor => { actor.dispose(); },
+    });
+    const picker = installPracticePicker({ owner: game.levelScope, arena: practiceArena,
+      choices: choices.map(choice => choice.support.supported
+        ? { id: choice.id, label: choice.label }
+        : { id: choice.id, label: choice.label, unavailable: choice.support.reason ?? 'Unsupported isolated behavior' }),
+      load: async id => await encounter.select(id) ? encounter.snapshot.actor : null,
+      clear: () => { encounter.exit(); }, tick: update => { game.onUpdate(update, 'practice-picker'); },
+    });
+    reportPractice = picker.status;
+    game.levelScope.onDispose(() => { encounter.dispose(); });
+  }
   // E307: the open feature playground (src/playgrounds/: Nine Dragon's grapple course, Nalati's horse track), entered from the
   // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)
 

@@ -1,0 +1,4 @@
+.ws-practice-picker { position: fixed; top: max(56px, env(safe-area-inset-top)); right: 8px; z-index: 1500; width: min(310px, calc(100vw - 16px)); padding: 8px; background: #0b1726; color: #bceeff; border: 1px solid #75d9ff; font: 12px sans-serif; pointer-events: auto; }
+.ws-practice-picker[hidden] { display: none; }
+.ws-practice-picker select { width: 100%; margin-top: 8px; min-height: 36px; background: #12304a; color: white; }
+.ws-practice-picker p { margin: 8px 0 0; line-height: 1.4; }

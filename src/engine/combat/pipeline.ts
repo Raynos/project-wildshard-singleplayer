@@ -71,6 +71,15 @@ export class CombatPipeline {
   private readonly events: Events;
   private readonly physics: () => Physics | null;
   private readonly targetSources: { source: () => readonly CombatTarget[]; practice?: () => boolean }[] = [];
+  private readonly targetRoutes = new Map<Actor, (request: DamageRequest) => DamageDealt | null>();
+  /** Send one exact target to its owning encounter pipeline while preserving the weapon's hit result.
+   * Routing precedes this pipeline's modifiers/events; a separate pipeline must own the supplied callback. */
+  routeTarget(scope: Scope, actor: Actor, route: (request: DamageRequest) => DamageDealt | null): void {
+    if (scope.disposed) throw new Error('Cannot route combat for a retired owner');
+    if (this.targetRoutes.has(actor)) throw new Error('Combat target already has a route');
+    this.targetRoutes.set(actor, route);
+    scope.onDispose(() => { if (this.targetRoutes.get(actor) === route) this.targetRoutes.delete(actor); });
+  }
   /** Wrap an actor's contact body without changing its damage formula or reaction path. */
   targetPort(actor: Actor, target: TargetAnimal, impulse?: (velocity: Vector3) => void, available: () => boolean = () => true): CombatTarget {
     const hittable = (): boolean => actor.alive && target.alive && available();
@@ -132,6 +141,8 @@ export class CombatPipeline {
   }
   hit(input: DamageRequest): DamageDealt | null {
     if (!input.target.alive) return null;
+    const route = this.targetRoutes.get(input.target);
+    if (route !== undefined) return route(input);
     // Raycast/weapon scratch vectors are reused; queued listeners must see this hit's contact frame.
     const req: DamageRequest = { ...input, point: input.point.clone(), dir: input.dir.clone(),
       ...(input.from === undefined ? {} : { from: input.from.clone() }),

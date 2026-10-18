@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./physics/creatures": "./physics/creatures.ts",
     "./script/viewFields": "./script/viewFields.ts",
     "./core/deflate": "./core/deflate.ts",
     "./world/weatherContinuation": "./world/weatherContinuation.ts",

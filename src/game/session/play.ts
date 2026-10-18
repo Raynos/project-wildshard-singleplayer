@@ -433,7 +433,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
-  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
+  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.activeTargets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
     arena.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
