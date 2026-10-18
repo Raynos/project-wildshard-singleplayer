@@ -50,7 +50,7 @@ const sources = { modes: {
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
 const metadata = { sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels, looks: { paint, light, canopy, filament } };
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes(metadata));
-const shape = value => Array.isArray(value) ? `readonly [${value.map(shape).join(',')}]` : value !== null && typeof value === 'object' ? `{${Object.entries(value).map(([key, child]) => `readonly ${JSON.stringify(key)}:${shape(child)}`).join(';')}}` : JSON.stringify(value);
+const shape = value => Array.isArray(value) ? `[${value.map(shape).join(',')}]` : value !== null && typeof value === 'object' ? `{${Object.entries(value).map(([key, child]) => `readonly ${JSON.stringify(key)}:${shape(child)}`).join(';')}}` : JSON.stringify(value);
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts'), `export type LookRows = ${shape(metadata.looks)};\n`);
 const { extraArt, compareImages, ...fixed } = discovery;
 if (compareImages.length !== manifest.COMPARE_ROWS.length) throw new Error('Comparison rows require one image pair each');

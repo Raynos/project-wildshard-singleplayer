@@ -1,4 +1,6 @@
-export interface FilamentRows {
+import type { UniformRows } from '@wildshard/sdk/looks/shaderFamily';
+
+export interface FilamentRows extends UniformRows {
   readonly uRes: { readonly v2: readonly [number, number] };
   readonly uProjection: { readonly v2: readonly [number, number] };
   readonly uCorePx: number; readonly uHaloPx: number; readonly uI: number;
