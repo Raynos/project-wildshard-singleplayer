@@ -3,7 +3,6 @@ import type * as THREE from 'three';
 import type { Game } from '../../core/Game';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
-import type { Forest } from '../../world/forest/Forest';
 
 export interface Key { t: number; pos: THREE.Vector3; q: THREE.Quaternion }
 export interface Trail {
@@ -31,7 +30,8 @@ export interface Move {
   trail: Trail;
 }
 
-export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Forest }
+/** The held melee view borrows rendering and its player, without constructing world scenery. */
+export interface SwordWorld { game: Game; sky: Sky; player: Player }
 
 
 export interface SwordRig {

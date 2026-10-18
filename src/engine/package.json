@@ -3,6 +3,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./physics/ragdoll": "./physics/ragdoll.ts",
+    "./core/webglStartup": "./core/webglStartup.ts",
+    "./physics/active": "./physics/active.ts",
+    "./saves/environment": "./saves/environment.ts",
     "./physics/creatures": "./physics/creatures.ts",
     "./script/viewFields": "./script/viewFields.ts",
     "./core/deflate": "./core/deflate.ts",

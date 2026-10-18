@@ -4,7 +4,7 @@ import * as schema from '../src/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputIndex';
-import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
+import { loadShardProduct, shardProductFromAdmission, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
@@ -227,4 +227,17 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   expect(() => claim.shrink(11)).toThrow('shrink'); expect(() => claim.shrink(-1)).toThrow('shrink');
   claim.shrink(4); expect(allocator.cost().input.products).toBe(4);
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
+});
+
+
+test('runtime readers preserve the live product fetch and memory-only cache policy', async () => {
+  const f = fixture(); trust(f.receipt);
+  const fetch = vi.spyOn(f.options, 'fetch');
+  const product = await loadShardProduct(f.source.identity.slug, f.options, own());
+  const runtime = runtimeProduct(product.shardfile);
+  expect(await runtime.assets.read(f.ref)).toEqual(f.blob);
+  expect(fetch).toHaveBeenCalledWith(`${f.options.base}blobs/bin/${f.ref}.bin`);
+  expect(runtimeProduct(product.shardfile).assets).toBe(runtime.assets);
+  expect(await product.file('models/token.bin')).toEqual(f.blob);
+  expect(fetch).toHaveBeenLastCalledWith(`${f.options.base}blobs/bin/${f.ref}.bin`);
 });

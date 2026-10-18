@@ -6,11 +6,13 @@ let bodies: PackedCreatureBodies | null = null, loading: Promise<void> | null = 
 
 /** Keep the rendered decoder behind preload; native species imports never load shader patches. */
 export function preloadCreatureBodies(): Promise<void> {
-  loading ??= import('@wildshard/game/plugin/geometry').then(async geometry => {
-    bodies = geometry.packedCreatureBodies(bake);
-    await bodies.preload();
-    return undefined;
-  });
+  const load = async (): Promise<void> => {
+    try {
+      const geometry = await import('@wildshard/game/plugin/geometry');
+      bodies = geometry.packedCreatureBodies(bake); await bodies.preload();
+    } catch (error: unknown) { bodies = null; loading = null; throw error; }
+  };
+  loading ??= load();
   return loading;
 }
 

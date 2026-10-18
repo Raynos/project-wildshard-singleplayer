@@ -1,0 +1,85 @@
+{
+  "materials": {
+    "body": "driftwood-creature",
+    "glowing": "driftwood-creature-glowing"
+  },
+  "looks": [
+    {
+      "id": "driftwood.look.brine-puffer",
+      "species": "creature.brine-puffer",
+      "kind": "brine-puffer",
+      "pose": "poses/brine-puffer.json",
+      "rigContract": {
+        "skeleton": "brine-puffer.v1",
+        "clips": [],
+        "sockets": [
+          "body",
+          "head"
+        ]
+      }
+    },
+    {
+      "id": "driftwood.look.conch-duelist",
+      "species": "creature.conch-duelist",
+      "kind": "conch-duelist",
+      "pose": "poses/conch-duelist.json",
+      "rigContract": {
+        "skeleton": "conch-duelist.v1",
+        "clips": [],
+        "sockets": [
+          "body",
+          "head"
+        ]
+      }
+    },
+    {
+      "id": "driftwood.look.splinter-mantis",
+      "species": "creature.splinter-mantis",
+      "kind": "splinter-mantis",
+      "pose": "poses/splinter-mantis.json",
+      "rigContract": {
+        "skeleton": "splinter-mantis.v1",
+        "clips": [],
+        "sockets": [
+          "body",
+          "head"
+        ]
+      }
+    },
+    {
+      "id": "driftwood.look.bellback",
+      "species": "creature.bellback",
+      "kind": "bellback",
+      "pose": "poses/bellback.json",
+      "rigContract": {
+        "skeleton": "bellback.v1",
+        "clips": [],
+        "sockets": [
+          "body",
+          "head",
+          "bell",
+          "clapper"
+        ]
+      }
+    },
+    {
+      "id": "driftwood.look.tide-root-colossus",
+      "species": "creature.tide-root-colossus",
+      "kind": "tideRootColossus",
+      "pose": "poses/tide-root-colossus.json",
+      "rigContract": {
+        "skeleton": "tide-root-colossus.v1",
+        "clips": [],
+        "sockets": [
+          "body",
+          "head",
+          "heart",
+          "root0",
+          "root1",
+          "root2",
+          "root3"
+        ]
+      }
+    }
+  ]
+}

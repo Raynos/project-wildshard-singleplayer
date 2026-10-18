@@ -4,6 +4,7 @@
 #
 #   scripts/serve-build.sh [--head | --rev <rev>] [--shard <slug>[,<slug>]] [--full] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
+#        --practice-demo  build only the explicit developer arena product and measured fixture assets
 #        --head   build HEAD in a build-mirror slot (WILDSHARD_MIRROR_SLOT, default `check`) instead of the working tree
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --shard  build only these shards' products (a capture of one shard): every other shard keeps its product only
@@ -65,11 +66,12 @@ case "${1:-}" in
     exit 0;;
 esac
 
-MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"; FULL=0; SHARDS=""
+MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"; FULL=0; SHARDS=""; PRACTICE_DEMO=0
 ARGS=("$@")
 while [ $# -gt 0 ]; do
   case "$1" in
     --devserver) MODE=devserver; shift;;
+    --practice-demo) PRACTICE_DEMO=1; shift;;
     --head) HEAD_ONLY=1; shift;;
     --rev) HEAD_ONLY=1; REV="$2"; shift 2;;
     --full) FULL=1; shift;;
@@ -167,9 +169,11 @@ mkdir -p "$BASE/$stamp"
 echo "serve-build: building $( [ $HEAD_ONLY -eq 1 ] && echo "$REV $(git -C "$REPO" rev-parse --short "$REV")" || echo "the working tree" ) → $OUT" >&2
 # the repo's own config, with public/ left out of the copy (it is symlinked below)
 CFG="$BASE/$stamp/vite.serve.mjs"
+BUILD_CONFIG=vite.config.ts
+[ $PRACTICE_DEMO -eq 1 ] && BUILD_CONFIG=vite/practice.config.ts
 cat > "$CFG" <<JS
 import { mergeConfig } from '$REPO/node_modules/vite/dist/node/index.js';
-import base from '$SRC/vite.config.ts';
+import base from '$SRC/$BUILD_CONFIG';
 export default async (env) => {
   const b = typeof base === 'function' ? await base(env) : base;
   return mergeConfig(b, { root: '$SRC', build: { outDir: '$OUT', emptyOutDir: true, copyPublicDir: false } });
@@ -180,11 +184,18 @@ JS
 GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
 [ $FULL -eq 1 ] && { GEN_ARGS=""; SHARDFILE_ARGS=""; }
 [ -n "$SHARDS" ] && SHARDFILE_ARGS="$SHARDFILE_ARGS --shard=$SHARDS"
+if [ $PRACTICE_DEMO -eq 1 ]; then
+  # Separate admitted five-guest product and its exact static closure; no world generation or public/ merge.
+  ( cd "$SRC" && export PRACTICE_PRODUCT_DIR="$BASE/$stamp/product" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
+    'node scripts/build-driftwood-practice.mjs "$PRACTICE_PRODUCT_DIR" && pnpm exec vite build --config "$1"' bash "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
+    || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
+else
 ( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
    step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step pnpm exec vite build --mode "$1" --config "$2"' \
   bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
+fi
 grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$BASE/$stamp/build.log" | sed 's/^/serve-build: /' >&2
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins
@@ -204,7 +215,7 @@ link_tree() {
     elif [ -d "$e" ] && [ -d "$n" ] && [ ! -L "$n" ]; then link_tree "$e" "$n"; fi
   done
 }
-link_tree "$SRC/public" "$OUT"
+if [ $PRACTICE_DEMO -eq 0 ]; then link_tree "$SRC/public" "$OUT"; fi
 
 PREVIEW_CFG="$BASE/$stamp/vite.preview.mjs"
 # Older pinned trees predate the renderer-free preview module. The host's preview

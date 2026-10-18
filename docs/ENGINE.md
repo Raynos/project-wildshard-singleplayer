@@ -9842,3 +9842,23 @@ without it, equipment keeps its installed `events` bus. EquipmentService supplie
 The arena owns this equipment-event route before `lendAll()` and through `endLoan()`, covering loan unlocks as well as
 combat publications. Each opponent independently owns its damage/decision event bus; retries do not replace the room's
 publication route. Default dummy practice uses the same temporary equipment-publication boundary.
+
+
+### Developer arena-only composition
+
+`game/practiceDemo/startPracticeDemo` composes the existing Game, Physics, Player,
+TrainingArena, Sword, equipment, touch controls and PracticeCreature directly.
+Its data ports supply a LevelSpec, verified ShardProduct and scoped content
+preparation; it does not invoke a world session or install persistent storage.
+Selection uses EncounterSession ownership and retries reuse the actual bout
+reset. This is an unfinished explicit demo entry, not a new combat engine.
+
+`SwordWorld` requires only game, sky and player: melee never reads a forest.
+`ToonArms.prepareProduct(context, product)` accepts the existing scoped material
+compiler context without requiring a full ShardContext. `runtimeProduct(source)`
+reuses an exact live loaded product's asset reader, preserving its URL and cache
+policy; ordinary legacy declarations retain their existing fallback.
+
+The engine package exposes its existing `core/webglStartup`, `physics/active`
+and `physics/ragdoll` and `saves/environment` modules for explicit compositions. A demo installs a
+memory-only SaveEnvironment before dynamically importing the game host.

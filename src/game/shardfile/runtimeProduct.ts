@@ -210,6 +210,10 @@ export function slugRuntimeProduct(slug: string): RuntimeProduct | null {
 export function runtimeProduct(source: Shardfile): RuntimeProduct {
   const slug = source.identity.slug, admitted = admittedRuntimeProduct(slug);
   if (admitted !== null) return admitted;
+  // Preserve the exact loaded reader, URL and cache policy for this live source.
+  for (const entry of productsByIndex.values()) {
+    if (entry.source === source && entry.owners.size > 0) return ownedRuntimeProduct(source, entry.assets);
+  }
   const declaration = declared.get(slug);
   const published = declaration !== undefined && outputDescriptor(declaration) !== undefined ? declaration : source;
   return ownedRuntimeProduct(published, new ClientAssets(published, new Map(), browserShardfileOptions(productBase(slug), true)),

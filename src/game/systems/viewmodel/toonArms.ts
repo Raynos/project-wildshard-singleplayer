@@ -79,6 +79,12 @@ export class ToonArms {
     return this.keepLooks(context.scope, looks);
   }
 
+  /** A standalone arena lends only its renderer, lifetime and admitted product. */
+  async prepareProduct(context: Parameters<typeof runtimeLookMaterials>[0], product: ShardProduct): Promise<ReadonlyMap<string, Material>> {
+    const looks = await runtimeLookMaterials(context, product.shardfile, true, Object.values(this.look.materials));
+    return this.keepLooks(context.scope, looks);
+  }
+
   /** Cold Explorer preparation uses its standard platform context and the same admitted look ids. */
   async prepareExplorer(context: ModelContext, product: ShardProduct): Promise<void> {
     if (this.loans.length > 0) return;

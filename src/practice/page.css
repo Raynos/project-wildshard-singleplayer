@@ -1,0 +1,4 @@
+.ws-practice-demo { position: fixed; top: max(48px, calc(env(safe-area-inset-top) + 40px)); left: 8px; right: 8px; z-index: calc(var(--ws-layer-hud) + 41); padding: 8px 10px; background: #101b24e8; color: #e8f4ff; border: 1px solid #75d9ff; font: 12px/1.35 system-ui, sans-serif; }
+.ws-practice-demo p { margin: 4px 0; font-size: 11px; }
+.ws-practice-demo button, .ws-practice-demo select { min-height: 36px; max-width: 70%; color: inherit; background: #172e3d; border: 1px solid #75d9ff; border-radius: 4px; padding: 4px 8px; }
+.ws-practice-demo output { display: block; margin-top: 4px; }

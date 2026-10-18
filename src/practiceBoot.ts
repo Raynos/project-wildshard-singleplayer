@@ -1,0 +1,23 @@
+import { Scope } from './engine/app/scope';
+import { ktx2TranscodeSupport } from './engine/core/ktx2';
+import { browserContentHash } from './game/shardfile/product';
+import { loadShardProduct } from './game/shardfile/runtimeProduct';
+import { startPracticeDemo, type PracticeDemo } from './game/practiceDemo/startPracticeDemo';
+import { practiceLevel } from './practiceLevel';
+import { preparePracticeContent } from './practiceContent';
+
+/** Separate explicit entry; no session, world plugin, service worker or persistent save boot. */
+export async function bootPractice(canvas: HTMLCanvasElement, status: (message: string) => void): Promise<PracticeDemo> {
+  const productOwner = new Scope('practice-demo-product');
+  try {
+    const product = await loadShardProduct('driftwood-isle', {
+      base: new URL('practice-product/', document.baseURI).href, firstParty: true, offline: false,
+      fetch: url => fetch(url), hash: browserContentHash, textures: ktx2TranscodeSupport(),
+    }, productOwner);
+    const demo = await startPracticeDemo({ canvas, level: practiceLevel(), product,
+      prepare: game => preparePracticeContent(game, product), status });
+    demo.game.levelScope.expose(window, '__practiceDemo', demo);
+    demo.game.levelScope.onDispose(() => { productOwner.dispose(); });
+    return demo;
+  } catch (error: unknown) { productOwner.dispose(); throw error; }
+}
