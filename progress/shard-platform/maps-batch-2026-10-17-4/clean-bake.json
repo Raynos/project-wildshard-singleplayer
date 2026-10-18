@@ -1,0 +1,118 @@
+{
+  "sourceTree": "3caba3e80d5a3427dd16aed857a9bc49d15b122c",
+  "sourceParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "commitParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2254,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "7126dccd3e7b57977a76a557f3fc00490f18cbb9cd38b5c5c561933446997dd4",
+      "inputFiles": 264,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "7126dccd3e7b57977a76a557f3fc00490f18cbb9cd38b5c5c561933446997dd4",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phoneProof": {
+    "bakeSource": "3caba3e80d5a3427dd16aed857a9bc49d15b122c",
+    "servedRuntimeSource": "4bf64d2e38963f33eb3a9ccc42635d3284911701",
+    "servedBuild": "4bf64d2-mvd3v9qa",
+    "proof": "20261017T194757-c4-body-rows-head-phone-final-76089",
+    "proofPassed": true,
+    "device": "muted iPhone 16 Pro",
+    "samples": {
+      "after": 92,
+      "before": 100,
+      "canvas": [
+        804,
+        1748
+      ],
+      "draws": 207,
+      "errors": [],
+      "muted": true,
+      "slots": [
+        {
+          "k": 0,
+          "state": 2,
+          "thrower": 22
+        }
+      ],
+      "triangles": 1243640,
+      "viewport": [
+        402,
+        874
+      ],
+      "visible": 1
+    },
+    "runtimeEquivalence": {
+      "sourceParent": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+      "onlyChangesAfterPhoneSource": [
+        "docs/process/DEPLOY.md",
+        "scripts/parity/boot-smoke.mjs"
+      ],
+      "onlyPrivateBakeChanges": [
+        "src/shards/driftwood-isle/look/map.json"
+      ],
+      "runtimeCodeChanged": false
+    },
+    "logSha256": "78283d31634655ff7f684a58f55567186b82a49a707b4e04ddb3c7652652ddac"
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "4bf64d2e38963f33eb3a9ccc42635d3284911701",
+      "owner": "sp-x1",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "coconut slot/body facts admitted in existing enemy and keeper blobs",
+      "directFactInputs": {
+        "driftwood-isle": [
+          "data/coconutSlots.json"
+        ]
+      }
+    },
+    {
+      "sha": "0a410dbfc2e3ac72a5e1d17231abea9fca08972d",
+      "owner": "sp-x7",
+      "shards": [],
+      "change": "deploy-critical boot smoke entry deadline fix, no map inputs"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "data/coconutSlots.json"
+    ]
+  }
+}
