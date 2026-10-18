@@ -36,7 +36,10 @@ export function bootObservation() {
   const playerValid = [state.player.pos.x, state.player.pos.y, state.player.pos.z, state.player.health].every(Number.isFinite) && state.player.health > 0;
   const ready = state.appState === 'play' && entered && frameGate && hud !== null && !hud.classList.contains('intro') && !revealing &&
     playerValid;
-  return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, shard: probe.shard.slug, grid, appState: state.appState, playerValid, renderFrame: world.game.renderer.info.render.frame };
+  return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, drawnFrame: world.game.frameCount,
+    clockPaused: world.game.app.clock.paused, held: world.game.hold, dead: world.game.dead,
+    visibility: document.visibilityState, states: [...world.game.app.stateHistory],
+    shard: probe.shard.slug, grid, appState: state.appState, playerValid, renderFrame: world.game.renderer.info.render.frame };
 }
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {() => Promise<boolean>} condition @param {string} label @param {number} deadline */
@@ -274,11 +277,11 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       // The real grid button writes its one-shot intent and deliberately changes the document.
       gridNavigationIntent = true;
       phases.entryMs = Date.now() - started;
-      deadline = Date.now() + 90000;
+      deadline = Date.now() + 150000;
       await page.locator('.ws-main-grid').click();
     }
     let revealSkipped = false;
-    await until(page, faults, async () => {
+    const gameplay = async (/** @type {boolean} */ requireRings) => {
       const value = await page.evaluate(bootObservation);
       // Skip the grid's sky-down reveal with the player's own tap: it still waits for the rings and the home handoff,
       // but its 7 s camera path no longer costs minutes of wall clock on a runner that draws a frame every few seconds.
@@ -289,12 +292,18 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       if (mode === 'standalone') return value.shard === shard && value.grid === null;
       const grid = value.grid;
       if (typeof grid !== 'object' || grid === null || !('home' in grid) || typeof grid.home !== 'string' || grid.home.length === 0 ||
-        !('inside' in grid) || grid.home !== grid.inside || !('ringsReady' in grid) || grid.ringsReady !== true ||
+        !('inside' in grid) || grid.home !== grid.inside || (requireRings && (!('ringsReady' in grid) || grid.ringsReady !== true)) ||
         !('cells' in grid) || !Array.isArray(grid.cells) || !grid.cells.some((/** @type {unknown} */ cell) => typeof cell === 'object' && cell !== null && 'instance' in cell && 'shows' in cell && cell.instance === grid.home && cell.shows === 'playing')) return false;
       const session = 'live' in grid ? grid.live : null;
       const live = typeof session === 'object' && session !== null && 'live' in session ? session.live : null;
       return typeof live === 'object' && live !== null && 'current' in live && live.current === grid.home && 'gameplayReady' in live && live.gameplayReady === true;
-    }, `${mode} gameplay`, deadline);
+    };
+    if (mode === 'grid') {
+      await until(page, faults, () => gameplay(false), 'grid preparation', deadline);
+      phases.preparedMs = Date.now() - started;
+      deadline = Date.now() + 90000;
+    }
+    await until(page, faults, () => gameplay(true), `${mode} gameplay`, deadline);
     phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
     gameplayFrames.initial = initial.frame;

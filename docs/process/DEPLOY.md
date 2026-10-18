@@ -63,8 +63,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   real road-to-Signal crossing, entered runtime residency and ten live gameplay frames. One initial road pose uses
   the existing probe; held input and the shipping fixed step perform admission. Home and road each retain a
   90-second budget; a prepared cell or a ready home cannot substitute for Signal entry.
-  The initial title has its own 150-second budget. The gameplay budget starts at
+  The initial title has its own 150-second budget. Standalone gameplay starts at
   the real entry action, so cold title loading cannot consume the home proof.
+  Grid entry changes documents: its cold preparation has a separate 150-second
+  bound through visible home residency. The following 90-second home proof still
+  requires every visible ring and ten gameplay frames before the Signal road leg.
+  Smoke receipts distinguish drawn frames, fixed ring steps and clock/pause state.
   Four macOS legs keep public and Developer cases separate (`boot-public`, `boot-developer`, `hover-chromium` and
   `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
   serial HOVER drives exceeded the 12-minute deadline on 2026-10-12. Each leg now has a 20-minute outer deadline:
