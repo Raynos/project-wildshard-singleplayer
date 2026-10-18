@@ -1995,3 +1995,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Registered build-only photographic sky keys.
 /src/shards/pine-hollow/assets/sky-keys/
+
+# Finished Driftwood rocks are registered author outputs.
+/src/shards/driftwood-isle/assets/rock-scenes/
+/src/shards/driftwood-isle/data/rockScenes.generated.json

@@ -16,7 +16,7 @@ import type { loadSiteTimbers } from './timberSites';
 import { mossHint } from '../../world/timberBake';
 import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import { BakedBuildingAssembly } from '@wildshard/game/shardfile/buildingAssembly';
-import type { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import type { BakedBuildingLook, BakedBuildingRole, BuildingAssemblyRows } from '@wildshard/format/buildings';
 import rows from '../../data/cabins.json' with { type: 'json' };
 import { CabinRowsSchema, type CabinRows, type BakedBuilding } from '../../world/logKit';
@@ -63,7 +63,7 @@ export async function loadCabinBake(ctx: Parameters<typeof loadSiteTimbers>[0]):
 export type BuildingRole = BakedBuildingRole;
 export type LogBuilding = BakedBuildingAssembly<string, 'flame' | 'ember' | 'smoke'> & { readonly props: { crate: THREE.Matrix4[]; barrel: THREE.Matrix4[]; bucket: THREE.Matrix4[]; hatchet: THREE.Matrix4[] } };
 const matrix = (elements: readonly number[]): THREE.Matrix4 => new THREE.Matrix4().fromArray(elements);
-export function createLogBuilding(resources: SceneResources, b: BakedBuilding, geometries: CabinGeometries, mats: Mats,
+export function createLogBuilding(resources: SceneHandles, b: BakedBuilding, geometries: CabinGeometries, mats: Mats,
   models: { firePit: THREE.Object3D; lantern: THREE.Object3D }, role: BuildingRole, look: BakedBuildingLook): LogBuilding {
   const ordinals = new Set([...b.parts.map(([, ordinal]) => ordinal), ...b.glass,
     ...b.nodes.flatMap(node => node.t === 'door' ? [node.leaf, node.iron, node.batten] : node.t === 'glow' || node.t === 'wheel' ? [node.g] : node.t === 'particles' ? [node.seeds] : node.t === 'lantern' ? [node.ring] : [])]);

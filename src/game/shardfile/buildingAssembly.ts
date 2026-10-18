@@ -4,7 +4,7 @@ import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SiteLightAnchor as BuildingLightAnchor } from '@wildshard/engine/fx/SiteLights';
 import { admitBuildingAssembly, emptyBuildingLifeRows, type BuildingAssemblyRows, type BakedBuildingLight, type BakedBuildingNode, type BakedBuildingRecord, type BakedBuildingLook, type BakedBuildingRole, type BakedBuildingTier, type BuildingFloor, type BuildingRoom, type Xyz } from '@wildshard/format/buildings';
-import type { SceneResources } from './sceneResources';
+import type { SceneHandles } from './sceneHandles';
 import { createBuildingCloud } from './buildingCloud';
 
 /** Client-only building assembly. It borrows named engine resources; every
@@ -40,13 +40,13 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
   readonly lifeRows = emptyBuildingLifeRows();
   private readonly id: string;
   private readonly mats: { parts: Record<K, THREE.Material>; particles: Record<P, THREE.Material>; glass: THREE.MeshStandardMaterial; glow: THREE.MeshBasicMaterial };
-  private readonly sky: SceneResources['sky'];
+  private readonly sky: SceneHandles['sky'];
   private readonly solids: BakedBuildingRecord<K, P>['solids'];
   private readonly look: BakedBuildingLook<K>;
   private readonly tier: BakedBuildingTier;
 
   /** `input` the record, its pack, materials, sky, models, role, look row and tier */
-  constructor(private readonly resources: SceneResources, input: BuildingAssemblyRows<K, P>) {
+  constructor(private readonly resources: SceneHandles, input: BuildingAssemblyRows<K, P>) {
     admitBuildingAssembly(input);
     const { record: b, role } = input;
     const ordinals = [...b.parts.map(([, index]) => index), ...b.glass,

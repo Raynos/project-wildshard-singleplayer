@@ -1,18 +1,9 @@
 #!/usr/bin/env node
-// bake-geometry.mjs — the code-built models' geometry (Driftwood's rocks and bushes, Nalati's painted props), at build time
-// (SF67 fix 3 part 4, E461).
+// bake-geometry.mjs — finished Driftwood scene draws and Nalati's recorded geometry.
+// Driftwood delegates to its registered rock-scene producer; no runtime table remains.
+// Nalati retains the existing two-tier recorder and verification path.
 //
-// The worlds built every rock, bush and painted prop from code on the main thread at load (the props step's long tasks). Each
-// builder that is a pure function of a few numbers and an rng stream wraps its work in `bakedGeometry`
-// (src/engine/world/geometryBake.ts). This builds the shard's real world in Node (scripts/bake/worldHost.mjs; once per tier,
-// a child process each, the tier set before the modules load) while every such call is recorded under a hash of its inputs,
-// and writes one table (both tiers' entries) to the shard's own asset folder. At load the shard adds the table around its
-// world build (`withGeometryBake`); a call whose inputs hash differently (a miss) builds as before.
-// Every run bakes in memory and writes only differing bytes; --check (bake-check.mjs) fails when a source changed without a
-// rebake.
-//
-//   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-geometry.mjs [--check | --verify] [slug…]
-//   (--verify: build as the page does, with the committed table, and fail unless every wrapped call is answered by it)
+// node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-geometry.mjs [--check | --verify] [slug…]
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -26,7 +17,6 @@ const TIERS = ['phone', 'desktop'];
 /** where each shard keeps its table (one for every tier: the keys are the inputs), a folder the shard owns (the shard
  *  sandbox), beside its voxel AO table; the runtime fetches the same literal path */
 const OUTPUT = {
-  'driftwood-isle': 'public/assets/models/driftwood-blender/geometry.bin',
   'nalati-grasslands': 'public/assets/nalati/baked/geometry.bin',
 };
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -40,14 +30,13 @@ if (tierArg === undefined) {
   const scratch = mkdtempSync(join(tmpdir(), 'bake-geometry-'));
   let failed = false;
   try {
+    if (only.length === 0 || only.includes('driftwood-isle')) {
+      const run = spawnSync(process.execPath, [...process.execArgv, resolve(ROOT, 'src/shards/driftwood-isle/generators/bake-rock-scenes.mjs'),
+        ...(verify || check ? ['--check'] : [])], { cwd: ROOT, stdio: 'inherit' });
+      if (run.status !== 0) failed = true;
+    }
     for (const [slug, out] of Object.entries(OUTPUT)) {
       if (only.length > 0 && !only.includes(slug)) continue;
-      if (slug === 'driftwood-isle') {
-        const run = spawnSync(process.execPath, [...process.execArgv, resolve(ROOT, 'scripts/bake-driftwood-rocks.mjs'),
-          'src/shards/driftwood-isle/generators/rocks.ts', ...(verify ? ['--verify'] : check ? ['--check'] : [])], { cwd: ROOT, stdio: 'inherit' });
-        if (run.status !== 0) failed = true;
-        continue;
-      }
       const merged = new Map();
       for (const tier of TIERS) {
         const file = join(scratch, `${slug}.${tier}.bin`);

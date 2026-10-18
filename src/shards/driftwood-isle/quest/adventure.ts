@@ -1,3 +1,5 @@
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { residentWorldScope } from '@wildshard/game/shardfile/hybrid';
 import { readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -146,7 +148,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const adventure: Adventure = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
-  const npc = castawayRig(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }));
+  const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+  const npc = castawayRig(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }), scenes);
   adventure.spine = installQuestChapter(ctx, declaration, story, new Map([['world', w]]), new Map([['quest', { flags, facts: grants.facts, placement: { place },
     figures: new Map([['castaway', npc]]), adventure, deaths: deathRows.page,
     drops: [{ call: 'hold-key', item: 'hold-key' }], system: 'shard.driftwood-isle.installSpine' }]]));

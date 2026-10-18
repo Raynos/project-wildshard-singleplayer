@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { BuildingCloudSchema, type BuildingCloudRow } from '@wildshard/format/buildings';
-import type { SceneResources } from './sceneResources';
+import type { SceneHandles } from './sceneHandles';
 
 /** Client-only hearth/camp presentation. A baked quad cloud and a seed cloud
  * share the same bounds, pose and material-id contract. No CPU particle loop. */
-export function createBuildingCloud(resources: SceneResources, row: BuildingCloudRow): THREE.Mesh {
-  v.parse(BuildingCloudSchema, row);
+export function createBuildingCloud(resources: SceneHandles, row: BuildingCloudRow): THREE.Mesh {
+  const admitted = v.parse(BuildingCloudSchema, row);
+  const at = Array.isArray(admitted.at) ? new THREE.Vector3(...admitted.at) : resources.point(admitted.at, new THREE.Vector3());
+  if (admitted.parent !== undefined) resources.object(admitted.parent).worldToLocal(at);
   const source = resources.geometry(row.geometry);
   let geometry: THREE.BufferGeometry;
   if (row.seeds) {
@@ -20,6 +22,6 @@ export function createBuildingCloud(resources: SceneResources, row: BuildingClou
   } else geometry = source.clone();
   geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(...row.center), row.radius);
   const mesh = new THREE.Mesh(geometry, row.material === null ? undefined : resources.material(row.material));
-  mesh.name = row.name; mesh.position.set(...row.at); mesh.renderOrder = row.order; mesh.visible = row.visible;
+  mesh.name = row.name; mesh.position.copy(at); mesh.renderOrder = row.order; mesh.visible = row.visible;
   return mesh;
 }

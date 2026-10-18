@@ -1,3 +1,4 @@
+import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import authored from '../data/siteCatalogue.json' with { type: 'json' };
 import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
@@ -31,5 +32,5 @@ export function siteCatalogue(): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return rows;
+  return { ...rows, models: [...rows.models, ...rocks.catalogue] };
 }

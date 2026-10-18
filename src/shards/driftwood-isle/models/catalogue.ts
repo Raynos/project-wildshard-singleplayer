@@ -13,3 +13,7 @@ export const hut = sites.model('hut');
 export const lookout = sites.model('lookout');
 export const shipwreck = sites.model('shipwreck');
 export const shrine = sites.model('shrine');
+
+export const shoreBoulder = sites.model('shoreBoulder');
+export const smallRock = sites.model('smallRock');
+export const reefRock = sites.model('reefRock');

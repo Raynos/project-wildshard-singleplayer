@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Group, Mesh, MeshStandardMaterial, Object3D } from 'three';
+import { Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
+import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
+import { emptyBuildingLifeRows } from '../src/format/buildings';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -288,4 +290,20 @@ test('deferred source slots decode at their named placement', async () => {
     await expect(placing).rejects.toThrow('Scene placement owner is disposed');
     expect(retired.app.registry.pieces).toHaveLength(0);
   } finally { vi.restoreAllMocks(); context.scope.dispose(); rejected.scope.dispose(); retired.scope.dispose(); material.dispose(); }
+});
+
+test('building presentation borrows the installed Z2 namespace', async () => {
+  const context = fixture(), handles = await installWorldScenes(context, section());
+  const mesh = handles.group('harbour.root').children[0];
+  if (!(mesh instanceof Mesh)) throw new Error('Missing fixture scene mesh');
+  expect(handles.material('materials.paint')).toBe(mesh.material);
+  const life = new LivingBuildings(handles, { wheel: 0, door: { seconds: 1, angle: 1 }, fire: [0, 1], lamp: [0, 1], glass: [0, 1], flicker: { depth: 0, waves: [] }, swing: { z: [], x: [0, 0] } });
+  const rows = emptyBuildingLifeRows();
+  rows.colors.push({ material: 'materials.paint', color: [0.2, 0.4, 0.6], offset: 1, gain: 0, pulse: [0, 0], waves: [], night: [0, 0] });
+  life.add(rows); life.update(0);
+  expect(handles.standard('materials.paint').color.toArray()).toEqual([0.2, 0.4, 0.6]);
+  expect(handles.point({ point: 'harbour.at', offset: [1, 0, -1] }, new Vector3()).toArray()).toEqual([2, 2, 2]);
+  expect(() => handles.publish('harbour.root', new Group())).toThrow('Duplicate');
+  expect(() => handles.material('harbour.root')).toThrow('Expected scene material');
+  context.scope.dispose();
 });

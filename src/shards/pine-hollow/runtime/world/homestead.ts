@@ -8,7 +8,7 @@ import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
-import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { BakedBuildingLookSchema, BuildingLifeLookSchema, emptyBuildingLifeRows, type BakedBuildingLook } from '@wildshard/format/buildings';
 import type { SiteLightState } from '@wildshard/engine/fx/SiteLights';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -159,7 +159,7 @@ export interface CabinBuilding {
  * floors and solids). The smoke's sun and night hold are Pine's (`update`).
  */
 export class Cabins {
-  readonly resources: SceneResources;
+  readonly resources: SceneHandles;
   readonly life: LivingBuildings;
   private readonly lampStates: { readonly id: string; readonly state: SiteLightState }[] = [];
   get interactables(): Interactable[] { return this.life.interactables; }
@@ -197,8 +197,8 @@ export class Cabins {
    * the live root while a region builds changes every visible program's light count (sp-o6: nine programs relinked in one
    * 162 ms Simulator frame of Pine's `world` hook). In the parked frame the lights are future lights the entry warms.
    */
-  constructor(sky: Sky, lightScene: THREE.Scene, rows: CabinRows) {
-    this.resources = new SceneResources(sky);
+  constructor(sky: Sky, lightScene: THREE.Scene, rows: CabinRows, resources: SceneHandles) {
+    this.resources = resources;
     this.life = new LivingBuildings(this.resources, rows.CABIN_LIFE);
     this.rows = rows;
     this.sky = sky;

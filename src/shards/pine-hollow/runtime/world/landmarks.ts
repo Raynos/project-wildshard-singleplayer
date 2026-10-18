@@ -30,7 +30,7 @@ import authored from '../../data/timberWorld.generated.json' with { type: 'json'
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import type { ModelDef } from '@wildshard/engine/models/model';
-import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

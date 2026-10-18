@@ -3,7 +3,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan, type ClientFeatureKind, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { ProductError, type ShardProduct } from './shardProduct';
-import { installWorldScenes, type SceneHandles } from './worldScenes';
+import { installWorldScenes } from './worldScenes';
+import type { SceneHandles } from './sceneHandles';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
 export type ClientPhase = 'world' | 'kit' | 'play';

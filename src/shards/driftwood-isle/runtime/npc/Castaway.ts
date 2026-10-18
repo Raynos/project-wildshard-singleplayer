@@ -5,7 +5,7 @@
  * driftwood staff — and his campfire beside him (stone ring, logs, flames, a smoke column you can see from the pier:
  * the breadcrumb the intro objective points at).
  *
- *   const npc = new Castaway(sky, { x, y, z, yaw }, { x, y, z }).build();   // his feet; the fire's centre
+ *   const npc = new Castaway(sky, { x, y, z, yaw }, { x, y, z }, scenes).build();   // his feet; the fire's centre
  *   scene.add(npc.group);  register its registry piece;
  *   game.onUpdate((dt, t) => npc.update(dt, t, player.position));
  *   npc.talking = true    // gestures with the free arm while the dialogue is open (and keeps facing you)
@@ -33,7 +33,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
-import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -71,7 +71,7 @@ export class Castaway {
   private readonly sky: Sky;
   private readonly feet: Pos;
 
-  constructor(sky: Sky, feet: Pos, fire: Pos) {
+  constructor(sky: Sky, feet: Pos, fire: Pos, private readonly resources: SceneHandles) {
     this.sky = sky; this.feet = feet;
     this.bodyYaw = feet.yaw ?? 0;
     // the fire in the NPC's frame (the group is placed at his feet, rotated with him)
@@ -95,7 +95,7 @@ export class Castaway {
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
     // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
-    const native = driftwoodRows('custom/fixedLayouts').nativeView, smokeRow = native.CASTAWAY_SMOKE, resources = new SceneResources(this.sky);
+    const native = driftwoodRows('custom/fixedLayouts').nativeView, smokeRow = native.CASTAWAY_SMOKE, resources = this.resources;
     const ready = fixedGeometryReady(), lit = hasLentLook(native.SMOKE_LOOK);
     const smoke = createBuildingCloud(resources, { geometry: resources.lend(ready ? fixedDraw('castawaySmoke').copy() : new THREE.BufferGeometry()),
       material: lit ? resources.lend(lentLook(native.SMOKE_LOOK)) : null, seeds: false, name: smokeRow.name,

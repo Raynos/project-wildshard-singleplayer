@@ -6,7 +6,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import { BuildingContinuationSchema, parseBuildingLifeLook, parseBuildingLifeRows, type BuildingContinuation, type BuildingLifeLook, type BuildingLifeRows } from '@wildshard/format/buildings';
 import { setLentParam } from './lentLooks';
-import type { SceneResources } from './sceneResources';
+import type { SceneHandles } from './sceneHandles';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { instanceSave } from '../instanceSaves';
@@ -54,7 +54,7 @@ export class LivingBuildings {
   private sharedCount = 0;
   private flickerCount = 0;
 
-  constructor(private readonly resources: SceneResources, input: BuildingLifeLook) {
+  constructor(private readonly resources: SceneHandles, input: BuildingLifeLook) {
     this.look = parseBuildingLifeLook(input);
     this.audioState.wheel.value = this.look.wheel;
     this.lights = new SiteLights(this.look);

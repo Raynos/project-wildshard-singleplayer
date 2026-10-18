@@ -10,12 +10,9 @@ import { namedModelProduct } from './fixtures/namedModelProduct';
 import { prepareToonLook } from '../src/game/looks/toonLook';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
 import { SECTIONS } from '../src/shards/driftwood-isle/runtime/sections';
-import { rockGeometry } from '../src/shards/driftwood-isle/world/rockKit';
-import { addGeometryBake } from '../src/engine/world/geometryBake';
+import { authoredRockGeometry } from '../src/shards/driftwood-isle/generators/rocks';
 import { Rng } from '../src/engine/core/rng';
 import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';
-// oxlint-disable-next-line import/no-nodejs-modules -- The regression loads the committed offline rock table.
-import { readFileSync } from 'node:fs';
 
 test('native view rows are admitted from canonical authored data', () => {
   admitDriftwoodFixtureRows();
@@ -29,21 +26,20 @@ test('render setup retains the live uniforms used by parked views', () => {
   expect(state.dayLight.uCloudTime.value).toBe(42);
 });
 
-test('canonical wire key order retains every original rock recipe', () => {
+test('canonical palette key order retains authored rock geometry', () => {
   const wire = namedModelProduct(new Map(), false).section('custom/fixedLayouts', SECTIONS).nativeView.SHORE_ROCK;
   expect(Object.keys(wire)).not.toEqual(Object.keys(SHORE_ROCK));
-  const release = addGeometryBake(Uint8Array.from(readFileSync(new URL('../public/assets/models/driftwood-blender/geometry.bin', import.meta.url))).buffer);
   const build = (palette: typeof SHORE_ROCK) => {
     const rng = new Rng(0x5ea1 ^ 0x70c5), moss = rng.range(0.25, 0.85);
-    return rockGeometry(1.8, rng, { moss, squash: 0.72, palette, ground: -0.35 * 1.8 * 0.72 });
+    return authoredRockGeometry(1.8, rng, { moss, squash: 0.72, palette, ground: -0.35 * 1.8 * 0.72 });
   };
-  try {
+  {
     const original = build(SHORE_ROCK), admitted = build(wire);
     try {
       for (const name of ['position', 'normal', 'color']) expect(admitted.getAttribute(name).array).toEqual(original.getAttribute(name).array);
       expect(admitted.index?.array).toEqual(original.index?.array);
     } finally { original.dispose(); admitted.dispose(); }
-  } finally { release(); }
+  }
 });
 
 test('admitted shadow tiers retain both original view choices', () => {

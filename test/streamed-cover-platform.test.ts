@@ -9,7 +9,7 @@ import { parseStreamedCover } from '../src/format/streamedCover';
 import { createStreamedCover } from '../src/game/looks/streamedCover';
 import { toonLighting } from '../src/game/looks/toonLighting';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { SceneResources } from '../src/game/shardfile/sceneResources';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import authored from '../src/shards/driftwood-isle/data/groundCover.json';
 import { createCoverAppearance } from '../src/game/looks/coverAppearance';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -49,7 +49,7 @@ function cells(): Uint8Array {
   return bytes;
 }
 function fixture() {
-  const resources = new SceneResources({ setupMaterial: () => undefined });
+  const resources = new SceneHandles({ setupMaterial: () => undefined });
   resources.publish('reed-model', new BoxGeometry()); resources.publish('reed-card', new BoxGeometry());
   const toon = new ToonLook(), params = new Map<string, unknown>();
   const light = toonLighting({ id: row.lighting, initial: { uToonLift: [.1, .2, .3], uToonRim: [.3, .2, .1],

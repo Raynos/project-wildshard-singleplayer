@@ -1,7 +1,6 @@
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
-import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import RuntimePlugin from './index';
 import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
@@ -32,9 +31,8 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     super(async (world, viewer, progress) => {
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
-      // SF46 (G164): the resident's world is built lowered as one, the sea at road level; its kits' voxel AO and its rocks'
-      // painted pieces are read from the build-time bakes (SF67, scripts/bake-voxel-ao.mjs, scripts/bake-geometry.mjs),
-      // built in code only on a miss
+      // The resident's world is lowered as one, with the sea at road level. Its
+      // kits retain voxel AO; finished rock draws arrive through world/scenes.
       // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts, data/reefLook.ts,
       // data/poolLook.ts, data/oceanLook.ts, data/gullGraphLook.ts, data/creatureLook.ts, data/islandLook.ts), lent to the world's modules for the resident's scope; the toon graphs follow the
       // day clock's toon tunables once a frame
@@ -42,8 +40,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       const built = await residentWorld(context).load(context, async (owner) => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: context.game }, context.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOKS)]));
         const scenes = await installWorldScenes(context, context.product.section('world/scenes'), owner);
-        return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
-        () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress, scenes))); });
+        return withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress, scenes)); });
       return built;
     });
     this.binding = binding;

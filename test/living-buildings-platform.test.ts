@@ -5,8 +5,9 @@ import { Scope } from '../src/engine/app/scope';
 import { SaveStore, type SaveStorage } from '../src/engine/saves/store';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema, emptyBuildingLifeRows, type BuildingLifeLook } from '../src/format/buildings';
+import { SceneRefSchema, ObservationRefSchema, admitSceneRefs } from '../src/format/sceneRefs';
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with { type: 'json' };
-import { SceneResources } from '../src/game/shardfile/sceneResources';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '../src/game/shardfile/buildingCloud';
 
@@ -14,7 +15,7 @@ const look: BuildingLifeLook = { wheel: -0.7, door: { seconds: 2, angle: -Math.P
   flicker: { depth: 0.2, waves: [[2, 3, 0.5]] }, swing: { z: [[2, 1, 0.1]], x: [3, 0.2] } };
 /** Made-up second building: outward iron gate, blue lamps and a counter-rotating wheel. */
 function secondBuilding(lifeLook: BuildingLifeLook = look) {
-  const resources = new SceneResources({ setupMaterial: () => undefined }), root = new Group(), gate = new Group(), wheel = new Group(), lamp = new PointLight(0x4080ff, 12), glass = new MeshStandardMaterial();
+  const resources = new SceneHandles({ setupMaterial: () => undefined }), root = new Group(), gate = new Group(), wheel = new Group(), lamp = new PointLight(0x4080ff, 12), glass = new MeshStandardMaterial();
   root.add(gate, wheel, lamp); root.updateMatrixWorld(true);
   resources.publish('gate-pivot', gate); resources.publish('wheel-object', wheel); resources.publish('site', root);
   resources.publish('blue-lamp', lamp); resources.publish('glass', glass);
@@ -28,8 +29,8 @@ function secondBuilding(lifeLook: BuildingLifeLook = look) {
 
 describe('living-building platform rows', () => {
   test('the shrine material pulse matches its original clock math day and night', () => {
-    const resources = new SceneResources({ setupMaterial: () => undefined }), material = new MeshBasicMaterial();
-    resources.publish('shrine.glyphs', material);
+    const resources = new SceneHandles({ setupMaterial: () => undefined }), material = new MeshBasicMaterial();
+    resources.publish('materials.glyphs', material);
     const rows = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.number() }), shrineRows);
     const life = new LivingBuildings(resources, rows.look); life.add(rows.life);
     let time = 0;
@@ -135,7 +136,7 @@ describe('living-building platform rows', () => {
   });
 
   test('camp baked quads and hearth seed quads retain exact authored data and bounds', () => {
-    const resources = new SceneResources({ setupMaterial: () => undefined }), material = new MeshStandardMaterial();
+    const resources = new SceneHandles({ setupMaterial: () => undefined }), material = new MeshStandardMaterial();
     const baked = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([1, 2, 3, 4, 5, 6]), 3));
     const seeds = new BufferGeometry().setAttribute('seed', new BufferAttribute(new Float32Array([1, 2, 3, 4, 5, 6, 7, 8]), 4));
     resources.publish('baked', baked); resources.publish('seeds', seeds); resources.publish('smoke', material);
@@ -148,4 +149,62 @@ describe('living-building platform rows', () => {
     expect(hearth.geometry.boundingSphere?.center.toArray()).toEqual([0, 5, 0]); expect(hearth.geometry.boundingSphere?.radius).toBe(18);
     camp.geometry.dispose(); hearth.geometry.dispose(); baked.dispose(); seeds.dispose(); material.dispose();
   });
+});
+
+// Z11: buildings and Z2 share one namespace and typed point references.
+test('scene and building handles refuse cross-kind collisions', () => {
+  const handles = new SceneHandles(), root = new Group(), material = new MeshBasicMaterial();
+  root.position.set(4, 2, -3); handles.publish('tower.root', root);
+  handles.publish('tower.glow', material); handles.publishColliders('tower.colliders', []);
+  expect(handles.object('tower.root')).toBe(root);
+  expect(handles.material('tower.glow')).toBe(material);
+  expect(handles.colliders('tower.colliders')).toEqual([]);
+  expect(handles.point({ part: 'tower.root' }, new Vector3()).toArray()).toEqual([4, 2, -3]);
+  expect(handles.point({ point: 'tower.root', offset: [1, -1, 2] }, new Vector3()).toArray()).toEqual([5, 1, -1]);
+  expect(() => handles.publish('tower.root', material)).toThrow('Duplicate');
+  expect(() => handles.publishColliders('tower.glow', [])).toThrow('Duplicate');
+  expect(() => handles.geometry('tower.root')).toThrow('Expected scene geometry');
+  expect(() => handles.point({ part: 'missing.root' }, new Vector3())).toThrow('Missing');
+  expect(handles.lend(root)).toBe(handles.lend(root)); material.dispose();
+});
+
+test('figure eviction releases only its own still-current loan', () => {
+  const handles = new SceneHandles(), before = new Group(), after = new Group();
+  handles.publish('figure.root', before);
+  expect(handles.release('figure.root', after)).toBe(false);
+  expect(handles.object('figure.root')).toBe(before);
+  expect(handles.release('figure.root', before)).toBe(true);
+  expect(handles.has('figure.root')).toBe(false);
+  handles.publish('figure.root', after);
+  expect(handles.release('figure.root', before)).toBe(false);
+  expect(handles.object('figure.root')).toBe(after);
+});
+
+test('cloud scene points convert into the named parent frame', () => {
+  const handles = new SceneHandles(), parent = new Group(), socket = new Group();
+  parent.position.set(4, 2, -3); parent.rotation.y = 0.6; parent.scale.setScalar(2);
+  socket.position.set(1, 2, 3); parent.add(socket);
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0]), 3));
+  const material = new MeshBasicMaterial();
+  handles.publish('tower.root', parent); handles.publish('tower.socket', socket);
+  handles.publish('cloud.geometry', geometry); handles.publish('cloud.material', material);
+  const row = { geometry: 'cloud.geometry', material: 'cloud.material', seeds: false, name: 'cloud',
+    at: { part: 'tower.socket' }, parent: 'tower.root', center: [0, 0, 0] as const, radius: 1, order: 0, visible: true };
+  const cloud = createBuildingCloud(handles, row);
+  expect(cloud.position.x).toBeCloseTo(1); expect(cloud.position.y).toBeCloseTo(2); expect(cloud.position.z).toBeCloseTo(3);
+  expect(() => createBuildingCloud(handles, { ...row, parent: 'missing.root' })).toThrow('Missing');
+  expect(() => createBuildingCloud(handles, { ...row, at: [0, 0, 0] })).toThrow('Cloud parent');
+  cloud.geometry.dispose(); geometry.dispose(); material.dispose();
+});
+
+
+test('scene and observation refs admit only declared JSON identities', () => {
+  const published = new Set(['tower.root']);
+  expect(() => admitSceneRefs([{ part: 'tower.root' }, { point: 'tower.root', offset: [0, 1, 0] }, { prompt: 'gate' }], published, new Set(['gate']))).not.toThrow();
+  expect(() => admitSceneRefs([{ part: 'foreign.root' }], published)).toThrow('Missing scene reference');
+  expect(() => admitSceneRefs([{ prompt: 'foreign' }], published)).toThrow('Missing scene reference');
+  for (const ref of [{ owner: 'world', path: ['root'] }, { part: 'tower.root', path: ['child'] }, { part: 'Tower.root' }, { point: 'tower.root', offset: [0, Number.NaN, 0] }]) expect(v.safeParse(SceneRefSchema, ref).success).toBe(false);
+  for (const ref of [{ flag: 'quest.lit' }, { mark: 'gate.used' }, { mover: 'gate', state: 'moving' }]) expect(v.safeParse(ObservationRefSchema, ref).success).toBe(true);
+  expect(v.safeParse(ObservationRefSchema, { owner: 'world', path: ['lit'] }).success).toBe(false);
+  expect(v.safeParse(ObservationRefSchema, { mover: 'gate', state: 'unknown' }).success).toBe(false);
 });

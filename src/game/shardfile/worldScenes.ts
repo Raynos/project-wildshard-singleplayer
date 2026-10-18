@@ -1,11 +1,11 @@
-import { type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Sphere, Vector3 } from 'three';
+import { SceneHandles } from './sceneHandles';
+import { type BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
-import type { Placed } from '@wildshard/engine/models/place';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -22,54 +22,6 @@ import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 
-/** Named resident presentation parts. Accessors refuse missing or incorrectly typed handles. */
-export interface SceneHandles {
-  readonly place: (id: string) => Promise<Placed>;
-  readonly has: (id: string) => boolean;
-  readonly object: (id: string) => Object3D;
-  readonly group: (id: string) => Group;
-  readonly mesh: (id: string) => Mesh;
-  readonly vector: (id: string) => Vector3;
-  readonly number: (id: string) => number;
-  readonly material: (id: string) => MeshStandardMaterial;
-  readonly light: (id: string) => PointLight;
-  readonly colliders: (id: string) => readonly ColliderDesc[];
-}
-class InstalledSceneHandles implements SceneHandles {
-  private readonly values = new Map<string, unknown>();
-  private readonly shapes = new Map<string, readonly ColliderDesc[]>();
-  async place(id: string): Promise<Placed> {
-    const value = this.value(id);
-    if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
-    const placed = await value.load();
-    if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
-    return placed;
-  }
-  has(id: string): boolean { return this.values.has(id) || this.shapes.has(id); }
-  /** Host publication is atomic per installation; duplicate handles are never overwritten. */
-  publish(id: string, value: unknown): void {
-    if (this.has(id)) throw new Error(`Duplicate world scene handle: ${id}`);
-    this.values.set(id, value);
-  }
-  publishColliders(id: string, value: readonly ColliderDesc[]): void {
-    if (this.has(id)) throw new Error(`Duplicate world scene handle: ${id}`);
-    this.shapes.set(id, value);
-  }
-  colliders(id: string): readonly ColliderDesc[] { const value = this.shapes.get(id); if (value === undefined) throw new Error(`Missing scene colliders: ${id}`); return value; }
-  private value(id: string): unknown {
-    if (!this.values.has(id)) throw new Error(`Missing world scene handle: ${id}`);
-    return this.values.get(id);
-  }
-  object(id: string): Object3D { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!object3(value)) throw new Error(`Expected scene object: ${id}`); return value; }
-  group(id: string): Group { const value = this.value(id); if (!group3(value)) throw new Error(`Expected scene group: ${id}`); return value; }
-  mesh(id: string): Mesh { const source = this.value(id), value = source instanceof WorldSceneBatch ? source.finish() : source; if (!mesh3(value)) throw new Error(`Expected scene mesh: ${id}`); return value; }
-  vector(id: string): Vector3 { const value = this.value(id); if (!(value instanceof Vector3)) throw new Error(`Expected scene vector: ${id}`); return value; }
-  number(id: string): number { const value = this.value(id); if (typeof value !== 'number') throw new Error(`Expected scene number: ${id}`); return value; }
-  material(id: string): MeshStandardMaterial { const value = this.value(id); if (!(value instanceof MeshStandardMaterial)) throw new Error(`Expected scene material: ${id}`); return value; }
-  light(id: string): PointLight { const value = this.value(id); if (!(value instanceof PointLight)) throw new Error(`Expected scene light: ${id}`); return value; }
-}
-function object3(value: unknown): value is Object3D { return value instanceof Object3D; }
-function group3(value: unknown): value is Group { return value instanceof Group; }
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
 interface Library {
@@ -182,7 +134,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     await buildYield(resident);
   }
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
-  const handles = new InstalledSceneHandles();
+  const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   try {
     for (const row of section.libraries) {
       if (row.kind === 'owned') {
@@ -226,7 +178,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
         sky.setupMaterial(material);
       }
-      materials.set(row.id, material);
+      materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
       if (row.kind === 'standard' || row.kind === 'basic') owner.onDispose(() => { material.dispose(); });
       await buildYield(owner);
     }

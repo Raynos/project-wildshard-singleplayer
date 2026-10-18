@@ -77,6 +77,20 @@ if (process.argv.includes('--original-scenes')) {
   }
 }
 const rows = [], tiers = {}, errors = [];
+if (process.argv.includes('--original-rocks')) {
+  const { bakeRockScenes } = await import('../src/shards/driftwood-isle/generators/rockScenes.ts');
+  const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
+  const plans = read('../src/shards/driftwood-isle/data/islandPlanFiles.json');
+  const plan = read(`../public${plans.phone.url}`), shore = read('../src/shards/driftwood-isle/data/shoreBoulders.generated.json');
+  const bake = bakeRockScenes(shore.placements, plan.smallRocks);
+  try {
+    for (const [id, name] of [['shore', 'driftwood-isle/shore-boulder'], ['small', 'driftwood-isle/small-rock']]) {
+      const geometry = bake.geometry.get(id);
+      if (geometry === undefined) throw new Error(`Missing author rock: ${id}`);
+      originalScenes.push({ id, name, recomputeBounds: true, geometries: [{ attributes: Object.fromEntries(Object.entries(geometry.attributes).map(([key, attribute]) => [key, { itemSize: attribute.itemSize, normalized: attribute.normalized, array: Array.from(attribute.array) }])), index: geometry.index === null ? null : Array.from(geometry.index.array) }] });
+    }
+  } finally { for (const geometry of bake.geometry.values()) geometry.dispose(); }
+}
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 try {
   for (const tier of ['phone', 'desktop']) {
@@ -95,10 +109,15 @@ try {
     const page = await context.newPage(); page.on('pageerror', error => errors.push(String(error)));
     page.on('console', message => { if (message.type() === 'error' && /Shader Error|Program Info Log|WebGLProgram/u.test(message.text())) errors.push(message.text().slice(0, 400)); });
     await page.goto(new URL(`/?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0&tier=${tier}`, url).href, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => {
-      const w = window.__wildshard?.world;
-      return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
-    }, undefined, { timeout: 400000, polling: 1000 });
+    try {
+      await page.waitForFunction(() => {
+        const w = window.__wildshard?.world;
+        return (w?.animals?.animals?.length ?? 0) > 0 && w?.game?.app?.physics !== undefined && !document.querySelector('.ws-load');
+      }, undefined, { timeout: 400000, polling: 1000 });
+    } catch (cause) {
+      const boot = await page.evaluate(() => ({ text: document.body.textContent, world: Object.keys(window.__wildshard?.world ?? {}) }));
+      throw new Error(`Driftwood did not become ready: ${JSON.stringify({ errors, boot })}`, { cause });
+    }
     await page.evaluate(() => window.__parity.advance(30));
     tiers[tier] = await page.evaluate(() => {
       const w = window.__wildshard.world, pieces = w.game.app.registry.pieceList();
@@ -111,7 +130,7 @@ try {
       const game = window.__wildshard.world.game, registry = game.app.registry, pairs = [];
       for (const row of sourceRows) {
         // drawnInto pieces keep an anchor in the registry; their actual draw remains in the scene.
-        const root = row.id === 'wreck' ? game.scene.getObjectByName('wreck-rocks')?.parent : registry.get(row.id)?.object, meshes = [];
+        const root = row.name === undefined ? row.id === 'wreck' ? game.scene.getObjectByName('wreck-rocks')?.parent : registry.get(row.id)?.object : game.scene.getObjectByName(row.name), meshes = [];
         if (root === undefined) throw new Error(`Missing native site: ${row.id}`);
         root.traverse(mesh => { if (mesh.isMesh && mesh.layers.isEnabled(0) && mesh.name !== 'shrine-fireflies') meshes.push(mesh); });
         if (meshes.length !== row.geometries.length) throw new Error(`Native site mesh count differs: ${row.id}`);
@@ -127,13 +146,40 @@ try {
             const Attribute = resident.constructor, ArrayType = resident.array.constructor;
             original.setAttribute(key, new Attribute(new ArrayType(attribute.array), attribute.itemSize, attribute.normalized));
           }
-          original.computeBoundingBox(); original.computeBoundingSphere(); pairs.push({ mesh, baked, original });
+          // Existing fixedDraw sites already used GLB intake bounds before Z2.
+          // A raw author recompute would change their culling contract. The newly
+          // baked world rocks retain the original runtime-computed spheres.
+          if (row.recomputeBounds === true) { original.computeBoundingBox(); original.computeBoundingSphere(); }
+          pairs.push({ mesh, baked, original });
         });
       }
       window.__dlpOriginals = pairs;
     }, originalScenes);
 
-    for (const p of POSES) {
+    const siteViews = process.argv.includes('--site-views') ? await page.evaluate(() => {
+      const game = window.__wildshard.world.game, registry = game.app.registry;
+      return ['hut', 'lookout', 'shrine', 'wreck'].flatMap(id => {
+        const root = id === 'wreck' ? game.scene.getObjectByName('wreck-rocks')?.parent : registry.get(id)?.object;
+        if (root === undefined) throw new Error(`Missing site view: ${id}`);
+        root.updateWorldMatrix(true, true);
+        const boxes = [];
+        root.traverse(mesh => {
+          if (!mesh.isMesh || !mesh.layers.isEnabled(0) || mesh.name === 'shrine-fireflies') return;
+          const local = mesh.geometry.boundingBox;
+          if (local === null) throw new Error(`Missing site bounds: ${id}`);
+          const box = local.clone().applyMatrix4(mesh.matrixWorld);
+          boxes.push(box);
+        });
+        const bounds = boxes.at(0);
+        if (bounds === undefined) throw new Error(`Empty site view: ${id}`);
+        for (const box of boxes.slice(1)) bounds.union(box);
+        const x = (bounds.min.x + bounds.max.x) / 2, z = (bounds.min.z + bounds.max.z) / 2;
+        const target = [x, (bounds.min.y + bounds.max.y) / 2, z];
+        return [-1, 1].map(side => ({ id: `${id}-${side < 0 ? 'west' : 'east'}`,
+          x: x + side * 12, z: z + 12, yaw: Math.atan2(side, 1), pitch: 0.08, target }));
+      });
+    }) : [];
+    for (const p of [...POSES, ...siteViews]) {
       const { yaw, pitch } = p;
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__dlpGate' in window) g.frameGate = window.__dlpGate; });
       await page.evaluate(a => {
@@ -148,7 +194,9 @@ try {
         // the camera at the player's eye where the spawn put it, looking along the pose (yaw 0 = south, −z; +π/2 = east, −x)
         const at = w.player.position, cp = Math.cos(v.pitch);
         cam.position.set(at.x, at.y + 1.62, at.z); cam.up.set(0, 1, 0);
-        cam.lookAt(at.x - Math.sin(v.yaw) * cp * 20, at.y + 1.62 + Math.sin(v.pitch) * 20, at.z - Math.cos(v.yaw) * cp * 20); cam.updateMatrixWorld(true);
+        if (v.target === undefined) cam.lookAt(at.x - Math.sin(v.yaw) * cp * 20, at.y + 1.62 + Math.sin(v.pitch) * 20, at.z - Math.cos(v.yaw) * cp * 20);
+        else cam.lookAt(...v.target);
+        cam.updateMatrixWorld(true);
         const hidden = [];
         for (const child of cam.children) if (child.visible) { child.visible = false; hidden.push(child); }
         scene.traverse(o => {
@@ -183,7 +231,7 @@ try {
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
         let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
         return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, originalChangedPixels, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
-      }, { yaw, pitch });
+      }, { yaw, pitch, target: p.target });
       const row = { tier, phase, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels, ...(shot.originalChangedPixels === null ? {} : { originalChangedPixels: shot.originalChangedPixels }) };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);

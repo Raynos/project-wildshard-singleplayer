@@ -9248,6 +9248,38 @@ still open: the legacy world/save owners are borrowed as capability bundles
 at the collection entry points. Batch 11 of the Pine under-20 mini-plan owns
 the remaining context-and-id API work (G482, sp-x4, recheck 2026-10-18).
 
+## Scene references and building names (Z11, G486)
+
+`game/shardfile/sceneHandles.SceneHandles` is the single client scene name
+registry. Z2 recipe parts, deferred placements and living buildings publish
+into the same namespace; cross-kind duplicates refuse. Resource loans retain
+native identity and construction-scope disposal ownership. Native migration
+builders may publish or lend a resource, but consumers resolve an exact id,
+never a property path into a shard object. Geometry, generic/basic/standard
+materials, objects, groups, meshes, vectors, numbers, lights and colliders
+have checked accessors. Deferred `place(id)` keeps its once-per-resident result.
+Shared batches retain lazy finalization through `object(id)` and `mesh(id)`.
+`release(id, resource)` retires only an identity-equal native publication;
+a stale figure owner cannot remove its successor, and release never disposes
+the borrowed resource.
+
+`format/sceneRefs` admits bounded plain JSON `SceneRef` values (`part`,
+`point` with optional offset, or `prompt`) and `ObservationRef` values
+(`flag`, `mark`, or mover `at-end`/`moving`). `admitSceneRefs` checks a
+consumer's complete ref list against its declared publications and prompts.
+A scene point resolves a published vector or an object's world origin;
+its optional offset is in world units. Building cloud rows accept a scene
+point ref as well as their existing literal position. An optional parent id
+converts that world point into the cloud's local frame. Missing names and
+wrong resource kinds refuse before cloud geometry is allocated. Driftwood's
+shrine cloud resolves its published point through its resident Z2 registry.
+
+The building-only `SceneResources` module is removed. Living building life,
+assembly and clouds use the same typed handles as Z2. Each independently
+owned scene (including a cold Explorer scene) retains its own registry.
+The remaining owner/path consumers migrate with their Z1 feature, as G486
+specifies; this change does not introduce a second effect dispatcher.
+
 ## World scene assembly (Z2, G480/G483)
 
 `@wildshard/game/shardfile/worldScenes.installWorldScenes(context, rows,
@@ -9462,7 +9494,7 @@ forwards this catalogue as part of its explicit admitted context.
 ### Living buildings (G474)
 
 `format/buildings` holds bounded, JSON-only building, life and cloud rows.
-`game/shardfile/sceneResources` is the platform's typed resource context:
+`game/shardfile/sceneHandles` is the platform's typed resource context:
 exact ids resolve native geometries, materials, objects and lights. Publication
 lends engine resources; it accepts no shard behavior or reflection path.
 Native publication adapters remain custom code until Z2 assembles their data.
@@ -9628,7 +9660,7 @@ different species, three-slot family and AS law. Nalati adoption is tracked in
 `game/looks/streamedCover#createStreamedCover(resources, row, cells)` host
 reads `format/streamedCover` rows: cell spacing and cache capacity, per-tier
 reach/capacity and work budgets, fade bands, near/far geometry ids, far density
-retention, material prefix and shared toon-light identity. `SceneResources`
+retention, material prefix and shared toon-light identity. `SceneHandles`
 resolves geometry ids; version-1 baked cell bytes carry placement, yaw, scale,
 tint, ground normals and surface colours. No shard callbacks or subclasses
 participate. Terrain placement height comes from the engine's installed field.

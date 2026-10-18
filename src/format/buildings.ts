@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { ScenePointRefSchema, type ScenePointRef } from './sceneRefs';
 
 /** A building leaf/static solid, independent of a renderer or physics backend. */
 export interface BuildingCollider { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw?: number; surface?: 'stone' | 'wood' }
@@ -98,7 +99,9 @@ export interface BuildingAssemblyRows<K extends string = string, P extends strin
 /** A smoke/ember cloud is either baked quads or a seed geometry instanced as unit quads. */
 export interface BuildingCloudRow {
   readonly geometry: string; readonly material: string | null; readonly seeds: boolean;
-  readonly name: string; readonly at: Xyz; readonly center: Xyz; readonly radius: number;
+  readonly name: string; readonly at: Xyz | ScenePointRef; readonly center: Xyz; readonly radius: number;
+  /** Convert a referenced world point into this named parent's local frame. */
+  readonly parent?: string;
   readonly order: number; readonly visible: boolean;
 }
 const finite = v.pipe(v.number(), v.finite());
@@ -153,9 +156,9 @@ export function parseBuildingLifeRows(input: unknown): BuildingLifeRows { return
 
 /** Visual recipe for an ordinary seed or baked-quad cloud. */
 export const BuildingCloudSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'), v.strictObject({
-  geometry: id, material: v.nullable(id), seeds: v.boolean(), name: v.pipe(v.string(), v.maxLength(256)), at: triple, center: triple,
-  radius: nonnegative, order: finite, visible: v.boolean(),
-}));
+  geometry: id, material: v.nullable(id), seeds: v.boolean(), name: v.pipe(v.string(), v.maxLength(256)), at: v.union([triple, ScenePointRefSchema]), center: triple,
+  radius: nonnegative, order: finite, visible: v.boolean(), parent: v.exactOptional(id),
+}), v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
 const frame = v.strictObject({ metalness: finite, roughness: finite, color: finite });
 /** Building appearance is independent of the shape library and the life clock. */
 export const BakedBuildingLookSchema = v.strictObject({ detail: list(id), far: list(id),

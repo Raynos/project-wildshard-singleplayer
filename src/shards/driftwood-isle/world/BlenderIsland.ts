@@ -42,7 +42,9 @@ import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json
 import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
-import { smallRock } from '../runtime/models/shoreBoulder';
+import { smallRock } from '../models/catalogue';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
+import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import type { IslandCover } from './islandCover';
@@ -53,7 +55,7 @@ import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
-import { placeSliced, type Placed } from '@wildshard/engine/models/place';
+import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
@@ -69,6 +71,7 @@ export interface BlenderIslandCtx {
   scene: THREE.Scene;
   sky: Sky;
   registry: WorldRegistry;
+  scenes: SceneHandles;
   terrain: THREE.Mesh;
   palms: THREE.Mesh | null;
   palmSpecs: PalmSpec[];
@@ -127,7 +130,7 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, place, ao, bounce, plan, protoFile] = await Promise.all([
+    const [gltf, placementBytes, ao, bounce, plan, protoFile] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(), readDriftwoodBlob('world/island/protos.glb'),
@@ -178,11 +181,16 @@ export class BlenderIsland {
     await slice();
     if (plan.smallRocks.length > 0) {
       // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
-      await placeSliced(smallRock, plan.smallRocks.map(row=>({...row,matrix:new THREE.Matrix4().fromArray(row.matrix)})), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
+      const { colliders: _hulls, ...metadata } = smallRock, mesh = ctx.scenes.mesh('rocks.small');
+      mesh.name = smallRock.id;
+      const rows = rockMetadata.rockWorld.small;
+      const placed = place(metadata, plan.smallRocks.map(row => ({ ...row, matrix: new THREE.Matrix4().fromArray(row.matrix) })), { ctx: models, draw: 'merged', registry: ctx.registry,
+        drawnInto: { object: mesh, boxes: Float32Array.from(rows.flatMap(row => row.box)) }, piece: { id: 'cove-small-rocks' } });
+      await placed.registered; ctx.scene.add(mesh);
     }
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    const unclaimed = await this.placeModels(models, new Float32Array(place), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });
+    const unclaimed = await this.placeModels(models, new Float32Array(placementBytes), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
     // ── hide what the area replaces (the faceted ground is baked without the island's cells) ──
     if (ctx.palms) {

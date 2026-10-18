@@ -6,7 +6,7 @@ import { followToonLighting } from './toonLighting';
 import { createCoverAppearance, type CoverAppearance } from './coverAppearance';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { parseStreamedCover, type StreamedCoverRow } from '@wildshard/format/streamedCover';
-import type { SceneResources } from '../shardfile/sceneResources';
+import type { SceneHandles } from '../shardfile/sceneHandles';
 import { CellWindow, instanceTier, type InstanceArrays, type InstanceTier } from '@wildshard/engine/render/streamedInstances';
 
 
@@ -82,7 +82,7 @@ class StreamedCover {
   readonly group = new THREE.Group();
   /** measurements (also `group.userData.stats`) */
   readonly stats: StreamedCoverStats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
-  private readonly resources: SceneResources;
+  private readonly resources: SceneHandles;
   private readonly file: CellFile;
   private readonly row: StreamedCoverRow;
   private readonly farBudgetMs: number;
@@ -107,7 +107,7 @@ class StreamedCover {
   private farWritten = false;
 
   /** The cover's rows, geometries and baked cells. */
-  constructor(resources: SceneResources, row: StreamedCoverRow, cells: Uint8Array) {
+  constructor(resources: SceneHandles, row: StreamedCoverRow, cells: Uint8Array) {
     this.resources = resources;
     this.row = row;
     this.appearance = createCoverAppearance({ params: { viewer: row.params.viewer }, kinds: row.kinds.flatMap(kind => {
@@ -321,6 +321,6 @@ class StreamedCover {
 /** Client-only presentation handle; construction stays private so shards cannot override streaming. */
 export type StreamedCoverHandle = Pick<StreamedCover, 'group' | 'stats' | 'update'>;
 /** Build from plain rows and baked bytes using platform-owned scene resources. */
-export function createStreamedCover(resources: SceneResources, input: unknown, cells: Uint8Array): StreamedCoverHandle {
+export function createStreamedCover(resources: SceneHandles, input: unknown, cells: Uint8Array): StreamedCoverHandle {
   return new StreamedCover(resources, parseStreamedCover(input), cells).build();
 }

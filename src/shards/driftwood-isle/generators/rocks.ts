@@ -1,24 +1,14 @@
-/** Author-only rock sculpting. Runtime and Explorer consume the generated table. */
+/** Author-only rock sculpting. Runtime and Explorer consume finished scene draws. */
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/sdk/random';
-import { finishRock, type RockOpts, type RockPalette } from '../world/rockKit';
-import { SHORE_ROCK, REEF_ROCK, ROCK_PROFILES, ROCK_KINDS } from './rockProfiles';
+import { finishRock, type RockOpts, type RockPalette } from './rockFinish';
+import { SHORE_ROCK, ROCK_PROFILES, ROCK_KINDS } from './rockProfiles';
 
 const smoothstep = (a: number, b: number, x: number): number => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
-
-/** Rebuild a table record without loading or copying an older table. */
-export function sculptBakedRock(id: string, inputs: readonly number[], rng: Rng | null): THREE.BufferGeometry | null {
-  if (!id.startsWith('driftwood-isle/rock:')) return null;
-  const palette = [SHORE_ROCK, REEF_ROCK].find(p => id === `driftwood-isle/rock:${Object.values(p).join(',')}`);
-  const [r, sq, moss, ground, detail] = inputs;
-  if (palette === undefined || rng === null || inputs.length !== 5 || inputs.some(v => !Number.isFinite(v))
-    || r === undefined || sq === undefined || moss === undefined || ground === undefined || detail === undefined) throw new Error('Invalid authored rock recipe');
-  return smoothPainted(r, sq, moss, palette, rng, ground, detail);
-}
 
 /** Finished geometry for other author-only scene producers. */
 export function authoredRockGeometry(r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {

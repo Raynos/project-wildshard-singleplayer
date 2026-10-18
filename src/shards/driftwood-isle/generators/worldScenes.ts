@@ -1,3 +1,4 @@
+import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import trail from '../data/trailsideBake.json' with { type: 'json' };
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
@@ -6,11 +7,12 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
+const rockRows = parseWorldScenes({ version: 1, libraries: [rocks.section.library], materials: [], steps: [rocks.section.step] });
 
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json',
-  libraries: [{ id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs'].map(id => {
+  libraries: [...rockRows.libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs'].map(id => {
     const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
     if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
     const attributes: Record<string, string> = {};
@@ -25,7 +27,7 @@ export const WORLD_SCENES: WorldScenesSection = {
     { id: 'rock', kind: 'lowpoly', variant: 'rock-smooth', properties: { flatShading: false, roughness: 0.82 } },
     { id: 'glow', kind: 'basic', properties: { vertexColors: true } }, { id: 'pool-look', kind: 'look', look: POOL_LOOK },
   ],
-  steps: [{ id: 'cascade', scene: 'scenes/cascade.json',
+  steps: [...rockRows.steps, { id: 'cascade', scene: 'scenes/cascade.json',
     geometry: { sheet: { library: 'cascade', model: 'waterfallSheet' }, rings: { library: 'cascade', model: 'waterfallRings' }, puffs: { library: 'cascade', model: 'waterfallPuffs' } },
     materials: { sheet: 'curtain', rings: 'pool', puffs: 'puffs' }, registry: [], publish: {}, instanceAttributes: [],
     bounds: [{ part: 'puffs', sphere: {"center": [126.2795181274414, 5.813096046447754, 19.283491134643555], "radius": 11.813198103364037} }],
@@ -42,7 +44,7 @@ export const WORLD_SCENES: WorldScenesSection = {
 };
 
 /** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
-export const SCENE_MODEL_BLOBS = [
+export const SCENE_MODEL_BLOBS = [...rocks.blobs,
   { name: 'models/scene-pools.glb', kind: 'glb', source: 'assets/world-scenes/pools.glb' },
   { name: 'models/scene-rings.glb', kind: 'glb', source: 'assets/world-scenes/rings.glb' },
 ];

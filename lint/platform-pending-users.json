@@ -1775,7 +1775,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/sceneResources.ts",
+      "module": "src/game/shardfile/sceneHandles.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/shard-platform/rows.md",

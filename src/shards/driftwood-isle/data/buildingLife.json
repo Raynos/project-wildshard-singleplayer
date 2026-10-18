@@ -39,7 +39,7 @@
     "shared": [],
     "colors": [
       {
-        "material": "shrine.glyphs",
+        "material": "materials.glyphs",
         "color": [
           0.21223075740342198,
           0.6938717612856897,

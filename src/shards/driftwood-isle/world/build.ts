@@ -1,4 +1,4 @@
-import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -9,10 +9,10 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot
  * budget), then the rope bridge's jointed deck, the island's walkway ramps and the Blender spawn cove over the procedural
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { barrel, crate, ropeCoil, driftLog } from '../runtime/models/cargo';
-import { shipwreck, sites, fencePost, signpost, plankStep } from '../models/catalogue';
+import { shipwreck, sites, fencePost, signpost, plankStep, shoreBoulder, reefRock } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -20,15 +20,14 @@ import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physic
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { SHRINE, JETTIES, BRIDGE } from '../world/sites';
+import { JETTIES, BRIDGE } from '../world/sites';
 import manifest from '../discovery.generated';
 import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
-import { shoreBoulder, reefRock } from '../runtime/models/shoreBoulder';
+import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
-import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
@@ -44,7 +43,7 @@ import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from '.
 import entryLandingRows from '../data/entryFloors.generated.json' with { type: 'json' };
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
-import { place, placeSliced, type ModelSite, type Placed } from '@wildshard/engine/models/place';
+import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
 const ENTRY_LANDINGS = entryLandingRows.rows;
 type EntryLanding = (typeof entryLandingRows.rows)[number];
@@ -129,8 +128,17 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   if (boat.ropes) game.scene.add(boat.ropes);
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
-  // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = await stages.build('Shore boulders', async () => ({ placed: await placeSliced(shoreBoulder, structuredClone(fixed.shoreBoulders.placements), { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } }, slice.due), colliders: structuredClone(fixed.shoreBoulders.boxes) }), { values: value => value.colliders });
+  // Keep the model's authored copy facts over the finished world draw.
+  const rocks = await stages.build('Shore boulders', async () => {
+    const rows = rockMetadata.rockWorld.shore, mesh = scenes.mesh('rocks.shore');
+    mesh.name = shoreBoulder.id;
+    const { colliders: _hulls, ...metadata } = shoreBoulder;
+    const placed = place(metadata, rows.map(row => ({ x: row.matrix[12] ?? 0, y: row.matrix[13] ?? 0, z: row.matrix[14] ?? 0, matrix: new THREE.Matrix4().fromArray(row.matrix), params: row.params })),
+      { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true }, drawnInto: { object: mesh, boxes: Float32Array.from(rows.flatMap(row => row.box)),
+        colliders: readColliderRows(rows.flatMap(row => row.colliders), { kinds: ['hull'], surfaces: [] }) } });
+    await placed.registered; game.scene.add(mesh);
+    return { placed, colliders: structuredClone(fixed.shoreBoulders.boxes) };
+  }, { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   const hut = await stages.build('Hut', () => sites.site('hut', 'world', sharedModelContext(sky, game), registry), { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
@@ -146,17 +154,18 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     placed.push(place(crate, crates.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(crates.boxes) }, piece: { id: 'wreck-crates' } }));
     placed.push(place(ropeCoil, coils.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(coils.boxes) }, piece: { id: 'wreck-coils' } }));
     placed.push(place(driftLog, logs.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(logs.boxes) }, piece: { id: 'wreck-drift-logs' } }));
-    placed.push(place(reefRock, reefRocks.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(reefRocks.boxes) }, piece: { id: 'wreck-reef-rocks' } }));
+    const { colliders: _reefHulls, ...reefMetadata } = reefRock;
+    placed.push(place(reefMetadata, reefRocks.placements, { ctx, draw: 'merged', registry, drawnInto: { object: group, boxes: Float32Array.from(reefRocks.boxes) }, piece: { id: 'wreck-reef-rocks' } }));
     return { group, placed, colliders: structuredClone(row.colliders), anchors: structuredClone(row.anchors), holdBounds: { ...row.holdBounds }, floorHeightAt };
   }, { objects: value => [value.group], values: value => value.colliders });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   const shrine = await stages.build('Shrine', async () => {
-    const ctx = sharedModelContext(sky, game), { origin, baseY, terrace } = fixed.shrine.world;
+    const ctx = sharedModelContext(sky, game), { baseY, terrace } = fixed.shrine.world;
     const placed = sites.site('shrine', 'world', ctx, registry);
-    const resources = new SceneResources(sky), graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
-    resources.publish('shrine.glyphs', sites.material('glyphs', ctx));
+    const resources = scenes, graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
+    resources.publish('shrine.root', placed.group);
     placed.group.add(createBuildingCloud(resources, { geometry: resources.lend(fixedDraw('shrineFireflies').copy()), material: lit ? resources.lend(lentLook(graph)) : null,
-      seeds: false, name: 'shrine-fireflies', at: [SHRINE.x - origin.x, baseY, SHRINE.z - origin.z], center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
+      seeds: false, name: 'shrine-fireflies', at: { point: 'shrine.root', offset: [0, baseY, 0] }, parent: 'shrine.root', center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
     const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
     const life = new LivingBuildings(resources, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
@@ -199,7 +208,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { cells: coverCells }).build(); // its plants baked per cell (generators/coverCells.ts)
+  const cover = new GroundCover(sky, { cells: coverCells }, scenes).build(); // its plants baked per cell (generators/coverCells.ts)
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await stages.next('Palms and ground cover');
@@ -218,7 +227,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice(stages.completed + 1, total, 'Bridge physics and paths');
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
-      scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
+      scene: game.scene, sky, registry, scenes, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
       replace: [bushes.mesh], cover: cover.group, islandCover,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');

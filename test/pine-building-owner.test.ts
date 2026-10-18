@@ -3,14 +3,14 @@ import { BoxGeometry, Group, MeshBasicMaterial, MeshStandardMaterial, Vector3 } 
 import * as v from 'valibot';
 import { BakedBuildingAssembly } from '../src/game/shardfile/buildingAssembly';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
-import { SceneResources } from '../src/game/shardfile/sceneResources';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { BakedBuildingLookSchema, type BakedBuildingRecord } from '../src/format/buildings';
 import buildingLook from '../src/shards/pine-hollow/data/buildingLook.json' with { type: 'json' };
 import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
 
 test('building life keeps its door while the assembly owns static collision', () => {
   const material = new MeshStandardMaterial(), glow = new MeshBasicMaterial(), shape = new BoxGeometry();
-  const resources = new SceneResources({ setupMaterial: () => undefined });
+  const resources = new SceneHandles({ setupMaterial: () => undefined });
   resources.publish('shape', shape); resources.publish('wood', material); resources.publish('glow', glow);
   resources.publish('pit', new Group()); resources.publish('lantern', new Group());
   const solid = { kind: 'box' as const, x: 0, y: 1, z: 0, hx: 1, hy: 1, hz: 1 };

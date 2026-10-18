@@ -10,7 +10,7 @@
  * into the colour the ground wears (E156: the baked cover map, world/islandCover.ts, compiled from the same rules). Where a plant may stand,
  * how dense each kind is there and its tint are baked per cell at build (generators/coverCells.ts, coverSites.ts).
  *
- *   const cover = new GroundCover(sky, { cells }).build();
+ *   const cover = new GroundCover(sky, { cells }, scenes).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  *
@@ -25,7 +25,7 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { SceneResources } from '@wildshard/game/shardfile/sceneResources';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 
 const { GROUND_COVER } = authoredCoverLook;
@@ -41,8 +41,7 @@ export class GroundCover {
   readonly stats: StreamedCoverHandle['stats'];
   /** its placements: the dune line's drift logs (the named places' sets read them) */
   readonly placed: Placed[] = [];
-  constructor(private readonly sky: Sky, opts: GroundCoverOpts) {
-    const resources = new SceneResources(sky);
+  constructor(private readonly sky: Sky, opts: GroundCoverOpts, resources: SceneHandles) {
     for (const [kind, slot] of Object.entries(fixedGeometryGroups().cover)) resources.publish(kind, fixedDraw(slot).copy());
     this.stream = createStreamedCover(resources, GROUND_COVER, opts.cells);
     this.group = this.stream.group; this.stats = this.stream.stats;

@@ -168,7 +168,6 @@
     "./loadout/claims": "./loadout/claims.ts",
     "./shardfile/worldScenes": "./shardfile/worldScenes.ts",
     "./shardfile/lentLooks": "./shardfile/lentLooks.ts",
-    "./shardfile/sceneResources": "./shardfile/sceneResources.ts",
     "./shardfile/livingBuildings": "./shardfile/livingBuildings.ts",
     "./shardfile/buildingAssembly": "./shardfile/buildingAssembly.ts",
     "./shardfile/buildingCloud": "./shardfile/buildingCloud.ts",
@@ -191,7 +190,8 @@
     "./looks/toonLighting": "./looks/toonLighting.ts",
     "./looks/toonLook": "./looks/toonLook.ts",
     "./quest/effects": "./quest/effects.ts",
-    "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts"
+    "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
+    "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

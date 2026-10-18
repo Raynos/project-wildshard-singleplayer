@@ -12,12 +12,12 @@
  *
  * E306 / E315 M1 (second pass): the cove is WORLD — the sea cave is welded into the crag (its floor cuts the physics
  * terrain, `terrainCuts`), the pools and the cascade are water. Its loose outdoor rocks (the tidepool rims, the plunge
- * pool's ring, the cascade's banks) are the reef-rock model (src/shards/driftwood-isle/runtime/models/shoreBoulder.ts), placed
+ * pool's ring, the cascade's banks) are the reef-rock model (models/catalogue.ts), placed
  * `drawnInto` the smooth-rock mesh they are welded in. `place` registers the cove's own piece (`cove`: drawn, its
  * colliders and floors; no card); the Wreck cove set (src/shards/driftwood-isle/world/places.ts) lists these rocks.
  *
- *   const cove = new Cove(sky).place(registry);                     // the game: piece `cove` (world) + the reef rocks' card
- *   const cove = new Cove(sky).build();                                          // a dev page / the navmesh bake: not registered
+ *   const cove = new Cove(sky, scenes).place(registry);                     // the game: piece `cove` (world) + the reef rocks' card
+ *   const cove = new Cove(sky, scenes).build();                                          // a dev page / the navmesh bake: not registered
  *   scene.add(cove.group); its registry piece.push(...cove.colliders);
  *   player.platforms.push((x, z) => cove.floorHeightAt(x, z));      // the cave floor (antechamber, ramp, alcove)
  *   game.onUpdate((dt) => cove.update(dt));
@@ -30,10 +30,10 @@
  * `caveBounds` {x, z, r, yMin, yMax} (the cave reverb) — also on `Cove.forIsland()` for the ambience.
  */
 import * as THREE from 'three';
-import type { SceneHandles } from '@wildshard/game/shardfile/worldScenes';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
-import { reefRock } from '../runtime/models/shoreBoulder';
+import { reefRock } from '../models/catalogue';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -82,7 +82,8 @@ export class Cove {
     registry.add({ id: 'cove', name: 'Wreck cove', category: 'nature', file: 'src/shards/driftwood-isle/world/Cove.ts', object: this.group, colliders: this.colliderDescs(), surface: 'rock',
       floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true });
     if (this.rockMesh !== null && this.catalogue.placements.length > 0) {
-      this.placed.push(place(reefRock,this.catalogue.placements,{ctx:modelContext(this.sky),draw:'merged',registry,
+      const { colliders: _reefHulls, ...metadata } = reefRock;
+      this.placed.push(place(metadata,this.catalogue.placements,{ctx:modelContext(this.sky),draw:'merged',registry,
         drawnInto:{object:this.rockMesh,boxes:Float32Array.from(this.catalogue.boxes)},piece:{id:'wreck-cove-reef-rocks'}}));
     }
     return this;

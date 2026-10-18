@@ -1,6 +1,7 @@
 import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
 import { siteCatalogue } from './siteCatalogue';
+import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import wreckScene from '../data/wreckScene.json' with { type: 'json' };
 import trailScene from '../data/trailScene.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
@@ -61,6 +62,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const placed = enemyPlacements();
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const placements = emitNamedBlobs([
+  nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rocks.scene))),
   nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue()))),
   nameBlob('world/building-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(buildingLife))),
   nameBlob('scenes/wreck.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wreckScene))),

@@ -124,5 +124,8 @@
   "test/pine-crag-scenes.test.ts": [
     "pine-hollow"
   ],
-  "test/declared-input-platform.test.ts": []
+  "test/declared-input-platform.test.ts": [],
+  "test/driftwood-shore-boulders.test.ts": [
+    "driftwood-isle"
+  ]
 }

@@ -9,7 +9,7 @@ const tier = v.strictObject({ phone: positive, desktop: positive });
 const cap = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(1e6));
 /** Client-only cover streams. Density/placement is baked in version-1 cells; rows set capacity,
  * reach/fade bands, far stand-ins, slope response, graph ids and upload budgets. Geometry keys
- * resolve in the platform's SceneResources, never in a shard callback or subclass. */
+ * resolve in the platform's SceneHandles, never in a shard callback or subclass. */
 export const StreamedCoverSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Cover requires plain JSON'),
   v.object({ cell: v.pipe(positive, v.integer()), refill: positive, cacheMin: cap, growShare: v.pipe(positive, v.maxValue(1)),
     farRefill: positive, farSlack: positive, farIn: positive, eyeSlack: finite, uploadBytes: cap, nearLag: positive,

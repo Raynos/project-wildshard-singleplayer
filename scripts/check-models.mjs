@@ -78,7 +78,6 @@ export const ON_CONTRACT = [
 export const DONE = {
   'driftwood-isle': {
     'src/shards/driftwood-isle-legacy/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/shards/driftwood-isle/world/rockKit.ts': { why: "the rock kit the rock models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
@@ -238,7 +237,6 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/pier.ts', 'pier.ts'],
   ['driftwood-isle', 'runtime/models/reef.ts', 'reef.ts'],
   ['driftwood-isle', 'runtime/models/ropeBridge.ts', 'ropeBridge.ts'],
-  ['driftwood-isle', 'runtime/models/shoreBoulder.ts', 'shoreBoulder.ts'],
   ['driftwood-isle', 'runtime/models/trader.ts', 'trader.ts'],
   ['driftwood-isle', 'runtime/models/trailside.ts', 'trailside.ts'],
   ['driftwood-isle', 'runtime/models/zipline.ts', 'zipline.ts'],
