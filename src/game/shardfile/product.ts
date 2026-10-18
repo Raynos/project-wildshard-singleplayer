@@ -260,7 +260,8 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
     const cache = options.cache, descriptor = outputDescriptor(source);
-    const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(descriptor?.index.sections.map(section => section.hash) ?? []));
+    const sectionFiles = descriptor === undefined ? [] : [...descriptor.index.sections, ...descriptor.index.schemas];
+    const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(sectionFiles.map(section => section.hash)));
     try {
       let complete = descriptor?.cached ?? true;
       for (const [ref, bytes] of assets) {
@@ -277,7 +278,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       }
-      for (const section of descriptor?.index.sections ?? []) if (!await present(section.hash, section.bytes)) complete = false;
+      for (const section of sectionFiles) if (!await present(section.hash, section.bytes)) complete = false;
       if (complete && descriptor !== undefined) await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
         ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
     } finally { release?.(); }

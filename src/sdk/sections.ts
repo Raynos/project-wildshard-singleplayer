@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import Ajv from 'ajv';
 import { isJsonData } from '@wildshard/format/json';
+import { validateCustomSchema } from '@wildshard/game/shardfile/customSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 
 /** Build-only custom content. Neither the Valibot parser nor author code enters the emitted product. */
@@ -41,12 +41,7 @@ export function validateDefinedSection(schemaBytes: Uint8Array, value: unknown):
   const text = new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes);
   const schema: unknown = JSON.parse(text);
   if (!isJsonData(schema) || typeof schema !== 'object' || schema === null || !('$schema' in schema) || schema.$schema !== DRAFT || encodeCanonicalJson(schema) !== text) throw new Error('Custom section schema must be canonical draft-07 JSON');
-  if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
-  const validator = new Ajv({ allErrors: false, strictKeywords: true, unknownFormats: true, jsonPointers: true });
-  const validate = validator.compile(schema);
-  if (validate.$async === true) throw new Error('Custom section schemas cannot be asynchronous');
-  if (validate(value) !== true) throw new Error(`Custom section value refuses its schema: ${validator.errorsText(validate.errors)}`);
-  return value;
+  return validateCustomSchema(schema, value);
 }
 
 /** Declare a private section in data/. Values are parsed by Valibot and then checked against the emitted

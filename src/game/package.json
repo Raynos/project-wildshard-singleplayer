@@ -208,9 +208,11 @@
     "./shardfile/sceneInputs": "./shardfile/sceneInputs.ts",
     "./shardfile/sceneDraws": "./shardfile/sceneDraws.ts",
     "./shardfile/lightEmitters": "./shardfile/lightEmitters.ts",
-    "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts"
+    "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts",
+    "./shardfile/customSchema": "./shardfile/customSchema.ts"
   },
   "dependencies": {
-    "@wildshard/format": "workspace:*"
+    "@wildshard/format": "workspace:*",
+    "ajv": "6.15.0"
   }
 }

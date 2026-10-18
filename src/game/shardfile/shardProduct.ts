@@ -8,8 +8,8 @@ import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionN
  *
  * The loader builds one product per admitted shard and hands it to the plugin as `ctx.product` (and to a headless entry
  * as `product`). Every `boot` and `enter` section is fetched, hash-checked and decoded before the first hook runs, so
- * `section()` and `strings()` are synchronous lookups. The build validated every value (G445 / G448), so a first-party
- * product never runs a schema here; `check: true` (tests, `wildshard validate`) parses custom sections on read. Blobs are
+ * `section()` and `strings()` are synchronous lookups. The loader checks every custom section's emitted schema
+ * before hooks run (G491); explicit registry reads also parse, and `check: true` deep-freezes values. Blobs are
  * read by logical name, asynchronously, through the shard's verified asset reader.
  */
 export interface ShardProduct {
@@ -116,7 +116,7 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
   function section<R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
   function section(name: string, schemas?: CustomSectionSchemas): unknown {
-    if (schemas === undefined || !check) return value(name);
+    if (schemas === undefined) return value(name);
     const done = parsed.get(name);
     if (done !== undefined) return done;
     const schema = schemas[name as CustomSectionName];

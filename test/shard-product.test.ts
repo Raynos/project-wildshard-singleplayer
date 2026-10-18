@@ -63,9 +63,8 @@ test('generated custom types need no runtime registry and retain product refusal
   expect(refusal(() => absentShardProduct('absent').section<Trades>('custom/trades')).reason).toBe('absent');
 });
 
-test('the trusted product never parses; a checked product parses custom sections and freezes them', () => {
-  // the shipped page trusts the build's validation: a wrong value passes through untouched
-  expect(product().section('custom/wind', SECTIONS)).toEqual({ gust: 'strong' });
+test('every explicit custom registry parses; checked products also freeze values', () => {
+  expect(refusal(() => product().section('custom/wind', SECTIONS)).reason).toBe('schema');
   const checked = product({ check: true });
   const error = refusal(() => checked.section('custom/wind', SECTIONS));
   expect(error.reason).toBe('schema');

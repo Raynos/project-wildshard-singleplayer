@@ -7680,6 +7680,11 @@ its generated declaration type, without importing a runtime schema. The
 build-only `generators/sections.ts` registry owns validation; the section
 schema producer emits wire schemas and standalone
 `runtime/productSections.generated.d.ts` declarations from that same registry.
+The loader fetches and hash-checks every custom section's emitted draft-07
+schema and validates its value before the first hook, including first-party
+receipts and offline cache reads (G491). Missing or malformed schemas and
+invalid values fail the load. `game/shardfile/customSchema.validateCustomSchema`
+shares the build validator's strict, non-coercing admission with the loader.
 Missing, streamed and absent-product reads keep the normal product refusals.
 Checked products deep-freeze these values; schema-backed reads remain
 available for external or unconverted readers. Immutable product content

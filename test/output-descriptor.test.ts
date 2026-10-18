@@ -143,3 +143,30 @@ test('every section request starts before a slow first response completes', asyn
   finally { gate.release?.(); }
   await expect(pending).resolves.toBeDefined();
 });
+
+test('checks emitted custom schemas at load, including first-party and cached readers', async () => {
+  const { index, wires } = fixture();
+  const name = 'custom/probe', path = `sections/${name}.json`, schemaPath = `schemas/${name}.schema.json`;
+  const schema = encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false });
+  const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
+  const read = (value: unknown, schemaBytes = schema) => {
+    const bytes = encodeCanonicalJson(value);
+    wires.set(path, bytes); wires.set(schemaPath, schemaBytes);
+    wires.set('shard.json', encodeCanonicalJson({ ...index,
+      sections: [...index.sections, { name, schema: schemaPath, ...measured(path, bytes) }],
+      schemas: [measured(schemaPath, schemaBytes)] }));
+    return readProductDescriptor(options(wires));
+  };
+  await expect(read({ n: 1 })).resolves.toBeDefined();
+  await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
+  await expect(read({})).rejects.toThrow('refuses its schema');
+  await expect(read({ n: 1 }, encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', typo: true }))).rejects.toThrow();
+  await read({ n: 1 });
+  const store = cacheStore();
+  const opts = options(wires, store.cache);
+  const source = await readProductDescriptor(opts);
+  await admitProduct(source, opts);
+  await expect(readProductDescriptor({ ...opts, offline: true })).resolves.toBeDefined();
+  store.bytes.delete(hashImmutableBytes(schema));
+  await expect(readProductDescriptor({ ...opts, offline: true })).rejects.toThrow('incomplete section cache');
+});

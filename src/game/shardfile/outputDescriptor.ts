@@ -1,6 +1,7 @@
 import { assembleOutputFields, assembleOutputShardfile, isOutputIndex, outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
 import { isJsonData } from '@wildshard/format/json';
+import { validateCustomSchema } from './customSchema';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
@@ -76,10 +77,15 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   };
   // Each section is independently bounded; launch the complete inventory in
   // parallel, and settle every request before returning a failed admission.
-  const results = await Promise.allSettled(index.sections.map(load));
+  const results = await Promise.allSettled([...index.sections, ...index.schemas.map(row => ({ ...row, name: row.path, schema: row.path }))].map(load));
+  const schemas = new Map<string, unknown>();
   for (const result of results) {
     if (result.status === 'rejected') throw result.reason;
-    sections.set(...result.value);
+    (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
+  }
+  // G491: a build receipt never bypasses an authored custom schema at load.
+  for (const row of index.sections) {
+    if (row.name.startsWith('custom/')) validateCustomSchema(schemas.get(row.schema), sections.get(row.name));
   }
   const indexHash = await reader.hash(validationSourceBytes(input));
   const receipt = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash, indexHash) : null;
