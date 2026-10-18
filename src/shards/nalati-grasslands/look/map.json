@@ -25,7 +25,9 @@
     "behaviour/chapter.as",
     "data/chapterStory.json",
     "boot/poiPaint.json",
-    "behaviour/admission.as"
+    "behaviour/admission.as",
+    "data/ecology.json",
+    "data/ecology.generated.json"
   ],
   "style": {
     "kind": "ground",

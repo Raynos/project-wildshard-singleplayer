@@ -1,0 +1,394 @@
+{
+  "sourceTree": "1cfdb6c5f10c5064f7f425202f9942e41ac56d59",
+  "sourceParent": "387400424bb290597f88b1c9a0b21b9db7ab2d7b",
+  "commitParent": "a439bc92438f7fb5e6c189efa6e18c91e3d1334d",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2563,
+  "shards": {
+    "nine-dragon-stack": {
+      "inputHash": "e01216e632cacbfb06e497ffcbd8faa43e26cf77ec732c6baa7c5ec150ad14e0",
+      "inputFiles": 159,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "e01216e632cacbfb06e497ffcbd8faa43e26cf77ec732c6baa7c5ec150ad14e0",
+        "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+        "image": "/assets/nine-dragon-stack/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 13378
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "491c74e0848b145965089c895c33a8c24012d8fd9462f9bf1f32ac411658149e",
+      "inputFiles": 190,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "491c74e0848b145965089c895c33a8c24012d8fd9462f9bf1f32ac411658149e",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "387400424bb290597f88b1c9a0b21b9db7ab2d7b",
+    "through": "a439bc92438f7fb5e6c189efa6e18c91e3d1334d",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "a439bc92438f7fb5e6c189efa6e18c91e3d1334d"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phoneProof": {
+    "bakeSource": "1cfdb6c5f10c5064f7f425202f9942e41ac56d59",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "nalati-grasslands",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 4305,
+        "entryMs": 4345,
+        "gameplayMs": 4559,
+        "framesStartMs": 4560,
+        "framesCompleteMs": 4979
+      },
+      "gameplayFrames": {
+        "initial": 2,
+        "final": 14
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 4979,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 14,
+      "drawnFrame": 14,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "nalati-grasslands",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 56,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "phoneProofs": [
+    {
+      "bakeSource": "1cfdb6c5f10c5064f7f425202f9942e41ac56d59",
+      "proofPassed": true,
+      "device": {
+        "name": "iPhone 16 Pro",
+        "width": 402,
+        "height": 681,
+        "scale": 2,
+        "muted": true
+      },
+      "shard": "nine-dragon-stack",
+      "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+      "observation": {
+        "mode": "standalone",
+        "phases": {
+          "titleMs": 5017,
+          "entryMs": 5058,
+          "gameplayMs": 5268,
+          "framesStartMs": 5269,
+          "framesCompleteMs": 5585
+        },
+        "gameplayFrames": {
+          "initial": 2,
+          "final": 12
+        },
+        "road": null,
+        "telemetryPosts": 0,
+        "lifecycleReports": 0,
+        "gridNavigationObserved": false,
+        "elapsedMs": 5585,
+        "fatal": [],
+        "ready": true,
+        "entered": true,
+        "revealing": false,
+        "frameGate": true,
+        "frame": 12,
+        "drawnFrame": 12,
+        "clockPaused": false,
+        "held": false,
+        "dead": false,
+        "visibility": "visible",
+        "states": [
+          "boot",
+          "loading",
+          "title",
+          "play"
+        ],
+        "shard": "nine-dragon-stack",
+        "grid": null,
+        "appState": "play",
+        "playerValid": true,
+        "renderFrame": 77,
+        "faults": [],
+        "reports": []
+      }
+    },
+    {
+      "bakeSource": "1cfdb6c5f10c5064f7f425202f9942e41ac56d59",
+      "proofPassed": true,
+      "device": {
+        "name": "iPhone 16 Pro",
+        "width": 402,
+        "height": 681,
+        "scale": 2,
+        "muted": true
+      },
+      "shard": "nalati-grasslands",
+      "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+      "observation": {
+        "mode": "standalone",
+        "phases": {
+          "titleMs": 4305,
+          "entryMs": 4345,
+          "gameplayMs": 4559,
+          "framesStartMs": 4560,
+          "framesCompleteMs": 4979
+        },
+        "gameplayFrames": {
+          "initial": 2,
+          "final": 14
+        },
+        "road": null,
+        "telemetryPosts": 0,
+        "lifecycleReports": 0,
+        "gridNavigationObserved": false,
+        "elapsedMs": 4979,
+        "fatal": [],
+        "ready": true,
+        "entered": true,
+        "revealing": false,
+        "frameGate": true,
+        "frame": 14,
+        "drawnFrame": 14,
+        "clockPaused": false,
+        "held": false,
+        "dead": false,
+        "visibility": "visible",
+        "states": [
+          "boot",
+          "loading",
+          "title",
+          "play"
+        ],
+        "shard": "nalati-grasslands",
+        "grid": null,
+        "appState": "play",
+        "playerValid": true,
+        "renderFrame": 56,
+        "faults": [],
+        "reports": []
+      }
+    }
+  ],
+  "includedSourceLandings": [
+    {
+      "sha": "95617e56974f64edca3322f36b886f5c868d90f7",
+      "owner": "sp-x8",
+      "summary": "Nine authored sign and specimen data; declaration-only producer",
+      "mapShards": [
+        "nine-dragon-stack"
+      ],
+      "mappedPaths": [
+        "src/shards/nine-dragon-stack/data/signView.json",
+        "src/shards/nine-dragon-stack/data/specimenProfiles.json",
+        "src/shards/nine-dragon-stack/data/specimenProfiles.ts",
+        "src/shards/nine-dragon-stack/generators/bake-client-rows.mjs",
+        "src/shards/nine-dragon-stack/generators/glyphPage.ts",
+        "src/shards/nine-dragon-stack/generators/lightVolumes.ts",
+        "src/shards/nine-dragon-stack/generators/signAtlas.ts",
+        "src/shards/nine-dragon-stack/generators/signAtlasPage.ts",
+        "src/shards/nine-dragon-stack/generators/signMath.ts",
+        "src/shards/nine-dragon-stack/generators/signs.ts",
+        "src/shards/nine-dragon-stack/generators/specimens.ts",
+        "src/shards/nine-dragon-stack/generators/spillBake.ts",
+        "src/shards/nine-dragon-stack/models/bridgePosts.ts",
+        "src/shards/nine-dragon-stack/models/inKit.ts",
+        "src/shards/nine-dragon-stack/models/laundry.ts",
+        "src/shards/nine-dragon-stack/models/paifang.ts",
+        "src/shards/nine-dragon-stack/models/signs.ts",
+        "src/shards/nine-dragon-stack/world/build.ts"
+      ],
+      "newDirectFacts": {
+        "nine-dragon-stack": [
+          "data/signView.json"
+        ]
+      },
+      "replacedDirectFacts": {
+        "nine-dragon-stack": {
+          "data/specimenProfiles.ts": "data/specimenProfiles.json"
+        }
+      },
+      "sourceRulerReceipt": ".git/proofs/95617e569-sp-x8/ruler.json",
+      "generationNote": "nine-client-rows outputs/pins only data/signView.d.json.ts and data/specimenProfiles.d.json.ts; compile-time only, excluded direct map roots",
+      "phoneReceipt": ".git/proofs/95617e569-sp-x8/phone-result.json",
+      "phoneObservation": {
+        "device": "iPhone 16 Pro",
+        "browser": "WebKit",
+        "viewport": [
+          402,
+          874
+        ],
+        "dpr": 3,
+        "muted": true,
+        "realPlayerPoses": 3,
+        "colliders": 564,
+        "grounded": true,
+        "play": true,
+        "pageErrors": 0,
+        "shaderErrors": 0,
+        "ownerInspectedImages": true,
+        "maxTouchPoints": 0,
+        "ontouchstart": true,
+        "coarse": true,
+        "hasTouchMobileContext": true,
+        "hudRetained": true,
+        "browserClosed": true,
+        "previewRetainedFor": "sp-x5 parent six-view comparison; owner-managed4400"
+      }
+    },
+    {
+      "sha": "c623a5be8add04507de2dc15bd01cd83b36e31f4",
+      "owner": "sp-x9",
+      "summary": "Nalati ecology author data and build-only derived rows replace runtime modules",
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "mappedPaths": [
+        "src/shards/nalati-grasslands/generators/bake-layout.mjs",
+        "src/shards/nalati-grasslands/generators/ecology.mjs",
+        "src/shards/nalati-grasslands/generators/output.ts",
+        "src/shards/nalati-grasslands/models/creatures.ts",
+        "src/shards/nalati-grasslands/shard.config.ts"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "data/ecology.json",
+          "data/ecology.generated.json"
+        ]
+      },
+      "generatedOutputPins": {
+        "src/shards/nalati-grasslands/data/ecology.generated.json": "869c06de7fe88cb7f9d978825c12d95b9eb63c1c3e1232165bb9752ff86c9bd9",
+        "src/shards/nalati-grasslands/data/ecology.generated.d.json.ts": "f6ed6186bf039755ccfab94a34eb6938e7436107a7234f324b3b192173c3f246"
+      },
+      "generationNote": "Existing nalati-layout outputs/buildOutputs only; type companions excluded direct roots; no named JSON/custom section delta",
+      "ownerMeasuredDelta": {
+        "nalati-grasslands": -123,
+        "platform": 0,
+        "assemblyScript": 0
+      },
+      "mapRootAuditNote": "Exact committed diff also includes generators/output.ts, models/creatures.ts and shard.config.ts beyond the two producer paths in initial owner handoff; all included.",
+      "phoneReceiptDirectory": ".git/proofs/sp-x9-c623a5be8/",
+      "phoneObservation": {
+        "build": "c623a5b-mve9xcyz",
+        "muted": true,
+        "device": "iPhone 16 Pro",
+        "finiteActors": 35,
+        "colliders": 2682,
+        "draws": 89,
+        "loadingOverlay": false,
+        "browserErrors": 0,
+        "ownerSurfacesClosed": true
+      }
+    },
+    {
+      "sha": "387400424bb290597f88b1c9a0b21b9db7ab2d7b",
+      "owner": "sp-x7",
+      "summary": "Map-neutral CI worker replay-window fixture repair; native1000 suffix retained",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "nine-dragon-stack": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "nine-dragon-stack": [
+      "data/signView.json"
+    ],
+    "nalati-grasslands": [
+      "data/ecology.json",
+      "data/ecology.generated.json"
+    ]
+  }
+}

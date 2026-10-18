@@ -7,7 +7,7 @@
     "generators",
     "models",
     "data/floorPlan.ts",
-    "data/specimenProfiles.ts",
+    "data/specimenProfiles.json",
     "data/layoutPlan.ts",
     "data/specimenDims.ts",
     "data/weaponLooks.ts",
@@ -15,7 +15,8 @@
     "data/lightPools.json",
     "runtime/looks/light.ts",
     "data/lantern.json",
-    "data/lightSpill.generated.json"
+    "data/lightSpill.generated.json",
+    "data/signView.json"
   ],
   "clipAbove": 153,
   "style": {
