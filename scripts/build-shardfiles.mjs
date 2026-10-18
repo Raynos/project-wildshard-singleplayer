@@ -10,7 +10,7 @@ import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { runWildshard } from './wildshard.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
+import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
@@ -51,7 +51,12 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
     const started = performance.now();
     const stamp = mapStampPath(project);
-    if (!existsSync(stamp) || JSON.parse(readFileSync(stamp, 'utf8')).tilesHash !== mapTilesHash(project)) stale.push(entry.name);
+    const expected = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')).tilesHash : null;
+    const actual = mapTilesHash(project);
+    if (expected !== actual) {
+      stale.push(entry.name);
+      console.error(`wildshard map inputs: ${JSON.stringify({ shard: entry.name, expected, actual, files: mapInputHashes(project) })}`);
+    }
     const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
     if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);
     if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);

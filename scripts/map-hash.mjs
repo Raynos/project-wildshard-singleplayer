@@ -96,15 +96,25 @@ function walk(dir, out) {
   }
 }
 
-/** The hash of a shard's map inputs: every file under each input (that exists), path and bytes. @param {string} shardDir */
-export function mapTilesHash(shardDir) {
+/** Sorted relative paths, retaining duplicate declared roots in the staleness key. @param {string} shardDir */
+function mapInputFiles(shardDir) {
   const root = resolve(shardDir), files = [];
   for (const path of mapInputRoots(root)) { // the bake's own settings count too
     if (!existsSync(path)) continue;
     if (statSync(path).isDirectory()) walk(path, files); else files.push(path);
   }
-  const hash = createHash('sha256');
-  for (const file of files.map((f) => relative(root, f).split('\\').join('/')).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
+  return files.map((f) => relative(root, f).split('\\').join('/')).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/** Per-file hashes for diagnosing a refused map on another build platform. @param {string} shardDir */
+export function mapInputHashes(shardDir) {
+  return Object.fromEntries(mapInputFiles(shardDir).map(file => [file, createHash('sha256').update(readFileSync(resolve(shardDir, file))).digest('hex')]));
+}
+
+/** The hash of a shard's map inputs: every file under each input (that exists), path and bytes. @param {string} shardDir */
+export function mapTilesHash(shardDir) {
+  const root = resolve(shardDir), hash = createHash('sha256');
+  for (const file of mapInputFiles(root)) {
     hash.update(file); hash.update('\0'); hash.update(readFileSync(join(root, file))); hash.update('\0');
   }
   return hash.digest('hex');

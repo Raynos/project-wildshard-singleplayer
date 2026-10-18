@@ -8,6 +8,10 @@ import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from './foliage
 import { DRIFT_SPECIMENS } from './driftLogs.ts';
 import { palm, hibiscusBush, palmColliders } from './foliageModels.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import { installPortableMath } from '@wildshard/commons/bake/portableMath';
+
+// Collider quaternions and placement matrices enter the exact map-world key.
+const restoreMath = installPortableMath();
 
 const project = new URL('../', import.meta.url);
 const read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, project), 'utf8'));
@@ -65,4 +69,4 @@ try {
   const wreckLogPlacement = { ...logPlacement, id: 'wreck.logs', poses: wreckLogs.placements.map(pose => ({ x: pose.x, y: pose.y, z: pose.z, params: pose.params, matrix: matrix(pose) })), drawnInto: { part: 'wreck.root', boxes: wreckLogs.boxes }, piece: { id: 'wreck-drift-logs' } };
   writer.put(fileURLToPath(new URL('data/foliageScenes.generated.json', project)), jsonBytes({ blobs, libraries, models, placements, facts, logPlacement, wreckLogPlacement }));
   writer.finish();
-} finally { material.dispose(); }
+} finally { material.dispose(); restoreMath(); }

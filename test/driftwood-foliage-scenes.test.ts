@@ -5,6 +5,7 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placeCollider, poseOf } from '../src/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 import { palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
+import { withPortableMath } from '../src/commons/bake/portableMath';
 import data from '../src/shards/driftwood-isle/data/foliageScenes.generated.json' with { type: 'json' };
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import reef from '../src/shards/driftwood-isle/data/reefLayout.generated.json' with { type: 'json' };
@@ -42,7 +43,7 @@ test('finished foliage scene GLBs preserve every native channel, full copy box a
         sameGeometry(actual, expected.geometry);
         if (kind !== 'reef') expect(data.placements[tier][kind].drawnInto.boxes).toEqual([...expected.boxes]);
         if (kind === 'palms') {
-          const contacts = foliage.tiers[tier].palms.placements.flatMap(pose => palmColliders(pose.params).map(shape => placeCollider(shape, poseOf(pose))));
+          const contacts = withPortableMath(() => foliage.tiers[tier].palms.placements.flatMap(pose => palmColliders(pose.params).map(shape => placeCollider(shape, poseOf(pose)))));
           expect(JSON.stringify(data.placements[tier].palms.colliders)).toBe(JSON.stringify(contacts));
         }
       } finally { actual.dispose(); expected.geometry.dispose(); }

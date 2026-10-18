@@ -16121,6 +16121,7 @@
         "src/shards/driftwood-isle/data/fixedGeometry.json",
         "src/engine",
         "src/sdk",
+        "src/commons",
         "scripts/bake-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",

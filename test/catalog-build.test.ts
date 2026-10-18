@@ -116,3 +116,20 @@ it('copies only closed runtimes without publishing or depending on catalog metad
   expect(existsSync(resolve(root, 'out/beta/runtime/index.ts'))).toBe(false);
   expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
 });
+
+
+it('reports exact changed map inputs while still refusing publication', async () => {
+  const root = await fixture(), calls: string[][] = [], error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const project = resolve(root, 'src/shards/alpha');
+  const expected = mapTilesHash(project);
+  put(project, 'world/changed.ts', 'export const placement = 2;\n');
+  const actual = mapTilesHash(project);
+  try {
+    await expect(buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) })).rejects.toThrow('does not match its world');
+    expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
+    expect(error).toHaveBeenCalledWith(`wildshard map inputs: ${JSON.stringify({ shard: 'alpha', expected, actual, files: {
+      'shard.config.ts': hashImmutableBytes(new TextEncoder().encode('export default {};\n')),
+      'world/changed.ts': hashImmutableBytes(new TextEncoder().encode('export const placement = 2;\n')),
+    } })}`);
+  } finally { error.mockRestore(); }
+});
