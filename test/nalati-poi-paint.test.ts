@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/placeBake';
+import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/places';
 import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/shepherdView';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { modelContext } from '../src/engine/models/model';

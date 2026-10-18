@@ -32,7 +32,7 @@ import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
 import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, type ElitePersistence } from '@wildshard/game/Elite';
-import { bakedActorGeometry } from '../world/placeBake';
+import { bakedActorGeometry } from '../world/places';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { EAGLE_ROCK } = poiLayoutRows;

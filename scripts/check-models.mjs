@@ -63,7 +63,7 @@ function sources(dir = join(ROOT, 'src')) {
  */
 export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/painted.ts',
-  'src/shards/nalati-grasslands/world/placeBake.ts',
+  'src/shards/nalati-grasslands/world/places.ts',
   'src/shards/nalati-grasslands/world/Balbals.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts',
   'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',

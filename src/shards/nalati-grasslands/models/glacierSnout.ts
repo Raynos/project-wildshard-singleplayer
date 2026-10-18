@@ -1,5 +1,5 @@
 import { defineModel } from '@wildshard/engine/models/model';
-import { bakedActorGeometry } from '../world/placeBake';
+import { bakedActorGeometry } from '../world/places';
 import { poiMaterial } from '../world/modelView';
 
 /** Same native specimen binding; its terrain-fitted shape is prepared before shipping. */

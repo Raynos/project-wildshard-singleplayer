@@ -9,7 +9,7 @@ import { Mesh, BufferGeometry, Vector3 } from 'three';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { modelContext } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { bakedPlaceAnchors, bakedPlaceSteps, placer, useNalatiPlaces } from '../src/shards/nalati-grasslands/world/placeBake';
+import { bakedPlaceAnchors, bakedPlaceSteps, placer, useNalatiPlaces } from '../src/shards/nalati-grasslands/world/places';
 import { fieldstoneBaked as fieldstone, cragLedge, leopardCave, kurganEntrance, kurganKerb, graniteOutcrop, roundedBoulder, fence, signpostBaked, watchtower, stoneStep, kokparPost, kokparGoal, saddledHorse, kokparRider, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter } from '../src/shards/nalati-grasslands/models/catalogue';
 import { Flutter } from '../src/shards/nalati-grasslands/world/Flutter';
 import { unshuffleLanes as unshuffleBodyLanes } from '../src/engine/core/deflate';

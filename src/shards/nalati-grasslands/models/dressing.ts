@@ -3,7 +3,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { defineModel, type ModelBuild, type ModelContext, announceModelReady as modelReady } from '@wildshard/engine/models/model';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { loadNalatiModel } from '../world/modelView';
-import { bakedActorGeometry, bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
+import { bakedActorGeometry, bakedDressingGeo, loadNalatiDressing } from '../world/places';
 
 
 /**

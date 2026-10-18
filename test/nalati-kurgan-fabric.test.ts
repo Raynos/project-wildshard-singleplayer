@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
 import { WorldRegistry } from '../src/engine/world/registry';
-import { KurganDungeon } from '../src/shards/nalati-grasslands/world/KurganDungeon';
+import { KurganDungeon } from '../src/shards/nalati-grasslands/combat/goldenKing';
 import { ShippingKurganDungeon } from './fixtures/kurgan-oracle/dungeon';
 import source from './fixtures/kurgan-oracle/source.json';
 

@@ -1,7 +1,7 @@
 // Frozen shipping round before the AS projection (2026-10-18).
 import * as THREE from 'three';
 import { poiMaterial } from '../../src/shards/nalati-grasslands/world/modelView';
-import { bakedActorGeometry } from '../../src/shards/nalati-grasslands/world/placeBake';
+import { bakedActorGeometry } from '../../src/shards/nalati-grasslands/world/places';
 import layoutRows from '../../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

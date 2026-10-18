@@ -45,7 +45,7 @@ import type { Box } from '../solid';
 import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
 } from '../../models/dressing';
-import { preloadNalatiPlaces, bakedActorGeometry, bakedDressingContacts, bakedPlaceSteps, placer } from '../placeBake';
+import { preloadNalatiPlaces, bakedActorGeometry, bakedDressingContacts, bakedPlaceSteps, placer } from '../places';
 
 const PHONE = TIER === 'phone';
 

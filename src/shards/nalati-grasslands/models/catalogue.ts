@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
-import { bakedSignLettering } from '../world/placeBake';
+import { bakedSignLettering } from '../world/places';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import data from '../boot/specimens.generated.json' with { type: 'json' };
 import type { CatalogueParams } from '../boot/specimenParams.generated';

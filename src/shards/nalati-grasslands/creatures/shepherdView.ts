@@ -7,7 +7,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import * as THREE from 'three';
 import type { Wildlife } from './wildlife';
 import { horseBones } from '../species/horse';
-import { bakedActorGeometry } from '../world/placeBake';
+import { bakedActorGeometry } from '../world/places';
 import { PastureRaid } from './pasture';
 import type { PackController } from '../runtime/groupRegistry';
 

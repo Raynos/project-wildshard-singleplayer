@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { ModelDef } from '@wildshard/engine/models/model';
 import { kunesBridge } from './catalogue';
 import type { KunesBridgeParams } from './campParams';
-import { deckFloor } from '../world/placeBake';
+import { deckFloor } from './placeRows';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { M, v3 } from './paint';
 import { pole, blob } from './smoothGeometry';

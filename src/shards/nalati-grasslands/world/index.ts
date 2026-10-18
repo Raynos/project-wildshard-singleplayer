@@ -11,7 +11,7 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
-import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceSteps, bakedPlaceAnchors, bakedSignLettering, placer } from './placeBake';
+import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceSteps, bakedPlaceAnchors, bakedSignLettering, placer } from './places';
 import { buildBalbals, type Balbals } from './Balbals';
 import { buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };

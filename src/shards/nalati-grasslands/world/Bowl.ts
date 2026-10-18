@@ -6,7 +6,7 @@ import { inPoiClearing } from './terrain';
 import rows from '../boot/decorative.generated.json' with { type: 'json' };
 import type { PoiCtx, PoiPiece } from './types';
 import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';
-import { bakedMember, bakedActorGeometry, bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
+import { bakedMember, bakedActorGeometry, bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './places';
 import { glacierSnout } from '../models/glacierSnout';
 import fixed from '../boot/poiPaint.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';

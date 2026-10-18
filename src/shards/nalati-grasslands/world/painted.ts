@@ -1,11 +1,11 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import type { Box } from './solid';
-import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
+import type { ModelLod, ModelLook, ModelPlacement, NalatiModelName } from './modelView';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Platform } from './types';
+import type { DeckRow, TorFloorRow } from './placeTypes';
 
 
 export interface GeneratedSpec<P> {
@@ -61,23 +61,6 @@ export function placeMember<P extends object>(def: ModelDef<P>, m: MemberData, o
   });
 }
 
-/** instance a set's generated models into `group` as their files land: one InstancedMesh per model (a failed load draws
- *  nothing and logs once; its colliders were registered already) */
-export function flushInstances(instances: Iterable<readonly [NalatiModelName, InstanceData]>, group: THREE.Object3D, sky: Sky): void {
-  for (const [name, l] of instances) {
-    if (l.placements.length === 0) continue;
-    loadNalatiModel(sky, name, l.look).then((m) => { group.add(instanceModel(m, l.placements, { castShadow: l.castShadow })); return m; })
-      .catch((e: unknown) => { console.warn(`[nalati] model ${name} failed`, e); });
-  }
-}
-
-/** a set's generated models' triangles (the POI's perf report) */
-export function instanceTris(instances: Iterable<readonly [NalatiModelName, InstanceData]>): number {
-  let n = 0;
-  for (const [name, l] of instances) n += MODEL_TRIS[name] * l.placements.length;
-  return n;
-}
-
 export interface SetRegister {
   readonly ctx: ModelContext;
   readonly registry?: WorldRegistry | null;
@@ -128,9 +111,23 @@ export function kurganEntranceFloor(row: KurganEntranceFloor): Platform & { read
   ]), { row });
 }
 
-/** Native model bounds used by both authored collision recipes and live placement boxes. */
-export function generatedBounds(name: NalatiModelName, box = new THREE.Box3()): THREE.Box3 {
-  const [w, h, d] = MODEL_SIZE[name];
-  box.min.set(-w / 2, 0, -d / 2); box.max.set(w / 2, h, d / 2);
-  return box;
+
+/** the deck's floor function (placement only): the bridge painter's own `prof`, from its data */
+export function deckFloor(row: DeckRow): Platform & { readonly row: DeckRow } {
+  const { x, halfWidth, z0, z1, flat0, flat1, deck, slope } = row;
+  const f = (px: number, pz: number): number | undefined => (Math.abs(px - x) <= halfWidth && pz >= z0 && pz <= z1 ? deck - Math.max(0, flat0 - pz, pz - flat1) * slope : undefined);
+  return Object.assign(f, { row });
 }
+/** the tor painter's floor (placement only): the highest of the slab under (x, z) and the summit */
+export function torFloor(row: TorFloorRow): Platform & { readonly row: TorFloorRow } {
+  const { cx, cz, a0, da, w, slabs, rTop, top } = row;
+  const f = (x: number, z: number): number | undefined => {
+    const dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz);
+    let u = a0 - Math.atan2(dz, dx); u = ((u % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const sl = slabs[Math.floor(u / da)], step = sl === undefined || r < sl[0] - 0.2 || r > sl[0] + w + 0.1 ? undefined : sl[1];
+    const summit = r <= rTop ? top : undefined;
+    return step === undefined || (summit !== undefined && summit > step) ? summit : step;
+  };
+  return Object.assign(f, { row });
+}
+

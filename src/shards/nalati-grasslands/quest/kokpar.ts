@@ -6,7 +6,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { poiMaterial } from '../world/modelView';
-import { bakedActorGeometry } from '../world/placeBake';
+import { bakedActorGeometry } from '../world/places';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { installChapterStory } from '@wildshard/game/quest/chapter';
 import type { AdventurePersistence } from '@wildshard/game/quest/persistence';

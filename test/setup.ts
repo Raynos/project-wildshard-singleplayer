@@ -75,7 +75,7 @@ const { provideNalatiBodies } = await import('../src/shards/nalati-grasslands/sp
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
 provideNalatiBodies(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/bodies.bin')))));
 // and its camps' and bridge's places bake (world/placeBake.ts)
-const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shards/nalati-grasslands/world/placeBake');
+const { provideNalatiPlaces, provideNalatiDressing } = await import('../src/shards/nalati-grasslands/world/places');
 provideNalatiPlaces(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 provideNalatiDressing(() => unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/dressing.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.

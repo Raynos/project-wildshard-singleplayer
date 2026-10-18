@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare admitted channels with pre-migration runtime hashes.
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { bakedActorGeometry } from '../src/shards/nalati-grasslands/world/placeBake';
+import { bakedActorGeometry } from '../src/shards/nalati-grasslands/world/places';
 import oracle from './fixtures/nalati-actor-paint.json';
 
 it('preserves all original actor attributes, index and bounds', () => {
