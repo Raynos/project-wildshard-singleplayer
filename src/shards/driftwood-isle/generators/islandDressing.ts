@@ -19,6 +19,7 @@ import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
+import { retainedIslandRuns, type ClipRuns } from './clipDressing';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
@@ -99,18 +100,6 @@ function bushPlacements(heightAt: (x: number, z: number) => number, specs: reado
   }
 
 
-/** Retained triangle runs of the native merged shape, without a second geometry payload. */
-export interface ClipRuns { vertices:number; indices:number; output:number; runs:{start:number;count:number}[] }
-function retain(geometry:THREE.BufferGeometry,keep:(x:number,z:number)=>boolean):ClipRuns {
- const pos=geometry.getAttribute('position'),index=geometry.getIndex(),count=index?.count??pos.count,runs:{start:number;count:number}[]=[];
- for(let t=0;t<count;t+=3){
-  const a=index?.getX(t)??t,b=index?.getX(t+1)??t+1,c=index?.getX(t+2)??t+2;
-  if(!keep((pos.getX(a)+pos.getX(b)+pos.getX(c))/3,(pos.getZ(a)+pos.getZ(b)+pos.getZ(c))/3))continue;
-  const previous=runs.at(-1);if(previous!==undefined&&previous.start+previous.count===t)previous.count+=3;else runs.push({start:t,count:3});
- }
- if(runs.length>4096)throw new Error('Island clip runs exceed metadata bound');
- return{vertices:pos.count,indices:index?.count??0,output:runs.reduce((n,row)=>n+row.count,0),runs};
-}
 function palmKeep(points:readonly{x:number;z:number}[]):(x:number,z:number)=>boolean {
  const grid=new Map<string,{x:number;z:number}[]>(),cell=8;
  for(const p of points){const k=`${Math.floor(p.x/cell)},${Math.floor(p.z/cell)}`,list=grid.get(k);if(list)list.push(p);else grid.set(k,[p]);}
@@ -142,7 +131,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
    const bg=bushRows.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
    const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
    try{
-    const clips={palms:retain(mergedPalms,palmKeep(palms)),bushes:retain(mergedBushes,(x,z)=>!inArea(x,z)),logs:retain(logs.geometry,(x,z)=>!inArea(x,z))};
+    const clips={palms:retainedIslandRuns(mergedPalms,palmKeep(palms)),bushes:retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z)),logs:retainedIslandRuns(logs.geometry,(x,z)=>!inArea(x,z))};
     bushesReady?.(tier,mergedBushes,bg,clips.bushes);
     palmsReady?.(tier,mergedPalms,pg,clips.palms);
     const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground,manifest.seed);

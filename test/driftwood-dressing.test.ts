@@ -1,7 +1,7 @@
 import {expect,it,vi} from 'vitest';
 import {BufferAttribute,BufferGeometry} from 'three';
 import {AuthorCoverGrid} from '../src/shards/driftwood-isle/generators/coverGrid';
-import {clipIslandDressing} from '../src/shards/driftwood-isle/generators/clipDressing';
+import {clipIslandDressing,retainedIslandRuns} from '../src/shards/driftwood-isle/generators/clipDressing';
 import {loadIslandCover} from '../src/shards/driftwood-isle/world/islandCover';
 import ISLAND_COVER_FILES from '../src/shards/driftwood-isle/data/islandCoverFiles.json' with { type: 'json' };
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
@@ -33,4 +33,16 @@ it('refuses a missing or damaged required cover file through the world loader',a
  await expect(loadIslandCover(product)).rejects.toThrow('missing');
  read.mockResolvedValue(new Uint8Array(4));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
  read.mockResolvedValue(new Uint8Array(ISLAND_COVER_FILES.phone.bytes));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
+});
+
+it('compiles source triangle runs before the dressing table exists', () => {
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([
+    -3, 0, 0, -2, 0, 1, -1, 0, 0, 1, 0, 0, 2, 0, 1, 3, 0, 0,
+  ]), 3)).setIndex([0, 1, 2, 3, 4, 5]);
+  try {
+    const plan = retainedIslandRuns(geometry, x => x > 0);
+    expect(plan).toEqual({ vertices: 6, indices: 6, output: 3, runs: [{ start: 3, count: 3 }] });
+    clipIslandDressing(geometry, plan);
+    expect(Array.from(geometry.getIndex()?.array ?? [])).toEqual([3, 4, 5]);
+  } finally { geometry.dispose(); }
 });

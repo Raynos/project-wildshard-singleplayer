@@ -1,5 +1,18 @@
 import * as THREE from 'three';
 
+/** Retained triangle runs of the native merged shape, without a second geometry payload. */
+export interface ClipRuns { vertices:number; indices:number; output:number; runs:{start:number;count:number}[] }
+export function retainedIslandRuns(geometry:THREE.BufferGeometry,keep:(x:number,z:number)=>boolean):ClipRuns {
+ const pos=geometry.getAttribute('position'),index=geometry.getIndex(),count=index?.count??pos.count,runs:{start:number;count:number}[]=[];
+ for(let t=0;t<count;t+=3){
+  const a=index?.getX(t)??t,b=index?.getX(t+1)??t+1,c=index?.getX(t+2)??t+2;
+  if(!keep((pos.getX(a)+pos.getX(b)+pos.getX(c))/3,(pos.getZ(a)+pos.getZ(b)+pos.getZ(c))/3))continue;
+  const previous=runs.at(-1);if(previous!==undefined&&previous.start+previous.count===t)previous.count+=3;else runs.push({start:t,count:3});
+ }
+ if(runs.length>4096)throw new Error('Island clip runs exceed metadata bound');
+ return{vertices:pos.count,indices:index?.count??0,output:runs.reduce((n,row)=>n+row.count,0),runs};
+}
+
 /** Install retained native triangle runs without classifying positions during boot. */
 export function clipIslandDressing(geometry:THREE.BufferGeometry,plan:{vertices:number;indices:number;output:number;runs:readonly{start:number;count:number}[]}):void {
  const source=geometry.getIndex(),vertices=geometry.getAttribute('position').count,count=source?.count??vertices;

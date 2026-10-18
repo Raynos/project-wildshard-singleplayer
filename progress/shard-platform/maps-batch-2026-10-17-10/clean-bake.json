@@ -1,0 +1,320 @@
+{
+  "sourceTree": "c0cfec73801ab960a064b700c651f72292dddfc3",
+  "sourceParent": "5c30f7a7b152dcf5f3c5e394a6fdad86e8e81229",
+  "commitParent": "5c30f7a7b152dcf5f3c5e394a6fdad86e8e81229",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 1054,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "ae9b7dcae8e4e959b499a093e8745260a2394b87cd85fc31a1a3332c64478c81",
+      "inputFiles": 282,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "ae9b7dcae8e4e959b499a093e8745260a2394b87cd85fc31a1a3332c64478c81",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "9a8c6b5b681f9f0860b14c92f33fffe477d2f944b466b82e95c839aa9d3bfce9",
+      "inputFiles": 286,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "9a8c6b5b681f9f0860b14c92f33fffe477d2f944b466b82e95c839aa9d3bfce9",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "fe47dd742ba3ceee194878cb6bfbe10dfc7ee5e7",
+      "owner": "sp-x9 + sp-x10",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "Paired static cabin weld/specimen producer and declarative host consumer; original geometry, part sharing, source textures and draws retained",
+      "inputs": [
+        "src/shards/pine-hollow/generators/bake-cabin-scenes.mjs",
+        "src/shards/pine-hollow/generators/cabinSceneAssembly.ts",
+        "src/shards/pine-hollow/generators/cabinSceneContribution.ts",
+        "src/shards/pine-hollow/generators/cabinSceneSources.mjs",
+        "src/shards/pine-hollow/generators/cabinScenes.ts",
+        "src/shards/pine-hollow/generators/cabinWeld.ts",
+        "src/shards/pine-hollow/generators/sceneModelRows.ts",
+        "src/shards/pine-hollow/generators/worldScenes.ts",
+        "src/shards/pine-hollow/look/map.json"
+      ],
+      "newFacts": [
+        "data/cabinScenes.generated.json"
+      ],
+      "ownerNet": {
+        "pine-hollow": -302,
+        "driftwood-isle": 0
+      },
+      "platformNet": 458,
+      "generatorNet": 1046,
+      "producerSource": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+      "producerOutputs": 222
+    },
+    {
+      "sha": "f4351303c970d91937740e07a503acf7901f19b7",
+      "owner": "sp-x8",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "Declare tier membership for crag skins and scene model rows; generic memory intake excludes inactive CPU copies",
+      "inputs": [
+        "src/shards/pine-hollow/generators/cragSceneContribution.ts",
+        "src/shards/pine-hollow/generators/sceneModelRows.ts"
+      ],
+      "ownerNet": {
+        "pine-hollow": 0,
+        "driftwood-isle": 0
+      },
+      "phoneCpuSavingMB": 8.702
+    },
+    {
+      "sha": "1e871584a887af672a22d01f9d21044c5d7764b5",
+      "owner": "sp-x8",
+      "shards": [],
+      "change": "Map-neutral engine audio playback-scope cleanup; preserve in final canonical parent",
+      "ownerNet": {
+        "pine-hollow": 0,
+        "driftwood-isle": 0
+      },
+      "platformNet": 22,
+      "mapInputsChanged": false
+    },
+    {
+      "sha": "8c2692f2d1f1137cdfde85e3e235ad6b3d99dbb1",
+      "owner": "sp-x8",
+      "shards": [],
+      "change": "Map-neutral image memory estimate removes nonexistent base64 URL charge; no caps or allocations change",
+      "ownerNet": {
+        "pine-hollow": 0,
+        "driftwood-isle": 0
+      },
+      "mapInputsChanged": false
+    },
+    {
+      "sha": "8fc8afa158c3b2c5f408d41daa493b835b067306",
+      "owner": "sp-x8",
+      "shards": [],
+      "change": "Map-neutral decoder staging release; preserve in canonical parent",
+      "mapInputsChanged": false
+    },
+    {
+      "sha": "6322000c2d57386254361adf287e2aa0fdca0ea1",
+      "owner": "sp-x4",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "Typed chapter director declarations; remove custom finale presentation, no geometry/site/GLB changes",
+      "inputs": [
+        "src/shards/pine-hollow/generators/chapterDirector.ts",
+        "src/shards/pine-hollow/generators/output.ts",
+        "src/shards/pine-hollow/generators/questConsequences.ts",
+        "src/shards/driftwood-isle/generators/chapterDirector.ts",
+        "src/shards/driftwood-isle/generators/output.ts"
+      ],
+      "ownerNet": {
+        "pine-hollow": -29,
+        "driftwood-isle": -51
+      },
+      "ownerAfter": {
+        "pine-hollow": 4210,
+        "driftwood-isle": 3545
+      }
+    },
+    {
+      "sha": "316b73248e366abd0b8a6f3d2d122d0ee2fa7c8c",
+      "owner": "sp-x6",
+      "shards": [],
+      "change": "Map-neutral TX1 engine/game resource ownership; no declared map inputs changed",
+      "mapInputsChanged": false,
+      "ownerNet": {
+        "pine-hollow": 0,
+        "driftwood-isle": 0
+      },
+      "platformNet": 51
+    },
+    {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "owner": "sp-x9 + sp-x10",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "Paired native living-cabin graphs and life rows; delete homestead/cabinBake consumer assembly",
+      "inputs": [
+        "src/shards/pine-hollow/generators/bake-cabin-living.mjs",
+        "src/shards/pine-hollow/generators/cabinLivingContribution.ts",
+        "src/shards/pine-hollow/generators/cabinSceneAssembly.ts",
+        "src/shards/pine-hollow/generators/cabinSceneContribution.ts",
+        "src/shards/pine-hollow/generators/cabinSceneSources.d.mts",
+        "src/shards/pine-hollow/generators/cabinScenes.ts",
+        "src/shards/pine-hollow/generators/output.ts",
+        "src/shards/pine-hollow/generators/sections.ts"
+      ],
+      "newFacts": [
+        "data/cabinLivingScenes.generated.json"
+      ],
+      "liveOutputs": 9,
+      "staticOutputsUnchanged": 222,
+      "producerCheckedTree": "30b48b9102c6281b5c3a6bcbd1376d06a685328d",
+      "ownerNet": {
+        "pine-hollow": -138,
+        "driftwood-isle": 8
+      },
+      "platformNet": 46,
+      "generatorNet": 131,
+      "ownerAfter": {
+        "pine-hollow": 4072
+      },
+      "consumerProof": "progress/shard-platform/pine-cabin-living-2026-10-18/consumer-proof.json"
+    },
+    {
+      "sha": "365e08532452a0a76d392dd7aa9fa298cfafe107",
+      "owner": "sp-x5",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "Bake cove/island composition and clipped fixed logs; delete four whole runtime modules",
+      "inputs": [
+        "src/shards/driftwood-isle/world/Cove.ts",
+        "src/shards/driftwood-isle/world/blenderArea.ts",
+        "src/shards/driftwood-isle/world/islandDressing.ts",
+        "src/shards/driftwood-isle/world/build.ts",
+        "src/shards/driftwood-isle/world/BlenderIsland.ts",
+        "src/shards/driftwood-isle/models/catalogue.ts",
+        "src/shards/driftwood-isle/runtime/models/cove.ts",
+        "src/shards/driftwood-isle/data/coveComposition.json",
+        "src/shards/driftwood-isle/data/coveFamilies.json",
+        "src/shards/driftwood-isle/data/islandAssets.json",
+        "src/shards/driftwood-isle/generators/blenderArea.ts",
+        "src/shards/driftwood-isle/generators/clipDressing.ts",
+        "src/shards/driftwood-isle/generators/coveModels.ts",
+        "src/shards/driftwood-isle/generators/clientSections.ts",
+        "src/shards/driftwood-isle/generators/sections.ts",
+        "src/shards/driftwood-isle/generators/fixedSource.ts",
+        "src/shards/driftwood-isle/generators/islandCover.ts",
+        "src/shards/driftwood-isle/generators/islandDressing.ts",
+        "src/shards/driftwood-isle/generators/bake-island-dressing.mjs",
+        "src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs"
+      ],
+      "newFacts": [
+        "data/coveComposition.json",
+        "data/coveFamilies.json",
+        "data/islandAssets.json"
+      ],
+      "generationJobChange": "Two fixed-log content-addressed output paths/hashes refreshed",
+      "ownerNet": {
+        "driftwood-isle": -160,
+        "pine-hollow": 0
+      },
+      "ownerAfter": {
+        "driftwood-isle": 3393,
+        "pine-hollow": 4072
+      },
+      "platformNet": 0,
+      "ownerProof": "progress/shard-platform/dw-cove-island-2026-10-18/"
+    },
+    {
+      "sha": "5c30f7a7b152dcf5f3c5e394a6fdad86e8e81229",
+      "owner": "sp-x1",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "Native habitat observations admitted as data; preserve actor/RNG continuations",
+      "inputs": [
+        "src/shards/driftwood-isle/generators/keeperRows.ts",
+        "src/shards/pine-hollow/generators/output.ts",
+        "src/shards/pine-hollow/generators/population.ts",
+        "src/shards/pine-hollow/generators/populationEnvironment.ts"
+      ],
+      "ownerNet": {
+        "pine-hollow": -7,
+        "driftwood-isle": -9
+      },
+      "ownerAfter": {
+        "pine-hollow": 4065,
+        "driftwood-isle": 3384
+      },
+      "platformNet": 104
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [
+      "data/coveComposition.json",
+      "data/coveFamilies.json",
+      "data/islandAssets.json"
+    ],
+    "pine-hollow": [
+      "data/cabinLivingScenes.generated.json"
+    ]
+  },
+  "sourceRepair": {
+    "reason": "Cold fixed-model producer read its later island-dressing output",
+    "paths": [
+      "src/shards/driftwood-isle/generators/fixedSource.ts",
+      "src/shards/driftwood-isle/generators/islandDressing.ts",
+      "src/shards/driftwood-isle/generators/clipDressing.ts",
+      "src/shards/driftwood-isle/generators/hibiscusTransport.ts",
+      "test/driftwood-dressing.test.ts"
+    ],
+    "priorFailedProof": "20261018T023132-sp-x10-central-maps-tenth-83042",
+    "method": "Share the existing authored triangle-run compiler; derive identical log runs before applying the existing clipper"
+  }
+}

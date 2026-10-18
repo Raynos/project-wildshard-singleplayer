@@ -104,6 +104,7 @@
     "data/timberScenes.generated.json",
     "data/logKit.json",
     "data/hollowLog.json",
-    "data/cabinScenes.generated.json"
+    "data/cabinScenes.generated.json",
+    "data/cabinLivingScenes.generated.json"
   ]
 }

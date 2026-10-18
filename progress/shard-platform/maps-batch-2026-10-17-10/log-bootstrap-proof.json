@@ -1,0 +1,12 @@
+{
+  "source": "c0cfec73801ab960a064b700c651f72292dddfc3",
+  "exactTierPlans": 2,
+  "originalGeometryHashes": [
+    "4e88780a484f4201cf06b16ce3ba298a7dcb828ad785e2b817ecbf59000f5cbe",
+    "b542b9833dfa51273ddf19abafe7f077de22343753550a4f1025d716326c7d70"
+  ],
+  "vertices": 14832,
+  "indices": 0,
+  "selected": 11577,
+  "passed": true
+}

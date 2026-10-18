@@ -1,5 +1,5 @@
 import { BufferAttribute, type BufferGeometry } from 'three';
-import type { ClipRuns } from './islandDressing';
+import type { ClipRuns } from './clipDressing';
 /** Compact the retained native triangles and carry each original full-copy picking box. */
 export function hibiscusTransport(geometry: BufferGeometry, originals: readonly BufferGeometry[], plan: ClipRuns): Uint8Array {
   return foliageTransport(geometry, originals, plan, 0x31424948, ['position', 'normal', 'color', 'aSway']);
