@@ -1,0 +1,46 @@
+{
+  "before": {
+    "geometrySHA256": "dc1d159b12f4e3206789d81d61831033788b9b5a3c458adafd3c4e2abb4b7ba0",
+    "vertices": 431,
+    "faces": 698,
+    "volume": 1.2027609663414804,
+    "nonManifoldEdges": 0,
+    "bounds": [
+      [
+        -0.5929591655731201,
+        0.5929591655731201
+      ],
+      [
+        -0.7599999904632568,
+        0.915886402130127
+      ],
+      [
+        0.1707935929298401,
+        1.350000023841858
+      ]
+    ]
+  },
+  "after": {
+    "geometrySHA256": "dc1d159b12f4e3206789d81d61831033788b9b5a3c458adafd3c4e2abb4b7ba0",
+    "vertices": 431,
+    "faces": 698,
+    "volume": 1.2027609663414804,
+    "nonManifoldEdges": 0,
+    "bounds": [
+      [
+        -0.5929591655731201,
+        0.5929591655731201
+      ],
+      [
+        -0.7599999904632568,
+        0.915886402130127
+      ],
+      [
+        0.1707935929298401,
+        1.350000023841858
+      ]
+    ]
+  },
+  "bytewiseGeometryUnchanged": true,
+  "newFacialBooleanOperations": 0
+}
