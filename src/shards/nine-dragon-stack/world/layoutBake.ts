@@ -1,81 +1,21 @@
 /**
- * Nine Dragon's layout drawn from its offline bake (G285, SF72 "bake the code-built worlds"). The layout step — the
- * square, the towers, the Well (../generators/square.ts, towers.ts, well.ts) — is a pure function of committed code, so
- * `../generators/layout.ts` runs it at build time (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`) and stores the build context it fills:
- * every kit's built geometry, the facade dressing (pieces, windows, sign slots, the shell), the instance lists, the
- * models drawn into kits, the map's floor plan, the emitters, the crossings' colliders, the lion and set queues, the
- * banyan's plan, and the sign authoring calls. `restoreLayout` fills a page's `Ctx`; the separate sign bake reads those
- * calls offline and the existing cast reader restores its faces, registrations and light spill.
+ * Restore the offline layout into its unchanged native kits, facade, crowd and
+ * placement owners. The admitted product carries small validated row JSON and
+ * exact float64 records separately from its standard GLB source geometries.
  */
 import { Box3, type BufferGeometry, Color, Matrix4, Vector3, Vector4 } from 'three';
-import * as v from 'valibot';
+import type { LayoutRows, GeometryBoot } from '../runtime/productSections.generated';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { Ctx, InKit } from './ctx';
 import { Kit } from './kit';
 import { isPiece } from './facade/pieceIds';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';
-import stamp from '../data/layout.json' with { type: 'json' };
 
 
-const finite = v.number();
-const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'water', 'grass', 'wetSand', 'planks', 'shell', 'ground', 'edge', 'earth'] as const;
-const V3 = v.tuple([finite, finite, finite]);
-const STYLES = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'] as const;
-const Spec = v.strictObject({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.picklist(STYLES), ink: v.exactOptional(v.string()) });
-export const Place = v.strictObject({
-  at: V3, normal: V3, size: finite, spec: Spec, gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
-  board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
-});
-const SignCall = v.variant('k', [
-  v.strictObject({ k: v.literal('place'), p: Place }),
-  v.strictObject({ k: v.literal('light'), c: V3, r: V3, u: V3, w: finite, h: finite, color: finite, gain: finite, mode: v.picklist([1, 2] as const), seed: finite }),
-  v.strictObject({ k: v.literal('tube'), a: V3, b: V3, f: V3, width: finite, color: finite, gain: finite, flicker: finite }),
-]);
-const Geometry = v.strictObject({
-  attrs: v.array(v.tuple([v.string(), v.picklist(['f32', 'f16', 'u16', 'i8', 'u8'] as const), finite, v.boolean()])),
-  count: finite, index: v.nullable(v.picklist(['u16', 'u32'] as const)), indexCount: finite, box: v.boolean(),
-});
-const Slot = v.strictObject({ at: V3, normal: V3, size: finite, color: finite, blade: v.boolean() });
-const Named = v.strictObject({ name: v.string(), geo: finite });
-const KINDS = ['block', 'street', 'well', 'plaza', 'green', 'gate'] as const;
-const Params = v.record(v.string(), v.union([finite, v.string(), v.boolean()]));
-const Box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite,
-  yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface: v.exactOptional(v.picklist(SURFACES)) });
-
-/** the bake's rows (the binary's JSON head), strictly */
-export const LayoutRowsSchema = v.strictObject({
-  version: v.literal(1),
-  geometries: v.array(Geometry),
-  kits: v.array(v.strictObject({ name: v.string(), geo: v.nullable(finite), compact: v.boolean() })),
-  alphaKits: v.array(Named),
-  kitxs: v.array(Named),
-  reflective: v.array(v.string()),
-  farOf: v.array(v.tuple([v.string(), finite])),
-  counts: v.strictObject({ walkers: finite, sitters: finite, lanterns: finite, acs: finite, hooks: finite, hookMounts: finite, steam: finite, pieces: finite, windows: finite, lions: finite }),
-  inKit: v.array(v.strictObject({ model: v.string(), kit: v.string(), at: v.strictObject({ x: finite, y: finite, z: finite, yaw: v.exactOptional(finite), variant: v.exactOptional(v.string()), params: v.exactOptional(Params) }), box: v.nullable(v.tuple([finite, finite, finite, finite, finite, finite])) })),
-  map: v.array(v.strictObject({ x0: finite, z0: finite, x1: finite, z1: finite, kind: v.picklist(KINDS) })),
-  emitters: v.array(v.strictObject({ at: V3, color: V3, w: finite, h: finite, power: finite, spill: finite })),
-  pieces: v.array(v.string()),
-  slots: v.strictObject({ early: v.array(Slot), late: v.array(Slot) }),
-  shell: v.nullable(finite),
-  towers: finite,
-  merged: v.array(v.tuple([v.string(), v.tuple([finite, finite, finite, finite, finite, finite])])),
-  inst: v.array(v.tuple([v.string(), finite])),
-  rng: v.strictObject({ version: finite, state: finite, initial: finite, scrambledFork: v.boolean() }),
-  signs: v.array(SignCall),
-  crossings: v.array(Box),
-  sets: v.array(v.strictObject({ name: v.string(), geo: finite, count: finite })),
-  sheets: v.array(v.strictObject({ y: finite, band: finite, a: finite })),
-  banyan: v.nullable(v.strictObject({ lumps: v.array(v.strictObject({ c: V3, r: V3, up: finite, seed: finite, wash: finite })), hangs: v.array(V3) })),
-});
-export type LayoutRows = v.InferOutput<typeof LayoutRowsSchema>;
-export type SignCallRow = v.InferOutput<typeof SignCall>;
-export type BakedPlace = v.InferOutput<typeof Place>;
-
-
-/** the bake's stamp: the inflated binary's hash and size (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts) */
-export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin: v.string(), bytes: v.number() }), stamp);
 
 /** Standard GLB layout geometries and plain double-precision author rows. */
 export class LayoutBake {
@@ -83,7 +23,7 @@ export class LayoutBake {
   readonly f64: Float64Array;
   /** `records`: a Float64Array is taken as is (the runtime reader revives the rows into one), any other list is copied */
   constructor(rows: LayoutRows, records: Float64Array | readonly number[], private readonly geometries: Map<number, BufferGeometry>) {
-    this.rows = v.parse(LayoutRowsSchema, rows); this.f64 = records instanceof Float64Array ? records : Float64Array.from(records);
+    this.rows = rows; this.f64 = records instanceof Float64Array ? records : Float64Array.from(records);
   }
   /** copies `prepare` made ahead, each handed out once by `geometry` */
   private readonly ahead = new Map<number, BufferGeometry>();
@@ -116,10 +56,36 @@ export class LayoutBake {
   release(): void { for (const geometry of this.geometries.values()) geometry.dispose(); this.geometries.clear(); }
 }
 
+/** JSON admission normalizes zero; restore the explicitly declared negative-zero words exactly. */
+export function restoreLayoutZeros({ rows: source, negativeZeros }: GeometryBoot): LayoutRows {
+  const rows = structuredClone(source);
+  for (const path of negativeZeros) {
+    let parent: unknown = rows;
+    for (const key of path.slice(0, -1)) {
+      if (parent === null || typeof parent !== 'object') throw new Error('Invalid Nine signed-zero path');
+      parent = Reflect.get(parent, key);
+    }
+    const key = path.at(-1);
+    if (parent === null || typeof parent !== 'object' || key === undefined || Reflect.get(parent, key) !== 0) throw new Error('Invalid Nine signed-zero word');
+    Reflect.set(parent, key, -0);
+  }
+  return rows;
+}
+
 /** Read declared whole tiles through the game's verified product reader. */
-export async function loadLayoutBake(pause: () => Promise<void> = () => Promise.resolve()): Promise<LayoutBake> {
-  const { readNineLayout } = await import('../runtime/geometry');
-  return readNineLayout(pause);
+export async function loadLayoutBake(owner: Scope): Promise<LayoutBake> {
+  const product = await loadFirstPartyProduct('nine-dragon-stack', owner);
+  const [boot, bytes] = await Promise.all([product.json<GeometryBoot>('geometry/layout.json'), product.file('geometry/layout-f64.bin')]);
+  const rows = restoreLayoutZeros(boot), { library } = boot;
+  if (bytes.byteLength !== library.records * 8 || rows.geometries.length !== library.layoutDraws) throw new Error('Nine layout inventory differs');
+  const views = await readWholeGeometry(owner, product.shardfile, library.layout), indexed = new Map<number, BufferGeometry>();
+  for (let i = 0; i < rows.geometries.length; i++) {
+    const view = views.get(`layout_${i}`);
+    if (view === undefined || !view.matrix.equals(new Matrix4())) throw new Error(`Missing identity-space Nine layout draw ${i}`);
+    view.release?.(); indexed.set(i, view.geometry);
+  }
+  if (views.size !== indexed.size) throw new Error('Unexpected Nine layout source draw');
+  return new LayoutBake(rows, new Float64Array(Uint8Array.from(bytes).buffer), indexed);
 }
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);

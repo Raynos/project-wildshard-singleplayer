@@ -19875,6 +19875,39 @@
         "src/shards/nalati-grasslands/data/kokpar.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "nine-section-schemas",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-layout-schema.mjs",
+      "command": [
+        "--import",
+        "./scripts/shard-platform-format.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-layout-schema.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/bake-section-schemas.mjs",
+        "scripts/shard-platform-format.mjs",
+        "src/format",
+        "src/sdk/package.json",
+        "src/sdk/formatJsonSchema.ts",
+        "src/shards/nine-dragon-stack/generators/sections.ts",
+        "scripts/section-types.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-layout-schema.mjs"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/generators/sectionSchemas.generated.ts",
+        "src/shards/nine-dragon-stack/runtime/productSections.generated.d.ts",
+        "src/shards/nine-dragon-stack/generators/layoutSchema.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/generators/sectionSchemas.generated.ts",
+        "src/shards/nine-dragon-stack/runtime/productSections.generated.d.ts",
+        "src/shards/nine-dragon-stack/generators/layoutSchema.generated.json"
+      ]
     }
   ]
 }

@@ -16,13 +16,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   ground: { terrain: TERRAIN, structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
-  sword: async () => {
-    try { return await (await import('./vm/arms')).jianArms(); }
-    catch (error) {
-      console.warn('nine-dragon-stack: the arms rig did not load, the static jian stands in', error);
-      return (await import('./world/jian')).jianSword();
-    }
-  },
+  sword: async () => (await import('./vm/arms')).jianArms(),
   roster: async () => (await import('./roster')).ROSTER,
   render: async () => (await import('./look/render')).shardRender(),
 };

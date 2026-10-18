@@ -3,15 +3,40 @@
 // context's `once` (src/engine/models/model.ts). One context per built fragment: build.ts makes it first, fills the look as
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
-import { type BufferGeometry, Group, type Material, Mesh, type ShaderMaterial } from 'three';
+import { type BufferGeometry, Group, Matrix4, type Material, Mesh, type ShaderMaterial } from 'three';
 import { modelContext, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { BakedSigns } from './casts';
 import type { NeonText as NeonTextView } from '../runtime/signs/neonText';
-import { type SpecimenBake, loadSpecimens } from './specimens';
+import { createOwnedGeometryBatch, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { GeometryBoot } from '../runtime/productSections.generated';
+
+type SpecimenBake = Map<string, OwnedGeometry>;
+/** Existing owned templates hold exact boot and lazy Explorer draws. */
+export async function loadSpecimens(owner: Scope, part: 'boot' | 'explorer'): Promise<SpecimenBake> {
+  const product = await loadFirstPartyProduct('nine-dragon-stack', owner);
+  const { library: rows } = await product.json<GeometryBoot>('geometry/layout.json');
+  const views = await readWholeGeometry(owner, product.shardfile, rows[part]), batch = createOwnedGeometryBatch(), result: SpecimenBake = new Map();
+  if (views.size > 86) throw new Error('Nine specimen draw bound exceeded');
+  for (const [key, view] of views) {
+    if (!view.matrix.equals(new Matrix4())) throw new Error(`Nine specimen ${key} changed its identity placement`);
+    if (rows.specimenBoxes[key] === true) view.geometry.computeBoundingBox(); else view.geometry.boundingBox = null;
+    const handle = batch.geometry(key); handle.adopt(view.geometry); view.release?.(); result.set(key, handle);
+  }
+  return result;
+}
+/** Transfer each original template exactly once to its native model context. */
+export function takeSpecimen(bake: SpecimenBake, key: string): BufferGeometry {
+  const handle = need(bake.get(key), `specimen ${key}`); bake.delete(key); return handle.take();
+}
 
 export interface NdLook {
+  /** The explicit resident owner; Explorer requests may supply their shorter-lived view scope. */
+  readonly owner: Scope;
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
   mat: ShaderMaterial | null;
   /** the facade kit's programs (facade/batch.ts): the pieces, and the small clutter that shrinks into the wall far off */
@@ -33,7 +58,7 @@ export interface NdLook {
   canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
   /** the neon calligraphy (runtime/signs/neonText: its glyph field and its board / tube looks), the neon sign's specimen */
   calligraphy: NeonTextView | null;
-  /** G285: the code-built models' baked geometry (world/specimens.ts): what the page builds at load, loaded with the layout */
+  /** G285: the code-built models' baked geometry (world/modelLook.ts): what the page builds at load, loaded with the layout */
   specimens: SpecimenBake | null;
   /** …and what only the Explorer's specimens draw, fetched the first time one asks (`withSpecimens`) */
   explorer: Promise<SpecimenBake> | SpecimenBake | null;
@@ -42,8 +67,8 @@ export interface NdLook {
 const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
-export function ndModelContext(renderer: Renderer | null): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null, specimens: null, explorer: null };
+export function ndModelContext(renderer: Renderer | null, owner: Scope): { ctx: ModelContext; look: NdLook } {
+  const look: NdLook = { owner, mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null, specimens: null, explorer: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };
@@ -60,19 +85,19 @@ export function need<T>(v: T | null | undefined, what: string): T {
   return v;
 }
 
-/** a code-built model's geometry from the specimens bakes (world/specimens.ts), read once per model context under `key`
+/** a code-built model's geometry from the specimens bakes (world/modelLook.ts), read once per model context under `key`
  *  (the page's bake hands its bytes over: the context keeps the geometry) */
 export function specimen(ctx: ModelContext, key: string): BufferGeometry {
   return ctx.once(`nds:${key}`, () => {
     const look = ndLook(ctx), boot = need(look.specimens, 'the specimens bake'), explorer = look.explorer;
-    if (!boot.has(key) && explorer !== null && !(explorer instanceof Promise)) return explorer.geometry(key);
-    return boot.take(key);
+    if (!boot.has(key) && explorer !== null && !(explorer instanceof Promise)) return need(explorer.get(key), `specimen ${key}`).copy();
+    return takeSpecimen(boot, key);
   });
 }
 
 /** a fresh copy of a baked model geometry (a model whose every build drew its own, as the movers' do) */
 export function bakedSpecimen(ctx: ModelContext, key: string): BufferGeometry {
-  return need(ndLook(ctx).specimens, 'the specimens bake').geometry(key);
+  return need(need(ndLook(ctx).specimens, 'the specimens bake').get(key), `specimen ${key}`).copy();
 }
 
 /**
@@ -82,7 +107,7 @@ export function bakedSpecimen(ctx: ModelContext, key: string): BufferGeometry {
 export function withSpecimens(ctx: ModelContext, id: string, parts: () => readonly ModelPart[]): ModelBuild {
   const look = ndLook(ctx);
   if (look.explorer !== null && !(look.explorer instanceof Promise)) return parts();
-  const pending = look.explorer ?? loadSpecimens('explorer').catch((e: unknown) => { look.explorer = null; throw e; });
+  const pending = look.explorer ?? loadSpecimens(ctx.specimenScope ?? look.owner, 'explorer').catch((e: unknown) => { look.explorer = null; throw e; });
   look.explorer = pending;
   return loadingSpecimen(id, [1, 1, 1], async () => {
     look.explorer = await pending;

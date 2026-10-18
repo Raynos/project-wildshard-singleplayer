@@ -1,4 +1,3 @@
-import { installNineGeometry } from './runtime/geometry';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
@@ -47,7 +46,7 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { caps, pause });
+  }, render.tier, { scope: ctx.scope, caps, pause });
   return { world, camera: render.camera };
 }
 
@@ -117,7 +116,7 @@ export class NdPlugin extends ShardPlugin {
     this.build = build;
   }
   override async world(ctx: ShardContext): Promise<void> {
-    const scope = ctx.scope; installNineGeometry(scope);
+    const scope = ctx.scope;
     ctx.strings(bootMetadata.strings);
     ctx.playground(GRAPPLE_PLAYGROUND);
     this.shell = ctx.game.runtime;

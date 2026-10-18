@@ -131,16 +131,6 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/models/ownedGeometry.ts",
-      "shard": "nine-dragon-stack",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nine owned specimen geometry (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
       "module": "src/engine/combat/view/ranged.ts",
       "export": "weaponDisplay",
       "shard": "nalati-grasslands",

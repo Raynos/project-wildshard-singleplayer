@@ -1,3 +1,4 @@
+import type { Scope } from '@wildshard/engine/app/scope';
 // The Nine Dragon Stack fragment's world (P0-5c), built for the engine: Lantern Square at +125 m, the Well's rim and its
 // upper galleries, the stair-street stub and the towers round them — what the clean room built in its page
 // (the dev labs (deleted in E357 F7)), without its camera, player, HUD, viewmodel or post. Everything is added under one
@@ -51,7 +52,7 @@ import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models
 import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { ndModelContext } from './modelLook';
+import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { cableGondola, drone, monorailTrain } from '../models/movers';
@@ -60,7 +61,6 @@ import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadSpecimens } from './specimens';
 import { loadCast, loadFixedRows, loadSignAtlas } from './casts';
 import { SHAFT, WELL_RECTS, wellSheets } from './wellBounds';
 import { merge } from './hero/kitx';
@@ -121,7 +121,7 @@ export interface NineDragonWorld {
 
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -131,9 +131,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
   const slice = slicer(30);
   progress(0, 'paint + fonts');
-  const layoutReady = loadLayoutBake(() => slice());
-  // G285: the code-built models' geometry and the canopy's (world/specimens.ts), fetched with the layout
-  const specimensReady = loadSpecimens('boot', () => slice());
+  const layoutReady = loadLayoutBake(opts.scope);
+  // G285: the code-built models and canopy share the owned geometry library.
+  const specimensReady = loadSpecimens(opts.scope, 'boot');
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
@@ -159,7 +159,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx();
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
-  const nd = ndModelContext(renderer);
+  const nd = ndModelContext(renderer, opts.scope);
   nd.look.calligraphy = neonSigns;
   // the fragment's instanced models are culled per copy here (the SDK instance culler), taken as `place` hands them over and set up
   // at the end, once the world is whole
@@ -221,7 +221,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await bakeSpill(kitGeos.map(([, g]) => g), emitters);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  const crown = await buildCanopy(shared, specimens.has('canopy:cards') ? { cards: specimens.take('canopy:cards'), core: specimens.take('canopy:core') } : null, emitters);
+  const crown = await buildCanopy(shared, specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null, emitters);
   for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));

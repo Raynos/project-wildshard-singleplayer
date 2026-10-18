@@ -20,7 +20,7 @@ import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/sign
 import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
 import type { AuthoredPlacement as Placement } from '../assets/contracts/modelPlacement';
-import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from '../world/layoutBake';
+import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from './sections';
 import * as v from 'valibot';
 
 const tuple = (p: Vector3): [number, number, number] => [p.x, p.y, p.z];

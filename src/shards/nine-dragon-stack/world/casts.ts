@@ -8,7 +8,22 @@ import type { Emitter } from '../runtime/looks/vertexSpill';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import * as v from 'valibot';
-import { LayoutRowsSchema, Place, layoutReviver } from './layoutBake';
+import type { LayoutRows } from '../runtime/productSections.generated';
+import { layoutReviver } from './layoutBake';
+
+const finite = v.number();
+const V3 = v.tuple([finite, finite, finite]);
+const STYLES = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'] as const;
+const Spec = v.strictObject({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.picklist(STYLES), ink: v.exactOptional(v.string()) });
+const Place = v.strictObject({
+  at: V3, normal: V3, size: finite, spec: Spec, gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
+  board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
+});
+const SignCall = v.variant('k', [
+  v.strictObject({ k: v.literal('place'), p: Place }),
+  v.strictObject({ k: v.literal('light'), c: V3, r: V3, u: V3, w: finite, h: finite, color: finite, gain: finite, mode: v.picklist([1, 2] as const), seed: finite }),
+  v.strictObject({ k: v.literal('tube'), a: V3, b: V3, f: V3, width: finite, color: finite, gain: finite, flicker: finite }),
+]);
 
 /** Adopt the exact prepared prop at its former load phase; the caller owns this geometry. */
 export async function loadCast(name: string): Promise<BufferGeometry> {
@@ -25,13 +40,13 @@ export async function loadCast(name: string): Promise<BufferGeometry> {
 }
 
 /** Recorded fixed additions; their source author and the geometry are generated together. */
-export async function loadFixedRows(): Promise<{ signs: v.InferOutput<typeof LayoutRowsSchema>['signs']; lanterns: number[][]; lantern: { drop: number; glow: { color: number; w: number; h: number; power: number; spill: number } } }> {
+export async function loadFixedRows(): Promise<{ signs: LayoutRows['signs']; lanterns: number[][]; lantern: { drop: number; glow: { color: number; w: number; h: number; power: number; spill: number } } }> {
   const bytes = await (await loadFirstPartyProduct('nine-dragon-stack')).file('geometry/fixed-kits.json');
-  return v.parse(v.strictObject({ signs: LayoutRowsSchema.entries.signs, lanterns: v.array(v.array(v.number())), lantern: v.strictObject({ drop: v.number(), glow: v.strictObject({ color: v.number(), w: v.number(), h: v.number(), power: v.number(), spill: v.number() }) }) }),
+  return v.parse(v.strictObject({ signs: v.array(SignCall), lanterns: v.array(v.array(v.number())), lantern: v.strictObject({ drop: v.number(), glow: v.strictObject({ color: v.number(), w: v.number(), h: v.number(), power: v.number(), spill: v.number() }) }) }),
     JSON.parse(new TextDecoder().decode(bytes), layoutReviver));
 }
 
-const N = v.number(), V3 = v.tuple([N, N, N]);
+const N = v.number();
 const SignRows = v.strictObject({
   cells: v.record(v.string(), v.strictObject({ u0: N, v0: N, u1: N, v1: N, mono: v.boolean() })),
   keys: v.record(v.string(), v.string()),

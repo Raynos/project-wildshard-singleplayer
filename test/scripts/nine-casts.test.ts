@@ -7,8 +7,10 @@ import { BufferAttribute, type BufferGeometry } from 'three';
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { CASTS, FIXED_KITS, CAST_CHANNELS, type PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
+import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeCasts, bakeFixedKits } from '../../src/shards/nine-dragon-stack/generators/casts';
-import { LayoutRowsSchema, layoutReviver } from '../../src/shards/nine-dragon-stack/world/layoutBake';
+import { layoutReviver, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/world/layoutBake';
+import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
 import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
 
@@ -57,4 +59,19 @@ test('fixed sign words, RNG order and all eight cap lantern matrices preserve th
   const hash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value,
     (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry)).digest('hex');
   expect({ signs: fixed.signs.length, signHash: hash(fixed.signs), lanterns: fixed.lanterns.length, lanternHash: hash(fixed.lanterns) }).toEqual(baseline.fixed);
+});
+
+
+test('layout blobs retain every float64 bit and signed author zero', () => {
+  const raw: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), layoutReviver);
+  const original = v.parse(v.object({ rows: LayoutRowsSchema, count: v.number(), records: v.array(v.number()) }), raw);
+  const blobs = layoutBlobs(), rows = blobs.find(row => row.file.name === 'geometry/layout.json');
+  const binary = blobs.find(row => row.file.name === 'geometry/layout-f64.bin');
+  if (rows === undefined || binary === undefined) throw new Error('Missing layout boot blobs');
+  const decoded: unknown = JSON.parse(new TextDecoder().decode(rows.bytes));
+  expect(restoreLayoutZeros(v.parse(GeometryBootSchema, decoded))).toEqual(original.rows);
+  const floats = new Float64Array(Uint8Array.from(binary.bytes).buffer);
+  expect(floats.length).toBe(original.count);
+  expect(floats.every((value, i) => Object.is(value, original.records[i]))).toBe(true);
+  expect(rows.file.jsonSchema).toBeDefined();
 });
