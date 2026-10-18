@@ -1,12 +1,12 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Running net (fourteenth receipt 6b56f5f71, four layers incl. format):** W1 custom −4,543 vs platform +44,468 (net +39,925 lines); W2 custom −33,635 vs platform +40,904 (net +7,269). Platform totals engine 76,249 · game 60,092 · format 12,224 · sdk 10,797.
+**Running net (fifteenth receipt a3159ab5b, four layers incl. format):** W1 net +40,019 lines, W2 net +7,363 (shard cuts minus platform growth, growth charged once).
 
-**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,100 (target 4,261), DW 3,276 (target 3,433), Sky 313, Signal 143, Nalati 19,804 (after x1 −501), Nine 12,144. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
+**W1 DONE. W2 at 20 % (10-18 ~02:40 Cancun):** Pine 4,100 (target 4,261), DW 3,276 (target 3,433), Sky 313, Signal 143, Nalati 19,766, Nine 12,144. G494 phase now: Pine/DW lanes keep closing components; freed lanes take Sky/Signal to zero (Z10, emitters, dusk, then Z1 lockstep); W3 after. Sky 518, Signal 392, Nalati 20,486 (row N2). DEPLOY: LIVE = aa10b6304 (build aa10b63-mvdhkaar, 07:10 UTC), replacing the 10-13 build; full Linux CI, exact four-leg smoke and deploy all green.
 
 **Rules in force:** G465 data and existing hosts; G467 generators are not custom code; G468 whole-module deletes; G469 one task per agent; G470 single-shard logic to AS + data; G482 HOST-BAR ≥ 5/6 per platform commit; G490 source-only landings, sp-x10 bakes once per window; G492 no mid-task re-briefs; G493 sp-x7 owns unblocking a red gate/CI/smoke (fix forward or revert, no waiting on the owner).
 
-**Batches:** live 067778604; twelfth pushed (57fe24a78; smoke split fix 019ee764b). Thirteenth baking (DW + Sunscar): ruler 4ed9c9a0f (Nine +264 ruler-only), drive e2141156c, DW 717aaf29a (−42) + C5 326442ec7 (−49), Signal Z8 987934f9f (−44). Fourteenth ready: x4 look rows (Sky −106, Signal −21), x9 Pine C5 stagWalk (−28), x6 G498 re-entry + sweep guard, x1 G499 tags + ruler net key + small fixes, x5/x8 Z1 lockstep.
+**Batches:** live 067778604 (smoke blocked on WebKit HOVER; fixes 661f4a56a + b40a86033 landed). Fifteenth canonical a3159ab5b landed; push gate red on 2 DW/Pine native replays from sp-x6's sourceHash metadata (fix: exclude it from executable identity, no re-record). Sixteenth: x4 cue director, x1 native manager (Nalati −174), x9 Nalati campPeople, x6 seal + legacy guard, x8+x5+x4 Z1 lockstep (Sky/Signal to zero).
 
 **Lanes (7 Codex + sp-x7 deploy; Opus cap 1 until Mon):**
 - CM1 + Pine C9 sp-x9 · C1-DW + C7/C8 sp-x5 · C4 sp-x1 · Sky/Signal: Z2/Z10 sp-x8, Z7/Z9 sp-x4 · G498 rows sp-x6 · switch-point rows sp-x1 · map owner sp-x10 · sp-x7 deploy only (G485/G493).
