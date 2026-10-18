@@ -10,7 +10,7 @@
  * The values: hemisphere fill lower and cooler (a blue sky above, an olive bounce below), so the shade sides carry the
  * painted cool / warm split and the whole frame drops toward the mockups' olive / golden range; the grade's saturation
  * follows the hour (the rig's own saturation keys: night greys out, the after-storm world is cleaner). The olive albedo
- * remap of the painted ground is `V2_OLIVE_GLSL` (terrainSurface.ts takes it in v2).
+ * remap of the painted ground is the terrain's admitted colour graph.
  */
 import * as THREE from 'three';
 import { syncPainterlySun } from '@wildshard/engine/world/painterly';
@@ -18,23 +18,12 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { SkyLook } from './skyRig';
 import { gradeUniforms } from './grade';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { LIGHT_GLSL } from '../runtime/looks/lightGlsl';
-
-/** the GLSL below is trusted custom code (runtime/looks/lightGlsl.ts); `@{name}` splices the fragments this module passes */
-const LIGHT_GLSL_FAMILY = new ShaderFamily(LIGHT_GLSL, {});
 
 const D2R = Math.PI / 180;
 /** the cheat: degrees further round (compass, clockwise) and higher than the sun */
 export const KEY_CHEAT = { az: 40, el: 15 };
 const HEMI_SKY = new THREE.Color(0.40, 0.46, 0.62);
 const HEMI_GROUND = new THREE.Color(0.30, 0.30, 0.16);
-
-/**
- * GLSL: `vec3 v2Olive(vec3 albedo)` — green-dominant albedo (the lime valley grass) pulled toward olive / gold and lifted
- * (the meadow seen from afar and above is the mockups' sunlit gold-green, not a dull lawn); neutral / warm / blue paint (felt, dirt, gravel, rock, snow) is left alone.
- */
-export const V2_OLIVE_GLSL = LIGHT_GLSL_FAMILY.glsl(LIGHT_GLSL.V2_OLIVE_GLSL);
 
 const _dir = new THREE.Vector3(), _c = new THREE.Color();
 

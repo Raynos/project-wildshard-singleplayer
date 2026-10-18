@@ -1,3 +1,4 @@
+import { skyPaintedPresentation } from './paintedLook';
 import { FAN_ID } from './rows/items';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from './worldScenes';
@@ -18,6 +19,7 @@ const sources = emitNamedBlobs(SKY_SCENE_BLOBS);
 export const output = { namedFiles: sources.files, assets: sources.assets,
   platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
     ['ui/strings', STRINGS],
+    ['look/painted', skyPaintedPresentation()],
     ['explore/catalogue', parseExplorerCatalogue({"version": 1, "entries": [{"kind": "held", "item": FAN_ID}, {"kind": "scene", "part": "specimen-mill.root"}, {"kind": "scene", "part": "specimen-bridge.root"}, {"kind": "scene", "part": "specimen-vane.root"}, {"kind": "rigs", "library": "sky"}, {"kind": "npc", "npc": "far.keeper"}]})],
     ['world/scenes', SKY_WORLD_SCENES],
     ['actors/species-programs', { page: [], native: [], program: SKY_PAGE_PROGRAM.species.program }],

@@ -5,7 +5,7 @@ import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plu
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
-import { lastLightAll } from './look/light';
+import { productPainterLight } from '@wildshard/game/looks/paintedLook';
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
@@ -20,7 +20,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     const { page, program } = product.section('actors/species-programs');
     const stages = product.section('quests/directors').directors?.find(row => row.id === SIGNAL_RUNTIME_ROWS.fight.stages.id);
     if (program === undefined || stages === undefined) throw new Error('Missing admitted species program or boss stages');
-    return { ...SIGNAL_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SIGNAL_RUNTIME_ROWS.fight, stages }, species: { ...SIGNAL_RUNTIME_ROWS.species, page, program }, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } }; }
+    return { ...SIGNAL_RUNTIME_ROWS, strings: product.section('ui/strings'), fight: { ...SIGNAL_RUNTIME_ROWS.fight, stages }, species: { ...SIGNAL_RUNTIME_ROWS.species, page, program }, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: productPainterLight.bind(null, product) } } }; }
   protected override async build(ctx: ShardContext): Promise<void> {
     const source = ctx.product.shardfile;
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
@@ -34,7 +34,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     }
   }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
-  protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
+  protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { productPainterLight(ctx.product, whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
   /** Settle the actual quest look for its declared capture checkpoint. */
   settleQuestDusk(): void { const places = this.places; if (places !== null) settleWeatherFields('sunscar-dunes', places.flags.all); }
   protected override async install(ctx: ShardContext): Promise<void> {
@@ -46,7 +46,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       await this.bindPageFight(ctx);
     }
-    this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
+    this.populate(ctx, source, { spawned: animal => { productPainterLight(ctx.product, animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
 
   }
 }

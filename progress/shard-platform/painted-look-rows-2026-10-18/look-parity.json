@@ -1,0 +1,644 @@
+{
+  "sky": {
+    "baseline": "a7a1116-mvdqfhqy",
+    "candidate": "79fcc2d-mvdr8hvr",
+    "poses": 20,
+    "exact": true,
+    "tiers": {
+      "phone": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "956487565cc872f20b2a17cc31793ce921e96a3b65d6d60327dae6ac5efc72a3",
+        "gpuBytes": 170266834,
+        "programs": 173,
+        "shaderCount": 222,
+        "shaders": "8289c014a705486a6e29f06148b80d3f3a34c78064f60aa040abfac4fa904a7f"
+      },
+      "desktop": {
+        "pieces": 43,
+        "colliderCount": 1184,
+        "colliders": "956487565cc872f20b2a17cc31793ce921e96a3b65d6d60327dae6ac5efc72a3",
+        "gpuBytes": 317706430,
+        "programs": 173,
+        "shaderCount": 222,
+        "shaders": "0eee1458686aed738dc0834fa74d29484cced8adda24a55ba71f228274e12230"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunrest-sun",
+        "width": 804,
+        "height": 1362,
+        "calls": 127,
+        "triangles": 1731113,
+        "pixels": "9849981f71a66a24a16ec812df858a22777117296fcced386c2756d97d687918"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-east",
+        "width": 804,
+        "height": 1362,
+        "calls": 84,
+        "triangles": 1562558,
+        "pixels": "8a0cf039e5a542513cc182eb30a8f02c45ec0bbdf2106362dbfe4fd5dbbd1919"
+      },
+      {
+        "tier": "phone",
+        "pose": "sunrest-back",
+        "width": 804,
+        "height": 1362,
+        "calls": 71,
+        "triangles": 1521872,
+        "pixels": "6076c03f2012974ba80661422aaa160aad6d2ccd18060e8f46ce9d6d25d0fb91"
+      },
+      {
+        "tier": "phone",
+        "pose": "windmill-sea",
+        "width": 804,
+        "height": 1362,
+        "calls": 86,
+        "triangles": 1559125,
+        "pixels": "c77304916c7aa4a5836c3ccbd7326c0ec59f4fb5aa5324209441df2070ffeb9d"
+      },
+      {
+        "tier": "phone",
+        "pose": "crown",
+        "width": 804,
+        "height": 1362,
+        "calls": 202,
+        "triangles": 1955146,
+        "pixels": "e9d0cf9989d9d8942dee44b2348c8eba40d0ace6c70f58fe32a6d9731b769ff7"
+      },
+      {
+        "tier": "phone",
+        "pose": "roost",
+        "width": 804,
+        "height": 1362,
+        "calls": 144,
+        "triangles": 1723563,
+        "pixels": "25910d377e7c518637b2a671d6473f321887ffe29643719fa1c086e76d583c95"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:driftRay",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 900,
+        "pixels": "6090efc7c639270f400823d262cb49f8d2f099ed5e6f8ee71f85a3c9e3744448"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:galeWisp",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 136,
+        "pixels": "90791c608a1ffa62cf06a2716783c3c99b3d77a42e9d5d2cc57b4ba57f77c8e6"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:skyGoat",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1087,
+        "pixels": "8baa1ab12cc03be55f19e8d2939d697401aae7d10684a4d36522759c5f0ba9c2"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:stormRoc",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 11760,
+        "pixels": "785175e5f9dd0a62a94dd36c6276e4d789b3d791849a98d419957a47d3cf5c70"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-sun",
+        "width": 603,
+        "height": 1021,
+        "calls": 133,
+        "triangles": 1924131,
+        "pixels": "acda7b7911d2086f32a857edd1cc901d280429502b5f7bad15ea74ff2567533b"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-east",
+        "width": 603,
+        "height": 1021,
+        "calls": 84,
+        "triangles": 1799228,
+        "pixels": "64e3b6224111202fe10261f9c6bd439699bf2a488e57a75e14907aff41407bac"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunrest-back",
+        "width": 603,
+        "height": 1021,
+        "calls": 75,
+        "triangles": 1757124,
+        "pixels": "2090140e6721672fd4aa34d549c4c7f8848bd599bf1722ba078f3289299a8789"
+      },
+      {
+        "tier": "desktop",
+        "pose": "windmill-sea",
+        "width": 603,
+        "height": 1021,
+        "calls": 86,
+        "triangles": 1722075,
+        "pixels": "72712de4a35c418e7ca3e96b3f9edf7b86154f77e302a738a3972aa7f0da2cef"
+      },
+      {
+        "tier": "desktop",
+        "pose": "crown",
+        "width": 603,
+        "height": 1021,
+        "calls": 208,
+        "triangles": 2164294,
+        "pixels": "b0614e9d66e16db59e4b29d97932c0e993a4eab154b32eee3352009e0ce06aac"
+      },
+      {
+        "tier": "desktop",
+        "pose": "roost",
+        "width": 603,
+        "height": 1021,
+        "calls": 148,
+        "triangles": 1919967,
+        "pixels": "446a448dd5027ae7217496fcea08da37a91e8a580f3731311cd6de3b93ed5868"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:driftRay",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 900,
+        "pixels": "88c4f7e0cc0dc9dba6149a9d0bc156f83368b604a99960083675df5e1320c1b8"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:galeWisp",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 136,
+        "pixels": "3d0a9feca424d60eedfc6619951e5118276bde1f6c238387475d1a5e2a62247d"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:skyGoat",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1087,
+        "pixels": "ef53190eb7664b10d3b2ad610a51755814f7bfcefa8e7557ea32eb8889abfca6"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:stormRoc",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 11760,
+        "pixels": "febaad46287b37ae1376dca36e32c50f11f2d68b91f4f1f38d53748460a49a1b"
+      }
+    ]
+  },
+  "signal": {
+    "baseline": "5b56866-mvdr9g6l",
+    "candidate": "79fcc2d-mvdr8hvr",
+    "poses": 18,
+    "exact": true,
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 144501472,
+        "programs": 82,
+        "shaderCount": 125,
+        "shaders": "d710e886f225bc49f37e5217960019846026c0370de007f8f3f0ea9753042ed2"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 211273088,
+        "programs": 82,
+        "shaderCount": 125,
+        "shaders": "9b53143df1a708b43d040eabae35129e667dd89ab94a17f0c4e5d74c68cea507"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "spawn-tower",
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 137658,
+        "pixels": "79dbd57d3dffd2d3386201f61c01c1a7d46f45e54efeb58b93ce255c3097a36f"
+      },
+      {
+        "tier": "phone",
+        "pose": "spawn-back",
+        "width": 804,
+        "height": 1362,
+        "calls": 39,
+        "triangles": 87158,
+        "pixels": "2bd5e1daffc94beed5968074b1b9f1f285312076a55522eb5e84096e4e158b21"
+      },
+      {
+        "tier": "phone",
+        "pose": "caravan",
+        "width": 804,
+        "height": 1362,
+        "calls": 52,
+        "triangles": 142128,
+        "pixels": "b8552d6c295e93511aeb356209b9e89fed6025258d8424e3d6fd6741ad71c1b1"
+      },
+      {
+        "tier": "phone",
+        "pose": "well",
+        "width": 804,
+        "height": 1362,
+        "calls": 48,
+        "triangles": 88547,
+        "pixels": "22dea6432a9cdc15bcde40cd7b28771d529a74276cbab6d7743df3d79d4963a8"
+      },
+      {
+        "tier": "phone",
+        "pose": "basin",
+        "width": 804,
+        "height": 1362,
+        "calls": 41,
+        "triangles": 90078,
+        "pixels": "1c08608221c690f231f9dda8de8c70c5902c24d104343bd0fdd6bbd5c314a45e"
+      },
+      {
+        "tier": "phone",
+        "pose": "edge-out",
+        "width": 804,
+        "height": 1362,
+        "calls": 42,
+        "triangles": 88182,
+        "pixels": "c220d4cbd1d52d122a47589cac90d612383e33e3ddd29feada6ffc74bc7aad69"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "33b34bf6707aa7c3eaca9c3146c066a5da4a3742e2b13131a14212dbcc212b6b"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "pixels": "2a25a51db176f4e4ca47c2be29dedb5c059f3a6147dac6c5bf15d879d08c7245"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "pixels": "74462611c8f276a49f78ddf8fb3cd6910761c112f594d958cbd021dadbe2f13c"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-tower",
+        "width": 603,
+        "height": 1021,
+        "calls": 72,
+        "triangles": 138906,
+        "pixels": "2249e10fc37525e4413e6ba6363c3f0517329e1750c9db3da5b6a0e721873e23"
+      },
+      {
+        "tier": "desktop",
+        "pose": "spawn-back",
+        "width": 603,
+        "height": 1021,
+        "calls": 50,
+        "triangles": 89446,
+        "pixels": "929e42ba41dff977978393635b53052a0247b249d18f3ba36966245d3790a208"
+      },
+      {
+        "tier": "desktop",
+        "pose": "caravan",
+        "width": 603,
+        "height": 1021,
+        "calls": 53,
+        "triangles": 143728,
+        "pixels": "ded63556b8325e775cd63889ea99ae299ae7750af6222017841896e24e9f0981"
+      },
+      {
+        "tier": "desktop",
+        "pose": "well",
+        "width": 603,
+        "height": 1021,
+        "calls": 48,
+        "triangles": 88547,
+        "pixels": "9803b4387ad2889676ca67289bd91f94325a2951cbe76efb6c56ddc839451b62"
+      },
+      {
+        "tier": "desktop",
+        "pose": "basin",
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 99078,
+        "pixels": "7763ecdeae0fe7aad2ee9d8fe6b5a07bd6214cfc0422f6cf4d0b7761d947d486"
+      },
+      {
+        "tier": "desktop",
+        "pose": "edge-out",
+        "width": 603,
+        "height": 1021,
+        "calls": 42,
+        "triangles": 88182,
+        "pixels": "638166409f329480c05f9925e7ccb259cd4426f8d941ebd608e52cf0ce057492"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "5f22e5bd86664ecd22ffd675646e2cbcf80d21a720b014c53a69b6e6b4fa9c29"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "pixels": "db9f2ea9e81477756ea654be1382ba48b540f274c0a961e4f6eec2650437d3f6"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "pixels": "46824f918f8baba484c0c36f5b86006caf65589bb5a2f966f614f37413d02e9c"
+      }
+    ]
+  },
+  "signal-quest": {
+    "baseline": "5b56866-mvdr9g6l",
+    "candidate": "79fcc2d-mvdr8hvr",
+    "poses": 24,
+    "exact": true,
+    "tiers": {
+      "phone": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 146987016,
+        "programs": 102,
+        "shaderCount": 135,
+        "shaders": "90fe8c2779af9958995b527b58e600139b56b07b8507fe1323954ca4bf165439"
+      },
+      "desktop": {
+        "pieces": 10,
+        "colliderCount": 102,
+        "colliders": "4169b9bb78acb9f002aaa7d5d0ddc82b983577bd2713127cf40b833f51d1a0f0",
+        "gpuBytes": 213758632,
+        "programs": 102,
+        "shaderCount": 135,
+        "shaders": "f51755dce08cfb9c55e89039d8c686f3c2b33a1f3103a249e010da4ed208fbc0"
+      }
+    },
+    "rows": [
+      {
+        "tier": "phone",
+        "pose": "sunset",
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "pixels": "d3f659c9c0410deac9741e757ea198bda100b6ced92216fa591d5751840a2bd6"
+      },
+      {
+        "tier": "phone",
+        "pose": "scout",
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "pixels": "db76ead051b72bf02d49c9e8ac4b785a9b72dd673f9343e0ffad2361f1e1157c"
+      },
+      {
+        "tier": "phone",
+        "pose": "logbook",
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "pixels": "57f3b40c2807086f20845a3ff1eef866efa5cfaacea2b8ae3e75b0c113634e88"
+      },
+      {
+        "tier": "phone",
+        "pose": "oil",
+        "width": 804,
+        "height": 1362,
+        "calls": 58,
+        "triangles": 147938,
+        "pixels": "7a70325b1efca93178ede601d0be02a477bf0cb8cdfea7cf5baf66a1359debab"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-one",
+        "width": 804,
+        "height": 1362,
+        "calls": 66,
+        "triangles": 148462,
+        "pixels": "5b524111bd411426eeee7faaee30e1c345ba1cff0cdffbaadc8af93a9d77f11a"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-two",
+        "width": 804,
+        "height": 1362,
+        "calls": 74,
+        "triangles": 148986,
+        "pixels": "d3385c3886d4a64d169121a0bc5be31fcccf80aa9f769a92b2776c3fd0463856"
+      },
+      {
+        "tier": "phone",
+        "pose": "brazier-three",
+        "width": 804,
+        "height": 1362,
+        "calls": 83,
+        "triangles": 149542,
+        "pixels": "7e1c8bda479382f7d60fb46e7aa41dc74197e33c300b5733e741056236a21ddc"
+      },
+      {
+        "tier": "phone",
+        "pose": "signal-night",
+        "width": 804,
+        "height": 1362,
+        "calls": 90,
+        "triangles": 149554,
+        "pixels": "7bcbff9769f60bc53c5090add86feda28b341cc8e14686bd894ca95bb2f78512"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneMatriarch",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "f56d048a21a628db73b528c0a61103c6427a3c0e6f6e0b6389f35a3110391807"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneRay",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "55568910e82f409b72b2f78dba40737c115cf609d77dbde8f0305ccd859f67e2"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:duneStrider",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 1600,
+        "pixels": "0ba798dbcecae99ac6c4160f18c770675fe9eac4cfea7579423fd15742db25e1"
+      },
+      {
+        "tier": "phone",
+        "pose": "creature:sandSkitterer",
+        "width": 804,
+        "height": 1362,
+        "calls": 1,
+        "triangles": 208,
+        "pixels": "ebeebec39b58e45cad4b2536936579d89f31ab180afa50056095f96080581a01"
+      },
+      {
+        "tier": "desktop",
+        "pose": "sunset",
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "pixels": "93dbd29ef9ce17f332e270ffe64566efba8cb6d511861123fbeb69a1233bac7a"
+      },
+      {
+        "tier": "desktop",
+        "pose": "scout",
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "pixels": "e1baacf6970996e9e56a67250a7c180ecdfdc785cfa13c6280c99f4e6d21abd5"
+      },
+      {
+        "tier": "desktop",
+        "pose": "logbook",
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "pixels": "100d22f88680513eb413d3127f2ae4ce898b258e5c3ca3bedc29c505a04f8f84"
+      },
+      {
+        "tier": "desktop",
+        "pose": "oil",
+        "width": 603,
+        "height": 1021,
+        "calls": 62,
+        "triangles": 157562,
+        "pixels": "6ad64d0f42fe9e951ae7c4da74d41f3dde7aab54074b06e76f705a41b7daafdf"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-one",
+        "width": 603,
+        "height": 1021,
+        "calls": 70,
+        "triangles": 158086,
+        "pixels": "bb07a564e7cb7dc32dc41e9a23ae3feb271a4006b35c94ddfa8c757b6080972e"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-two",
+        "width": 603,
+        "height": 1021,
+        "calls": 78,
+        "triangles": 158610,
+        "pixels": "fa1fcd8b9a7e883fe15ca0fa90e041d9d02d3076cffaf1382db7e75184655cbc"
+      },
+      {
+        "tier": "desktop",
+        "pose": "brazier-three",
+        "width": 603,
+        "height": 1021,
+        "calls": 87,
+        "triangles": 159166,
+        "pixels": "8a44b6347c5ee83b63cea64a8bc5a02b9f7fcd71ca857bcfb11a3cac1f93bfa3"
+      },
+      {
+        "tier": "desktop",
+        "pose": "signal-night",
+        "width": 603,
+        "height": 1021,
+        "calls": 94,
+        "triangles": 159178,
+        "pixels": "c70408ac64a2b3b15a53120106e966d5e68820bf76cbef9b05ec5542f3ce091e"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneMatriarch",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "27af86ba5bd44e69b7706b6cd48c4f5b208e1eb52d60762e876b287c989eb4c1"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneRay",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 9000,
+        "pixels": "0eb71d370408fe8718065d6052f769154123e3c32a2c33ec22d779ad357267ac"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:duneStrider",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 1600,
+        "pixels": "2c8304f5f21ea79a39963b94cd19504753df30fca379b24c20554ad470584e55"
+      },
+      {
+        "tier": "desktop",
+        "pose": "creature:sandSkitterer",
+        "width": 603,
+        "height": 1021,
+        "calls": 1,
+        "triangles": 208,
+        "pixels": "87bbc4bf3db503c521dd72600331cf9f24c899e639e2494ff627cb63b98322fa"
+      }
+    ]
+  }
+}

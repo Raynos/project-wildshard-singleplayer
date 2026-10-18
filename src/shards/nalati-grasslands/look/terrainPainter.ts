@@ -16,6 +16,8 @@ import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { zoneWeights } from './zones';
 import { bakeUniforms } from './bake';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, type NalatiTexName } from './nalatiTextures';
+import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
 
 const { SNOW_LINE, GLACIER } = layoutRows;
 
@@ -51,7 +53,10 @@ const LAYERS = ['meadow', 'path', 'gravel', 'rock', 'snow'] as const satisfies r
 async function buildPainterly(t: Terrain, f: PainterField): Promise<void> {
   const [, tex] = await Promise.all([f.ready(), loadNalatiTextures(LAYERS)]);
   const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
+  const colour = (await loadFirstPartyProduct('nalati-grasslands')).section('look/colour-functions')['terrain'];
+  if (colour === undefined) throw new Error('Missing terrain colour graph');
   applyPaintedTerrain(mat, SURFACE, tex);
+  materialColourGraph(mat, 'terrain.colour', colour, true);
   bindPaintedTerrainBake(mat, {
     famTBakeShadow: bakeUniforms.tBakeShadow, famTBakeMatrix: bakeUniforms.uBakeMatrix, famTBakeInfo: bakeUniforms.uBakeInfo,
     famTBakeContact: bakeUniforms.tBakeContact, famTContactXf: bakeUniforms.uContactXf,

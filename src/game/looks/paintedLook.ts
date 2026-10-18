@@ -1,0 +1,101 @@
+import { CircleGeometry, Group, InstancedBufferAttribute, Mesh, MeshStandardMaterial, PlaneGeometry, type Object3D, type Texture } from 'three';
+import { TIER } from '@wildshard/engine/core/tier';
+import { loadCarriedLUT } from '@wildshard/engine/boot/bakedApi';
+import { paintedLookFromRow, painterLight, painterLightPatch, type PaintedDressingContext, type PaintedLoad } from '@wildshard/engine/render/dataLook';
+import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
+import type { LookStrategy } from '@wildshard/engine/render/look';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { GraphIr } from '@wildshard/format/materialGraph';
+import { parsePaintedLook } from '@wildshard/format/paintedLook';
+import { loadPaintedTexture } from '../plugin/geometry';
+import type { ShardProduct } from '../shardfile/shardProduct';
+import { sceneScalar } from '../shardfile/sceneInputs';
+
+/** Client-only painted presentation. All images, geometry and graph ids come from
+ * admitted product rows; renderer construction and lifetime hooks stay here. */
+export async function productPaintedLook(product: ShardProduct): Promise<LookStrategy> {
+  const row = parsePaintedLook(product.section('look/painted'));
+  const images = new Map<string, Texture>();
+  const required: PaintedLoad = async (...args) => {
+    const texture = await loadPaintedTexture(...args);
+    if (texture === null) throw new Error(`Missing painted image: ${args[0]}`);
+    return texture;
+  };
+  await Promise.all(Object.entries(row.images).map(async ([id, tiers]) => {
+    const image = 'phone' in tiers ? tiers[TIER] : tiers;
+    const texture = await loadPaintedTexture(image.url, image.name, image.warn, image.sampler);
+    if (texture === null) throw new Error(`Missing painted image: ${image.url}`);
+    images.set(id, texture);
+  }));
+  const image = (id: string): Texture => {
+    const texture = images.get(id);
+    if (texture === undefined) throw new Error(`Missing painted image binding: ${id}`);
+    return texture;
+  };
+  const graph = (id: string): GraphIr => {
+    const entry = product.shardfile.look.materials[id];
+    if (entry?.family !== 'graph' || !('graph' in entry)) throw new Error(`Missing painted graph: ${id}`);
+    return { ...entry.graph, params: Object.fromEntries(Object.entries(entry.graph.params ?? {}).map(([name, param]) => {
+      if (param.type !== 'texture' || param.role !== 'lent') return [name, param];
+      const { role: _role, ...resolved } = param; return [name, resolved];
+    })) };
+  };
+  const dome = row.dome, dressing = row.dressing;
+  const look = paintedLookFromRow(row.look, { load: required, textures: [...images.values()],
+    ...(row.terrain === undefined ? {} : { terrain: { build: async (_terrain, field) => { await field.ready(); } } }),
+    ...(row.state === undefined ? {} : { state: sceneScalar(product.slug, row.state) }),
+    ...(row.lut === undefined ? {} : { lut: async () => {
+      const texture = await loadCarriedLUT(row.lut, `${product.slug}-lut`);
+      if (texture === null) throw new Error(`Missing painted LUT: ${row.lut ?? ''}`);
+      return texture;
+    } }),
+    ...(dome === undefined ? {} : { graph: (strip: Texture) => ({ ir: graph(dome.graph[TIER]), textures: (ref: string) => {
+      if (ref === 'haze') return strip;
+      if (ref === dome.image) return image(dome.image);
+      throw new Error(`Missing painted dome texture binding: ${ref}`);
+    } }) }),
+    ...(dressing === undefined ? {} : { dressing: async (ctx: PaintedDressingContext) => {
+      const group = new Group(); group.name = dressing.name;
+      const materials = new Map<string, Awaited<ReturnType<typeof ctx.graph>>>();
+      for (const draw of dressing.draws) {
+        const key = `${draw.graph}:${draw.image ?? ''}`;
+        let material = materials.get(key);
+        if (material === undefined) {
+          const texture = draw.image === undefined ? undefined : image(draw.image);
+          material = await ctx.graph(graph(draw.graph), texture === undefined ? undefined : () => texture);
+          materials.set(key, material);
+        }
+        const geometry = draw.geometry;
+        const quad = geometry.kind === 'disc' ? new CircleGeometry(geometry.radius, geometry.segments) : new PlaneGeometry(...geometry.size);
+        const mesh = new Mesh(geometry.kind === 'plane' && geometry.instances !== undefined
+          ? instancedQuad(quad, Object.fromEntries(Object.entries(geometry.instances).map(([name, attribute]) => {
+            const bytes = Uint8Array.from(atob(attribute.float32), c => c.codePointAt(0) ?? 0);
+            return [name, new InstancedBufferAttribute(new Float32Array(bytes.buffer), attribute.size)];
+          }))) : quad, material);
+        mesh.name = draw.name; mesh.renderOrder = draw.order; mesh.frustumCulled = false;
+        mesh.position.set(...draw.at);
+        if (geometry.kind === 'disc') { mesh.rotation.x = -Math.PI / 2; mesh.rotation.z = draw.spin; }
+        group.add(mesh);
+      }
+      return { group, textures: [], update: () => undefined };
+    } }),
+  });
+  return { ...look, ...(row.look.lightScope === 'page' ? { lighting: { install: () => { productPainterLight(product, null); } } } : {}) };
+}
+
+/** Apply the product's material-scoped painter to original props/held bodies.
+ * The inherited page path and this scoped path use the same numeric light row. */
+export function productPainterLight(product: ShardProduct, root: Object3D | null, scope?: Scope): void {
+  const row = product.section('look/painted'), seen = new Set<MeshStandardMaterial>();
+  const sun = row.materialSun ?? row.look.sun.dir;
+  if (root === null) { painterLight(row.look.light, sun).install(); return; }
+  if (scope === undefined || scope.disposed) throw new Error('Painted material lighting requires a live scope');
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) return;
+    const materials: unknown[] = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if (!(material instanceof MeshStandardMaterial) || seen.has(material) || row.materialOptOut !== undefined && material.userData[row.materialOptOut] === true) continue;
+      seen.add(material); painterLightPatch(material, row.look.light, sun, scope);
+    }
+  });
+}

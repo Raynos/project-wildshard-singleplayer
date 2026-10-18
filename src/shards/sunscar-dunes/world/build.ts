@@ -10,7 +10,7 @@ import { clientSceneHandles } from '@wildshard/game/shardfile/clientPlan';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BakedWorld } from './baked';
-import { lastLightAll } from '../look/light';
+import { productPainterLight } from '@wildshard/game/looks/paintedLook';
 
 interface TowerParts { root: Group; colliders: readonly ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
 interface WellParts { root: Group; colliders: readonly ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
@@ -77,7 +77,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, _baked: BakedWorld, 
     ...(interactables===undefined?{}:{interactables}),toast: text => { toast(ctx, text); } }, ctx.product.section('world/targets'));
   page = presentation.run;
 
-  lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
+  productPainterLight(ctx.product, ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ctx.scope.ownPrimitives(ctx.root);
   return { fire, braziers, well, logbook, contacts: presentation, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
 }

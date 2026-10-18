@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./colourFunction": "./colourFunction.ts",
+    "./paintedLook": "./paintedLook.ts",
     "./riggedHulls": "./riggedHulls.ts",
     "./chapterDirector": "./chapterDirector.ts",
     "./figures": "./figures.ts",

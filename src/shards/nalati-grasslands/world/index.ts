@@ -8,7 +8,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { painterlyUniforms } from '@wildshard/engine/world/painterly';
-import { instancedQuad } from '@wildshard/sdk/looks/cardField';
+import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
 import { nomadCampSteps } from './NomadCamp';

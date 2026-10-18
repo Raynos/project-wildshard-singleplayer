@@ -1,4 +1,4 @@
-import type { CardGroupRow, CardRow } from '@wildshard/sdk/looks/cardField';
+import type { CardGroupRow, CardRow } from './fireCards';
 import type { EffectFieldRow } from '@wildshard/sdk/looks/effectField';
 
 /**

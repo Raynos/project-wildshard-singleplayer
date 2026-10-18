@@ -10,13 +10,14 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
+import { PaintedNumbersSchema, type PaintedNumbers } from '@wildshard/format/paintedLook';
 import { BlendFunction, Effect, LookupTexture, ToneMappingMode } from 'postprocessing';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, DayCycle } from '../world/dayCycle';
 import type { LookStrategy, SkyBackdropTargets, TerrainPainter } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
 import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
 import { Scope } from '../app/scope';
-import { curveAt, CurveSchema, type Curve } from '@wildshard/format/materials';
+import { curveAt, type Curve } from '@wildshard/format/materials';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 import { loadGraphCompiler } from './graphBackend';
 import { EmissiveLook } from './families/emissive';
@@ -479,27 +480,10 @@ export interface PaintedLookSpec {
   readonly terrain?: { readonly build: TerrainPainter['build']; readonly update?: () => void };
 }
 
-const scalar = v.pipe(v.number(), v.finite()), rgb = v.tuple([scalar, scalar, scalar]), pair = v.tuple([scalar, scalar]);
-const colour = v.union([scalar, rgb]);
-const painterRow = v.object({ bounce: rgb, bounceLift: scalar, rim: rgb, floor: rgb, prefix: v.string(), optOut: v.string(),
-  rimBack: v.exactOptional(pair), rimSide: v.exactOptional(pair), lift: v.exactOptional(rgb) });
-const clockRow = v.object({ units: v.picklist(['hour', 'phase']), start: scalar,
-  schedule: v.array(v.object({ phase: v.picklist(['dawn', 'day', 'golden', 'dusk', 'night']), from: scalar, to: scalar, minutes: scalar })),
-  sun: v.object({ maxElevation: scalar, azimuthOffset: scalar }), fixed: v.object({ midday: scalar, golden: scalar, sunset: scalar, night: scalar }),
-  presets: v.object({ dawn: scalar, noon: scalar, dusk: scalar, night: scalar }), dayFraction: v.exactOptional(scalar), pauseOnPin: v.exactOptional(v.boolean()) });
-const stripRow = v.object({ name: v.string(), maps: v.tuple([v.string(), v.string()]), elevation: pair, window: pair, firstGain: pair, hold: scalar,
-  strips: v.tuple([v.object({ key: v.string(), url: v.string() }), v.object({ key: v.string(), url: v.string() })]), tag: v.string(), fault: v.string(), scope: v.string() });
-const hazeRow = v.object({ strip: v.array(scalar), tint: rgb, near: scalar, far: scalar, max: scalar, sunHaze: scalar, name: v.string(), prefix: v.string() });
-const duskRow = v.object({ fog: v.object({ color: scalar, near: scalar, far: scalar }), clock: clockRow,
-  sun: v.object({ dir: v.object({ x: scalar, y: scalar, z: scalar }), colour, intensity: scalar }), light: painterRow, lightScope: v.picklist(['page', 'material']),
-  hold: v.exactOptional(v.boolean()), neutral: v.exactOptional(v.boolean()), horizon: v.exactOptional(scalar),
-  rays: v.exactOptional(v.object({ azimuth: scalar, elevation: scalar })),
-  state: v.exactOptional(v.object({ deep: colour, curves: v.object({ key: CurveSchema, fill: CurveSchema, fogSun: CurveSchema, farHaze: CurveSchema, aerialFog: CurveSchema }) })),
-  sky: v.variant('kind', [v.object({ kind: v.literal('strips'), row: stripRow }), v.object({ kind: v.literal('haze'), row: hazeRow })]) });
-/** Admitted static painted-look numbers. Renderer resources and live state remain caller-owned ports. */
-export type DuskLookRow = v.InferOutput<typeof duskRow>;
+/** Admitted static painted-look numbers. */
+export type DuskLookRow = PaintedNumbers;
 /** Admit generated look JSON before it reaches clocks, light uniforms or sky shaders. */
-export function parsePaintedLookRow(input: unknown): DuskLookRow { return v.parse(duskRow, input); }
+export function parsePaintedLookRow(input: unknown): DuskLookRow { return v.parse(PaintedNumbersSchema, input); }
 /** Bind an admitted painted look to image, graph, live dusk and optional terrain/dressing owners. */
 export function paintedLookFromRow(row: DuskLookRow, ports: Pick<PaintedLookSpec, 'textures' | 'dressing' | 'lut' | 'terrain'> & {
   readonly load: PaintedLoad; readonly state?: PaintedState['value']; readonly graph?: Extract<PaintedSkySpec, { haze: HeadingHazeRow }>['graph'];

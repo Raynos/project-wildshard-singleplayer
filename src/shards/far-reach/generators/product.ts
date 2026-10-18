@@ -1,3 +1,4 @@
+import { SKY_PAINTED_GRAPHS } from './paintedLook';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import slotMigrations from '../data/slotMigrations.json' with { type: 'json' };
 import { SKY_SECTIONS } from './sections';
@@ -30,7 +31,7 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const product = parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS },
   // the material graphs the runtime draws its own meshes in (authored SF59 graph JSON, data/lookGraphs.json), and the
   // samplers: the islands' and boulders' library maps tile, the sward atlas keeps its own
-  look: { ...base.look, materials: { ...base.look.materials, ...lookGraphs }, samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
+  look: { ...base.look, materials: { ...base.look.materials, ...lookGraphs, ...SKY_PAINTED_GRAPHS }, samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS],
   entryways: [...ENTRYWAYS],
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.

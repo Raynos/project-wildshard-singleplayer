@@ -1,3 +1,5 @@
+import type { ColourFunctionBook } from './colourFunction';
+import type { PaintedLookRow } from './paintedLook';
 import type { ExplorerCatalogue } from './explorerCatalogue';
 import type { RiggedHullBook } from './riggedHulls';
 import type { ToonLookRow } from './toonLook';
@@ -39,6 +41,8 @@ export interface PlatformSections {
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
+  'look/painted': PaintedLookRow;
+  'look/colour-functions': ColourFunctionBook;
   'look/keyed-sky': KeyedSkyStyle;
   /** Client-only compiled feature declarations; ignored by the authoritative simulation. */
   'client/plan': ClientPlan;

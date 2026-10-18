@@ -1,0 +1,59 @@
+{
+  "protocol": "G490 source-only; canonical bake after actual landing",
+  "window": "fourteenth",
+  "bakeOwner": "sp-x10",
+  "shardSourcePaths": {
+    "far-reach": [
+      "data/rocSlate.json",
+      "generators/creatureLooks.ts",
+      "generators/output.ts",
+      "generators/paintedLook.ts",
+      "generators/product.ts",
+      "look/render.ts",
+      "manifest.json",
+      "runtime/looks/discLayer.ts"
+    ],
+    "nalati-grasslands": [
+      "data/oliveColour.json",
+      "generators/output.ts",
+      "look/light.ts",
+      "look/terrainPainter.ts",
+      "runtime/looks/lightGlsl.ts",
+      "world/index.ts"
+    ],
+    "sunscar-dunes": [
+      "generators/output.ts",
+      "generators/paintedLook.ts",
+      "generators/rows/fire.ts",
+      "generators/rows/fireCards.ts",
+      "look/light.ts",
+      "look/render.ts",
+      "manifest.json",
+      "plugin.ts",
+      "world/build.ts"
+    ]
+  },
+  "newAuthoredLookData": [
+    "src/shards/nalati-grasslands/data/oliveColour.json"
+  ],
+  "convertedAuthoredLookData": [
+    "src/shards/far-reach/data/rocSlate.json"
+  ],
+  "sharedRuntimeSources": [
+    "src/engine/package.json",
+    "src/engine/render/dataLook.ts",
+    "src/engine/render/graph/colourFunction.ts",
+    "src/engine/render/instancedGeometry.ts",
+    "src/format/colourFunction.ts",
+    "src/format/minimap.ts",
+    "src/format/package.json",
+    "src/format/paintedLook.ts",
+    "src/format/platformDataSections.ts",
+    "src/format/sections.ts",
+    "src/game/looks/paintedLook.ts",
+    "src/game/package.json",
+    "src/game/plugin/geometry.ts",
+    "src/sdk/looks/cardField.ts",
+    "src/sdk/package.json"
+  ]
+}

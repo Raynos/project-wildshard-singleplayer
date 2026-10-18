@@ -1,3 +1,4 @@
+import { materialColourGraph } from '@wildshard/engine/render/graph/colourFunction';
 import { isJsonData } from '@wildshard/format/json';
 import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
@@ -6,8 +7,6 @@ import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
 import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, type ShaderEditRow } from './shaderFamily';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
@@ -680,22 +679,22 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
 
 /** A baked body's species look as rows: its ids and rig contract (its dims ride in the baked body). */
 export interface BakedLookRow {
-  /** Optional shader edits decorate the original material; lighting, maps and hit flash stay owned by the factory. */
-  readonly materialEdits?: readonly { readonly id: string; readonly edits: readonly ShaderEditRow[] }[];
+  /** An admitted pure colour graph decorates the original material; lighting, maps and hit flash stay owned by the factory. */
+  readonly colourTransform?: { readonly id: string; readonly row: unknown };
   readonly id: string; readonly species: string; readonly kind: string;
   readonly skeleton: string; readonly sockets: readonly SocketName[]; readonly clipNames: readonly ClipName[];
 }
 /** A species look on a baked creature body (`build`: a fresh copy each time, `creatureBodies(...).bodyOrStandIn`), animated
  *  by its clip rows. Signal Dunes' and Sky Reach's creatures declare their looks this way. */
 export function bakedLook(row: BakedLookRow, build: () => AnimalSpecies, clips: SpeciesClips): SpeciesLook {
-  const patches = row.materialEdits ?? [], decorated = new WeakSet<Material>();
-  if (patches.length > 16 || new Set(patches.map(patch => patch.id)).size !== patches.length || patches.some(patch => !/^[a-zA-Z][a-zA-Z0-9.:-]{0,127}$/u.test(patch.id) || patch.edits.length > 64)) throw new Error('Invalid baked look material edits');
+  const transform = row.colourTransform, decorated = new WeakSet<Material>();
+  if (transform !== undefined && !/^[a-zA-Z][a-zA-Z0-9.:-]{0,127}$/u.test(transform.id)) throw new Error('Invalid baked look colour id');
   return { id: row.id, species: row.species, kind: row.kind, rig: 'custom', fur: NO_FUR,
-    ...(patches.length === 0 ? {} : { decorateMaterials: (materials: readonly Material[]): void => {
+    ...(transform === undefined ? {} : { decorateMaterials: (materials: readonly Material[]): void => {
       if (materials.length > 64) throw new Error('Baked look material roster exceeds its bound');
       for (const material of materials) {
         if (decorated.has(material)) continue; decorated.add(material);
-        for (const patch of patches) patchShader(material, patch.id, PATCH_ORDER.decorate, shader => { editShader(shader, patch.edits); }, { key: prior => `${prior}|${patch.id}` });
+        materialColourGraph(material, transform.id, transform.row);
       }
     } }),
     rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] }, build, animate: clipAnimate(clips) };

@@ -512,8 +512,7 @@
       }
     },
     "render": {
-      "module": "./look/render",
-      "export": "signalDunesLook"
+      "platform": "painted"
     },
     "ground": {
       "module": "./boot/ground",

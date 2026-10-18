@@ -80,6 +80,7 @@ export function authoredManifestSource(root, slug) {
   const native = [];
   if (b.render?.platform === 'toon') native.push("render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)");
   if (b.ground) native.push(`ground: ${value(b.ground)}`);
+  if (b.render?.platform === 'painted') native.push("render: async (product) => (await import('@wildshard/game/looks/paintedLook')).productPaintedLook(product)");
   for (const key of ['render', 'roster']) if (b[key] && b[key].platform === undefined) {
     if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(b[key].export)) throw new Error(`${file}: invalid lazy binding export`);
     // a called look or roster factory gets the shard's product (toLevelSpec binds it; product-in-look-o272)

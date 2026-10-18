@@ -249,6 +249,8 @@
     "./render/families/registry": "./render/families/registry.ts",
     "./render/families/toon": "./render/families/toon.ts",
     "./render/hoverboardGeometry": "./render/hoverboardGeometry.ts",
+    "./render/graph/colourFunction": "./render/graph/colourFunction.ts",
+    "./render/instancedGeometry": "./render/instancedGeometry.ts",
     "./render/dataLook": "./render/dataLook.ts",
     "./render/look": "./render/look.ts",
     "./render/memorySaver": "./render/memorySaver.ts",

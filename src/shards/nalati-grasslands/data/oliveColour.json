@@ -1,0 +1,144 @@
+{
+  "name": "famTOlive",
+  "input": "c",
+  "locals": [
+    "gr",
+    "olive"
+  ],
+  "layout": "spaced",
+  "graph": {
+    "version": 1,
+    "kind": "material",
+    "model": "unlit",
+    "params": {
+      "c": {
+        "type": "vec3",
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "nodes": {
+      "c": {
+        "op": "param",
+        "param": "c"
+      },
+      "r": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "x"
+      },
+      "g": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "y"
+      },
+      "b": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "z"
+      },
+      "redBlue": {
+        "op": "max",
+        "in": [
+          "r",
+          "b"
+        ]
+      },
+      "greenDominance": {
+        "op": "sub",
+        "in": [
+          "g",
+          "redBlue"
+        ]
+      },
+      "greenFloor": {
+        "op": "max",
+        "in": [
+          "g",
+          0.001
+        ]
+      },
+      "greenRatio": {
+        "op": "div",
+        "in": [
+          "greenDominance",
+          "greenFloor"
+        ]
+      },
+      "gr": {
+        "op": "smoothstep",
+        "in": [
+          0.02,
+          0.45,
+          "greenRatio"
+        ]
+      },
+      "redGain": {
+        "op": "mul",
+        "in": [
+          "r",
+          1.12
+        ]
+      },
+      "greenTarget": {
+        "op": "mul",
+        "in": [
+          "r",
+          1.2
+        ]
+      },
+      "greenMix": {
+        "op": "mix",
+        "in": [
+          "g",
+          "greenTarget",
+          0.68
+        ]
+      },
+      "blueGain": {
+        "op": "mul",
+        "in": [
+          "b",
+          0.7
+        ]
+      },
+      "oliveColour": {
+        "op": "combine",
+        "in": [
+          "redGain",
+          "greenMix",
+          "blueGain"
+        ]
+      },
+      "olive": {
+        "op": "mul",
+        "in": [
+          "oliveColour",
+          1.3
+        ]
+      },
+      "out": {
+        "op": "mix",
+        "in": [
+          "c",
+          "olive",
+          "gr"
+        ]
+      }
+    },
+    "stages": {
+      "surface": {
+        "colour": "out"
+      }
+    }
+  }
+}

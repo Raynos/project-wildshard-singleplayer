@@ -1,17 +1,243 @@
-[
-  {
-    "stage": "fragment",
-    "find": "#include <map_fragment>",
-    "put": "#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);"
-  },
-  {
-    "stage": "fragment",
-    "find": "#include <emissivemap_fragment>",
-    "put": "#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);"
-  },
-  {
-    "stage": "fragment",
-    "find": "",
-    "put": "vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float gold = (1.0 - smoothstep(0.06, 0.12, c.b / max(c.r, 1e-3))) * smoothstep(0.2, 0.3, c.r); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))) * (1.0 - gold); return mix(c, vec3(0.085, 0.09, 0.11) + vec3(l) * vec3(0.82, 0.9, 1.05) * 1.1, brown * 0.95); }\n"
+{
+  "name": "farSlate",
+  "input": "c",
+  "locals": [
+    "l",
+    "gold",
+    "brown"
+  ],
+  "layout": "compact",
+  "graph": {
+    "version": 1,
+    "kind": "material",
+    "model": "unlit",
+    "params": {
+      "c": {
+        "type": "vec3",
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "nodes": {
+      "c": {
+        "op": "param",
+        "param": "c"
+      },
+      "r": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "x"
+      },
+      "g": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "y"
+      },
+      "b": {
+        "op": "swizzle",
+        "in": [
+          "c"
+        ],
+        "mask": "z"
+      },
+      "l": {
+        "op": "dot",
+        "in": [
+          "c",
+          [
+            0.2126,
+            0.7152,
+            0.0722
+          ]
+        ]
+      },
+      "rFloor": {
+        "op": "max",
+        "in": [
+          "r",
+          0.001
+        ]
+      },
+      "blueRatio": {
+        "op": "div",
+        "in": [
+          "b",
+          "rFloor"
+        ]
+      },
+      "goldBlue": {
+        "op": "smoothstep",
+        "in": [
+          0.06,
+          0.12,
+          "blueRatio"
+        ]
+      },
+      "notGoldBlue": {
+        "op": "sub",
+        "in": [
+          1,
+          "goldBlue"
+        ]
+      },
+      "goldRed": {
+        "op": "smoothstep",
+        "in": [
+          0.2,
+          0.3,
+          "r"
+        ]
+      },
+      "gold": {
+        "op": "mul",
+        "in": [
+          "notGoldBlue",
+          "goldRed"
+        ]
+      },
+      "redBlue": {
+        "op": "sub",
+        "in": [
+          "r",
+          "b"
+        ]
+      },
+      "brownRatio": {
+        "op": "div",
+        "in": [
+          "redBlue",
+          "rFloor"
+        ]
+      },
+      "brownGain": {
+        "op": "mul",
+        "in": [
+          "brownRatio",
+          1.6
+        ]
+      },
+      "brownBias": {
+        "op": "sub",
+        "in": [
+          "brownGain",
+          0.3
+        ]
+      },
+      "brownClamp": {
+        "op": "clamp",
+        "in": [
+          "brownBias",
+          0,
+          1
+        ]
+      },
+      "greenRatio": {
+        "op": "div",
+        "in": [
+          "g",
+          "rFloor"
+        ]
+      },
+      "greenBand": {
+        "op": "smoothstep",
+        "in": [
+          0.55,
+          0.75,
+          "greenRatio"
+        ]
+      },
+      "notGreen": {
+        "op": "sub",
+        "in": [
+          1,
+          "greenBand"
+        ]
+      },
+      "brownGreen": {
+        "op": "mul",
+        "in": [
+          "brownClamp",
+          "notGreen"
+        ]
+      },
+      "notGold": {
+        "op": "sub",
+        "in": [
+          1,
+          "gold"
+        ]
+      },
+      "brown": {
+        "op": "mul",
+        "in": [
+          "brownGreen",
+          "notGold"
+        ]
+      },
+      "luma": {
+        "op": "combine",
+        "in": [
+          "l",
+          "l",
+          "l"
+        ]
+      },
+      "blueLuma": {
+        "op": "mul",
+        "in": [
+          "luma",
+          [
+            0.82,
+            0.9,
+            1.05
+          ]
+        ]
+      },
+      "brightLuma": {
+        "op": "mul",
+        "in": [
+          "blueLuma",
+          1.1
+        ]
+      },
+      "slate": {
+        "op": "add",
+        "in": [
+          [
+            0.085,
+            0.09,
+            0.11
+          ],
+          "brightLuma"
+        ]
+      },
+      "amount": {
+        "op": "mul",
+        "in": [
+          "brown",
+          0.95
+        ]
+      },
+      "out": {
+        "op": "mix",
+        "in": [
+          "c",
+          "slate",
+          "amount"
+        ]
+      }
+    },
+    "stages": {
+      "surface": {
+        "colour": "out"
+      }
+    }
   }
-]
+}

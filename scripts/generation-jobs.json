@@ -1502,7 +1502,13 @@
         "scripts/bake",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -1700,7 +1706,13 @@
         "public/assets/models/driftwood-blender/voxel-ao.bin",
         "public/assets/models/driftwood-hero/faces/wendell-head.glb",
         "scripts/named-blob-output.mjs",
-        "scripts/bake-output.mjs"
+        "scripts/bake-output.mjs",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/fixed-models/boat-gear.glb",
@@ -2269,7 +2281,13 @@
         "scripts/named-blob-output.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/reefLayout.generated.json",
@@ -2363,7 +2381,13 @@
         "scripts/named-blob-output.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ground-c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd.glb",
@@ -2414,7 +2438,13 @@
         "public/assets/horizon/driftwood-isle-night.webp",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
@@ -3494,7 +3524,8 @@
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/tower.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restScenes.generated.json"
@@ -3669,7 +3700,8 @@
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/tower.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/restPools.generated.json"
@@ -3845,7 +3877,8 @@
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/tower.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-well.glb"
@@ -4020,7 +4053,8 @@
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/tower.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-oil.glb"
@@ -6949,7 +6983,13 @@
         "scripts/bake-output.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
@@ -7218,7 +7258,13 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -7408,7 +7454,13 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -7482,7 +7534,13 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/far-reach/rigs/storm-roc.glb",
@@ -7526,7 +7584,13 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/winch-house.glb",
@@ -7638,7 +7702,10 @@
         "src/shards/far-reach/generators/rocClips.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/rows/species.ts",
-        "src/shards/far-reach/generators/rows/variants.ts"
+        "src/shards/far-reach/generators/rows/variants.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialGraph.ts"
       ],
       "outputs": [
         "src/shards/far-reach/boot/assets.generated.json",
@@ -9123,7 +9190,13 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/assets/00061baef9a19dbace9ddcbbd24320167063a5c3cd433bd91236e50aa9eaaa2f",
@@ -9925,7 +9998,13 @@
         "public/assets/nine-dragon/lab/walker.glb",
         "public/assets/nine-dragon/lab/sitter.glb",
         "public/assets/nine-dragon/lab/organic/lion.glb",
-        "public/assets/nine-dragon/lab/guard.glb"
+        "public/assets/nine-dragon/lab/guard.glb",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/nine-dragon/baked/casts/walker-dark.glb",
@@ -13530,7 +13609,8 @@
         "src/shards/sunscar-dunes/generators/product.ts",
         "src/shards/sunscar-dunes/generators/quests.ts",
         "src/format/inputDeclarations.ts",
-        "src/shards/sunscar-dunes/data/slotMigrations.json"
+        "src/shards/sunscar-dunes/data/slotMigrations.json",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/product.generated.json"
@@ -13723,7 +13803,8 @@
         "src/shards/sunscar-dunes/generators/product.ts",
         "src/shards/sunscar-dunes/generators/quests.ts",
         "src/format/inputDeclarations.ts",
-        "src/shards/sunscar-dunes/data/slotMigrations.json"
+        "src/shards/sunscar-dunes/data/slotMigrations.json",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/.wildshard/product/039ebbc6d284b8ed27d1cda8d7c3ec4c5e724747188c31f151e445cc2c0f185b",
@@ -15093,7 +15174,9 @@
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
         "src/format/minimap.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/format/colourFunction.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/mill-rest.glb"
@@ -15236,7 +15319,9 @@
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
         "src/format/minimap.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/format/colourFunction.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/millRest.generated.json"
@@ -15811,7 +15896,8 @@
         "src/shards/sunscar-dunes/generators/scene.ts",
         "src/shards/sunscar-dunes/generators/tiles.ts",
         "src/shards/sunscar-dunes/generators/tower.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/baked/rest-fire.glb"
@@ -16000,7 +16086,13 @@
         "src/format/inputDeclarations.ts",
         "src/shards/far-reach/data/plumbing.json",
         "src/shards/far-reach/data/slotMigrations.json",
-        "src/shards/far-reach/generators/rows/icons.ts"
+        "src/shards/far-reach/generators/rows/icons.ts",
+        "src/format/paintedLook.ts",
+        "src/shards/far-reach/data/panorama.json",
+        "src/shards/far-reach/data/skyDressing.json",
+        "src/shards/far-reach/generators/fileInventory.ts",
+        "src/shards/far-reach/generators/paintedLook.ts",
+        "src/shards/far-reach/generators/rows/skyPaintedLook.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/product.generated.json"
@@ -16316,7 +16408,13 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "public/assets/models/driftwood-blender/island.glb",
-        "public/assets/models/driftwood-blender/island.json"
+        "public/assets/models/driftwood-blender/island.json",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandFacts.generated.json"
@@ -16400,7 +16498,13 @@
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
         "src/format/minimap.ts",
-        "src/shards/driftwood-isle/generators/foliageModels.ts"
+        "src/shards/driftwood-isle/generators/foliageModels.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",
@@ -16519,7 +16623,13 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
@@ -16629,7 +16739,13 @@
         "src/shards/driftwood-isle/assets/2485e39982beb460e69e164562f178b6214cc080bedfa8e17281d8bd86a9f8f6",
         "src/game",
         "src/shards/driftwood-isle/data/wreckBake.json",
-        "src/shards/driftwood-isle/generators/driftLogs.ts"
+        "src/shards/driftwood-isle/generators/driftLogs.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/foliageScenes.generated.json",
@@ -16685,7 +16801,13 @@
         "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
         "src/shards/driftwood-isle/data/entryDecks.generated.json",
         "src/shards/driftwood-isle/data/entryRows.json",
-        "src/game"
+        "src/game",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/pierScenes.generated.json"
@@ -17603,7 +17725,13 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
@@ -17764,7 +17892,13 @@
         "src/shards/nalati-grasslands",
         "public/assets/nalati",
         "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/bake/nalatiDressing.mjs"
+        "scripts/bake/nalatiDressing.mjs",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
@@ -17868,7 +18002,13 @@
         "src/commons",
         "src/shards/nalati-grasslands",
         "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/bake/nalatiWater.mjs"
+        "scripts/bake/nalatiWater.mjs",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/water.generated.json"
@@ -18512,7 +18652,13 @@
         "scripts/authored-manifest.mjs",
         "scripts/manifest-budget.mjs",
         "scripts/manifest-spawns.mjs",
-        "src/format/minimap.ts"
+        "src/format/minimap.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/crags.bin",
@@ -18642,7 +18788,13 @@
         "src/game",
         "src/sdk",
         "src/commons",
-        "src/shards/nalati-grasslands"
+        "src/shards/nalati-grasslands",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/poiPaint.json"
@@ -18757,7 +18909,9 @@
         "src/shards/sunscar-dunes/data/runtimeBoot.json",
         "src/shards/sunscar-dunes/data/striderRig.json",
         "src/sdk/bake/source-loader.mjs",
-        "src/shards/sunscar-dunes/data/cues.json"
+        "src/shards/sunscar-dunes/data/cues.json",
+        "src/engine/render/graph/colourFunction.ts",
+        "src/engine/render/shaderPatches.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/assets/models.generated.json",
@@ -18874,7 +19028,10 @@
         "src/shards/far-reach/generators/rows/strikes.ts",
         "src/shards/far-reach/generators/rows/variants.ts",
         "src/shards/far-reach/generators/runtimeData.ts",
-        "src/shards/far-reach/generators/standIns.ts"
+        "src/shards/far-reach/generators/standIns.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialGraph.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/runtimeRows.generated.json",
@@ -19003,7 +19160,6 @@
         "src/game/plugin/shaderFamily.ts",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
-        "src/sdk/looks/cardField.ts",
         "src/sdk/looks/effectField.ts",
         "src/sdk/looks/modelLibrary.ts",
         "src/sdk/package.json",
@@ -19021,7 +19177,13 @@
         "src/shards/sunscar-dunes/generators/rows/sand.ts",
         "src/shards/sunscar-dunes/generators/rows/signalQuest.ts",
         "src/shards/sunscar-dunes/generators/rows/sky.ts",
-        "src/shards/sunscar-dunes/generators/rows/surfaces.ts"
+        "src/shards/sunscar-dunes/generators/rows/surfaces.ts",
+        "src/engine/render/graph/colourFunction.ts",
+        "src/engine/render/shaderPatches.ts",
+        "src/format/colourFunction.ts",
+        "src/format/json.ts",
+        "src/format/materialGraph.ts",
+        "src/shards/sunscar-dunes/generators/rows/fireCards.ts"
       ],
       "outputs": [
         "src/shards/sunscar-dunes/data/paintedLook.generated.json",
@@ -19061,7 +19223,12 @@
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/paintedLook.ts",
         "src/shards/far-reach/generators/rows/skyLook.ts",
-        "src/shards/far-reach/generators/rows/skyPaintedLook.ts"
+        "src/shards/far-reach/generators/rows/skyPaintedLook.ts",
+        "src/format/json.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/paintedLook.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/paintedLook.generated.json"

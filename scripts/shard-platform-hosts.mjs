@@ -4,6 +4,8 @@
 const hosts = {
   'explore/catalogue': ['game/models/explorerCatalogue#explorerRoster'],
   'look/rigged-hulls': ['sdk/looks/riggedHulls#productRiggedHulls'],
+  'look/painted': ['game/looks/paintedLook#productPaintedLook'],
+  'look/colour-functions': ['engine/render/graph/colourFunction#materialColourGraph'],
   'look/toon': ['game/looks/toonLook#toonLook'],
   'client/plan': ['game/shardfile/clientPlan#installClientPhase', 'game/shard/declaredEntry#declaredRuntimeEntry'],
   'world/tiles': ['game/shardfile/clientViews#clientTileViews'],

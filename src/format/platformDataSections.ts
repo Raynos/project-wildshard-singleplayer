@@ -1,3 +1,5 @@
+import { ColourFunctionBookSchema, type ColourFunctionBook } from './colourFunction';
+import { PaintedLookSchema, type PaintedLookRow } from './paintedLook';
 import { ExplorerCatalogueSchema, type ExplorerCatalogue } from './explorerCatalogue';
 import { RiggedHullBookSchema, type RiggedHullBook } from './riggedHulls';
 import { ToonLookSchema, type ToonLookRow } from './toonLook';
@@ -26,6 +28,8 @@ export interface PlatformDataSections {
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
   'look/toon': ToonLookRow;
+  'look/painted': PaintedLookRow;
+  'look/colour-functions': ColourFunctionBook;
   'look/keyed-sky': KeyedSkyStyle;
   'client/plan': ClientPlan;
   'held/arms': HeldArmsRows;
@@ -52,6 +56,8 @@ export const PLATFORM_DATA_SECTIONS = {
   'explore/catalogue': { schema: ExplorerCatalogueSchema },
   'look/rigged-hulls': { schema: RiggedHullBookSchema },
   'look/toon': { schema: ToonLookSchema },
+  'look/painted': { schema: PaintedLookSchema },
+  'look/colour-functions': { schema: ColourFunctionBookSchema },
   'look/keyed-sky': { schema: KEYED_SKY },
   'client/plan': { schema: ClientPlanSchema },
   'held/arms': { schema: HeldArmsSchema },
@@ -80,6 +86,8 @@ export function parsePlatformDataSection(name: 'explore/catalogue', value: unkno
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
 export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;
 export function parsePlatformDataSection(name: 'look/toon', value: unknown): ToonLookRow;
+export function parsePlatformDataSection(name: 'look/painted', value: unknown): PaintedLookRow;
+export function parsePlatformDataSection(name: 'look/colour-functions', value: unknown): ColourFunctionBook;
 export function parsePlatformDataSection(name: 'held/finishes', value: unknown): HeldFinishesRows;
 export function parsePlatformDataSection(name: 'held/gear', value: unknown): HeldGearRows;
 export function parsePlatformDataSection(name: 'look/keyed-sky', value: unknown): KeyedSkyStyle;

@@ -1,0 +1,243 @@
+{
+  "basis": "build-mirror post-generation sourceProgressLines/sourceProgressInventory",
+  "actualParent": "987934f9f151d223da4b3dc06f1bc72ae30d68b3",
+  "proofTree": "0da09fc8f68e7ceac1164bc32bb1161d02fb0ac6",
+  "baselineRuler": "tmp/sp-x8-zero/z8-final-all10-source-ruler.json",
+  "shards": {
+    "far-reach": {
+      "before": 419,
+      "after": 313,
+      "net": -106,
+      "componentChanges": [
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "CardGroup",
+          "before": 7,
+          "after": 0
+        },
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "CardGroupOptions",
+          "before": 4,
+          "after": 0
+        },
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "CardPrograms",
+          "before": 3,
+          "after": 0
+        },
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "cardGroup",
+          "before": 23,
+          "after": 0
+        },
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "floats",
+          "before": 4,
+          "after": 0
+        },
+        {
+          "path": "src/sdk/looks/cardField.ts",
+          "kind": "sole-export",
+          "name": "instanced",
+          "before": 3,
+          "after": 0
+        },
+        {
+          "path": "src/shards/far-reach/data/rocSlate.json",
+          "kind": "additional-glsl",
+          "before": 7,
+          "after": 0
+        },
+        {
+          "path": "src/shards/far-reach/look/render.ts",
+          "kind": "runtime-ts",
+          "before": 39,
+          "after": 0
+        },
+        {
+          "path": "src/shards/far-reach/runtime/looks/discLayer.ts",
+          "kind": "runtime-ts",
+          "before": 16,
+          "after": 0
+        }
+      ],
+      "assemblyScript": 53
+    },
+    "sunscar-dunes": {
+      "before": 164,
+      "after": 143,
+      "net": -21,
+      "componentChanges": [
+        {
+          "path": "src/shards/sunscar-dunes/look/light.ts",
+          "kind": "runtime-ts",
+          "before": 12,
+          "after": 0
+        },
+        {
+          "path": "src/shards/sunscar-dunes/look/render.ts",
+          "kind": "runtime-ts",
+          "before": 9,
+          "after": 0
+        }
+      ],
+      "assemblyScript": 96
+    },
+    "nalati-grasslands": {
+      "before": 20313,
+      "after": 20305,
+      "net": -8,
+      "componentChanges": [
+        {
+          "path": "src/shards/nalati-grasslands/look/light.ts",
+          "kind": "runtime-ts",
+          "before": 36,
+          "after": 32
+        },
+        {
+          "path": "src/shards/nalati-grasslands/look/terrainPainter.ts",
+          "kind": "runtime-ts",
+          "before": 175,
+          "after": 180
+        },
+        {
+          "path": "src/shards/nalati-grasslands/runtime/looks/lightGlsl.ts",
+          "kind": "runtime-ts",
+          "before": 9,
+          "after": 0
+        }
+      ],
+      "assemblyScript": 162
+    }
+  },
+  "netShardLines": -135,
+  "platform": {
+    "generators": {
+      "net": 69,
+      "byShard": {
+        "far-reach": 31,
+        "nalati-grasslands": 1,
+        "sunscar-dunes": 37
+      },
+      "rows": [
+        {
+          "path": "src/shards/far-reach/generators/creatureLooks.ts",
+          "before": 11,
+          "after": 11
+        },
+        {
+          "path": "src/shards/far-reach/generators/output.ts",
+          "before": 25,
+          "after": 27
+        },
+        {
+          "path": "src/shards/far-reach/generators/paintedLook.ts",
+          "before": 5,
+          "after": 33
+        },
+        {
+          "path": "src/shards/far-reach/generators/product.ts",
+          "before": 33,
+          "after": 34
+        },
+        {
+          "path": "src/shards/nalati-grasslands/generators/output.ts",
+          "before": 49,
+          "after": 50
+        },
+        {
+          "path": "src/shards/sunscar-dunes/generators/output.ts",
+          "before": 28,
+          "after": 30
+        },
+        {
+          "path": "src/shards/sunscar-dunes/generators/paintedLook.ts",
+          "before": 16,
+          "after": 23
+        },
+        {
+          "path": "src/shards/sunscar-dunes/generators/rows/fire.ts",
+          "before": 24,
+          "after": 24
+        },
+        {
+          "path": "src/shards/sunscar-dunes/generators/rows/fireCards.ts",
+          "before": 0,
+          "after": 28
+        }
+      ]
+    },
+    "basis": "source nonblank/comment-free TypeScript",
+    "base": "987934f9f151d223da4b3dc06f1bc72ae30d68b3",
+    "tree": "0da09fc8f68e7ceac1164bc32bb1161d02fb0ac6",
+    "rows": [
+      {
+        "path": "src/engine/render/dataLook.ts",
+        "before": 481,
+        "after": 465
+      },
+      {
+        "path": "src/engine/render/graph/colourFunction.ts",
+        "before": 0,
+        "after": 75
+      },
+      {
+        "path": "src/engine/render/instancedGeometry.ts",
+        "before": 0,
+        "after": 12
+      },
+      {
+        "path": "src/format/colourFunction.ts",
+        "before": 0,
+        "after": 26
+      },
+      {
+        "path": "src/format/minimap.ts",
+        "before": 222,
+        "after": 222
+      },
+      {
+        "path": "src/format/paintedLook.ts",
+        "before": 0,
+        "after": 39
+      },
+      {
+        "path": "src/format/platformDataSections.ts",
+        "before": 96,
+        "after": 104
+      },
+      {
+        "path": "src/format/sections.ts",
+        "before": 93,
+        "after": 97
+      },
+      {
+        "path": "src/game/looks/paintedLook.ts",
+        "before": 0,
+        "after": 95
+      },
+      {
+        "path": "src/game/plugin/geometry.ts",
+        "before": 1580,
+        "after": 1579
+      },
+      {
+        "path": "src/sdk/looks/cardField.ts",
+        "before": 84,
+        "after": 0
+      }
+    ],
+    "net": 158
+  },
+  "baselineTree": "bfe243c8aa1d33178d27820f07fa896f86c554de",
+  "baselineCommit": "987934f9f151d223da4b3dc06f1bc72ae30d68b3"
+}

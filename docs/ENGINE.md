@@ -1219,6 +1219,33 @@ refuses a missing live state. Material-scoped light stays in the admitted row
 for the caller to apply with `painterLightPatch`. `painterLightPatch(null, ...)`
 installs that light in the page lighting chunk; a material target scopes it.
 
+`format/paintedLook` defines the client-only `look/painted` section.
+Its optional `terrain: 'declared'` waits for the admitted terrain field;
+it preserves a product's terrain ownership through the look binding.
+`game/looks/paintedLook#productPaintedLook(product)` resolves its exact
+per-tier image samplers, graph ids from `look.materials`, optional LUT,
+scene-state field and ordered disc/card dressing. Discovery selects this
+compiled host with `bindings.render: { platform: 'painted' }`; authors do
+not supply resource callbacks. Missing images, LUTs and graph bindings
+refuse loading. `productPainterLight(product, root, scope)` applies the
+same row to original standard materials, respecting its explicit user-data
+opt-out and optional original rim direction; a null root installs the
+page light. `render/instancedGeometry#instancedQuad` preserves a quad's
+position/UV/index and declared per-instance attributes for painted fields
+and particle fields.
+
+`render/graph/colourFunction#colourGraphFunction` lowers one pure vec3
+arithmetic material graph to a standard-material colour function. Its
+`format/colourFunction` row declares the input, ordered locals and output;
+resource/geometry/control-flow nodes refuse, and division requires an
+explicit positive floor. This retains existing skinning, lighting, fog,
+maps and hit flash. Baked creature looks declare `colourTransform` rows;
+painted terrain reads its named row from `look/colour-functions`.
+`materialColourGraph(material, id, row, replaceExisting)` decorates albedo
+and emission, or replaces the named existing pure colour function while
+retaining its call sites. A missing replacement target refuses. No shader
+text or material factory crosses the author API.
+
 `manifest.render` returns a `LookStrategy`: how your level looks. It is one of two shapes.
 
 | Shape | `compose` | Use |
@@ -5534,7 +5561,7 @@ A recipe without motion creates no script host or item role.
 
 `SpeciesLook.decorateMaterials` decorates existing per-instance materials
 after the factory installs lighting. `bakedLook` accepts bounded optional
-`materialEdits` rows (`id`, shader `edits`) and chains them at decorate order.
+`colourTransform` rows (`id`, a pure colour graph) at decorate order.
 It preserves the original materials, maps, lighting and hit-flash ownership;
 shared materials receive each look's edit once. Sky and Signal use this
 existing baked creature catalogue. Omission retains the ordinary path.
@@ -7176,10 +7203,10 @@ against [x, z] corners (false under three). Pure scalar math: no clocks, heights
 pair. Users: declared pool water (`world/water/declared.ts`), Pine's cave interior (its passage frame and dry
 footprint) and Driftwood's sea cave floor.
 
-**Instanced quads.** `src/sdk/looks/cardField.ts#instancedQuad(quad, attributes)` draws a quad (index, position and
+**Instanced quads.** `render/instancedGeometry#instancedQuad(quad, attributes)` draws a quad (index, position and
 uv shared, never copied) once per instance with the caller's named `InstancedBufferAttribute`s; the instance count
-is the first attribute's. `cardGroup` feeds its baked card rows through it; Pine's baked buildings feed their
-seeded smoke and spark clouds the same way.
+is the first attribute's. The painted-look host feeds its admitted card rows through it; Nalati feeds its
+original plume attributes through the same primitive.
 
 **Creature lift (G441).** `game/plugin/animation.stepCreatureLift` steps
 an actor's existing `rise`, `rising`, `sinking` and `init` memory, returning

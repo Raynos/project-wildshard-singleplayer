@@ -194,6 +194,7 @@
     "./looks/keyedSkyClock": "./looks/keyedSkyClock.ts",
     "./looks/streamedCover": "./looks/streamedCover.ts",
     "./looks/toonLighting": "./looks/toonLighting.ts",
+    "./looks/paintedLook": "./looks/paintedLook.ts",
     "./looks/toonLook": "./looks/toonLook.ts",
     "./quest/effects": "./quest/effects.ts",
     "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
