@@ -363,3 +363,11 @@ V54 hero's sloped orange/cream boundary was a modest credible semantic-field imp
 Reviewed original hero `tmp/puffer-lowpoly-v55-from-v9/matched-style.png` and all nine actual `tmp/puffer-v55-shared-4p2/` diagnostic images. **Overall 3.81/5**, decimal-computed from silhouette/proportions 3.85, face/expression 3.75, details 3.8, facet/style 3.85 at unchanged weights. Modest new best versus V53 3.76, still below 4.0 and unaccepted.
 
 The diagonal warm cheek field better follows the approved target; foreleg shoulder is lower and more sloped, while side views retain real depth and embedded roots. Pouch, eye/brow and four-lobe toe identity remain. The leg change is subtle, not a major silhouette redesign. Remaining priorities: regular teal mantle latitude belts; tiny lateral cream union sliver/notch; brow/eye proportions still somewhat flatter than the target. A bounded convex mantle broad-facet pass has greater leverage than repeated tiny foot adjustments. Do not change eyes or successful lower pouch planes during that pass.
+
+## 2026-10-18: V56 local mantle gate and V57 full review
+
+V56's rear-mantle convex resampling was a credible hero-local cleanup requiring side/back evidence. V57 combines that change with narrower/receded outer cream arch wings, retaining mouth, eye and nostril anchors.
+
+Reviewed `tmp/puffer-lowpoly-v57-from-v9/matched-style.png` plus all nine actual shared-4.2 views in `tmp/puffer-v57-shared-4p2/`. **Overall 3.87/5**, decimal-computed from silhouette/proportions 3.85, face/expression 3.9, details 3.8, facet/style 3.95 at unchanged weights. New best versus V55 3.81; explicitly below 4.0, without rounding up to the stopping threshold.
+
+The compact cream arch improves eye-to-mouth balance and remains attached in side views rather than becoming a floating ribbon. Rear mantle shows broader diagonal convex planes, and visible spine roots remain seated. The intentionally pinned front crown/side retain some regular bands. A tiny lateral cream union sliver persists. Tail remains a uniformly thick regular polygonal disk rather than the approved irregular faceted fan. These remaining differences should be addressed without reopening the successful eyes, mouth or pouch. Tail orientation is not judged against contradictory generated nine-view art. No runtime/animation/export credit or final acceptance is implied.
