@@ -1,0 +1,21 @@
+{
+  "cameraPosition": [
+    3,
+    4.6,
+    2.25
+  ],
+  "cameraTarget": [
+    0,
+    -0.03,
+    0.84
+  ],
+  "cameraRight": [
+    -0.8392295837402344,
+    0.5437772274017334,
+    0.0
+  ],
+  "tipMinusRootHorizontal": -0.070346649736166,
+  "expectedSign": "negative = screen-left",
+  "tipHeightExact": true,
+  "scope": "projection-direction preflight, not visual acceptance"
+}

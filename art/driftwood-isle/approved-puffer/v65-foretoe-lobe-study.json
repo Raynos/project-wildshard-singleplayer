@@ -1,0 +1,15 @@
+{
+  "base": "V64",
+  "scope": "eight foretoe lobes only, four per front fan",
+  "original": "single pointed tip with high central ridge; visually tooth-like",
+  "candidate": "broad distal shoulders and three-point blunted terminal, lower dorsal ridge",
+  "baseHalfWidth": 0.079,
+  "distalHalfWidth": 0.03,
+  "terminalSetback": 0.02,
+  "originalRidgeHeight": 0.12,
+  "candidateRidgeHeight": 0.105,
+  "soleHeightExact": 0.004,
+  "forwardmostTipAndBaseCentersExact": true,
+  "fanRootAnkleRearFeetBodyFacePaletteAndPivotsChanged": false,
+  "status": "unaccepted; actual broad fin-lobe reading and floor/root checks required"
+}

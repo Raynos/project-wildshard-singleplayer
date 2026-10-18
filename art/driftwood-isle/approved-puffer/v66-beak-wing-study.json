@@ -1,0 +1,15 @@
+{
+  "base": "V56",
+  "outerArchSideXScale": 0.85,
+  "outerArchSideYShift": -0.015,
+  "matchingRoofFrontCornersChanged": [
+    0,
+    2
+  ],
+  "innerMouthBoundaryChanged": false,
+  "mouthCutterChanged": false,
+  "centralPeakTipNostrilsChanged": false,
+  "eyePupilGlintChanged": false,
+  "paletteChanged": false,
+  "status": "unaccepted; rendered wing footprint and side closure pending"
+}
