@@ -1,5 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the authored guest sources, never substitute a JS policy.
 import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
+import { StateSchema } from '../src/format/state';
+import { CAPTAIN_FIELDS } from '../src/shards/driftwood-isle/generators/captainFields';
+import { TIDAL_GIANTS_FIELDS } from '../src/shards/driftwood-isle/generators/tidalGiantsCombat';
 import { beforeAll, expect, test } from 'vitest';
 import { Bone, Vector3 } from 'three';
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
@@ -34,7 +38,8 @@ function scenario(index: number) {
   const actor = index + 1;
   return createScriptScenario(DecisionHost, { bytes: blob.bytes, script, seed: 17,
     binding: { id: 1, script: row.id, self: actor, actors: [actor], instance: 0 },
-    actors: [{ id: actor, at: [0, 0, 0], fields: Object.fromEntries(DRIFTWOOD_REGULAR_FIELDS.map(field => [field.id, field.default])) }],
+    actors: [{ id: actor, at: [0, 0, 0], fields: Object.fromEntries(DRIFTWOOD_REGULAR_FIELDS.map(field => [field.id, field.default])) },
+      { id: 40, at: [9, 0, 9], fields: { 106: 17 } }],
     players: [{ id: 99, at: [0, 0, 1.5] }] });
 }
 test('three unrelated finite skinned bodies have valid bones and normalized weights', () => {
@@ -107,17 +112,17 @@ function rig(index: number): AnimalRigContext {
 }
 test('puffer actually inflates until the burst and deflates for the punish window', () => {
   const c = rig(0), pose = numericCreaturePose(BRINE_PUFFER_CLIPS);
-  Object.assign(c.mem, { 'puffer-st': 1, 'puffer-clock': .85 });pose(c);
+  Object.assign(c.mem, { 'puffer-st': 1, 'regular-clock': .85 });pose(c);
   expect(c.bones['belly']?.scale.x).toBeGreaterThan(1.5);
-  c.mem['puffer-clock'] = 1.4;pose(c);expect(c.bones['belly']?.scale.x).toBeCloseTo(1);
+  c.mem['regular-clock'] = 1.4;pose(c);expect(c.bones['belly']?.scale.x).toBeCloseTo(1);
   c.deathT = 1;pose(c);expect(c.bones['belly']?.scale.x).toBeLessThan(.5);expect(c.bones['body']?.rotation.z).toBeGreaterThan(1);
 });
 test('counter and second lunge poses align with their shorter tells and use distinct limbs', () => {
   const c = rig(1), pose = numericCreaturePose(CONCH_DUELIST_CLIPS);
-  Object.assign(c.mem, { 'conch-st': 3, 'conch-clock': .50 });pose(c);
+  Object.assign(c.mem, { 'conch-st': 3, 'regular-clock': .50 });pose(c);
   expect(c.bones['thrust']?.scale.z).toBeGreaterThan(2);expect(c.bones['guard']?.rotation.z).toBeLessThan(-1);
   const m = rig(2), mantis = numericCreaturePose(SPLINTER_MANTIS_CLIPS);
-  Object.assign(m.mem, { 'mantis-st': 3, 'mantis-clock': .7, 'mantis-beat': 2 });mantis(m);
+  Object.assign(m.mem, { 'mantis-st': 3, 'regular-clock': .7, 'mantis-beat': 2 });mantis(m);
   expect(Math.abs(m.bones['armR']?.rotation.x ?? 0)).toBeGreaterThan(Math.abs(m.bones['armL']?.rotation.x ?? 0));
 });
 test('moving mantis lane only hits when the lunging body reaches the target, once per beat', () => {
@@ -130,4 +135,22 @@ test('moving mantis lane only hits when the lunging body reaches the target, onc
   runner.start(spec, actor, context.target);runner.update(.76, context);runner.update(.02, context);expect(hits).toBe(0);
   actor.position.z = 2.3;runner.update(.02, context);runner.update(.02, context);expect(hits).toBe(1);
   expect(runner.yaw).toBe(0);
+});
+
+test('complete Captain plus five-enemy public state fits the unchanged 24-slot schema', () => {
+  const shared = [...CAPTAIN_FIELDS, ...DRIFTWOOD_REGULAR_FIELDS, ...TIDAL_GIANTS_FIELDS];
+  expect(shared).toHaveLength(24);
+  expect(v.safeParse(StateSchema, { version: 1, sharedOwner: 'host', playerKey: 'actorId', shared, player: [] }).success).toBe(true);
+  for (const clips of [BRINE_PUFFER_CLIPS, CONCH_DUELIST_CLIPS, SPLINTER_MANTIS_CLIPS]) {
+    expect(clips.scalars.find(scalar => scalar.name === 'clock')?.path).toEqual(['mem', 'regular-clock']);
+  }
+});
+test('a shared clock declaration does not overwrite a different actor clock', () => {
+  for (let index = 0; index < 3; index++) {
+    const s = scenario(index);s.send('start');s.advance(.2);s.advance(.3);
+    const actors = s.world.snapshot().actors;
+    expect(Number(s.state()['clock'])).toBeGreaterThan(0);
+    expect(actors?.find(actor => actor.id === index + 1)?.fields?.[106]).toBeCloseTo(Number(s.state()['clock']));
+    expect(actors?.find(actor => actor.id === 40)?.fields?.[106]).toBe(17);
+  }
 });

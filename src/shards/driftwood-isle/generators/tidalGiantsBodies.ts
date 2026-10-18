@@ -122,8 +122,8 @@ function merged(parts: THREE.BufferGeometry[]): THREE.BufferGeometry | null {
   result.deleteAttribute('normal'); return result;
 }
 export function bakeTidalGiantsBodies(): BakedCreatureBody[] {
-  return [{ kind: 'bellback', build: buildBellback }, { kind: 'tideRootColossus', build: buildTideRootColossus }].map(({ kind, build }) => {
-    const sp = build(); return { kind, variant: kind, bones: sp.bones, dims: sp.dims,
+  return [{ kind: 'bellback', variant: 'bellback', build: buildBellback }, { kind: 'tideRootColossus', variant: 'tide-root-colossus', build: buildTideRootColossus }].map(({ kind, variant, build }) => {
+    const sp = build(); return { kind, variant, bones: sp.bones, dims: sp.dims,
       fur: merged(sp.furParts), hard: merged(sp.hardParts), eye: merged(sp.eyeParts) };
   });
 }

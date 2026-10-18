@@ -16,11 +16,11 @@ const output = resolve(process.argv.find(arg => arg.startsWith('--out='))?.slice
 const W = 1080, H = 1900, TOP = 145, ROW = 332, PANEL = 330;
 const rows = [
   { name: 'Brine Puffer', build: buildBrinePuffer, clips: BRINE_PUFFER_CLIPS,
-    stages: [{ name: 'Rest · front', mem: { 'puffer-st': 0 }, yaw: .15 }, { name: 'Inflated tell · 0.85 s', mem: { 'puffer-st': 1, 'puffer-clock': .85 }, yaw: .55 }, { name: 'Deflated punish · 1.4 s', mem: { 'puffer-st': 1, 'puffer-clock': 1.4 }, yaw: -.6 }] },
+    stages: [{ name: 'Rest · front', mem: { 'puffer-st': 0 }, yaw: .15 }, { name: 'Inflated tell · 0.85 s', mem: { 'puffer-st': 1, 'regular-clock': .85 }, yaw: .55 }, { name: 'Deflated punish · 1.4 s', mem: { 'puffer-st': 1, 'regular-clock': 1.4 }, yaw: -.6 }] },
   { name: 'Conch Duelist', build: buildConchDuelist, clips: CONCH_DUELIST_CLIPS,
-    stages: [{ name: 'Rest · front', mem: { 'conch-st': 0 }, yaw: .15 }, { name: 'Shell brace · 0.5 s', mem: { 'conch-st': 1, 'conch-clock': .5 }, yaw: -.55 }, { name: 'Counter thrust · 0.52 s', mem: { 'conch-st': 3, 'conch-clock': .52 }, yaw: .70 }] },
+    stages: [{ name: 'Rest · front', mem: { 'conch-st': 0 }, yaw: .15 }, { name: 'Shell brace · 0.5 s', mem: { 'conch-st': 1, 'regular-clock': .5 }, yaw: -.55 }, { name: 'Counter thrust · 0.52 s', mem: { 'conch-st': 3, 'regular-clock': .52 }, yaw: .70 }] },
   { name: 'Splinter Mantis', build: buildSplinterMantis, clips: SPLINTER_MANTIS_CLIPS,
-    stages: [{ name: 'Rest · front', mem: { 'mantis-st': 0, 'mantis-beat': 1 }, yaw: .15 }, { name: 'First crouch · 0.65 s', mem: { 'mantis-st': 1, 'mantis-clock': .65, 'mantis-beat': 1 }, yaw: .55 }, { name: 'Second lunge · 0.7 s', mem: { 'mantis-st': 3, 'mantis-clock': .7, 'mantis-beat': 2 }, yaw: -.65 }] },
+    stages: [{ name: 'Rest · front', mem: { 'mantis-st': 0, 'mantis-beat': 1 }, yaw: .15 }, { name: 'First crouch · 0.65 s', mem: { 'mantis-st': 1, 'regular-clock': .65, 'mantis-beat': 1 }, yaw: .55 }, { name: 'Second lunge · 0.7 s', mem: { 'mantis-st': 3, 'regular-clock': .7, 'mantis-beat': 2 }, yaw: -.65 }] },
   { name: 'Bellback · elite', build: buildBellback, clips: BELLBACK_CLIPS,
     stages: [{ name: 'Rest · front', mem: { 'tg-state': 0 }, yaw: .15 }, { name: 'Raised-clapper tell · 1.05 s', mem: { 'tg-state': 1, 'tg-clock': 1.05 }, yaw: .55 }, { name: 'Outer echo · 0.9 s', mem: { 'tg-state': 2, 'tg-clock': .9 }, yaw: -.65 }] },
   { name: 'Tide-Root Colossus · boss', build: buildTideRootColossus, clips: TIDE_ROOT_COLOSSUS_CLIPS,

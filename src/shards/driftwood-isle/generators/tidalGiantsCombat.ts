@@ -50,7 +50,7 @@ export const TIDAL_GIANTS_SPECIES: BrainedSpecies[] = [
     brain: { archetype: 'decision', data: { script: 'driftwood.bellback.decision', actor: 'driftwood.bellback', marks: { fight: 'tg-awake', phase: 'tg-phase' }, strikeEffects: [] } },
     body: body(['stalk', 'attack', 'attack', 'attack', 'alert', 'idle', 'idle']) },
   { id: 'creature.tide-root-colossus', kind: 'tideRootColossus', label: 'Tide-Root Colossus', aggressive: true, lockable: true, walkSpeed: 0, chargeDamage: 22,
-    corpseFade: 45, tick: 'ai', variants: [{ id: 'tideRootColossus', label: 'Tide-Root Colossus', rarity: 'legendary', weight: 1, scale: [1, 1], hp: 480 }],
+    corpseFade: 45, tick: 'ai', variants: [{ id: 'tide-root-colossus', label: 'Tide-Root Colossus', rarity: 'legendary', weight: 1, scale: [1, 1], hp: 480 }],
     brain: { archetype: 'decision', data: { script: 'driftwood.colossus.decision', actor: 'driftwood.colossus', guard: { field: 'tg-exposed', activeValue: 1, multiplier: 1.5 }, marks: { fight: 'tg-awake', phase: 'tg-phase' }, strikeEffects: [] } },
     body: body(['idle', 'attack', 'attack', 'attack', 'alert', 'idle', 'idle']) },
 ];
@@ -59,4 +59,4 @@ export const TIDAL_GIANTS_BOUNTIES = { bellback: 12, tideRootColossus: 35 } as c
 
 /** Declarative identities only; the Developer practice owner supplies the actual bodies. */
 export const TIDAL_GIANTS_ACTORS = [{ id: 'driftwood.bellback', kind: 'bellback', look: 'bellback', at: [0, 0] as [number, number], yaw: 0 },
-  { id: 'driftwood.colossus', kind: 'tideRootColossus', look: 'tideRootColossus', at: [0, 0] as [number, number], yaw: 0 }];
+  { id: 'driftwood.colossus', kind: 'tideRootColossus', look: 'tide-root-colossus', at: [0, 0] as [number, number], yaw: 0 }];

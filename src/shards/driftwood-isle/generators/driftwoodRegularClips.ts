@@ -23,7 +23,7 @@ function clip(id: string, rows: NumericChannelOutput[]) {
   const duration = id === 'brine-puffer' ? 2.1 : id === 'conch-duelist' ? 1.6 : 1.37;
   const secondDuration = id === 'conch-duelist' ? 1.45 : 2.05;
   return { group: 'creature.pose', states: ['stalk', 'attack', 'alert'],
-    scalars: [{ name: 'clock', path: ['mem', `${prefix}-clock`], fallback: 0 }, { name: 'stage', path: ['mem', `${prefix}-st`], fallback: 0 }],
+    scalars: [{ name: 'clock', path: ['mem', 'regular-clock'], fallback: 0 }, { name: 'stage', path: ['mem', `${prefix}-st`], fallback: 0 }],
     programs: rows.flatMap((row, i) => numericChannelPrograms(`${id}.${i}`, 'creature.pose', [{ ...row,
       target: `joint.${row.target.replaceAll('_', '.')}`, expr: (b, read) => {
         let attack: number | undefined;

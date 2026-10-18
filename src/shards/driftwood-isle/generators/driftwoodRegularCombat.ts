@@ -8,7 +8,8 @@ export const DRIFTWOOD_REGULAR_FIELDS = [
   { id: 103, name: 'conch-guard', type: 'f64' as const, privacy: 'public' as const, default: 0, min: 0, max: 1 },
   { id: 104, name: 'mantis-st', type: 'f64' as const, privacy: 'public' as const, default: 0, min: 0, max: 5 },
   { id: 105, name: 'mantis-beat', type: 'f64' as const, privacy: 'public' as const, default: 0, min: 0, max: 2 },
-  ...['puffer-clock', 'conch-clock', 'mantis-clock'].map((name, i) => ({ id: 106 + i, name, type: 'f64' as const, privacy: 'public' as const, default: 0, min: 0, max: 60 })),
+  // The schema slot is shared; values remain per actor, never global or per species.
+  { id: 106, name: 'regular-clock', type: 'f64' as const, privacy: 'public' as const, default: 0, min: 0, max: 60 },
 ];
 const common = { active: .10, cooldown: 0, units: 'world' as const, tags: ['cover.checked' as const], weight: { kind: 'constant' as const, value: 1 } };
 export const DRIFTWOOD_REGULAR_STRIKES = [
@@ -49,8 +50,8 @@ function decision(kind: string, source: string, fields: Record<string, string>, 
   };
 }
 export const DRIFTWOOD_REGULAR_DECISIONS = [
-  decision('brine-puffer', 'brinePuffer', { stage: 'puffer-st', clock: 'puffer-clock' }, { burst: 'strike.brine-puffer.burst' }),
-  decision('conch-duelist', 'conchDuelist', { stage: 'conch-st', clock: 'conch-clock', guard: 'conch-guard' }, { thrust: 'strike.conch-duelist.thrust', counter: 'strike.conch-duelist.counter' }),
-  decision('splinter-mantis', 'splinterMantis', { stage: 'mantis-st', clock: 'mantis-clock', beat: 'mantis-beat' }, { first: 'strike.splinter-mantis.first', second: 'strike.splinter-mantis.second' }),
+  decision('brine-puffer', 'brinePuffer', { stage: 'puffer-st', clock: 'regular-clock' }, { burst: 'strike.brine-puffer.burst' }),
+  decision('conch-duelist', 'conchDuelist', { stage: 'conch-st', clock: 'regular-clock', guard: 'conch-guard' }, { thrust: 'strike.conch-duelist.thrust', counter: 'strike.conch-duelist.counter' }),
+  decision('splinter-mantis', 'splinterMantis', { stage: 'mantis-st', clock: 'regular-clock', beat: 'mantis-beat' }, { first: 'strike.splinter-mantis.first', second: 'strike.splinter-mantis.second' }),
 ];
 export const DRIFTWOOD_REGULAR_REWARDS = { 'brine-puffer': 2, 'conch-duelist': 3, 'splinter-mantis': 3 };
