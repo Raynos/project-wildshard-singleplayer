@@ -1,3 +1,4 @@
+import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import peopleChannels from '../data/peopleChannels.generated.json' with { type: 'json' };
 import weatherChannels from '../data/weatherChannels.generated.json' with {type:'json'};
@@ -34,7 +35,7 @@ const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grassland
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
 const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
-const programs = [kokpar.program, admission, titanProgram];
+const programs = [kokpar.program, admission, titanProgram, charge];
 const programBytes = programs.reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
