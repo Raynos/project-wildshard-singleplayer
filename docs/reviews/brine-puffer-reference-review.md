@@ -347,3 +347,19 @@ V51 returns to V46 geometry and increases exposed lower amber lobe and upper bro
 Front and hero gain fuller rounded amber lower lobes and heavier sloping brows, with both pupils retained. Side views show no projecting eye coins, though profile iris visibility remains limited. Softer cheek transition also helps. Remaining direct-target gaps: horizontal body/pouch belts and squared lateral cream field; brow still lacks the seated rearward top-plane mass of the approved wedge; near foreleg remains conical rather than a compact sloping flipper. Preserve V51 as the best fallback while testing bounded improvements. No runtime, animation or export score is included.
 
 The owner's updated stopping condition is **4.0/5 or V100, whichever occurs first**, then the other four enemies. This changes the stopping condition only, not scoring weights or standards. V51 is below 4.0 and remains unaccepted. Historical ranking cutoff remains untouched.
+
+## 2026-10-18: V52 local gate and V53 full review
+
+V52's actual hero added isolated upper orange tabs rather than a convincing seated brow top plane. It was not promoted or given a full-view score. V53 returns to V51 face geometry and uses convex resampling for the pouch instead of V50's fixed-vertex edge flips.
+
+Reviewed `tmp/puffer-lowpoly-v53-from-v9/matched-style.png` and all nine actual shared-4.2 diagnostic images in `tmp/puffer-v53-shared-4p2/`. **Overall 3.76/5**, decimal-computed from silhouette/proportions 3.8, face/expression 3.65, defining details 3.8, facet/style 3.85 with unchanged weights. New best reviewed versus V51 3.69, still below 4.0 and unaccepted.
+
+Broad convex irregular cream planes now break the pouch's middle/lower horizontal belt in front, hero and elevated views without the rejected concave flutes. The dominant pouch mass, eyes, brows and identity details remain. Remaining priorities are the squared lateral cream field and tiny teal triangular sliver/notch at its side union (especially left/elevated-left), regular teal mantle belts, and conical upper foreleg rather than a low sloping fan. Preserve successful lower pouch planes and stable face while addressing these separately. No alternate camera, runtime behavior, animation or export credit is included.
+
+## 2026-10-18: V54 local paint gate and V55 full review
+
+V54 hero's sloped orange/cream boundary was a modest credible semantic-field improvement; no full score was assigned to that single view. V55 combines it with a shorter/wider buried foreleg root, preserving toe fan, ground contact and the successful convex pouch.
+
+Reviewed original hero `tmp/puffer-lowpoly-v55-from-v9/matched-style.png` and all nine actual `tmp/puffer-v55-shared-4p2/` diagnostic images. **Overall 3.81/5**, decimal-computed from silhouette/proportions 3.85, face/expression 3.75, details 3.8, facet/style 3.85 at unchanged weights. Modest new best versus V53 3.76, still below 4.0 and unaccepted.
+
+The diagonal warm cheek field better follows the approved target; foreleg shoulder is lower and more sloped, while side views retain real depth and embedded roots. Pouch, eye/brow and four-lobe toe identity remain. The leg change is subtle, not a major silhouette redesign. Remaining priorities: regular teal mantle latitude belts; tiny lateral cream union sliver/notch; brow/eye proportions still somewhat flatter than the target. A bounded convex mantle broad-facet pass has greater leverage than repeated tiny foot adjustments. Do not change eyes or successful lower pouch planes during that pass.

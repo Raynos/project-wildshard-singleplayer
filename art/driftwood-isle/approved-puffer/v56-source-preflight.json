@@ -1,0 +1,52 @@
+{
+  "status": "pure source mantle/seam/support preflight passed; actual union and render pending",
+  "source": "build_puffer_lowpoly_v56_from_v9.py",
+  "sourceSha256": "7f06fd47ca2be31fad73944bd6abfd5426b1d1eabcdafa9ecc232c1a05c58b5f",
+  "argparseNamespacePreserved": true,
+  "maximumSampledSilhouetteDrift": 0.019203856413702036,
+  "maximumSampleDisplacement": 0.059995515473854316,
+  "signedVolume": 1.054925705926791,
+  "referenceVolume": 1.0600562244833145,
+  "spineRootClearances": [
+    {
+      "Y": -0.43,
+      "angle": 0,
+      "beforeSignedDistance": -0.0265690130767786,
+      "afterSignedDistance": -0.026552509810047906
+    },
+    {
+      "Y": -0.12,
+      "angle": 0,
+      "beforeSignedDistance": -0.037150222910166744,
+      "afterSignedDistance": -0.037150222910166744
+    },
+    {
+      "Y": -0.27,
+      "angle": -0.95,
+      "beforeSignedDistance": -0.015159041173420318,
+      "afterSignedDistance": -0.015065476099807754
+    },
+    {
+      "Y": -0.27,
+      "angle": 0.95,
+      "beforeSignedDistance": -0.015159041173420276,
+      "afterSignedDistance": -0.015065476099807741
+    },
+    {
+      "Y": -0.53,
+      "angle": 1.55,
+      "beforeSignedDistance": -0.007007612692957933,
+      "afterSignedDistance": -0.007007612692957933
+    }
+  ],
+  "frontVerticesUnchanged": 84,
+  "nonmanifoldEdges": 0,
+  "rearConvexStats": {
+    "signedVolume": 0.5562364147357576,
+    "maximumDihedralDegrees": 91.40894836657768,
+    "triangles": 134,
+    "verticesUsed": 69,
+    "supportPlaneTolerance": 1e-07
+  },
+  "maximumExteriorDihedralDegrees": 59.54451200041176
+}
