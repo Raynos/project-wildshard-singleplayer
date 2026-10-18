@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "05fdd69fe9b0d08e84955971d1fed3c066361974",
- "committedAt": "2026-10-18T21:07:21.000Z",
- "measuredAt": "2026-10-18T21:18:18.476Z",
+ "revision": "2ba606e3d89ba9af2e855be47dfe6f34b0d7e908",
+ "committedAt": "2026-10-18T22:11:47.000Z",
+ "measuredAt": "2026-10-18T22:14:32.574Z",
  "basis": "source",
  "plan": {
-  "lower": 0.46100135581297014,
-  "upper": 0.7276680224796368
+  "lower": 0.4730203197323797,
+  "upper": 0.7396869863990463
  },
  "m3": {
-  "cut": 61600,
+  "cut": 63206,
   "mustGo": 80173.3,
-  "fraction": 0.7683355930216169
+  "fraction": 0.7883671995539662
  },
  "m2": {
   "ready": 0,
@@ -25,8 +25,8 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 45656,
-   "netCut": -40657,
+   "platformGrowth": 45726,
+   "netCut": -40727,
    "layers": {
     "engine": {
      "before": 67206,
@@ -35,8 +35,8 @@
     },
     "game": {
      "before": 33346,
-     "after": 60747,
-     "growth": 27401
+     "after": 60817,
+     "growth": 27471
     },
     "format": {
      "before": 7102,
@@ -53,9 +53,9 @@
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": 33632,
-   "platformGrowth": 42092,
-   "netCut": -8460,
+   "customCut": 33880,
+   "platformGrowth": 42162,
+   "netCut": -8282,
    "layers": {
     "engine": {
      "before": 67897,
@@ -64,8 +64,8 @@
     },
     "game": {
      "before": 35276,
-     "after": 60747,
-     "growth": 25471
+     "after": 60817,
+     "growth": 25541
     },
     "format": {
      "before": 7749,
@@ -86,9 +86,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 4109,
+   "custom": 3907,
    "legacy": 21305,
-   "pct": 19.3,
+   "pct": 18.3,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -104,9 +104,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 3270,
+   "custom": 3224,
    "legacy": 17167,
-   "pct": 19,
+   "pct": 18.8,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -158,9 +158,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 18615,
+   "custom": 18080,
    "legacy": 28370,
-   "pct": 65.6,
+   "pct": 63.7,
    "grid": "fail",
    "criteria": {
     "bakedTiles": "fail",
@@ -176,9 +176,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 11260,
+   "custom": 10437,
    "legacy": 21111,
-   "pct": 53.3,
+   "pct": 49.4,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -205,7 +205,7 @@
    "nalati-grasslands",
    "nine-dragon-stack"
   ],
-  "pct": 10.4
+  "pct": 17.6
  },
  "waves": [
   {
@@ -1002,6 +1002,19 @@
     "sunscar-dunes": 0,
     "nalati-grasslands": 65.61508635882976,
     "nine-dragon-stack": 53.33712282696224
+   }
+  },
+  {
+   "revision": "2ba606e3d89ba9af2e855be47dfe6f34b0d7e908",
+   "at": "2026-10-18T22:11:47.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 18.338418211687397,
+    "driftwood-isle": 18.780217859847383,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 63.72929150511103,
+    "nine-dragon-stack": 49.43868125621714
    }
   }
  ],
