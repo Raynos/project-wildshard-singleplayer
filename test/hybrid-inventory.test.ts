@@ -1,3 +1,5 @@
+import { MaterialsSchema } from '../src/format/materials';
+import { parse } from 'valibot';
 import { withoutRuntimeRows } from '../src/game/plugin/headless';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 import { parseRows } from '../src/format/rows';
@@ -44,7 +46,7 @@ test('explicit runtime loot ownership leaves inventory alone and does not instal
 });
 
 test.each([false, true])('quality-only rows register once without a data simulation (runtime stages %s)', async runtimeStagesOnly => {
-  const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { absentShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
+  const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
     import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
     import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('../src/format/plumbing'),
   ]);
@@ -60,7 +62,8 @@ test.each([false, true])('quality-only rows register once without a data simulat
   const manifest = MANIFEST; // Existing typed boot metadata; the admitted fixture stays fictional.
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: {
     tab: () => { throw new Error('No bag expected'); }, fragment: () => { throw new Error('No bag expected'); },
-  } }, absentShardProduct(source.identity.slug));
+  } }, createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source, sections: new Map(), files: new Map(),
+    read: () => Promise.reject(new Error('No product asset read expected')) }));
   try {
     expect(expected).toBe(0);
     await client.world(ctx); await client.kit(ctx); await client.play(ctx);
@@ -69,4 +72,46 @@ test.each([false, true])('quality-only rows register once without a data simulat
     new ShardfileClient(source, assets, { ...bindings, runtimeStagesOnly: false }); expect(expected).toBe(1);
   } finally { scope.dispose(); }
   expect(app.levelRegistrations.knobSchemas()).toEqual([]);
+});
+
+
+test('look-only trusted hybrids retain native kit and play ownership', async () => {
+  const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }] = await Promise.all([
+    import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
+    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'),
+  ]);
+  const source = emptyShardfile({ slug: 'look-only', name: 'Look only', author: 'Test', revision: 1, seed: 1 });
+  source.look.materials = parse(MaterialsSchema, { smoke: { family: 'toon' } });
+  const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/look-only/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('No asset read expected')), hash: () => Promise.resolve('a'.repeat(64)) });
+  let expected = 0;
+  const bindings = { instance: 'look-only', recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(),
+    icon: () => { throw new Error('No item read expected'); }, onSimulationExpected: () => { expected++; }, trustedRuntime: true, worldOwner: 'runtime' as const };
+  const client = new ShardfileClient(source, assets, bindings), app = new App(), scope = new Scope('look-only');
+  const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, MANIFEST, { shard: MANIFEST, rows: new Map(), bag: {
+    tab: () => () => undefined, fragment: () => () => undefined,
+  } }, createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source, sections: new Map(), files: new Map(),
+    read: () => Promise.reject(new Error('No product asset read expected')) }));
+  try {
+    expect(expected).toBe(0);
+    // No data world/equipment exists: these must stay under the trusted kit.
+    await client.kit(ctx); await client.play(ctx);
+    source.state.shared.push({ id: 1, name: 'active', type: 'bool', privacy: 'host', default: false });
+    const gameplay = new ShardfileClient(source, assets, bindings); expect(expected).toBe(1);
+    await expect(gameplay.play(ctx)).rejects.toThrow('normal play stage');
+  } finally { scope.dispose(); app.engineScope.dispose(); }
+});
+
+test.each([
+  ['Nalati', () => import('../src/shards/nalati-grasslands/shard.config')],
+  ['Nine', () => import('../src/shards/nine-dragon-stack/shard.config')],
+] as const)('%s look-only native rows never request a second simulation', async (_name, load) => {
+  const source = (await load()).default;
+  const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/native/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('No asset read expected')), hash: () => Promise.resolve('a'.repeat(64)) });
+  let expected = 0;
+  new ShardfileClient(source, assets, { instance: source.identity.slug, recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(),
+    icon: () => { throw new Error('No item read expected'); }, onSimulationExpected: () => { expected++; }, trustedRuntime: true, worldOwner: 'runtime', audioOwner: 'runtime' });
+  expect(expected).toBe(0);
 });

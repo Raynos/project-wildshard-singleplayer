@@ -1,5 +1,6 @@
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
+import { materialTextureRefs } from '@wildshard/format/materials';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bindSceneSourceLooks } from './sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
@@ -138,8 +139,22 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
     && source.look.day === undefined && source.look.dayOverride === null;
 }
 
-/** A declared client owns its ordinary stages; trusted transitions may leave them empty. */
-type DataMode = 'full' | 'empty';
+/**
+ * G345: a trusted hybrid's data without its presentation sections: the terrain (its collider and tiles) and the look's
+ * family materials (their entries, family looks and curves, and the textures only they name). When this is empty the data
+ * is presentation-only: its runtime keeps the simulation and the data client only draws.
+ */
+function withoutPresentation(source: Shardfile): Shardfile {
+  const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider,
+    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials)]);
+  const keep = (ref: string): boolean => !files.has(ref);
+  return { ...source, terrain: null, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
+    tiles: source.tiles.flatMap((tile) => { const kept = tile.files.filter(keep); return kept.length === 0 ? [] : [kept.length === tile.files.length ? tile : { ...tile, files: kept }]; }),
+    look: { ...source.look, families: [], materials: {}, familyLooks: {} } };
+}
+
+/** Look-only trusted data draws with its native world and never creates another gameplay owner. */
+type DataMode = 'full' | 'empty' | 'presentation';
 /** How far (m) the viewer moves before the tile residency re-centres, when the terrain declares no `follow`. */
 const FOLLOW = 5;
 
@@ -170,7 +185,9 @@ export class ShardfileClient {
     const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
     if (bindings.trustedRuntime === true) assets.releaseTransport(runtimeBoundWorldFiles(source));
     this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
-    this.mode = bindings.runtimeStagesOnly === true || bindings.trustedRuntime === true && emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty' : 'full';
+    this.mode = bindings.runtimeStagesOnly === true ? 'empty' : bindings.trustedRuntime !== true ? 'full'
+      : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
+      : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
     this.nativeFeatures = hasDeclaredClientPage(source);
     if (this.mode === 'full' && !this.nativeFeatures) bindings.onSimulationExpected?.();
   }
@@ -219,14 +236,16 @@ export class ShardfileClient {
     this.itemModels = await loadItemModels(this.source.items, this.assets.retained, ctx.scope);
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
-    const start = this.nativeFeatures ? ctx.manifest.spawn : this.source.spawn;
-    const collider = this.nativeFeatures && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
+    const nativeWorld = this.nativeFeatures || this.mode === 'presentation';
+    const start = nativeWorld ? ctx.manifest.spawn : this.source.spawn;
+    const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: start.x, z: start.z,
       ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
     });
     const tiles = this.worldTiles;
     this.followViewer(ctx, runtime, tiles, presentation, start);
+    if (this.mode === 'presentation') { ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'presentation', workers: false }); return; }
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its
     // cell's owner weight, standalone it stays whole
     const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: setting('graphMaterials') === 'on' });
