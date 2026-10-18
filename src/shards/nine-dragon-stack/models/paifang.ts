@@ -13,21 +13,21 @@
  */
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { PAIFANG, PAIFANG_PROFILE } from '../data/specimenProfiles';
+import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/paifang.ts';
 
-export interface PaifangParams { readonly kind: keyof typeof PAIFANG }
+export interface PaifangParams { readonly kind: keyof typeof profiles.PAIFANG }
 
-/** a gate in its own space (G285: baked, ../generators/specimens.ts, as buildGate draws PAIFANG[kind] at the origin) */
+/** a gate in its own space (G285: baked, ../generators/specimens.ts, as buildGate draws profiles.PAIFANG[kind] at the origin) */
 function gate(ctx: ModelContext, kind: PaifangParams['kind']): ModelBuild {
   return withSpecimens(ctx, 'nine-dragon-stack/paifang', () => [{ geometry: specimen(ctx, `paifang:${kind}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]);
 }
 
 export const paifang = defineModel<PaifangParams>({
-  id: 'nine-dragon-stack/paifang', name: 'Paifang (memorial gate)', category: 'buildings', pipeline: 'code', file: FILE, defaults: PAIFANG_PROFILE.defaults,
-  variants: PAIFANG_PROFILE.variants,
+  id: 'nine-dragon-stack/paifang', name: 'Paifang (memorial gate)', category: 'buildings', pipeline: 'code', file: FILE, defaults: profiles.PAIFANG_PROFILE.defaults,
+  variants: profiles.PAIFANG_PROFILE.variants,
   build: (ctx, p) => gate(ctx, p.kind),
   colliders: (p) => postColliders(p.kind),
 });
@@ -39,7 +39,7 @@ export const paifang = defineModel<PaifangParams>({
  * stair's spans the stair: its copy is turned −90°).
  */
 export function postColliders(kind: PaifangParams['kind']): ColliderDesc[] {
-  const g = PAIFANG[kind];
+  const g = profiles.PAIFANG[kind];
   if (kind === 'stair') return g.posts.map((x) => ({ kind: 'box', x, y: 4.5, z: 0, hx: 0.7 * g.s, hy: 4.5, hz: 1.4 * g.s, surface: 'stone' }));
   return g.posts.map((x) => ({ kind: 'box', x, y: 3.5, z: 0, hx: 0.45, hy: 3.5, hz: 0.45, surface: 'wood' }));
 }

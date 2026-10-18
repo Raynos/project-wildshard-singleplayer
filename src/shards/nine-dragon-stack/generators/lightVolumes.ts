@@ -11,7 +11,7 @@ import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
 import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
-import { SIGN_MODEL } from '../data/signs';
+import signRows from '../data/signView.json' with { type: 'json' };
 
 interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface WindowLike { m: Matrix4; win: Vector4; light: Color }
@@ -86,8 +86,8 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean): { lante
   for (const { p, neon: calligraphy } of signs[tier].placed) {
     if (!calligraphy) continue;
     const { w, h } = neonSize(p.spec.text, p.size, p.spec.vertical);
-    const gain = ((p.gain ?? SIGN_MODEL.calligraphyGain) / SIGN_MODEL.calligraphyGain) * SIGN_MODEL.tubeGain;
-    const power = (1.4 * gain) / SIGN_MODEL.tubeGain;
+    const gain = ((p.gain ?? signRows.model.calligraphyGain) / signRows.model.calligraphyGain) * signRows.model.tubeGain;
+    const power = (1.4 * gain) / signRows.model.tubeGain;
     neon.push({ at: new Vector3().fromArray(p.at.map(numeric)).addScaledVector(new Vector3().fromArray(p.normal.map(numeric)).setY(0).normalize(), 0.09 / 2),
       color: new Color(p.spec.color), w, h, power, spill: 0.3 * power });
   }

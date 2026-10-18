@@ -1,0 +1,273 @@
+{
+  "FIGURE_PROFILE": {
+    "defaults": {
+      "pose": "stand",
+      "umbrella": false
+    },
+    "variants": [
+      {
+        "id": "stand",
+        "label": "Standing",
+        "params": {}
+      },
+      {
+        "id": "umbrella",
+        "label": "With an umbrella",
+        "params": {
+          "umbrella": true
+        }
+      },
+      {
+        "id": "sit",
+        "label": "Seated",
+        "params": {
+          "pose": "sit"
+        }
+      },
+      {
+        "id": "cook",
+        "label": "Cooking",
+        "params": {
+          "pose": "cook"
+        }
+      }
+    ]
+  },
+  "HOOK_PROFILE": {
+    "defaults": {
+      "reach": 0.9
+    },
+    "variants": [
+      {
+        "id": "reach-0.6",
+        "label": "Reach 0.6 m",
+        "params": {
+          "reach": 0.6
+        }
+      },
+      {
+        "id": "reach-0.7",
+        "label": "Reach 0.7 m",
+        "params": {
+          "reach": 0.7
+        }
+      },
+      {
+        "id": "reach-0.8",
+        "label": "Reach 0.8 m",
+        "params": {
+          "reach": 0.8
+        }
+      },
+      {
+        "id": "reach-0.9",
+        "label": "Reach 0.9 m",
+        "params": {
+          "reach": 0.9
+        }
+      },
+      {
+        "id": "reach-1",
+        "label": "Reach 1 m",
+        "params": {
+          "reach": 1
+        }
+      },
+      {
+        "id": "reach-1.3",
+        "label": "Reach 1.3 m",
+        "params": {
+          "reach": 1.3
+        }
+      }
+    ]
+  },
+  "LAUNDRY_PROFILE": {
+    "defaults": {
+      "kind": "gallery",
+      "span": 2.6,
+      "rise": -0.05
+    },
+    "variants": [
+      {
+        "id": "gallery",
+        "label": "Between gallery posts",
+        "params": {
+          "kind": "gallery",
+          "span": 2.6,
+          "rise": -0.05
+        }
+      },
+      {
+        "id": "lower",
+        "label": "Along a lower-Well front",
+        "params": {
+          "kind": "lower",
+          "span": 2.4,
+          "rise": -0.05
+        }
+      },
+      {
+        "id": "pole",
+        "label": "A pole out from the wall",
+        "params": {
+          "kind": "pole",
+          "span": 1.6,
+          "rise": 0.05
+        }
+      }
+    ]
+  },
+  "LOTUS_PROFILE": {
+    "defaults": {
+      "capped": true
+    },
+    "variants": [
+      {
+        "id": "lotus",
+        "label": "Lotus cap",
+        "params": {
+          "capped": true
+        }
+      },
+      {
+        "id": "bare",
+        "label": "Far crossings (no cap)",
+        "params": {
+          "capped": false
+        }
+      }
+    ]
+  },
+  "PAIFANG": {
+    "square": {
+      "posts": [
+        -5.45,
+        -2.15,
+        2.15,
+        5.45
+      ],
+      "s": 1.85,
+      "plaque": "九龍",
+      "couplets": null,
+      "neonEaves": null,
+      "lions": false,
+      "k": 0.78,
+      "paint": "cinnabar"
+    },
+    "stair": {
+      "posts": [
+        -5.6,
+        -3.1,
+        3.1,
+        5.6
+      ],
+      "s": 1.3,
+      "plaque": "九龍",
+      "couplets": null,
+      "neonEaves": null,
+      "lions": false,
+      "paint": "cinnabar"
+    },
+    "well": {
+      "posts": [
+        -5.4,
+        -2.3,
+        2.3,
+        5.4
+      ],
+      "s": 1.05,
+      "plaque": "九龍",
+      "couplets": [
+        "萬家燈火",
+        "天下一家"
+      ],
+      "neonEaves": null,
+      "lions": false
+    }
+  },
+  "PAIFANG_PROFILE": {
+    "defaults": {
+      "kind": "square"
+    },
+    "variants": [
+      {
+        "id": "square",
+        "label": "Lantern Square (cinnabar)",
+        "params": {
+          "kind": "square"
+        }
+      },
+      {
+        "id": "stair",
+        "label": "The stair-street",
+        "params": {
+          "kind": "stair"
+        }
+      },
+      {
+        "id": "well",
+        "label": "The Well's gate bridge (mineral)",
+        "params": {
+          "kind": "well"
+        }
+      }
+    ]
+  },
+  "SCOOTER_PROFILE": {
+    "defaults": {
+      "wash": 12071455
+    },
+    "variants": [
+      {
+        "id": "b8321f",
+        "label": "Red",
+        "params": {
+          "wash": 12071455
+        }
+      },
+      {
+        "id": "2e5fa3",
+        "label": "Blue",
+        "params": {
+          "wash": 3039139
+        }
+      },
+      {
+        "id": "7fbf9a",
+        "label": "Mint",
+        "params": {
+          "wash": 8372122
+        }
+      }
+    ]
+  },
+  "STOOL_PROFILE": {
+    "defaults": {
+      "wash": 12729122
+    },
+    "variants": [
+      {
+        "id": "c23b22",
+        "label": "Cinnabar",
+        "params": {
+          "wash": 12729122
+        }
+      },
+      {
+        "id": "2e5fa3",
+        "label": "Azurite",
+        "params": {
+          "wash": 3039139
+        }
+      },
+      {
+        "id": "3e5a4a",
+        "label": "Malachite",
+        "params": {
+          "wash": 4086346
+        }
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 import { zlibSync } from 'fflate';
 import { bakeGlyphField } from './glyphField';
-import { KAI_STACK, GLYPH_LAYOUT } from '../data/signs';
+import { KAI_STACK, GLYPH_LAYOUT } from './signs';
 import { FONT_CHARS } from '../data/words';
 
 /** Native WebKit font output is retained, so portable product builds need neither system fonts nor a canvas. */

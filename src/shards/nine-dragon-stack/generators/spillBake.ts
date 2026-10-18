@@ -5,7 +5,7 @@ import { nineLayoutSource } from './layout';
 import { bakeFixedKits, readFixedSlots } from './casts';
 import { canopyGeometries } from './canopyGeometry';
 import { bakeSpill, type Emitter } from './lightSpill';
-import { SIGN_MODEL } from '../data/signs';
+import signRows from '../data/signView.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
 import atlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import { portalPlanRows } from './portalEntries';
@@ -47,8 +47,8 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop'): { geometr
       const count = Array.from(p.spec.text).length, em = p.size;
       const w = p.spec.vertical ? em * 1.42 : em * (count + 0.62), h = p.spec.vertical ? em * (count + 0.58) : em * 1.42;
       const facing = vector(p.normal).setY(0).normalize();
-      const gain = ((p.gain ?? SIGN_MODEL.calligraphyGain) / SIGN_MODEL.calligraphyGain) * SIGN_MODEL.tubeGain;
-      const k = (1.4 * gain) / SIGN_MODEL.tubeGain;
+      const gain = ((p.gain ?? signRows.model.calligraphyGain) / signRows.model.calligraphyGain) * signRows.model.tubeGain;
+      const k = (1.4 * gain) / signRows.model.tubeGain;
       return { at: vector(p.at).addScaledVector(facing, 0.09 / 2), color: new Color(p.spec.color), w, h, power: k, spill: 0.3 * k };
     });
     emitters.push(...row.lights.map(light => {

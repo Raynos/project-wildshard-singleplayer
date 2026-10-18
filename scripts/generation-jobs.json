@@ -3,6 +3,35 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nine-client-rows",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-client-rows.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-client-rows.mjs"
+      ],
+      "inputRoots": [
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-client-rows.mjs",
+        "src/shards/nine-dragon-stack/data/signTypes.d.ts",
+        "src/shards/nine-dragon-stack/data/specimenTypes.d.ts",
+        "src/shards/nine-dragon-stack/data/specimenProfiles.json",
+        "src/shards/nine-dragon-stack/data/signView.json"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/signView.d.json.ts",
+        "src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nine-dragon-stack/data/signView.d.json.ts": "f1b2bfc031693162297ccb4b4d8ac39e6d186524476157edde61999b1d9d4d67",
+        "src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts": "bad2bbbc550c30a030f3a311b6f82aa7e916d1db392613f87accb2158818ada5"
+      }
+    },
+    {
       "id": "driftwood-interactables",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-interactables.mjs",
@@ -10154,7 +10183,8 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nine-layout"
+        "nine-layout",
+        "nine-client-rows"
       ]
     },
     {
@@ -18900,7 +18930,8 @@
         "src/shards/nine-dragon-stack/generators/glyphField.ts",
         "src/shards/nine-dragon-stack/data/words.ts",
         "src/shards/nine-dragon-stack/util.ts",
-        "src/shards/nine-dragon-stack/data/signs.ts"
+        "src/shards/nine-dragon-stack/generators/signs.ts",
+        "src/shards/nine-dragon-stack/data/signTypes.d.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/glyphs.generated.json"
@@ -18968,9 +18999,11 @@
         "src/shards/nine-dragon-stack/generators/signAtlasPage.ts",
         "src/shards/nine-dragon-stack/generators/signAtlas.ts",
         "src/shards/nine-dragon-stack/generators/signMath.ts",
-        "src/shards/nine-dragon-stack/data/signs.ts",
         "src/shards/nine-dragon-stack/data/layout.generated.json",
-        "src/shards/nine-dragon-stack/data/fixedKits.generated.json"
+        "src/shards/nine-dragon-stack/data/fixedKits.generated.json",
+        "src/shards/nine-dragon-stack/generators/signs.ts",
+        "src/shards/nine-dragon-stack/data/signTypes.d.ts",
+        "src/shards/nine-dragon-stack/data/signView.json"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/signAtlas.generated.json"

@@ -31,7 +31,8 @@ import { droneKit, gondolaCabin, trainKit } from './moverKits';
 import { geometryWriter } from './bakeWrite';
 import { PIECES as FACADE_PIECES, PIECE_FAR } from './facadePieces';
 import { PIECE_IDS } from '../world/facade/pieceIds';
-import { PAIFANG, PAIFANG_PROFILE, HOOK_PROFILE, STOOL_PROFILE, SCOOTER_PROFILE, FIGURE_PROFILE, LAUNDRY_PROFILE, LOTUS_PROFILE, type SpecimenProfile } from '../data/specimenProfiles';
+import type { SpecimenProfile } from '../data/specimenTypes';
+import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 
 const { HAWKER, STALL } = NINE_LAYOUT_PLAN;
 
@@ -71,9 +72,9 @@ export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => Bu
   add('set:parasol', parasolSet);
   add('set:pavilion', pavilionSet);
   // the paifang's three gates (models/paifang.ts)
-  for (const p of each(PAIFANG_PROFILE)) add(`paifang:${p.kind}`, () => {
+  for (const p of each(profiles.PAIFANG_PROFILE)) add(`paifang:${p.kind}`, () => {
     const k = new Kit(), x = new KitX();
-    buildGate(k, x, new NoSigns(), () => undefined, { x: 0, y: 0, z: 0, ...PAIFANG[p.kind] });
+    buildGate(k, x, new NoSigns(), () => undefined, { x: 0, y: 0, z: 0, ...profiles.PAIFANG[p.kind] });
     return merge([k.build(), x.build()]);
   });
   // the banyan, its crown over its own plan, the shrine and the stele (models/banyan.ts)
@@ -98,20 +99,20 @@ export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => Bu
   add('banyan:shrine', () => built('shrine', (c, k, x) => { shrine(c, k, x, 0, 0, 0); }));
   add('banyan:stele', () => built('stele', (c, k) => { kowloonStele(c, k, 0, 0, 0); }));
   // the models drawn into the kits (models/inKit.ts)
-  for (const p of each(HOOK_PROFILE)) add(`inkit:hook:${p.reach}`, () => kit((k) => { dragonHook(k, { hooks: [], hookMounts: [], inKit: [] }, new Vector3(0, 0, 0), new Vector3(0, 0, 1), p.reach); }));
-  for (const p of each(STOOL_PROFILE)) add(`inkit:stool:${p.wash}`, () => kit((k) => { stool(k, 0, 0, 0, p.wash); }));
-  for (const p of each(SCOOTER_PROFILE)) add(`inkit:scooter:${p.wash}`, () => kit((k) => { scooter(k, 0, 0, 0, 0, p.wash); }));
+  for (const p of each(profiles.HOOK_PROFILE)) add(`inkit:hook:${p.reach}`, () => kit((k) => { dragonHook(k, { hooks: [], hookMounts: [], inKit: [] }, new Vector3(0, 0, 0), new Vector3(0, 0, 1), p.reach); }));
+  for (const p of each(profiles.STOOL_PROFILE)) add(`inkit:stool:${p.wash}`, () => kit((k) => { stool(k, 0, 0, 0, p.wash); }));
+  for (const p of each(profiles.SCOOTER_PROFILE)) add(`inkit:scooter:${p.wash}`, () => kit((k) => { scooter(k, 0, 0, 0, 0, p.wash); }));
   add('inkit:mahjong', () => kit((k) => { mahjongTable(k, new Rng(5), 0, 0, 0, 0); }));
-  for (const p of each(FIGURE_PROFILE)) add(`inkit:figure:${p.pose}:${String(p.umbrella)}`, () => kit((k) => { person(k, new Rng(11), 0, 0, 0, 0, p.pose, p.umbrella); }));
+  for (const p of each(profiles.FIGURE_PROFILE)) add(`inkit:figure:${p.pose}:${String(p.umbrella)}`, () => kit((k) => { person(k, new Rng(11), 0, 0, 0, 0, p.pose, p.umbrella); }));
   // the laundry line's variants (models/laundry.ts)
-  for (const p of each(LAUNDRY_PROFILE)) add(`laundry:${p.kind}:${p.span}:${p.rise}`, () => kit((k) => {
+  for (const p of each(profiles.LAUNDRY_PROFILE)) add(`laundry:${p.kind}:${p.span}:${p.rise}`, () => kit((k) => {
     const rng = new Rng(17), a = new Vector3(0, 0, 0), b = new Vector3(p.span, p.rise, 0);
     if (p.kind === 'gallery') laundry(k, rng, a, b);
     else if (p.kind === 'lower') lowerLine(k, rng, a, b);
     else laundryPole(k, rng, a, b, new Vector3(1, 0, 0));
   }));
   // the crossings' posts (models/bridgePosts.ts), the landing planter, the lotus finial, the Well's balustrade
-  for (const p of each(LOTUS_PROFILE)) add(`bridge-post:lotus:${String(p.capped)}`, () => kit((k) => { lotusPost(k, 0, 0, 0, p.capped); }));
+  for (const p of each(profiles.LOTUS_PROFILE)) add(`bridge-post:lotus:${String(p.capped)}`, () => kit((k) => { lotusPost(k, 0, 0, 0, p.capped); }));
   add('bridge-post:lamp', () => kit((k) => { lampPostStone(k, 0, 0, 0, 1); }));
   add('landing-planter', () => kit((k) => { landingPlanter(k, new Rng(23), { x: 0, y: 0, z: 0, ...PLANTER }); }));
   add('lotus-finial', () => kit((k) => { lotusBud(k, 0, 0, 0); }));

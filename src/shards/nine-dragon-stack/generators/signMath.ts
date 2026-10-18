@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { SIGN_STYLES } from '../data/signs';
+import { SIGN_STYLES } from './signs';
 import type { SignPlace, SignBoardBox, SignBoardKit } from '../assets/contracts/signPlacement';
 
 /** Author-only face sizing; permanent tests compare it with the runtime sign renderer. */

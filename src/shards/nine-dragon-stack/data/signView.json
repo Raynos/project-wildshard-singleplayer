@@ -1,0 +1,100 @@
+{
+  "model": {
+    "key": "nds:sign",
+    "calligraphyStyles": [
+      "tube"
+    ],
+    "calligraphyGain": 4.4,
+    "tubeGain": 4.2,
+    "sideways": [
+      "etch"
+    ],
+    "neonDepth": 0.09,
+    "bladeDepth": 0.12,
+    "depth": 0.1,
+    "standoff": 0.03,
+    "variantOf": {
+      "tube": "neon",
+      "box": "lightbox"
+    },
+    "pieces": {
+      "atlas": "nds-signs",
+      "neon": "nds-signs-neon"
+    }
+  },
+  "defaults": {
+    "style": "tube",
+    "text": "重慶小麵",
+    "color": "#ff3b30",
+    "vertical": false,
+    "size": 0.5,
+    "blade": false,
+    "gain": 5
+  },
+  "variants": [
+    {
+      "id": "neon",
+      "label": "Neon calligraphy (重慶小麵)",
+      "params": {
+        "style": "tube",
+        "text": "重慶小麵",
+        "color": "#ff3b30",
+        "vertical": false,
+        "size": 0.5,
+        "gain": 5
+      }
+    },
+    {
+      "id": "lightbox",
+      "label": "Lightbox (九記牛腩麵)",
+      "params": {
+        "style": "box",
+        "text": "九記牛腩麵",
+        "color": "#fff1dc",
+        "vertical": false,
+        "size": 0.34,
+        "board": 11019802,
+        "gain": 2
+      }
+    },
+    {
+      "id": "plaque",
+      "label": "Plaque (福德祠)",
+      "params": {
+        "style": "plaque",
+        "text": "福德祠",
+        "color": "#f0c86a",
+        "vertical": false,
+        "size": 0.13,
+        "gain": 1.3
+      }
+    },
+    {
+      "id": "paper",
+      "label": "Paper strip (牛腩麵)",
+      "params": {
+        "style": "paper",
+        "text": "牛腩麵",
+        "color": "#f3e7cf",
+        "ink": "#b8261a",
+        "vertical": true,
+        "size": 0.13,
+        "gain": 1.15
+      }
+    },
+    {
+      "id": "banner",
+      "label": "Banner (麵)",
+      "params": {
+        "style": "banner",
+        "text": "麵",
+        "color": "#b8261a",
+        "ink": "#efe8d8",
+        "vertical": true,
+        "size": 0.72,
+        "blade": true,
+        "gain": 1.35
+      }
+    }
+  ]
+}

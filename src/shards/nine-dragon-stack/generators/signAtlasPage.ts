@@ -1,6 +1,8 @@
 import { BufferAttribute, Vector3 } from 'three';
 import { SignAtlas, SignBuilder, type SignPlace } from './signAtlas';
-import { SIGN_COLOUR, SIGN_LAYOUT, SIGN_MODEL, SIGN_STYLES, SIGN_VARIANTS, type SignModelParams, type SignStyle } from '../data/signs';
+import type { SignModelParams, SignStyle } from '../data/signTypes';
+import { SIGN_COLOUR, SIGN_LAYOUT, SIGN_STYLES } from './signs';
+import signRows from '../data/signView.json' with { type: 'json' };
 import { neonSize } from './signMath';
 import type { SignCallRow } from '../assets/contracts/signPlacement';
 
@@ -13,14 +15,14 @@ interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {
 
 /** Same cache key the Explorer has always used, now resolving a prepared primitive. */
 export function specimenKey(p: SignModelParams): string {
-  return `${SIGN_MODEL.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
+  return `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 }
 
 /** Original call order: layout, then the seeded facade slots. No extra cells are allocated for specimens. */
 export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly SignCallRow[]): BakedSignAtlas {
   const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...SIGN_LAYOUT[tier], ...SIGN_COLOUR[tier] });
   const builder = new SignBuilder(atlas);
-  builder.calligraphy = { gain: SIGN_MODEL.tubeGain, add: p => neonSize(p.text, p.em, p.vertical) };
+  builder.calligraphy = { gain: signRows.model.tubeGain, add: p => neonSize(p.text, p.em, p.vertical) };
   const vec = (v: readonly number[]): Vector3 => new Vector3(v[0], v[1], v[2]);
   for (const call of calls) {
     if (call.k === 'place') builder.place({ ...call.p, at: vec(call.p.at), normal: vec(call.p.normal) }, null);
@@ -45,7 +47,7 @@ export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly Sig
   const params: SignModelParams<SignStyle>[] = [];
   for (const { p, neon } of builder.placed) if (!neon) params.push({ ...p.spec, size: p.size, blade: p.blade === true,
     ...(p.board === undefined ? {} : { board: p.board }), ...(p.gain === undefined ? {} : { gain: p.gain }) });
-  for (const variant of SIGN_VARIANTS) {
+  for (const variant of signRows.variants) {
     if (variant.params.style !== 'tube') params.push({ ...variant.params, blade: 'blade' in variant.params && variant.params.blade });
   }
   const keys: Record<string, string> = {};

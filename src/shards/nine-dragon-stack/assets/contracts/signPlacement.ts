@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { SignStyle } from '../../data/signs';
+import type { SignStyle } from '../../data/signTypes';
 
 export interface SignSpec<S extends string = string> {
   readonly text: string;

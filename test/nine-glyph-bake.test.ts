@@ -4,7 +4,9 @@ import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import { loadGlyphField } from '../src/shards/nine-dragon-stack/runtime/signs/neonText';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/data/words';
-import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/data/signs';
+import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
+import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
+import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';
 
 
 function blob(name: string): Uint8Array {
@@ -52,4 +54,10 @@ test('separate worlds own separate glyph textures and decoded pixel arrays', asy
   left[0] = before ^ 255;
   expect(right[0]).toBe(before);
   a.texture.dispose(); b.texture.dispose();
+});
+
+// Frozen from the native value modules at 8ae50cee, before their data conversion.
+test('native sign and specimen rows retain every original field and variant', async () => {
+  expect(await hash(new TextEncoder().encode(JSON.stringify(signRows)))).toBe('2ddce64ffdb9b04796510400ce8a60878b29b57fb29bdd376b560f4bacb5da6a');
+  expect(await hash(new TextEncoder().encode(JSON.stringify(profiles)))).toBe('a5f52084d05ed660db16e678c06dbaa4401600ec47a5de23cc842fb2094dc2aa');
 });

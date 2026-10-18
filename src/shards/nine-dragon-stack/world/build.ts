@@ -42,7 +42,7 @@ import { FigureCrowd } from '../runtime/cull/figureCrowd';
 import { CROWD_LEVELS } from '../data/lod';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
-import { SIGN_MODEL } from '../data/signs';
+import signRows from '../data/signView.json' with { type: 'json' };
 import { Shared, jiehuaMaterial } from '../look/style';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
@@ -144,11 +144,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const atlas = await loadSignAtlas(tier, renderer);
   const signs = atlas;
   // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
-  const neonSigns = new NeonText(SIGN_MODEL.tubeGain, glyphs);
+  const neonSigns = new NeonText(signRows.model.tubeGain, glyphs);
   for (const { p, neon } of signs.placed) {
     if (!neon) continue;
     neonSigns.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
-      twoSided: p.blade === true, gain: ((p.gain ?? SIGN_MODEL.calligraphyGain) / SIGN_MODEL.calligraphyGain) * neonSigns.gain, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
+      twoSided: p.blade === true, gain: ((p.gain ?? signRows.model.calligraphyGain) / signRows.model.calligraphyGain) * neonSigns.gain, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
   }
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)

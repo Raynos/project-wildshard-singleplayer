@@ -7,7 +7,7 @@
  * them there (`place` with `drawnInto`). A copy's params are its span and rise. Built here alone for the Model Explorer,
  * its washing from a stream of its own. (The facade kit's laundry poles are facade pieces: models/facade.ts.)
  */
-import { LAUNDRY_PROFILE } from '../data/specimenProfiles';
+import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 import type { LaundryKind } from '../data/specimenDims';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 import { defineModel } from '@wildshard/engine/models/model';
@@ -24,8 +24,8 @@ export interface LaundryParams {
 
 export const laundryLineModel = defineModel<LaundryParams>({
   id: 'nine-dragon-stack/laundry-line', name: 'Laundry line', category: 'props', pipeline: 'code', file: FILE,
-  defaults: LAUNDRY_PROFILE.defaults,
-  variants: LAUNDRY_PROFILE.variants,
+  defaults: profiles.LAUNDRY_PROFILE.defaults,
+  variants: profiles.LAUNDRY_PROFILE.variants,
   specimenYaw: Math.PI, // (the washing's faces look down +z, where the Explorer's camera looks from)
   // (G285: baked per variant, ../generators/specimens.ts; a copy in the world is drawn into its kit with its own span)
   build: (ctx, p) => withSpecimens(ctx, 'nine-dragon-stack/laundry-line', () => [{ geometry: specimen(ctx, `laundry:${p.kind}:${p.span}:${p.rise}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]),

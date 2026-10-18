@@ -14,7 +14,7 @@
  *    ruled), its coat, hair and stride drawn per copy from the kit's stream.
  */
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { HOOK_PROFILE, STOOL_PROFILE, SCOOTER_PROFILE, FIGURE_PROFILE } from '../data/specimenProfiles';
+import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 import { ndLook, need, specimen } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/inKit.ts';
@@ -27,22 +27,22 @@ function kit(ctx: ModelContext, key: string): readonly ModelPart[] {
 export interface HookParams { readonly reach: number }
 
 export const brassDragonHook = defineModel<HookParams>({
-  id: 'nine-dragon-stack/brass-dragon-hook', name: 'Brass dragon hook (grapple anchor)', category: 'props', pipeline: 'code', file: FILE, defaults: HOOK_PROFILE.defaults,
-  variants: HOOK_PROFILE.variants,
+  id: 'nine-dragon-stack/brass-dragon-hook', name: 'Brass dragon hook (grapple anchor)', category: 'props', pipeline: 'code', file: FILE, defaults: profiles.HOOK_PROFILE.defaults,
+  variants: profiles.HOOK_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `hook:${p.reach}`),
 });
 
 export interface WashParams { readonly wash: number }
 
 export const drumStool = defineModel<WashParams>({
-  id: 'nine-dragon-stack/stool', name: 'Drum stool', category: 'props', pipeline: 'code', file: FILE, defaults: STOOL_PROFILE.defaults,
-  variants: STOOL_PROFILE.variants,
+  id: 'nine-dragon-stack/stool', name: 'Drum stool', category: 'props', pipeline: 'code', file: FILE, defaults: profiles.STOOL_PROFILE.defaults,
+  variants: profiles.STOOL_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `stool:${p.wash}`),
 });
 
 export const parkedScooter = defineModel<WashParams>({
-  id: 'nine-dragon-stack/scooter', name: 'Scooter', category: 'props', pipeline: 'code', file: FILE, defaults: SCOOTER_PROFILE.defaults,
-  variants: SCOOTER_PROFILE.variants,
+  id: 'nine-dragon-stack/scooter', name: 'Scooter', category: 'props', pipeline: 'code', file: FILE, defaults: profiles.SCOOTER_PROFILE.defaults,
+  variants: profiles.SCOOTER_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `scooter:${p.wash}`),
 });
 
@@ -55,7 +55,7 @@ export interface FigureParams { readonly pose: 'stand' | 'sit' | 'cook'; readonl
 
 export const inkFigure = defineModel<FigureParams>({
   id: 'nine-dragon-stack/ink-figure', name: 'Brush-drawn figure (procedural)', category: 'people', pipeline: 'code', file: FILE,
-  defaults: FIGURE_PROFILE.defaults,
-  variants: FIGURE_PROFILE.variants,
+  defaults: profiles.FIGURE_PROFILE.defaults,
+  variants: profiles.FIGURE_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `figure:${p.pose}:${String(p.umbrella)}`),
 });

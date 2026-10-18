@@ -2038,3 +2038,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/driftwood-isle/assets/74fa856743fc5ffd8075f3687cc0d9e21d0950494c2565199381ccbde67b3794
 
 /src/shards/nalati-grasslands/data/kokpar.generated.json
+
+# Nine compile-time JSON row declarations.
+/src/shards/nine-dragon-stack/data/signView.d.json.ts
+/src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts
