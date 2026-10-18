@@ -2,8 +2,57 @@ import { BufferAttribute, BufferGeometry, DynamicDrawUsage, Sphere, Vector3 } fr
 
 export interface SlashTrailProfile { samples: number; subdivisions: number; movementSq: number; channel: 'age' | 'alpha' }
 
+/** A point-following trail: null cadence appends accepted points; timed
+ * sampling keeps newest-first history for a camera-facing ribbon. */
+export interface FollowTrailProfile {
+  readonly kind: 'fx.trail'; readonly points: number;
+  readonly every: number | null; readonly movementSq: number;
+}
+/** Client-only point sampling shared by world ribbons and projected lines.
+ * Rendering, material ownership and source clocks remain with their hosts. */
+export class FollowPointTrail {
+  readonly head = new Vector3(); readonly previous = new Vector3();
+  private readonly history: Vector3[];
+  private clock = 0; private seeded = false;
+  private readonly profile: FollowTrailProfile;
+  count = 0;
+  constructor(profile: FollowTrailProfile) {
+    if (!Number.isInteger(profile.points) || profile.points < 2 || profile.points > 2048
+      || !Number.isFinite(profile.movementSq) || profile.movementSq < 0
+      || (profile.every !== null && (!Number.isFinite(profile.every) || profile.every <= 0))) throw new RangeError('Invalid point trail profile');
+    this.profile = profile;
+    this.history = profile.every === null ? [] : Array.from({ length: profile.points }, () => new Vector3());
+  }
+  /** Retain the sampling-clock remainder across despawn, as across frames. */
+  reset(): void { this.count = 0; this.seeded = false; }
+  follow(point: Vector3, alive: boolean, dt: number): boolean {
+    if (!alive) { this.reset(); return false; }
+    if (this.profile.every === null) {
+      if (this.count >= this.profile.points || (this.count > 0 && point.distanceToSquared(this.head) < this.profile.movementSq)) return false;
+      this.previous.copy(this.head); this.head.copy(point); this.count++; return true;
+    }
+    if (!this.seeded) { for (const p of this.history) p.copy(point); this.seeded = true; this.count = this.profile.points; }
+    this.clock += dt;
+    if (this.clock >= this.profile.every) { this.clock = 0; for (let i = this.history.length - 1; i > 0; i--) this.history[i]?.copy(this.history[i - 1] ?? point); }
+    this.history[0]?.copy(point); return true;
+  }
+  /** Write the same indexed two-vertex strip each frame, in its local frame. */
+  face(camera: Vector3, width: number, minimum: number, positions: Float32Array): void {
+    if (this.history.length === 0 || positions.length !== this.history.length * 6) throw new RangeError('Point trail requires a ribbon buffer');
+    for (let i = 0; i < this.history.length; i++) {
+      const p = this.history[i]; if (p === undefined) break;
+      const q = this.history[Math.min(this.history.length - 1, i + 1)] ?? p;
+      this.previous.subVectors(p, q); if (this.previous.lengthSq() < 1e-6) this.previous.set(0, 0, 1);
+      this.head.subVectors(camera, p).crossVectors(this.previous, this.head).normalize().multiplyScalar(width * (1 - i / (this.history.length - 1)) * 0.5 + minimum);
+      positions.set([p.x + this.head.x, p.y + this.head.y, p.z + this.head.z, p.x - this.head.x, p.y - this.head.y, p.z - this.head.z], i * 6);
+    }
+  }
+}
+
 /** Shared blade-sample ring and Catmull-Rom ribbon; callers supply their material and age/alpha profile. */
 export class SlashTrail {
+  /** Point-following profile alongside the existing two-point blade ribbon. */
+  static follow(profile: FollowTrailProfile): FollowPointTrail { return new FollowPointTrail(profile); }
   readonly geometry = new BufferGeometry();
   readonly pos: BufferAttribute;
   readonly value: BufferAttribute;

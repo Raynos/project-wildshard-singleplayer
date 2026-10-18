@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { FollowTrailSamplingSchema } from './trail';
 import { ClientChannelsSchema as Channels, PrivateSceneSchema } from './clientChannels';
 import { HeldModelRowsSchema, HeldPresentationSchema, HeldBowDefinitionSchema } from './weaponProfiles';
 
@@ -39,7 +40,7 @@ const crossbowRows = v.strictObject({
     glance: v.strictObject({lift:number,keep:number,bounce:number,maxSpeed:number}),
     frame: v.strictObject({ clock:v.picklist(['frame','world']), fovWhen:v.picklist(['always','active']), recoil:v.strictObject({decay:number,attack:number,recovery:number}),
       lag:v.strictObject({gain:number,clampYaw:number,clampPitch:number,k:number,c:number}), clampAfter:flag, readout:v.strictObject({range:number,mask:number,held:flag,posed:flag}) }),
-    tracer: v.strictObject({ row:v.strictObject({mode:v.picklist(['segment','trail']),roster:natural,points:natural,width:number,color:triple,order:number,lifetime:number,fade:number,markerScale:number}),
+    tracer: v.strictObject({ row:v.strictObject({mode:v.picklist(['segment','trail']),follow:FollowTrailSamplingSchema,roster:natural,points:natural,width:number,color:triple,order:number,lifetime:number,fade:number,markerScale:number}),
       spin:number, glow:v.strictObject({flight:number,stuck:number,impact:number,ring:pair}) }),
     displayRest: v.pipe(v.array(v.strictObject({part:text,child:natural,material:text,position:triple,quaternion:v.tuple([number,number,number,number]),scale:triple})),v.maxLength(16)),
   }),

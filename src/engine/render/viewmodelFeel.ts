@@ -16,6 +16,7 @@ import type { Weapon } from '../combat/Weapon';
 import { hitscan, type HitscanProfile } from '../combat/view/hitscan';
 import { getSetting } from '../ui/Settings';
 import type { Targets } from '../combat/types';
+import { SlashTrail, type FollowPointTrail, type FollowTrailProfile } from '../combat/view/slashTrail';
 
 /** Drawing-buffer port used by viewmodel effects without exposing a renderer backend. */
 export type DrawingBuffer = Pick<WebGLRenderer, 'getDrawingBufferSize' | 'domElement' | 'getPixelRatio'>;
@@ -42,6 +43,8 @@ export interface RangedTraceRow {
   readonly mode: 'segment' | 'trail'; readonly points: number; readonly width: number;
   readonly color: readonly [number, number, number]; readonly order: number;
   readonly lifetime: number; readonly fade: number; readonly markerScale: number;
+  /** Optional data-selected point profile; screen-space drawing is unchanged. */
+  readonly follow?: Omit<FollowTrailProfile, 'points'>;
 }
 export interface RangedTraceMarker { readonly group: Group; readonly ring: Mesh; readonly material: MeshBasicMaterial }
 /** Owns the existing line buffers and expiry clock, borrowing optional impact-marker ports.
@@ -52,7 +55,7 @@ export class RangedTrace {
   private readonly geo: LineSegmentsGeometry;
   private readonly buf: Float32Array;
   private readonly ibuf: InstancedInterleavedBuffer | null;
-  private readonly last: Vector3 | null;
+  private readonly follow: FollowPointTrail | null;
   private readonly row: RangedTraceRow;
   private readonly mark: RangedTraceMarker | undefined;
   n = 0; active = false; endTime = -1; t0 = -1;
@@ -75,7 +78,8 @@ export class RangedTrace {
     this.row = row; this.mark = marker;
     this.buf = new Float32Array((row.points - 1) * 6);
     this.geo = new LineSegmentsGeometry(); this.geo.setPositions(this.buf);
-    this.last = row.mode === 'trail' ? new Vector3() : null;
+    if (row.mode === 'trail' && (row.follow === undefined || row.follow.every !== null)) throw new RangeError('Projected trails require an append profile');
+    this.follow = row.follow === undefined ? null : SlashTrail.follow({ ...row.follow, points: row.points });
     if (row.mode === 'trail') {
       const attribute = this.geo.getAttribute('instanceStart');
       if (!(attribute instanceof InterleavedBufferAttribute) || !(attribute.data instanceof InstancedInterleavedBuffer)) throw new Error('Trace geometry has no segment buffer');
@@ -91,21 +95,22 @@ export class RangedTrace {
   /** A fresh flight uses the existing allocation; impact ends it on the caller's source clock. */
   begin(point: Vector3): void {
     this.n = 0; this.geo.instanceCount = 0; this.active = true; this.endTime = -1;
+    this.follow?.reset();
     this.mat.opacity = 1; if (this.mark) { this.mark.material.opacity = 1; this.mark.group.visible = false; }
     this.line.visible = false; this.addPoint(point);
   }
   addPoint(point: Vector3): void {
-    const last = this.last, buffer = this.ibuf;
-    if (last === null || buffer === null || this.n >= this.row.points) return;
+    const follow = this.follow, buffer = this.ibuf;
+    if (follow === null || buffer === null || !follow.follow(point, true, 0)) return;
     if (this.n > 0) {
-      if (point.distanceToSquared(last) < 1e-8) return;
+      const last = follow.previous;
       const offset = (this.n - 1) * 6, b = this.buf;
       b[offset] = last.x; b[offset + 1] = last.y; b[offset + 2] = last.z;
       b[offset + 3] = point.x; b[offset + 4] = point.y; b[offset + 5] = point.z;
       buffer.addUpdateRange(offset, 6); buffer.needsUpdate = true;
       this.geo.instanceCount = this.n; this.line.visible = true;
     }
-    last.copy(point); this.n++;
+    this.n = follow.count;
   }
   finish(point: Vector3, time: number): void {
     this.addPoint(point);

@@ -71,7 +71,7 @@ export const CROSSBOW_ROWS = {
     frame: { clock: 'frame', fovWhen: 'always', recoil: { decay: 9, attack: 40, recovery: 6 }, lag: { gain: 0.5, clampYaw: 0.12, clampPitch: 0.1, k: 220, c: 20 },
       clampAfter: true, readout: { range: 120, mask: 3, held: false, posed: true } },
     /** the flight trail's allocation and source-clock expiry, the bolt's spin and its glow sizes */
-    tracer: { row: { mode: 'trail', roster: 8, points: 2048, width: 8, color: [1, 0, 0], order: 1200, lifetime: 6, fade: 1.5, markerScale: 0.32 }, spin: 14,
+    tracer: { row: { mode: 'trail', follow: { kind: 'fx.trail', every: null, movementSq: 1e-8 }, roster: 8, points: 2048, width: 8, color: [1, 0, 0], order: 1200, lifetime: 6, fade: 1.5, markerScale: 0.32 }, spin: 14,
       glow: { flight: 0.035, stuck: 0.025, impact: 0.06, ring: [0.10, 0.14] } },
     displayRest,
   },

@@ -1715,6 +1715,17 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 
 ## 18. Combat: Equipment, Weapon, Tool, GAS-lite
 
+`SlashTrail.follow` (`combat/view/slashTrail`) selects the client-only
+`FollowTrailProfile`: `{ kind: 'fx.trail', points, every, movementSq }`.
+`every: null` appends accepted points up to capacity, exposing the previous
+and current point for projected line buffers. A positive cadence keeps a
+newest-first history; `face(camera, width, minimum, positions)` writes an
+indexed camera-facing ribbon in that history's local coordinate frame.
+`reset()` clears samples while preserving the cadence remainder. Materials,
+visibility, frame phase and lifetime stay with the presentation owner.
+Pine's launcher declares the append profile in its tracer row; its original
+screen-space line material and impact marker remain the renderer.
+
 ```ts
 abstract class Equipment { row: EquipmentRow; attributes; effectTags; holster; enabled; install(ctx: EquipContext); update(dt, t); dispose() }
 abstract class Weapon extends Equipment { tryFire(); state: WeaponState; model; /* onFire, onHit, altHeld, aimInfo … */ }
