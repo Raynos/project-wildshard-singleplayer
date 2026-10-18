@@ -74,6 +74,8 @@ jobs:
       - name: Build the exact commit's real products and dist
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ steps.tested.outputs.sha }}
+          # All ten products share one builder process; macOS defaults to a 2 GiB heap.
+          NODE_OPTIONS: --max-old-space-size=4096
         run: |
           python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
       - name: Every public shard reaches real page-ready
