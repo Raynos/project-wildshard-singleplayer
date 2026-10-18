@@ -1,0 +1,153 @@
+{
+  "sourceTree": "8e3280ef2ab01d545e9d8c42d9bd0fdbbcec11ef",
+  "sourceParent": "16be1ec724d5afb0dca7f368f3ea0200d75c0b5a",
+  "commitParent": "16be1ec724d5afb0dca7f368f3ea0200d75c0b5a",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2305,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "450d3260ed2e5e98c87ce998b31d8d018e2bc47a93ab034e595e199a99fc3f68",
+      "inputFiles": 282,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "450d3260ed2e5e98c87ce998b31d8d018e2bc47a93ab034e595e199a99fc3f68",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "fdd72a3e8302daa915e2687bc96a747d2f46c93b4a013c26cffd3421e8349b7e",
+      "inputFiles": 286,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "fdd72a3e8302daa915e2687bc96a747d2f46c93b4a013c26cffd3421e8349b7e",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "74f9537cfad08c35314396f8e942822a071d9e7cc5dbc81f03eb98b50ebf949b",
+      "inputFiles": 158,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "74f9537cfad08c35314396f8e942822a071d9e7cc5dbc81f03eb98b50ebf949b",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "e2428c1cf532cb7cce8c23e3b62973ac2369def6",
+      "owner": "sp-x9",
+      "summary": "Pine and Nalati typed rigged hulls, Pine sky facts JSON",
+      "mapShards": [
+        "pine-hollow",
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "pine-hollow": [
+          "data/skyLook.json"
+        ],
+        "nalati-grasslands": [
+          "data/creatureRigs.json"
+        ]
+      }
+    },
+    {
+      "sha": "b136d98311347c9ecf8948b5822d4caa2907c88e",
+      "owner": "sp-x5",
+      "summary": "Driftwood reef and Ocean adoption",
+      "mapShards": [
+        "driftwood-isle"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "16be1ec724d5afb0dca7f368f3ea0200d75c0b5a",
+      "owner": "sp-x7",
+      "summary": "Test-only Linux fixture repair, preserve canonical parent",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [],
+    "pine-hollow": [
+      "data/skyLook.json"
+    ],
+    "nalati-grasslands": [
+      "data/creatureRigs.json"
+    ]
+  }
+}
