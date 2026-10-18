@@ -9,9 +9,13 @@ Finish SHARD-PLATFORM. Read the compacted plan `docs/plans/SHARD-PLATFORM.md` (4
 the game holds **60–120 fps on desktop/laptop and 30–60 fps on the iOS Simulator** (gates: desktop max ≤ 100 ms,
 p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may regress them.
 
-## Proof per batch: G506 (Jake, 2026-10-18) — read this first
+## Mega-build: G507 + G506 (Jake, 2026-10-18) — read this first
 
-Jake: *"What the fuck is all that proof work? … I don't know why you're always doing so much fucking process porn."*
+Jake (G507): *"Only build only mega build fuck everything else"*. Like G345: every lane only cuts and lands code. No
+boards, frame floor, Simulator, soak, parity captures, receipts, lane-to-lane messages, or docs beyond STATE.md (the
+coordinator's) and your commit message.
+
+Jake (G506): *"What the fuck is all that proof work? … I don't know why you're always doing so much fucking process porn."*
 
 - A batch lands on **types + lint + focused tests of what it touched + the push gate**. Nothing else per batch.
 - **Not per batch:** exact replays (workerExact 1000/1200, replay counts), witnesses or re-recordings, old-save
@@ -21,14 +25,17 @@ Jake: *"What the fuck is all that proof work? … I don't know why you're always
 - Heavy proofs run only at a W3 milestone or before a grid deploy, once, by one lane.
 - Commit bodies say what changed and the line count (`net -N shard lines (<shard> -N, ...)`), nothing more.
 - Cuts are big (G468): the largest uncut mini-plan batch first; no sub-200 cuts while big ones remain.
-- Landings are source-only (G490): send sp-x10 your SHA plus the map inputs you changed; never bake maps yourself.
+- Landings are source-only (G490); never bake maps yourself.
+- **No messages between lanes** (G506 follow-up, Jake): sp-x10 (bakes) and sp-x7 (push) read `git log` and
+  `STATE.md` to see what landed. Nobody sends them SHAs or 'ready' notes, and they never reply 'confirmed'. A lane
+  messages only wildshard-new, and only for a blocker. No landing reports: the coordinator reads `git log`.
 
 ## Rules (AGENTS.md and `docs/process/` win where they say more)
 
-- **Never use the question tool** or wait on a prompt: decide, note the call in your report, keep going. A real fork for
+- **Never use the question tool** or wait on a prompt: decide, note the call in your commit body, keep going. A real fork for
   Jake goes to wildshard-new as one line with your recommendation.
 - Don't run `~/.claude/set-label.sh`. Never herdr-message `wildshard-v` (the plan agent); only `wildshard-new`.
-- **Herdr messages only via `scripts/herdr-prompt.sh <agent> "<msg>"`** (9a3b244cc; it refuses when a question is open). **Report** each landing in ≤ 10 lines: `scripts/herdr-prompt.sh wildshard-new "[from <lane>] LANDED <sha>: <what>; next: <what>"`.
+- **Herdr messages only via `scripts/herdr-prompt.sh <agent> "<msg>"`** (9a3b244cc; it refuses when a question is open). Use it only for a blocker, to wildshard-new; never to another lane.
   Reds you cause are yours to fix first. The Opus lanes `sp-o*` are the coordinator's subagents, not herdr panes (G337):
   message them as `scripts/herdr-prompt.sh wildshard-new "[for sp-oN] …"` and the coordinator relays.
 - **Git (GIT.md):** small commits early and often; `git commit -m … -- <paths>` (pathspec), `git add` only new files;
@@ -54,7 +61,7 @@ Jake: *"What the fuck is all that proof work? … I don't know why you're always
   `git show HEAD:scripts/generation-jobs.json`, apply only your own job's entries, commit via a private index (a draft
   that carried stale hunks dropped Signal's commons roots and ring pin, 2026-10-13).
 - **A shared file can be a physics input of several shards** (`scripts/*-physics-inputs.mjs`): changing it needs every
-  affected shard's official recapture in the same commit, built in a clean export of the current HEAD.
+  affected shard's official recapture, which sp-x10 makes in its next map bake (G490); land source-only.
 - **Moving code is not a cut.** Code (TS, GLSL strings, shader bodies) moved into `data/`/`generators/` or a one-user
   engine/game/SDK module still counts (G294, G306); only real rows/data, baked outputs or ≥ 2-user modules reduce custom %.
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
@@ -63,8 +70,8 @@ Jake: *"What the fuck is all that proof work? … I don't know why you're always
   (shard-engine-imports, shard-game-imports, shard-game-plugins, generator-imports, sdk-no-facade, shards → engine/game
   graph edges) is refused: restructure so it doesn't rise. If a rise is truly unavoidable, stop and tell wildshard-new;
   it needs a plan row naming the deletion that pays it back, approved by Jake, never by the coordinator.
-- **Log every call (Jake, G352).** Each trade-off you decide alone goes in your report as `CALL: …`; the coordinator
-  lists it in STATE.md's daily 'Calls for Jake'. Anything touching an approved G-row asks first.
+- **Log every call (Jake, G352).** Each trade-off you decide alone goes in your commit body as `CALL: …`; the coordinator
+  reads `git log` and lists it in STATE.md. Anything touching an approved G-row asks first.
 - **Machine (MACHINE.md):** ≤ 4 game browsers machine-wide via `scripts/browser-lane.sh`; mute them; capture as
   "iPhone 16 Pro" unless your row says desktop. No vite dev servers (`scripts/serve-build.sh` from your own scratch dir).
   **Proofs are fast by default** (MACHINE.md): `serve-build.sh --head` reuses every unchanged shard's product by content
