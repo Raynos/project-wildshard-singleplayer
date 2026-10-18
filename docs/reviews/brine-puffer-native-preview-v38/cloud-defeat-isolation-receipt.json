@@ -1,0 +1,1705 @@
+{
+  "mode": "attack",
+  "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+  "errors": [],
+  "httpErrors": [],
+  "console": [
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    }
+  ],
+  "status": "Practice bout. Health and rewards stay in this page.",
+  "phonePerformanceClaim": false,
+  "interactionSamples": [
+    {
+      "label": "before combat",
+      "at": "2026-10-18T19:23:16.302Z",
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "approach W 1200ms",
+      "at": "2026-10-18T19:23:19.551Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "approach W 1200ms",
+      "at": "2026-10-18T19:23:20.767Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "twelve touch attack taps, 350ms gaps",
+      "at": "2026-10-18T19:23:24.774Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "twelve touch attack taps, 350ms gaps",
+      "at": "2026-10-18T19:23:39.759Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "collection approach W 700ms",
+      "at": "2026-10-18T19:23:39.760Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "collection approach W 700ms",
+      "at": "2026-10-18T19:23:40.466Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "after combat and collection",
+      "at": "2026-10-18T19:23:41.471Z",
+      "status": "Collected 2 local practice coins.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "Retry after combat",
+      "at": "2026-10-18T19:23:46.096Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "Retry after combat",
+      "at": "2026-10-18T19:23:46.308Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "after combat Retry",
+      "at": "2026-10-18T19:23:47.309Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "approach for player defeat W 2000ms",
+      "at": "2026-10-18T19:23:52.225Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "approach for player defeat W 2000ms",
+      "at": "2026-10-18T19:23:54.231Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:23:56.234Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:23:58.264Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:00.292Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:02.325Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:04.354Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:06.372Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:08.391Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "88/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:10.422Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:12.440Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:14.469Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:16.494Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:18.516Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:20.530Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:22.557Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "76/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:24.570Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:26.584Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:28.610Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:30.634Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:32.675Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:34.723Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:36.744Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "64/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:38.765Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:40.814Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:42.830Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:44.861Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:46.886Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:48.898Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:50.918Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "52/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:52.934Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:54.950Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:56.962Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:24:58.977Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:00.986Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:03.007Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:05.041Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "40/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:07.081Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:09.124Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:11.153Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:13.177Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:15.198Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:17.217Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "28/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:19.243Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:21.274Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:23.301Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:25.314Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:27.334Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:29.345Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:31.358Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:33.378Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "16/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:35.396Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:37.420Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:39.445Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:41.483Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:43.525Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:45.552Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "4/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "waiting without attacking for player defeat",
+      "at": "2026-10-18T19:25:47.568Z",
+      "status": "Defeated. Retry starts a fresh local bout.",
+      "health": [
+        "0/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "end defeat observation",
+      "at": "2026-10-18T19:25:47.584Z",
+      "status": "Defeated. Retry starts a fresh local bout.",
+      "health": [
+        "0/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "Retry after defeat observation",
+      "at": "2026-10-18T19:25:51.994Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "Retry after defeat observation",
+      "at": "2026-10-18T19:25:52.517Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "final Retry",
+      "at": "2026-10-18T19:25:53.718Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    }
+  ],
+  "startedAt": "2026-10-18T19:23:13.987Z",
+  "sourceCommit": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "playerDefeatObserved": true,
+  "endedAt": "2026-10-18T19:25:58.247Z",
+  "pins": {
+    "sourceCommit": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+    "configSha256": "28321f9df9c27f4b785ea53975dba1608662ac0bbee60eda460073de94cf1c63",
+    "product": {
+      "schema": "wildshard.puffer.native-preview.v1",
+      "candidate": "V38",
+      "mode": "attack",
+      "source": "art/driftwood-isle/approved-puffer/unaccepted-native-v38.json",
+      "measurementSha256": "feeb806c01d57d467d8249feec9a97a4f0a1b62b8d6975130b8a783e241b0369",
+      "sourceSha256": "34c8652efcca0a454a06a83749eb3a56b4990f70c22f022b76117f6df966d38b",
+      "metadataSha256": "0933191b6f61f8024b5892278d4a942837ef8f47b7921dc80ffe40ef03714793",
+      "dimensionsSha256": "53f6fa3379f231cadd710ae234974f796f50963ce689f3bf1303ae09d301fb9d",
+      "colliderAcceptance": false,
+      "visualAcceptance": false,
+      "rendering": "Actual-engine arena preview; not full Model Explorer Solid/Paint or frozen Noon proof",
+      "packedSha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487",
+      "bodyFile": "/assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+      "sourceHash": "aa840d61cffecbb4ad53b7bdbdf6d336a88a8fdbc29a081499686e973f7b51d5"
+    },
+    "files": [
+      {
+        "file": "assets/Cues-CfP4QoJS.js",
+        "sha256": "ec2b8d811c2a1a41f196a5aeaebf7a86dc3bb0d56a519655f66fab904a579216"
+      },
+      {
+        "file": "assets/Cues-m0fRU92t.js",
+        "sha256": "29f397b4a97092e87c17e342509918645d8d89772cc1ea783b648247307a471c"
+      },
+      {
+        "file": "assets/GLTFLoader-CitLpWWm.js",
+        "sha256": "ce5b6bdf4c659e9967666d276c31fbabc06584277149c0f32ee7e5fd874860c3"
+      },
+      {
+        "file": "assets/GLTFLoader-DnZ_kjM2.js",
+        "sha256": "5f8a416c5e71cfbe15302f9cdffc4eea24af179baced5954d606e6ff2cd41c55"
+      },
+      {
+        "file": "assets/SetScore-Clg5ghtt.js",
+        "sha256": "57509b3e8f14735afc7b723904aba15d557a0bebadf3bf055d74170cbf77108f"
+      },
+      {
+        "file": "assets/SetScore-CpdNbRCo.js",
+        "sha256": "1d8b1774035f1d554bffa088824a4995bb74f6af7c63e5da2038acf5a7e5201c"
+      },
+      {
+        "file": "assets/Settings-CwqkxPHS.js",
+        "sha256": "8c47d1b0146e70f6a2153b4dc0985bbbc3f7771f1ad5147553b8edbf85a04c11"
+      },
+      {
+        "file": "assets/Settings-DjJ93v7z.js",
+        "sha256": "351684d7ba7e77da48d354d65f4c08e3dd3239ebe2bdc69a7ecd92ed7b119709"
+      },
+      {
+        "file": "assets/Stems-IG074Bi4.js",
+        "sha256": "5e6deb25aa6f0c94d648e46039d5cb245adbd726c3497427528f60ca6811de50"
+      },
+      {
+        "file": "assets/Stems-WHvnPvoV.js",
+        "sha256": "47d646eaa3a2191c53830a21e91abe6f1a1b1a2f6d7dfce2eddc5d1c9d606bf1"
+      },
+      {
+        "file": "assets/Tool-jTOctduU.js",
+        "sha256": "98795c79e3bebdf731da92cee8c364652a864c1f09b36bb16cab10d9e08d9520"
+      },
+      {
+        "file": "assets/Weapon-CNKF6Yh8.js",
+        "sha256": "6ed78ceb6fe4d4c09231e6f10f5cdf28c501e0bc66e4b3c7eacd2cb049ff6a13"
+      },
+      {
+        "file": "assets/audioCatalogue-C4F9vbv6.js",
+        "sha256": "2961b71299ebde59ec094191f0f3ef8d1e2611e75a244785c6e63c7833289b56"
+      },
+      {
+        "file": "assets/audioFiles-DjWneggA.js",
+        "sha256": "adbe9b1bd37f877e4802fcc0beb0dd325bbdc30b333c851f8283681bf31db7c7"
+      },
+      {
+        "file": "assets/audioFiles-IqXizm9B.js",
+        "sha256": "675c12b88b5109fa2bffa770a89c37e1e95a994b2771ae73754e449d508a5d95"
+      },
+      {
+        "file": "assets/audioLog-CNEZ94zn.js",
+        "sha256": "5ccb4d88b22da897b88e0c78647d5d774f339ef6e236f73002bbc893651feac4"
+      },
+      {
+        "file": "assets/audioLog-DDd08KrP.js",
+        "sha256": "12ce81990e69112b82808c6eb9ff488e1284e92d02ec95c7e37eded31fd993f9"
+      },
+      {
+        "file": "assets/basis_transcoder-VXdx5NbI.wasm",
+        "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a"
+      },
+      {
+        "file": "assets/basis_transcoder-o4Hde_L7.js",
+        "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1"
+      },
+      {
+        "file": "assets/bootInbox-ZfWFO76m.js",
+        "sha256": "ac62871ae671263cc3c7640eb60542179426a08073ea8a7245af4cdfb2952f2f"
+      },
+      {
+        "file": "assets/build-CehzHm6x.js",
+        "sha256": "7f5f2158d984caf245ab2dd3c9c687c40b39dfb26396043126ad4ed3938e978e"
+      },
+      {
+        "file": "assets/client-jrn_Msuk.js",
+        "sha256": "7789e0d3e588ba8704f64f2d0cf5f3bd5affe9360379c3fe2bcea1b180a6f2bd"
+      },
+      {
+        "file": "assets/clientPlan-Drc4ufAB.js",
+        "sha256": "ed2ce3815bd3c1925adaddc87eae0d795f657e6d0a9d5e4ea73f3ee44fedb0c3"
+      },
+      {
+        "file": "assets/clock-B53qIMMf.js",
+        "sha256": "cf789c2a3e16ac707892818adf51a861174ea12d430deff1b142664e6bf69236"
+      },
+      {
+        "file": "assets/compile-H_QxB4jl.js",
+        "sha256": "557d985b32a769bda193e0829757cae7b7395f0d43be5796234eb8f9389d6bc2"
+      },
+      {
+        "file": "assets/contentCache.worker-DDj1l_TA.js",
+        "sha256": "426f44e00cba764c61a0b3a577dc9ce12bf6cab666d8227e4b2591a55291c9d0"
+      },
+      {
+        "file": "assets/dataLook-Bwui0P26.js",
+        "sha256": "35aef289c69046c0c9f1e9a5b5edc13d8989e4be5551d92330c8d3ba1fcec5ca"
+      },
+      {
+        "file": "assets/dayCycle-e1TDlXAt.js",
+        "sha256": "92d7c55e2ecdd130c63c3fc488632ea5d2acdddfe0786f904674f8fbc7258531"
+      },
+      {
+        "file": "assets/declaredBank-D4ZXs7f3.js",
+        "sha256": "7aec46d467916a4b4fe71a57848abd7cde1eac9987d82e4fa51439a8f434e236"
+      },
+      {
+        "file": "assets/declaredBank-DbZR0Drl.js",
+        "sha256": "8cbbd10788f3f20ff05cd17ec7742f2adcea7877f7149457af63b4c334099161"
+      },
+      {
+        "file": "assets/driftwood-isle/puffer-native-8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487.bin",
+        "sha256": "8b918ec03eecaa0fb562a48c3f1aff6042bf7b7c9425ae3f0a31e33c5e630487"
+      },
+      {
+        "file": "assets/emptyEquipment-AHpV0mQX.js",
+        "sha256": "bd04bc2516349bd0d62b106150c3edcf408da1ef70f9a9dfeab4d6ef1fc2aafa"
+      },
+      {
+        "file": "assets/emptyEquipment-fBwmFmVX.js",
+        "sha256": "64d7142376901b669562711949e8f2ad511c62c7f33089fa4ed00ff208957c24"
+      },
+      {
+        "file": "assets/emptyLook-ByH8maKc.js",
+        "sha256": "bd14a78f86e6398c3ff52da8cde487cb9e3b75caaacb698d14be9f7e2e631f4c"
+      },
+      {
+        "file": "assets/emptyLook-D2dy-xuz.js",
+        "sha256": "cc4bc53d71c3df4b84092b320fcd53559fea3c6a41119085cb2348c8cb46cbc8"
+      },
+      {
+        "file": "assets/engineNodesHandler-DlHsxBg1.js",
+        "sha256": "c7c5dd35d27520b660d32ca0cb321a366296757735b440418568f605745f8952"
+      },
+      {
+        "file": "assets/engineNodesHandler-DxaMmYR9.js",
+        "sha256": "031a7db040a31b5c72d3254bcf03525457b1e4861d72a17335a01e5c620838ad"
+      },
+      {
+        "file": "assets/geometryBounds-Br9Fw3ck.js",
+        "sha256": "540d2d38d06ce2cb7d2ba1a935383845383e7a69375520aa8503739a8dc5f5c5"
+      },
+      {
+        "file": "assets/graphBackend-CzRY3_Gs.js",
+        "sha256": "64fd944d0758db469dd6f8472e738f8fda3defc09966af92a5a8f4d36598e64c"
+      },
+      {
+        "file": "assets/graphBackend-TafjQUR3.js",
+        "sha256": "afd555d29bafba753592cdf7ef2fc912bc8323224952b3ccae4c8d29dc58e30a"
+      },
+      {
+        "file": "assets/hybrid-CFOt1FCS.js",
+        "sha256": "7266009297c682c37032f30f1a764e675ab1434df7272dd41d3fc6a7210c9c3a"
+      },
+      {
+        "file": "assets/imageDecode.worker-ZOU3pmld.js",
+        "sha256": "3e4a75a497bcb0297a976855ce5083de46fa0c76e726c018b38a8746b1b4e73e"
+      },
+      {
+        "file": "assets/json-Dr12Y27u.js",
+        "sha256": "eea02dcf802f1d98069fced3f139e705786d8ea18a9b4e55fbc4cfac0d0e5a15"
+      },
+      {
+        "file": "assets/lastEnd-CKtvmj-k.js",
+        "sha256": "ee5a8548e3a5d498f156628360fdcb8949c55ebada14141351c4809781ebcfe9"
+      },
+      {
+        "file": "assets/lentLooks-xIMS2TNg.js",
+        "sha256": "40faca2cdd045c553f474c26c7bc397ff13c17498d28c7bfbbe949a948d352c9"
+      },
+      {
+        "file": "assets/look-B4q9ZrRV.js",
+        "sha256": "b60dae38f09b998a386920a37b62998ab4a1569def4c731b008c8bc077c110f9"
+      },
+      {
+        "file": "assets/look-CaH33K7h.js",
+        "sha256": "af877ee69bd8a41bcbe771d632f5f9bf15e2bec709500f63d1b9304f3c2d341c"
+      },
+      {
+        "file": "assets/materialGraph-CteREh-_.js",
+        "sha256": "e1d32c6650c335b07ff3280b31b757015bc614ee9fc6de3328049561d202d008"
+      },
+      {
+        "file": "assets/memoryAttribution-DlUGm6mv.js",
+        "sha256": "0066d7b47a82eed6166f75ec0dc8f308b262890713e60220d6baa65d56c9b745"
+      },
+      {
+        "file": "assets/memoryResources-ConTL0Oo.js",
+        "sha256": "e616349a08bb52a53a29265a8ba9bda4bfb17d5dacede6d0448d96b65ef296a0"
+      },
+      {
+        "file": "assets/meshopt_decoder.module-CwO9m-VD.js",
+        "sha256": "a52ffc6b3d679a8e65f8ca912977e9e5374008fa5679a8d3ff0eb8a7e1e8da46"
+      },
+      {
+        "file": "assets/meshopt_decoder.module-DDLmvpjg.js",
+        "sha256": "4ee55c80aac81445136f4cfdb9d133e2d577128af02cab14ba2f0b59e5cfdea8"
+      },
+      {
+        "file": "assets/models/driftwood-fp/fp-arms.glb",
+        "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a"
+      },
+      {
+        "file": "assets/nodeCoarseMask-BL9dSruf.js",
+        "sha256": "c9e6b79ff809441b9eae829bec23c8aaa0d10fa6f2254d8321d18033c9e8f0f2"
+      },
+      {
+        "file": "assets/nodeLayerFrame-PqqyriBq.js",
+        "sha256": "9bf4a74a1a08abac2ee9f536aed5eea4ad6634554ac5908867a1c3dc3560fff9"
+      },
+      {
+        "file": "assets/parkedDraws-fPUkedGY.js",
+        "sha256": "94927ce470f3255771c34786cd8e515d7d52b26726e15cd946f0333f1b63364a"
+      },
+      {
+        "file": "assets/physics/rapier.wasm",
+        "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f"
+      },
+      {
+        "file": "assets/postPreparation-BECjvRCN.js",
+        "sha256": "7f0fec95b1e2041de178031506d6aadb1fb1717b43be53c8d656583bd31bd3db"
+      },
+      {
+        "file": "assets/postPreparation-BM0ovkLk.js",
+        "sha256": "dbe0bf289be1c40b279c4e1ee78835e9c92c68f29daa064bbc411a7b7442158c"
+      },
+      {
+        "file": "assets/practice-CDUVNeAy.js",
+        "sha256": "fd4d8d5adf68e08629b61735067a3253ad26e7bac4cbf71938e0e477439c2db3"
+      },
+      {
+        "file": "assets/practiceBoot-BBXyBQx1.js",
+        "sha256": "c97fc05307e5d62461dbbf1ec4bb2f8dc0066e5698f51b0b0c624a02f024e6d3"
+      },
+      {
+        "file": "assets/precompile-D-t_opm_.js",
+        "sha256": "049f1d5da5fb681a7a0e8a400ba5b4229047544248cbe8299a004d36c031740c"
+      },
+      {
+        "file": "assets/precompile-iRq_3E9t.js",
+        "sha256": "e1a00b821a56e81ce6725f754cad30502e2537d93a2d64eb4c32fa1afd5bfb97"
+      },
+      {
+        "file": "assets/preload-Ch8XQeuI.js",
+        "sha256": "3038dbec85c41635d6e1e21e61b40988a0675cf44c364dbadd266c563f9bfec0"
+      },
+      {
+        "file": "assets/preload-DxJVbboQ.js",
+        "sha256": "ffea79990c75b8c9f97b956e88efb39950a2c98b00685ad923d521d2c26f65b3"
+      },
+      {
+        "file": "assets/preload-helper-uBIymjUX.js",
+        "sha256": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00"
+      },
+      {
+        "file": "assets/presets-DC5qfqPY.js",
+        "sha256": "afe59c4d8157c5fb058e8a47dc4aaa9b821f0b612a2109970fe4874bec8cfeeb"
+      },
+      {
+        "file": "assets/prod-C5nMThY5.js",
+        "sha256": "9cacb5d99e9391d67fa860cf4b7388812eb202e10d80e2f33666f8ac7f6c0a28"
+      },
+      {
+        "file": "assets/registry-D_wjkuhM.js",
+        "sha256": "2d757cce89fe225f4f649b94a044c9d5da16589c944fc1b26c1d90311da035c7"
+      },
+      {
+        "file": "assets/rolldown-runtime-DK3Fl9T5.js",
+        "sha256": "a526d1bb3288ef04d001028843220a24b0867a4edf8c685b69506d6525af36ff"
+      },
+      {
+        "file": "assets/runtime-CaB5MRyI.js",
+        "sha256": "f93505f4a5720cb1215543aa95beaf4daa28c8f0f671864743d7bb1002d4cbee"
+      },
+      {
+        "file": "assets/runtimeProduct-Ci44lmTU.js",
+        "sha256": "c54e9a8c8463c41133fb4911b1bbe9aa69eafcc80b0798eac27419d2038479e3"
+      },
+      {
+        "file": "assets/runtimeProduct-rlnMmJ_U.js",
+        "sha256": "0e85f95c69e2ecd41a3452e1a0ddc447bf934b157aaf490fdbc6d3f7df9a25ad"
+      },
+      {
+        "file": "assets/scope-CDMJThrF.js",
+        "sha256": "a7a5da789f4e0a772701b57c62a8e5004bf4f6ed35dfed97300be3eb54e306b0"
+      },
+      {
+        "file": "assets/shaderPatches-CWlvy5Ya.js",
+        "sha256": "3c6fd4536de9e2424e72c6c456a571a2a7c9c04f09bb910757e803bfca2413da"
+      },
+      {
+        "file": "assets/shadowChunks-DOHrkAEH.js",
+        "sha256": "55e57ebdca221b11de62011d967cca79bd31af753dea3224e1792101df10a139"
+      },
+      {
+        "file": "assets/shadowDepthVariants-BoIU_3-F.js",
+        "sha256": "36bdae70b852f7d93bc4e2db4db1aa05fb633dc94def330bba13fee2e06a60a4"
+      },
+      {
+        "file": "assets/shadowVariants-kzUh2vEP.js",
+        "sha256": "067de742b01c0e0b3a7ac8ad0688072b16c4195f4a530352538f35670fd00faf"
+      },
+      {
+        "file": "assets/style-3STfMJLR.css",
+        "sha256": "651a2e309885a2cea80b9c58bbb49a322135242f2511c04c37de55832f4ff2bf"
+      },
+      {
+        "file": "assets/tables-BovtVlAx.js",
+        "sha256": "d6476fce97ab773a05714c5cfab33157ea8fafc70ce4e19a65e6a4aefd98920b"
+      },
+      {
+        "file": "assets/tables-HCOmEZXl.js",
+        "sha256": "af54b257023b15c30d87f1bf531759b3159c679fd82a02bf8d261b3c4ee2e247"
+      },
+      {
+        "file": "assets/three.core-BNyAOcZ3.js",
+        "sha256": "b2355b82917341d4899142d5da57d60534f44ac9f9660be34902cbdffcc3df52"
+      },
+      {
+        "file": "assets/time-CEtD1oPI.js",
+        "sha256": "39e61729f10e28bcf8ed87b61abacb508be1574d2ce2739cdf506db2628b7336"
+      },
+      {
+        "file": "assets/toon-DjKQ1mLY.js",
+        "sha256": "a4872015235921e6fbcb1c8076c8d72928949bac5f4a658b24893e5c141f5881"
+      },
+      {
+        "file": "assets/ui-28IWkTNm.js",
+        "sha256": "41da257034d50671b15765d4a14aa44045c900527f1d9a78515c394b80345c7b"
+      },
+      {
+        "file": "assets/ui-BqBZf1_h.js",
+        "sha256": "0186a38924fca1664489f518f9b9e59f69a6511ce4bca7444cfb0cf8f1dbd7ef"
+      },
+      {
+        "file": "assets/weaponFamily-CjGA1byS.js",
+        "sha256": "575074782e03ae53a6f9ac6f73afbbc33f8fe2a8802e328c28c05779206bdb1f"
+      },
+      {
+        "file": "assets/wind-CDg_obA2.js",
+        "sha256": "ea7250436613955af8349386e4fa5901e08b08927350be4597f4a25a0876b30a"
+      },
+      {
+        "file": "index.html",
+        "sha256": "0fa35ce2cd4afb8898347d8b8b9fb4129360556428cd23b3facc0e6410df5a28"
+      },
+      {
+        "file": "practice-product/blobs/json/1c0921945e3c502e9544e3c0a5c851636b16756743f0304cc61d312b393a0e0e.json",
+        "sha256": "1c0921945e3c502e9544e3c0a5c851636b16756743f0304cc61d312b393a0e0e"
+      },
+      {
+        "file": "practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+        "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635"
+      },
+      {
+        "file": "practice-product/blobs/json/5752d3c1286d5ad38bf52c0cdcadd099bf7d9e0c027461707c8206b869d4503a.json",
+        "sha256": "5752d3c1286d5ad38bf52c0cdcadd099bf7d9e0c027461707c8206b869d4503a"
+      },
+      {
+        "file": "practice-product/blobs/json/c5e1d213084264800db3fc6a550545822446f0f9a666e9693ed9932eb6ba3c27.json",
+        "sha256": "c5e1d213084264800db3fc6a550545822446f0f9a666e9693ed9932eb6ba3c27"
+      },
+      {
+        "file": "practice-product/blobs/wasm/d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071.wasm",
+        "sha256": "d3f7a284b3d282d9d813f916129eb903d338e07efb7e20c7c27a1107c3458071"
+      },
+      {
+        "file": "practice-product/sections/actors/creatures.json",
+        "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84"
+      },
+      {
+        "file": "practice-product/sections/actors/crowds.json",
+        "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96"
+      },
+      {
+        "file": "practice-product/sections/actors/moves.json",
+        "sha256": "2671be9b3545536768227a417ff0d00412e28e5a513cf1a781538a2e97bca690"
+      },
+      {
+        "file": "practice-product/sections/actors/spawns.json",
+        "sha256": "22eae19428dcf1716265c80a8fb629657f5c51fbfd3af7aa1ec0cd6d82f66020"
+      },
+      {
+        "file": "practice-product/sections/actors/species-programs.json",
+        "sha256": "f2dcd75abf89e1097133618927091a0de28f2bfce2e633c9bc07702cc148cc0b"
+      },
+      {
+        "file": "practice-product/sections/actors/species.json",
+        "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7"
+      },
+      {
+        "file": "practice-product/sections/actors/strikes.json",
+        "sha256": "2966a2ce0e6eec7c8e7f26eb4dcabe801a30a69bdd0d2141a17c8129e46c5d59"
+      },
+      {
+        "file": "practice-product/sections/audio/audio.json",
+        "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543"
+      },
+      {
+        "file": "practice-product/sections/combat/encounters.json",
+        "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca"
+      },
+      {
+        "file": "practice-product/sections/combat/items.json",
+        "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca"
+      },
+      {
+        "file": "practice-product/sections/combat/strikes.json",
+        "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c"
+      },
+      {
+        "file": "practice-product/sections/economy/ledger.json",
+        "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f"
+      },
+      {
+        "file": "practice-product/sections/economy/loot.json",
+        "sha256": "7a807395f56fead1b9edb09ee310fa122576c6c2b8f5e54627c9826654c40d63"
+      },
+      {
+        "file": "practice-product/sections/held/arms.json",
+        "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1"
+      },
+      {
+        "file": "practice-product/sections/look/look.json",
+        "sha256": "cd68105cec62cfc9a5038db526f36feef08121b6495cd5cb976a8dc59b1ac702"
+      },
+      {
+        "file": "practice-product/sections/look/materials.json",
+        "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7"
+      },
+      {
+        "file": "practice-product/sections/quests/quests.json",
+        "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb"
+      },
+      {
+        "file": "practice-product/sections/sim/client-scripts.json",
+        "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb"
+      },
+      {
+        "file": "practice-product/sections/sim/hooks.json",
+        "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10"
+      },
+      {
+        "file": "practice-product/sections/sim/plumbing.json",
+        "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea"
+      },
+      {
+        "file": "practice-product/sections/sim/scripts.json",
+        "sha256": "849531b9719c0a10f9dca394d2654f3a0ba1085041397c88fc9b8330088fd288"
+      },
+      {
+        "file": "practice-product/sections/sim/sim.json",
+        "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0"
+      },
+      {
+        "file": "practice-product/sections/state/migrations.json",
+        "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c"
+      },
+      {
+        "file": "practice-product/sections/state/state.json",
+        "sha256": "390f48e1e77ba193359bb7337d43cc41536cac37d0072ebc4bb4f10592f4376b"
+      },
+      {
+        "file": "practice-product/sections/ui/card.json",
+        "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b"
+      },
+      {
+        "file": "practice-product/sections/ui/compendium.json",
+        "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214"
+      },
+      {
+        "file": "practice-product/sections/ui/ui.json",
+        "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3"
+      },
+      {
+        "file": "practice-product/sections/world/collision.json",
+        "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e"
+      },
+      {
+        "file": "practice-product/sections/world/days.json",
+        "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842"
+      },
+      {
+        "file": "practice-product/sections/world/edge.json",
+        "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711"
+      },
+      {
+        "file": "practice-product/sections/world/movers.json",
+        "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b"
+      },
+      {
+        "file": "practice-product/sections/world/navigation.json",
+        "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5"
+      },
+      {
+        "file": "practice-product/sections/world/props.json",
+        "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59"
+      },
+      {
+        "file": "practice-product/sections/world/spawn.json",
+        "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7"
+      },
+      {
+        "file": "practice-product/sections/world/terrain.json",
+        "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e"
+      },
+      {
+        "file": "practice-product/sections/world/tiles.json",
+        "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95"
+      },
+      {
+        "file": "practice-product/sections/world/traversal.json",
+        "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078"
+      },
+      {
+        "file": "practice-product/sections/world/water.json",
+        "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d"
+      },
+      {
+        "file": "practice-product/sections/world/weather.json",
+        "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2"
+      },
+      {
+        "file": "practice-product/shard.json",
+        "sha256": "7060d42f2188ff1484dd15147b5738974b77be5ec5af8f1b354c34ee69bdef4b"
+      },
+      {
+        "file": "practice-product/validation.json",
+        "sha256": "e9cf54f3808246e7ee02a43618bb84e8e9d678b0f28f80e5c10aed6e854e359c"
+      },
+      {
+        "file": "practice.html",
+        "sha256": "0fa35ce2cd4afb8898347d8b8b9fb4129360556428cd23b3facc0e6410df5a28"
+      },
+      {
+        "file": "puffer-preview.json",
+        "sha256": "04622c93768d9b6fb659291c9d6a360e5d9931c0d2091ae592b2559e5f6dbd3a"
+      }
+    ],
+    "inventorySha256": "95d902e5a0c0d284071020230ff431f0e234d56b783f080c47c497091be7c496"
+  },
+  "storageSnapshotsEqual": true,
+  "result": {
+    "playerDefeatObserved": true,
+    "retryRestoredHealth": "100/100",
+    "localCoinsCollected": 2,
+    "observationBoundSeconds": 180,
+    "runtimeSpeed": "unchanged; no state injection",
+    "limitations": "Cloud software WebGL, empty-look fixed-light AgX/grade with no LUT; not full Driftwood Noon, phone performance, human playtest, all-angle rig or visual acceptance."
+  },
+  "screenshots": [
+    "player-defeat-cloud.png",
+    "player-defeat-retry-cloud.png"
+  ]
+}

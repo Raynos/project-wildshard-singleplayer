@@ -256,3 +256,40 @@ certify a death animation. Storage was sampled before combat only; post-reward
 persistence was not independently checked. Optional video capture failed before
 page creation because Playwright's FFmpeg was unavailable; screenshot-only retry
 completed successfully. All prior lighting, all-angle and phone caveats remain.
+
+
+### Fresh post-combat isolation check (2026-10-18, 19:18:35–19:20:25 UTC)
+
+A new unchanged attack-mode run directly sampled storage before combat, after
+collecting two local coins, after Retry, throughout a 60-second no-player-attack
+observation, and after final Retry. All local/session storage, cookies, IndexedDB
+database names, CacheStorage keys and service-worker registrations stayed empty.
+This closes the earlier post-combat isolation gap for this fresh run; the earlier
+missing samples remain correctly marked missing. Exact input timestamps, 137-file
+app inventory hashes and screenshots are preserved in `cloud-isolation-receipt.json`
+and its neighboring evidence images.
+
+Enemy damage reduced player health 100→88→76→64→52→40 during the bounded observation.
+Player defeat did **not** occur and remains open. Final Retry restored 100/100 and
+a reset opponent. Zero JS/HTTP errors. No state injection, clock acceleration,
+phone-performance or complete animation/containment claim. A longer unchanged-speed
+180-second-or-defeat script is prepared but not yet run; it must wait for the next
+coordinator lane handoff.
+
+
+### Fresh player-defeat / Retry isolation check (2026-10-18, 19:23:13–19:25:58 UTC)
+
+The prepared longer run completed with actual defeat before its 180-second bound.
+At 19:25:47.568 UTC the HUD read 0/100 and the status read “Defeated. Retry starts
+a fresh local bout.” Real Retry then restored 100/100 and a reset opponent at
+19:25:53.718. Earlier in this same fresh run, real touch attacks collected two local
+practice coins. All captured storage surfaces stayed empty before/after combat,
+after its Retry, through defeat, and after the final Retry. Zero JS/HTTP errors.
+
+`cloud-defeat-isolation-receipt.json` records the exact timestamped input/sample
+sequence and unchanged V38 source/app pins; `player-defeat-cloud.png` and
+`player-defeat-retry-cloud.png` are genuine cloud screenshots. This closes the
+player-defeat/reset observation gap for this run. The earlier 60-second run remains
+correctly recorded as not reaching defeat. Runtime speed was unchanged and no
+gameplay state was injected. Lighting, phone, human-playtest and all-angle rig/visual
+acceptance limitations above still apply.
