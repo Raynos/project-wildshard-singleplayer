@@ -1,0 +1,30 @@
+{
+  "base": "V58",
+  "spineIndex": 1,
+  "originalBase": [
+    0.0,
+    -0.11999999731779099,
+    1.3095999956130981
+  ],
+  "newBase": [
+    0.0,
+    -0.11999999731779099,
+    1.284600019454956
+  ],
+  "originalTip": [
+    0.0,
+    -0.18719999492168427,
+    1.555999994277954
+  ],
+  "newTip": [
+    -0.05000000074505806,
+    -0.17219999432563782,
+    1.555999994277954
+  ],
+  "originalRadius": 0.13,
+  "newRadius": 0.17,
+  "tipHeightExact": true,
+  "extraRootBurial": 0.025,
+  "otherSpinesFaceBodyAndRigChanged": false,
+  "status": "unaccepted; projected width, root seating and side silhouette require actual review"
+}
