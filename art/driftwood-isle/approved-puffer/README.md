@@ -1,6 +1,6 @@
 # Approved Brine Puffer: sculpted source study
 
-Status: two rendered revisions failed the approved target. A third clay source is
+Status: four rendered revisions failed the approved target. Clay v5 source is
 unexecuted. No model acceptance and no runtime replacement.
 The owner approved the concept image on 2026-10-18. This does not approve generated meshes.
 
@@ -65,3 +65,29 @@ The first glTF validation has zero errors and one standard Blender hierarchy war
 Both failures are preserved. No painting or plate detail will be added to the
 new clay pass before silhouette/face review. Neither failed GLB is a shipping
 asset. All raw heavy outputs remain in the ignored task directory.
+
+## Clay v3 result and v4 change
+
+`build_puffer_clay_v3.py` has now been rendered and FAILED. The continuous jaw
+removes the detached pad, but the eyes still protrude, the orbital overhang is
+missing, the folds are weak and the feet lack ray/web articulation. The previous
+UNEXECUTED entry above records its state at the earlier checkpoint only.
+Evidence: [failed clay v3 render](failed-clay-v3.webp).
+
+`build_puffer_clay_v4.py` is UNEXECUTED. It replaces the ineffective brow bumps
+with closed orbital-rim meshes and real slanted apertures, unioned into the skull.
+The eyes sit behind those apertures. Fins have five raised rays and a continuous
+web, and throat pleats have deeper irregular relief. It remains a clay anatomy
+experiment: no paint or armor detail, no acceptance, no runtime replacement.
+
+## Clay v4 result and v5 change
+
+`build_puffer_clay_v4.py` has now rendered and FAILED overall. Actual eye recess
+and brow overhang improve on v3, but narrow fin roots make the body float over
+paper-like feet; the mouth and chin folds still miss the approved beak and broad
+forward egg-shaped pouch. Evidence: [failed clay v4 render](failed-clay-v4.webp).
+
+`build_puffer_clay_v5.py` is UNEXECUTED. Its source widens and thickens the fleshy
+fin roots, adds a continuous carved beak/lip around the real mouth aperture,
+projects the throat as a broad mass with inset irregular creases, and slopes the
+lids more aggressively over smaller visible eye apertures. No armor or paint.

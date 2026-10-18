@@ -1,18 +1,18 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-18 14:21 UTC. Five mechanics drafts; zero quality-complete enemies.
+Updated 2026-10-18 15:09 UTC. Five mechanics drafts; zero quality-complete enemies.
 
-Owner rejected all five existing V1/V2 visual designs. Preserve rejected work as mechanics fixtures; no acceptance credit. The owner requested OpenAI concepts showing Model Explorer and first-person HUD, grounded in original Driftwood concept art. At14:19UTC the owner explicitly approved all five new paired image concepts as exact visual targets. Actual models must match their silhouettes, anatomy, materials and detail; rough approximations fail. Reference catalog and concepts are published on the existing review Site.
+The owner approved five image pairs as exact visual targets: Brine Puffer, Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus. Actual geometry must faithfully match. Prior V1/V2 meshes remain rejected mechanics fixtures. Puffer detailed/clay studies have failed visual comparison; anatomy revisions and Conch source work are active. No visual acceptance follows from successful code or exports.
 
-Work remains on gamedev-dot. The owner reaffirmed normal writable checkout restoration and GitHub branch read/write. Root owns connector commits with expected-head verification; no main writes, Mac work or production deployment.
+Work stays on gamedev-dot. Root owns connector checkpoints with expected-head protection. No main writes, Mac work or production deployment. Ordinary sources are preserved in d04dda325a118be3766a75d3ce799407159ede18, including twenty proposed concepts and editable failed Puffer studies. New evidence and revisions still require the next checkpoint.
 
-Source checkpoint b72c9079e2c6dd1494288ecae06ea301fd4b9137 corrects actual decision memory accounting: six one-page guests require live plus last-good reserves, within unchanged host caps. Four real asset-admission regressions, scoped lint, actual precommit and assembled Driftwood build pass. Browser smoke now runs on immutable tree a47df23be6bc06089484a9e5b9ba043d5a0e79c4. No all-five fight/death/loot/persistence acceptance yet. Existing report-only memory/download and baked-map warnings remain open.
+Actual arena smoke on tree e58e4752c493a7d4cd473dd99f0299a212bf31f6: all five selected fixtures enter alone, retry and exit; three dummies hidden; sampled world health/quest state unchanged; weapon restored. Puffer reaches death and collects two practice coins. Conch deals and receives damage (enemy60→48, local player100→86). Mantis/Bellback receive hits and reach attack states. Longer Colossus contact reached attack, local player defeat, retry and isolated exit. Complete repertoire remains open. Real touch inputs use diagnostic pose setup in a software-rendered cloud browser, not human playtesting or phone performance evidence.
 
-Baseline three-dummy entry, sustained play, actual touchscreen sword damage and exit were verified separately. Selected-enemy runtime uses local health/death/rewards, retry, actor activation, selected preload and scoped equipment events. Independent source review fixes are preserved. Physical-device performance and human fun are unverified.
+A follow-on probe found overbright practice materials: the adapter passed an integer seed into the factory's 0..1 tint parameter. The unit-tint fix and actual-factory regression pass focused tests and scoped lint; corrected browser rendering remains pending.
 
-Next: finish actual arena mechanics checks, preserve new sources and concepts, and build to the five approved visual targets, comparing actual Explorer and first-person captures. Then verify natural Driftwood placement and remaining six-shard Explorer/weapon coverage.
+Public review Site version10 is live: five tabs, all20 new ranked proposed mockups, five approved targets, original art catalog, scoped real mechanics captures, illustrated home-screen icon and two mobile tab rows. These requests are complete; maintain current evidence. Additional concepts remain unapproved. No standalone playable Site arena yet.
+
+Next: finish tint correction and real boss/player-defeat tests; rebuild the five approved targets with matched visual comparisons; verify natural Driftwood placement and remaining six-shard Explorer/weapon coverage. Full attack repertoire, balance, phone performance and human fun remain open.
 
 Review: https://wildshard-enemy-lab.raynos.chatgpt.site
 Art sources: https://wildshard-enemy-lab.raynos.chatgpt.site/art-direction.html
-
-Also open: twenty additional ranked enemy/miniboss/boss ideas and mockups; five Site tabs (Overview, Review/Audit/Research, Mockup Catalog, Approved Mockups, In-Game Footage). Catalog retains rejected ideas; only explicit owner picks are approved.

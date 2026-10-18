@@ -17,11 +17,11 @@ Work in the authorized dot cloud checkout on `gamedev-dot`. No Mac work or produ
 | A1 | Six-shard source census and migration boundary | dot audit | complete locally | Species, variants, encounters and placements reported separately with source files |
 | A2 | Existing baseline build and focused combat tests | dot audit | complete locally | Supported preview bundle built; six files / seventeen tests pass; no full-gate claim |
 | A3 | Real portrait Model Explorer + arena captures | dot | partial: Driftwood specimens and three-dummy touch combat verified; six-shard capture coverage pending | Current build starts in supported browser, specimen clips and baseline arena captured; browser closed |
-| A4 | Source-only checkpoint and public review Site | dot | open | Verified branch checkpoint, source-screened site, no private notes or unsupported runtime claims |
-| B1 | Data-only practice catalog and lifecycle tests | dot | open | Unique entries, one opponent, replace/retry/exit/stale-load behavior deterministic |
-| B2 | Isolated real combat runtime in arena | dot | open | Real brain/strike/rig/death pipeline; no world progress, loot or save mutation |
+| A4 | Source-only checkpoint and public review Site | dot | ongoing; source and Site v10 verified | Verified branch checkpoint, source-screened site, no private notes or unsupported runtime claims |
+| B1 | Data-only practice catalog and lifecycle tests | dot | partial; all-five entry/retry/exit verified | Unique entries, one opponent, replace/retry/exit/stale-load behavior deterministic |
+| B2 | Isolated real combat runtime in arena | dot | partial; scoped combat, local defeat and rewards verified | Real brain/strike/rig/death pipeline; no world progress, loot or save mutation |
 | B3 | All six shard weapon kit checks | dot | open | Existing loadouts hit arena targets, loans restore; unsupported encounters explicitly excluded |
-| C1 | Five enemy design/asset experiments | dot content | open | Three regular, one elite, one boss; distinctive silhouettes and combat roles; real 3D assets/licences reviewed |
+| C1 | Five enemy design/asset experiments | dot content | approved image targets; geometry rebuild in progress | Three regular, one elite, one boss; distinctive silhouettes and combat roles; real 3D assets/licences reviewed |
 | C2 | Data, rigs, animations, AI, strike and loot integration | dot content | open | Every design resolves admitted body/look/brain/strike/reward rows; no stand-ins counted as complete |
 | C3 | Arena combat acceptance | dot | open | Telegraph/dodge/stagger/death/retry/reward-once, disposal and persistence tests pass |
 | D1 | Driftwood natural placement and map parity | dot content | open | Valid terrain/water/spacing, no blocked traversal; map and source agree; save/reload consistent |
@@ -60,3 +60,28 @@ The owner reaffirmed normal writable checkout restoration and branch read/write 
 The owner explicitly approved all five new image-generated pairs as visual build targets and requires close fidelity, with no rough approximation counted as completion. The prior V1/V2 meshes remain rejected. Compare actual Explorer and first-person game views against the approved anatomy, silhouettes, materials and detail. Separately, create20 additional ranked enemy/miniboss/boss concepts with mockups.
 
 The public Site must have five tabs: Overview (brief), Review/Audit/Research, Mockup Catalog (all ideas including rejected), Approved Mockups (explicit owner picks only), and In-Game Footage (actual evidence only). A standalone playable Three.js arena in that review Site is authorized as a bonus, using real isolated systems and no persistent world mutation.
+
+## 2026-10-18 15:09 UTC verified progress
+
+Twenty additional ranked concept pairs are generated and published in Site v10.
+All twenty are proposed; the five earlier concepts alone are owner-approved.
+The requested five-tab layout, two-row mobile navigation and illustrated iOS
+home-screen icon are published. The standalone playable Site arena remains open.
+
+At tree e58e4752c493a7d4cd473dd99f0299a212bf31f6, all five selected fixtures enter,
+retry and exit with one opponent and no visible dummies. Puffer death/local
+coin collection, Conch two-way damage and Colossus attack/local player defeat
+are observed. Sampled world health/quest state and restored weapon match after
+exit. These are real touch tests with diagnostic pose setup, not human playtests.
+Full repertoire, all-enemy defeats, balance, device performance and map parity
+remain open. See docs/reviews/driftwood-practice-mechanics for exact evidence.
+
+The probe exposed an adapter defect: a large integer was supplied to the
+factory's unit tint argument, producing overbright RGB before any hit. A unit
+RNG correction and actual-factory regression pass focused tests and scoped
+lint; corrected rendering awaits its own pinned browser run. The old creature
+geometry remains rejected regardless of this separate rendering fix.
+
+Puffer and Conch approved-target rebuilds have editable sources and explicit
+failed clay comparisons. No implementation is accepted. Current state is in
+docs/plans/driftwood-enemies/STATE.md; earlier entries above remain history.

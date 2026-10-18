@@ -3,6 +3,7 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type { CreatureRenderSpec } from '@wildshard/engine/level/spec';
 import { PracticePlayer } from './PracticePlayer';
 import { PracticeLoot } from './PracticeLoot';
+import { instantiatePracticeRig } from './practiceRig';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { preparePracticeDecision } from './PracticeDecisions';
@@ -153,7 +154,7 @@ export class PracticeCreature {
     this.callbacks = callbacks;
     const model = { ...this.model, species: { ...this.model.species, ...callbacks } };
       const variant = this.model.variantDef, scale = this.rng.range(variant.scale[0], variant.scale[1]);
-      const rig = scope.run(() => this.factory.instantiate(this.model, this.rng.int(1, 1_000_000)));
+      const rig = scope.run(() => instantiatePracticeRig(this.factory, this.model, this.rng));
       const animal = new Animal(rig, model, 7001, scale, `practice.${this.model.kind}`, {
         heightAt: () => at.y, floorBelow: () => at.y, random: () => this.rng.next(), now: () => this.elapsed * 1000,
         hit: request => combat.hit(request),

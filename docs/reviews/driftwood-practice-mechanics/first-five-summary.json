@@ -1,0 +1,203 @@
+{
+  "source": "e58e4752c493a7d4cd473dd99f0299a212bf31f6",
+  "ended": "2026-10-18T14:56:46Z",
+  "pageErrors": [],
+  "pickerHit": {
+    "rect": {
+      "x": 75,
+      "y": 65,
+      "width": 310,
+      "height": 14
+    },
+    "hit": "",
+    "inside": true,
+    "parent": "BODY"
+  },
+  "enemies": [
+    {
+      "kind": "brine-puffer",
+      "oneOpponent": true,
+      "noDummies": true,
+      "enemyHp": [
+        45,
+        45
+      ],
+      "stateAfterTouch": "attack",
+      "playerHealthAfterTouch": 100,
+      "deathAndLoot": {
+        "kind": "brine-puffer",
+        "hp": 0,
+        "maxHp": 45,
+        "alive": false,
+        "state": "dead",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 2,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0.1,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.2562874555587769,
+          900.689208984375,
+          -202.74464416503906
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 2,
+          "complete": true
+        },
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": -0.952,
+            "y": 900,
+            "z": -201.117
+          },
+          "yaw": 0,
+          "pitch": -0.18,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Collected 2 practice coins. World purse unchanged."
+      },
+      "retryHp": 45,
+      "retryPlayerHealth": 100,
+      "retryCoins": 0,
+      "exited": true,
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    },
+    {
+      "kind": "conch-duelist",
+      "oneOpponent": true,
+      "noDummies": true,
+      "enemyHp": [
+        60,
+        48
+      ],
+      "stateAfterTouch": "attack",
+      "playerHealthAfterTouch": 86,
+      "deathAndLoot": null,
+      "retryHp": 60,
+      "retryPlayerHealth": 100,
+      "retryCoins": 0,
+      "exited": true,
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    },
+    {
+      "kind": "splinter-mantis",
+      "oneOpponent": true,
+      "noDummies": true,
+      "enemyHp": [
+        55,
+        43
+      ],
+      "stateAfterTouch": "attack",
+      "playerHealthAfterTouch": 100,
+      "deathAndLoot": null,
+      "retryHp": 55,
+      "retryPlayerHealth": 100,
+      "retryCoins": 0,
+      "exited": true,
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    },
+    {
+      "kind": "bellback",
+      "oneOpponent": true,
+      "noDummies": true,
+      "enemyHp": [
+        180,
+        168
+      ],
+      "stateAfterTouch": "attack",
+      "playerHealthAfterTouch": 100,
+      "deathAndLoot": null,
+      "retryHp": 180,
+      "retryPlayerHealth": 100,
+      "retryCoins": 0,
+      "exited": true,
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    },
+    {
+      "kind": "tideRootColossus",
+      "oneOpponent": true,
+      "noDummies": true,
+      "enemyHp": [
+        480,
+        480
+      ],
+      "stateAfterTouch": "idle",
+      "playerHealthAfterTouch": 100,
+      "deathAndLoot": null,
+      "retryHp": 480,
+      "retryPlayerHealth": 100,
+      "retryCoins": 0,
+      "exited": true,
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    }
+  ],
+  "limits": [
+    "Owner-rejected geometry used only as mechanics fixtures.",
+    "Software-rendered 10fps cloud browser; no phone performance acceptance.",
+    "Snapshots use real touch attacks and diagnostic pose placement, not a skilled playthrough.",
+    "Colossus short sample was only 0.9 simulated seconds; combat needs longer sampling.",
+    "Overbright effects/materials obscure creature portraits; images prove HUD/receipt only. Cause is under investigation.",
+    "Full player defeat, all-enemy kills and complete attack repertoire remain unverified."
+  ]
+}
