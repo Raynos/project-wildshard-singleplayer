@@ -16,7 +16,7 @@
  */
 import { BufferAttribute, BufferGeometry, Mesh, type Material, type Object3D } from 'three';
 import type { Scope } from '../app/scope';
-import { gpuOnlyAttributes } from '../core/gpuOnly';
+import { gpuOnlyTrees } from '../core/gpuOnly';
 import { decodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { keepShadowWhole } from './shadowChunks';
 
@@ -125,8 +125,8 @@ export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: {
   const index = new BufferAttribute(indices, 1);
   geometry.setIndex(index); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   // normals and colours are read by nothing after the upload; position and the index stay for picking raycasts
-  gpuOnlyAttributes(geometry, 'shardfile.terrain', ['position']);
   const mesh = new Mesh(geometry, ports.material);
+  gpuOnlyTrees([mesh], 'shardfile.terrain', ['position']);
   mesh.name = `terrain:${data.x},${data.z}`; mesh.position.set(data.x, 0, data.z); mesh.receiveShadow = true; mesh.castShadow = ports.shadow;
   mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   // a tile is already one shadow-culling piece, and the caller's shadow disc switches its castShadow: never split it (SF16)

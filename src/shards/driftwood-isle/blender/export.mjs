@@ -25,7 +25,7 @@ export async function groundColor({ THREE, imp, hf, def }) {
 }
 
 export async function layout({ THREE, imp, def, addObject, tryBuild }) {
-  const island = await imp('src/shards/driftwood-isle/world/sites.ts');
+  const island = await imp('src/shards/driftwood-isle/generators/worldSites.ts');
   const terrainLayout = (await imp('src/shards/driftwood-isle/data/layout.json')).default;
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { originalTrailside } = await imp('src/shards/driftwood-isle/generators/driftwoodTrailside.mjs');

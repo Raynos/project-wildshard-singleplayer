@@ -1,6 +1,6 @@
 import { Color } from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
+import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { islandCoveSpec } from './coveLayout';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };

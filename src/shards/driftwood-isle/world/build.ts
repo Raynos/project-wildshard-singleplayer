@@ -1,3 +1,4 @@
+import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { driftwoodRows, driftwoodProduct, driftwoodTierShadows } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
@@ -20,7 +21,6 @@ import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physic
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { JETTIES, BRIDGE } from '../world/sites';
 import manifest from '../discovery.generated';
 import { Ocean, loadOcean } from './Ocean';
 import { MooringLines } from '../runtime/props/mooringLines';
@@ -100,7 +100,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
   const slice = slicer(30, progress);
-  const total = 16 + JETTIES.length;
+  const assembly = fixed.assembly, total = 15 + assembly.piers.length;
   const stages = new BuildStages({ slice, total, parent: game.scene, collect: statics });
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // G170: the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
@@ -120,7 +120,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     const placed = await scenes.place(id);
     return { placed, group: placed.object, colliders: structuredClone(row.boxes), floorHeightAt: (x, z) => scenes.floorAt(id, x, z) };
   };
-  const pier = await placePier('piers.world-0');
+  const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
+  const pier = await placePier(firstPier.id);
   // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the
   // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'stone',
@@ -186,8 +187,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   }, { values: value => value.colliders });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
-  for (const [i] of JETTIES.entries()) {
-    const jetty = await placePier(`piers.world-${i + 1}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
+  for (const row of assembly.piers.slice(1)) {
+    const jetty = await placePier(row.id); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(row.label);
   }
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
@@ -210,7 +211,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...trailside.colliders);
   await stages.next('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-  const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, BRIDGE, registry), { values: value => value.colliders });
+  const bridge = await stages.build('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
   const seabed = await stages.build('Seabed', () => {
     const mesh = scenes.mesh('reef.mesh'), { update } = reefMaterial(modelContext(sky));
@@ -267,6 +268,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     return island;
   });
   await slice(total, total, 'Baked island');
+  gpuOnlyTrees([ocean.group, pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
+    wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, blenderIsland.group], 'driftwood.world', ['position']);
   return { ocean, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck, blenderIsland };
 }
 

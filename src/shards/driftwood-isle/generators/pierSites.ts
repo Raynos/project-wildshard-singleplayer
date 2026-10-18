@@ -1,5 +1,5 @@
 import {CHUNK_HALF,ENTRY_WIDTH} from '@wildshard/format/contentBounds';
-import {PIER,JETTIES} from '../world/sites';
+import {PIER,JETTIES} from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { LOWERED_SEA } from '../world/sea';
 import { PIER_START } from './sea';

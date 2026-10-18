@@ -10,7 +10,7 @@ import { Noise2D } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { OCEAN } from '../world/sites';
+import { OCEAN } from './worldSites';
 
 /** the fish's tints: each of the school takes one */
 const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;

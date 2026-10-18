@@ -3,7 +3,7 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/engine/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
-import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
+import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, Mesh, type Object3D, SkinnedMesh, StaticDrawUsage, type Texture } from 'three';
 import { enteredOwner } from '../app/ownership';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
@@ -54,6 +54,24 @@ export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readon
     a.onUpload(releaseCpuCopy);
   }
   if (bytes > 0) markGpuOnly(label);
+  return bytes;
+}
+
+function staticMesh(object: Object3D): object is Mesh { return object instanceof Mesh && !(object instanceof SkinnedMesh); }
+
+/** Client-only static native trees, selected by their owner before first draw.
+ * Borrowed roots never expand to the scene. Shared geometries count once;
+ * skinned/morphing meshes and dynamic attributes retain their CPU readers. */
+export function gpuOnlyTrees(roots: readonly Object3D[], label: string, keep: readonly string[] = ['position']): number {
+  const seen = new Set<BufferGeometry>();
+  let bytes = 0;
+  for (const root of roots) root.traverse(object => {
+    if (!staticMesh(object)) return;
+    const geometry = object.geometry;
+    if (seen.has(geometry)) return;
+    seen.add(geometry);
+    if (Object.keys(geometry.morphAttributes).length === 0) bytes += gpuOnlyAttributes(geometry, label, keep);
+  });
   return bytes;
 }
 

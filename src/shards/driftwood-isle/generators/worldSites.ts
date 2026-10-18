@@ -4,7 +4,9 @@ import authoredLayout from '../data/layout.json' with { type: 'json' };
 import BRIDGE_SPANS from '../data/bridgeRows.json' with { type: 'json' };
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
-import { LOWERED_SEA } from './sea';
+import { SHORE_LEVEL, WORLD_DROP } from './sea';
+
+const LOWERED_SEA = SHORE_LEVEL - WORLD_DROP;
 
 const { PLATEAU, HEADLAND } = authoredLayout;
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */

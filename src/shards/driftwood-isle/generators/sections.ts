@@ -132,6 +132,9 @@ export const SECTIONS = {
     WRECK_SITES: v.strictObject({"world": v.strictObject({"x": number, "z": number, "heading": number, "roll": number, "pitch": number, "floorY": number}), "specimen": v.strictObject({"x": number, "z": number, "heading": number, "roll": number, "pitch": number, "floorY": number})}),
     ZIPLINE_ROWS: v.strictObject({"world": text, "trolley": text, "specimen": text, "parked": text, "layout": v.strictObject({"top": v.strictObject({"x": number, "y": number, "z": number}), "bottom": v.strictObject({"x": number, "y": number, "z": number}), "sag": number, "prompt": v.strictObject({"x": number, "y": number, "z": number, "radius": number})}), "specimenLayout": v.strictObject({"top": v.strictObject({"x": number, "y": number, "z": number}), "bottom": v.strictObject({"x": number, "y": number, "z": number})})}),
     }),
+    assembly: v.strictObject({ ocean: v.strictObject({ level: number, shallowColor: v.tuple([number, number, number]), deepColor: v.tuple([number, number, number]), deepDepth: number }),
+      bridge: v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number }),
+      piers: v.pipe(v.array(v.strictObject({ id: text, label: text })), v.length(4)) }),
     fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(88)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
     entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
@@ -186,3 +189,5 @@ export const FILE_SCHEMAS = { 'data/bridgeRows.json': v.strictObject({ world: br
 export const CoverCompositionSchema = v.strictObject({ name: text, placement: text, mesh: text, userData: v.record(text, v.boolean()) });
 export const EntryLandingsSchema = v.strictObject({ notice: text, rows: v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']),
   box: v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, surface: v.literal('stone'), hx: number, hy: number, hz: number }) })), v.length(4)) });
+
+export const PlaceSetsSchema = v.pipe(v.array(v.strictObject({ id: text, name: text, place: text, explicit: v.exactOptional(text) })), v.length(9));

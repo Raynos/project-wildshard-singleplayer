@@ -5,7 +5,6 @@ import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
-import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
 import { islandSystems } from './world/systems';
 import { installAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { installDriftwoodAudio } from './audio/install';
@@ -42,9 +41,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (world === null) throw new Error('Driftwood world requires the bootstrapped world');
     const built = await this.build(world, shell.viewer, buildProgress(ctx), ctx);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
-    // G144 / G173 (E450): the built world's vertex data on the GPU only (../world/gpuOnlyCopies.ts), before the first
-    // frame: each copy goes as it uploads
-    releaseDriftwoodCopies(built);
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
     const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove } = built;

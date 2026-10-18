@@ -16,7 +16,6 @@ import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/o
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildTier } from '@wildshard/engine/core/tier';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
-import { OCEAN } from '../world/sites';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { toonLookState } from '@wildshard/game/looks/toonLook';
 
@@ -36,7 +35,8 @@ export class Ocean extends WaterSurface {
     super(driftwoodRows('custom/oceanSurface').surface, waterSurfaceLook(lentLooksOf(driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK), driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK)); // its lent graph
   }
   /** the baked sea at `level` (its bake's), clipped out of up to four dry rectangles, stopping `edgeInset` m inside its square */
-  build(bake: FacetedOceanBake, level = OCEAN.level, dry: readonly WaterDryRect[] = [], edgeInset = 0): this {
+  build(bake: FacetedOceanBake, level = driftwoodRows('custom/fixedLayouts').assembly.ocean.level, dry: readonly WaterDryRect[] = [], edgeInset = 0): this {
+    const OCEAN = driftwoodRows('custom/fixedLayouts').assembly.ocean;
     if (bake.level !== level) throw new Error('The baked ocean is for another sea level');
     const caustics: { value: number } = toonLookState(driftwoodProduct()).dayLight.uSeaLevel; caustics.value = level; // the caustics under it
     const params: Record<string, GraphLiteral> = { level, deepDepth: OCEAN.deepDepth, shallow: [...OCEAN.shallowColor], deep: [...OCEAN.deepColor], edgeInset, seaEnd: HORIZON_RADIUS };

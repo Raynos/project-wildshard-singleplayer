@@ -9,7 +9,7 @@ import { seedOf, type Placement } from '@wildshard/engine/models/model';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
 import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
+import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import manifest from '../discovery.generated';
 import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams } from './foliageModels';
 import { palmGeometry } from './palm';

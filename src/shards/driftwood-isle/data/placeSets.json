@@ -1,0 +1,48 @@
+[
+  {
+    "id": "driftwood-isle/pier-landing",
+    "name": "Pier landing",
+    "place": "driftwood-isle/pier"
+  },
+  {
+    "id": "driftwood-isle/wendells-hut",
+    "name": "Wendell's hut",
+    "place": "driftwood-isle/hut"
+  },
+  {
+    "id": "driftwood-isle/vista-point",
+    "name": "Vista point",
+    "place": "driftwood-isle/vista"
+  },
+  {
+    "id": "driftwood-isle/rope-bridge-gully",
+    "name": "The rope bridge",
+    "place": "driftwood-isle/bridge"
+  },
+  {
+    "id": "driftwood-isle/zipline-launch",
+    "name": "The zipline",
+    "place": "driftwood-isle/zipline"
+  },
+  {
+    "id": "driftwood-isle/lookout-summit",
+    "name": "The lookout",
+    "place": "driftwood-isle/lookout"
+  },
+  {
+    "id": "driftwood-isle/wreck-cove",
+    "name": "Wreck cove",
+    "place": "driftwood-isle/wreck",
+    "explicit": "wreck"
+  },
+  {
+    "id": "driftwood-isle/sea-cave",
+    "name": "The sea cave",
+    "place": "driftwood-isle/cave"
+  },
+  {
+    "id": "driftwood-isle/ring-shrine",
+    "name": "The ring shrine",
+    "place": "driftwood-isle/shrine"
+  }
+]

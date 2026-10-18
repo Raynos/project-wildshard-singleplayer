@@ -8,7 +8,7 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { MANIFEST } from '../src/shards/driftwood-isle/discovery.generated';
 import { GROUND_LOOK } from '../src/shards/driftwood-isle/generators/groundLook';
-import { OCEAN } from '../src/shards/driftwood-isle/world/sites';
+import { OCEAN } from '../src/shards/driftwood-isle/generators/worldSites';
 import { facetedGroundGlbs } from '../src/shards/driftwood-isle/generators/facetedGround';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
 import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { type: 'json' };
 import policy from '../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
-import { HUT, LOOKOUT, WRECK, SHRINE, PIER } from '../src/shards/driftwood-isle/world/sites';
+import { HUT, LOOKOUT, WRECK, SHRINE, PIER } from '../src/shards/driftwood-isle/generators/worldSites';
 import { islandCoveSpec } from '../src/shards/driftwood-isle/generators/coveLayout';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';

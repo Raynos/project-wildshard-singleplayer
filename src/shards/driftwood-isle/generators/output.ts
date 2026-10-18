@@ -1,5 +1,6 @@
+import placeSets from '../data/placeSets.json' with { type: 'json' };
 import { parse } from 'valibot';
-import { CoverCompositionSchema, EntryLandingsSchema } from './sections';
+import { CoverCompositionSchema, EntryLandingsSchema, PlaceSetsSchema } from './sections';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
 import entryLandings from '../data/entryFloors.generated.json' with { type: 'json' };
 import { parseWorldScene } from '@wildshard/format/clientChannels';
@@ -74,6 +75,7 @@ const custom=emitDefinedSections(values.map(({name,value})=>{
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
 const placements = emitNamedBlobs([
+  nameBlob('world/place-sets.json', 'json', new TextEncoder().encode(JSON.stringify(parse(PlaceSetsSchema, placeSets)))),
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
   nameBlob('world/entry-landings.json', 'json', new TextEncoder().encode(JSON.stringify(parse(EntryLandingsSchema, entryLandings)))),
 

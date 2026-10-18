@@ -7,7 +7,7 @@ import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
 import {bindLevelSelection} from '@wildshard/engine/level/selection';
 import {HeightfieldBinding,bindHeightfield} from '@wildshard/engine/world/Heightfield';
 import manifest from '../discovery.generated';
-import {OCEAN} from '../world/sites';
+import {OCEAN} from './worldSites';
 import {GROUND_LOOK} from './groundLook.ts';
 import {facetedGroundGlbs} from './facetedGround.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';

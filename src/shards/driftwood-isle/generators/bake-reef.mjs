@@ -10,7 +10,7 @@ import {seedOf} from '@wildshard/engine/models/model';
 import {bindLevelSelection} from '@wildshard/engine/level/selection';
 import {HeightfieldBinding,bindHeightfield} from '@wildshard/engine/world/Heightfield';
 import {terrainHeight} from '@wildshard/engine/world/terrainHeight';
-import { WRECK } from '../world/sites';
+import { WRECK } from './worldSites';
 import manifest from '../discovery.generated';
 import {REEF_SPECIMENS} from './reefSpecimenRows.ts';
 import {REEF} from '../runtime/models/reef.ts';

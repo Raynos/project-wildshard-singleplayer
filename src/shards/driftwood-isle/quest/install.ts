@@ -4,7 +4,8 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { QuestViews } from '@wildshard/game/plugin/ui';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
-import { placeDriftwoodPlaces } from '../world/places';
+import { registerPlaceSets } from '@wildshard/engine/models/sets';
+import type { PlaceSets } from '../runtime/productSections.generated.d.ts';
 import { installAdventure, type Adventure } from './adventure';
 import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/keepsakes';
 import { COLLECTIONS } from '../runtime/boot/blobAssets';
@@ -33,9 +34,14 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
     bridgeFloor: d.bridge === null ? undefined : (x, z) => d.bridge?.floorHeightAt(x, z),
     pois: { hut: d.hut, lookout: d.lookout, wreck: d.wreck, shrine: d.shrine, cave: d.cove }, gulls: d.gulls });
   shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();
-  placeDriftwoodPlaces(adventure.place, [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
-    ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed],
-    { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] }, adventure.content.places);
+  const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
+    ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];
+  const wreck = [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])];
+  registerPlaceSets(await ctx.product.json<PlaceSets>('world/place-sets.json'), { file: 'src/shards/driftwood-isle/data/placeSets.json', members: row => {
+    const def = adventure.content.places.find(place => `driftwood-isle/${place.id}` === row.place);
+    if (def === undefined) throw new Error(`places: no named place ${row.place}`);
+    return row.explicit === undefined ? { near: { placed, ...adventure.place(def.at), r: def.r, mode: 'bounds' } } : { whole: row.explicit === 'wreck' ? wreck : [] };
+  } });
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');

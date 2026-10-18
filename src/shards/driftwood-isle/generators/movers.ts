@@ -3,7 +3,7 @@ import { Mover } from '@wildshard/sdk/movers';
 import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
-import { BRIDGE } from '../world/sites';
+import { BRIDGE } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { LOWERED_SEA } from '../world/sea';
 import { WORLD_DROP } from './sea';
