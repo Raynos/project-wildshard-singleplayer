@@ -1,0 +1,14 @@
+{
+  "base": "V46",
+  "lowerAmberLiningAndApertureScale": 1.18,
+  "eyeCentersAndDepthsChanged": false,
+  "pupilAndGlintChanged": false,
+  "upperAmberArcChanged": false,
+  "browLowerEdgeChanged": false,
+  "browOuterUpperRaise": 0.035,
+  "browInnerUpperRaise": 0.018,
+  "mouthChanged": false,
+  "pouchChanged": false,
+  "paletteChanged": false,
+  "status": "unaccepted; actual multi-view visibility pending"
+}
