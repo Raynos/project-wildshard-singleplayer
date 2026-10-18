@@ -20,6 +20,7 @@ it('enforces both ceilings and a named exit for every private section',()=>{
   writeFileSync(join(root,'docs/plans/port.md'),'| Row | Status |\n| Wind host | open |\n');
   policy(1,9,{'demo/custom/wind':'docs/plans/port.md#Wind host'});
   expect(customSectionFailures(root,measures)).toEqual([]);
+  expect(customSectionFailures(root,{demo:{customSections:[...measures.demo.customSections,{name:'private.json',bytes:7}]}})).toEqual(['demo: custom-section count 2 exceeds 1','demo: custom-section bytes 16 exceeds 9']);
   policy(0,8,{});
   expect(customSectionFailures(root,measures)).toEqual(['demo: custom-section count 1 exceeds 0','demo: custom-section bytes 9 exceeds 8','demo: custom/wind needs a recorded plan exit row']);
   policy(2,100,{'demo/custom/wind':'docs/plans/port.md#Absent row'});
@@ -61,6 +62,7 @@ it('requires exact appended adoption rises and permanently seals them at the spi
  expect(compareCustomSections(budgets(2,100),budgets(2,100),base,raised)).toContain('demo: custom-section raises line matches no ceiling change');
  const sealed={...base,risesCloseAt:'W1 spike end'};
  expect(compareCustomSections(budgets(2,100),budgets(2,100),base,sealed)).toEqual([]);
+ expect(compareCustomSections(budgets(2,100),budgets(3,101),base,{...raised,risesCloseAt:'W1 spike end'})).toEqual([]);
  expect(compareCustomSections(budgets(2,100),budgets(3,101),sealed,{...sealed,raises:[row]})).toContain('demo: custom-section rises closed at W1 spike end');
  expect(compareCustomSections(budgets(2,100),budgets(2,100),sealed,base)).toContain('custom-section rise window cannot reopen');
  expect(compareCustomSections(budgets(2,100),{'custom-sections/demo/count':2},base,base)).not.toEqual([]);

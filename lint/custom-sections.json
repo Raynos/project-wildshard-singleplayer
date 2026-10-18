@@ -43,7 +43,7 @@
       "bytes": 0
     }
   },
-  "risesCloseAt": null,
+  "risesCloseAt": "W1 spike end",
   "raises": [
     {
       "slug": "pine-hollow",
@@ -248,6 +248,78 @@
         "bytes": 581770
       },
       "why": "C9 schemas-to-generators, approved by wildshard-new: adopt the existing eight-section output and move the existing 8572-byte enemy-placement payload to a build-validated section. Delete runtime/sections.ts in the same landing; no new authored data or gameplay."
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 9,
+        "bytes": 581770
+      },
+      "to": {
+        "count": 54,
+        "bytes": 1872962
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "far-reach",
+      "from": {
+        "count": 0,
+        "bytes": 0
+      },
+      "to": {
+        "count": 19,
+        "bytes": 2928189
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "nalati-grasslands",
+      "from": {
+        "count": 0,
+        "bytes": 0
+      },
+      "to": {
+        "count": 33,
+        "bytes": 12616472
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "from": {
+        "count": 0,
+        "bytes": 0
+      },
+      "to": {
+        "count": 13,
+        "bytes": 4649051
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "pine-hollow",
+      "from": {
+        "count": 13,
+        "bytes": 133072
+      },
+      "to": {
+        "count": 224,
+        "bytes": 15866616
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
+    },
+    {
+      "slug": "sunscar-dunes",
+      "from": {
+        "count": 0,
+        "bytes": 0
+      },
+      "to": {
+        "count": 16,
+        "bytes": 79809
+      },
+      "why": "G496 switch-point seal: exact current custom sections plus all named JSON blobs; subsequent count and byte ceilings only shrink"
     }
   ]
 }

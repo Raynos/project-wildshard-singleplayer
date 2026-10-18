@@ -62,5 +62,13 @@ export function outputSections(root,slug,products=resolve(root,'out')) {
     if(section.name.startsWith('custom/')){customSectionBytes+=content.length;customSections.push({name:section.name,bytes:content.length});}
     sections.push({name:section.name,value:JSON.parse(content.toString('utf8'))});
   }
+  // G496: moving private JSON behind a logical blob name cannot escape the
+  // section count/byte ceiling. Verify its bytes just like a custom section.
+  for(const file of index.files.filter(row=>row.kind==='json'&&row.name!==undefined)) {
+    const content=readFileSync(resolve(folder,file.path));
+    if(content.length!==file.compressed||digest(content)!==file.hash)throw new Error(`${slug}: named JSON hash/size mismatch: ${file.name}`);
+    JSON.parse(content.toString('utf8'));
+    customSectionBytes+=content.length;customSections.push({name:file.name,bytes:content.length});
+  }
   return {index,sections,customSections,customSectionBytes};
 }

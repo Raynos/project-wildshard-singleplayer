@@ -49,7 +49,9 @@ export function compareCustomSections(beforeBudgets,afterBudgets,beforePolicy,af
   for(const [slug,to]of Object.entries(after)) {
     const from=before[slug]??{count:0,bytes:0};
     if(!(to.count>from.count||to.bytes>from.bytes))continue;
-    if(previous.output.risesCloseAt!==null||next.output.risesCloseAt!==null){failures.push(`${slug}: custom-section rises closed at W1 spike end`);continue;}
+    // G496 adopts the exact current named-JSON inventory while closing. The
+    // existing exact append-only raise record still applies to that last rise.
+    if(previous.output.risesCloseAt!==null){failures.push(`${slug}: custom-section rises closed at W1 spike end`);continue;}
     const row=fresh.find(item=>item.slug===slug&&same(item.from,from)&&same(item.to,to));
     if(row===undefined)failures.push(`${slug}: custom-section ceiling rises without an appended exact {slug, from, to, why} line`);
     else used.add(row);

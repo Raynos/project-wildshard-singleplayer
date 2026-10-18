@@ -3,8 +3,8 @@ import { existsSync,readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /** Numeric ceilings stay in ratchet.json's existing policy-only budgets namespace.
- * Every admitted private name needs its own documented exit row, never an implicit
- * allowance created by a generated output. New names cannot borrow spare byte room.
+ * Custom-section names need a documented exit row. Named JSON shares the same
+ * totals: changing its transport cannot escape the count or byte ceiling.
  * @param {string} root
  * @param {Record<string,{customSections:{name:string;bytes:number}[]}>} measures */
 export function customSectionFailures(root,measures) {
@@ -18,6 +18,7 @@ export function customSectionFailures(root,measures) {
       else if(value>ceiling)failures.push(`${slug}: custom-section ${unit} ${value} exceeds ${ceiling}`);
     }
     for(const section of row.customSections) {
+      if(!section.name.startsWith('custom/'))continue;
       const exit=policy.allow?.['shardfile/custom-sections']?.[`${slug}/${section.name}`];
       const parts=typeof exit==='string'?exit.split('#'):[];
       const file=parts[0],name=parts[1];

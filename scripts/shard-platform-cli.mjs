@@ -33,7 +33,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     if (process.argv.includes('--write')) refreshOutputReports(ROOT,measures);
     if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,waves:SHARD_WAVES.map(wave=>componentWave(measures,wave.id))}},null,2));
     else {
-      console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  custom sections / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
+      console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
         const m3=row.m3===null?'native':`${(100*row.m3.fraction).toFixed(1)}% ${row.m3.basis}`;
         const ready=Object.entries(row.gridReady.criteria).map(([name,value])=>`${name}:${value.verdict}`).join(', ');
@@ -43,7 +43,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         for(const scenario of metrics.scenarios)console.log(`    ${scenario.script} / ${scenario.scenario}: calls ${scenario.calls}, coarse fuel total/max ${scenario.fuel}/${scenario.maxFuel}, refusals ${scenario.refusals}; ${scenario.path} sha256:${scenario.receiptHash}`);
         for(const script of metrics.scripts.filter(value=>!value.measured))console.log(`    ${script.id}: fuel/calls unknown (no matching scenario receipt)`);
         if (row.status==='unclosed') {
-          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}  M3 ${m3}; grid ${row.gridReady.verdict}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
+          console.log(`${slug.padEnd(22)} unclosed   —                 ${row.escapes}  M3 ${m3}; grid ${row.gridReady.verdict}; JSON ${row.customSections?.length}/${row.customSectionBytes}; AS ${row.assemblyScriptLines}/${row.assemblyScriptBudget?.ceiling??'native'}`);
           console.log(`  grid-ready ${ready}`);
           for (const file of row.files.slice(0,5)) console.log(`  ${file.path}: ${file.count} escapes; ${file.messages.join('; ')}`);
           if (row.refusal) console.log(`  strict copy: ${row.refusal}`);
