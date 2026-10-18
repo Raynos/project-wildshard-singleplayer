@@ -19,7 +19,6 @@ import { installGrappleAim } from '../runtime/tools/grappleAim';
 import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
 import { ndRuntime } from '../runtime/state';
-import { RIM } from '../world/wellBounds';
 import { wellCourse } from './sim';
 import { grappleCue } from '../runtime/audio/cues';
 import { traverseFeats, type NineFacts } from '../world/feats';
@@ -46,7 +45,7 @@ export class FeiZhua extends Tool {
     if (fragment === undefined) {
       // The equipment's final release can follow world retirement; keep its installed owner.
       const runtime = ndRuntime();
-      fragment = wellCourse(runtime.world.ctx.hooks, RIM.z0, (open) => { runtime.guardOpen = open; });
+      fragment = wellCourse(runtime.world.ctx.hooks, runtime.world.ctx.rimZ, (open) => { runtime.guardOpen = open; });
     }
     // the law's ports: the page's physics and Player (read live, as the Tool always did)
     const ports: GrapplePorts = { get physics() { return host.physics; }, get body() { return host.player; } };

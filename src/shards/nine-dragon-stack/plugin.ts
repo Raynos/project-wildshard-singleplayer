@@ -15,10 +15,9 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import worldInstall from './world/install.generated.json' with { type: 'json' };
-import { fragmentFloor } from './world/colliders';
+import type { GeometryBoot } from './runtime/productSections.generated';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import deckFloors from './data/deckFloors.generated.json' with { type: 'json' };
-import { crossingColliders } from './world/wellBounds';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
@@ -129,6 +128,7 @@ export class NdPlugin extends ShardPlugin {
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
     const { world, camera } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
+    const { world: worldRows } = await ctx.product.json<GeometryBoot>('geometry/layout.json');
     this.ndWorld = world;
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
@@ -141,10 +141,10 @@ export class NdPlugin extends ShardPlugin {
       surface: v.literal('stone'), colliderOwner: v.exactOptional(v.string()), colliders: v.array(collider) })), world.entryCaps === true ? worldInstall.standalone : worldInstall.cell);
     const pieces: Parameters<ShardContext['piece']>[0][] = [];
     for (const row of rows) pieces.push({ ...row,
-      ...(row.id === 'nds-floors' ? { object: world.root, floor: (x: number, z: number) => fragmentFloor(x, z) ?? floorAtRects(deckFloors, x, z, 'first'), solidFloor: true } : {}),
+      ...(row.id === 'nds-floors' ? { object: world.root, floor: (x: number, z: number) => floorAtRects(worldRows.floors, x, z, 'first') ?? floorAtRects(deckFloors, x, z, 'first'), solidFloor: true } : {}),
     });
     for (const piece of pieces) ctx.piece(piece.id === 'nds-grapple-guard' ? { ...piece, follows: new Group(), active: () => !rt.guardOpen } : piece);
-    ctx.piece({ ...worldInstall.crossings, category: 'buildings', surface: 'stone', colliders: [...crossingColliders()] });
+    ctx.piece({ ...worldInstall.crossings, category: 'buildings', surface: 'stone', colliders: [...worldRows.crossings] });
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }

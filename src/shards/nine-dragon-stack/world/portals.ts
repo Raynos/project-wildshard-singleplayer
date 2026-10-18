@@ -7,7 +7,6 @@
 // and 'nine-portal-sparks' (additive points) in data/lookGraphs.json; the disc and the sparks read the ring's radius.
 import { BufferGeometry, CircleGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Points, Quaternion, TorusGeometry, Vector3 } from 'three';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import type { Ctx } from './ctx';
 import portalPlan from './portalPlan.generated.json' with { type: 'json' };
 
 type Portal = typeof portalPlan.square;
@@ -25,7 +24,7 @@ function frames(portals: readonly Portal[]): Matrix4[] {
 }
 
 /** build the five portals' look under one group */
-export function buildPortals(ctx: Ctx): PortalLook {
+export function buildPortals(): PortalLook {
   const portals: Portal[] = [...portalPlan.decks, portalPlan.square];
   const root = new Group(); root.name = 'portals';
   const at = frames(portals);
@@ -55,12 +54,5 @@ export function buildPortals(ctx: Ctx): PortalLook {
   sparks.renderOrder = 5;
   ring.name = 'portal-rings'; disc.name = 'portal-swirls'; sparks.name = 'portal-sparks';
   root.add(ring, disc, sparks);
-  // two red paper lanterns on each deck's end wall, either side of its ring, in the fragment's lantern batch
-  for (const p of portalPlan.decks) {
-    for (const s of [-1, 1]) {
-      const back = 1.75, side = portalPlan.ring.r + 0.9;
-      ctx.lantern(p.x + p.nx * back - p.nz * side * s, 4.4, p.z + p.nz * back + p.nx * side * s, 1.1);
-    }
-  }
   return { root, portals };
 }

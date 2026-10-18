@@ -13,7 +13,7 @@ import { buildRim } from './well-rim';
 import { buildMid } from './well-mid';
 import { buildLower } from './well-lower';
 import { WellPlan } from './well-plan';
-import { WELL_RECTS } from '../world/wellBounds';
+import { WELL_RECTS } from './wellBounds';
 
 /** build the Well: the rim and near galleries, the lower levels, then the mid-shaft (its crossings tie into both) */
 export function buildWell(ctx: Ctx): void {

@@ -9,12 +9,6 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Ctx, InKit } from './ctx';
-import { isPiece } from './facade/pieceIds';
-import { restoreQueued } from './props3d';
-import { restoreCrossingColliders, wellSheets } from './wellBounds';
-import { banyanOut } from './banyanPlan';
-
-
 
 /** Standard GLB layout geometries and plain double-precision author rows. */
 export class LayoutBake {
@@ -90,7 +84,9 @@ export async function loadLayoutBake(owner: Scope): Promise<LayoutBake> {
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
 
-export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
+export function restoreLayout(bake: LayoutBake): Ctx {
+  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), reflective: new Set(), farOf: new Map(), lanterns: [], acs: [], hooks: [], hookMounts: [], inKit: [], map: [], steam: [], emitters: [], inst: new Map(), sets: new Map(),
+    fd: { windows: [], shell: null, towers: 0 } };
   const r = bake.rows, f = bake.f64;
   let at = 0;
   const num = (): number => { const x = f[at++]; if (x === undefined) throw new Error('[nine-dragon] the layout bake ran out of records'); return x; };
@@ -104,41 +100,24 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   for (const name of r.reflective) ctx.reflective.add(name);
   for (const [name, m] of r.farOf) ctx.farOf.set(name, m);
   const c = r.counts;
-  for (let i = 0; i < c.walkers; i++) ctx.walkers.push(m4());
-  for (let i = 0; i < c.sitters; i++) ctx.sitters.push(m4());
+  at += (c.walkers + c.sitters) * 16;
   for (let i = 0; i < c.lanterns; i++) ctx.lanterns.push(m4());
   for (let i = 0; i < c.acs; i++) ctx.acs.push(m4());
   for (let i = 0; i < c.hooks; i++) ctx.hooks.push(v3());
   for (let i = 0; i < c.hookMounts; i++) ctx.hookMounts.push({ ring: v3(), out: v3() });
   for (let i = 0; i < c.steam; i++) ctx.steam.push(v3());
-  for (const piece of r.pieces) {
-    if (!isPiece(piece)) throw new Error(`[nine-dragon] the layout bake places no facade piece '${piece}'`);
-    ctx.fd.pieces.push({ piece, m: m4(), c: col() });
-  }
+  at += c.pieces * 19;
   for (let i = 0; i < c.windows; i++) ctx.fd.windows.push({ m: m4(), win: new Vector4(num(), num(), num(), num()), wall: col(), light: col() });
   for (const [key, n] of r.inst) {
     const list = [];
     for (let i = 0; i < n; i++) list.push({ m: m4(), c: col() });
     ctx.inst.set(key, list);
   }
-  const lions: Matrix4[] = [];
-  for (let i = 0; i < c.lions; i++) lions.push(m4());
-  const sets = r.sets.map((s) => {
-    const list: Matrix4[] = [];
-    for (let i = 0; i < s.count; i++) list.push(m4());
-    return [s.name, { geo: bake.geometry(s.geo), at: list }] as const;
-  });
+  at += c.lions * 16;
+  for (const row of r.sets) { ctx.sets.set(row.name, bake.geometry(row.geo)); at += row.count * 16; }
   if (at !== f.length) throw new Error('[nine-dragon] the layout bake has records left over');
-  for (const s of r.slots.early) ctx.fd.addSign({ ...s, at: vec(s.at), normal: vec(s.normal) });
-  ctx.fd.late = true;
-  for (const s of r.slots.late) ctx.fd.addSign({ ...s, at: vec(s.at), normal: vec(s.normal) });
-  ctx.fd.late = false;
   if (r.shell !== null) ctx.fd.shell = bake.geometry(r.shell);
   ctx.fd.towers = r.towers;
-  for (const [id, b] of r.merged) {
-    if (!isPiece(id)) throw new Error(`[nine-dragon] the layout bake merges no facade piece '${id}'`);
-    ctx.fd.merged.set(id, new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])));
-  }
   for (const k of r.inKit) {
     if (!ctx.kits.has(k.kit)) throw new Error(`[nine-dragon] the layout bake draws '${k.model}' into no kit '${k.kit}'`);
     const b = k.box;
@@ -147,16 +126,8 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
   }
   for (const m of r.map) ctx.map.push({ ...m });
   for (const e of r.emitters) ctx.emitters.push({ at: vec(e.at), color: new Color(e.color[0], e.color[1], e.color[2]), w: e.w, h: e.h, power: e.power, spill: e.spill });
-  ctx.rng.restore(r.rng);
-  restoreCrossingColliders(r.crossings);
-  restoreQueued(lions, sets);
-  wellSheets.length = 0;
-  wellSheets.push(...r.sheets);
-  banyanOut.plan = r.banyan === null ? null : {
-    lumps: r.banyan.lumps.map((l) => ({ c: vec(l.c), r: vec(l.r), up: l.up, seed: l.seed, wash: l.wash })),
-    hangs: r.banyan.hangs.map(vec),
-  };
   bake.release();
+  return ctx;
 }
 
 /** JSON keeps every double exactly but -0 and the non-finite: the bake writes those as strings (../generators/layout.ts) */

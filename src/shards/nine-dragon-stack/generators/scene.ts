@@ -4,7 +4,7 @@ import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/ba
 import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
-import { banyanOut } from '../world/banyanPlan';
+import { banyanOut } from './banyanPlan';
 
 /** Channels of Nine's unchanged material fallback, retained as ordinary GLB application attributes. */
 export function nineChannels(geometry: BufferGeometry): Record<string, string> {

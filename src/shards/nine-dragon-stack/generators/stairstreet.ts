@@ -18,7 +18,7 @@
 import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import type { Ctx } from './ctx';
 import { dressWall } from './facadeGrammar';
-import type { PieceId } from '../world/facade/pieceIds';
+import type { PieceId } from './facadeIds';
 import { mahjongSeats } from './figures';
 import { KitX } from './kitx';
 import { buildGuardProcedural } from './guard';

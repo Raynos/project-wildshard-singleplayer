@@ -1,7 +1,11 @@
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { PLAZA, STAIR, STREET, Y0 } from '../layout';
-import stairPlan from './stairPlan.generated.json' with { type: 'json' };
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+import { stairPlanData } from './stairPlan';
 import { wellFloor } from './wellBounds';
+
+const stairPlan = stairPlanData();
+
+const { PLAZA, STAIR, STREET, Y0 } = NINE_LAYOUT_PLAN;
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
 export const STREET_END = NINE_FLOOR_PLAN.fronts.streetEnd;

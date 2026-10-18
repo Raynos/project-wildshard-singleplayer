@@ -4,7 +4,9 @@
 // page keeps — the crossings' colliders and the fog sheets' heights.
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { NINE_FLOOR_PLAN } from '../data/floorPlan';
-import { WELL, Y0 } from '../layout';
+import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
+
+const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** the canyon's run north under the Cable Deck (its ceiling is the deck's sky screen at +155 m) */
 export const EXT = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;

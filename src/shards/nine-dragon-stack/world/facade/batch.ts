@@ -6,10 +6,10 @@ import { type InstancedCuller, place } from '@wildshard/engine/models/place';
 // piece), and instanced window quads.
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
-import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, PlaneGeometry, type ShaderMaterial } from 'three';
+import { Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry, type ShaderMaterial } from 'three';
 import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
-import { BAKED, DRAWN_AS, SMALL, type PieceId } from './pieceIds';
+import type { WorldRows } from '../../runtime/productSections.generated';
 import { FACADE_BAKED, FACADE_MODELS } from '../../models/catalogue';
 import type { NdLook } from '../modelLook';
 import { namePlacedDraws } from '../../runtime/cull/placedDraws';
@@ -31,38 +31,22 @@ export interface FacadeModels {
 }
 
 /** the copies of one piece */
-interface Copy { m: Matrix4; c: Color }
+
 
 /** name a placed model's draws as the old hand-rolled batch was named (the budget ruler's lanes, the GPU ruler's groups and
  *  the E283 culler's LOD names read them); level 0's triangles per copy */
 export const nameDraws: typeof namePlacedDraws = namePlacedDraws;
 
-export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeModels, opt: FacadeOptions): Promise<{ group: Group; stats: FacadeStats }> {
+export async function buildFacade(d: Dressing, facade: WorldRows['facade'], records: Float64Array, shared: Uniforms, models: FacadeModels, opt: FacadeOptions): Promise<{ group: Group; stats: FacadeStats }> {
   const group = new Group();
   group.name = 'facade';
   const mat = jiehuaMaterial(shared);
   const matSmall = jiehuaMaterial(shared, { shrink: opt.clutterFar ?? [55, 85] });
   models.look.facade = { mat, small: matSmall };
-  // the kit: one instanced draw per drawn geometry; the baked pieces go into the shell first
-  const byPiece = new Map<PieceId, Copy[]>();
-  /** the copies of the pieces merged into the shell, per piece (G285: the layout bake merged them,
-   *  ../../generators/facadePieces.ts `mergeBakedPieces`; models/facade.ts FACADE_BAKED: registered on the shell below) */
-  const baked = new Map<PieceId, Copy[]>();
-  const tc = new Color();
-  for (const p of d.pieces) {
-    if (BAKED.has(p.piece)) {
-      let l = baked.get(p.piece);
-      if (l === undefined) { l = []; baked.set(p.piece, l); }
-      l.push(p);
-      continue;
-    }
-    const alias = DRAWN_AS[p.piece];
-    const id = alias?.as ?? p.piece;
-    const q: Copy = alias === undefined ? p : { m: p.m.clone().multiply(alias.local), c: p.c.clone().multiply(tc.setHex(alias.tint)) };
-    let l = byPiece.get(id);
-    if (l === undefined) { l = []; byPiece.set(id, l); }
-    l.push(q);
-  }
+  const poses = (offset: number, count: number): Placement<Record<string, unknown>>[] => Array.from({ length: count }, (_, index) => {
+    const at = offset + index * 19, matrix = new Matrix4().fromArray(records, at);
+    return { x: matrix.elements[12], y: matrix.elements[13], z: matrix.elements[14], matrix, color: new Color().fromArray(records, at + 16) };
+  });
   const geometry = d.shell, shellTris = (geometry?.index?.count ?? 0) / 3;
   const stats: FacadeStats = { draws: 0, tris: 0, instances: 0, windows: d.windows.length, shellTris, perPiece: {} };
   // the shell: one merged mesh
@@ -74,36 +58,29 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     stats.tris += shellTris;
     d.shell = null;
     // the pieces baked into it are models drawn there (their copies' boxes: each piece's own bounds at its placement)
-    const box = new Box3();
-    for (const [id, list] of baked) {
-      const model = FACADE_BAKED[id], own = d.merged.get(id);
-      if (model === undefined || own === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
-      const boxes = new Float32Array(list.length * 6);
-      const placements: Placement<Record<string, unknown>>[] = list.map((p, i) => {
-        box.copy(own).applyMatrix4(p.m);
-        boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
-        return { x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c };
-      });
-      place(model, placements, { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes }, piece: { id: `nds-facade-${id}`, name: model.name } });
+    for (const row of facade.baked) {
+      const model = FACADE_BAKED[row.id];
+      if (model === undefined) throw new Error(`Missing baked facade model ${row.id}`);
+      place(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes: Float32Array.from(records.subarray(row.boxes, row.boxes + row.count * 6)) }, piece: { id: `nds-facade-${row.id}`, name: model.name } });
     }
   }
   // the pieces: one `place` each (a task apart when a piece took long: the phone's ~30 ms tasks)
   let lastYield = performance.now();
-  for (const [id, list] of byPiece) {
+  for (const { id, poses: offset, count, small } of facade.drawn) {
     const model = FACADE_MODELS[id];
     if (model === undefined) throw new Error(`facade: no model draws the piece '${id}' (models/facade.ts FACADE_MODELS)`);
-    const placements: Placement<Record<string, unknown>>[] = list.map((p) => ({ x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c }));
+    const placements = poses(offset, count);
     const placed = place(model, placements, {
       ctx: models.ctx, draw: 'instanced', culler: models.culler, parent: group,
       // the small clutter is not drawn past 85 m, where its program has shrunk it into the wall
-      ...(SMALL.has(id) ? { cull: { far: 85 } } : {}),
+      ...(small ? { cull: { far: 85 } } : {}),
       piece: { id: `nds-facade-${id}`, name: model.name },
     });
     const tris = nameDraws(placed, `facade-${id}`);
     stats.draws++;
-    stats.instances += list.length;
-    stats.tris += tris * list.length;
-    stats.perPiece[id] = [list.length, tris * list.length];
+    stats.instances += count;
+    stats.tris += tris * count;
+    stats.perPiece[id] = [count, tris * count];
     if (performance.now() - lastYield > 30) { await opt.pause(); lastYield = performance.now(); }
   }
   // the windows: one InstancedMesh of unit quads (x ∈ [-0.5, 0.5], y ∈ [0, 1]), interior-mapped — the towers' own

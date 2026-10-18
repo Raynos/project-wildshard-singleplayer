@@ -4,7 +4,7 @@ import { castGeometry, packGeometry } from './casts';
 import { lodReady, simplifiedCopy, clusterLod, PX_PER_M } from './meshLod';
 import { MID_FROM, MID_PX, SCULPT_PX, LOD_TRIS } from '../data/lod';
 
-function tintAbove(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
+export function tintAbove(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
   const g = src.clone();
   const pos = g.getAttribute('position'), col = g.getAttribute('color');
   const tint = new Color(color);

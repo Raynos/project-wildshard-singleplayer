@@ -10,10 +10,12 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
-import type { SitterPick, WalkerPick } from '../world/crowd';
 import { LOD_FAR, LOD_NEAR, MID_FROM } from '../data/lod';
 import { loadCast, loadCastLods } from '../world/casts';
 import { type NdLook, ndLook, need } from '../world/modelLook';
+
+type WalkerPick = 'dark' | 'light' | 'oxblood' | 'paper' | 'blue';
+type SitterPick = 'dark' | 'light';
 
 const FILE = 'src/shards/nine-dragon-stack/models/crowd.ts';
 

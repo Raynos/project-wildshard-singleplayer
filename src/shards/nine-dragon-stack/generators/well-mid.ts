@@ -20,7 +20,7 @@ import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
 import type { Ctx } from './ctx';
 import { type BandKits, CROSSINGS, type Crossing, DECK_TOP, LOW, type WellPlan, snapFloor } from './well-plan';
-import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from '../world/wellBounds';
+import { CABLE, CROSSING_COLLIDERS, EXT, FAR } from './wellBounds';
 import { ghostLevels } from './well-lower-deep';
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;

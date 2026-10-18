@@ -3,7 +3,9 @@
 // pavilions), each its model (../models/) drawn as one InstancedMesh and handed to the fragment's culler. The lion's cast
 // is loaded first (`place` builds from what is loaded); a set's geometry is the one its builder made at the first copy.
 // Each is placed in slices (`placeSliced` on the build's `due`, op-hitch29): the lion's LODs were one ~0.1 s task.
-import type { Group, Matrix4 } from 'three';
+import { Matrix4, type BufferGeometry, type Group } from 'three';
+import type { WorldRows } from '../runtime/productSections.generated';
+import { ModelPlacementBatch } from '@wildshard/engine/models/placementBatch';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type InstancedCuller, type Placed, copiesAt, placeSliced } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
@@ -12,7 +14,7 @@ import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/catalogue';
 import { nameDraws } from './facade/batch';
 import type { NdLook } from './modelLook';
-import { lionShares, takeLions, takeSets } from './props3d';
+
 
 /** the model each queued set is (and the pavilion: diningPavilion, its copies carrying their turn) */
 const SETS: Readonly<Record<string, ModelDef<Record<string, unknown>>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel };
@@ -26,19 +28,23 @@ export interface SquareShares { readonly square: Placed[]; readonly stair: Place
 /** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before), pausing on
  *  `due` (the build's slicer, `placeSliced`); the night market is its named place's Set; returns what the other places'
  *  Sets take (world/sets.ts) */
-export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group; due: () => Promise<void> | null }): Promise<SquareShares> {
-  const lions = takeLions(), share = lionShares();
+export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group; rows: WorldRows; records: Float64Array; sets: ReadonlyMap<string, BufferGeometry>; due: () => Promise<void> | null }): Promise<SquareShares> {
+  const { lions: lionFrames, shares: share, sets } = p.rows;
+  const lions = lionFrames.map(frame => new Matrix4().fromArray(p.records, frame));
+  const batch = new ModelPlacementBatch({ ctx: p.ctx, culler: p.culler, parent: p.root, due: p.due });
   const out = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] };
   if (lions.length > 0) {
     try {
       await loadLion(p.look);
-      const placed = await placeSliced(guardianLion, lions.map(at), { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: 'nds-lions' } }, p.due);
+      const placed = await batch.frames(guardianLion, lions, undefined, { draw: 'instanced', piece: { id: 'nds-lions' } });
       nameDraws(placed, 'glb:lion');
       for (const [k, idx] of [['square', share.plaza], ['stair', share.street], ['rim', share.rim]] as const) { const s = copiesAt(placed, idx); if (s !== null) out[k].push(s); }
     } catch (e: unknown) { console.warn('nine-dragon: prop lion failed to load', e); }
   }
   const market: Placed[] = [];
-  for (const [name, s] of takeSets()) {
+  for (const { name, frames } of sets) {
+    const geo = p.sets.get(name); if (geo === undefined) throw new Error(`Missing set geometry ${name}`);
+    const s = { geo, at: frames.map(frame => new Matrix4().fromArray(p.records, frame)) };
     const opts = { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: `nds-set-${name}` } } as const;
     let placed: Placed;
     if (name === 'pavilion') {

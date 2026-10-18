@@ -6,7 +6,7 @@ import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
 import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGrammar';
 import { Dressing } from './facadeDressing';
-import type { PieceId } from '../world/facade/pieceIds';
+import type { PieceId } from './facadeIds';
 import { K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, person } from './props';

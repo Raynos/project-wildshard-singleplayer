@@ -8,7 +8,7 @@ import { Box3, IcosahedronGeometry, Matrix4, Vector3 } from 'three';
 import { Builder, E, K, type Look, X, Y, Z } from './facadeGeo';
 
 
-import { BAKED, CAGE_W, CAGE_W0, PAL, type PieceId } from '../world/facade/pieceIds';
+import { BAKED, CAGE_W, CAGE_W0, PAL, type PieceId } from './facadeIds';
 import type { Dressing } from './facadeDressing';
 
 

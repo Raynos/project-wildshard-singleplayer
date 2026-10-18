@@ -12,7 +12,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bakeNineLayout } from './layout.ts';
 import { bakeNineSpecimens } from './specimens.ts';
-import { banyanOut } from '../world/banyanPlan.ts';
+import { banyanOut } from './banyanPlan.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 

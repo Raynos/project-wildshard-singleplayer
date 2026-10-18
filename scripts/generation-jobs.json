@@ -9318,7 +9318,7 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./src/sdk/bake/source-loader.mjs",
+        "./scripts/bake-loader.mjs",
         "src/shards/nine-dragon-stack/generators/bake-declarations.mjs"
       ],
       "inputRoots": [
@@ -9337,15 +9337,31 @@
         "pnpm-workspace.yaml",
         "src/sdk/immutable.ts",
         "src/sdk/package.json",
-        "src/sdk/audio.ts"
+        "src/sdk/audio.ts",
+        "scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators",
+        "src/shards/nine-dragon-stack/data",
+        "public/assets/nine-dragon/lab/walker.glb",
+        "public/assets/nine-dragon/lab/sitter.glb",
+        "src/commons",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/shards/nine-dragon-stack"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json"
+        "src/shards/nine-dragon-stack/data/declarations.generated.json",
+        "src/shards/nine-dragon-stack/data/worldRows.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/data/declarations.generated.json"
+        "src/shards/nine-dragon-stack/data/declarations.generated.json",
+        "src/shards/nine-dragon-stack/data/worldRows.generated.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nine-layout",
+        "nine-stair-plan"
+      ]
     },
     {
       "id": "nine-layout",

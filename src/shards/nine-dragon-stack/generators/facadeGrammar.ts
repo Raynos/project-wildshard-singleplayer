@@ -16,7 +16,7 @@
 import { Color, Matrix4, Vector3, Vector4 } from 'three';
 import { type Builder, E, K, type Look } from './facadeGeo';
 import { Dressing, type SignSlot } from './facadeDressing';
-import { CAGE_W, PAL, type PieceId } from '../world/facade/pieceIds';
+import { CAGE_W, PAL, type PieceId } from './facadeIds';
 import { BALCONY_W } from './facadePieces';
 import { Rng } from '@wildshard/sdk/random';
 

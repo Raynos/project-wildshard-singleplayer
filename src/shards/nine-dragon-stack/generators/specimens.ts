@@ -17,7 +17,7 @@ import { KitX, merge } from './kitx';
 import type { SignSink } from '../assets/contracts/signPlacement';
 import { PLANTER, WELL_BALUSTRADE_AT as O } from '../data/specimenDims';
 import { centred } from './layoutMath';
-import type { CanopyLump } from '../world/banyanPlan';
+import type { CanopyLump } from './banyanPlan';
 import { boothSet, hawkerStall, noodleStall, parasolSet, pavilionSet } from './stalls';
 import { buildGate } from './gate';
 import { BANYAN_TREE, buildBanyanTree, kowloonStele, shrine } from './banyan';
@@ -30,7 +30,7 @@ import { PIECES } from './dressing';
 import { droneKit, gondolaCabin, trainKit } from './moverKits';
 import { geometryWriter } from './bakeWrite';
 import { PIECES as FACADE_PIECES, PIECE_FAR } from './facadePieces';
-import { PIECE_IDS } from '../world/facade/pieceIds';
+import { PIECE_IDS } from './facadeIds';
 import type { SpecimenProfile } from '../data/specimenTypes';
 import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 

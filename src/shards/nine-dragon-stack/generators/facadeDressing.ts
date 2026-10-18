@@ -3,7 +3,7 @@
 // back from the layout bake (../layoutBake.ts) and draws it (./batch.ts), so it stays with the runtime.
 import type { Box3, Color, Matrix4, Vector3, Vector4 } from 'three';
 import { Builder } from './facadeGeo';
-import type { PieceId } from '../world/facade/pieceIds';
+import type { PieceId } from './facadeIds';
 
 export interface Placement { piece: PieceId; m: Matrix4; c: Color }
 export interface WindowInst { m: Matrix4; win: Vector4; wall: Color; light: Color }

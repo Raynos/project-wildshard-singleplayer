@@ -61,7 +61,26 @@ const text = v.string();
 export const GeometryLibrarySchema = v.strictObject({ layout: v.array(text), boot: v.array(text), explorer: v.array(text),
   specimenBoxes: v.record(text, v.boolean()), records: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(4_000_000)),
   layoutDraws: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(122)) });
-export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
-  negativeZeros: v.array(v.array(text)) });
 /** Named blob types only; this declaration adds no custom output section. */
 export const SECTIONS = {};
+
+const Offset = v.pipe(v.number(), v.integer(), v.minValue(0));
+const CrowdCopy = v.strictObject({ variant: v.string(), matrix: Offset });
+const Rect = v.strictObject({ x0: finite, z0: finite, x1: finite, z1: finite });
+/** Matrix/color offsets index the declared float64 world buffer, never executable JSON. */
+export const WorldRowsSchema = v.strictObject({
+  records: Offset, sheetLayers: v.array(v.strictObject({ dy: finite, alpha: finite })), steamPuffs: v.strictObject({ perPoint: finite, stride: finite }),
+  lions: v.array(Offset), shares: v.strictObject({ plaza: v.array(Offset), street: v.array(Offset), rim: v.array(Offset) }),
+  sets: v.array(v.strictObject({ name: v.string(), geo: Offset, count: Offset, frames: v.array(Offset) })),
+  crowd: v.strictObject({ walkers: v.array(CrowdCopy), sitters: v.array(CrowdCopy) }),
+  floors: v.array(v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, y: finite })),
+  regions: v.array(v.strictObject({ id: v.string(), name: v.string(), place: v.string(), extra: v.string(), kits: v.array(v.string()) })),
+  shaft: Rect, wellRects: v.array(Rect), rim: v.strictObject({ z0: finite, z1: finite }), crossings: v.array(Box),
+  sheets: v.array(v.strictObject({ y: finite, band: finite, a: finite })), portalLanterns: v.array(Offset),
+  facade: v.strictObject({ drawn: v.array(v.strictObject({ id: v.string(), poses: Offset, count: Offset, small: v.boolean() })),
+    baked: v.array(v.strictObject({ id: v.string(), poses: Offset, count: Offset, boxes: Offset })) }),
+});
+export type WorldRows = v.InferOutput<typeof WorldRowsSchema>;
+
+export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
+  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema });

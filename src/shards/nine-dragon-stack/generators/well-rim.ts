@@ -9,7 +9,7 @@ import { K, type Kit } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, stool } from './props';
 import { relief } from './gate';
-import { placeLion } from '../world/props3d';
+import { placeLion } from './props3d';
 import type { KitX } from './kitx';
 import { NEON } from '../util';
 import { Rng } from '@wildshard/sdk/random';
@@ -18,7 +18,7 @@ import { WORDS } from './words';
 import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
 import { type BandKits, SPLIT, type WellPlan, snapFloor } from './well-plan';
-import { RIM } from '../world/wellBounds';
+import { RIM } from './wellBounds';
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 

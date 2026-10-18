@@ -11,7 +11,7 @@ import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import type { Kit } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
-import { CABLE, EXT, RIM } from '../world/wellBounds';
+import { CABLE, EXT, RIM } from './wellBounds';
 import { FLOOR_H, type GalleryProfile, galleryWall } from './well-galleries';
 import type { BridgeKind } from './well-bridges';
 

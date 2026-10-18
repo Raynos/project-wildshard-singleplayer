@@ -13,7 +13,7 @@ import { SURF } from '../look/paint';
 import { person } from './heroFigures';
 import { KitX, curve, merge } from './kitx';
 import { curvedRoof } from './gate';
-import { placeSet } from '../world/props3d';
+import { placeSet } from './props3d';
 import { BOOTH, PAV, type StallRect } from '../data/specimenDims';
 
 const { HAWKER, STALL, Y0 } = NINE_LAYOUT_PLAN;

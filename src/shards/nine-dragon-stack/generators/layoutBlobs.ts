@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import wireSchema from './layoutSchema.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
@@ -25,7 +26,8 @@ export function layoutBlobs(): NamedBlob[] {
     else if (value !== null && typeof value === 'object') for (const [key, child] of Object.entries(value)) locate(child, [...path, key]);
   };
   locate(rows, []);
-  const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros });
+  const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows });
   return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema }),
-    nameBlob('geometry/layout-f64.bin', 'bin', new Uint8Array(floats.buffer))];
+    nameBlob('geometry/layout-f64.bin', 'bin', new Uint8Array(floats.buffer)),
+    nameBlob('geometry/world-f64.bin', 'bin', new Uint8Array(Float64Array.from(worldRows.records).buffer))];
 }

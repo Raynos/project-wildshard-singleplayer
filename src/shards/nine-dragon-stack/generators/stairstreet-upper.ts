@@ -18,7 +18,7 @@ import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3, Vector4
 import type { Ctx } from './ctx';
 import { buildGate } from './gate';
 import { dressWall, spanStreet } from './facadeGrammar';
-import type { PieceId } from '../world/facade/pieceIds';
+import type { PieceId } from './facadeIds';
 import { KitX, merge } from './kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';

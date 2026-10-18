@@ -18,7 +18,7 @@ import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { type KitX, curve } from './kitx';
-import { type BanyanPlan, type CanopyLump, banyanOut } from '../world/banyanPlan';
+import { type BanyanPlan, type CanopyLump, banyanOut } from './banyanPlan';
 
 const { BANYAN, Y0 } = NINE_LAYOUT_PLAN;
 
