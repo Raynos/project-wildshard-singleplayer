@@ -1,0 +1,34 @@
+{
+  "status": "pure paint partition area conservation passed; actual Blender surface/volume and render pending",
+  "trianglesChecked": 100,
+  "maximumAreaError": 2.7755575615628914e-17,
+  "newCreamBoundary": "minimum of old boundary and .83-.40*abs(X)+.35*Y",
+  "examplesPreStance": [
+    {
+      "absX": 0.5,
+      "Y": 0.2,
+      "oldCreamZ": 0.851,
+      "newCreamZ": 0.6999999999999998
+    },
+    {
+      "absX": 0.5,
+      "Y": 0.5,
+      "oldCreamZ": 0.875,
+      "newCreamZ": 0.8049999999999999
+    },
+    {
+      "absX": 0.34,
+      "Y": 0.72,
+      "oldCreamZ": 0.9326,
+      "newCreamZ": 0.9326
+    },
+    {
+      "absX": 0,
+      "Y": 0.72,
+      "oldCreamZ": 1.0176,
+      "newCreamZ": 1.0176
+    }
+  ],
+  "surfacePositionsChanged": false,
+  "paletteChanged": false
+}
