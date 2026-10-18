@@ -7,8 +7,8 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { LOD_DOT, LOD_NEAR, lanternGeometry } from '../look/lanterns';
-import { ndLook, need } from '../world/modelLook';
+import { LOD_DOT, LOD_NEAR } from '../look/lanterns';
+import { bakedSpecimen, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/paperLantern.ts';
 
@@ -16,9 +16,9 @@ const parts = (ctx: ModelContext, geometry: BufferGeometry): readonly ModelPart[
 
 export const paperLantern = defineModel({
   id: 'nine-dragon-stack/paper-lantern', name: 'Red paper lantern', category: 'props', pipeline: 'code', file: FILE, defaults: {},
-  build: (ctx) => parts(ctx, ctx.once('nds:lantern:near', () => lanternGeometry(6, 8, true))),
+  build: (ctx) => parts(ctx, ctx.once('nds:lantern:near', () => bakedSpecimen(ctx, 'lantern:near'))),
   lods: [
-    { from: LOD_NEAR, build: (ctx) => parts(ctx, ctx.once('nds:lantern:far', () => lanternGeometry(4, 6, false))) },
-    { from: LOD_DOT, build: (ctx) => parts(ctx, ctx.once('nds:lantern:dot', () => lanternGeometry(2, 6, false))) },
+    { from: LOD_NEAR, build: (ctx) => parts(ctx, ctx.once('nds:lantern:far', () => bakedSpecimen(ctx, 'lantern:far'))) },
+    { from: LOD_DOT, build: (ctx) => parts(ctx, ctx.once('nds:lantern:dot', () => bakedSpecimen(ctx, 'lantern:dot'))) },
   ],
 });

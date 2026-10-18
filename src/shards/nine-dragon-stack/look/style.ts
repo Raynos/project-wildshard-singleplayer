@@ -8,7 +8,7 @@ import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture } from './facadeMaterial';
 import { Y0 } from '../layout';
 import { paintUniforms } from './paint';
-import { FLAG, PAINT_GLSL } from '../runtime/looks/paint';
+import { FLAG } from '../runtime/looks/paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light/lightvol';
 import { LIGHTVOL_GLSL } from '../runtime/looks/light';
@@ -17,7 +17,7 @@ import { fogBandWindow } from '../runtime/looks/fogBands';
 import { SHARED_UNIFORMS } from '../runtime/looks/look';
 
 /** the splices only the shard knows (the datum, the flagstones, paint, light) */
-export const LOOK_FRAGMENTS: Readonly<Record<string, string>> = { y0: String(Y0), flagRh: FLAG.rh.toFixed(3), paint: PAINT_GLSL, lightvol: LIGHTVOL_GLSL };
+export const LOOK_FRAGMENTS: Readonly<Record<string, string>> = { y0: String(Y0), flagRh: FLAG.rh.toFixed(3), lightvol: LIGHTVOL_GLSL };
 /** the family: the data's programs, with the splices only the shard knows (the datum, the flagstones, paint, light) */
 
 

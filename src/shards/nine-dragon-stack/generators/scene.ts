@@ -1,9 +1,12 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
+import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, Vector3, type BufferGeometry } from 'three';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
+import { mistSheetsGeometry, steamPuffsGeometry } from './mistGeometry';
+import { SHEET_LAYERS, STEAM_PUFFS } from '../data/worldDressing';
+import { WELL_RECTS } from './wellBounds';
 import { banyanOut } from './banyanPlan';
 
 /** Channels of Nine's unchanged material fallback, retained as ordinary GLB application attributes. */
@@ -43,6 +46,10 @@ function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnTy
     return [`layout_${index}`, geometry] as const;
   }));
   const recipes = specimenRecipes(banyanOut.plan?.lumps ?? []);
+  const counts = layout.rows.counts, start = (counts.walkers + counts.sitters + counts.lanterns + counts.acs) * 16 + counts.hooks * 3 + counts.hookMounts * 6;
+  const steam = Array.from({ length: counts.steam }, (_, i) => new Vector3().fromArray(layout.records, start + i * 3));
+  recipes.push(['mist:sheets', () => mistSheetsGeometry(layout.rows.sheets, WELL_RECTS, SHEET_LAYERS)],
+    ['mist:steam', () => steamPuffsGeometry(steam, STEAM_PUFFS.perPoint, STEAM_PUFFS.stride)]);
   for (const name of ['boot', 'explorer'] as const) {
     const entries = recipes.filter(([key]) => bootSpecimen(key) === (name === 'boot')).map(([key, build]) => [key, build()] as const);
     keys[name] = entries.map(([key]) => key);

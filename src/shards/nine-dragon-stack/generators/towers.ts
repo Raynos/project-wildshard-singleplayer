@@ -10,7 +10,7 @@ import type { PieceId } from './facadeIds';
 import { K, type Kit, type Look } from './kit';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { dragonHook, person } from './props';
-import { lanternString } from '../look/lanterns';
+import { lanternString } from './lanternGeometry';
 import { hipRoof } from './hipRoof';
 import { WORDS } from './words';
 import { buildStairStreet } from './stairstreet';

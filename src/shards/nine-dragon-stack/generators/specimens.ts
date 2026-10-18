@@ -9,6 +9,7 @@
  * test/shards/nine-dragon-stack/specimens-bake.test.ts.
  */
 import { type BufferGeometry, Vector3 } from 'three';
+import { lanternLathe } from './lanternGeometry';
 import { Rng } from '@wildshard/sdk/random';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Ctx } from './ctx';
@@ -57,6 +58,7 @@ function each<P extends object>(profile: SpecimenProfile<P>): P[] {
 export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => BufferGeometry][] {
   const out = new Map<string, () => BufferGeometry>();
   const add = (key: string, build: () => BufferGeometry): void => { if (!out.has(key)) out.set(key, build); };
+  for (const [name, rings, segs, dressing] of [['near', 6, 8, true], ['far', 4, 6, false], ['dot', 2, 6, false]] as const) add(`lantern:${name}`, () => lanternLathe({ radius: 0.27, halfHeight: 0.24 }, rings, segs, dressing));
   // the stalls (models/stalls.ts): each drawn alone at the origin into its own context's square kit
   const stall = (draw: (c: Ctx) => void): BufferGeometry => {
     const c = new Ctx(new NoSigns());
@@ -145,7 +147,7 @@ export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => Bu
 }
 
 /** what the page itself builds at load (world/specimens.ts `boot`); everything else only an Explorer specimen draws */
-export const bootSpecimen = (key: string): boolean => /^(?:inkit:|mover:|canopy:|facade:)/u.test(key) || key === 'kit:plant' || key === 'kit:ac' || key === 'panel:far';
+export const bootSpecimen = (key: string): boolean => /^(?:inkit:|mover:|canopy:|facade:|lantern:|mist:)/u.test(key) || key === 'kit:plant' || key === 'kit:ac' || key === 'panel:far';
 
 /** the specimens, built and written as the two bakes' binaries (inflated): the page's own and the Explorer's */
 export function bakeNineSpecimens(lumps: readonly CanopyLump[]): { boot: Uint8Array; explorer: Uint8Array } {

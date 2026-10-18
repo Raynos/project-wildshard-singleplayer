@@ -44,7 +44,6 @@ import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type HandedBatch, type InstancedCuller, type Placed, placeSliced } from '@wildshard/engine/models/place';
-import { ModelPlacementBatch } from '@wildshard/engine/models/placementBatch';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
@@ -58,7 +57,6 @@ import { loadLayoutBake, restoreLayout } from './layoutBake';
 import { loadCast, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
 import { type InstanceCuller as InstanceCullerView, InstanceCuller } from '../runtime/cull/instanceCuller';
 import { cullHandedBatches } from '../runtime/cull/handedBatches';
-import { mistSheetsGeometry, steamPuffsGeometry } from '../runtime/looks/mistGeometry';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -116,7 +114,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const { world: worldRows } = await product.json<GeometryBoot>('geometry/layout.json');
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
   if (worldData.length !== worldRows.records) throw new Error('Nine world record inventory differs');
-  const { shaft: SHAFT, wellRects: WELL_RECTS, sheets: wellSheets } = worldRows;
+  const { shaft: SHAFT } = worldRows;
   const shared = new Shared(restoreWeave(await (await loadFirstPartyProduct('nine-dragon-stack')).file('looks/silk-weave.r8')));
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -233,7 +231,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await slice();
   const inKitPlaced: InKitPlaced[] = [];
   for (const model of IN_KIT) { inKitPlaced.push(...model.register(nd.ctx, ctx.inKit, meshOfKit)); await slice(); }
-  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  const lanternStart = handed.length;
+  const lanterns = await placeSliced(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  for (const batch of handed.splice(lanternStart)) paper.take(batch);
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
@@ -325,9 +325,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
   // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
   root.add(named(screen, 'screens'));
-  const sheets = new Mesh(mistSheetsGeometry(wellSheets, WELL_RECTS, worldRows.sheetLayers), lentLook('nine-mist-sheet'));
+  const sheets = new Mesh(takeSpecimen(specimens, 'mist:sheets'), lentLook('nine-mist-sheet'));
   sheets.renderOrder = 2;
-  const steam = new Mesh(steamPuffsGeometry(ctx.steam, worldRows.steamPuffs.perPoint, worldRows.steamPuffs.stride), lentLook('nine-steam'));
+  const steam = new Mesh(takeSpecimen(specimens, 'mist:steam'), lentLook('nine-steam'));
   steam.frustumCulled = false;
   steam.renderOrder = 3;
   root.add(named(sheets, 'sheets'), named(steam, 'steam'));
@@ -350,9 +350,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // dome B (the SDK's figure crowd, data/lod.ts CROWD_LEVELS): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
   // past 35 m, none past 130 m); its meshes start empty, so the batch culler leaves them alone
   const crowd = new FigureCrowd(CROWD_LEVELS);
-  const crowdBatch = new ModelPlacementBatch({ ctx: nd.ctx, culler: crowd, parent: root, due: slice.due });
   const drawCrowd = async <P extends object>(model: ModelDef<P>, rows: readonly { matrix: number; variant: string }[], id: string): Promise<void> => {
-    if (rows.length > 0) (await crowdBatch.place(model, rows.map(row => ({ ...at<P>(new Matrix4().fromArray(worldData, row.matrix)), variant: row.variant })), { draw: 'instanced', piece: { id } })).object.name = 'crowd';
+    if (rows.length > 0) (await placeSliced(model, rows.map(row => ({ ...at<P>(new Matrix4().fromArray(worldData, row.matrix)), variant: row.variant })), { ctx: nd.ctx, culler: crowd, parent: root, draw: 'instanced', piece: { id } }, slice.due)).object.name = 'crowd';
   };
   await drawCrowd(umbrellaWalker, worldRows.crowd.walkers, 'nds-crowd-walkers');
   await drawCrowd(mahjongSitter, worldRows.crowd.sitters, 'nds-crowd-sitters');
