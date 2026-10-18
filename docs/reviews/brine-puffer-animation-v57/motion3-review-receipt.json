@@ -1,0 +1,40 @@
+{
+  "source_sha256": "e42c76e5c0cc1eef2b1c7dd3daef4b3f93e83ba9bcad48d348372d8a517d1cac",
+  "fps": 25,
+  "interpolation": false,
+  "speed_change": false,
+  "clips": [
+    {
+      "path": "public/review-evidence/puffer-animation-v57/motion3-normal-attack-alert.mp4",
+      "source_frames": [
+        360,
+        650
+      ],
+      "bytes": 492139,
+      "sha256": "a54d83faa26cceb8e58a09169e8b23ce9bcc9c3a5a95249aeab3f35b481f9fbd",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "11.640000",
+        "nb_read_frames": "291"
+      },
+      "label": "NORMAL LOOK | 1x cloud | observed 4.72 Hz"
+    },
+    {
+      "path": "public/review-evidence/puffer-animation-v57/motion3-diagnostic-attack-alert.mp4",
+      "source_frames": [
+        900,
+        1075
+      ],
+      "bytes": 493687,
+      "sha256": "f036e69d0f38ba4543c44c9bf78d02e49b8abbfcc8afd4400e91a76fd12843d4",
+      "probe": {
+        "width": 390,
+        "height": 844,
+        "duration": "7.040000",
+        "nb_read_frames": "176"
+      },
+      "label": "DIAGNOSTIC | 1x cloud | post and shadows OFF"
+    }
+  ]
+}
