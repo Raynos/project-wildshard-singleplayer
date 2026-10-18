@@ -1,0 +1,28 @@
+{
+  "browFrontEdge": "unchanged V9",
+  "irisPupilGlint": "unchanged V9",
+  "rearBrow2Before": [
+    0.51,
+    0.48,
+    1.15
+  ],
+  "rearBrow2After": [
+    0.48,
+    0.61,
+    1.115
+  ],
+  "rearBrow3Before": [
+    0.17,
+    0.52,
+    1.12
+  ],
+  "rearBrow3After": [
+    0.19,
+    0.63,
+    1.095
+  ],
+  "mirrored": true,
+  "coordinates": "Blender pre-stance; common Z minus .10 follows",
+  "supportUpperY": 0.485,
+  "reason": "Compact approved brow footprint; eliminate unbounded rear support shard"
+}

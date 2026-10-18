@@ -1,0 +1,27 @@
+{
+  "scope": "Actual read-only Blender full-scene ray metrics; no render, no visual acceptance",
+  "reference": "Original V9 with virtual Z translation -0.10",
+  "candidate": "V33 actual final stance",
+  "samplesPerTriangle": 1024,
+  "depthTolerance": 0.003,
+  "frontWedgeBaselineVisibleRetention": 0.9570107561714866,
+  "allFacesBaselineVisibleRetention": 0.9538457729372756,
+  "frontWedgeVisibleAreaPixelsEstimate": {
+    "V9": 2849.7036361666533,
+    "V33": 3193.19679530621
+  },
+  "receipts": [
+    {
+      "path": "brow-metric-v9-original-181930.json",
+      "sha256": "8b77d512e25b91db350f6e342b55b69bdcc6dfa809561da2ce05fc22b447199f"
+    },
+    {
+      "path": "brow-metric-v33-181930.json",
+      "sha256": "13505e60e64f410f7b007d8e56746b575f8f2d55e9548b74a90dc08e896c6f8d"
+    }
+  ],
+  "caveats": [
+    "Geometric sampled estimate, not exact raster pixel count or color test.",
+    "Intentional later changes to original brow vertices register as missing protected surface, not necessarily occlusion."
+  ]
+}

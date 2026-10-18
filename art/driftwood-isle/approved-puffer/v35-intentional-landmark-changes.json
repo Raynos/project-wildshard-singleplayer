@@ -1,0 +1,32 @@
+{
+  "browFrontLowerEdge": "unchanged V9",
+  "irisPupilGlint": "unchanged V9",
+  "browUpperFrontPositiveX": [
+    [
+      0.48,
+      0.7,
+      1.14
+    ],
+    [
+      0.17,
+      0.76,
+      1.065
+    ]
+  ],
+  "browRearOffset": [
+    0,
+    -0.14,
+    -0.015
+  ],
+  "outerRimRadii": [
+    0.118,
+    0.085
+  ],
+  "innerRimRadii": [
+    0.104,
+    0.07
+  ],
+  "mirrored": true,
+  "coordinates": "Blender pre-stance; common Z minus .10 follows",
+  "reason": "Angular hood with sloped upper socket, thin annulus and continuous cheek color"
+}
