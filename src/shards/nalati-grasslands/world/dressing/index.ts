@@ -32,20 +32,155 @@ import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type PlaceOptions, type Placed } from '@wildshard/engine/models/place';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import * as v from 'valibot';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
-import { DressLayer, DRESSING_PLAN, type Inst, type DressPlan } from './layer';
-import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter } from '../../models/catalogue';
+import { CellWindow } from '@wildshard/engine/render/streamedInstances';
+import { smoothstep } from '@wildshard/engine/core/noise';
 import type { PoiPiece } from '../types';
-import { DressLife } from './life';
+import { AmbientGroup } from '@wildshard/game/ambient/flock';
+import coverRows from '../../boot/cover.generated.json' with { type: 'json' };
+import { Rng } from '@wildshard/engine/core/rng';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { MOTES_GLSL } from '../../runtime/looks/motesGlsl';
+import { coverGeometry, preloadCover } from '../../creatures/marmots';
 import { loadNalatiModel, modelsOn } from '../modelView';
 import type { Box } from '../solid';
 import {
-  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
-} from '../../models/dressing';
-import { preloadNalatiPlaces, bakedActorGeometry, bakedDressingContacts, bakedPlaceSteps, placer } from '../places';
+  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds,
+  fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter,
+} from '../../models/catalogue';
+import { preloadNalatiPlaces, bakedActorGeometry, bakedDressingGeo, bakedDressingContacts, bakedPlaceSteps, placer } from '../places';
+
+export interface Inst {
+  x: number; y: number; z: number;
+  yaw: number;
+  sx: number; sy: number; sz: number;
+  /** lean (radians) about x / z — rocks settling into a slope, a tilted clump */
+  tiltX?: number; tiltZ?: number;
+  /** a big rock: it collides as the hull of what its layer draws (NALATI-MERGE P1, `NalatiDressing.descs`) */
+  solid?: true;
+  /** metres: this instance's draw distance (before the tier scale) */
+  far: number;
+  /** linear RGB multiplier (instanceColor) */
+  r: number; g: number; b: number;
+}
+
+const dressNumber = v.pipe(v.number(), v.finite());
+const spot = v.object({ x: dressNumber, z: dressNumber, s: dressNumber });
+const instance = v.object({ x: dressNumber, y: dressNumber, z: dressNumber, yaw: dressNumber, sx: dressNumber, sy: dressNumber, sz: dressNumber,
+  tiltX: v.exactOptional(dressNumber), tiltZ: v.exactOptional(dressNumber), solid: v.exactOptional(v.literal(true)), far: dressNumber, r: dressNumber, g: dressNumber, b: dressNumber });
+const box = v.object({ x: dressNumber, z: dressNumber, hw: dressNumber, hd: dressNumber, rot: dressNumber, yBottom: dressNumber, yTop: dressNumber, ghost: v.exactOptional(v.literal(true)) });
+
+/** Exact build-time world placements; the page only renders these rows. */
+export const DRESSING_PLAN = v.object({
+  boulder: v.array(instance), slab: v.array(instance), stone: v.array(instance),
+  juniper: v.array(instance), rose: v.array(instance), willow: v.array(instance),
+  lupin: v.array(instance), daisy: v.array(instance), reed: v.array(instance),
+  logs: v.array(v.object({ ax: dressNumber, az: dressNumber, bx: dressNumber, bz: dressNumber, r: dressNumber, drift: v.boolean() })),
+  stumps: v.array(spot), ovoos: v.array(spot), poles: v.array(spot),
+  fences: v.array(v.array(v.tuple([dressNumber, dressNumber]))), gates: v.array(v.object({ x: dressNumber, z: dressNumber, yaw: dressNumber })),
+  drifts: v.array(v.object({ x: dressNumber, y: dressNumber, z: dressNumber, r: dressNumber })), colliders: v.array(box),
+});
+export type DressPlan = v.InferOutput<typeof DRESSING_PLAN>;
+/** Camp anchors already rejected against the actual POI, outcrop and crag boxes. */
+export const CAMP_CLUTTER = v.array(v.object({ x: dressNumber, z: dressNumber, yaw: dressNumber, kind: dressNumber }));
+export type ClutterSpots = v.InferOutput<typeof CAMP_CLUTTER>;
+
+export interface DressLayerSource {
+  version: 1; count: number; matrices: Float32Array; colours: Float32Array; spheres: Float32Array; ranges: Float32Array;
+  cellSize: number; keepNear: number; fadeStart: number; rangeScale: number;
+}
+
+interface DressLayer { name: string; mesh: THREE.InstancedMesh; count: number; cull: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void; readonly visible: number; readonly tris: number }
+const sourceLayers = new WeakMap<THREE.Object3D, DressLayerSource>();
+/** Copy original placement rows only when the offline map inventory requests them. */
+export function captureDressLayerSource(mesh: THREE.Object3D): DressLayerSource | undefined {
+  const source = sourceLayers.get(mesh);
+  return source === undefined ? undefined : { ...source, matrices: source.matrices.slice(), colours: source.colours.slice(), spheres: source.spheres.slice(), ranges: source.ranges.slice() };
+}
+
+function dressingGeo(key: string): THREE.BufferGeometry {
+  const geometry = bakedDressingGeo(key); if (geometry === null) throw new Error(`Missing dressing shape ${key}`); return geometry;
+}
+
+function dressLayer(name: string, geometry: THREE.BufferGeometry, material: THREE.Material, list: Inst[], farScale: number, castShadow = false, keepNear = 26): DressLayer {
+  geometry.computeBoundingSphere();
+  const mesh = new THREE.InstancedMesh(geometry, material, Math.max(1, list.length));
+  mesh.name = `nalati-dress-${name}`; mesh.frustumCulled = false; mesh.castShadow = castShadow; mesh.receiveShadow = true;
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, list.length) * 3), 3);
+  mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
+  const matrices = new Float32Array(list.length * 16), colours = new Float32Array(list.length * 3), spheres = new Float32Array(list.length * 4), ranges = new Float32Array(list.length);
+  const transform = new THREE.Matrix4(), rotation = new THREE.Quaternion(), angles = new THREE.Euler(), point = new THREE.Vector3(), scale = new THREE.Vector3(), sphere = new THREE.Sphere();
+  list.forEach((it, i) => {
+    transform.compose(point.set(it.x, it.y, it.z), rotation.setFromEuler(angles.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), scale.set(it.sx, it.sy, it.sz)).toArray(matrices, i * 16);
+    colours.set([it.r, it.g, it.b], i * 3); spheres.set([it.x, it.y, it.z, (geometry.boundingSphere?.radius ?? 1) * Math.max(it.sx, it.sy, it.sz)], i * 4); ranges[i] = it.far * farScale;
+  });
+  const buckets = new Map<string, number[]>();
+  list.forEach((it, i) => { const key = `${Math.floor(it.x / 24)},${Math.floor(it.z / 24)}`, entries = buckets.get(key) ?? []; entries.push(i); buckets.set(key, entries); });
+  const cells = new CellWindow(24, [...buckets].map(([key, value]) => { const [x, z] = key.split(','); return { cx: Number(x), cz: Number(z), value }; }));
+  const reach = ranges.reduce((far, value) => Math.max(far, value), 0);
+  const cull = (frustum: THREE.Frustum, viewer: THREE.Vector3): void => {
+    let n = 0;
+    for (const [x, z] of cells.within(viewer.x, viewer.z, reach)) for (const i of cells.get(x, z) ?? []) {
+      const far = ranges[i] ?? 0, d2 = ((spheres[i * 4] ?? 0) - viewer.x) ** 2 + ((spheres[i * 4 + 2] ?? 0) - viewer.z) ** 2;
+      if (d2 > far * far) continue;
+      sphere.center.set(spheres[i * 4] ?? 0, spheres[i * 4 + 1] ?? 0, spheres[i * 4 + 2] ?? 0); sphere.radius = spheres[i * 4 + 3] ?? 1;
+      if (d2 > keepNear * keepNear && !frustum.intersectsSphere(sphere)) continue;
+      const fade = smoothstep(far, far * 0.82, Math.sqrt(d2)), out = mesh.instanceMatrix.array;
+      for (let q = 0; q < 16; q++) out[n * 16 + q] = (matrices[i * 16 + q] ?? 0) * (q < 11 && (q & 3) !== 3 ? fade : 1);
+      mesh.instanceColor?.setXYZ(n, colours[i * 3] ?? 1, colours[i * 3 + 1] ?? 1, colours[i * 3 + 2] ?? 1); n++;
+    }
+    mesh.count = n; mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor !== null) mesh.instanceColor.needsUpdate = true;
+  };
+  sourceLayers.set(mesh, { version: 1, count: list.length, matrices, colours, spheres, ranges, cellSize: 24, keepNear, fadeStart: 0.82, rangeScale: farScale });
+  const tris = (geometry.index?.count ?? geometry.getAttribute('position').count) / 3;
+  mesh.count = 0;
+  return { name, mesh, count: list.length, cull, get visible() { return mesh.count; }, get tris() { return mesh.count * tris; } };
+}
+
+/** Existing ambient rows own every flight/perch decision. This owner only draws their poses. */
+function dressingLife(sky: Sky) {
+  const profile = TIER === 'phone' ? coverRows.phone : coverRows.desktop, group = new THREE.Group(), drift = new THREE.Vector2();
+  const count = TIER === 'phone' ? 380 : 900, seeds = new Float32Array(count * 4), rng = new Rng(0x9011e);
+  for (let i = 0; i < seeds.length; i++) seeds[i] = rng.next();
+  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3)); geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
+  const shader = new ShaderFamily(MOTES_GLSL, {}), material = new THREE.ShaderMaterial({ vertexShader: shader.glsl(MOTES_GLSL.MOTE_VERT), fragmentShader: shader.glsl(MOTES_GLSL.MOTE_FRAG), transparent: true, depthWrite: false,
+    uniforms: { uTime: { value: 0 }, uDrift: { value: drift }, uBox: { value: new THREE.Vector3(26, 7, 26) }, uPx: { value: 600 }, uSunDir: painterlyUniforms.uPSunDir, uSunCol: { value: new THREE.Color(1, 0.93, 0.8) }, uOpacity: { value: 1 } } });
+  const motes = new THREE.Points(geometry, material); motes.frustumCulled = false; motes.renderOrder = 2; motes.name = 'nalati-dress-pollen'; group.add(motes);
+  const flocks = profile.life.map(spec => {
+    const wheel = spec.row.wheeling, ground = wheel === null ? 0 : terrainHeight(wheel.centre.x, wheel.centre.z);
+    const flock = new AmbientGroup(wheel === null ? spec.row : { ...spec.row, wheeling: { ...wheel, altitude: wheel.altitude.map(value => value + ground) } }, spec.perches);
+    return { kind: spec.kind, flock, previous: flock.birds.map(({ x, y, z, yaw, pitch, roll, flap }) => ({ x, y, z, yaw, pitch, roll, flap })) };
+  });
+  const butterflies = new THREE.InstancedMesh(coverGeometry(sky, 'wing'), painterlyMaterial(sky, { rim: 0.3, bands: 0.5, shade: 0.6, emissive: 0x101010 }), (TIER === 'phone' ? coverRows.butterflies.phone : coverRows.butterflies.desktop) * 2);
+  const birds = new THREE.InstancedMesh(coverGeometry(sky, 'halfBird'), painterlyMaterial(sky, { rim: 0.6, bands: 0.6 }), coverRows.raptors * 2);
+  for (const mesh of [butterflies, birds]) { mesh.count = 0; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.frustumCulled = false; group.add(mesh); }
+  butterflies.name = 'nalati-dress-butterflies'; birds.name = 'nalati-dress-raptors';
+  const hues = coverRows.hue.map(hue => new THREE.Color(hue)), transform = new THREE.Matrix4(), wing = new THREE.Matrix4(), mirror = new THREE.Matrix4().makeScale(-1, 1, 1), composed = new THREE.Matrix4(), angles = new THREE.Euler(), rotation = new THREE.Quaternion(), point = new THREE.Vector3(), scale = new THREE.Vector3();
+  let time = 0, credit = 0;
+  return { group, setPollen(value: number) { const opacity = material.uniforms['uOpacity']; if (opacity !== undefined) opacity.value = value; },
+    update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderHeight: number) {
+      time += dt; credit += dt; drift.x += wind.dirX * wind.speed * 0.35 * dt; drift.y += wind.dirZ * wind.speed * 0.35 * dt;
+      const t = material.uniforms['uTime'], px = material.uniforms['uPx']; if (t !== undefined) t.value = time; if (px !== undefined) px.value = renderHeight / (2 * Math.tan(camera.fov * Math.PI / 360));
+      if (credit >= 0.1) { const step = Math.floor(credit / 0.1) * 0.1; credit -= step; for (const entry of flocks) { entry.previous = entry.flock.birds.map(({ x, y, z, yaw, pitch, roll, flap }) => ({ x, y, z, yaw, pitch, roll, flap })); entry.flock.update(step, player); } }
+      const alpha = Math.min(1, credit / 0.1); let flies = 0, raptors = 0;
+      for (const entry of flocks) for (const [i, bird] of entry.flock.birds.entries()) {
+        if (bird.state === 0) continue;
+        const before = entry.previous[i] ?? bird, mix = (a: number, b: number): number => a + (b - a) * alpha;
+        angles.set(-mix(before.pitch, bird.pitch), before.yaw + Math.atan2(Math.sin(bird.yaw - before.yaw), Math.cos(bird.yaw - before.yaw)) * alpha + Math.PI, mix(before.roll, bird.roll), 'YXZ');
+        transform.compose(point.set(mix(before.x, bird.x), mix(before.y, bird.y), mix(before.z, bird.z)), rotation.setFromEuler(angles), scale.setScalar(entry.flock.row.scale * bird.scale));
+        const mesh = entry.kind === 'butterfly' ? butterflies : birds, n = entry.kind === 'butterfly' ? flies : raptors, flap = entry.kind === 'butterfly' ? Math.sin(time * 12 + bird.phase) * 1.15 + 0.25 : mix(before.flap, bird.flap);
+        mesh.setMatrixAt(n, composed.multiplyMatrices(transform, wing.makeRotationZ(flap))); mesh.setMatrixAt(n + 1, composed.multiplyMatrices(transform, wing.makeRotationZ(-flap).premultiply(mirror)));
+        if (entry.kind === 'butterfly') { const color = hues[(flies / 2) % hues.length] ?? new THREE.Color(); mesh.setColorAt(n, color); mesh.setColorAt(n + 1, color); flies += 2; } else raptors += 2;
+      }
+      butterflies.count = flies; birds.count = raptors; butterflies.instanceMatrix.needsUpdate = true; birds.instanceMatrix.needsUpdate = true; if (butterflies.instanceColor !== null) butterflies.instanceColor.needsUpdate = true;
+    } };
+}
 
 const PHONE = TIER === 'phone';
 
@@ -106,7 +241,7 @@ export class NalatiDressing {
   props: THREE.Mesh[] = [];
   propTris = 0;
   flutter = new Flutter();
-  life: DressLife | null = null;
+  life: ReturnType<typeof dressingLife> | null = null;
   /** the boxes, as data (keep-outs); their solids are in `descs` or, for a `ghost`, a hull / capsule / prism there */
   colliders: Box[] = [];
   /** the collision as real geometry: big rocks as hulls of what they draw, logs as capsules, the ovoo heaps as prisms */
@@ -139,7 +274,7 @@ export class NalatiDressing {
     const plan = this.plan = v.parse(DRESSING_PLAN, Object.fromEntries(entries));
     lap('plan');
     await yieldTask();
-    await preloadNalatiPlaces(); // the scatter shapes' bake (../placeBake.ts; in already when the POIs built first)
+    await Promise.all([preloadNalatiPlaces(), preloadCover()]); // the scatter shapes' bake (../placeBake.ts; in already when the POIs built first)
     t0 = diagnosticNow();
 
     const rock = painterlyMaterial(this.sky, { rim: 0.3, bands: 0.8 });
@@ -148,7 +283,7 @@ export class NalatiDressing {
     const reed = painterlyMaterial(this.sky, { rim: 0.5, bands: 0.6, sway: 0.1 });
     const add = <P extends object>(model: ModelDef<P>, name: string, geo: THREE.BufferGeometry, mat: THREE.Material, list: Inst[], far: number, o: { castShadow?: boolean; keepNear?: number } = {}) => {
       if (list.length === 0) { geo.dispose(); return; }
-      const l = new DressLayer(name, geo, mat, list, { farScale: far, ...o });
+      const l = dressLayer(name, geo, mat, list, far, o.castShadow, o.keepNear);
       // P1: a big rock collides as the hull of what this layer draws for it
       const descs = list.some(it => it.solid === true) ? bakedDressingContacts(name) : [];
       this.descs.push(...descs);
@@ -159,7 +294,7 @@ export class NalatiDressing {
     // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn('rocks')`,
     // else the procedural blobs — the same plan, sizes and tints either way
     const rockModels = modelsOn('rocks')
-      ? await Promise.all(([GENERATED_ROCK.round.name, GENERATED_ROCK.tall.name, GENERATED_ROCK.slab.name] as const).map((n) => loadNalatiModel(this.sky, n, ROCK_LOOK))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
+      ? await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadNalatiModel(this.sky, n, { rim: 0.3, bands: 0.8 }))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
       : null;
     if (rockModels) {
       const [b1, b2, b3] = rockModels;
@@ -201,7 +336,7 @@ export class NalatiDressing {
     await yieldTask();
     t0 = diagnosticNow();
 
-    this.life = new DressLife(this.sky, plan.drifts).build();
+    this.life = dressingLife(this.sky);
     this.group.add(this.life.group);
     lap('life');
     await yieldTask();

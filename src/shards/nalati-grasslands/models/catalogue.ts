@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { TIER } from '@wildshard/engine/core/tier';
+import cover from '../boot/cover.generated.json' with { type: 'json' };
 import { defineModel } from '@wildshard/engine/models/model';
 import { bakedSignLettering } from '../world/places';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
@@ -70,3 +72,21 @@ export const yurt = catalogue.model('yurt');
 export const kunesBridge = catalogue.model('kunesBridge');
 export const herdHorse = catalogue.model('herdHorse');
 export const snowLotus = catalogue.model('snowLotus');
+
+const coverProfile = TIER === 'phone' ? cover.phone : cover.desktop;
+const small = defineSpecimenCatalogue<{
+  marmot: object; boulder: object; slab: object; stone: object; juniper: object; wildRose: object; dwarfWillow: object; lupin: object; daisy: object; reeds: object;
+  butterfly: { hue: string }; raptor: { scale: number };
+}>(coverProfile.catalogue, coverProfile.packed, cover.materials);
+export const boulder = small.model('boulder');
+export const slab = small.model('slab');
+export const stone = small.model('stone');
+export const juniper = small.model('juniper');
+export const wildRose = small.model('wildRose');
+export const dwarfWillow = small.model('dwarfWillow');
+export const lupin = small.model('lupin');
+export const daisy = small.model('daisy');
+export const reeds = small.model('reeds');
+export const butterfly = small.model('butterfly');
+export const raptor = small.model('raptor');
+export const marmot = small.model('marmot');

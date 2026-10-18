@@ -20,8 +20,6 @@ import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { modelsOn } from '../world/modelView';
-import { buildMarmotGeometry } from '../creatures/marmots';
-import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { TitanBody } from '../combat/stormTitan';
 import { syncTitanCloud } from '../combat/stormTitanLook';
 
@@ -62,14 +60,6 @@ export const sheep: ModelDef<object> = defineModel<object>({
     }
     return mesh;
   },
-});
-
-/** the grey marmot: the steppe's sentries round their burrows (src/engine/entities/Marmots.ts — every colony ONE InstancedMesh,
- *  stand-up and sink folded into the instance matrices); lofted in code */
-export const marmot: ModelDef<object> = defineModel<object>({
-  id: 'nalati-grasslands/marmot', name: 'Grey marmot', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
-  defaults: {},
-  build: (ctx) => [{ geometry: buildMarmotGeometry(), material: ctx.once('nalati-marmot', () => painterlyAnimalMaterial(ctx.sky)), receiveShadow: true }],
 });
 
 /**

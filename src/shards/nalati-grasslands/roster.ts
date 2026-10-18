@@ -8,11 +8,13 @@ import ecology from './data/ecology.generated.json' with { type: 'json' };
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
 import content from './data/questContent.json' with { type: 'json' };
-import { marmot, sheep, stormTitan } from './models/creatures';
+import { sheep, stormTitan } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
 import gear from './boot/gear.generated.json' with { type: 'json' };
 import { weaponCatalogue } from './weapons/loadout';
-import { BUTTERFLIES, butterfly, RAPTORS, raptor } from './models/ambientLife';
+import { butterfly, raptor, marmot } from './models/catalogue';
+import cover from './boot/cover.generated.json' with { type: 'json' };
+import { TIER } from '@wildshard/engine/core/tier';
 import { reins } from './models/reins';
 
 /** the camp's flock (Wildlife ecology.wildlife: 40 sheep, one instanced draw) */
@@ -26,7 +28,7 @@ export const ROSTER: readonly RosterEntry[] = [
   live(stormTitan, { copies: 1, drawnAs: 'instanced' }),
   // the dressing's ambient life (src/shards/nalati-grasslands/world/dressing/life.ts, E348): the butterflies over the drifts, the raptors
   // circling the valley — one instanced draw each
-  live(butterfly, { copies: BUTTERFLIES, drawnAs: 'instanced' }), live(raptor, { copies: RAPTORS, drawnAs: 'instanced' }),
+  live(butterfly, { copies: TIER === 'phone' ? cover.butterflies.phone : cover.butterflies.desktop, drawnAs: 'instanced' }), live(raptor, { copies: cover.raptors, drawnAs: 'instanced' }),
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts)
   live(campPeople, { copies: Object.keys(content.people).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
   // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once

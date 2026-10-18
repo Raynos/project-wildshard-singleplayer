@@ -1,13 +1,16 @@
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import { loft, S, mix, srgb, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 
 
 
+import { createPackedSpecimens } from '@wildshard/game/models/specimenCatalogue';
+import { modelContext } from '@wildshard/engine/models/model';
+import { TIER } from '@wildshard/engine/core/tier';
+import * as v from 'valibot';
+import { SpecimenMaterialSchema } from '@wildshard/format/specimenCatalogue';
+import cover from '../boot/cover.generated.json' with { type: 'json' };
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 
 
@@ -31,45 +34,6 @@ import { marmotColonies, marmotSites } from './marmotBrain';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, 'YXZ'), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
-const FUR = srgb(0.62, 0.50, 0.34), BACK = srgb(0.42, 0.34, 0.25), BELLY = srgb(0.78, 0.68, 0.50), DARK = srgb(0.16, 0.12, 0.09);
-const paint: Paint = (out, _x, y, _z, _nx, ny, _nz, part, t) => {
-  if (part === 'eye') { out.copy(DARK); return; }
-  if (part === 'tail') { mix(out, BACK, DARK, sstep(0.5, 1, t)); return; }
-  out.copy(FUR);
-  mix(out, out, BACK, sstep(0.2, 0.9, ny) * 0.8);
-  mix(out, out, BELLY, sstep(-0.2, -0.8, ny));
-  if (part === 'head') mix(out, out, DARK, sstep(0.85, 0.98, t) * 0.8 + sstep(0.26, 0.3, y) * 0.2);
-};
-
-export function buildMarmotGeometry(): THREE.BufferGeometry {
-  // ~0.5 m long, plump; origin at the hind feet (the stand pivot), +Z forward
-  const parts = [
-    loft([S(0, 0.10, -0.16, 0.02, 0.02, 0), S(0, 0.11, -0.13, 0.09, 0.08, 0), S(0, 0.12, -0.02, 0.12, 0.11, 0), S(0, 0.13, 0.10, 0.10, 0.10, 0), S(0, 0.15, 0.18, 0.07, 0.07, 0), S(0, 0.16, 0.21, 0.02, 0.02, 0)], 12, 'body', paint),
-    loft([S(0, 0.16, 0.17, 0.055, 0.055, 0), S(0, 0.17, 0.22, 0.06, 0.055, 0), S(0, 0.16, 0.27, 0.042, 0.04, 0), S(0, 0.15, 0.30, 0.02, 0.02, 0)], 10, 'head', paint),
-    loft([S(0, 0.11, -0.15, 0.025, 0.025, 0), S(0, 0.09, -0.23, 0.022, 0.02, 0), S(0, 0.08, -0.27, 0.01, 0.01, 0)], 6, 'tail', paint),
-  ];
-  for (const sx of [1, -1]) {
-    parts.push(loft([S(sx * 0.07, 0.10, 0.08, 0.025, 0.025, 0), S(sx * 0.075, 0.03, 0.09, 0.02, 0.02, 0), S(sx * 0.075, 0.0, 0.1, 0.012, 0.012, 0)], 6, 'body', paint));
-    const eye = new THREE.SphereGeometry(0.009, 6, 4);
-    eye.translate(sx * 0.038, 0.185, 0.25);
-    const n = eye.getAttribute('position').count;
-    const col = new Float32Array(n * 3).fill(0.02);
-    eye.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    parts.push(eye);
-  }
-  const geos = parts.map((g) => {
-    const out = new THREE.BufferGeometry();
-    out.setIndex(g.index);
-    out.setAttribute('position', g.getAttribute('position'));
-    out.setAttribute('normal', g.getAttribute('normal'));
-    out.setAttribute('color', g.getAttribute('color'));
-    return out;
-  });
-  const merged = mergeGeometries(geos, false);
-  merged.computeBoundingSphere();
-  return merged;
-}
-
 export class Marmots {
   mesh!: THREE.InstancedMesh;
   onWhistle?: ((x: number, z: number) => void) | undefined;
@@ -83,7 +47,7 @@ export class Marmots {
   build(sites: { x: number; z: number }[]): this {
     const list = this.rules.colonies(sites).rows; this.initial = this.rules.snapshot();
     const mat = painterlyAnimalMaterial(this.sky);
-    this.mesh = new THREE.InstancedMesh(buildMarmotGeometry(), mat, Math.max(1, list.length));
+    this.mesh = new THREE.InstancedMesh(coverGeometry(this.sky, 'marmot'), mat, Math.max(1, list.length));
     this.mesh.count = list.length;
     this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;
@@ -116,4 +80,15 @@ export class Marmots {
   static scatter(seed: number, n: number, box: { x0: number; x1: number; z0: number; z1: number }): { x: number; z: number }[] {
     return marmotSites(seed, n, box, (x, z) => normalAt(x, z)[1]);
   }
+}
+
+const coverMaterials = v.parse(v.record(v.string(), SpecimenMaterialSchema), cover.materials);
+const ambient = createPackedSpecimens((TIER === 'phone' ? cover.phone : cover.desktop).packed);
+/** Prepare the immutable small-model pack before world and ambient construction. */
+export function preloadCover(): Promise<void> { return ambient.load(); }
+/** Decode an independently owned shape for its existing presentation owner. */
+export function coverGeometry(sky: Sky, key: string): THREE.BufferGeometry {
+  const part = ambient.parts(key, modelContext(sky), coverMaterials)?.[0];
+  if (part === undefined) throw new Error(`Cover geometry not prepared: ${key}`);
+  return part.geometry;
 }

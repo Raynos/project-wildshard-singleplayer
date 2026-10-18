@@ -2,14 +2,14 @@ import * as THREE from 'three';
 
 /**
  * Cell-streamed instances (SHARD-PLATFORM W2, G441): the bookkeeping a scatter streamed round a viewer shares, with
- * nothing about what it places. `CellWindow` keys square cells, builds a cell's contents once through the caller's
- * `build` and keeps at most `cacheMax` of them (oldest out first), and lists the cells within a radius, nearest first.
+ * nothing about what it places. `CellWindow` keys square cells, borrows authored or explicitly published cell data,
+ * keeps at most `cacheMax` of them (oldest out first), and lists the cells within a radius, nearest first.
  * `InstanceTier` is one draw of instances as two InstancedMeshes on twin geometries (the model's attributes shared, the
  * per-instance ones each their own): the caller writes the next set into the back mesh, which uploads only what was
  * written, a byte budget at a time, and the two swap in one frame. What a cell holds, which instances show and what
  * each per-instance attribute means stay the caller's.
  *
- *   const cells = new CellWindow(16, (cx, cz) => generate(cx, cz));
+ *   const cells = new CellWindow<number[]>(16, [{ cx: 0, cz: 0, value: [1, 2] }]);
  *   const tier = instanceTier(group, 'cover-fern', geometry, material, cap, [{ name: 'aTint', size: 3 }]);
  *   tier.begin(); const a = tier.arrays();
  *   for (const [cx, cz] of cells.within(x, z, r)) { … write a.matrix / a.attrs at instance tier.n, then tier.n++ }
@@ -22,22 +22,34 @@ export class CellWindow<T> {
   cacheMax = 96;
   private readonly cells = new Map<string, T>();
   private readonly size: number;
-  private readonly build: (cx: number, cz: number) => T;
+  private readonly source = new Map<string, T>();
 
-  /** Cells `size` m across, built by `build` on first use. */
-  constructor(size: number, build: (cx: number, cz: number) => T) {
+  /** Cells `size` m across, optionally seeded by plain authored rows. No content callback enters the cache. */
+  constructor(size: number, rows: readonly { readonly cx: number; readonly cz: number; readonly value: T }[] = []) {
+    if (!Number.isFinite(size) || size <= 0 || rows.length > 1048576 || rows.some(row => !Number.isSafeInteger(row.cx) || !Number.isSafeInteger(row.cz))) throw new Error('Invalid cell window rows');
     this.size = size;
-    this.build = build;
+    for (const row of rows) {
+      const key = `${row.cx},${row.cz}`;
+      if (this.source.has(key)) throw new Error('Duplicate cell window row');
+      this.source.set(key, row.value);
+    }
   }
 
   /** Whether cell (cx, cz) is built. */
   has(cx: number, cz: number): boolean { return this.cells.has(`${cx},${cz}`); }
 
-  /** Cell (cx, cz), built on first use. */
-  get(cx: number, cz: number): T {
+  /** Read a cached or authored cell; unknown cells remain absent until explicitly published. */
+  get(cx: number, cz: number): T | undefined {
     const key = `${cx},${cz}`, hit = this.cells.get(key);
     if (hit !== undefined) return hit;
-    const made = this.build(cx, cz);
+    const made = this.source.get(key);
+    return made === undefined ? undefined : this.set(cx, cz, made);
+  }
+
+  /** Publish one prepared cell and retain the existing oldest-first eviction policy. */
+  set(cx: number, cz: number, made: T): T {
+    if (!Number.isSafeInteger(cx) || !Number.isSafeInteger(cz)) throw new Error('Invalid cell window coordinates');
+    const key = `${cx},${cz}`;
     if (this.cells.size > this.cacheMax) { const first = this.cells.keys().next().value; if (first !== undefined) this.cells.delete(first); }
     this.cells.set(key, made);
     return made;

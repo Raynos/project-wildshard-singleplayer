@@ -4,7 +4,31 @@ import { arch, platform } from 'node:process';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { DRESSING_PLAN, CAMP_CLUTTER } from '../src/shards/nalati-grasslands/world/dressing/layer';
+import { DRESSING_PLAN, CAMP_CLUTTER } from '../src/shards/nalati-grasslands/world/dressing/index';
+import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
+import { AmbientGroup } from '../src/game/ambient/flock';
+import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+
+test('prepared ambient rows keep both tier populations and finite flight at 10 Hz', () => {
+  setTerrainHeight(() => 0);
+  for (const [tier, profile] of Object.entries({ phone: cover.phone, desktop: cover.desktop })) {
+    v.parse(SpecimenCatalogueSchema, profile.catalogue);
+    expect(profile.life.filter(row => row.kind === 'butterfly').reduce((count, group) => count + group.row.count, 0)).toBe(cover.butterflies[tier === 'phone' ? 'phone' : 'desktop']);
+    expect(profile.life.filter(row => row.kind === 'raptor').reduce((count, group) => count + group.row.count, 0)).toBe(3);
+    for (const spec of profile.life) {
+      const group = new AmbientGroup(spec.row, spec.perches);
+      for (let tick = 0; tick < 100; tick++) group.update(0.1, { x: 0, y: 0, z: 0 });
+      expect(group.birds).toHaveLength(spec.row.count);
+      for (const bird of group.birds) expect([bird.x, bird.y, bird.z, bird.yaw, bird.pitch, bird.roll, bird.flap].every(Number.isFinite)).toBe(true);
+      if (spec.kind === 'butterfly') {
+        const active = group.birds.filter(bird => bird.state !== 0);
+        expect(active.length).toBeGreaterThan(0);
+        expect(active.every(bird => Math.hypot(bird.x, bird.z) < 55)).toBe(true);
+      }
+    }
+  }
+});
 
 test('Nalati admits every shipping dressing placement and camp keep-out result unchanged', async () => {
   const loaded = await readProjectAssets('src/shards/nalati-grasslands');

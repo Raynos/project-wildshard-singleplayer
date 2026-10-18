@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, ClampToEdgeWrapping, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Texture, Vector3 } from 'three';
 import * as assets from '../src/engine/core/assets';
 import { Scope } from '../src/engine/app/scope';
-import { instanceTier } from '../src/engine/render/streamedInstances';
+import { CellWindow, instanceTier } from '../src/engine/render/streamedInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { parseStreamedCover } from '../src/format/streamedCover';
@@ -29,6 +29,24 @@ const row = {
     far: { geometry: 'reed-card', reach: [10, 24], cap: 10, keep: 1 } }],
 };
 let owner = new Scope('streamed-cover-fixture');
+
+test('cell windows borrow authored rows and accept explicit decoded cells', () => {
+  const source = [4, 9], cache = new CellWindow(16, [{ cx: -1, cz: 2, value: source }]);
+  expect(cache.get(-1, 2)).toBe(source);
+  expect(cache.has(-1, 2)).toBe(true);
+  expect(cache.get(10, 10)).toBeUndefined();
+  const decoded = [7];
+  expect(cache.set(10, 10, decoded)).toBe(decoded);
+  expect(cache.get(10, 10)).toBe(decoded);
+  cache.clear();
+  expect(cache.has(-1, 2)).toBe(false);
+  expect(cache.get(-1, 2)).toBe(source);
+  expect(cache.get(10, 10)).toBeUndefined();
+  expect(() => new CellWindow(0)).toThrow('Invalid cell');
+  expect(() => new CellWindow(16, [{ cx: 0.5, cz: 0, value: [] }])).toThrow('Invalid cell');
+  expect(() => new CellWindow(16, [{ cx: 0, cz: 0, value: [] }, { cx: 0, cz: 0, value: [] }])).toThrow('Duplicate cell');
+});
+
 beforeEach(() => { owner = new Scope('streamed-cover-fixture'); });
 afterEach(() => { owner.dispose(); setTerrainHeight(() => 0); vi.restoreAllMocks(); });
 

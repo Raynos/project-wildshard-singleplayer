@@ -2,7 +2,7 @@ import { BufferGeometry, InstancedMesh, Material, type Matrix4, Mesh, Object3D }
 import type { ModelBuildVisit, ModelPlacementVisitor } from '@wildshard/engine/models/model';
 import { poseOf } from '@wildshard/engine/models/colliders';
 import { NALATI_GRASSLANDS } from '../manifest';
-import { captureDressLayerSource, type DressLayerSource } from '../world/dressing/layer';
+import { captureDressLayerSource, type DressLayerSource } from '../world/dressing/index';
 import { visitAuthoredWorld, type AuthoredWorldOptions } from '../../../../scripts/bake/worldHost.mjs';
 
 /** An exact owned copy of one decoded attribute, independent of later culling, mutation and host disposal. */

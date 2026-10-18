@@ -117,7 +117,7 @@ class StreamedCover {
     this.file = readCells(cells, row.cell);
     if (this.file.nk !== row.kinds.length) throw new Error('StreamedCover: baked kind count differs from rows');
     this.farBudgetMs = forTier(this.row.farBudgetMs);
-    this.cells = new CellWindow(this.row.cell, (cx, cz) => this.generate(cx, cz));
+    this.cells = new CellWindow<Float32Array[]>(this.row.cell);
   }
 
   /** A cached candidate's reach factor at the strength the camera's height allows, at the most it can grow to before the
@@ -183,6 +183,10 @@ class StreamedCover {
     return out;
   }
 
+  private cell(cx: number, cz: number): Float32Array[] {
+    return this.cells.get(cx, cz) ?? this.cells.set(cx, cz, this.generate(cx, cz));
+  }
+
   /** copy every cached plant that can show before the next refill (its edge + `refill`) into its kind's back buffers
    *  (`update` uploads and swaps them) */
   private refill(px: number, py: number, pz: number): void {
@@ -192,7 +196,7 @@ class StreamedCover {
     const up = this.uniforms.uReachUp.value, slack = row.refill + row.eyeSlack;
     // nearest cells first: a kind that runs into its cap then drops its furthest (thinnest) plants, not a corner
     for (const [cx, cz] of this.cells.within(px, pz, this.rMax)) {
-      const data = this.cells.get(cx, cz);
+      const data = this.cell(cx, cz);
       this.kinds.forEach((k, ki) => {
         const v = data[ki], A = arrs[ki], near = k.reach.x, far = k.reach.y, grow = k.reach.z;
         if (v === undefined || A === undefined) return;
@@ -219,8 +223,8 @@ class StreamedCover {
     const arrs = this.kinds.map((k) => k.far?.set.arrays() ?? null);
     const slack = row.farSlack + row.eyeSlack, up = this.uniforms.uReachUp.value;
     for (const [cx, cz] of cellsAt) {
-      if (!this.cells.has(cx, cz)) { this.cells.get(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
-      const data = this.cells.get(cx, cz);
+      if (!this.cells.has(cx, cz)) { this.cell(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
+      const data = this.cell(cx, cz);
       this.kinds.forEach((k, ki) => {
         const f = k.far, v = data[ki];
         if (f === null || v === undefined) return;

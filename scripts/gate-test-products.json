@@ -1,4 +1,5 @@
 {
+  "test/nalati-dressing-product.test.ts": ["nalati-grasslands"],
   "test/nalati-boss-fights.test.ts": [],
   "test/nalati-king-pose.test.ts": [],
   "test/nalati-titan-decisions.test.ts": [],
