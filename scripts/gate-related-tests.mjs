@@ -25,6 +25,9 @@ const INCLUDED = /^(?:admin\/|drafts\/)?test\/.+\.test\.ts$/u;
 // durations, and Vitest's startup with the import-graph walk takes ~5 s.
 const LOAD_SECONDS = 0.5;
 const STARTUP_SECONDS = 5;
+// G498: these seconds-long lifecycle checks run on every push, even for
+// unrelated source changes and a fully exhausted related-test budget.
+export const QUICK_TESTS = ['test/grid-reentry.test.ts', 'test/pine-king-kit-reentry.test.ts'];
 
 /** Last known duration in seconds per test file (relative path), from Vitest's results cache.
  * @returns {Map<string, number>} */
@@ -132,7 +135,7 @@ if (isMain) {
   const registryPath = existsSync(resolve(ROOT, 'scripts/gate-test-products.json')) ? resolve(ROOT, 'scripts/gate-test-products.json') : resolve(import.meta.dirname, 'gate-test-products.json');
   /** @type {Record<string, string[]>} */
   const products = JSON.parse(readFileSync(registryPath, 'utf8'));
-  const required = [...new Set([...scriptScenarioTests(changed, scenarios), ...productReaderTests(changed, products).filter(test => existsSync(resolve(ROOT, test)))])];
+  const required = [...new Set([...QUICK_TESTS, ...scriptScenarioTests(changed, scenarios), ...productReaderTests(changed, products).filter(test => existsSync(resolve(ROOT, test)))])];
   const { run, left } = capRelated(related, sources, knownDurations(), seconds, workers, required);
   const walk = ((performance.now() - started) / 1000).toFixed(1);
   const over = left.length > 0 ? `; ${left.length} over the ${seconds}s budget run in CI only: ${left.join(' ')}` : '';

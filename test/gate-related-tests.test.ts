@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { capRelated, productReaderTests, scriptScenarioTests } from '../scripts/gate-related-tests.mjs';
+import { capRelated, productReaderTests, scriptScenarioTests, QUICK_TESTS } from '../scripts/gate-related-tests.mjs';
 
 const durations = new Map([['test/slow.test.ts', 40], ['test/cheap.test.ts', 1], ['test/mid.test.ts', 8], ['test/cover-grid.test.ts', 30]]);
 const related = [...durations.keys()];
@@ -45,4 +45,9 @@ it('preserves author-source edges for tests consuming complete disk products', (
   expect(productReaderTests(['src/sdk/project.ts'], registry)).toEqual(Object.keys(registry));
   expect(productReaderTests(['scripts/gate-test-products.json'], registry)).toEqual(Object.keys(registry));
   expect(productReaderTests(['src/shards/far-reach/data/rows.json', 'docs/ENGINE.md'], registry)).toEqual([]);
+});
+
+it('keeps all grid re-entry quick checks on an unrelated push with no budget', () => {
+  expect(QUICK_TESTS).toEqual(['test/grid-reentry.test.ts', 'test/pine-king-kit-reentry.test.ts']);
+  expect(capRelated([], ['docs/ENGINE.md'], new Map(), 0, 1, QUICK_TESTS).run).toEqual([...QUICK_TESTS].sort());
 });

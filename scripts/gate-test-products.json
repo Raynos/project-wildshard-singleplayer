@@ -166,5 +166,20 @@
   "test/signal-skirt-scene.test.ts": [],
   "test/quest.test.ts": [],
   "test/loot.test.ts": [],
-  "test/look-regressions.test.ts": []
+  "test/look-regressions.test.ts": [],
+  "test/grid-reentry.test.ts": [
+    "_template",
+    "blender-template",
+    "ink-cel-valley",
+    "pastel-plain",
+    "driftwood-isle",
+    "pine-hollow",
+    "nalati-grasslands",
+    "nine-dragon-stack",
+    "sunscar-dunes",
+    "far-reach"
+  ],
+  "test/pine-king-kit-reentry.test.ts": [
+    "pine-hollow"
+  ]
 }
