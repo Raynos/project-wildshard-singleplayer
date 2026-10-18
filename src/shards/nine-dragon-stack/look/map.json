@@ -13,7 +13,8 @@
     "data/weaponLooks.ts",
     "data/plumbing.json",
     "data/lightPools.json",
-    "runtime/looks/light.ts"
+    "runtime/looks/light.ts",
+    "data/lantern.json"
   ],
   "clipAbove": 153,
   "style": {

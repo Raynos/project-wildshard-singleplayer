@@ -1,0 +1,291 @@
+{
+  "sourceTree": "6e0677627e1ec54f21061b488c6006b990cb3eae",
+  "sourceParent": "62e14486d3ead9caac3a2f7bde4f30212c650f59",
+  "commitParent": "159607e22428f125bfbf9e25e642199d7eee2634",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2172,
+  "shards": {
+    "nine-dragon-stack": {
+      "inputHash": "cfc8da0c105d466911d41518e29f365f90200e84a32635b19f5203d77d121ff4",
+      "inputFiles": 151,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "cfc8da0c105d466911d41518e29f365f90200e84a32635b19f5203d77d121ff4",
+        "pixelHash": "584291907d87f278dd9992ae298f786cb4cd49ff19d022e54c56d728376b3e96",
+        "image": "/assets/nine-dragon-stack/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 13378
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "d8fb0811001b7a22babdfe17d51364c299420914d7fc4c623b640eb776be2215",
+      "inputFiles": 177,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "d8fb0811001b7a22babdfe17d51364c299420914d7fc4c623b640eb776be2215",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "62e14486d3ead9caac3a2f7bde4f30212c650f59",
+    "through": "159607e22428f125bfbf9e25e642199d7eee2634",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "3d03653523300950f8230bf80e29c1d9d16f3ac0",
+      "8208f7251b0b51eb1f861f4071549e52f2aeeedd",
+      "159607e22428f125bfbf9e25e642199d7eee2634"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phoneProof": {
+    "bakeSource": "6e0677627e1ec54f21061b488c6006b990cb3eae",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "nine-dragon-stack",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 4670,
+        "entryMs": 4714,
+        "gameplayMs": 4900,
+        "framesStartMs": 4900,
+        "framesCompleteMs": 5217
+      },
+      "gameplayFrames": {
+        "initial": 1,
+        "final": 11
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 5217,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 11,
+      "drawnFrame": 11,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "nine-dragon-stack",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 73,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "886777e388161b224f76f43cd271a64f6adb6c63",
+      "owner": "sp-x4",
+      "summary": "Nine precomputed irradiance volumes and LUT textures",
+      "phoneReceipt": ".git/proofs/20261018T114837-sp-x4-nine-landed-phone-84663.json",
+      "mapShards": [
+        "nine-dragon-stack"
+      ],
+      "newDirectFacts": {
+        "nine-dragon-stack": [
+          "data/lantern.json"
+        ]
+      },
+      "namedData": "Eight binary voxel assets; existing fixed-kits JSON shrinks, no new named JSON"
+    },
+    {
+      "sha": "9a29effd950afba790ab9a2f53efcad6c04d3b45",
+      "owner": "sp-x8",
+      "summary": "Nine owned boot layout transport and registered section schemas",
+      "phoneReceipt": ".git/proofs/20261018T120658-sp-x8-nine-landed-phone-49204.json",
+      "mapShards": [
+        "nine-dragon-stack"
+      ],
+      "newDirectFacts": {},
+      "generationBeforeFingerprint": "nine-section-schemas through full pnpm gen",
+      "sealedNamedJson": {
+        "count": 13,
+        "bytes": 2381138
+      }
+    },
+    {
+      "sha": "ff6327e9864e33531cc9cf1b5afc74985f6cc568",
+      "owner": "sp-x5",
+      "summary": "Nalati offline terrain and water scene geometry",
+      "portability": {
+        "revision": "ff6327e9864e33531cc9cf1b5afc74985f6cc568",
+        "job": "nalati-terrain-scene",
+        "outputs": {
+          "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb": {
+            "sha256": "a2a849cae1380ade7b28eda81afcfe1a5de867a2e541ca3ada363a7b769515cb",
+            "bytes": 2389028
+          },
+          "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb": {
+            "sha256": "78290f6451162b4c1e7f8cda388589ff116cd583650fb96cd8022a6763ca06fa",
+            "bytes": 355896
+          },
+          "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb": {
+            "sha256": "dd55078b7128af5dbad669ccb1f5042595d9e0d03ae9e33b983d82dc4b3cc145",
+            "bytes": 54572
+          }
+        },
+        "checks": [
+          {
+            "identity": {
+              "arch": "arm64",
+              "version": "v24.18.1",
+              "platform": "darwin"
+            },
+            "command": [
+              "node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
+              "--check"
+            ],
+            "rc": 0,
+            "stdout": "",
+            "stderr": "(node:40244) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          },
+          {
+            "identity": {
+              "arch": "x64",
+              "version": "v24.18.1",
+              "platform": "darwin"
+            },
+            "command": [
+              "/Users/raynos/.local/node-x64/node-v24.18.1-darwin-x64/bin/node",
+              "--experimental-transform-types",
+              "--import",
+              "./scripts/bake-loader.mjs",
+              "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
+              "--check"
+            ],
+            "rc": 0,
+            "stdout": "",
+            "stderr": "(node:40436) ExperimentalWarning: Transform Types is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          }
+        ],
+        "passed": true
+      },
+      "phoneVerification": {
+        "passed": true,
+        "minimumSSIM": 0.999983477,
+        "drawsTrianglesGpuContactsSetsExact": true,
+        "gpuBytes": 229190264,
+        "colliders": 2776
+      },
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "data/terrainScene.json",
+          "assets/world-terrain/ground.generated.glb",
+          "assets/world-terrain/slab.generated.glb",
+          "assets/world-terrain/water.generated.glb"
+        ]
+      },
+      "mapSettingsChange": "Replace deleted look/terrainPainter.ts input with look/render.ts"
+    },
+    {
+      "sha": "c1d8eb622de08fed94eba20cb2ef12d8003f13b1",
+      "owner": "sp-x8",
+      "summary": "Nine final solid and swept kit streams baked in native order",
+      "mapShards": [
+        "nine-dragon-stack"
+      ],
+      "newDirectFacts": {},
+      "unmappedDataChange": "data/worldDressing.ts only removes obsolete KIT_YIELD_MS scheduling constant"
+    },
+    {
+      "sha": "62e14486d3ead9caac3a2f7bde4f30212c650f59",
+      "owner": "sp-x7",
+      "summary": "Map-neutral regional admission completion and verified library reread repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "nine-dragon-stack": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "nine-dragon-stack": [
+      "data/lantern.json"
+    ],
+    "nalati-grasslands": []
+  }
+}
