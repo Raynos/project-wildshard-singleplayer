@@ -1,0 +1,151 @@
+{
+  "candidate": "V57",
+  "mode": "attack",
+  "host": "actual-engine isolated arena; empty-look fixed-light AgX/grade, no LUT",
+  "errors": [],
+  "httpErrors": [],
+  "console": [
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    }
+  ],
+  "status": "Practice bout. Health and rewards stay in this page.",
+  "phonePerformanceClaim": false,
+  "interactionSamples": [
+    {
+      "label": "before combat",
+      "at": "2026-10-18T20:51:52.616Z",
+      "status": "Practice bout. Health and rewards stay in this page.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "approach W 1200ms",
+      "at": "2026-10-18T20:51:56.722Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "approach W 1200ms",
+      "at": "2026-10-18T20:51:57.935Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "twelve touch attack taps, 350ms gaps",
+      "at": "2026-10-18T20:52:01.946Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "twelve touch attack taps, 350ms gaps",
+      "at": "2026-10-18T20:52:16.912Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "collection approach W 700ms",
+      "at": "2026-10-18T20:52:16.912Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "collection approach W 700ms",
+      "at": "2026-10-18T20:52:17.619Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "after combat and collection",
+      "at": "2026-10-18T20:52:18.623Z",
+      "status": "Collected 2 local practice coins.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    },
+    {
+      "label": "Retry after combat",
+      "at": "2026-10-18T20:52:22.890Z",
+      "kind": "input-start"
+    },
+    {
+      "label": "Retry after combat",
+      "at": "2026-10-18T20:52:23.099Z",
+      "kind": "input-end"
+    },
+    {
+      "label": "after combat Retry",
+      "at": "2026-10-18T20:52:24.102Z",
+      "status": "Fresh practice bout.",
+      "health": [
+        "100/ 100"
+      ],
+      "storage": {
+        "local": {},
+        "session": {},
+        "cookies": "",
+        "serviceWorkerController": false,
+        "serviceWorkerRegistrations": [],
+        "cacheKeys": [],
+        "indexedDBNames": []
+      }
+    }
+  ],
+  "startedAt": "2026-10-18T20:51:50.116Z",
+  "sourceCommit": "c4339d90a93ccc289540e3a72c1e9cbf221d98fb",
+  "playerDefeatObserved": "not repeated in this bounded regression; prior V57 isolated test covers defeat",
+  "renderer": {
+    "pixelRatio": 1,
+    "buffer": [
+      390,
+      844
+    ],
+    "shadows": true,
+    "passes": [
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": false
+      },
+      {
+        "enabled": true,
+        "renderToScreen": true
+      }
+    ]
+  },
+  "endedAt": "2026-10-18T20:52:28.950Z",
+  "animationSourceCommit": "07e88721a8ff7283e16b71f4b2d7a1b02b95dfa3",
+  "nativeAssetCommit": "d416b961d57f70a5d6a77753a72aba0b2d19db12",
+  "hudConfigCommit": "d940e51eec5090e10ecbb815db6dbfe6feae554b",
+  "artifactManifestSha256": "9b5090f155c703c8e41b5a21914035811c39d91e964ac2714454e557c7d64149",
+  "artifactFiles": 137,
+  "artifactBytes": 9119040,
+  "releaseStatus": "Animated WIP: sliding gait and weak own-body attack release remain; no final animation acceptance",
+  "normalPostConfirmed": true,
+  "phone2xVerified": false
+}

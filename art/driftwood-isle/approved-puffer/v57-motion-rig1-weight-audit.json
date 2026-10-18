@@ -1,0 +1,117 @@
+{
+  "status": "rig-only prototype; numerical deformation envelope, not planted-foot or visual acceptance",
+  "nativeSha256": "7d27737df2bd9b1c7b81fd8eff97fbf5fc4fa02f9eba85faeeacd646cc481dcb",
+  "exactRestBuffersAndBones": true,
+  "normalizedWeights": true,
+  "translationRangeZ": [
+    -0.06,
+    0.06
+  ],
+  "pitchRangeX": [
+    -0.18,
+    0
+  ],
+  "yawRangeY": [
+    -0.11,
+    0.11
+  ],
+  "bellyScales": [
+    1,
+    1.05,
+    1.1
+  ],
+  "fins": [
+    {
+      "bone": "finL",
+      "samples": 189,
+      "minimumTriangleAreaRatio": 0.6055408611412981,
+      "conservativeHalfAreaWarning": false,
+      "minimumNormalCosine": 0.7950745693719052,
+      "minimumLocalY": 0.004000000189989805,
+      "maximumRootToBellyError": 0.0,
+      "weightPairs": [
+        [
+          0.8,
+          0.2,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "bone": "finR",
+      "samples": 189,
+      "minimumTriangleAreaRatio": 0.5873033225362296,
+      "conservativeHalfAreaWarning": false,
+      "minimumNormalCosine": 0.8308145863069941,
+      "minimumLocalY": 0.004000000189989805,
+      "maximumRootToBellyError": 0.0,
+      "weightPairs": [
+        [
+          0.8,
+          0.2,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "bone": "rearL",
+      "samples": 189,
+      "minimumTriangleAreaRatio": 0.45690192756421244,
+      "conservativeHalfAreaWarning": true,
+      "minimumNormalCosine": 0.6829221684182505,
+      "minimumLocalY": 0.004000000189989805,
+      "maximumRootToBellyError": 0.0,
+      "weightPairs": [
+        [
+          0.8,
+          0.2,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "bone": "rearR",
+      "samples": 189,
+      "minimumTriangleAreaRatio": 0.5025338659330155,
+      "conservativeHalfAreaWarning": false,
+      "minimumNormalCosine": 0.6907867975166301,
+      "minimumLocalY": 0.004000000189989805,
+      "maximumRootToBellyError": 0.0,
+      "weightPairs": [
+        [
+          0.8,
+          0.2,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    }
+  ]
+}

@@ -50,14 +50,16 @@ export function pufferNativeClips(mode: PufferPreviewPose): PufferNativePose {
       outputs.push({ target: `joint.${bone}`, path: [property, axis], expr });
     };
     // Native bind height is measured input, never the legacy .43 offset. Head stays bind-local.
-    channel('body', 'position', 'y', (b, r) => { const e = motion(b, r); return e.add(e.add(r('frame', ['dims', 'bodyY']), e.mul(e.live, e.add(e.mul(e.n(.015), e.add(e.n(1), e.idle)), e.mul(e.n(.10), e.flinch)))), e.mul(e.n(.09), e.dead)); });
-    channel('body', 'rotation', 'x', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.mul(e.n(-.08), e.flinch)); });
+    channel('body', 'position', 'y', (b, r) => { const e = motion(b, r); return e.add(e.add(r('frame', ['dims', 'bodyY']), e.mul(e.live, e.add(e.mul(e.n(.015), e.add(e.n(1), e.idle)), e.add(e.mul(e.n(.10), e.flinch), e.add(e.mul(e.n(.03), e.tell), e.mul(e.n(.06), e.burst)))))), e.mul(e.n(.09), e.dead)); });
+    channel('body', 'rotation', 'x', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.add(e.mul(e.n(-.08), e.flinch), e.add(e.mul(e.n(-.035), e.tell), e.mul(e.n(.06), e.burst)))); });
     channel('body', 'rotation', 'z', (b, r) => { const e = motion(b, r); return e.mul(e.n(.35), e.dead); });
     channel('body', 'scale', 'y', (b, r) => { const e = motion(b, r); return e.sub(e.n(1), e.mul(e.n(.40), e.dead)); });
     for (const [bone, sign] of [['finL', 1], ['finR', -1], ['rearL', -1], ['rearR', 1]] as const) {
-      channel(bone, 'rotation', 'x', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.mul(e.n(-.18), b.binary('max', e.n(0), e.mul(e.n(sign), e.walk)))); });
+      channel(bone, 'rotation', 'x', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.mul(e.sub(e.n(1), e.tell), e.mul(e.n(-.18), b.binary('max', e.n(0), e.mul(e.n(sign), e.walk))))); });
       channel(bone, 'rotation', 'y', (b, r) => { const e = motion(b, r); const side = bone.endsWith('L') ? 1 : -1; return e.mul(e.live, e.mul(e.n(side), e.add(e.mul(e.n(.03), e.idle), e.add(e.mul(e.n(.07), e.tell), e.mul(e.n(-.08), e.burst))))); });
     }
+    // Brief brace and release use the same authoritative strike clock; no swell/timing increase.
+    channel('tail', 'rotation', 'x', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.mul(e.n(-.18), e.burst)); });
     channel('tail', 'rotation', 'y', (b, r) => { const e = motion(b, r); return e.mul(e.live, e.add(e.mul(e.n(.22), e.idle), e.mul(e.n(.24), e.walk))); });
   }
   return { group: 'creature.pose', states: ['stalk', 'attack', 'alert'],

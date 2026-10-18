@@ -93,3 +93,21 @@ test('live native motion covers idle, locomotion, tell, burst, flinch and death 
   expect(head.position.toArray()).toEqual(bind);
   expect(head.rotation.toArray().slice(0, 3)).toEqual([0, 0, 0]);
 });
+
+
+test('motion3 braces then releases torso and tail on the existing strike clock', () => {
+  const { context, bones } = rig(), animate = numericCreaturePose(pufferNativeClips('attack'));
+  context.mem['puffer-st'] = 1; context.speed = .7; context.phase = .25;
+  context.mem['regular-clock'] = .85; animate(context);
+  expect(bones['body']?.rotation.x).toBeCloseTo(-.035);
+  expect(bones['finL']?.rotation.x).toBeCloseTo(0);
+  context.mem['regular-clock'] = 1; animate(context);
+  expect(bones['body']?.rotation.x).toBeGreaterThan(.04);
+  expect(bones['tail']?.rotation.x).toBeCloseTo(-.18);
+  context.mem['regular-clock'] = 1.5; animate(context);
+  expect(bones['body']?.rotation.x).toBeCloseTo(0);
+  expect(bones['tail']?.rotation.x).toBeCloseTo(0);
+  context.mem['puffer-st'] = 2; context.mem['regular-clock'] = 1; animate(context);
+  expect(bones['body']?.rotation.x).toBeCloseTo(0);
+  expect(bones['tail']?.rotation.x).toBeCloseTo(0);
+});

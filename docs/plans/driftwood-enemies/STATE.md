@@ -1,17 +1,19 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-18 20:27 UTC. Five mechanics drafts; zero quality-complete enemies.
+Updated 2026-10-18 21:02 UTC. Five mechanics drafts; zero quality-complete enemies.
 
-Latest priority: owner reports missing animations in actual V55 phone play, requests real video and frame-by-frame review, plus image-generated ideal versions of both screenshots. Visual iteration is paused after unscored V58 tail study. Implement visible real idle/gait/tail/windup/attack/hit/death motion and verify recorded frames before claiming animation quality. The preview previously authored only 10% belly swell; damage tests did not prove animation quality.
+Owner priority: visible Puffer animation, real recordings and frame-by-frame review. Visual polishing is paused: V57 best3.87; V58 tail output is preserved unscored. Original preview only authored10% belly swell; damage tests never proved animation quality. Motion2 now adds actual idle/fin/tail/tell/burst/flinch/death channels. Six tests and sampled grounding pass; 904 normal-look frames and161 faster diagnostic frames reviewed. Gait slides, release is weak and flash masks recoil; no animation-quality acceptance.
 
-Puffer visual stopping condition remains honest 4/5 resemblance OR V100, whichever first, then resume Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus. Keep actual best if cap is below target; no padded revisions/scores. Twenty extras remain deferred. Approved original low-poly Puffer is authority; derived nine-view AI images have hidden-anatomy/camera caveats. New screenshot ideals are proposals, not approvals.
+Motion3 trial initially penetrated floor8.30mm; exact failing source/audit preserved. Reduced release pitch passes7tests/lint and6,600 local vertex cases (living≥4mm, combineddeath≥3.467mm). No capture yet. Rig1 prototype changes only fin weights; rest geometry/colors/pivots match exactly. It remains separate, with rear transition compression and true planting unresolved.
 
-Root owns gamedev-dot expected-head connector checkpoints. No main writes, Mac or production game deployment. Through d416b961d57f70a5d6a77753a72aba0b2d19db12 exact remote bytes and canonical local ancestry are verified. V58 output and new animation work await checkpoint. Preserve unrelated/sparse paths.
+Puffer visual stopping condition: honest4/5 OR V100, whichever first, then resume Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus. Keep best if cap is below target; never pad scores/versions. Twenty extras deferred. Original approved low-poly image remains authority; derived angle images have caveats. First screenshot ideal pair was rejected as too similar; stronger revised pair delivered as unapproved AI proposals.
 
-Fixed rubric: silhouette35%, face30%, details20%, facets15%. Full-view scores: V9 3.07, V29 3.37, V38 3.51, V44 3.62, V51 3.69, V53 3.76, V55 3.81, V57 3.87. V57 is best and below4 without rounding. V50 concave pouch and V52 brow tabs regressed; V53 convex pouch, V54/55 cheek/fins and V56/57 mantle/compact arch improve. V58 has a real hero but is unscored. Keep successful sources and failures. img2threejs V1–V8 trial is complete and preserved; no repeated experiment needed.
+Root owns gamedev-dot leased connector checkpoints. No main writes, Mac or production game deployment. Through a5387bf1caebe2022909876355fe4c6666b08dba remote bytes/canonical ancestry are verified. Motion3/rig1 and newer capture evidence await checkpoint. Preserve unrelated/sparse paths.
 
-Actual V55/V57 mounted cloud fights passed damage, two local coins, player defeat0, Retry100/opponent reset and empty local/session/cookie/IndexedDB/cache/service-worker samples. No gameplay-state injection. These are functional smoke tests, not quality ratings or phone-performance evidence. Runtime assessment records animation/AI/readability/gameplay/balance/variety/performance/fun as unscored. Fixed arena lighting is not full Driftwood Noon/LUT parity.
+Fixed visual rubric: silhouette35%, face30%, details20%, facets15%. Full-view best progression: V9 3.07; V38 3.51; V44 3.62; V51 3.69; V53 3.76; V55 3.81; V57 3.87. No runtime credit or rounding to4. Preserve all failed studies; completed img2threejs V1–V8 trial is not repeated.
 
-Site v26 is live with high Overview/In-Game Play buttons loading tested V55 at /puffer-engine/. V57 visual update is prepared but publication waits for actual animation fixes. Preserve five tabs, two mobile rows, icons, mockup-left/result-right comparisons and historical evidence; old /practice stays historical. Native source/publication only.
+Site v28 is live with high Play buttons loading normal-look animated V57 motion2 at /puffer-engine/. Actual combat/coins/Retry/storage regression passes; earlier defeat evidence remains scoped. Genuine clips, review limits and both AI mockup rounds are included. Five tabs/mobile rows/icons/comparisons/history retained. New motion3 is not live.
+
+Cloud captures use measured1×context, not a phone benchmark. Normal post/shadows~4.5Hz slows simulation via dt clamp; separately labelled bypass~24Hz restores near-authored timing without changing model/AI/buffer. Never ship bypass as normal visual look or claim2×phone proof. World-ragdoll throw is distinct from local grounding audit.
 
 Review: https://wildshard-enemy-lab.raynos.chatgpt.site

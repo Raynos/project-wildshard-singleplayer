@@ -1,0 +1,16 @@
+{
+  "status": "motion-rig1 prototype; no planted-foot acceptance",
+  "referenceSha256": "c3dc5595bce7180ed39b0c8156833afcdc6b4ac1000eab08078037cb5bb16187",
+  "sourcePositionsExact": true,
+  "triangleOrderAndColorsExact": true,
+  "bonesExact": true,
+  "maximumEvaluatedRestWorldError": 0.0,
+  "finStationBellyWeights": [
+    1,
+    0.2,
+    0,
+    0
+  ],
+  "toeFinWeight": 1,
+  "boneCount": 8
+}

@@ -1,0 +1,68 @@
+{
+  "status": "sampled rigid V57 envelope only; no video or world-ragdoll contact acceptance",
+  "sourceSha256": "2936bdd0072f05b2d41785333719fd9a9f1237d1fbf182d953d395bfa403bac0",
+  "nativeSha256": "c3dc5595bce7180ed39b0c8156833afcdc6b4ac1000eab08078037cb5bb16187",
+  "method": "Actual vertex buffers, Three.js XYZ Euler; real linked attack clock, conservative idle/walk/flinch/death combinations; unchanged rigid per-part weights; positive body scaleY>=.6 excludes linear transform collapse",
+  "comparison": {
+    "2": {
+      "samples": 6600,
+      "worst": {
+        "minimumY": 0.0011875143928566714,
+        "parts": {
+          "belly": 0.11305310622509598,
+          "head": 0.6811581104835053,
+          "tail": 0.38589927077134667,
+          "finL": 0.14278881162389243,
+          "finR": 0.0011875143928566714,
+          "rearL": 0.14260518568723754,
+          "rearR": 0.021423368511766606
+        },
+        "maximumFinRootMotion": 0.00739492704613712,
+        "clock": 0.82,
+        "parameters": {
+          "idle": -1,
+          "walk": 0,
+          "tell": 1,
+          "burst": 0,
+          "flinch": 0,
+          "dead": 0.30000000000000004,
+          "swelling": 1.1,
+          "version": 2
+        }
+      },
+      "minimumTailY": 0.28999999165534973,
+      "minimumLivingY": 0.004000000189989805,
+      "maximumFinRootMotion": 0.04390229132150385
+    },
+    "3": {
+      "samples": 6600,
+      "worst": {
+        "minimumY": 0.003466574035145822,
+        "parts": {
+          "belly": 0.09990821789546787,
+          "head": 0.6765587434271895,
+          "tail": 0.32205302020400817,
+          "finL": 0.048596949251505255,
+          "finR": 0.003466574035145822,
+          "rearL": 0.048882813671548224,
+          "rearR": 0.009875900550777464
+        },
+        "maximumFinRootMotion": 0.007130838850468126,
+        "clock": 0.0,
+        "parameters": {
+          "idle": -1,
+          "walk": 0,
+          "tell": 0,
+          "burst": 0,
+          "flinch": 0,
+          "dead": 0.1,
+          "swelling": 1.0,
+          "version": 3
+        }
+      },
+      "minimumTailY": 0.2849646556879596,
+      "minimumLivingY": 0.004000000189989805,
+      "maximumFinRootMotion": 0.03944583302537598
+    }
+  }
+}

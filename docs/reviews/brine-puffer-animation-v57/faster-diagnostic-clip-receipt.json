@@ -1,0 +1,22 @@
+{
+  "file": "public/review-evidence/puffer-animation-v57/faster-diagnostic-attack-alert.mp4",
+  "bytes": 338764,
+  "limit_bytes": 1000000,
+  "sha256": "da3233bc1b2d212b4c92eadc80b032fab51dd21b234af96e6a03c3e91e96551c",
+  "source": "page@0a85d461f4bffa8f482336319f8eaf68.webm",
+  "source_frames_inclusive": [
+    1240,
+    1400
+  ],
+  "frame_count": 161,
+  "fps": 25,
+  "duration_seconds": 6.44,
+  "dimensions": [
+    390,
+    844
+  ],
+  "timing": "Original encoded timing; no interpolation, frame thinning or speedup. Frame timestamps normalized to zero at original25fps.",
+  "label": "DIAGNOSTIC1x cloud | post and shadows OFF; source frames1240\u20131400 | original timing. Original diagnostic label remains.",
+  "verification": "ffprobe frame count/duration/dimensions verified; first encoded frame visually inspected for readable labels. Source range manually reviewed in full before encoding.",
+  "caveat": "Same real AI and rig, but diagnostic post/shadows bypass; no final appearance or2xphone performance acceptance."
+}
