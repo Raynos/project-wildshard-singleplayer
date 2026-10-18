@@ -37,23 +37,32 @@ import { BANDS } from '../runtime/looks/look';
  * own, `BANDS`; a capture that clears the bands' depth scales them by `bandDepth`). Uniform writes only.
  */
 const SILK_FOG = 'nine-silk-fog';
-const silkOut = { v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
+const SILK_MATERIALS = [SILK_FOG, 'nine-canopy-cards', 'nine-canopy-inner'] as const;
+const silkOut = { pair: [0, 0], v3: [0, 0, 0], col: [0, 0, 0], shaft: [0, 0, 0, 0], shaftK: [0, 0, 0, 0], deep: [0, 0, 0, 0], deepAir: [0, 0, 0, 0], deepAir2: [0, 0, 0, 0], puff: [0, 0] };
 function syncSilkFog(shared: Shared): void {
-  if (!hasLentLook(SILK_FOG)) return;
   const u = shared.u, o = silkOut;
-  setLentParam(SILK_FOG, 'rootAt', u.uRootAt.value.toArray(o.v3));
-  setLentParam(SILK_FOG, 'datum', Y0);
-  setLentParam(SILK_FOG, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / (BANDS[0]?.d ?? 1));
-  setLentParam(SILK_FOG, 'fogBase', u.uFogBase.value);
-  setLentParam(SILK_FOG, 'fogStart', u.uFogStart.value);
-  setLentParam(SILK_FOG, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
-  setLentParam(SILK_FOG, 'shaft', u.uShaft.value.toArray(o.shaft));
-  setLentParam(SILK_FOG, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
-  setLentParam(SILK_FOG, 'shaftLit', u.uShaftLit.value);
-  setLentParam(SILK_FOG, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
-  setLentParam(SILK_FOG, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
-  setLentParam(SILK_FOG, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
-  setLentParam(SILK_FOG, 'puff', u.uPuff.value.toArray(o.puff));
+  for (const id of SILK_MATERIALS) {
+    if (!hasLentLook(id)) continue;
+    setLentParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
+    setLentParam(id, 'datum', Y0);
+    setLentParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / (BANDS[0]?.d ?? 1));
+    setLentParam(id, 'fogBase', u.uFogBase.value);
+    setLentParam(id, 'fogStart', u.uFogStart.value);
+    setLentParam(id, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
+    setLentParam(id, 'shaft', u.uShaft.value.toArray(o.shaft));
+    setLentParam(id, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
+    setLentParam(id, 'shaftLit', u.uShaftLit.value);
+    setLentParam(id, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
+    setLentParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
+    setLentParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
+    setLentParam(id, 'puff', u.uPuff.value.toArray(o.puff));
+    if (id === SILK_FOG) continue;
+    setLentParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
+    setLentParam(id, 'ink0', u.uInk0.value.toArray(o.col));
+    setLentParam(id, 'ink1', u.uInk1.value.toArray(o.col));
+    setLentParam(id, 'inkMid', u.uInkMid.value);
+    setLentParam(id, 'lineFade', u.uLineFade.value.toArray(o.pair));
+  }
 }
 
 export interface NdRenderHandle {

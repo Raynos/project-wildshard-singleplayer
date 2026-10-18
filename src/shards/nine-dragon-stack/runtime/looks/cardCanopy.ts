@@ -1,5 +1,5 @@
 // cardCanopy — a tree crown of painted leaf cards over a darker core (SHARD-PLATFORM M3, ex Nine Dragon's world/canopy.ts).
-// Nothing here knows a shard: the foliage programs are the caller's shader family rows, its uniforms a row table.
+// The caller supplies compiled graph ids and its atlas; these passes keep the coverage/depth render states.
 //
 // The crown is two baked geometries over a plan's lumps: the CARDS (leaf-cluster quads lit with their lump's normal, so a
 // card is part of a volume, never a flat cut-out) and the CORE (the lumps shrunk, darker, so no view sees through the
@@ -9,39 +9,27 @@
 // written the coverage. The vertex light spill is baked into both geometries like a kit's.
 import {
   AddEquation, type BufferGeometry, CustomBlending, EqualDepth, LinearFilter, LinearMipmapLinearFilter, Mesh, OneFactor,
-  type ShaderMaterial, type Texture, TextureLoader, ZeroFactor,
+  type Material, type Texture, TextureLoader, ZeroFactor,
 } from 'three';
-import { type ShaderFamily, type UniformMap, type UniformRows, uniformsFrom } from '@wildshard/game/plugin/shaderFamily';
+import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 
 /** a crown's baked geometry over a plan's lumps: the painted cards and the darker core under them */
 export interface CanopyGeometry { readonly cards: BufferGeometry; readonly core: BufferGeometry }
 
-/** The coverage pass: alpha to coverage; the blend writes the colour and keeps the target's alpha. */
-export function coveragePass(m: ShaderMaterial): ShaderMaterial {
-  m.alphaToCoverage = true;
+/** Coverage preserves target alpha; the following depth-equal pass writes only plateau alpha. */
+function canopyPass(m: Material, plateau: boolean): Material {
+  m.alphaToCoverage = !plateau;
+  m.depthWrite = !plateau;
+  if (plateau) m.depthFunc = EqualDepth;
   m.blending = CustomBlending;
   m.blendEquation = AddEquation;
-  m.blendSrc = OneFactor;
-  m.blendDst = ZeroFactor;
   m.blendEquationAlpha = AddEquation;
-  m.blendSrcAlpha = ZeroFactor;
-  m.blendDstAlpha = OneFactor;
-  return m;
-}
-
-/** The plateau pass: depth-equal over the coverage pass, writing only the alpha. */
-export function plateauPass(m: ShaderMaterial): ShaderMaterial {
-  m.depthFunc = EqualDepth;
-  m.depthWrite = false;
-  m.blending = CustomBlending;
-  m.blendEquation = AddEquation;
-  m.blendSrc = ZeroFactor;
-  m.blendDst = OneFactor;
-  m.blendEquationAlpha = AddEquation;
-  m.blendSrcAlpha = OneFactor;
-  m.blendDstAlpha = ZeroFactor;
+  m.blendSrc = plateau ? ZeroFactor : OneFactor;
+  m.blendDst = plateau ? OneFactor : ZeroFactor;
+  m.blendSrcAlpha = plateau ? OneFactor : ZeroFactor;
+  m.blendDstAlpha = plateau ? ZeroFactor : OneFactor;
   return m;
 }
 
@@ -56,39 +44,19 @@ export async function loadLeafAtlas(url: string): Promise<Texture> {
   return t;
 }
 
-/** A card canopy as data: the family's programs for the three draws, the foliage uniforms, the atlas. */
-export interface CardCanopyRow<P extends string> {
-  readonly cards: P;
-  readonly plateau: P;
-  readonly core: P;
-  readonly uniforms: UniformRows;
-  readonly atlas: string;
-  /** what the warning names when the atlas fails */
-  readonly label: string;
-}
-
-/**
- * Dress a crown's geometry: [core, cards, plateau] meshes (render orders 0, 1, 2), the foliage uniforms one object each
- * shared by the three materials, the atlas as `uAtlas` (the core reads none). None when the crown is null or the atlas
- * fails (the tree then stands bare, which shows at once).
- */
-export async function buildCardCanopy<P extends string>(
-  family: ShaderFamily<P>, shared: UniformMap, row: CardCanopyRow<P>, crown: CanopyGeometry | null,
+/** Dress the baked crown with its three compiled graph looks. The atlas is required. */
+export async function buildCardCanopy(
+  row: { readonly cards: string; readonly plateau: string; readonly core: string; readonly atlas: string }, crown: CanopyGeometry | null,
 ): Promise<Mesh[]> {
   if (crown === null) return [];
-  try {
-    const atlas = await loadLeafAtlas(row.atlas);
-    const fu = uniformsFrom(row.uniforms);
-    const material = (program: P, tex: Texture | null): ShaderMaterial => family.material(program, shared, { uniforms: { ...fu, uAtlas: { value: tex } } });
-    const { cards: gCards, core: gCore } = crown;
-    const cards = new Mesh(gCards, coveragePass(material(row.cards, atlas)));
-    const cardsDepth = new Mesh(gCards, plateauPass(material(row.plateau, atlas)));
-    cards.renderOrder = 1;
-    cardsDepth.renderOrder = 2;
-    const core = new Mesh(gCore, material(row.core, null));
-    return [core, cards, cardsDepth];
-  } catch (e: unknown) {
-    console.warn(`${row.label}: the leaf atlas failed to load, the tree has no canopy`, e);
-    return [];
-  }
+  const atlas = await loadLeafAtlas(row.atlas), image: unknown = atlas.image;
+  if (typeof image !== 'object' || image === null || !('width' in image) || !('height' in image)
+    || typeof image.width !== 'number' || typeof image.height !== 'number' || image.width <= 0 || image.height <= 0) throw new Error('Canopy atlas needs its pixel dimensions');
+  setLentTexture(row.cards, 'atlas', atlas);
+  setLentParam(row.cards, 'atlasSize', [image.width, image.height]);
+  const cards = new Mesh(crown.cards, canopyPass(lentLook(row.cards), false));
+  const depth = new Mesh(crown.cards, canopyPass(lentLook(row.plateau), true));
+  cards.renderOrder = 1;
+  depth.renderOrder = 2;
+  return [new Mesh(crown.core, lentLook(row.core)), cards, depth];
 }

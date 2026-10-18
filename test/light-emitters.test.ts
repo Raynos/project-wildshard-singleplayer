@@ -25,6 +25,10 @@ import { weaveTexture as sealedPlainWeave } from '../src/shards/nine-dragon-stac
 import { RowRenderPass } from '../src/shards/nine-dragon-stack/runtime/looks/renderPass';
 import { HAZE_PASS } from '../src/shards/nine-dragon-stack/runtime/looks/passes';
 import { PASS_FAMILY } from '../src/shards/nine-dragon-stack/look/render/family';
+import { canopyGraphs } from '../src/shards/nine-dragon-stack/generators/canopyGraphs';
+import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
+import { validateGraph, type GraphRef } from '../src/format/materialGraph';
+import { compileGraph } from '../src/engine/render/graph/compile';
 import type { ShardContext } from '../src/game/plugin/context';
 
 test('Nine source order, linear colours and falloffs match its sealed volume inputs exactly', () => {
@@ -173,4 +177,61 @@ test('Nine haze borrows the same baked normalization as world materials', () => 
     shared.u.uLpMax.value = POOL.maximum;
     expect(material.uniforms['uLpMax']?.value).toBe(12);
   } finally { pass.dispose(); }
+});
+
+
+test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {
+  const rows = canopyGraphs(NINE_GRAPHS);
+  for (const [id, graph] of Object.entries(rows)) {
+    expect(Reflect.get(NINE_GRAPHS, id)).toEqual(graph);
+    const checked = validateGraph(graph, { trustedBudget: true });
+    if (!checked.ok) throw new Error(checked.errors.join('\n'));
+    expect(checked.cost.nodes).toBeLessThanOrEqual(4096);
+    expect(new TextEncoder().encode(JSON.stringify(graph)).byteLength).toBeLessThanOrEqual(64_000);
+    expect(graph.effectState?.fog).toBe(false);
+    expect(graph.stages.surface?.targetAlpha).toBeDefined();
+    const compiled = compileGraph(graph, { trustedBudget: true });
+    if (id === 'nine-canopy-cards') {
+      const texture = new DataTexture(new Uint8Array(4), 1, 1);
+      compiled.setTexture('atlas', texture); compiled.setParam('atlasSize', [1024, 1024]); texture.dispose();
+    }
+    if (id !== 'nine-canopy-depth') {
+      compiled.setParam('rootAt', [1, 2, 3]); compiled.setParam('lightDir', [0, 1, 0]);
+      expect(Object.values(graph.nodes).some(node => node.op === 'varying' && node.in?.some(ref => typeof ref === 'string' && graph.nodes[ref]?.op === 'combine'))).toBe(true);
+    }
+    compiled.material.dispose();
+  }
+});
+
+test('canopy mip coverage matches log2 across float32 minification', () => {
+  const graph = canopyGraphs(NINE_GRAPHS)['nine-canopy-cards'];
+  if (graph === undefined) throw new Error('Missing canopy cards');
+  const coverage = Object.values(graph.nodes).find(node => node.op === 'fwidth')?.in?.[0];
+  if (coverage === undefined) throw new Error('Missing mip coverage');
+  const f = Math.fround;
+  for (const x of [0, 1e-8, 0.9, 1, 1.0001, 1.5, 1.9999, 2, 3, 8, 255, 1024, 2 ** 32, 2 ** 64, 1e32]) {
+    const evalScalar = (ref: GraphRef): number => {
+      if (typeof ref === 'number') return f(ref);
+      if (typeof ref !== 'string') throw new Error('Expected scalar coverage input');
+      const node = graph.nodes[ref];
+      if (node === undefined) throw new Error(`Missing coverage node ${ref}`);
+      // Feed the measured squared UV derivative; tx.a = 1 isolates its multiplier.
+      if (node.op === 'dot') return f(x);
+      if (node.op === 'swizzle' && node.mask === 'w') return 1;
+      const [a = 0, b = 0, c = 0] = (node.in ?? []).map(evalScalar);
+      switch (node.op) {
+        case 'add': return f(a + b);
+        case 'sub': return f(a - b);
+        case 'mul': return f(a * b);
+        case 'div': return f(a / b);
+        case 'max': return f(Math.max(a, b));
+        case 'pow': return f(a ** b);
+        case 'step': return b < a ? 0 : 1;
+        case 'gte': return a >= b ? 1 : 0;
+        case 'select': return a === 0 ? c : b;
+        default: throw new Error(`Unexpected coverage op ${node.op}`);
+      }
+    };
+    expect(Math.abs(evalScalar(coverage) - (1 + 0.125 * Math.log2(Math.max(f(x), 1))))).toBeLessThan(2e-6);
+  }
 });

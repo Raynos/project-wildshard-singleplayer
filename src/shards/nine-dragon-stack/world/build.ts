@@ -34,7 +34,7 @@ import { gradeUniforms } from '../look/light/grade';
 import { dealCrowd } from './crowd';
 import { FigureCrowd } from '../runtime/cull/figureCrowd';
 import { CROWD_LEVELS } from '../data/lod';
-import { buildCanopy } from './canopy';
+import { buildCardCanopy } from '../runtime/looks/cardCanopy';
 import { placeSquareProps } from './squareProps';
 import signRows from '../data/signView.json' with { type: 'json' };
 import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
@@ -203,7 +203,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   phaseStart = performance.now();
   const canopy = specimens.has('canopy:cards') ? { cards: takeSpecimen(specimens, 'canopy:cards'), core: takeSpecimen(specimens, 'canopy:core') } : null;
   if (canopy !== null) await loadSpill([['canopy-cards', canopy.cards], ['canopy-core', canopy.core]], tier, entryCaps);
-  const crown = await buildCanopy(shared, canopy);
+  const crown = await buildCardCanopy({ cards: 'nine-canopy-cards', plateau: 'nine-canopy-depth', core: 'nine-canopy-inner', atlas: '/assets/nine-dragon/lab/organic/leaf-atlas.webp' }, canopy);
   for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));
