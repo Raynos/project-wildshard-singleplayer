@@ -44,16 +44,17 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
   private readonly solids: BakedBuildingRecord<K, P>['solids'];
   private readonly look: BakedBuildingLook<K>;
   private readonly tier: BakedBuildingTier;
+  private readonly bakedStatic: boolean;
 
   /** `input` the record, its pack, materials, sky, models, role, look row and tier */
   constructor(private readonly resources: SceneHandles, input: BuildingAssemblyRows<K, P>) {
     admitBuildingAssembly(input);
     const { record: b, role } = input;
-    const ordinals = [...b.parts.map(([, index]) => index), ...b.glass,
+    const ordinals = [...(input.bakedStatic === true ? [] : b.parts.map(([, index]) => index)), ...(input.bakedStatic === true ? [] : b.glass),
       ...b.nodes.flatMap(node => node.t === 'door' ? [node.leaf, node.iron, node.batten] : node.t === 'glow' || node.t === 'wheel' ? [node.g] : node.t === 'particles' ? [node.seeds] : node.t === 'lantern' ? [node.ring] : [])];
     for (const ordinal of ordinals) { const id = input.geometry[String(ordinal)]; if (id === undefined) throw new Error('Missing building geometry id'); resources.geometry(id); }
     for (const node of b.nodes) if (node.t === 'door' && b.colliders[node.collider] === undefined) throw new Error(`[buildings] ${node.id}: no box ${String(node.collider)}`);
-    const partKeys = [...b.parts.map(([key]) => key), ...b.nodes.flatMap(node => node.t === 'door' ? [input.look.door.leaf, input.look.door.hinges, input.look.door.battens] : node.t === 'wheel' ? [input.look.wheel] : node.t === 'lantern' ? [input.look.lantern.ring] : [])];
+    const partKeys = [...(input.bakedStatic === true ? [] : b.parts.map(([key]) => key)), ...b.nodes.flatMap(node => node.t === 'door' ? [input.look.door.leaf, input.look.door.hinges, input.look.door.battens] : node.t === 'wheel' ? [input.look.wheel] : node.t === 'lantern' ? [input.look.lantern.ring] : [])];
     for (const key of partKeys) if (!Object.hasOwn(input.materials.parts, key)) throw new Error('Missing building part material');
     for (const node of b.nodes) if (node.t === 'particles' && !Object.hasOwn(input.materials.particles, node.mat)) throw new Error('Missing building particle material');
     const geometry = (index: number): THREE.BufferGeometry => {
@@ -67,6 +68,7 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
     this.id = input.id;
     this.casters = input.tier.detailShadows ? [] : null;
     this.mats = mats; this.sky = sky; this.role = role; this.solids = b.solids; this.look = input.look; this.tier = input.tier;
+    this.bakedStatic = input.bakedStatic ?? false;
     const [cx, cy, cz] = b.at;
     this.root.position.set(cx, cy, cz);
     this.root.rotation.y = b.rot;
@@ -74,8 +76,8 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
     this.rooms = b.rooms; this.doorAt = [b.doorAt[0], b.doorAt[1]];
     this.floors = b.floors.map((f) => ({ ...f }));
     this.legacy = b.colliders.map((c) => ({ ...c }));
-    this.parts = b.parts.map(([key, g]) => [key, geometries.geometry(g)]);
-    this.glass = b.glass.map((g) => geometries.geometry(g));
+    this.parts = this.bakedStatic ? [] : b.parts.map(([key, g]) => [key, geometries.geometry(g)]);
+    this.glass = this.bakedStatic ? [] : b.glass.map((g) => geometries.geometry(g));
     for (const node of b.nodes) {
       switch (node.t) {
         case 'door': this.door(node, geometries); break;
@@ -111,6 +113,19 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
     // The door has already validated its legacy box; audio floors and fire emitters are separate product rows.
     // All static boxes remain on this assembly's weld; the life owner does not register them.
     this.band();
+    if (input.publish !== undefined) {
+      const prefix = input.publish;
+      resources.publish(`${prefix}.root`, this.root);
+      if (this.firePitObj !== null) resources.publish(`${prefix}.firePit`, this.firePitObj);
+      if (this.lanternObj !== null) {
+        resources.publish(`${prefix}.lantern`, this.lanternObj);
+        let ordinal = 0;
+        this.lanternObj.traverse(object => {
+          if (!isMesh(object) || !(object.material instanceof THREE.Material)) return;
+          resources.publish(`${prefix}.lantern.material-${String(ordinal++)}`, object.material);
+        });
+      }
+    }
   }
 
   /** the door on its pivot: the leaf (far band), its hinges and battens (detail); one shadow proxy with detail shadows */
@@ -146,14 +161,14 @@ export class BakedBuildingAssembly<K extends string = string, P extends string =
   private firePit(model: THREE.Object3D, at: Xyz, yaw: number): void {
     const pit = model.clone(true);
     pit.traverse((mesh) => {
-      if (isMesh(mesh)) { mesh.castShadow = true; mesh.receiveShadow = true; if (mesh.material instanceof THREE.Material) this.sky.setupMaterial(mesh.material); }
+      if (isMesh(mesh)) { mesh.castShadow = !(this.bakedStatic && this.casters !== null); mesh.receiveShadow = true; if (mesh.material instanceof THREE.Material) this.sky.setupMaterial(mesh.material); }
     });
     pit.position.set(...at);
     pit.rotation.y = yaw;
     this.root.add(pit); this.detail.push(pit);
     this.firePitObj = pit;
     const casters = this.casters;
-    if (casters !== null) {
+    if (casters !== null && !this.bakedStatic) {
       // its depth goes into the building's double-sided near proxy (its weld's), in the root's frame
       pit.updateMatrixWorld(true);
       const toRoot = this.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();

@@ -22,11 +22,12 @@ test('building life keeps its door while the assembly owns static collision', ()
     rooms: [], doorAt: [0, 0], firePit: null,
   };
   const look = v.parse(BakedBuildingLookSchema, buildingLook);
-  const make = (row: BakedBuildingRecord<string, string>) => new BakedBuildingAssembly(resources, { id: 'test', record: row,
+  const make = (row: BakedBuildingRecord<string, string>, bakedStatic = false) => new BakedBuildingAssembly(resources, { id: 'test', record: row,
     geometry: { 0: 'shape', 1: 'shape', 2: 'shape' },
     materials: { parts: { door: 'wood', iron: 'wood', beam: 'wood' }, particles: {}, glass: 'wood', glow: 'glow' },
     models: { firePit: 'pit', lantern: 'lantern' }, role: 'standalone', look,
     tier: { detailDist: 10, detailShadows: false, sharedLights: true },
+    bakedStatic, ...(bakedStatic ? { publish: 'frozen-building' } : {}),
   });
   const made = make(record), life = new LivingBuildings(resources, CABIN_LIFE);
   try {
@@ -54,6 +55,14 @@ test('building life keeps its door while the assembly owns static collision', ()
     expect(door.pivot.rotation.y).toBeCloseTo(0, 12);
     expect(heard).toEqual([{ label: look.door.close, opening: true }, { label: look.door.open, opening: false }]);
     expect(() => make({ ...record, colliders: [] })).toThrow('no box 0');
+    const frozen = make({ ...record, parts: [['unloaded-static-surface', 999]], glass: [998] }, true);
+    expect(resources.object('frozen-building.root')).toBe(frozen.root);
+    expect(frozen.weldParts()).toEqual([]);
+    const frozenLife = new LivingBuildings(resources, CABIN_LIFE); frozenLife.add(frozen.lifeRows);
+    const frozenDoor = frozenLife.doorPieces()[0]; if (frozenDoor === undefined) throw new Error('Missing frozen building door');
+    frozenDoor.use(); frozenLife.tick(0.3, 0.3, eye, 0);
+    expect(frozenDoor.pivot.rotation.y).toBeCloseTo(-0.925, 12);
+    frozen.root.traverse(node => { if ('geometry' in node && node.geometry instanceof BoxGeometry) node.geometry.dispose(); });
   } finally {
     made.root.traverse(node => { if ('geometry' in node && node.geometry instanceof BoxGeometry) node.geometry.dispose(); });
     shape.dispose(); material.dispose(); glow.dispose();

@@ -139,5 +139,6 @@
     "pine-hollow",
     "driftwood-isle"
   ],
-  "test/page-life.test.ts": []
+  "test/page-life.test.ts": [],
+  "test/world-scene-weld.test.ts": []
 }

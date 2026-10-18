@@ -1,22 +1,25 @@
-import { BufferGeometry, Material, Mesh, MeshStandardMaterial, Texture } from 'three';
+import { BufferGeometry, Material, Mesh, MeshStandardMaterial, type Object3D, Texture } from 'three';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 
+import type { SceneHandles } from './sceneHandles';
+
 type Source = Extract<WorldScenesSection['materials'][number], { kind: 'source' }>;
-const loaded = new WeakMap<Scope, Map<string, Promise<readonly Material[]>>>();
+const loaded = new WeakMap<Scope, Map<string, Promise<{ readonly materials: readonly Material[]; readonly root: Object3D }>>>();
 const geometryValue = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 const materialValue = (value: unknown): value is Material => value instanceof Material;
 const textureValue = (value: unknown): value is Texture => value instanceof Texture;
 
 /** Client-only original PBR intake. Aliases retain the asset manager's tier and texture routing.
- * Degenerate source meshes are released immediately; only original materials and maps survive. */
-export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: Scope): Promise<Material> {
+ * An optional named source root retains its original geometry and shares the exact prepared materials. */
+export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: Scope, handles?: SceneHandles): Promise<Material> {
   if (owner.disposed) throw new Error('Scene material owner is disposed');
   let files = loaded.get(owner);
   if (files === undefined) { files = new Map(); loaded.set(owner, files); owner.onDispose(() => { loaded.delete(owner); }); }
-  const key = JSON.stringify([row.url, row.aliases, row.anisotropy, row.anisotropyMaps, row.envMapIntensity]);
+  const key = JSON.stringify([row.url, row.aliases, row.anisotropy, row.anisotropyMaps, row.envMapIntensity, row.publishObject !== undefined && handles !== undefined]);
   let pending = files.get(key);
   if (pending === undefined) {
     pending = loadRigFile(row.url, row.aliases).then(file => {
@@ -28,7 +31,9 @@ export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: 
         const candidates: readonly unknown[] = Array.isArray(value) ? value : [value];
         for (const material of candidates) if (materialValue(material)) materials.push(material);
       });
-      for (const geometry of geometries) geometry.dispose();
+      for (const geometry of geometries) {
+        if (row.publishObject !== undefined && handles !== undefined) ownSceneResource(geometry, owner); else geometry.dispose();
+      }
       const textures = new Set<NonNullable<MeshStandardMaterial['map']>>();
       for (const material of new Set(materials)) {
         if (material instanceof MeshStandardMaterial) {
@@ -42,13 +47,19 @@ export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: 
       }
       owner.onDispose(() => { for (const texture of textures) texture.dispose(); });
       if (owner.disposed) throw new Error('Scene material owner is disposed');
-      return materials;
+      return { materials, root: file.scene };
     });
     files.set(key, pending);
     const cache = files;
     void pending.catch(() => { if (cache.get(key) === pending) cache.delete(key); });
   }
-  const material = (await pending)[row.part];
+  const { materials, root } = await pending;
+  if (row.publishObject !== undefined && handles !== undefined) {
+    const id = row.publishObject;
+    if (!handles.has(id)) { handles.publish(id, root); owner.onDispose(() => { handles.release(id, root); }); }
+    else if (handles.object(id) !== root) throw new Error('Source object publication differs');
+  }
+  const material = materials[row.part];
   if (material === undefined) throw new Error(`Missing source material part: ${row.url}/${String(row.part)}`);
   return material;
 }

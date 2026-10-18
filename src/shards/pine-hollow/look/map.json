@@ -103,6 +103,7 @@
     "data/waterLook.json",
     "data/timberScenes.generated.json",
     "data/logKit.json",
-    "data/hollowLog.json"
+    "data/hollowLog.json",
+    "data/cabinScenes.generated.json"
   ]
 }

@@ -37,7 +37,6 @@ import { pineModels, admitPineView } from './world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
-import { placeCabins } from './world/cabins';
 import { placeDrawnModels } from './world/drawnModels';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import { placedGroups } from '@wildshard/engine/models/place';
@@ -117,7 +116,7 @@ export class PineHollow extends ShardPlugin {
       const built = await cabins.build();
       content.add(built.group);
       rt.interactables.push(...built.interactables);
-      await placeCabins({ cabins, sky, registry, scope: ctx.scope });
+      await sceneHandles.assemble('cabins.shells');
       cabins.life.persist(ctx.app.saves, residentWorldScope(ctx), { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: 'cabins' });
       cabins.life.registerDoors(registry, player.position);
       const landmarks = await installPineLandmarks({ sky, registry, cabins, scenes: sceneHandles, onUpdate: retainsRuntimeServices(ctx)

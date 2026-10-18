@@ -1,0 +1,200 @@
+{
+  "authorTree": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+  "authorFiles": {
+    "src/shards/pine-hollow/generators/cabinWeld.ts": "e4e9772531a8bc24a8d4dd905a9e6fca532f200c",
+    "src/shards/pine-hollow/generators/cabinSceneAssembly.ts": "a2925667f1bbe609d48cd30e9ce1f7ee9dba82b2",
+    "src/shards/pine-hollow/generators/cabinScenes.ts": "4a8b2882431992eb2a823f07354fb62c2827bcae",
+    "src/shards/pine-hollow/generators/cabinSceneSources.mjs": "14a333d2d749c3d1d07d3f160b55f3f97405d48b",
+    "src/shards/pine-hollow/generators/bake-cabin-scenes.mjs": "f5012af7cc2b62274675a188a6444f185a47d2b7"
+  },
+  "checkedNativeTree": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+  "outputCount": 222,
+  "geometryFiles": 161,
+  "worldGraphs": 4,
+  "specimenGraphs": 56,
+  "sourceInventory": {
+    "modelIds": 968,
+    "worldProfiles": [
+      {
+        "tier": "phone",
+        "shadow": false,
+        "nodes": 88,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "phone",
+        "shadow": true,
+        "nodes": 91,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "desktop",
+        "shadow": false,
+        "nodes": 88,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "desktop",
+        "shadow": true,
+        "nodes": 91,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      }
+    ],
+    "liveResourceRowsPerProfile": 37,
+    "cullsPerProfile": 2,
+    "registrationsPerProfile": 22
+  },
+  "nativeAssembly": {
+    "source": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+    "nativeRawShapes": 258,
+    "assemblies": 32,
+    "drawParts": 364,
+    "casters": 2,
+    "propContacts": 260,
+    "nativeWholeIntakeBytes": true,
+    "nativeBuildingAssemblyBytes": true,
+    "nativeColliderFieldOrder": true
+  },
+  "nativeSpecimens": {
+    "source": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+    "cards": 56,
+    "nodes": 1156,
+    "draws": 968,
+    "nativeSpecimenTopology": true,
+    "encodedNativeGeometryBytes": true,
+    "nativeGpuMatrixAndTrsBits": true,
+    "canonicalFloat64Differences": 8
+  },
+  "crossArchitecture": {
+    "nodeVersion": "24.18.1",
+    "arm64": "passed complete producer --check",
+    "x64": "passed complete producer --check",
+    "pinnedBytes": "All 222 emitted outputs SHA256 match on final author tree"
+  },
+  "portableMath": {
+    "scopedToAuthorCapture": true,
+    "geometryAndIndexBytesChanged": false,
+    "float32MatrixAndTrsValuesChanged": 0,
+    "canonicalFloat64WordChanges": 24,
+    "canonicalFloat64NodesChanged": 8,
+    "limitation": "Eight frozen specimen nodes retain platform-stable Float64 values differing from native ARM in last bits. Native geometry/index bytes and Float32 local matrix/TRS values remain exact. Served whole-world pixel/contact parity belongs to the paired consumer receipt."
+  },
+  "contacts": {
+    "buildings": "precomputed native boxes and floor rows exact",
+    "props": "local catalogue boxes and original Float64 placement matrices; native engine placeCollider derives final contacts, avoiding baked platform atan2"
+  },
+  "isolatedAuthoring": {
+    "loader": "src/sdk/bake/source-loader.mjs",
+    "runtimeEngineGameImports": false,
+    "externalImages": "Geometry-only source decode strips texture references; original native material sources remain runtime host rows"
+  },
+  "checks": {
+    "targetedStrictTypes": true,
+    "typedLint": true,
+    "nativeWholeGeometryDecoder": true,
+    "nativeBuildingAssembly": true,
+    "nativeUnitPartsCopyWholeWeld": "4cases64meshes6shared-buffer views exact",
+    "nativeSpecimenTopologyAndGeometry": true,
+    "newHostAndConsumerChecks": "paired consumer owns root/layer/all10/headless/native20/phone/physics proof"
+  },
+  "proofs": [
+    "20261018T002312-sp-x10-cabin-segments-6334",
+    "20261018T002542-sp-x10-cabin-storage-tail-16344"
+  ],
+  "proofNotes": "Initial combined runner failed only because the scratch full-storage oracle lacked extensionless TypeScript resolution; its corrected targeted rerun passed on byte-identical author source. Complete amended author checks pass on the exact five source blobs. Native shipping model multiplicity and corresponding cross-side geometry identity are covered. Served whole-world pixels, draw/triangle/resource counters, physics and phone checks belong to the paired consumer receipt.",
+  "authorAggregate": {
+    "graphs": 60,
+    "bytes": 4655635,
+    "limitBytes": 5000000,
+    "metadataHash": "8676bcfb364f555d6f85bf6cf2aa20463ed5170f61a0e414cdeecc5cdaeac65a",
+    "purpose": "FS-free product authoring contribution; runtime recipes remain sixty individually parsed named files"
+  },
+  "nativeSharing": {
+    "source": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+    "profiles": [
+      {
+        "tier": "phone",
+        "shadow": false,
+        "nodes": 88,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "phone",
+        "shadow": true,
+        "nodes": 91,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "desktop",
+        "shadow": false,
+        "nodes": 88,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "tier": "desktop",
+        "shadow": true,
+        "nodes": 91,
+        "partCounts": [
+          2,
+          4,
+          2,
+          1
+        ]
+      }
+    ],
+    "aggregateBytes": 4655635,
+    "nativeDistinctParts": true,
+    "nativeCrossSideGeometryIdentity": true
+  },
+  "nativeStorage": {
+    "source": "0a2f1e532f19312cdf9671bbdf0808f6301831d0",
+    "models": 968,
+    "files": 161,
+    "segmentedModels": 6,
+    "channelBytes": 135297256,
+    "indexBytes": 34061676,
+    "allDecodedNativeChannelsAndIndicesExact": true,
+    "allSegmentsSdkAdmitted": true
+  },
+  "sourcePartMultiplicity": {
+    "derivation": "Original glTF default scene traversal; no copied part-count constants.",
+    "independentOracle": "Raw glTF scene-node and mesh-primitive traversal, independent of producer part intake.",
+    "worldIdentity": "Each native original part has its own transformed geometry; corresponding parts on both world sides share the same declared reference. Instance matrices remain separate.",
+    "supersededProof": "Earlier d68528b specimen mock used one part per kind and did not prove shipping topology. This receipt replaces that incomplete claim with the original-scene multiplicity oracle."
+  }
+}

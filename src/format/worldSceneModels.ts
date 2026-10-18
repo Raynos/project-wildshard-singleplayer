@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { WorldSceneWeldSchema, type WorldSceneWeld } from './worldSceneWeld';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -19,9 +20,12 @@ const draw = v.strictObject({ id, library: id, model: id, material: id, castShad
   until: v.exactOptional(drawDistance), depthOnly: v.exactOptional(v.boolean()), sphere: v.exactOptional(v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))])) });
 const levelSchema = v.strictObject({ from: band, draws: list(draw, 64) });
 const distanceAt = (value: v.InferOutput<typeof band> | undefined, tier: 'phone' | 'desktop'): number => value === undefined ? Infinity : typeof value === 'number' ? value : value[tier];
-const choice = v.strictObject({ id, params, size: v.tuple([finite, finite, finite]), draws: list(draw, 64), lods: v.optional(list(levelSchema, 8), []), colliders: list(v.unknown(), 2048), site: v.exactOptional(site) });
+const graphLeaf = v.union([WorldSceneWeldSchema, v.strictObject({ file: id })]);
+const graphChoice = v.union([graphLeaf, v.strictObject({ phone: graphLeaf, desktop: graphLeaf })]);
+const frozen = v.union([graphChoice, v.strictObject({ knob, false: graphChoice, true: graphChoice })]);
+const choice = v.strictObject({ id, params, size: v.tuple([finite, finite, finite]), draws: list(draw, 64), scene: v.exactOptional(frozen), lods: v.optional(list(levelSchema, 8), []), colliders: list(v.unknown(), 2048), site: v.exactOptional(site) });
 const model = v.strictObject({ key: id, id, name: id, file: id, category: v.picklist(['buildings', 'nature', 'props', 'gear']), pipeline: v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0']), surface: v.exactOptional(surface), defaults: params,
-  variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts', 'objects']), 'weld'), choices: list(choice, 128) });
+  variants: v.optional(list(v.strictObject({ id, label: id, params }), 128), []), assembly: v.optional(v.picklist(['weld', 'parts', 'objects', 'scene']), 'weld'), choices: list(choice, 128) });
 /** Static model recipes over Z2's product libraries and material slots. No executable ports. */
 export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Scene model recipes require plain JSON'),
   v.strictObject({ product: v.pipe(id, v.regex(/^[a-z_][a-z0-9_-]{0,63}$/u)), models: list(model, 128) }),
@@ -31,6 +35,25 @@ export const WorldSceneModelsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'S
         && value.lods.every((level, i) => (['phone', 'desktop'] as const).every(tier => distanceAt(level.from, tier) === distanceAt(entry.choices[0]?.lods[i]?.from, tier)
           && (i === 0 || distanceAt(level.from, tier) > distanceAt(value.lods[i - 1]?.from, tier))))
         && value.lods.length === entry.choices[0]?.lods.length && (entry.assembly === 'parts' || value.lods.length === 0)
+        && (entry.assembly === 'scene') === (value.scene !== undefined)
         && value.draws.every(part => part.depthOnly !== true || entry.assembly === 'objects'))), 'Unique scene model and choice identities with ordered shared LOD bands'));
 export type WorldSceneModels = v.InferOutput<typeof WorldSceneModelsSchema>;
 export function parseWorldSceneModels(input: unknown): WorldSceneModels { return v.parse(WorldSceneModelsSchema, input); }
+
+/** Both topology choices are admitted before any model can allocate. */
+export function worldSceneModelGraphs(entry: WorldSceneModels['models'][number]['choices'][number]): readonly v.InferOutput<typeof graphLeaf>[] {
+  if (entry.scene === undefined) return [];
+  const expand = (value: v.InferOutput<typeof graphChoice>): readonly v.InferOutput<typeof graphLeaf>[] => 'nodes' in value || 'file' in value ? [value] : [value.phone, value.desktop];
+  return 'knob' in entry.scene ? expand(entry.scene.false).concat(expand(entry.scene.true)) : expand(entry.scene);
+}
+/** Resource declarations include frozen specimens, without allocating their owner-local materials. */
+export function worldSceneModelResources(rows: WorldSceneModels, admitted: readonly WorldSceneWeld[] = []): { readonly geometry: readonly { readonly library: string; readonly model: string }[]; readonly materials: readonly string[] } {
+  const choices = rows.models.flatMap(entry => entry.choices), graphs = choices.flatMap(worldSceneModelGraphs).flatMap(entry => 'file' in entry ? [] : [entry]).concat(admitted);
+  const draws = choices.flatMap(entry => entry.draws.concat(entry.lods.flatMap(level => level.draws)));
+  return { geometry: [...draws, ...graphs.flatMap(graph => graph.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : []))],
+    materials: [...draws.map(entry => entry.material), ...graphs.flatMap(graph => {
+      const local = new Set(graph.materials.map(row => row.id));
+      return graph.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' && !local.has(node.material) ? [node.material] : [])
+        .concat(graph.materials.flatMap(row => row.source === undefined || local.has(row.source.material) ? [] : [row.source.material]));
+    })] };
+}

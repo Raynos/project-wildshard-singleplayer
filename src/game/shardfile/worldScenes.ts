@@ -1,12 +1,14 @@
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
-import { type BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from './worldSceneSurface';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
+import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs } from './worldSceneWeld';
+import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
@@ -15,7 +17,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldSceneModels, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { ShardContext } from '../plugin/context';
@@ -59,13 +61,15 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (library === undefined || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'owned' ? row.models.flatMap(model => [typeof model.file === 'string' ? model.file : model.file[TIER], ...model.segments ?? []]) : [...row.files.map(entry => entry.file), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
   }
   for (const row of section.materials) if (row.kind === 'surface') await admitWorldSceneSurface(row, product);
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
+  let modelScenes: ReadonlyMap<string, WorldSceneWeld> = new Map();
+  const frozenSlots = new Set<string>();
   if (section.catalogue !== undefined) {
     requireFile(section.catalogue);
     catalogue = parseWorldSceneModels(JSON.parse(decoder.decode(await product.file(section.catalogue))));
@@ -74,10 +78,45 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       reference(draw);
       if (libraryRows.get(draw.library)?.kind !== 'owned' || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
+    modelScenes = await admitWorldSceneModelGraphs(product, catalogue);
+    const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
+    for (const draw of resources.geometry) { reference(draw); if (libraryRows.get(draw.library)?.kind !== 'owned') throw new Error('Frozen specimens need owned geometry'); }
+    for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
+    for (const slot of worldSceneModelResources({ ...catalogue, models: catalogue.models.filter(model => model.assembly === 'scene') }, [...modelScenes.values()]).materials) frozenSlots.add(slot);
   }
   const immediate = new Set(section.steps.flatMap(step => Object.values(step.materials)));
   if (section.materials.some(row => row.kind === 'source' && row.load === 'placement' && immediate.has(row.id))) throw new Error('Deferred source material requires a named model placement');
-  const published = new Set<string>();
+  const published = new Set<string>(), sourceObjects = new Map<string, string>();
+  for (const row of section.materials) if (row.kind === 'source' && row.publishObject !== undefined) {
+    const key = JSON.stringify([row.url, row.aliases, row.anisotropy, row.anisotropyMaps, row.envMapIntensity]);
+    if (sourceObjects.has(row.publishObject) && sourceObjects.get(row.publishObject) !== key || slots.has(row.publishObject.slice('materials.'.length)) && row.publishObject.startsWith('materials.')) throw new Error('Source object publication differs');
+    sourceObjects.set(row.publishObject, key); published.add(row.publishObject);
+  }
+  const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>();
+  for (const declared of section.welds ?? []) {
+    const selected = worldSceneWeldFile(declared, product.shardfile.plumbing);
+    let row: WorldSceneWeld | undefined;
+    for (const file of worldSceneWeldFiles(declared)) {
+      requireFile(file);
+      const candidate = parseWorldSceneWeld(JSON.parse(decoder.decode(await product.file(file))));
+      if (candidate.id !== declared.id) throw new Error('Frozen scene blob identity differs');
+      for (const id of candidate.placements) deferredPlacements.add(id);
+      if (file === selected) row = candidate;
+    }
+    if (row === undefined) throw new Error('Missing selected frozen scene');
+    for (const resource of row.resources) {
+      if (resource.kind === 'geometry') reference(resource.source);
+      if (published.has(resource.id)) throw new Error('Duplicate frozen scene resource'); published.add(resource.id);
+    }
+    for (const node of row.nodes) {
+      if ('geometry' in node) reference(node.geometry);
+      if ('material' in node && node.material !== '$shadow' && !slots.has(node.material)) throw new Error('Missing frozen scene material slot');
+      if (published.has(node.id)) throw new Error('Duplicate frozen scene part identity');
+      published.add(node.id);
+    }
+    if (published.has(row.id)) throw new Error('Duplicate frozen scene identity');
+    published.add(row.id); welds.push(row);
+  }
   const batches = new Map((section.batches ?? []).map(row => [row.id, row])), reservations = new Map<string, number>();
   for (const row of batches.values()) {
     if (!slots.has(row.material)) throw new Error('Missing scene batch material');
@@ -136,7 +175,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     }
     await buildYield(resident);
   }
-  for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
+  for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) && !deferredPlacements.has(row.id) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>();
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   try {
@@ -146,7 +185,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         for (const model of row.models) {
           const file = typeof model.file === 'string' ? model.file : model.file[TIER];
           const geometry = createOwnedGeometry(product.url(file), model.attributes);
-          await geometry.load(await product.file(file)); models.set(model.id, geometry);
+          await geometry.load(await product.file(file), model.segments === undefined ? undefined : await Promise.all(model.segments.map(segment => product.file(segment)))); models.set(model.id, geometry);
           // Transfer on first use; later copies come from the independently owned original.
           await buildYield(owner);
         }
@@ -171,7 +210,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       await prepareWorldSceneSurfaces(surfaces, sky, product, owner);
     }
     for (const row of section.materials) {
-      if (row.kind === 'source' && row.load === 'placement') continue;
+      if (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id))
+        && !frozenSlots.has(row.id)) continue;
       const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
       if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
       let material: Material;
@@ -180,7 +220,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         material = await worldSceneSurfaceMaterial(row, sky, product, owner);
       } else if (row.kind === 'source') {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
-        material = await worldSceneSourceMaterial(row, sky, owner);
+        material = await worldSceneSourceMaterial(row, sky, owner, handles);
       } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
       else if (row.kind === 'lowpoly') {
@@ -196,6 +236,23 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       await buildYield(owner);
     }
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game, preparedBatches = new Map<string, WorldSceneBatch>();
+    for (const row of welds) {
+      for (const resource of row.resources) {
+        const shape = resource.kind === 'seeds' ? new BufferGeometry().setAttribute('seed', new BufferAttribute(new Float32Array(Uint32Array.from(resource.words).buffer), 4))
+          : libraries.get(resource.source.library)?.geometry(resource.source.model);
+        if (shape === undefined || shape === null) throw new Error('Missing frozen scene resource');
+        handles.publish(resource.id, shape); owner.onDispose(() => { shape.dispose(); handles.release(resource.id, shape); });
+      }
+      const geometry = new Map<string, BufferGeometry>();
+      for (const node of row.nodes) if ('geometry' in node) {
+        const key = JSON.stringify([node.geometry.library, node.geometry.model]);
+        if (geometry.has(key)) continue;
+        const shape = libraries.get(node.geometry.library)?.geometry(node.geometry.model);
+        if (shape === undefined || shape === null) throw new Error('Missing frozen scene geometry');
+        geometry.set(key, shape); owner.onDispose(() => { shape.dispose(); });
+      }
+      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, ctx.app.registry));
+    }
     if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
     for (const row of batches.values()) {
       const material = materials.get(row.material); if (material === undefined) throw new Error('Missing admitted scene batch material');
@@ -211,14 +268,14 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     }
     if (sky !== undefined && catalogue !== undefined) {
       const geometries = new Map<string, BufferGeometry>();
-      for (const draw of catalogue.models.flatMap(model => model.choices.flatMap(choice => [...choice.draws, ...choice.lods.flatMap(level => level.draws)]))) {
+      for (const draw of worldSceneModelResources(catalogue, [...modelScenes.values()]).geometry) {
         const key = JSON.stringify([draw.library, draw.model]);
         if (geometries.has(key)) continue;
         const geometry = libraries.get(draw.library)?.geometry(draw.model);
         if (geometry === undefined || geometry === null) throw new Error('Missing model catalogue source');
         geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); });
       }
-      bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing }, owner);
+      bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing, scenes: modelScenes }, owner);
       const definitions = defineWorldSceneCatalogue(catalogue);
       for (const row of placements) {
         const model = catalogue.models.find(entry => entry.key === row.model);

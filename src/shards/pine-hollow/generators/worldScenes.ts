@@ -3,6 +3,7 @@ import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
+import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
@@ -22,6 +23,7 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
 v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
 export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
+  ...CABIN_JSON_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
 export const SCENE_MODEL_BLOBS = [
@@ -31,7 +33,7 @@ export const SCENE_MODEL_BLOBS = [
 ];
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {
-  version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements, batches: MODEL_SCENES.batches,
+  version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements, batches: MODEL_SCENES.batches, welds: MODEL_SCENES.welds,
   libraries: [...MODEL_SCENES.libraries, { id: 'streams', kind: 'owned', models: [
     { id: 'water', file: 'models/stream-water.glb', attributes: { _awater: 'aWater' } },
     { id: 'quad', file: 'models/stream-quad.glb', attributes: {} },

@@ -95,6 +95,10 @@ export interface BuildingAssemblyRows<K extends string = string, P extends strin
   readonly role: BakedBuildingRole;
   readonly look: BakedBuildingLook<K>;
   readonly tier: BakedBuildingTier;
+  /** Frozen scene rows own all static shell meshes and their depth; only living nodes assemble here. */
+  readonly bakedStatic?: boolean;
+  /** Optional Z2 publication prefix for this building's root, dressing and native material loans. */
+  readonly publish?: string;
 }
 /** A smoke/ember cloud is either baked quads or a seed geometry instanced as unit quads. */
 export interface BuildingCloudRow {
@@ -188,6 +192,7 @@ const buildingAssembly = v.pipe(v.unknown(), v.check(isJsonData, 'Building assem
   geometry: refs, materials: v.strictObject({ parts: refs, particles: refs, glass: id, glow: id }), models: v.strictObject({ firePit: id, lantern: id }),
   role: v.picklist(['standalone', 'member', 'specimen']), look: BakedBuildingLookSchema,
   tier: v.strictObject({ detailDist: nonnegative, detailShadows: v.boolean(), sharedLights: v.boolean() }),
+  bakedStatic: v.exactOptional(v.boolean()), publish: v.exactOptional(id),
 }));
 /** Runtime admission for native and future Z2 publication; geometry/material references
  * are checked by the host against its platform-owned resource context next. */

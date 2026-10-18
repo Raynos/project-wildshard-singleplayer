@@ -6,9 +6,10 @@ import { ScenePointRefSchema, type ScenePointRef } from '@wildshard/format/scene
 import * as v from 'valibot';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
+import { WorldSceneWeldAssembly } from './worldSceneWeld';
 
 type NativePart = BufferGeometry | Material | Object3D;
-type Handle = NativePart | Vector3 | number | WorldScenePlacement | WorldSceneBatch | readonly ColliderDesc[];
+type Handle = NativePart | Vector3 | number | WorldScenePlacement | WorldSceneBatch | WorldSceneWeldAssembly | readonly ColliderDesc[];
 
 /** Client-only resident names for scene, building and native migration parts.
  * Resources are borrowed: the construction scope retains disposal ownership. */
@@ -47,6 +48,12 @@ export class SceneHandles {
     if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
     return placed;
   }
+  /** Restore a declared frozen graph once, after its living roots have been published. */
+  assemble(id: string): Promise<Object3D> {
+    const value = this.value(id);
+    if (!(value instanceof WorldSceneWeldAssembly)) throw new Error(`Expected frozen scene: ${id}`);
+    return value.assemble();
+  }
   /** Named placement floors use the admitted contact profile before or after drawing. */
   floorAt(id: string, x: number, z: number): number | undefined {
     const value = this.value(id);
@@ -84,4 +91,4 @@ export class SceneHandles {
 function group3(value: unknown): value is Group { return value instanceof Group; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
 function colliderRows(value: Handle): value is readonly ColliderDesc[] { return Array.isArray(value); }
-function nativeHandle(value: unknown): value is Handle { return value instanceof BufferGeometry || value instanceof Material || value instanceof Object3D || value instanceof Vector3 || value instanceof WorldScenePlacement || value instanceof WorldSceneBatch || typeof value === 'number' || Array.isArray(value); }
+function nativeHandle(value: unknown): value is Handle { return value instanceof BufferGeometry || value instanceof Material || value instanceof Object3D || value instanceof Vector3 || value instanceof WorldScenePlacement || value instanceof WorldSceneBatch || value instanceof WorldSceneWeldAssembly || typeof value === 'number' || Array.isArray(value); }

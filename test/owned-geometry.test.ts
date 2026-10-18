@@ -63,3 +63,42 @@ it('restores native half-float bits, packed vec4 normals and explicit identity i
     } finally { restored.dispose(); }
   } finally { geometry.dispose(); material.dispose(); }
 });
+
+
+it.each([false, true])('restores one native geometry from physical storage segments (indexed=%s)', async indexed => {
+  const material = new MeshStandardMaterial(), first = new BufferGeometry(), second = new BufferGeometry();
+  const a = Float32Array.of(-0, 0, 0, 1, 0, 0, 0, 1, 0), b = Float32Array.of(2, 0, 0, 3, 0, 0, 2, 1, 0);
+  const vertices = indexed ? Float32Array.from([...a, ...b]) : a;
+  first.setAttribute('position', new BufferAttribute(vertices, 3)); second.setAttribute('position', new BufferAttribute(indexed ? vertices.slice() : b, 3));
+  for (const shape of [first, second]) {
+    shape.setAttribute('normal', new BufferAttribute(Int16Array.from({ length: shape.getAttribute('position').count * 4 }, (_, i) => i % 4 === 2 ? 32767 : 0), 4, true));
+    shape.setAttribute('uv', new Float16BufferAttribute(Uint16Array.from({ length: shape.getAttribute('position').count * 2 }, (_, i) => i % 2 === 0 ? 15360 : 0), 2));
+  }
+  if (indexed) { first.setIndex(new BufferAttribute(Uint32Array.of(0, 1, 2), 1)); second.setIndex(new BufferAttribute(Uint32Array.of(3, 4, 5), 1)); }
+  const chunks = [first, second].map(geometry => staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true }]));
+  const intake = createOwnedGeometry('/quay-segments.glb');
+  try {
+    await intake.load(chunks[0], [chunks[1] ?? new Uint8Array()]);
+    const restored = intake.take();
+    try {
+      expect(restored.getAttribute('position').count).toBe(6);
+      expect(new Uint32Array(restored.getAttribute('position').array.buffer)).toEqual(new Uint32Array(Float32Array.from([...a, ...b]).buffer));
+      expect(restored.getAttribute('normal').array).toBeInstanceOf(Int16Array); expect(restored.getAttribute('normal').normalized).toBe(true); expect(restored.getAttribute('normal').itemSize).toBe(4);
+      expect(restored.getAttribute('uv')).toBeInstanceOf(Float16BufferAttribute);
+      if (indexed) expect(restored.index?.array).toEqual(Uint32Array.of(0, 1, 2, 3, 4, 5)); else expect(restored.index).toBeNull();
+    } finally { restored.dispose(); }
+  } finally { first.dispose(); second.dispose(); material.dispose(); }
+});
+
+it('refuses indexed segment vertex drift and can retry the immutable intake', async () => {
+  const material = new MeshStandardMaterial(), first = new BufferGeometry().setAttribute('position', new BufferAttribute(Float32Array.of(0, 0, 0, 1, 0, 0, 0, 1, 0), 3));
+  first.setIndex(new BufferAttribute(Uint32Array.of(0, 1, 2), 1));
+  const other = first.clone(); other.getAttribute('position').setX(0, 0.125);
+  const encode = (geometry: BufferGeometry) => staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true }]);
+  const a = encode(first), b = encode(other), intake = createOwnedGeometry('/quay-invalid.glb');
+  try {
+    await expect(intake.load(a, [])).rejects.toThrow('segment cap');
+    await expect(intake.load(a, [b])).rejects.toThrow('vertices differ'); expect(() => intake.take()).toThrow('not loaded');
+    await intake.load(a, [a]); const restored = intake.take(); expect(restored.index?.array).toEqual(Uint32Array.of(0, 1, 2, 0, 1, 2)); restored.dispose();
+  } finally { first.dispose(); other.dispose(); material.dispose(); }
+});

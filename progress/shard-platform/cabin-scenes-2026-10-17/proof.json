@@ -1,0 +1,1215 @@
+{
+  "date": "2026-10-18",
+  "checkedSourceTree": "8b98730e564b4e3df2e47fd418ffd7ed1d3cc09a",
+  "parent": "aa10b6304266a6408384195b3197ddbdbb2d36bd",
+  "ruler": {
+    "basis": "scripts/shard-platform.mjs source-basis component inventory in build mirror",
+    "before": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 3596,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 4541,
+      "sunscar-dunes": 392
+    },
+    "after": {
+      "_template": 1000,
+      "blender-template": 106,
+      "driftwood-isle": 3596,
+      "far-reach": 518,
+      "ink-cel-valley": 1122,
+      "nalati-grasslands": 20486,
+      "nine-dragon-stack": 11890,
+      "pastel-plain": 733,
+      "pine-hollow": 4239,
+      "sunscar-dunes": 392
+    },
+    "netShard": {
+      "pine-hollow": -302
+    },
+    "platform": {
+      "basis": "nonblank source code lines excluding comments; engine/game/sdk/format TS and MJS",
+      "files": [
+        {
+          "path": "src/engine/models/ownedGeometry.ts",
+          "before": 83,
+          "after": 134
+        },
+        {
+          "path": "src/engine/models/place.ts",
+          "before": 1012,
+          "after": 1018
+        },
+        {
+          "path": "src/format/buildings.ts",
+          "before": 143,
+          "after": 146
+        },
+        {
+          "path": "src/format/worldSceneModels.ts",
+          "before": 34,
+          "after": 54
+        },
+        {
+          "path": "src/format/worldSceneWeld.ts",
+          "before": 0,
+          "after": 68
+        },
+        {
+          "path": "src/format/worldScenes.ts",
+          "before": 50,
+          "after": 52
+        },
+        {
+          "path": "src/game/models/worldSceneCatalogue.ts",
+          "before": 170,
+          "after": 186
+        },
+        {
+          "path": "src/game/shardfile/buildingAssembly.ts",
+          "before": 231,
+          "after": 246
+        },
+        {
+          "path": "src/game/shardfile/sceneHandles.ts",
+          "before": 76,
+          "after": 82
+        },
+        {
+          "path": "src/game/shardfile/worldSceneMaterials.ts",
+          "before": 50,
+          "after": 60
+        },
+        {
+          "path": "src/game/shardfile/worldSceneWeld.ts",
+          "before": 0,
+          "after": 204
+        },
+        {
+          "path": "src/game/shardfile/worldScenes.ts",
+          "before": 269,
+          "after": 326
+        }
+      ],
+      "net": 458
+    },
+    "generators": {
+      "basis": "reported only; generators never enter custom shard ratio",
+      "shards": [
+        {
+          "shard": "pine-hollow",
+          "before": 15006,
+          "after": 16052,
+          "net": 1046
+        }
+      ]
+    },
+    "parentEvidence": "Actual 1a3ae518369d57075466ec8b8d2a26dc52615ef5 commit body and cold all-ten source-basis receipt progress/shard-platform/maps-batch-2026-10-17-9/all10-source-ruler.json on aa10b6304266a6408384195b3197ddbdbb2d36bd: Pine4541/DW3596, AS452/119. Final post-generation source equivalence is checked again in the build mirror."
+  },
+  "producerReceipt": "progress/shard-platform/pine-cabin-bake-2026-10-17/producer-proof.json",
+  "checks": {
+    "proofs": {
+      "checks": "20261018T004427-x9-cabin-closure-checks-91886",
+      "nativeWalk": "20261018T005500-x9-cabin-closure-native-walk-56886",
+      "floor": "20261018T010946-x9-cabin-paired-floor-clean-25282",
+      "finalPostGen": "20261018T011118-x9-cabin-final-postgen-27788"
+    },
+    "generation": true,
+    "rootTypes": true,
+    "layerTypes": true,
+    "scriptTypes": true,
+    "typedLint": true,
+    "products": 10,
+    "headlessCases": 17,
+    "testFiles": 11,
+    "tests": 65
+  },
+  "native": {
+    "pass": true,
+    "before": {
+      "build": "e3bddc4-mvddg3ay",
+      "phase": "midday",
+      "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 290115164,
+          "programs": 166,
+          "shaderCount": 268,
+          "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64",
+          "shaderCode": "e7407bf33130bcdf2f80d73dc692ae03d58f0a8dae1255d6ac9c7d22d965cd3f"
+        },
+        "desktop": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 607318452,
+          "programs": 182,
+          "shaderCount": 290,
+          "shaders": "eb3f7ceb8be577767936977cf9db49f7aef86ff0b4f10a8d1445f917aed9864c",
+          "shaderCode": "48bb574f9ff29c799d40f238eaa1a0a6dc84aa44c7191499375baec249004526"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 73,
+          "triangles": 993685,
+          "lit": 1095048,
+          "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 63,
+          "triangles": 908269,
+          "lit": 1095048,
+          "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 48,
+          "triangles": 844956,
+          "lit": 1095048,
+          "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 44,
+          "triangles": 801689,
+          "lit": 1095048,
+          "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 39,
+          "triangles": 796026,
+          "lit": 1095048,
+          "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 102,
+          "triangles": 1129254,
+          "lit": 1089140,
+          "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4498,
+          "lit": 26199,
+          "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 2927,
+          "lit": 42396,
+          "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4000,
+          "lit": 37044,
+          "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4500,
+          "lit": 39854,
+          "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 170,
+          "triangles": 6432911,
+          "lit": 615663,
+          "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 126,
+          "triangles": 6041308,
+          "lit": 615663,
+          "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 91,
+          "triangles": 5795644,
+          "lit": 615663,
+          "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 84,
+          "triangles": 5754237,
+          "lit": 615663,
+          "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 77,
+          "triangles": 5630076,
+          "lit": 615663,
+          "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 203,
+          "triangles": 7508744,
+          "lit": 612909,
+          "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 6988,
+          "lit": 14709,
+          "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 5477,
+          "lit": 23492,
+          "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 7996,
+          "lit": 20856,
+          "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 8999,
+          "lit": 21576,
+          "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+        }
+      ]
+    },
+    "after": {
+      "build": "e530843-mvdewigv",
+      "phase": "midday",
+      "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+      "tiers": {
+        "phone": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 290115164,
+          "programs": 166,
+          "shaderCount": 268,
+          "shaders": "7a18ec0141b42bf40e6ea48990a797c9733fbc2f2bcb35687d7e2e5893ecdf64",
+          "shaderCode": "e7407bf33130bcdf2f80d73dc692ae03d58f0a8dae1255d6ac9c7d22d965cd3f"
+        },
+        "desktop": {
+          "pieces": 50,
+          "colliderCount": 2034,
+          "colliders": "e911394956e4578ed080e348e5654a6344253dc09db5733a6c29385cdb6aec0e",
+          "gpuBytes": 607318452,
+          "programs": 182,
+          "shaderCount": 290,
+          "shaders": "d6ee4504faf68d16bd9b796cc2e381e50f22c3911a7d9e39d2855f4e1f20519c",
+          "shaderCode": "48bb574f9ff29c799d40f238eaa1a0a6dc84aa44c7191499375baec249004526"
+        }
+      },
+      "rows": [
+        {
+          "tier": "phone",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 73,
+          "triangles": 993685,
+          "lit": 1095048,
+          "pixels": "6e1f315192fb3e5f427149d768127adce40b228359db734f153314a27008c764"
+        },
+        {
+          "tier": "phone",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 63,
+          "triangles": 908269,
+          "lit": 1095048,
+          "pixels": "ca14c3257a317a3f642df7a4e98d888e77ff5bca5e001f3c4fc30509d0a6acbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 48,
+          "triangles": 844956,
+          "lit": 1095048,
+          "pixels": "ddb0df58864f9ef27d5f9ebe54e63c1834c6a2b72fb79f0d16d47dba026573b9"
+        },
+        {
+          "tier": "phone",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 44,
+          "triangles": 801689,
+          "lit": 1095048,
+          "pixels": "f1a7913ed9f4ad6585e7d499d42e97de1d30a9f553c8aeb792d9a404eb286895"
+        },
+        {
+          "tier": "phone",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 39,
+          "triangles": 796026,
+          "lit": 1095048,
+          "pixels": "d78ea09db90f9609ba0db304c9486ca5cec799d7494882dc311e01790b09098a"
+        },
+        {
+          "tier": "phone",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 102,
+          "triangles": 1129254,
+          "lit": 1089140,
+          "pixels": "d6ff45963f8c755cbb096a89469a947b65169fd6f82aa32ced54e5a5b3da185e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4498,
+          "lit": 26199,
+          "pixels": "0f271bef8973793c264c724ab3d62939591d94fe9f35a9e278e5eb0940cca3ae"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 2927,
+          "lit": 42396,
+          "pixels": "96648113d0bcd034bf6e65d8accb88e5b6771c02b527e4b15d1c117dff284bbe"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4000,
+          "lit": 37044,
+          "pixels": "d9b264eae6a1d8073c066b579efc0e06529b467893d653c77cf0db837a313a1e"
+        },
+        {
+          "tier": "phone",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 804,
+          "height": 1362,
+          "calls": 1,
+          "triangles": 4500,
+          "lit": 39854,
+          "pixels": "37421ee65e553f33937dcb9b439439a5a2e25ffe979e2433cbd54bac8bc614f3"
+        },
+        {
+          "tier": "desktop",
+          "pose": "gate",
+          "player": [
+            0,
+            0.1,
+            -200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 170,
+          "triangles": 6432911,
+          "lit": 615663,
+          "pixels": "7c930c60064686085e0845fa6afd6f6a779e6426fc18b49e55ab3be74a326709"
+        },
+        {
+          "tier": "desktop",
+          "pose": "ranger-cabin",
+          "player": [
+            -14,
+            2.1,
+            -62
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 126,
+          "triangles": 6041308,
+          "lit": 615663,
+          "pixels": "488084ea9fe8394976ee78a4a8be89a6dc9b21115bb1be63e6c8eab20f729a8a"
+        },
+        {
+          "tier": "desktop",
+          "pose": "pond",
+          "player": [
+            -56,
+            -0.7,
+            95
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 91,
+          "triangles": 5795644,
+          "lit": 615663,
+          "pixels": "8c9d3f66124c0b9af5c50b8a581c5b6e0bdf2cdadf4bff95f60cd57089281ff0"
+        },
+        {
+          "tier": "desktop",
+          "pose": "mill",
+          "player": [
+            80,
+            3.5,
+            112
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 84,
+          "triangles": 5754237,
+          "lit": 615663,
+          "pixels": "a805f04ce29bdd580e97ef13c9157e70cf546a550153dbdf4cd3ba0f5a101cd4"
+        },
+        {
+          "tier": "desktop",
+          "pose": "lookout",
+          "player": [
+            170,
+            8,
+            -140
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 77,
+          "triangles": 5630076,
+          "lit": 615663,
+          "pixels": "33d2cb8e0daf6f9ec7deafaa372b9dfef865fdcf68bcd1a3e849337c573a0b16"
+        },
+        {
+          "tier": "desktop",
+          "pose": "north",
+          "player": [
+            0,
+            0.2,
+            200
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 203,
+          "triangles": 7508744,
+          "lit": 612909,
+          "pixels": "738a2b7ef15012dcc678a6f30bef314d53eec6aeb663344786dac70b6d489c5d"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:bear",
+          "player": [
+            1.31,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 6988,
+          "lit": 14709,
+          "pixels": "2934358054db189a7bffe292a6ed249ab7b6bc9cae225ab136cac2eb1dcfb661"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:boar",
+          "player": [
+            0.977,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 5477,
+          "lit": 23492,
+          "pixels": "3391f126a8b3a2ec9b099fc0343b305c20bdce67148ede3975516f59ae8ed443"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:deer",
+          "player": [
+            1.091,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 7996,
+          "lit": 20856,
+          "pixels": "1ed4d9d7416f772251f31343be37bec0703cbd9f183f15fac6198daa42455481"
+        },
+        {
+          "tier": "desktop",
+          "pose": "creature:elk",
+          "player": [
+            1.105,
+            20,
+            0
+          ],
+          "width": 603,
+          "height": 1021,
+          "calls": 1,
+          "triangles": 8999,
+          "lit": 21576,
+          "pixels": "65e542e94ec6bbb934912eb145cd60fd9b860d33174dcd1badbe01ddffa08bf1"
+        }
+      ]
+    },
+    "sourceEquivalence": {
+      "explanation": "Final e530 native20 exactly matches the fresh shipping e3 baseline in pixels, draws, triangles, GPU, raw shaders and contacts. AmbientLife actual1a3 preserves native content with its exact1000+1200 proof; paired desktop floor uses served actual1a3. Ninth aa10 changes only workflow/docs/map stamps and appended DW map input declarations; no executable source delta. Final post-gen source equivalence receipt records every changed path.",
+      "finalRebase": {
+        "from": "e530843e71fa13ed4415a2c2063d3c62f82621f1",
+        "to": "8b98730e564b4e3df2e47fd418ffd7ed1d3cc09a",
+        "changedNonExecutablePaths": [
+          ".github/workflows/boot-smoke.yml",
+          "progress/shard-platform/maps-batch-2026-10-17-9/all10-source-ruler.json",
+          "progress/shard-platform/maps-batch-2026-10-17-9/clean-bake.json",
+          "progress/shard-platform/maps-batch-2026-10-17-9/driftwood-isle-inputs.json",
+          "progress/shard-platform/maps-batch-2026-10-17-9/pine-hollow-inputs.json",
+          "progress/shard-platform/maps-batch-2026-10-17-9/pine-phone.json",
+          "project/disk-audit-2026-10-15.md",
+          "src/shards/driftwood-isle/look/map.baked.json",
+          "src/shards/driftwood-isle/look/map.json",
+          "src/shards/pine-hollow/look/map.baked.json"
+        ],
+        "allTenProducts": true,
+        "sameOfficialSourceInventory": true
+      }
+    }
+  },
+  "physics": {
+    "receipt": "progress/physics/x9-cabins-e530843e7-e530843-mvdewigv.json",
+    "routes": 7,
+    "stuck": 0,
+    "walk": [
+      {
+        "shard": "pine-hollow",
+        "name": "cabin-porch",
+        "frames": 1328,
+        "seconds": 44.3,
+        "end": {
+          "x": -10.109,
+          "y": 3.833,
+          "z": -34.423
+        },
+        "expectY": 3.815,
+        "maxY": 4.25,
+        "groundSpeedP50": 4.24,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "pond",
+        "frames": 1348,
+        "seconds": 44.9,
+        "end": {
+          "x": -63.882,
+          "y": -2.005,
+          "z": 109.25
+        },
+        "expectY": -2.01,
+        "maxY": 3.82,
+        "groundSpeedP50": 4.3,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lookout-climb",
+        "frames": 347,
+        "seconds": 11.6,
+        "end": {
+          "x": 34.801,
+          "y": 57.477,
+          "z": 211.351
+        },
+        "expectY": 57.46,
+        "maxY": 57.48,
+        "groundSpeedP50": 2.65,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "zip-landing",
+        "frames": 66,
+        "seconds": 2.2,
+        "end": {
+          "x": 3.242,
+          "y": 3.304,
+          "z": 20.128
+        },
+        "expectY": 3.29,
+        "maxY": 3.31,
+        "groundSpeedP50": 3.93,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "creek-bridge",
+        "frames": 225,
+        "seconds": 7.5,
+        "end": {
+          "x": -135.967,
+          "y": 1.488,
+          "z": -5.3
+        },
+        "expectY": 1.42,
+        "maxY": 1.53,
+        "groundSpeedP50": 4.26,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "lodge-porch",
+        "frames": 46,
+        "seconds": 1.5,
+        "end": {
+          "x": -165.198,
+          "y": -0.16,
+          "z": -114.231
+        },
+        "expectY": -0.18,
+        "maxY": -0.16,
+        "groundSpeedP50": 4.22,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      },
+      {
+        "shard": "pine-hollow",
+        "name": "den-cave",
+        "frames": 341,
+        "seconds": 11.4,
+        "end": {
+          "x": 218.91,
+          "y": 8.036,
+          "z": 217.581
+        },
+        "expectY": 8.01,
+        "maxY": 9.07,
+        "groundSpeedP50": 4.33,
+        "airFrames": 0,
+        "swimFrames": 0,
+        "slideFrames": 0,
+        "stuck": []
+      }
+    ]
+  },
+  "desktopFloor": {
+    "parent": {
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x9-cabins/floor-pair/parent/1a3ae5183-25308-1792303786722.json",
+      "pass": true,
+      "fps": 59.88,
+      "p95": 16.8,
+      "p99": 16.8,
+      "workP95": 10.5,
+      "longFrames": 0,
+      "rows": [
+        {
+          "pose": {
+            "name": "spawn",
+            "x": -3.095993744720027e-06,
+            "y": 0.012599999536178075,
+            "z": -234.99999984452614,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "workP95Ms": 10.1,
+          "calls": 274,
+          "triangles": 8860116,
+          "pass": true
+        },
+        {
+          "pose": {
+            "name": "gate",
+            "x": 0,
+            "z": -200,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.8,
+          "p99Ms": 16.8,
+          "workP95Ms": 9.7,
+          "calls": 265,
+          "triangles": 8210677,
+          "pass": true
+        },
+        {
+          "pose": {
+            "name": "cabin",
+            "x": -14,
+            "z": -62,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "workP95Ms": 10.5,
+          "calls": 281,
+          "triangles": 9114397,
+          "pass": true
+        }
+      ]
+    },
+    "candidate": {
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x9-cabins/floor-pair/candidate/e530843e7-26125-1792303820863.json",
+      "pass": true,
+      "fps": 59.88,
+      "p95": 16.7,
+      "p99": 16.8,
+      "workP95": 9.5,
+      "longFrames": 0,
+      "rows": [
+        {
+          "pose": {
+            "name": "spawn",
+            "x": -3.1033977297006965e-06,
+            "y": 0.012499999538704287,
+            "z": -234.99999984082416,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "workP95Ms": 9.5,
+          "calls": 274,
+          "triangles": 8860116,
+          "pass": true
+        },
+        {
+          "pose": {
+            "name": "gate",
+            "x": 0,
+            "z": -200,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "workP95Ms": 9.5,
+          "calls": 265,
+          "triangles": 8203667,
+          "pass": true
+        },
+        {
+          "pose": {
+            "name": "pond",
+            "x": -56,
+            "z": 95,
+            "yaw": 3.141592653589793,
+            "pitch": 0
+          },
+          "medianFps": 59.88,
+          "p95Ms": 16.7,
+          "p99Ms": 16.8,
+          "workP95Ms": 8.9,
+          "calls": 180,
+          "triangles": 5138500,
+          "pass": true
+        }
+      ]
+    },
+    "notRegressed": true
+  },
+  "priorContaminatedFloor": {
+    "proof": "20261018T010730-x9-cabin-paired-floor-18289",
+    "status": "superseded: Simulator overlap",
+    "simulatorWorker": 14119,
+    "reason": "Coordinator reported sp-x6 A1 Simulator surface still active at quiet-window start. Preserve both readings and repeat both baseline/candidate after explicit Simulator release.",
+    "reading": {
+      "parent": {
+        "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x9-cabins/floor-pair/parent/1a3ae5183-18315-1792303651148.json",
+        "pass": false,
+        "fps": 59.88,
+        "p95": 33.4,
+        "p99": 33.4,
+        "workP95": 11.5,
+        "longFrames": 0,
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.139891780148951e-06,
+              "y": 0.01279999953112565,
+              "z": -234.99999981161707,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 33.3,
+            "p99Ms": 33.4,
+            "workP95Ms": 10.5,
+            "calls": 274,
+            "triangles": 8860116,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "cabin",
+              "x": -14,
+              "z": -62,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 33.4,
+            "p99Ms": 33.4,
+            "workP95Ms": 11.5,
+            "calls": 279,
+            "triangles": 9082750,
+            "pass": false
+          },
+          {
+            "pose": {
+              "name": "pond",
+              "x": -56,
+              "z": 95,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.8,
+            "p99Ms": 33.4,
+            "workP95Ms": 10.3,
+            "calls": 181,
+            "triangles": 5101755,
+            "pass": true
+          }
+        ]
+      },
+      "candidate": {
+        "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-x9-cabins/floor-pair/candidate/e530843e7-21571-1792303689172.json",
+        "pass": false,
+        "fps": 59.88,
+        "p95": 33.3,
+        "p99": 33.4,
+        "workP95": 11.1,
+        "longFrames": 0,
+        "rows": [
+          {
+            "pose": {
+              "name": "spawn",
+              "x": -3.1602391418195097e-06,
+              "y": 0.01369999950111378,
+              "z": -234.99999983634078,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 16.8,
+            "workP95Ms": 10,
+            "calls": 274,
+            "triangles": 8860116,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "gate",
+              "x": 0,
+              "z": -200,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 16.7,
+            "p99Ms": 16.8,
+            "workP95Ms": 10.2,
+            "calls": 266,
+            "triangles": 8157469,
+            "pass": true
+          },
+          {
+            "pose": {
+              "name": "cabin",
+              "x": -14,
+              "z": -62,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "medianFps": 59.88,
+            "p95Ms": 33.3,
+            "p99Ms": 33.4,
+            "workP95Ms": 11.1,
+            "calls": 282,
+            "triangles": 9121438,
+            "pass": false
+          }
+        ]
+      },
+      "notRegressed": true
+    },
+    "simulatorRelease": {
+      "wrapper": 13544,
+      "at": "2026-10-18T06:09:37+00:00",
+      "receipt": "sp-x6 explicit natural surface completion; ABBA parent5740 and mirror waiter12835 remain stopped until BOTH-surface release"
+    }
+  },
+  "hostBar": {
+    "score": "5/6",
+    "test1Exception": "G483 approved Z2 extension; fictional Quay fixture"
+  },
+  "deleted": [
+    "src/shards/pine-hollow/runtime/models/logCabin.ts",
+    "src/shards/pine-hollow/runtime/models/stoneFirePit.ts",
+    "src/shards/pine-hollow/runtime/models/woodenCrate.ts",
+    "src/shards/pine-hollow/runtime/world/cabinKit.ts",
+    "src/shards/pine-hollow/runtime/world/cabins.ts"
+  ],
+  "maps": "Source-only G490 tenth window; sp-x10 owns official refresh and strict stamp closure"
+}

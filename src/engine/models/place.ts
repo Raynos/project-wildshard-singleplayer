@@ -131,7 +131,7 @@ export interface HandedBatch {
 /**
  * Copies drawn by the set they stand in, not by `place` (M3): each Nalati place is ONE painted mesh — every model of a
  * camp or a kurgan field welded into one kit, painted per vertex in world space and AO-baked against the terrain
- * together (src/shards/nalati-grasslands/world/painted.ts) — and its generated models are instanced per place when their file lands. The
+ * together — and its generated models are instanced per place when their file lands. The
  * object stays where its set put it (the registry's piece goes without it). The model's own-space colliders still go to
  * each placement; `colliders` are the ones the copies made in world space as they were drawn (a model fitted to the
  * ground under it). A `drawn-hull` collider needs `place` to draw.
@@ -228,6 +228,15 @@ function stopCuller(life: Life, c: Culler): void {
   if (at !== -1) life.cullers.splice(at, 1);
   const i = cullers.indexOf(c);
   if (i !== -1) { cullers.splice(i, 1); cullerLives.splice(i, 1); }
+}
+
+/** Attach restored weld bands to ordinary placed-model culling. The resident
+ * owns the culler; retiring either lifetime removes it before another frame. */
+export function installWeldCulling(registry: WorldRegistry | null, owner: Scope, cull: WeldCull): void {
+  if (owner.disposed) throw new Error('Weld culling requires a live owner');
+  const life = lifeOf(registry), update: Culler = camera => { cull.update(camera); };
+  startCuller(life, update);
+  owner.onDispose(() => { stopCuller(life, update); });
 }
 /**
  * The owner a `place` call was made under, when it ends before its world does (SF57): a borrowed home's entry places into

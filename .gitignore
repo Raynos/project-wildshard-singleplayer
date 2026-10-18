@@ -2021,3 +2021,6 @@ src/shards/pine-hollow/data/cabins.d.json.ts
 src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/pine-hollow/behaviour/life.generated.json
+
+/src/shards/pine-hollow/assets/cabin-scenes/
+/src/shards/pine-hollow/data/cabinScenes.generated.json

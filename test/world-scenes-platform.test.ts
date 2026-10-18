@@ -265,10 +265,12 @@ test('authored raw LODs and deferred named placements retain their native model 
   } finally { vi.restoreAllMocks(); context.scope.dispose(); }
 });
 
-test('source PBR slots preserve original maps and own material retirement', async () => {
+test.each(['material', 'object'] as const)('source PBR %s intake shares original maps and owns retirement', async mode => {
   const [{ worldSceneSourceMaterial }, rig, { SkyRig }, { Texture, BufferGeometry }, { GLTFLoader }] = await Promise.all([
     import('../src/game/shardfile/worldSceneMaterials'), import('../src/engine/anim/rig'), import('../src/engine/world/skyRig'), import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'),
   ]);
+  const { SceneHandles } = await import('../src/game/shardfile/sceneHandles');
+  const handles = new SceneHandles();
   const owner = new Scope('pbr-source-fixture'), sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   const setup = vi.fn(); Object.defineProperty(sky, 'setupMaterial', { value: setup });
@@ -278,14 +280,19 @@ test('source PBR slots preserve original maps and own material retirement', asyn
   const file = await new GLTFLoader().parseAsync(Uint8Array.from(triangle()).buffer, '');
   file.scene.clear(); file.scene.add(...scene.children);
   const loader = vi.spyOn(rig, 'loadRigFile').mockResolvedValue(file);
-  const rows = parseWorldScenes({ version: 1, libraries: [], materials: [{ id: 'pbr', kind: 'source', url: '/fixture.glb', aliases: { '/fixture.glb': '/material-only.glb' }, anisotropy: 4, envMapIntensity: 0.8 }], steps: [] });
+  const rows = parseWorldScenes({ version: 1, libraries: [], materials: [{ id: 'pbr', kind: 'source', url: '/fixture.glb', ...(mode === 'object' ? { publishObject: 'fixture-source' } : {}), aliases: { '/fixture.glb': '/material-only.glb' }, anisotropy: 4, envMapIntensity: 0.8 }], steps: [] });
   const row = rows.materials[0]; if (row?.kind !== 'source') throw new Error('Missing material fixture');
   try {
-    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
-    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, owner, handles)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, owner, handles)).toBe(material);
     expect(loader).toHaveBeenCalledTimes(1); expect(loader).toHaveBeenCalledWith('/fixture.glb', row.aliases);
     expect(setup).toHaveBeenCalledWith(material); expect(texture.anisotropy).toBe(4); expect(material.envMapIntensity).toBe(0.8);
-    expect(released).toHaveBeenCalledOnce(); owner.dispose(); expect(disposed).toHaveBeenCalledOnce();
+    if (mode === 'object') {
+      const root = handles.object('fixture-source'); expect(root).toBe(file.scene);
+      const mesh = root.children[0]; if (!(mesh instanceof Mesh)) throw new Error('Missing retained source mesh');
+      expect(mesh.geometry).toBe(geometry); expect(mesh.material).toBe(material); expect(released).not.toHaveBeenCalled();
+    } else expect(released).toHaveBeenCalledOnce();
+    owner.dispose(); expect(disposed).toHaveBeenCalledOnce(); expect(released).toHaveBeenCalledOnce(); expect(handles.has('fixture-source')).toBe(false);
   } finally { loader.mockRestore(); owner.dispose(); }
 });
 

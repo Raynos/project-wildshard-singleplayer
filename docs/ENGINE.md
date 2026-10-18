@@ -9601,6 +9601,63 @@ sequence, words, rewards and save wire. The pending-user entry names the
 contracts + elites feature and the W3 recheck.
 
 
+Owned model rows may name bounded ordered `segments` after their first GLB.
+Indexed segments retain identical typed vertex channels and consecutive original
+index slices; intake validates their bytes and descriptors, then restores the
+single original index buffer. Non-indexed segments append typed channel bytes.
+Every GLB still passes normal SDK caps; the restored geometry has a 25 MB cap.
+Storage partitioning changes neither scene topology nor native draw count.
+
+A `world/scenes.materials` source row may declare `publishObject` to lend its
+original loaded root through SceneHandles. Rows sharing one source file and
+preparation policy share that root, original materials, maps and geometry;
+conflicting publications refuse before allocation. The resident scope owns the
+source resources; living assemblies borrow them without a second model intake.
+Material-only source rows continue to release their unused geometry immediately.
+
+`world/scenes.welds` names deferred frozen draw graphs. The client-only
+`game/shardfile/worldSceneWeld` hydrator restores their native draw topology. `await
+handles.assemble(id)` restores a graph after its living roots have been published,
+then executes its ordered named placements and sets. It uses the same
+SceneHandles registry as other scene parts. A source can select files by tier
+and by an independent declared boolean knob. Geometry topology follows the
+resolved override; distance bands retain `{ knob, multiply, add }` references.
+All bounded profile files admit their deferred placement references before
+allocation; inactive profiles allocate no scene resources.
+
+`@wildshard/format/worldSceneWeld` admits bounded ordered groups, plain anchors, ordinary
+meshes, instances, weld batches, shared-buffer selection views, seed clouds and
+point lights. Native Float32 instances and Float64 matrices/TRS use uint32 words
+to preserve signed zero. Views restore attribute subarrays over a non-indexed
+batch; they never load another geometry. No geometry merge, weld or depth-proxy
+builder runs during hydration. The existing engine WeldCull owns distance and
+hosted-instance updates through `installWeldCulling` and normal placed-model
+culling. Disposing the resident removes that culler and only its owned nodes and
+buffers; borrowed living roots, materials and maps remain their owner's.
+
+A model choice with `assembly: 'scene'` carries a complete frozen specimen graph
+or a `{ file }` leaf naming a declared JSON blob. Leaves can be selected by tier
+and by a boolean quality knob. Async catalogue intake validates every named
+graph separately before geometry loads; synchronous specimen construction uses
+those admitted recipes. The small catalogue retains its original JSON limit.
+An optional graph `result` returns its actual native root, including a sole
+mesh. Each specimen gets fresh
+handles and owner-local materials, with native constructor defaults and only the
+maps explicitly copied from a declared source slot. It never installs world
+culling, placements or sets. Material construction order, hierarchy, transforms,
+bounds, layers and instance storage are authored facts. `worldSceneModelResources`
+includes those graphs in admission and cold product intake without constructing
+their materials early.
+
+Frozen world `resources` publish a bounded geometry reference or Float32 seed
+block before living construction. Deferred placements may borrow live named
+objects; their handles resolve when the assembled graph executes those rows.
+
+The living-building assembly accepts `bakedStatic: true` when scene rows own its
+shell, glass and static depth. Doors, lamps, fires, swings, particles and moving
+wheel remain living nodes. An optional publication prefix exposes its root,
+fire pit, lantern and ordered lantern-material loans through SceneHandles.
+
 ### Population Script ABI spawn and retire (G474, G484)
 
 `game/population/spawnScript` owns ABI-v1 `spawn` (5) and `despawn` (6)

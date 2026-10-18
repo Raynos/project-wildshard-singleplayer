@@ -188,7 +188,8 @@
     "./inputDeclarations": "./inputDeclarations.ts",
     "./sceneRefs": "./sceneRefs.ts",
     "./worldSceneSurface": "./worldSceneSurface.ts",
-    "./pageLife": "./pageLife.ts"
+    "./pageLife": "./pageLife.ts",
+    "./worldSceneWeld": "./worldSceneWeld.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
