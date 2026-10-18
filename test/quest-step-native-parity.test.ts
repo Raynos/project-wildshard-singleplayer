@@ -20,11 +20,16 @@ const Proof = v.object({ replay: v.object({ status: v.literal('passed'), checkpo
 const SavedValue: v.GenericSchema<unknown, SimValue> = v.lazy(() => v.union([
   v.null(), v.boolean(), v.pipe(v.number(), v.finite()), v.string(), v.array(SavedValue), v.record(v.string(), SavedValue),
 ]));
-// A cold Linux recorder plus replay exceeds 110 s; retain a bounded process deadline.
+// Cold recording and strict replay each keep their own bounded process deadline.
 for (const [slug, witness] of [
   ['driftwood-isle', (mode: string) => driftwoodWitness(mode, 270_000)],
   ['pine-hollow', (mode: string) => pineWitness(mode, 270_000)],
-] as const)
+] as const) {
+  test(`${slug}: recorded native checkpoints regenerate and verify before replay`, () => {
+    const result = witness('cache-verify');
+    expect(result.status, `${result.stderr}\n${result.stdout}`).toBe(0);
+    expect(v.parse(v.object({ status: v.literal('generated') }), JSON.parse(result.stdout.split('\n').at(-1) ?? 'null')).status).toBe('generated');
+  }, 300_000);
   test(`${slug}: recorded native quest saves restore and replay byte-identically`, () => {
     const result = witness(slug === 'driftwood-isle' ? 'replay-strict' : 'replay');
     expect(result.status, `${result.stderr}\n${result.stdout}`).toBe(0);
@@ -32,6 +37,7 @@ for (const [slug, witness] of [
     expect(proof.replay.replayHash).toBe(proof.replay.hash);
     if (slug === 'driftwood-isle') { expect(proof.replay.workerExact).toBe(true); expect(proof.replay.workerTicks).toBe(1000); }
   }, 300_000);
+}
 
 for (const slug of ['driftwood-isle', 'pine-hollow'] as const)
   test(`${slug}: an existing native quest envelope retains its exact bytes`, async () => {
