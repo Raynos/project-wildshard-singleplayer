@@ -92,7 +92,8 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
-        "src/format/package.json"
+        "src/format/package.json",
+        "src/shards/nalati-grasslands/data/qyranProfile.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/layout.generated.json",
@@ -20131,6 +20132,36 @@
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "nalati-elite-charge",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/qaraCharge.as",
+        "src/shards/nalati-grasslands/data/ecology.generated.json",
+        "src/shards/nalati-grasslands/generators/eliteCharge.ts",
+        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs"
+      ],
+      "catalogueDependencies": [
+        "nalati-layout"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/eliteCharge.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/eliteCharge.generated.json"
       ],
       "platform": "portable"
     }

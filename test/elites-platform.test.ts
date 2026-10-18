@@ -112,3 +112,42 @@ test('a made-up reed guardian drives different species, slots and laws through t
     expect(script.program.body('guardian')?.entityId).toBe(bodies[0]);
   } finally { host.dispose(); }
 }, 60_000);
+
+test('Nalati captain charges on the 10 Hz guest and leashing cancels its attack', async () => {
+  const { charge } = await import('../src/shards/nalati-grasslands/generators/eliteCharge');
+  const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
+  const { parseSpawnScript, spawnScriptRegistries } = await import('../src/format/spawnScripts');
+  const { decisionBindingMap } = await import('../src/format/decisionBindings');
+  const { actorDecisionRows } = await import('../src/format/decisionScripts');
+  const { DecisionHost } = await import('../src/engine/script/decision');
+  const rows = parseSpawnScript(charge), registry = spawnScriptRegistries(rows);
+  const built = await compileDecisionScripts([rows.script], registry, new Map([[rows.script.source,
+    readFileSync(`src/shards/nalati-grasslands/${rows.script.source}`, 'utf8')]]), { asLineCeiling: 2837 });
+  const row = built.rows.at(0), blob = built.blobs.at(0);
+  if (row === undefined || blob === undefined) throw new Error('Missing captain guest');
+  const ids = decisionBindingMap(row, registry).ids;
+  const resolved = actorDecisionRows(row).map(script => Object.assign(script, { ids,
+    reads: ['x', 'z', 'yaw', 'alive', 'nearestPlayer', 'field', 'strikeState'] as const, lists: [] }));
+  const commands: number[] = [], failures: string[] = [];
+  let leashing = false;
+  const host = new DecisionHost({ scripts: resolved, bindings: [{ id: 1, script: resolved.at(0)?.id ?? row.id, self: 1, actors: [1], instance: 0 }],
+    modules: new Map([[row.module, blob.bytes]]), seed: [4501, 0], limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 },
+    world: { read: (op, actor, field) => {
+      if (op === 1) return actor === 1 ? 0 : 10;
+      if (op === 6) return 1;
+      if (op === 9) return 2;
+      if (op === 7) return field === ids.fields?.['engaged'] ? 1 : field === ids.fields?.['leashing'] ? Number(leashing) : 0;
+      return 0;
+    }, list: () => 0, failed: (_mode, _context, reason) => { failures.push(reason); },
+    prepare: batch => ({ commit: () => { commands.push(...batch.map(command => command[0])); } }) },
+  });
+  for (let tick = 1; tick <= 240; tick++) host.step(tick);
+  expect(failures).toEqual([]);
+  expect(commands.filter(op => op === 2)).toHaveLength(1);
+  expect(host.metrics()[0]?.calls).toBeLessThanOrEqual(40);
+  leashing = true; commands.length = 0;
+  for (let tick = 241; tick <= 300; tick++) host.step(tick);
+  expect(failures).toEqual([]);
+  expect(commands).toContain(3);
+  expect(commands).not.toContain(2);
+});

@@ -1,3 +1,4 @@
+import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { readDataPanels } from '@wildshard/sdk/dataPanels';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
@@ -255,7 +256,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   if (updates.length === lookSlot) updates.push(() => undefined);
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
-  const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.dayPhase, storm: () => weather.weather.stormActive });
+  const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
+  const elites = wireElites({ charge, game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.dayPhase, storm: () => weather.weather.stormActive });
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)

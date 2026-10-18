@@ -1,8 +1,10 @@
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { QyranKeeper } from '../runtime/qyranKeeper';
+import { SpawnScript } from '@wildshard/game/population/spawnScript';
 import { ArgymaqKeeper } from '../runtime/argymaqKeeper';
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
+import { NativePouncerKeeper, NativeHowlerKeeper, NativeWindKeeper, argymaqDefinition, eliteRuleHolds } from './eliteRoster';
+import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { EliteBrain } from '@wildshard/engine/ai/EliteBrain';
 import { pinBrain } from '@wildshard/engine/ai/inspect';
 import { canReach } from '@wildshard/engine/ai/reach';
@@ -11,90 +13,32 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul } from '../runtime/eliteBrain';
-import { hasSpecies as hasLegacySpecies, speciesDef, type ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { setEliteBrain, setEliteAct, setEliteDamage } from '../runtime/eliteBrain';
+import { hasSpecies as hasLegacySpecies, speciesDef } from '@wildshard/engine/entities/species/registry';
 import type { Player } from '@wildshard/engine/player/Player';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { fxMaterial, FX } from '@wildshard/engine/fx/groundFx';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-
 import { encounterHit } from './damage';
 import * as THREE from 'three';
-
-
-
-
-
-
 import type { Wildlife } from '../creatures/wildlife';
 import type { PackController, HerdController } from '../runtime/groupRegistry';
-
 import type { Ledge } from '../world/types';
-
 import { wildEnv } from '../creatures/env';
-
-import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
 import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule, type ElitePersistence } from '@wildshard/game/Elite';
-
-
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { bakedActorGeometry } from '../world/placeBake';
-import { argymaqDefinition, eliteRuleHolds, NativePouncerKeeper, NativeHowlerKeeper } from './eliteRoster';
 import poiLayoutRows from '../boot/poiLayout.generated.json' with { type: 'json' };
 
 const { EAGLE_ROCK } = poiLayoutRows;
-
-/**
- * Nalati's five NAMED ELITES (plan NALATI.md row B12; design docs/design/nalati/elites-and-bosses.md §1 "The five Nalati
- * elites"; mockups art/nalati-grasslands/round-2/4-named-elites/, round-3/1-elite-swap/elite-stallion-argymaq…). Each is
- * an `EliteScript` over the engine's elite system (src/game/Elite.ts: spawn rule, aware / engaged / leash, the bar over
- * the head → pinned, phase 2 at 50 %, the banner, the drop, the 20-minute timer, the minimap skull):
- *
- *   AQBARS the Pale (snow leopard, the Crags, always) — stalks along the Crags' ledges (`pois.cragLedges`) above you.
- *     POUNCE: from a ledge 3–8 m up (or a run-up on open ground) a red-gold ring paints at your feet (1.0 s) → it leaps:
- *     35 + a knock-down if you are still in the ring, else it skids, OPEN 1.5 s (headshots ×3). Swipes 2 × 14. Airborne
- *     ×2. Phase 2: hit-and-run from a ledge — up there it takes a quarter.
- *   KOKBORI, Mother of the Pack (the giant she-wolf, dusk + night, the tall-grass basin W of the horse plains) — with a
- *     pack of five (B4's Pack AI), at ×2.6. She holds 24–32 m back and moves when you look at her. PACK HOWL: pale rings ripple
- *     out (1.2 s) → the pack converges and encircles; hit her mid-howl and it breaks: she staggers, the pack scatters.
- *     Phase 2: the pack falls back round her and she comes for you herself (lunges, 22). From HIDDEN (crouched in tall
- *     grass) arrows do ×2.
- *   QYRAN the Storm-Wing (the giant golden eagle, ONLY in a storm, Eagle Rock) — circles 24 m over you (36 in phase 2; over the rock when idle), drifting downwind, at ×3.
- *     STOOP: a gold line streaks from it to you and a gold chevron glows at the screen edge (1.2 s) → a 40 m/s dive: 30 +
- *     knock-down, or it hits the ground and is GROUNDED 2 s (every hit ×2.5). Phase 2: higher, in the cloud, faster stoops.
- *   QARA BATYR the Unburied (the ghost-rider captain, NIGHT, the rim's burial cairn) — a spectral rider on a spectral
- *     horse (the creature row's horse rig in a ghost material + a rider). Circles you at the gallop. DEATH CHARGE: a
- *     lane of cyan ghost-fire burns toward you (1.3 s) → 38 + knock-down; swerve and his back is OPEN 2 s (a blade ×3).
- *     Phase 2: the charges come in pairs. He rides B11's captain rig (src/shards/nalati-grasslands/combat/ghostRiders.ts, handed in by index.ts) with a
- *     line of three of its riders; without B11 wired, a fallback rig of our own.
- *   ARGYMAQ the Unbroken (the feral black stallion, the Crags' high pasture, always, ONCE) — the stallion of his own herd
- *     (B4's HorseHerd: the herd AI rears and charges; this script paints the TRAMPLE lane when he rears and leads the
- *     herd away in phase 2). Beaten under 25 % he is BROKEN, not killed — the taming row's flow takes over (MOUNT →
- *     bucking → bonded); tamed, he is your horse (the bonded Tulpar grows to his ×1.3) and his lair retires for good.
- *
- * Drops are cosmetic (the skins are owned here, WORN by B15): IRBIS sabre · SKY-WOLF bow · STORM-WING arrows · NIGHT RIDER
- * mount; Argymaq pays himself (no skin). No trophies (E314 C: Nalati has no pack). Achievements + joke titles are
- * src/game/achievements.ts's NALATI table; the Bag's FINDS lists each elite with its prize (src/shards/nalati-grasslands/bag.ts).
- *
- *   const elites = wireElites({ game, sky, player, ledges, cave, clock, storm });     // boot (src/shards/nalati-grasslands/index.ts)
- *   elites.bind(play)                                                                   // main.ts, once animals / HUD exist
- *   elites.update(dt, t)                                                                // every frame
- *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 30–45 m from it (`&from=<m>` to stand farther);
- *   `window.__elites`.
- */
-
-/** the elites' voices (src/engine/audio/Audio.ts animal sounds) */
 export type EliteSound = 'wolf_howl' | 'leopard_growl' | 'horse_squeal' | 'eagle_cry';
-
-// ─────────────────────────────── the environment the scripts share ───────────────────────────────
-
 interface Env {
-  game: Game; sky: Sky; player: Player; animals: AnimalManager;
+  game: Game; sky: Sky; player: Player; animals: AnimalManager; charge: SpawnScriptRows;
   elites: Elites; bar: EliteBar;
   wildlife: Wildlife | null;
   taming: { phase: string; tulpar: Animal | null } | null;
@@ -106,18 +50,9 @@ interface Env {
   record: (kind: string, variant: string) => void;
   sound: (name: EliteSound, at: THREE.Vector3) => void;
 }
-
-const _h = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
-
-/** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist) */
-function retire(animals: AnimalManager, a: Animal): void {
-  animals.retire(a);
-}
-
+const _h = new THREE.Vector3();
 function isHead(a: Animal, p: THREE.Vector3, slack = 0.12): boolean { a.headWorld(_h); return _h.distanceTo(p) < a.dims.headRadius * a.scale + slack; }
-
 abstract class Base extends EliteBrain<Animal> implements EliteScript {
-  protected t = 0;
   private engagementScope: Scope | null = null;
   private engagementActor: Animal | null = null;
   protected engagement(engaged: boolean): void {
@@ -132,320 +67,105 @@ abstract class Base extends EliteBrain<Animal> implements EliteScript {
   constructor(override readonly def: EliteDef, protected readonly env: Env) { super(def, { player: env.player, random: () => app.rng.stream('ai').next() }); }
   abstract override spawn(): void;
   abstract override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void;
-  override despawn(): void { this.engagement(false); if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
+  override despawn(): void { this.engagement(false); if (this.animal) this.env.animals.retire(this.animal); this.animal = null; }
   override reset(): void { this.p2 = false; }
   override enterPhase2(): void { this.p2 = true; }
-  /** no trophy on Nalati (E314 C: no pack) — main.ts's kill feed names the kill, the orb holds the skin */
-  trophy(): void { /* nothing */ }
+  trophy(): void { /* Nalati awards skins rather than pack trophies. */ }
   dropModel(): THREE.Object3D { return trophyModel(this.def.id, this.env.sky); }
-  protected fight(): void { /* Authored elite ticks supply their own goal and body clock. */ }
+  protected fight(): void { /* Shared keepers own the active body goal. */ }
   protected sig(): void { this.env.elites.signature(this.def.id); }
-  protected spawnAt(kind: string, variant: string, x: number, z: number, yaw: number): Animal {
-    const a = this.env.animals.spawn(kind, x, z, yaw, variant);
-    a.herd = -1;
-    this.animal = a;
-    setEliteAct(a, (an, c) => { this.act(an, c); });
-    setEliteBrain(a, (an, c) => { this.think(an, c); });
-    setEliteDamage(a, (an, p, d) => this.damage(an, p, d));
-    return a;
-  }
-  /** the 10 Hz brain (the species' think forwards here) */
-  protected act(_a: Animal, _c: ThinkCtx): void { /* committed strike, per elite */ }
-  protected think(_a: Animal, _c: ThinkCtx): void { /* per elite */ }
-  protected damage(_a: Animal, _p: THREE.Vector3, _d: THREE.Vector3): number { return 1; }
-  protected override toPlayer(a: Animal): { d: number; yaw: number } {
-    const p = this.env.player.position, dx = p.x - a.position.x, dz = p.z - a.position.z;
-    return { d: Math.hypot(dx, dz), yaw: Math.atan2(dx, dz) };
-  }
-  /** back to the lair, round what's in the way (the navmesh path — NALATI-MERGE P3) */
-  protected override goHome(a: Animal, c?: ThinkCtx, speed = 4): void {
-    if (c === undefined) { super.goHome(a); return; }
-    const dx = this.def.lair.x - a.position.x, dz = this.def.lair.z - a.position.z;
-    a.setMotion(c.pathYaw(a, this.def.lair.x, this.def.lair.z, 2), Math.hypot(dx, dz) > 3 ? speed : 0, 3);
-  }
-  /** the heading to the player: along the navmesh path while more than `near` m out, straight at him inside it */
-  protected chase(a: Animal, c: ThinkCtx, d: number, yaw: number, near = 6): number {
-    return d > near ? c.pathYaw(a, c.player.x, c.player.z, 0.6) : yaw;
-  }
-  protected melee(p: THREE.Vector3): boolean { const pl = this.env.player.position; return Math.hypot(p.x - pl.x, p.z - pl.z) < 3.8; }
+
 }
-
-// ─────────────────────────────── E1 · Aqbars the Pale ───────────────────────────────
-
-class Aqbars extends Base {
-  private readonly ring: GroundTell;
-  private readonly keeper: NativePouncerKeeper<Animal>;
-  constructor(def: EliteDef, env: Env) {
-    super(def, env);
-    this.ring = new GroundTell(env.game.scene, 'ring', new THREE.Color(2.4, 0.9, 0.35));
-    this.keeper = new NativePouncerKeeper({ player: env.player, lair: def.lair, awareRadius: def.awareR,
-      ledges: env.ledges, heightAt, phase2: () => this.p2, isHead, ring: this.ring,
-      hurt: env.hurt, knock: env.knock, opened: () => { env.feed(ecology.profiles.aqbars.opened); }, growl: at => { env.sound('leopard_growl', at); }, signature: () => { this.sig(); } });
-  }
-  override spawn(): void {
-    const c = this.def.lair, a = this.spawnAt(LEOPARD, 'aqbars', c.x, c.z, 0);
-    a.mem['low'] = 0.3; this.keeper.spawned();
-  }
-  override reset(): void { super.reset(); this.keeper.reset(this.animal); }
-  override despawn(): void { this.keeper.disposeTell(); super.despawn(); }
-  protected override damage(a: Animal, p: THREE.Vector3): number { return this.keeper.damage(a, p); }
-  protected override think(a: Animal, c: ThinkCtx): void { this.keeper.think(a, c); }
-  protected override act(a: Animal, _c: ThinkCtx): void { this.keeper.act(a); }
-  override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged); this.keeper.tick(this.animal, dt, t, engaged, leashing);
-  }
+function bindKeeper(def: EliteDef, env: Env, pattern: 'pouncer' | 'howler' | 'wind'): EliteScript {
+  let animal: Animal | null = null, p2 = false, pack: PackController | null = null;
+  const tell = new GroundTell(env.game.scene, 'ring', new THREE.Color(pattern === 'howler' ? 0.9 : 2.4, pattern === 'howler' ? 1.15 : 0.9, pattern === 'howler' ? 1.4 : 0.35));
+  const geometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true); geometry.translate(0, 0.5, 0);
+  const material = fxMaterial(FX.beam, new THREE.Color(2.4, 1.7, 0.5), 0), beam = new THREE.Mesh(geometry, material);
+  if (pattern === 'wind') { material.depthTest = false; beam.visible = false; beam.frustumCulled = false; beam.renderOrder = 31; env.game.scene.add(beam); }
+  else { geometry.dispose(); material.dispose(); }
+  const up = new THREE.Vector3(0, 1, 0), delta = new THREE.Vector3();
+  const common = { player: env.player, lair: def.lair, phase2: () => p2, signature: () => { env.elites.signature(def.id); } };
+  const policy = pattern === 'pouncer' ? new NativePouncerKeeper<Animal>({
+    ...common, awareRadius: def.awareR, ledges: env.ledges, heightAt, isHead, ring: tell, hurt: env.hurt, knock: env.knock,
+    opened: () => { env.feed(ecology.profiles.aqbars.opened); }, growl: at => { env.sound('leopard_growl', at); },
+  }) : pattern === 'howler' ? new NativeHowlerKeeper<Animal>({
+    ...common, pack: () => pack, environment: () => wildEnv, random: () => app.rng.stream('ai').next(), rings: tell, hurt: env.hurt,
+    regrouped: () => { env.feed(ecology.profiles.kokbori.regrouped); }, interrupted: () => { env.feed(ecology.profiles.kokbori.interrupted); },
+    closed: () => { env.feed(ecology.profiles.kokbori.closed); }, howl: at => { env.sound('wolf_howl', at); },
+  }) : new NativeWindKeeper<Animal>({
+    ...common, rock: EAGLE_ROCK, heightAt, wind: () => wildEnv.wind, random: () => app.rng.stream('ai').next(), isHead,
+    tell: { setTime: t => { material.uniforms.uTime.value = t; }, aim: (from, to, alpha) => {
+      delta.subVectors(to, from); beam.position.copy(from); beam.scale.set(1, delta.length(), 1);
+      beam.quaternion.setFromUnitVectors(up, delta.normalize()); material.uniforms.uAlpha.value = alpha; beam.visible = true;
+    }, chevron: point => { env.bar.chevron(point, env.game.camera); }, hide: () => { beam.visible = false; } },
+    hurt: env.hurt, knock: env.knock, grounded: () => { env.feed(ecology.profiles.qyran.grounded); }, cry: at => { env.sound('eagle_cry', at); },
+  }, ecology.profiles.qyran.spec);
+  const spawn = (): void => {
+    const kind = pattern === 'pouncer' ? LEOPARD : pattern === 'howler' ? KOKBORI : EAGLE;
+    const a = env.animals.spawn(kind, def.lair.x + (pattern === 'wind' ? 26 : 0), def.lair.z, pattern === 'howler' ? Math.PI : 0, def.id);
+    animal = a; a.herd = -1; if (pattern === 'pouncer') a.mem['low'] = 0.3;
+    policy.spawned(a); setEliteBrain(a, (body, ctx) => { policy.think(body, ctx); });
+    if (!(policy instanceof NativeWindKeeper)) setEliteAct(a, body => { policy.act(body); });
+    setEliteDamage(a, (body, point) => policy.damage(body, point));
+    if (pattern === 'howler') { pack = env.wildlife?.spawnPack(def.lair.x - 6, def.lair.z + 4, ['grey', 'tawny', 'grey', 'dark', 'scout']) ?? null; if (pack !== null) { pack.homeX = def.lair.x; pack.homeZ = def.lair.z; } }
+  };
+  let engagedScope: Scope | null = null;
+  return { def, get animal() { return animal; }, spawn,
+    despawn: () => { engagedScope?.dispose(); engagedScope = null; policy.disposeTell(); if (animal !== null) env.animals.retire(animal); animal = null;
+      if (pack !== null) for (const member of pack.members) if (member.alive) env.animals.retire(member); pack = null; },
+    reset: () => { p2 = false; if (policy instanceof NativeWindKeeper) policy.reset(); else policy.reset(animal); },
+    enterPhase2: () => { p2 = true; if (policy instanceof NativeHowlerKeeper) policy.enterPhase2(animal); },
+    trophy: () => undefined, dropModel: () => trophyModel(def.id, env.sky),
+    tick: (dt, t, engaged, leashing) => {
+      if (engaged && animal !== null && engagedScope === null) { engagedScope = env.game.levelScope.child(`elite.${def.id}`); pinBrain(animal, engagedScope); }
+      else if (!engaged) { engagedScope?.dispose(); engagedScope = null; }
+      policy.tick(animal, dt, t, engaged, leashing);
+    },
+  };
 }
-
-// ─────────────────────────────── E2 · Kokbori, Mother of the Pack ───────────────────────────────
-
-class Kokbori extends Base {
-  private pack: PackController | null = null;
-  private readonly rings: GroundTell;
-  private readonly keeper: NativeHowlerKeeper<Animal>;
-  constructor(def: EliteDef, env: Env) {
-    super(def, env); this.rings = new GroundTell(env.game.scene, 'ring', new THREE.Color(0.9, 1.15, 1.4));
-    this.keeper = new NativeHowlerKeeper({ player: env.player, lair: def.lair, phase2: () => this.p2, pack: () => this.pack,
-      environment: () => wildEnv, random: () => app.rng.stream('ai').next(), rings: this.rings,
-      hurt: env.hurt, regrouped: () => { env.feed(ecology.profiles.kokbori.regrouped); }, interrupted: () => { env.feed(ecology.profiles.kokbori.interrupted); },
-      closed: () => { env.feed(ecology.profiles.kokbori.closed); }, howl: at => { env.sound('wolf_howl', at); }, signature: () => { this.sig(); } });
-  }
-  override spawn(): void {
-    const c = this.def.lair, a = this.spawnAt(KOKBORI, 'kokbori', c.x, c.z, Math.PI);
-    this.keeper.spawned(a);
-    this.pack = this.env.wildlife?.spawnPack(c.x - 6, c.z + 4, ['grey', 'tawny', 'grey', 'dark', 'scout']) ?? null;
-    if (this.pack) { this.pack.homeX = c.x; this.pack.homeZ = c.z; }
-  }
-  override despawn(): void {
-    this.keeper.disposeTell();
-    if (this.pack) for (const w of this.pack.members) if (w.alive) retire(this.env.animals, w);
-    this.pack = null; super.despawn();
-  }
-  override reset(): void { super.reset(); this.keeper.reset(this.animal); }
-  override enterPhase2(): void { super.enterPhase2(); this.keeper.enterPhase2(this.animal); }
-  protected override damage(a: Animal, p: THREE.Vector3): number { return this.keeper.damage(a, p); }
-  protected override think(a: Animal, c: ThinkCtx): void { this.keeper.think(a, c); }
-  protected override act(a: Animal, _c: ThinkCtx): void { this.keeper.act(a); }
-  override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged); this.keeper.tick(this.animal, dt, t, engaged, leashing);
-  }
-}
-
-// ─────────────────────────────── E3 · Qyran the Storm-Wing ───────────────────────────────
-
-class Qyran extends Base {
-  private readonly line: THREE.Mesh; private readonly lineMat: FxMaterial;
-  private readonly keeper: QyranKeeper<Animal>;
-  constructor(def: EliteDef, env: Env) {
-    super(def, env);
-    const g = new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true); g.translate(0, 0.5, 0);
-    this.lineMat = fxMaterial(FX.beam, new THREE.Color(2.4, 1.7, 0.5), 0);
-    this.lineMat.depthTest = false;
-    this.line = new THREE.Mesh(g, this.lineMat); this.line.visible = false; this.line.frustumCulled = false; this.line.renderOrder = 31;
-    env.game.scene.add(this.line);
-    this.keeper = new QyranKeeper({ player: env.player, rock: EAGLE_ROCK, phase2: () => this.p2,
-      heightAt, wind: () => wildEnv.wind, random: () => app.rng.stream('ai').next(), isHead,
-      tell: { setTime: time => { this.lineMat.uniforms.uTime.value = time; },
-        aim: (from, to, alpha) => { this.aim(from, to, alpha); }, chevron: point => { env.bar.chevron(point, env.game.camera); },
-        hide: () => { this.line.visible = false; } },
-      hurt: env.hurt, knock: env.knock, feed: env.feed, sound: env.sound, signature: () => { this.sig(); } });
-  }
-  override spawn(): void {
-    const a = this.spawnAt(EAGLE, 'qyran', EAGLE_ROCK.x + 26, EAGLE_ROCK.z, 0); this.keeper.spawned(a);
-  }
-  override despawn(): void { this.keeper.disposeTell(); super.despawn(); }
-  override reset(): void { super.reset(); this.keeper.reset(); }
-  protected override damage(a: Animal, p: THREE.Vector3): number { return this.keeper.damage(a, p); }
-  protected override think(a: Animal, c: ThinkCtx): void { this.keeper.think(a, c); }
-  override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged); this.keeper.tick(this.animal, dt, t, engaged, leashing);
-  }
-  /** the gold line from `from` to `to` */
-  private aim(from: THREE.Vector3, to: THREE.Vector3, alpha: number): void {
-    _h.subVectors(to, from);
-    const L = _h.length();
-    this.line.position.copy(from);
-    this.line.scale.set(1, L, 1);
-    this.line.quaternion.setFromUnitVectors(_up, _h.normalize());
-    this.lineMat.uniforms.uAlpha.value = alpha;
-    this.line.visible = true;
-  }
-}
-
-// ─────────────────────────────── E5 · Qara Batyr the Unburied ───────────────────────────────
-
-export const GHOST_HORSE = 'ghost-rider';   // B11's kind: when B11 is in the tree its captain rig IS this species
-/** the ghost captain's horse: the creature row's horse rig, its own kind (the herd AI leaves it to the elite) */
-function registerGhostHorse(): void {
-  if (hasNalatiSpecies(GHOST_HORSE) || !hasNalatiSpecies('horse')) return;
-  const H = speciesDef('horse');
-  const base = H.variants.find((v) => v.id === 'black') ?? H.variants[0];
-  if (base === undefined) return;
-  registerNalatiDefinition({
-    ...H, kind: GHOST_HORSE, label: 'Qara Batyr',
-    variants: [{ ...base, id: 'captain', label: 'Qara Batyr the Unburied', weight: 1, rarity: 'legendary', scale: [1.15, 1.15], hp: 800, traits: { ...base.traits, mane: 1.8 } }],
-    think: eliteThink, damageMul: eliteDamageMul,
-  });
-}
-
-/** B11's ghost riders (src/shards/nalati-grasslands/combat/ghostRiders.ts) — the captain's rig, his line, the spawn rule. Structural: B11 owns it */
 export interface GhostsApi {
   spawnRider: (o: { x: number; z: number; yaw: number; variant?: 'rider' | 'captain' }) => Animal | null;
   spawnLine: (o: { count?: number; captain?: boolean; at?: number }) => Animal[];
   dissolve: (a: Animal) => void;
   readonly killsTonight: number;
 }
-
-type QbSt = 'wait' | 'circle' | 'wheel' | 'charge' | 'open' | 'home';
 class QaraBatyr extends Base {
-  private st: QbSt = 'wait';
-  private stT = 0; private chargeT = 6; private pairs = 0;
-  private lane: GroundTell;
-  private rider: THREE.Group | null = null;
+  private program: SpawnScript | null = null;
   private line: Animal[] = [];
-  private c0 = new THREE.Vector3(); private c1 = new THREE.Vector3();
-  private struck = false;
-  constructor(def: EliteDef, env: Env) { super(def, env); this.lane = new GroundTell(env.game.scene, 'lane', new THREE.Color(0.35, 1.6, 1.9)); }
-  /** "once you have killed 5 ghost riders in a night" — the next line forms with him at its head */
-  canSpawn(): boolean { return this.env.ghosts === null || this.env.ghosts.killsTonight >= 5; }
+  private readonly tell = new GroundTell(this.env.game.scene, 'lane', new THREE.Color(0.35, 1.6, 1.9));
+  canSpawn(): boolean { return this.env.ghosts !== null && this.env.ghosts.killsTonight >= 5; }
   override spawn(): void {
-    const c = this.def.lair, g = this.env.ghosts;
-    if (g !== null) {
-      // B11's captain rig: the ghost material, the seated rider with the tug standard; steered through mem.tx / tz / v
-      const a = g.spawnRider({ x: c.x, z: c.z, yaw: 0, variant: 'captain' });
-      if (a === null) return;
-      this.animal = a;
-      setEliteDamage(a, (an, p) => this.damage(an, p));
-    } else {
-      // no B11 wired: the fallback — the horse rig in a ghost material, a rider of our own
-      registerGhostHorse();
-      const a = this.spawnAt(GHOST_HORSE, 'captain', c.x, c.z, 0);
-      ghostly(a);
-      if (this.rider === null) { this.rider = riderModel(this.env.sky); this.env.game.scene.add(this.rider); }
-      this.rider.visible = true;
-    }
-    this.st = 'wait';
+    const c = this.def.lair, a = this.env.ghosts?.spawnRider({ x: c.x, z: c.z, yaw: 0, variant: 'captain' });
+    if (a === undefined || a === null) return;
+    this.animal = a; this.program = SpawnScript.page(this.env.animals, this.env.charge, app.physics); this.program.adopt('main', a.entityId);
+    setEliteDamage(a, (_body, point) => this.program?.state('main')['mode'] === 4 && point.distanceTo(this.env.player.position) < 3.8 ? 3 : 1);
   }
   override despawn(): void {
-    this.engagement(false);
-    this.lane.hide(); if (this.rider) this.rider.visible = false;
-    const g = this.env.ghosts, a = this.animal;
-    for (const r of this.line) if (r.alive) g?.dissolve(r);
-    this.line = [];
-    if (g !== null && a !== null) { g.dissolve(a); this.animal = null; } else super.despawn();
+    this.engagement(false); this.tell.hide(); this.program?.interrupt();
+    for (const a of this.line) if (a.alive) this.env.ghosts?.dissolve(a); this.line = [];
+    if (this.animal !== null) this.env.ghosts?.dissolve(this.animal); this.animal = null; this.program = null;
   }
-  override reset(): void { super.reset(); this.st = 'home'; this.lane.hide(); }
-  protected override damage(_a: Animal, p: THREE.Vector3): number { return this.st === 'open' && this.melee(p) ? 3 : 1; }
-  /** the fallback rig's brain: the same puppet as B11's (steer to mem.tx / tz at mem.v) */
-  protected override think(a: Animal, c: ThinkCtx): void {
-    const m = a.mem, tx = m['tx'], tz = m['tz'];
-    a.lookTarget.copy(c.player); a.lookWeight = 0.5;
-    if (tx === undefined || tz === undefined) { a.setMotion(a.yaw, 0, 1); return; }
-    const dx = tx - a.position.x, dz = tz - a.position.z;
-    a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) < 0.8 ? 0 : m['v'] ?? 9, m['turn'] ?? 2.4);
-  }
-  /** the ghost-fire lane from him towards you — drawn to 3 m short of you (the charge still runs 12 m past) */
-  private drawLane(p: THREE.Vector3, alpha: number): void {
-    const dx = p.x - this.c0.x, dz = p.z - this.c0.z, d = Math.hypot(dx, dz);
-    if (d < 4) { this.lane.hide(); return; }
-    const k = (d - 3) / d;
-    this.lane.lane(this.c0.x, this.c0.z, this.c0.x + dx * k, this.c0.z + dz * k, 2.6, alpha);
-  }
-  private steer(a: Animal, x: number, z: number, v: number, turn: number): void { a.mem['tx'] = x; a.mem['tz'] = z; a.mem['v'] = v; a.mem['turn'] = turn; }
+  override reset(): void { super.reset(); this.program?.interrupt(); this.program?.signal('main', 0); this.tell.hide(); }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.engagement(engaged);
-    const a = this.animal;
-    if (!a) return;
-    this.lane.setTime(t);
-    if (this.rider) { horseSaddle(a, this.rider.position); this.rider.rotation.y = a.yaw; }
-    if (leashing && this.st !== 'home') this.st = 'home';
-    if ((this.st === 'wait' || (this.st === 'home' && !leashing)) && (engaged || a.position.distanceTo(this.env.player.position) < this.def.awareR * 0.8)) {
-      this.st = 'circle'; this.chargeT = 3;
-      // his riders ride with him and loose their volleys (B11's line AI)
-      if (this.env.ghosts !== null && this.line.every((r) => !r.alive)) this.line = this.env.ghosts.spawnLine({ count: 3 });
+    this.engagement(engaged); const program = this.program, a = this.animal; if (program === null || a === null) return;
+    if (engaged && this.line.every(body => !body.alive)) this.line = this.env.ghosts?.spawnLine({ count: 3 }) ?? [];
+    program.frame(this.env.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.p2), clock: t }); program.advanceFrame(dt);
+    for (const effect of program.drainEffects()) {
+      if (effect.kind === 'hit') { this.env.hurt(a, effect.hit.damage); this.env.knock(Math.sin(a.yaw), Math.cos(a.yaw)); }
+      else if (effect.kind === 'cue') { const cue = program.cue(effect.id); if (cue === 'signature') this.sig(); else if (cue === 'squeal') this.env.sound('horse_squeal', a.position); else this.env.feed('He passes — his back is OPEN'); }
     }
-    this.stT += dt;
-    const p = this.env.player.position;
-    switch (this.st) {
-      case 'wait': this.steer(a, a.position.x, a.position.z, 0, 1.5); break;
-      case 'home':
-        this.steer(a, this.def.lair.x, this.def.lair.z, 9, 2.4);
-        if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 5) this.st = 'wait';
-        break;
-      case 'circle': {
-        // gallop a ring round you, 22 m out
-        const ang = Math.atan2(a.position.x - p.x, a.position.z - p.z) + 0.55;
-        this.steer(a, p.x + Math.sin(ang) * 22, p.z + Math.cos(ang) * 22, 10, 2.2);
-        this.chargeT -= dt;
-        if (this.chargeT <= 0) { this.st = 'wheel'; this.stT = 0; this.sig(); }
-        break;
-      }
-      case 'wheel': {
-        // the lane of ghost-fire: from him, through you, 12 m on — then he comes down it
-        this.steer(a, p.x, p.z, 0.01, 5);
-        this.c0.copy(a.position);
-        const dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz) || 1;
-        this.c1.set(p.x + dx / d * 12, 0, p.z + dz / d * 12);
-        this.drawLane(p, 0.22 + 0.2 * Math.min(1, this.stT / 0.4));
-        if (this.stT > 1.3) { this.st = 'charge'; this.stT = 0; this.struck = false; this.env.sound('horse_squeal', a.position); }
-        break;
-      }
-      case 'charge': {
-        this.steer(a, this.c1.x, this.c1.z, 18, 0.6);
-        this.drawLane(p, 0.36);
-        if (!this.struck && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 1.9 && p.y - heightAt(p.x, p.z) < 1.6) {
-          this.struck = true; this.env.hurt(a, 38); this.env.knock(this.c1.x - this.c0.x, this.c1.z - this.c0.z);
-        }
-        const along = ((a.position.x - this.c0.x) * (this.c1.x - this.c0.x) + (a.position.z - this.c0.z) * (this.c1.z - this.c0.z)) / Math.max(1, this.c0.distanceToSquared(this.c1));
-        if (along >= 0.97 || this.stT > 4) {
-          this.lane.hide();
-          if (!this.struck) { this.st = 'open'; this.stT = 0; this.env.feed('He passes — his back is OPEN'); }
-          else this.nextCharge();
-        }
-        break;
-      }
-      case 'open':
-        this.steer(a, a.position.x + Math.sin(a.yaw) * 6, a.position.z + Math.cos(a.yaw) * 6, 3, 1);
-        if (this.stT > 2) this.nextCharge();
-        break;
-      default: break;
-    }
-  }
-  private nextCharge(): void {
-    // phase 2: the charges come in pairs
-    if (this.p2 && this.pairs === 0) { this.pairs = 1; this.st = 'wheel'; this.stT = 0; return; }
-    this.pairs = 0; this.st = 'circle'; this.chargeT = this.p2 ? 4.5 : 6.5;
+    this.tell.hide(); this.tell.setTime(t);
+    for (const row of program.strikePresentation()) if (row.phase === 'windup' || row.phase === 'active') this.tell.lane(row.x0, row.z0, row.x1, row.z1, row.width, row.phase === 'windup' ? 0.42 : 0.36);
   }
 }
-
-/** the ghost look: translucent teal with a glow (the horse's own material instance) */
-function ghostly(a: Animal): void {
-  const mats = Array.isArray(a.mesh.material) ? a.mesh.material : [a.mesh.material];
-  for (const m of mats) if (m instanceof THREE.MeshLambertMaterial) { m.transparent = true; m.opacity = 0.72; m.emissive.setRGB(0.1, 0.55, 0.62); m.emissiveIntensity = 0.9; m.color.setRGB(0.55, 0.85, 0.9); }
-}
-
-/** the captain in the saddle: a glaive, a spiked helm, a cloak, the horsetail standard (tug) on his back — ghost teal */
-function riderModel(sky: Sky): THREE.Group {
-  // the painterly material, glowing and translucent (a uniform-only variant: same program)
-  const mat = painterlyMaterial(sky, { rim: 0.8, emissive: new THREE.Color(0.08, 0.42, 0.48), transparent: true, opacity: 0.75 });
-  const mesh = new THREE.Mesh(bakedActorGeometry('rider'), mat);
-  mesh.position.y = -0.25;
-  const g = new THREE.Group(); g.add(mesh); g.name = 'qara-batyr-rider';
-  return g;
-}
-
-// ─────────────────────────────── E4a · Argymaq the Unbroken ───────────────────────────────
-
-/** Argymaq's kind (combat/eliteRoster.ts, the renderer-free roster's), as the models and tests name it. */
 export const ARGYMAQ = ecology.argymaq;
 export function registerArgymaq(): void {
   if (hasNalatiSpecies(ARGYMAQ) || !hasNalatiSpecies('horse')) return;
   const H = speciesDef('horse');
   const base = H.variants.find((v) => v.id === 'stallion') ?? H.variants[0];
   if (base === undefined) return;
-  // his own kind, the horse's rig + the HERD's brain (he leads his herd): variant id 'stallion' so HorseHerd reads him so
   registerNalatiDefinition(argymaqDefinition(H, base));
 }
-
 class Argymaq extends Base {
   private herd: HerdController | null = null;
   private lane: GroundTell;
@@ -469,76 +189,51 @@ class Argymaq extends Base {
     const hi = herd.members[0]?.herd ?? -1;
     a.herd = hi; if (hi >= 0) this.env.animals.herds[hi]?.members.push(a);
     herd.adoptStallion(a);   // his brain finds this herd (HorseHerd.of): BEATEN → the taming row's break prompt
-    // the blue-black coat
     const mats = Array.isArray(a.mesh.material) ? a.mesh.material : [a.mesh.material];
     for (const m of mats) if (m instanceof THREE.MeshLambertMaterial) m.color.setRGB(0.62, 0.64, 0.72);
     this.herd = herd; this.animal = a;
   }
-  override despawn(): void { this.engagement(false); /* he lives on the pasture; he never leaves */ }
+  override despawn(): void { this.engagement(false);  }
   broken(): boolean { return this.herd?.stallionState === 'beaten'; }
   barFrac(): number { const a = this.animal; return a ? Math.max(0, (a.hp / a.maxHp - 0.25) / 0.75) : 0; }
   override tick(dt: number, t: number, engaged: boolean): void {
     this.engagement(engaged); this.keeper.tick(this.animal, this.herd, dt, t, engaged);
   }
 }
-
-// ─────────────────────────────── trophies (the orb's display model) ───────────────────────────────
-
 function trophyModel(id: string, sky: Sky): THREE.Object3D {
   const mat = painterlyMaterial(sky, { rim: 0.6 });
   const g = new THREE.Group(); g.add(new THREE.Mesh(bakedActorGeometry(`trophy:${id}`), mat));
   return g;
 }
-
-// ─────────────────────────────── the wiring ───────────────────────────────
-
-/** dev (`?elite=`): where to stand — a unit direction from the elite, a distance, the camera pitch */
-const DEV_FROM: Record<string, { dx: number; dz: number; d: number; pitch: number }> = {
-  aqbars: { dx: 0.93, dz: 0.37, d: 30, pitch: 0.1 },           // the open grass west of the Crags' foot, below the cave (it comes down)
-  kokbori: { dx: -1, dz: 0, d: 45, pitch: 0.02 },              // east of the den, in the basin's grass
-  qyran: { dx: 0, dz: 1, d: 40, pitch: 0.5 },                  // north of Eagle Rock, looking up at the circling bird
-  'qara-batyr': { dx: 0.6, dz: -0.8, d: 30, pitch: 0.03 },
-  argymaq: { dx: 0.8, dz: 0.6, d: 30, pitch: 0.05 },
-};
-
-
 export interface ElitesCtx {
   game: Game; sky: Sky; player: Player;
+  charge: SpawnScriptRows;
   ledges: Ledge[];
-  /** the day clock's phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night') and the storm (B10's NalatiWeather) */
   phase: () => string;
   storm: () => boolean;
 }
-
 export interface ElitesPlay {
   persistence?: ElitePersistence;
   animals: AnimalManager;
   wildlife: Wildlife | null;
-  /** B8's taming (src/shards/nalati-grasslands/ride/Taming.ts) — Argymaq hands over to it when BROKEN; null until it is wired */
   taming: { phase: string; tulpar: Animal | null } | null;
-  /** B11's ghost riders (Qara Batyr rides their captain rig, his line rides with him); null until it is wired */
   ghosts: GhostsApi | null;
   interactables: Interactable[];
   toast: (text: string) => void;
   feed: (text: string) => void;
-  /** Progress.recordKill — Argymaq is tamed, not killed, so his achievement is recorded here */
   record: (kind: string, variant: string) => void;
   sting?: (event: 'banner' | 'phase2' | 'kill') => void;
   pickupHum?: (inside: boolean) => void;
   sound?: (name: EliteSound, at: THREE.Vector3) => void;
   params: URLSearchParams;
 }
-
 export class NalatiElites {
   bar: EliteBar | null = null;
   elites: Elites | null = null;
   scripts: EliteScript[] = [];
-  /** the skins won (B15 wears them): persisted by the elite system; mirrored here for the menu */
   readonly skins = new Set<string>();
-  /** B11's ghost riders, handed in by src/shards/nalati-grasslands/index.ts (main.ts never sees them); `play.ghosts` wins when given */
   ghosts: GhostsApi | null = null;
   constructor(private readonly ctx: ElitesCtx) {}
-
   bind(play: ElitesPlay): void {
     const { game, sky, player } = this.ctx;
     const bar = new EliteBar();
@@ -555,7 +250,7 @@ export class NalatiElites {
     }, bar, 'nalati-grasslands', play.persistence);
     this.elites = elites;
     const env: Env = {
-      game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
+      game, sky, player, charge: this.ctx.charge, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
       hurt: (a, dmg) => {
         const spec = dmg === 14 ? NALATI_STRIKES.swipe : dmg === 35 ? NALATI_STRIKES.pounce : dmg === 22 ? NALATI_STRIKES.bite : dmg === 30 ? NALATI_STRIKES.stoop : NALATI_STRIKES.captain;
         sampleStrike(spec, a, player.position, () => { encounterHit(a, dmg, `elite.${a.variant}`, player.position); }, { reach: () => canReach(a, player.position, app.physics) });
@@ -565,38 +260,19 @@ export class NalatiElites {
       sound: (name, at) => { play.sound?.(name, at); },
     };
     this.scripts = [
-      new Aqbars(ecology.elites['aqbars'] ?? fail('aqbars'), env),
-      new Kokbori(ecology.elites['kokbori'] ?? fail('kokbori'), env),
-      new Qyran(ecology.elites['qyran'] ?? fail('qyran'), env),
+      bindKeeper(ecology.elites['aqbars'] ?? fail('aqbars'), env, 'pouncer'),
+      bindKeeper(ecology.elites['kokbori'] ?? fail('kokbori'), env, 'howler'),
+      bindKeeper(ecology.elites['qyran'] ?? fail('qyran'), env, 'wind'),
       new QaraBatyr(ecology.elites['qara-batyr'] ?? fail('qara-batyr'), env),
       new Argymaq(ecology.elites['argymaq'] ?? fail('argymaq'), env),
     ];
     for (const s of this.scripts) { app.encounters.elite(s.def.id, s, game.levelScope); elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
-    // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)
     for (const [k, v] of [[LEOPARD, 'aqbars'], [EAGLE, 'qyran'], [KOKBORI, 'kokbori']] as const) { try { play.animals.factory.model(k, v); } catch (e) { console.warn(`[elites] ${k} did not build`, e); } }
-    // dev: `?elite=<id>` — spawn it whatever its rule and put the player DEV_FROM's distance from it (`&from=<m>`), facing it
-    const dev = play.params.get('elite');
-    if (dev !== null) {
-      const a = elites.devSpawn(dev);
-      const from = DEV_FROM[dev];
-      if (a && from) {
-        const d = Number(play.params.get('from')) || from.d;   // `&from=<m>`: stand farther (the aware state: banner + head bar)
-        const px = a.position.x + from.dx * d, pz = a.position.z + from.dz * d;
-        player.position.set(px, heightAt(px, pz), pz);
-        player.yaw = Math.atan2(-(a.position.x - px), -(a.position.z - pz)); player.pitch = from.pitch;
-      }
-    }
     this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.elites', this));
   }
-
-  /** Materialize eligible authored actors before continuation restore without ticking encounters or awarding rewards. */
   initialize(): void { this.elites?.initialize(); }
-
   update(dt: number, t: number): void { this.elites?.update(dt, t); }
 }
-
 function fail(id: string): never { throw new Error(`elites: no def '${id}'`); }
-
 export function wireElites(ctx: ElitesCtx): NalatiElites { return new NalatiElites(ctx); }
-
 function hasNalatiSpecies(kind: string): boolean { return app.species.get(kind) !== undefined || hasLegacySpecies(kind); }
