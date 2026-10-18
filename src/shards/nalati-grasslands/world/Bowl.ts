@@ -6,8 +6,9 @@ import { inPoiClearing } from './terrain';
 import { NalatiSet } from './painted';
 import type { PoiCtx, PoiPiece } from './types';
 import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';
-import { bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
-import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
+import { bakedActorGeometry, bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
+import { glacierSnout } from '../models/glacierSnout';
+import fixed from '../boot/poiPaint.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
 import { place as placeModel } from '@wildshard/engine/models/place';
@@ -253,12 +254,12 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
  * `GLACIER`), painted as ice per pixel by terrainSurface.ts (crevasse bands across the flow, moraine along the edges).
  */
 export function buildGlacier(ctx: PoiCtx): PoiPiece {
-  const { sky, ground } = ctx;
-  const geo = snoutGeometry(ground);
+  const { sky } = ctx;
+  const geo = bakedActorGeometry('glacier-snout:world');
   const mesh = new THREE.Mesh(geo, poiMaterial(sky));
   mesh.name = 'nalati-glacier';
   mesh.receiveShadow = true; mesh.castShadow = false;
-  const at = snoutAt(ground);
+  const at = fixed.glacierSnout;
   const box = new THREE.Box3().setFromBufferAttribute(geo.getAttribute('position') as THREE.BufferAttribute);
   return {
     name: 'glacier', object: mesh, colliders: [], surface: 'ground', tris: (geo.index?.count ?? 0) / 3,

@@ -2,7 +2,7 @@ import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogu
 import rows from '../data/campCatalogue.json' with { type: 'json' };
 import materials from '../data/campMaterials.json' with { type: 'json' };
 import packed from '../data/placeSpecimens.json' with { type: 'json' };
-import type { CatalogueParams } from '../data/campParams';
+import type { CatalogueParams } from './campParams';
 
 const catalogue = defineSpecimenCatalogue<CatalogueParams>(rows, { ...packed, bin: '/assets/nalati/baked/specimens.bin' }, materials);
 export const ribbonPole = catalogue.model('ribbonPole');

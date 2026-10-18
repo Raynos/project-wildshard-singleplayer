@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { defineModel, type ModelBuild, type ModelContext, announceModelReady as modelReady } from '@wildshard/engine/models/model';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { loadNalatiModel, type NalatiModel } from '../world/modelView';
-import { bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
+import { loadNalatiModel } from '../world/modelView';
+import { bakedActorGeometry, bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
 
 
 /**
@@ -28,16 +28,6 @@ import { bakedDressingGeo, loadNalatiDressing } from '../world/placeBake';
  * bury the bottom), so it drops into the same scatter plan with the same sizes. The model's own painterly material
  * (its atlas as the map) stays; the instances' rock tints multiply it.
  */
-export function fitRock(m: NalatiModel, half: readonly [number, number, number]): THREE.BufferGeometry {
-  const g = m.geometry.clone();
-  const b = m.box, ctr = new THREE.Vector3(), sz = new THREE.Vector3();
-  b.getCenter(ctr); b.getSize(sz);
-  g.translate(-ctr.x, -ctr.y, -ctr.z);
-  g.scale((half[0] * 2) / sz.x, (half[1] * 2) / sz.y, (half[2] * 2) / sz.z);
-  g.computeVertexNormals();
-  return g;
-}
-
 /** each generated rock's file and the procedural frame it is fitted into */
 export const GENERATED_ROCK = {
   round: { name: 'boulder-1', half: [1, 0.74, 1] },
@@ -61,7 +51,7 @@ function generatedRock(ctx: ModelContext, which: keyof typeof GENERATED_ROCK, id
   const g = new THREE.Group();
   const r = GENERATED_ROCK[which];
   loadNalatiModel(ctx.sky, r.name, ROCK_LOOK).then((m) => {
-    const mesh = new THREE.Mesh(fitRock(m, r.half), m.material);
+    const mesh = new THREE.Mesh(bakedActorGeometry(`dressing:${TIER}:${which === 'round' ? 'boulder' : which === 'tall' ? 'boulder-tall' : 'slab'}`), m.material);
     mesh.castShadow = true; mesh.receiveShadow = true;
     g.add(mesh);
     if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));

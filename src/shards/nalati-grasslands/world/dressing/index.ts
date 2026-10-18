@@ -41,11 +41,11 @@ import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter }
 import { NO_PLUMES, type PoiPiece } from '../types';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../modelView';
-import { hullAt, hullCandidates, type Box } from '../solid';
+import type { Box } from '../solid';
 import {
-  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
+  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, GENERATED_ROCK, ROCK_LOOK, dressingGeo,
 } from '../../models/dressing';
-import { preloadNalatiPlaces, bakedPlaceSteps, placer } from '../placeBake';
+import { preloadNalatiPlaces, bakedActorGeometry, bakedDressingContacts, bakedPlaceSteps, placer } from '../placeBake';
 
 const PHONE = TIER === 'phone';
 
@@ -150,16 +150,8 @@ export class NalatiDressing {
       if (list.length === 0) { geo.dispose(); return; }
       const l = new DressLayer(name, geo, mat, list, { farScale: far, ...o });
       // P1: a big rock collides as the hull of what this layer draws for it
-      const descs: ColliderDesc[] = [];
-      if (list.some((it) => it.solid === true)) {
-        const cand = hullCandidates(geo), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
-        for (const it of list) {
-          if (it.solid !== true) continue;
-          m.compose(p.set(it.x, it.y, it.z), q.setFromEuler(e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), sc.set(it.sx, it.sy, it.sz));
-          descs.push(hullAt(cand, m, 'rock'));
-        }
-        this.descs.push(...descs);
-      }
+      const descs = list.some(it => it.solid === true) ? bakedDressingContacts(name) : [];
+      this.descs.push(...descs);
       this.layers.push(l);
       this.drawn.push({ layer: l, list, descs, place: (how) => place(model, list.map((it) => ({ x: it.x, y: it.y, z: it.z })), how) });
       this.group.add(l.mesh);
@@ -172,9 +164,9 @@ export class NalatiDressing {
     if (rockModels) {
       const [b1, b2, b3] = rockModels;
       if (b1 && b2 && b3) {
-        add(boulder, 'boulder', fitRock(b1, GENERATED_ROCK.round.half), b1.material, plan.boulder.filter((_, i) => i % 3 !== 2), FAR.rock, { castShadow: true, keepNear: 40 });
-        add(boulder, 'boulder-tall', fitRock(b2, GENERATED_ROCK.tall.half), b2.material, plan.boulder.filter((_, i) => i % 3 === 2), FAR.rock, { castShadow: true, keepNear: 40 });
-        add(slab, 'slab', fitRock(b3, GENERATED_ROCK.slab.half), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+        add(boulder, 'boulder', bakedActorGeometry(`dressing:${TIER}:boulder`), b1.material, plan.boulder.filter((_, i) => i % 3 !== 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add(boulder, 'boulder-tall', bakedActorGeometry(`dressing:${TIER}:boulder-tall`), b2.material, plan.boulder.filter((_, i) => i % 3 === 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add(slab, 'slab', bakedActorGeometry(`dressing:${TIER}:slab`), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
       }
     } else {
       add(boulder, 'boulder', dressingGeo(`boulder:${PHONE ? 2 : 3}`), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import type { Flutter } from './Flutter';
-import { boxDescs, highest, type Box } from './solid';
+import type { Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ModelBuild, ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Ground, Platform, Plumes } from './types';
 
@@ -52,6 +52,15 @@ export interface InstanceData { readonly look: ModelLook; readonly castShadow: b
 /** one model's copies in a set, and how they are placed */
 interface Member extends MemberData {
   place: (o: SetRegister, object: THREE.Object3D) => Placed;
+}
+
+/** Placement-only authored floors; all solid construction is baked. */
+function highest(floors: readonly Platform[]): Platform {
+  return (x, z) => {
+    let best: number | undefined;
+    for (const floor of floors) { const value = floor(x, z); if (value !== undefined && (best === undefined || value > best)) best = value; }
+    return best;
+  };
 }
 
 /** place one model's copies (`drawnInto` the set's mesh or group): what NalatiSet.register does per model */
@@ -123,7 +132,7 @@ export class NalatiSet {
     m.boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
     const boxes = made.boxes ?? [];
     this.boxes.push(...boxes);
-    m.solid.push(...boxDescs(boxes));
+    m.solid.push(...boxes.filter(shape => shape.ghost !== true).map(shape => boxDesc(shape, shape.surface)));
     m.descs.push(...(made.descs ?? []));
     if (made.floor) m.floors.push(made.floor);
   }

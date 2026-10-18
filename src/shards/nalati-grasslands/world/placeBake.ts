@@ -1,6 +1,7 @@
 import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
 import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
 import { unzlibSync } from 'fflate';
+import { TIER } from '@wildshard/engine/core/tier';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
@@ -133,6 +134,24 @@ function offsets<R>(bake: Bake<R>, raw: Uint8Array, geos: (r: R) => readonly { r
 
 const PAINT = bakeOf<{ readonly key: string; readonly geometry: PlaceGeometryRow; readonly data: string }>(poiPaint, 'poiPaint.json');
 const decodePaint = (data: string): Uint8Array => unzlibSync(Uint8Array.from(atob(data), c => c.codePointAt(0) ?? 0));
+
+/** Fixed native rock hulls; preserve descriptor order and hand each placement fresh typed points. */
+export function bakedDressingContacts(name: string): ColliderDesc[] {
+  const row = Object.entries(poiPaint.contacts[TIER]).find(([id]) => id === name)?.[1];
+  if (row === undefined) throw new Error(`Missing prepared dressing contacts: ${name}`);
+  const bytes = decodePaint(row.points), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.length % 4 !== 0) throw new Error('Malformed dressing contact points');
+  const points = Float32Array.from({ length: bytes.length / 4 }, (_, i) => view.getFloat32(i * 4, true));
+  let at = 0;
+  const colliders: ColliderDesc[] = row.origins.map(([x, y, z, count]) => {
+    if (x === undefined || y === undefined || z === undefined || count === undefined || !Number.isSafeInteger(count) || count < 12 || count % 3 !== 0 || at + count > points.length) throw new Error('Malformed dressing contact origin');
+    const shape: ColliderDesc = { kind: 'hull', x, y, z, points: points.slice(at, at + count), surface: 'rock' };
+    at += count;
+    return shape;
+  });
+  if (at !== points.length) throw new Error('Unclaimed dressing contact points');
+  return colliders;
+}
 
 let places: { bytes: Uint8Array; at: number[] } | null = null;
 let placesLoading: Promise<void> | null = null;

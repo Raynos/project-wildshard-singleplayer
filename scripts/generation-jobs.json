@@ -176,7 +176,7 @@
         "src/shards/nalati-grasslands/generators/bake-specimens.mjs",
         "scripts/bake-output.mjs",
         "src/shards/nalati-grasslands/data/campCatalogue.json",
-        "src/shards/nalati-grasslands/data/campParams.ts",
+        "src/shards/nalati-grasslands/generators/campParams.ts",
         "src/shards/nalati-grasslands/data/campMaterials.json",
         "src/shards/nalati-grasslands/data/placeSpecimens.json"
       ],

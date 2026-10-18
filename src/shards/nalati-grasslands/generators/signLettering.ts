@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Board } from '../data/campParams';
+import type { Board } from './campParams';
 import type { BoardSpot } from './painted';
 
 export function paintSignAtlas(c: HTMLCanvasElement, labels: readonly string[]): void {

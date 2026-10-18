@@ -5,7 +5,7 @@ import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { Board } from '../data/campParams';
+import type { Board } from './campParams';
 import { PaintKit, v3, type ColorLike, type FinishOpts, type Painter, type PaintOpts, type NalatiTexName } from './paint';
 
 type Box = BoxSpec & { surface?: Material; ghost?: true };

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { bakedActorGeometry, bakedSignLettering } from '../src/shards/nalati-grasslands/world/placeBake';
+import { bakedActorGeometry, bakedDressingContacts, bakedSignLettering } from '../src/shards/nalati-grasslands/world/placeBake';
 import { shepherdRider } from '../src/shards/nalati-grasslands/creatures/sheepRaid';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { modelContext } from '../src/engine/models/model';
@@ -9,6 +9,9 @@ import { Rng } from '../src/engine/core/rng';
 import { signpostBaked } from '../src/shards/nalati-grasslands/models/catalogue';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
+import staticOracle from './fixtures/nalati-static-contacts.json';
+import fixed from '../src/shards/nalati-grasslands/boot/poiPaint.json';
+import { initializeTier, TIER } from '../src/engine/core/tier';
 
 const hash = (array: ArrayBufferView): string => createHash('sha256')
   .update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)).digest('hex');
@@ -22,6 +25,33 @@ function testSky(): SkyRig {
 }
 
 describe('Nalati fixed POI paint', () => {
+  // Recorded from the native constructors at 62e14486d, before either runtime module was removed.
+  it('retains native fitted rock and glacier attributes, bounds and contact order', () => {
+    expect(fixed.glacierSnout).toEqual(staticOracle.anchor);
+    for (const [key, expected] of Object.entries(staticOracle.geometries)) {
+      const geometry = bakedActorGeometry(key);
+      expect({ attributes: Object.entries(geometry.attributes).map(([name, a]) => ({ name,
+        type: a.array.constructor.name, size: a.itemSize, count: a.count, normalized: a.normalized, hash: hash(a.array),
+      })), index: geometry.index === null ? null : { type: geometry.index.array.constructor.name, count: geometry.index.count, hash: hash(geometry.index.array) },
+      box: geometry.boundingBox === null ? null : [geometry.boundingBox.min.toArray(), geometry.boundingBox.max.toArray()],
+      sphere: geometry.boundingSphere === null ? null : [geometry.boundingSphere.center.toArray(), geometry.boundingSphere.radius],
+      }).toEqual(expected);
+      geometry.dispose();
+    }
+    const previous = TIER;
+    try {
+      for (const tier of ['phone', 'desktop'] as const) {
+        initializeTier(tier);
+        for (const name of ['boulder', 'boulder-tall', 'slab'] as const) {
+          const expected = staticOracle.contacts[tier][name], shapes = bakedDressingContacts(name);
+          expect(shapes).toHaveLength(expected.count);
+          const json = JSON.stringify(shapes, (_key, value: unknown) => value instanceof Float32Array ? Array.from(value) : value);
+          expect(createHash('sha256').update(json).digest('hex')).toBe(expected.hash);
+        }
+      }
+    } finally { initializeTier(previous); }
+  });
+
   it('retains every parent vertex, normal, colour, UV, index and bound', () => {
     for (const row of oracle.rows) {
       const geometry = bakedActorGeometry(row.key);

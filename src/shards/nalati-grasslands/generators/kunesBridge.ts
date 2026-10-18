@@ -2,12 +2,12 @@ import { logPainter } from './campProps';
 import * as THREE from 'three';
 import type { ModelDef } from '@wildshard/engine/models/model';
 import { kunesBridge } from './catalogue';
-import type { KunesBridgeParams } from '../data/campParams';
+import type { KunesBridgeParams } from './campParams';
 import { deckFloor } from '../world/placeBake';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { M, v3 } from './paint';
 import { pole, blob } from './smoothGeometry';
-import { slab, type Box } from '../world/solid';
+import { slab, type Box } from './solid';
 import { painted, type Paint } from './painted';
 
 

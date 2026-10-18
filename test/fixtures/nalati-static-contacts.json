@@ -1,0 +1,500 @@
+{
+  "anchor": {
+    "x": -49.53,
+    "y": 39.36330052351963,
+    "z": -91.445
+  },
+  "geometries": {
+    "glacier-snout:world": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "2fd7b098bdefb4fcfd2f1bfc3229cbe222df3f09b64250a20f08c5f42a04fb79"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "c67583e5aa57a4f6982c7b84d815a2898523f7beef2a3a5c64435ca04c27470f"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "e9ef3f9865222168a85369cc8a2dd3ff3eaded111d0c5dc382bda1cc501147d3"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 432,
+        "hash": "5322f35fea5f48de6deb3ce94b36aa1024091d84b9d04c7f4a712df3ab23d94d"
+      },
+      "box": null,
+      "sphere": [
+        [
+          -47.84777641296387,
+          36.920188903808594,
+          -92.41964721679688
+        ],
+        23.64039273940245
+      ]
+    },
+    "glacier-snout:specimen": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "65cd7f96ced6fbef64fd0a34654b73ac66acedb325fc964776b1bdc7966cee33"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "c67583e5aa57a4f6982c7b84d815a2898523f7beef2a3a5c64435ca04c27470f"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 95,
+          "normalized": false,
+          "hash": "06f95a86be25bbabfa22e1224ee6cc66d8d3cec749150f716f7b2d7dfe101d50"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 432,
+        "hash": "5322f35fea5f48de6deb3ce94b36aa1024091d84b9d04c7f4a712df3ab23d94d"
+      },
+      "box": [
+        [
+          -7.611185550689697,
+          -6.441699981689453,
+          -22.931480407714844
+        ],
+        [
+          10.975632667541504,
+          1.5554769039154053,
+          20.98218536376953
+        ]
+      ],
+      "sphere": [
+        [
+          1.6822235584259033,
+          -2.443111538887024,
+          -0.9746475219726562
+        ],
+        23.64039265317719
+      ]
+    },
+    "dressing:phone:boulder": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 274,
+          "normalized": false,
+          "hash": "575c8c2e6f602721fbc5b4439632b9cccaa336446ceb311423901202718ef6f8"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 274,
+          "normalized": false,
+          "hash": "6a39a135255298b4ee2514bbf906a7353e5dffdc5266de137cb4571c42030ccd"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 274,
+          "normalized": false,
+          "hash": "4a99d7bb955cb0ef6d70877a7aba038d38fd90159625019c8716c1322cd1ce6b"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 274,
+          "normalized": false,
+          "hash": "d276b656a19029c895628d08d1e88649f5a6b309633d3dac6025e6b13456fd50"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 960,
+        "hash": "fc06a2db23e6e647b25bd570caa096ea9072daba321be2a3b971ad3919213da2"
+      },
+      "box": [
+        [
+          -1,
+          -0.7400000095367432,
+          -1
+        ],
+        [
+          1,
+          0.7400000095367432,
+          1
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.0963484737457478
+      ]
+    },
+    "dressing:phone:boulder-tall": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 265,
+          "normalized": false,
+          "hash": "8b3d0fd1a4156655df79cefb1b17cae69045df2786498e5d1011df478c880a21"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 265,
+          "normalized": false,
+          "hash": "33ce87036108c070975eaac651157bb222025e82498553ae1ca78bec0375d588"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 265,
+          "normalized": false,
+          "hash": "ccc21b97fde7f8de7ae6ed2c9de7f674651ab0bbfcce85a023249b938a44ce42"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 265,
+          "normalized": false,
+          "hash": "8bb84cae3937982b12076589ad21718d923d53842eba26a92cba954f021056cb"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 960,
+        "hash": "7da189b6a432a99b64dd213381b151166c1060bf3324f99f4d9b57b87edc7802"
+      },
+      "box": [
+        [
+          -0.8999999761581421,
+          -0.949999988079071,
+          -0.8999999761581421
+        ],
+        [
+          0.8999999761581421,
+          0.949999988079071,
+          0.8999999761581421
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.3359880954627743
+      ]
+    },
+    "dressing:phone:slab": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 319,
+          "normalized": false,
+          "hash": "c0654d5453bac6c8bbf5eda1243454c8b0a66f5501326d78439c08f48b9c06fa"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 319,
+          "normalized": false,
+          "hash": "09e9f82fe793f3b5a5d347582c08eb901c96f3fdc9f62963266f9226ab9516a3"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 319,
+          "normalized": false,
+          "hash": "ffbf0bbcac2ea6d6123df9d99688c326684a35c2acbeacda4e777838694dcda1"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 319,
+          "normalized": false,
+          "hash": "26b9202d1ee745498f170024313926c20f10306cad908b473aa5c20cc082c66e"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 960,
+        "hash": "ab87ad885c0269b63be2a781ad01bd186b54fbd00de47f8e10f2788769549038"
+      },
+      "box": [
+        [
+          -1.4499999284744263,
+          -0.5,
+          -0.9500000476837158
+        ],
+        [
+          1.4499999284744263,
+          0.5,
+          0.9500000476837158
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.5453187243572113
+      ]
+    },
+    "dressing:desktop:boulder": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 555,
+          "normalized": false,
+          "hash": "b702a4b50da155c4949b108b514c74d411d86f6eee2352fb99f70621994f4b07"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 555,
+          "normalized": false,
+          "hash": "ce97182806d0a2bea5b6ad314408962992b119364d73e95e6916c799c6bf8e6c"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 555,
+          "normalized": false,
+          "hash": "2ec88046c1c10bb68b02e8e9bbb89903127ddabef91ed5fc35f3f83cf2caed50"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 555,
+          "normalized": false,
+          "hash": "a56ab8ca20cb24f5d3c3e676e5a7c77a50ccb99a2c43500228a93d7a7cca715d"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 2400,
+        "hash": "1ec639da89502241ead3780db0970f114642babf44aaaca5c9d687c9f4adeed3"
+      },
+      "box": [
+        [
+          -1,
+          -0.7399999499320984,
+          -1
+        ],
+        [
+          1,
+          0.7399999499320984,
+          1
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.0921737255490742
+      ]
+    },
+    "dressing:desktop:boulder-tall": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 553,
+          "normalized": false,
+          "hash": "a9dfa4ed13bb18cf0e8237e2b235e022b3e7903ce2cc335b6cadabe65cfdf286"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 553,
+          "normalized": false,
+          "hash": "c804abfb3715f76a7581eadb795510da477803a9a9173620f6b731dec228a4c1"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 553,
+          "normalized": false,
+          "hash": "f8393db9c12aab0d5e1eac4a03c324d5ee799aa6882e7aec575d489f44934107"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 553,
+          "normalized": false,
+          "hash": "88f7380b763837186027ade0bf4f819453deb4e9eb989aa52704784282ddaaa0"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 2400,
+        "hash": "b94a4ea06822789961b2c6813868b17c8a109bb54a624cd9acb91de6d827b627"
+      },
+      "box": [
+        [
+          -0.8999999761581421,
+          -0.949999988079071,
+          -0.8999999761581421
+        ],
+        [
+          0.8999999761581421,
+          0.949999988079071,
+          0.8999999761581421
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.3340350032190054
+      ]
+    },
+    "dressing:desktop:slab": {
+      "attributes": [
+        {
+          "name": "position",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 652,
+          "normalized": false,
+          "hash": "6fe4ab8cf7a6576bb22fa8b09f15dd3e6800f412bb583fb8ad514a4a453ab2c2"
+        },
+        {
+          "name": "normal",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 652,
+          "normalized": false,
+          "hash": "59328339a251d63b7cceb41c273f59e4bb9677f79c23472cd017f613416af125"
+        },
+        {
+          "name": "uv",
+          "type": "Float32Array",
+          "size": 2,
+          "count": 652,
+          "normalized": false,
+          "hash": "9862a71e7f326054516b2f1b08cfee6c8406c49868d1f4833677e0d5d0a63b90"
+        },
+        {
+          "name": "color",
+          "type": "Float32Array",
+          "size": 3,
+          "count": 652,
+          "normalized": false,
+          "hash": "f4b7e438f74e6ee50e2c5f4179c36fdfd709b72cc512f436b0977786d5c9b3e8"
+        }
+      ],
+      "index": {
+        "type": "Uint16Array",
+        "count": 2400,
+        "hash": "6deb794b061b544e2e6436e69d047d247a775d62ef4b1726b803ad44cc757505"
+      },
+      "box": [
+        [
+          -1.4500000476837158,
+          -0.5,
+          -0.949999988079071
+        ],
+        [
+          1.4500000476837158,
+          0.5,
+          0.949999988079071
+        ]
+      ],
+      "sphere": [
+        [
+          0,
+          0,
+          0
+        ],
+        1.532353054208061
+      ]
+    }
+  },
+  "contacts": {
+    "phone": {
+      "boulder": {
+        "count": 436,
+        "hash": "7b67ad12ac43a0c2547decb948a0e59d9a2f199ebe6ab9a7f4af701a7bba2e15"
+      },
+      "boulder-tall": {
+        "count": 219,
+        "hash": "c36b2aa9b23b06cbc72468412ab079c4a023ad669d9252c508ab247b793f7b31"
+      },
+      "slab": {
+        "count": 682,
+        "hash": "fdd30096caeb3d348a79f97b1f83b77b2688829d65a13e7e3333677d08705afe"
+      }
+    },
+    "desktop": {
+      "boulder": {
+        "count": 436,
+        "hash": "e48c768e9a3ffee79e441e2d97539480b6226cb4b35d2930788e6d9f0e551f55"
+      },
+      "boulder-tall": {
+        "count": 219,
+        "hash": "e130c9845db1b856f8fd309fd3961231ec520c53672a5ddc24f728444c15f084"
+      },
+      "slab": {
+        "count": 682,
+        "hash": "c0976cb98a2264f84c31f7093192045fac3824c0a67c3c2d573601963a9f125c"
+      }
+    }
+  }
+}
