@@ -1,0 +1,52 @@
+{
+  "tag": "sp-x10-batch-head",
+  "url": "http://127.0.0.1:4401/",
+  "query": "",
+  "cpu": 1,
+  "frames": 90,
+  "when": "2026-10-18T04:28:18.850Z",
+  "rows": [
+    {
+      "pose": "gate",
+      "intervalP50": 33.3,
+      "intervalP95": 35,
+      "intervalMin": 31.6,
+      "locked": 100,
+      "short": 0,
+      "workP50": 5.4,
+      "workP95": 5.8,
+      "workMax": 6.1,
+      "calls": 114,
+      "trisM": 1.14,
+      "fps": 30
+    },
+    {
+      "pose": "cabin",
+      "intervalP50": 33.4,
+      "intervalP95": 34.6,
+      "intervalMin": 31.3,
+      "locked": 100,
+      "short": 0,
+      "workP50": 6.1,
+      "workP95": 6.7,
+      "workMax": 7.1,
+      "calls": 156,
+      "trisM": 1.49,
+      "fps": 30
+    },
+    {
+      "pose": "pond",
+      "intervalP50": 33.3,
+      "intervalP95": 34.8,
+      "intervalMin": 31.3,
+      "locked": 100,
+      "short": 0,
+      "workP50": 5.1,
+      "workP95": 5.7,
+      "workMax": 6.2,
+      "calls": 93,
+      "trisM": 0.95,
+      "fps": 30
+    }
+  ]
+}

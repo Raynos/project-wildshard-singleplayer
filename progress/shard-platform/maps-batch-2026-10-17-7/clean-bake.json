@@ -1,0 +1,139 @@
+{
+  "sourceTree": "09c6b3db3730614bfa978def109055d703a7d704",
+  "sourceParent": "80e10a200dd5fa0fdea294b7cc4a13c437f3530f",
+  "commitParent": "5b59399f0d33e084f3564a7bab7ee4b44126d9a3",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2318,
+  "shards": {
+    "driftwood-isle": {
+      "inputHash": "485756813f4b5a3168f1e8a0589c38443149e151d894204fb9ef2574cf089ed6",
+      "inputFiles": 277,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "485756813f4b5a3168f1e8a0589c38443149e151d894204fb9ef2574cf089ed6",
+        "pixelHash": "a36a37d8d510253395b870293ce4da139b6495aac023f6cc919957be819477ca",
+        "image": "/assets/driftwood-isle/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:isle",
+        "bytes": 97604
+      }
+    },
+    "pine-hollow": {
+      "inputHash": "7c17d253b2608fe0571434c3af389164ef0cbb3b1ccee870cc9a007a162204c6",
+      "inputFiles": 271,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "7c17d253b2608fe0571434c3af389164ef0cbb3b1ccee870cc9a007a162204c6",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "6cc9ae23139156e5e752b4d056a0721360f9fab5",
+      "owner": "sp-x8",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "immutable Pine schemas and logKit author facts; shared section producer closure",
+      "directFactInputs": {
+        "pine-hollow": [
+          "data/logKit.json"
+        ]
+      }
+    },
+    {
+      "sha": "470436a9985b4f77c0ff024d529e0fe85eb3dace",
+      "owner": "sp-x4",
+      "shards": [
+        "pine-hollow",
+        "driftwood-isle"
+      ],
+      "change": "closed quest catalogues and baked hollow-log/rifle/shelf sites; original26 timber geometry bytes retained",
+      "directFactInputs": {
+        "pine-hollow": [
+          "data/hollowLog.json",
+          "data/timberScenes.generated.json"
+        ]
+      },
+      "ownerPhoneProof": "Exact470436a998 muted iPhone16Pro pond/ridge/zip, reload state retained, hollow8colliders+shelf28m, noapp errors; owned4404 closed"
+    },
+    {
+      "sha": "2267c306607152516cbeea2cba57bc914c7f9939",
+      "owner": "sp-x6",
+      "shards": [],
+      "change": "engine entry waits only; no declared map inputs"
+    },
+    {
+      "sha": "8950b55234f52285c9b8f10d7fbb2bf7325c3479",
+      "owner": "sp-x8",
+      "shards": [],
+      "change": "selected-tier memory estimates only; no declared map inputs"
+    },
+    {
+      "sha": "80e10a200dd5fa0fdea294b7cc4a13c437f3530f",
+      "owner": "sp-x7",
+      "shards": [
+        "driftwood-isle"
+      ],
+      "change": "portable foliage producer and exact per-file stale input diagnostics; foliage common dependency declared",
+      "ownerProof": "ARM/x64 complete foliage JSON+all5GLBs exact; pier full outputs exact;23 focused/headless plus types/layers/scripts/lint green"
+    }
+  ],
+  "pixelComparison": {
+    "driftwood-isle": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "driftwood-isle": [],
+    "pine-hollow": [
+      "data/logKit.json",
+      "data/hollowLog.json"
+    ]
+  }
+}
