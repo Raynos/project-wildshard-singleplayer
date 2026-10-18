@@ -331,6 +331,7 @@
     "./world/interact/barrel": "./world/interact/barrel.ts",
     "./world/interact/flags": "./world/interact/flags.ts",
     "./world/interact/kit": "./world/interact/kit.ts",
+    "./world/interact/validate": "./world/interact/validate.ts",
     "./world/interact/types": "./world/interact/types.ts",
     "./world/lowpolyKit": "./world/lowpolyKit.ts",
     "./world/painterly": "./world/painterly.ts",

@@ -14,25 +14,22 @@ import { driftwoodRows } from '../runtime/boot/rows';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
 import { installQuestHints } from '@wildshard/game/quest/hints';
-import { HeldClaims } from '@wildshard/game/loadout/claims';
 import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadSailorHead } from '../species/sailor';
 
-/** `deps`: the heroes' preload and the adventure's install (the shard's by default; a test passes its own) */
-export async function installDriftwoodAdventure(ctx: ShardContext, deps: { preload?: () => Promise<unknown>; install?: typeof installAdventure } = {}): Promise<Adventure> {
+/** Prewarm the real hulls before the entered chapter can restore a saved altar. */
+export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adventure> {
   const shell = ctx.game.runtime;
   const world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
-  await (deps.preload ?? (() => Promise.all([preloadCaptainMesh(), preloadSailorHead()])))();
+  await Promise.all([preloadCaptainMesh(), preloadSailorHead()]);
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
-  const { game, sky, player, registry, params } = world;
+  const { game, player } = world;
   const d = driftwoodWorld(shell);
-  const adventure = await (deps.install ?? installAdventure)(ctx, { game, sky, player, registry, params, chunk: ctx.manifest,
-    prompts: shell.interactables, hud: h.hud, audio: h.audio, music: h.music, inventory: h.inventory, progress: h.progress, fullMap: h.fullMap, animals: h.animals,
-    ironDrop: HeldClaims.current(ctx.manifest.slug).claim('iron-sword'), setViewmodel: (on) => { h.weapons.visible = on; }, stowWeapon: (on) => { h.weapons.stowed = on; },
-    bridgeFloor: d.bridge === null ? undefined : (x, z) => d.bridge?.floorHeightAt(x, z),
-    pois: { hut: d.hut, lookout: d.lookout, wreck: d.wreck, shrine: d.shrine, cave: d.cove }, gulls: d.gulls });
+  const adventure = await installAdventure(ctx);
+  if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
+  h.fullMap.setPois(adventure.places.mapPois, { tally: true });
   shell.hooks.adventureFlags = () => adventure.flags.all.slice().sort();
   const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];

@@ -4,28 +4,21 @@ import { readQuestServiceActions } from '@wildshard/game/quest/effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import * as THREE from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
-import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables, InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import { createQuestPlacements, type Interactable, type Place } from '@wildshard/engine/world/interact/types';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { createQuestPlacements, type Interactable, type InteractTable, type Place } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS } from '@wildshard/game/bag/itemCatalog';
 import type { ItemId } from '@wildshard/game/Inventory';
-import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' };
-import { installAdventureInteractables } from './interactLifetime';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
-import { installQuestChapter, installQuestFlags, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
+import { installQuestChapter, installQuestFlags, installQuestInteractables, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
 import { Castaway } from '../runtime/npc/Castaway';
 import deathRows from '../data/questDeaths.json' with { type: 'json' };
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
@@ -39,10 +32,12 @@ import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '@wildshard/game/boss/wake';
 import { presentWakeBoss } from '@wildshard/game/boss/presentation';
 import { driftwoodRows } from '../runtime/boot/rows';
-import { installCompletion, type Completion as Complete, type CompletionProgress as CompleteProgress } from '@wildshard/game/complete/declared';
+import { installCompletion, type Completion as Complete } from '@wildshard/game/complete/declared';
 import { installPageReturns } from '@wildshard/game/population/pageReturns';
 import type { RespawnQueueInstance as RespawnQueue } from '@wildshard/sdk/populationRespawn';
 import type { Placed } from '@wildshard/engine/models/place';
+import { driftwoodWorld } from '../world/build';
+import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 /** The adventure's existing borrowed boss view and its baked reward pose. */
 export interface Finale { readonly captain: Pick<AdvAnimal, 'kind' | 'position' | 'mem' | 'hp' | 'maxHp' | 'alive'> | null; rewardAt: THREE.Vector3; rewardPose: { yaw: number; pitch: number; phase: number } }
@@ -53,44 +48,6 @@ interface Zipline { group: THREE.Object3D; placed: Placed; a: THREE.Vector3; b: 
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
 /** what the adventure reads of an animal (Animal.ts satisfies it) */
 export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number; aggressive?: boolean; combatActor?: () => Actor }
-
-export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
-  game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
-  sky: Sky;
-  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; platforms: ((x: number, z: number) => number | undefined)[] };
-  chunk: { slug: string; next?: string };
-  scope?: Scope;
-  onDeath?: (run: (animal: A) => void, order: number) => void;
-  debug?: ShardContext['debug'];
-  /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
-  prompts: Interactable[];
-  /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
-  hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void; readonly entered?: boolean; readonly paused?: boolean };
-  /** the game's Audio: the kit's sounds are InteractSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
-  audio: Audio;
-  music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
-  inventory: { add: (id: ItemId, n?: number) => void };
-  pois: Partial<Record<Exclude<Place['poi'], 'world'>, object | null>>;
-  /** Creature views for scoped death listeners and authored respawns. */
-  animals: { animals?: A[]; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
-  params?: URLSearchParams;
-  /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
-  progress?: ProgressSink & CompleteProgress & Partial<Pick<Progress, 'bindLedger' | 'refreshLedger'>>;
-  /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
-  fullMap?: { setPois: (source: () => MapPoi[], opts?: { tally?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
-  /** the island's gulls: three fly you toward the nearest unfound place when you wander or idle (E309 B, gullGuide.ts) */
-  gulls?: { guide: (player: THREE.Vector3, tx: number, tz: number) => boolean } | null;
-  /** the held claim in the wreck's hold — guarded until the drowned sailor is beaten (B4 / D6) */
-  /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
-  bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
-  /** the world registry (PHYSICS P4): registered pieces' floors for placement; a piece added here collides */
-  registry?: WorldRegistry | undefined;
-  /** show / hide the weapon viewmodel (the golden-hour reward view lowers it) */
-  setViewmodel?: (on: boolean) => void;
-  /** lower the held weapon out of the frame and turn its input off while a dialogue is open (E129); false raises it */
-  stowWeapon?: (on: boolean) => void;
-  ironDrop?: { bindGuardFlags: (flags: readonly string[]) => void } | null;
-}
 
 export interface Adventure {
   readonly content: AdventureContent;
@@ -117,33 +74,37 @@ export interface Adventure {
 }
 
 
-/**
- * The adventure's view of the Game with its own update registration. Never spread the Game: `scene` (and `camera`) may
- * be prototype getters (SF47's `Game.scene` resolves the bound regional frame), which an object spread drops, leaving
- * `scene` undefined. Delegating getters keep the live resolution.
- */
-export function adventureGame(game: AdventureWorld['game'], onUpdate: AdventureWorld['game']['onUpdate']): AdventureWorld['game'] {
-  return { get scene() { return game.scene; }, get camera() { return game.camera; }, onUpdate };
-}
-
-/** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
-export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
+/** Entered page composition borrows the actual world/play services. Quest rows,
+ * chapter progression and v8 native continuation keep their existing owners. */
+export async function installAdventure(ctx: ShardContext): Promise<Adventure> {
+  const shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
+  if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
   const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
-  const scope = ctx.scope, declaration = ctx.product.shardfile; // the admitted declaration (W2b: never shard.config)
-  const w: AdventureWorld<A> = { ...source, scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
-    onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
+  if (ctx.scope.disposed) throw new Error('Driftwood adventure left while admitting its interactables');
+  const scope = ctx.scope, declaration = ctx.product.shardfile, d = driftwoodWorld(shell);
+  // Delegate the getters: spreading Game loses its live regional scene/camera.
+  const w = { ...world, ...h, chunk: ctx.manifest, prompts: shell.interactables,
+    game: { get scene() { return world.game.scene; }, get camera() { return world.game.camera; },
+      onUpdate: (run: (dt: number, time: number) => void, id: string): void => { ctx.system({ id, phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); } },
+    pois: { hut: d.hut === null ? null : { anchors: d.hut.anchors }, lookout: d.lookout === null ? null : { anchors: d.lookout.anchors },
+      wreck: d.wreck === null ? null : { anchors: d.wreck.anchors }, shrine: d.shrine === null ? null : { anchors: d.shrine.anchors }, cave: d.cove === null ? null : { anchors: d.cove.anchors } },
+    ironDrop: HeldClaims.current(ctx.manifest.slug).claim('iron-sword') };
+  const onDeath = (run: (animal: AdvAnimal) => void, order: number): void => { ctx.on('actor.died', ({ actor }) => {
+    const animal = h.animals.animals.find(a => a.combatActor() === actor); if (animal !== undefined) run(animal);
+  }, { order }); };
   const story = await readQuestStory(ctx);
   const services = await readQuestServiceActions(ctx, story.quest.id, 'quests/services.json');
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/discovery.json'))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/stall.json')));
   const traderRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/trader.json'))));
   const flags = installQuestFlags(ctx, story.quest.id, w.chunk.slug);
-  if (w.params?.has('resetquest')) flags.reset();
+  if (w.params.has('resetquest')) flags.reset();
 
-  const { floorAt, place, setAnchor, anchors } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames, pois: w.pois,
-    ...(w.registry === undefined ? {} : { registry: w.registry }) });
+  const { floorAt, place, setAnchor, anchors } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames, pois: w.pois, registry: w.registry });
 
-  const kit = await installAdventureInteractables(scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
+  const assembly = await ctx.product.json<{ constants: { interact: InteractTable; interactSpots: unknown } }>('sim/headless-assembly.json');
+  const kit = await installQuestInteractables(ctx, story.quest.id, { table: assembly.constants.interact,
+    placements: assembly.constants.interactSpots, platforms: true });
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
@@ -169,22 +130,22 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     own: (figure, register) => { ownQuestTree(figure.group, scope); scope.run(register); },
     at: figure => { figure.group.updateMatrixWorld(true); return figure.headWorld(new THREE.Vector3()); },
     advance: (_figure, dt, time, player) => { npc.update(dt, time, player); },
-    open: () => { w.audio.weaponSwap(); }, stow: on => { w.stowWeapon?.(on); },
+    open: () => { w.audio.weaponSwap(); }, stow: on => { h.weapons.stowed = on; },
     approach: { at: figure => figure.position, run: figure => { figure.wave(); } },
   }]]);
-  const talks = installStoryTalks(new QuestViews(ctx), declaration, { flags, scene: w.game.scene, registry: w.registry ?? ctx.app.registry,
+  const talks = installStoryTalks(new QuestViews(ctx), declaration, { flags, scene: w.game.scene, registry: w.registry,
     prompts: w.prompts, calls: new Map(), figures });
   if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
   adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
-  w.onDeath?.(bindQuestDeathEffects<A>(deathRows.page, { flags, toast: text => { w.hud.toast(text); },
+  onDeath(bindQuestDeathEffects<AdvAnimal>(deathRows.page, { flags, toast: text => { w.hud.toast(text); },
     calls: new Map([['hold-key', body => { kit.moveTo('hold-key', body.position.x, body.position.z); }]]) }), 10);
   w.game.onUpdate((dt, t) => {
     talks.update(dt, t, w.player.position);
     if (!practiceRoom.open) chapter.chip.update(t, w.player);
   }, 'shard.driftwood-isle.installSpine');
-  w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
+  onDeath(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installQuestTrader(traderStall, { player: w.player, placed: { scope, sky: w.sky,
-    ...(w.registry === undefined ? {} : { registry: w.registry }),
+    registry: w.registry,
     owners: new Map<string, unknown>([['placement', { place, floorAt }], ['game', w.game], ['hud', w.hud]]),
     models: new Map([['trader', { model: trader, name: 'The trader' }], ['trade-counter', { model: tradeCounter, name: "The trader's counter", solidFloor: false }]]),
     figures: new Map([['trader', traderRigOf]]), page: { rows: traderRows, flags, prompts: w.prompts },
@@ -204,7 +165,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     w.game.onUpdate((dt) => {
       zip.cables.update(zip.mode, dt);
       for (const on of zip.cables.takeTransitions(zip.mode)) {
-        w.setViewmodel?.(!on);
+        h.weapons.visible = !on;
         sfx.interact(on ? 'lever' : 'plate', on ? zip.a : zip.b);
       }
     }, 'shard.driftwood.adventure.2');
@@ -212,17 +173,16 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
     adventure.setAnchor('lookout.zipline', { x: scenes.vector('zipline.anchor').x, z: scenes.vector('zipline.anchor').z });
   }
 
-  const places = chapter.discover(content.places.map(d => { const p = place(d.at);
-    return { id: d.id, label: d.label, x: p.x, z: p.z, r: d.r, quiet: d.id === 'pier' }; }));
+  const places = chapter.discover(content.places.map(site => { const p = place(site.at);
+    return { id: site.id, label: site.label, x: p.x, z: p.z, r: site.r, quiet: site.id === 'pier' }; }));
   adventure.places = places;
-  w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
   let guide: PlaceGuide<Places['points'][number]> | null = null;
-  if (w.gulls) {
-    const gulls = w.gulls; guide = new PlaceGuide<Places['points'][number]>({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
+  if (d.gulls) {
+    const gulls = d.gulls; guide = new PlaceGuide<Places['points'][number]>({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
       { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
         fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, target.x, target.z) });
     const liveGuide = guide;
-    w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
+    w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered && !w.hud.paused && w.player.position.y <= 300)
       liveGuide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
   }
   adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
@@ -247,8 +207,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       if (cue === 'captain.restore') spawn();
       else if (cue === 'captain.wake') {
         spawn(); encounter.wake(observation()); present();
-        w.hud.toast('The pool boils — the Drowned Captain rises!'); w.music.combat?.(1);
-      } else if (cue === 'captain.dead') { w.hud.toast('Captain Brine sinks for good. The ring hums — go and stand in it'); w.music.sting('chunk'); }
+        services.run('captain-wake'); w.music.combat(1);
+      } else if (cue === 'captain.dead') services.run('captain-dead');
     }
   };
   flags.onChange((flag, on) => { w.ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); cues(); });
@@ -263,10 +223,10 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   adventure.ecology = installPageReturns(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('sim/returns.json'))));
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──
-  if (w.bridgeFloor) {
-    const bf = w.bridgeFloor; let sway = 0, bt = 0;
+  if (d.bridge) {
+    const bridge = d.bridge; let sway = 0, bt = 0;
     w.game.onUpdate((dt) => {
-      const p = w.player.position, f = bf(p.x, p.z);
+      const p = w.player.position, f = bridge.floorHeightAt(p.x, p.z);
       const on = f !== undefined && Math.abs(p.y - f) < 0.35;
       sway += ((on ? 1 : 0) - sway) * Math.min(1, dt * 3);
       if (sway < 0.001) return;

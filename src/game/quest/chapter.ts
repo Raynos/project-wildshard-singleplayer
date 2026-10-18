@@ -1,5 +1,11 @@
 import * as v from 'valibot';
-import type { Object3D } from 'three';
+import { BatchedMesh, type Object3D } from 'three';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
+import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
+import { validateTable } from '@wildshard/engine/world/interact/validate';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { isJsonData } from '@wildshard/format/json';
 import { app } from '@wildshard/engine/app/runtime';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -125,4 +131,33 @@ export function installQuestCatalogue(ctx: Pick<ShardContext, 'product'> & { rea
   const feats = ctx.product.section('quests/quests').quests.achievements;
   if (items !== undefined) ctx.rows.item(items);
   if (feats !== undefined) ctx.rows.feat(feats);
+}
+
+/** Client-only interactable presentation over entered services and saved quest flags.
+ * Intake contains only bounded table/placement rows and floor policy. The caller
+ * retains its update phase and event wiring; this owns no clock or save wire.
+ */
+export async function installQuestInteractables(ctx: ShardContext, id: string,
+  input: { readonly table: InteractTable; readonly placements?: unknown; readonly platforms?: boolean; readonly registryReach?: number }): Promise<Interactables> {
+  if (!isJsonData(input)) throw new Error('Quest interactables require plain JSON data');
+  v.parse(v.strictObject({ table: v.unknown(), placements: v.exactOptional(v.unknown()),
+    platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(finite, v.minValue(Number.MIN_VALUE))) }), input);
+  const table = input.placements === undefined ? input.table : bindInteractPlacements(input.table, input.placements);
+  const errors = validateTable(table);
+  if (errors.length > 0) throw new Error(`Invalid quest interactables: ${errors.join('; ')}`);
+  if (table.rows.some(row => row.at.poi !== 'world')) throw new Error('Quest interactables require world placements');
+  const runtime = ctx.game.runtime, world = runtime?.world;
+  if (runtime === undefined || world === undefined || world === null) throw new Error('Quest interactables require entered world services');
+  const flags = installQuestFlags(ctx, id, ctx.manifest.slug);
+  const { floorAt, place } = createQuestPlacements({ terrain: terrainHeight, registry: world.registry,
+    ...(input.platforms === true ? { platforms: world.player.platforms } : {}),
+    ...(input.registryReach === undefined ? {} : { registryReach: input.registryReach }) });
+  const { Interactables } = await import('@wildshard/engine/world/interact/Interactables');
+  if (ctx.scope.disposed) throw new Error('Quest left while admitting interactables');
+  const before = new Set(world.game.scene.children);
+  const kit = withOwner(ctx.scope, () => new Interactables({ scene: world.game.scene, sky: world.sky,
+    player: world.player, flags, place, floorAt, prompts: runtime.interactables }).build(table));
+  for (const node of world.game.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownQuestTree(node, ctx.scope);
+  ctx.scope.onDispose(() => { kit.dispose({ batches: false }); });
+  return kit;
 }

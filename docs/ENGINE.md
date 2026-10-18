@@ -10146,3 +10146,10 @@ retain source order; each call keeps the existing 400,000 coarse fuel bound.
 Range admission happens before any guest call or RNG draw. A refused batch
 restores the entire lent stream. The caller supplies rows and a prepared guest,
 never a scoring callback. DW perch selection and Pine herd shelters use it.
+
+`installQuestInteractables(ctx, questId, rows)` in `game/quest/chapter` is
+client-only kit presentation. It accepts a world-space interactable table,
+optional baked placements, and declarative floor policy (`platforms`,
+`registryReach`). It resolves entered scene/sky/player/prompts and the saved
+quest flags internally, owns kit resources in the entry scope, and leaves the
+caller's update phase and event bindings intact.

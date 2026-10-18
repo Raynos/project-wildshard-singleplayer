@@ -15,7 +15,7 @@ import type { app as clientApp } from '@wildshard/engine/app/runtime';
 type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
-import type { Adventure, AdventureWorld, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
+import type { Adventure, AdvAnimal } from '../../../src/shards/driftwood-isle/quest/adventure';
 import { DrownedCaptain } from './captain';
 import { CAPTAIN_DEF } from './captainEncounter';
 
@@ -28,16 +28,16 @@ export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vecto
 export type FinaleAdventure = Pick<Adventure, 'flags' | 'place' | 'floorAt' | 'setAnchor' | 'spine' | 'complete'>;
 /** Trusted view/combat recipes can be exercised without constructing a renderer or the rest of the island. */
 export interface FinaleWorld<A extends AdvAnimal> {
-  game: Pick<AdventureWorld<A>['game'], 'onUpdate'>;
+  game: { onUpdate: (run: (dt: number, t: number) => void, id?: string) => void };
   sky: { planetDir: THREE.Vector3; dayNight: { phase: number } | null };
-  player: Pick<AdventureWorld<A>['player'], 'position' | 'velocity' | 'yaw' | 'pitch' | 'carried'>;
-  animals: Pick<AdventureWorld<A>['animals'], 'spawn'>;
-  hud: Pick<AdventureWorld<A>['hud'], 'toast'>;
-  music: AdventureWorld<A>['music'];
-  scope?: AdventureWorld<A>['scope'];
+  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean };
+  animals: { spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A };
+  hud: { toast: (text: string) => void };
+  music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
+  scope?: import('@wildshard/engine/app/scope').Scope;
   /** The declared boss body bound by the trusted runtime; replay oracles retain the legacy spawn port. */
   spawnCaptain?: () => AdvAnimal | null;
-  setViewmodel?: AdventureWorld<A>['setViewmodel'];
+  setViewmodel?: (on: boolean) => void;
 }
 interface FinaleRecipe extends Finale {
   observe: () => Readonly<Record<string, number>>;

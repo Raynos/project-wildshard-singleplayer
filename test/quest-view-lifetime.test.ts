@@ -4,6 +4,7 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext } from '../src/game/plugin/context';
+import { installQuestInteractables } from '../src/game/quest/chapter';
 import { QuestViews } from '../src/game/plugin/ui';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { DialogueBox } from '../src/engine/quest/view/ui';
@@ -35,4 +36,17 @@ test('quest views borrow home ownership, recreate modal clocks and refuse stale 
     expect(resident().isOpen).toBe(false);
   } finally { scope.dispose(); }
   expect(() => new QuestViews(context)).toThrow('live scope');
+});
+
+test('quest interactable intake refuses executable, malformed and unresolved placements before construction', async () => {
+  const scope = new Scope('quest-kit-validation'), app = new App();
+  const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const context = shardContext(level.context, TEMPLATE, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } });
+  const table = { rows: [], external: [] };
+  try {
+    await expect(installQuestInteractables(context, 'quest', { table, placements: () => undefined })).rejects.toThrow('plain JSON');
+    await expect(installQuestInteractables(context, 'quest', { table, placements: [{}] })).rejects.toThrow();
+    await expect(installQuestInteractables(context, 'quest', { table: { rows: [{ kind: 'lever', id: 'lever', at: { poi: 'hut', x: 0, z: 0 } }], external: [] } })).rejects.toThrow('world placements');
+    await expect(installQuestInteractables(context, 'quest', { table })).rejects.toThrow('entered world services');
+  } finally { scope.dispose(); }
 });

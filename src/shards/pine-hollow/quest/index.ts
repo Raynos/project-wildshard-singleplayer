@@ -4,7 +4,7 @@ import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { installCollectionCompendium } from '@wildshard/game/models/collectionWall';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
-import { installQuestChapter, installQuestFlags } from '@wildshard/game/quest/chapter';
+import { installQuestChapter, installQuestFlags, installQuestInteractables } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import type { CustomSections, TradeGood } from '../runtime/productSections.generated.d.ts';
@@ -22,7 +22,7 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { MapPoi } from '@wildshard/engine/ui/Map';
 import { test } from '@wildshard/engine/world/interact/flags';
-import { Interactables, type InteractEvent } from '@wildshard/engine/world/interact/Interactables';
+import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import { createQuestPlacements, type Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ItemId } from '@wildshard/game/Inventory';
@@ -132,7 +132,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   const shot = (name: Parameters<PineHollowSfx['shot']>[0], at?: THREE.Vector3): void => { sfx?.shot(name, at ? { at } : {}); };
 
   // ── floors + placements (world coordinates only) ──
-  const { floorAt, place } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
+  const { floorAt } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
 
   // ── the tower's frame (the lookout: local −Z faces the landing), its deck height ──
   const towerY = heightAt(LAYOUT.LOOKOUT.x, LAYOUT.LOOKOUT.z), deckY = towerY + 11;
@@ -142,7 +142,7 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
 
   // ── the table's sites ──
   const { table, interactions: lanternRules } = native;
-  const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
+  const kit = await installQuestInteractables(ctx, story.quest.id, { table, registryReach: 20 });
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
   // ── the beaver pool behind the dam (E322 F-L6): the sluice's flag drains it, and a reload with it open starts drained ──
