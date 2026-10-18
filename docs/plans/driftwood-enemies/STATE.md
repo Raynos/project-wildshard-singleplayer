@@ -1,13 +1,13 @@
 # DRIFTWOOD-ENEMIES — State
 
-Coordinator: dot. Updated 2026-10-18. Request E487. Work branch: gamedev-dot; baseline 11c99f5f2b037f77de45f454d9b74b491110df63.
+Updated 2026-10-18. Development work in progress.
 
-Scope: three regular enemies + one elite + one boss, isolated selectable one-on-one arena, full combat/rig/loot proof and later natural Driftwood placement. Public review Site authorized. No Mac, legacy feature edits or deployment. Existing SHARD-PLATFORM coordinator files untouched.
+Scope: three regular enemies, one elite and one boss for Driftwood Isle. Build a selectable, isolated one-on-one practice mode, verify real combat and animation, then test natural map placements. Prefer the current shard-file implementation; legacy compatibility fixes and isolated prototypes are permitted where needed.
 
-A1/A2 complete locally: six-shard census, source API/migration trace and plan in docs/reviews/driftwood-enemy-pipeline-audit.md. Supported serve-build completed gen/proof, Driftwood shardfile and Vite bundle. Focused baseline: 6 files / 17 tests passed (placement, native binding, creature look/body, finale controller, strike geometry). No full type/lint/suite pass claimed.
+Six-shard source census and migration/API trace are recorded in the linked audit. The existing baseline built successfully and 17 focused baseline tests passed. Model Explorer displays four existing Driftwood enemy specimens and the Captain death pose. The unchanged three-dummy arena now renders successfully, including after four model visits. Combat, exit and selected-opponent integration remain unverified.
 
-A3 partly verified: existing official Chrome Headless Shell works; desktop Chromium had runtime socket EPERM (not a reviewer refusal). Actual loaded Model Explorer captures show reef crab, monkey, sailor, Captain, and Captain Die pose. Zero page errors/HTTP failures. Real arena UI-flow capture pending: direct probe entered y900 but retained Explorer/pause overlays, so that screenshot was rejected. All captures are phone portrait software WebGL, not physical-device proof. Preview/browser share one lifecycle and close afterward; no permanent live :4455 URL.
+The initial isolated-opponent adapter is WIP. It admits declared grounded stalker/skirmisher action bodies, preserves default dummy mode and isolates encounter events. Focused post-edit tests pass. This does not establish complete player damage, item drops, broader behavior support, visual acceptance or physical-device performance.
 
-Baseline warnings: existing Driftwood baked map/world mismatch; report-only download/render budget overages. Generator touched lint/ask-ids.json, public/assets/far-reach/baked/rest-storm.glb and new generated blobs/materials/scenes. Preserve a separate generated-diff inventory; no worker Git actions. No feature code edits. Pinned deps present; pnpm 11 ignored sharp build script, no policy config retained.
+Five enemy designs are documented but unimplemented. No new enemy is complete or accepted. Next: verify arena combat and lifecycle, fix demonstrated defects, then implement and test the first enemy end to end. Keep world saves, quests and inventory isolated during practice.
 
-Next: coordinator source checkpoint/review Site; supported browser baseline; B1 catalog/lifecycle tests and B2 genuinely isolated actor/runtime ports before UI replacement. All C/D content and integration rows remain open in DRIFTWOOD-ENEMIES.md. Arena must not record world kills/quests or grant world loot.
+Review: https://wildshard-enemy-lab.raynos.chatgpt.site

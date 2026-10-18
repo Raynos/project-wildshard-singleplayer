@@ -75,3 +75,9 @@ The installed desktop Chromium executable failed on its process-singleton socket
 The first direct-probe arena attempt entered y=900 but retained Explorer/pause overlays. Its screenshot is invalid as arena visual proof; a real Explorer > Practice arena UI-flow retest is pending. Do not count an `entered` boolean alone as a visible arena pass.
 
 The generator runs all shard producers even when `serve-build --shard` selects one shardfile. Its generated tracked/untracked diff is separate from feature source changes: about 30.85 MB across generated outputs, exceeding a single 10 MB binary push allowance if swept together. No feature code edits or worker Git operations were performed.
+
+## Foundation follow-on (2026-10-18)
+
+Public baseline review: https://wildshard-enemy-lab.raynos.chatgpt.site. Four Model Explorer turntables and Captain Die-pose remain verified. Real Practice UI entry reproduced a renderer crash after `arena.entered=true`; no arena screenshot passed. Software-renderer stderr contains normal-attribute, shader-extension and audio-backend warnings, without a definitive crash cause.
+
+An initial Developer-only data-fed one-opponent source path is now WIP. It admits fresh declared ground stalker/skirmisher bodies (Reef Crab initially), preserves default dummy mode, uses private combat/health and an in-memory reward receipt, and rejects unsupported behavior families. This is not full creature/loot acceptance: pickup visualization, broader AI adapters, six-kit runtime testing and browser proof remain open. Lifecycle tests cover replacement, stale async completion, retry, cleanup and reward-once. Post-edit focused regression: 4 files / 23 tests pass; full integration validation remains pending.

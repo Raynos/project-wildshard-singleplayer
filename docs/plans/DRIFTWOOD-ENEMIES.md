@@ -16,7 +16,7 @@ Work in the authorized dot cloud checkout on `gamedev-dot`. No Mac work, no lega
 | --- | --- | --- | --- | --- |
 | A1 | Six-shard source census and migration boundary | dot audit | complete locally | Species, variants, encounters and placements reported separately with source files |
 | A2 | Existing baseline build and focused combat tests | dot audit | complete locally | Supported preview bundle built; six files / seventeen tests pass; no full-gate claim |
-| A3 | Real portrait Model Explorer + arena captures | dot | partial: models verified, arena retest pending | Current build starts in supported browser, specimen clips and baseline arena captured; browser closed |
+| A3 | Real portrait Model Explorer + arena captures | dot | partial: models verified, arena renderer crash under investigation | Current build starts in supported browser, specimen clips and baseline arena captured; browser closed |
 | A4 | Source-only checkpoint and public review Site | dot | open | Verified branch checkpoint, source-screened site, no private notes or unsupported runtime claims |
 | B1 | Data-only practice catalog and lifecycle tests | dot | open | Unique entries, one opponent, replace/retry/exit/stale-load behavior deterministic |
 | B2 | Isolated real combat runtime in arena | dot | open | Real brain/strike/rig/death pipeline; no world progress, loot or save mutation |
@@ -33,4 +33,10 @@ The current arena is immortal training targets, not a reusable enemy runtime. Do
 
 ## Proof and clean-tree accounting
 
-Cold generation creates all shards' build products even for a single selected preview shard. Two tracked generated paths changed during baseline preparation (`lint/ask-ids.json`, Sky's rest-storm GLB) plus generated content-addressed blobs/material/scene outputs. Keep them out of small feature/checkpoint source commits until individually reconciled. The full suite, typecheck, lint and runtime screenshots are not yet verified. Current baked Driftwood map mismatch is a pre-existing baseline warning and stays an open D1 requirement.
+Cold generation creates all shards' build products even for a single selected preview shard. Two tracked generated paths changed during baseline preparation (`lint/ask-ids.json`, Sky's rest-storm GLB) plus generated content-addressed blobs/material/scene outputs. Keep them out of small feature/checkpoint source commits until individually reconciled. The full suite, full typecheck/lint and arena gameplay screenshots are not yet verified; Model Explorer portraits are verified. Current baked Driftwood map mismatch is a pre-existing baseline warning and stays an open D1 requirement.
+
+## 2026-10-18 foundation checkpoint
+
+Developer-only isolated-opponent source is WIP: data-fed selector, arena host port, private creature brain/combat scope and race-safe lifecycle. Initial admission supports declared grounded stalker/skirmisher action bodies only (existing Reef Crab); other behavior families stay unavailable. Focused post-edit regression: 4 files / 23 tests passed. Full integration validation remains pending. The unchanged arena now renders all three targets, including after four model visits. Combat and exit validation remain open.
+
+Public review: https://wildshard-enemy-lab.raynos.chatgpt.site (v1 baseline models and audit; feature runtime proof pending).
