@@ -1,0 +1,106 @@
+# Native V23 actual-engine arena preview
+
+This is an explicit, local developer WIP route. V23 is visually unaccepted;
+colliders, numerical poses, fight integration and phone performance are also
+unaccepted. This is **not Model Explorer Solid/Paint**, not a palette approval,
+and not the public practice demo. Default/shipping sources and old generated
+fixtures remain unchanged. The other four creatures are not built or admitted.
+
+## Reproducible inputs and outputs
+
+- Source: `unaccepted-native-v23.json`, SHA-256
+  `18e8847e87e9e6d9546000572e1775cced8b20b78c0317e2a0599b5fb3a4fd68`.
+  The build refuses any changed bytes under that candidate identity.
+- Body packing reuses `native_export.py`; there is no second coordinate
+  conversion, material approximation or custom renderer. The stored source is
+  already in game axes and has reversed winding.
+- An explicit AnimalDims JSON is required. The codec receipt's scratch dimensions
+  are not measured hit volumes and must not silently become gameplay tuning.
+  `unaccepted-native-v23-preview-dimensions.json` is a separate conservative
+  candidate measured from actual V23 vertices by `measure_native_preview.py`.
+  `native-v23-preview-measurements.json` records source hash, part bounds, each
+  formula, four fin/toe centres and limitations. All rest-hull vertices fit the
+  candidate capsule; inflated geometry, terrain contacts and gameplay response
+  are untested. The capsule may include too much empty space; the eye-derived
+  head sphere is expressly not an anatomical head-volume design.
+- `pufferNativePreview.ts` emits one species, one Puffer decision, one strike,
+  one move, one body catalogue and one numeric pose through the existing SDK
+  product validation. The burst remains .9 s windup + .1 s active + 1.1 s recovery.
+- `pufferNativeClips.ts` targets `joint.belly` by name. The actual exported order
+  puts head at index 7; head stays at its bind-local translation with identity
+  rotation/scale. No old .43 body height, .33 head shift or 1.57 scale is retained.
+- Build-time modes: `rest`, `inflate-105`, `inflate-110`, `attack`. The attack
+  diagnostic is deliberately restricted to at most 1.10 belly scale. Fin, tail,
+  death and flinch animation are not newly authored by this preview.
+
+The root coordinator grants build/test/browser lanes before executing:
+
+```sh
+python3 scripts/heavy-lane.py build -- node scripts/build-puffer-native-preview.mjs art/driftwood-isle/approved-puffer/unaccepted-native-v23-preview-dimensions.json rest
+python3 scripts/heavy-lane.py build -- node scripts/build-puffer-native-preview.mjs --app
+```
+
+The first command writes only a new/empty `tmp/puffer-native-preview/rest/`:
+`pack/`, `product/`, exact `unaccepted-dimensions.json`, and `preview.json` with
+input/output hashes and explicit false acceptance flags. No generated production
+asset is overwritten. Another mode uses its own new directory. For example,
+`PUFFER_PREVIEW_DIR=tmp/puffer-native-preview/inflate-105` selects that product
+for the Vite step. Its default output is `tmp/puffer-native-preview-dist`; use a
+new `--app tmp/puffer-native-preview-105-dist` output to preserve earlier outputs.
+The named Vite configuration is invoked programmatically by `--app`, avoiding
+a new default-export exception. It refuses a nonempty output, verifies packed-body hashes,
+and reuses the existing practice HTML/boot/Game/AnimalFactory code with a WIP
+label. It does not publish or modify the review Site.
+
+Focused source/real-native-bind tests (no renderer or Blender):
+
+```sh
+node_modules/.bin/vitest run test/puffer-native-preview.test.ts --maxWorkers=1
+```
+
+On 2026-10-18 the focused command passed **5 tests, zero skipped**, in 10.18 s:
+three actual-native-bind scale cases, one attack-clock case and one isolated
+product-source case. This did not compile Wasm, build the app, render pixels,
+exercise actual mesh deformation/containment or approve colliders. The full
+build/browser steps are intentionally still queued for the coordinator.
+
+## Rendering audit: source-confirmed, not yet browser-confirmed
+
+The actual path is `practiceBoot` → `startPracticeDemo` → `Game`, with
+`preparePracticeContent` → `packedCreatureBodies` → `AnimalFactory` and
+`numericCreaturePose`. Materials compile through `runtimeLookMaterials`,
+`clientMaterials`, and the real graph compiler.
+
+- `driftwood-creature` graph: model `toon`, flat shading, vertex colour multiplied
+  by material colour, material emissive, roughness .85, metalness 0. The existing
+  per-instance tint remains; this is not a raw-albedo viewer.
+- The isolated product leaves `familyLooks` at the empty-source defaults.
+  Toon defaults: face edge [.14, .20], shadow edge [.25, .75], lit grade .2,
+  shade grade 0, lift [.07, .035, .2], rim [1.3, .95, .6], terminator
+  [.4, .16, .06], gloss threshold .72. Cloud shade is strength .6, scale 60,
+  wind [3.2, 1.4]; caustic water level is null.
+- Practice content lends the material catalogue but does not call its `tick`;
+  the toon family's cloud-time uniform therefore starts/stays at 0. The arena
+  simulation, creature transform and camera are **not frozen** by static pose mode.
+- `practiceLevel` imports the manifest's numerical sky and grade, but its look is
+  `emptyLook(.5)`, not Driftwood's full runtime look. That backdrop supplies a
+  paused hour-12 clock, a flat #9ca7b4 background, no clouds/planet, no environment
+  capture and `lut: null`. Its `bind` is a no-op, so the hour-12 label does not
+  install the real Driftwood Noon lighting. The base sun direction remains
+  normalize([.3, .6, .4]); intensity 2.7, colour [1, .97, .9]. Hemisphere sky
+  8098036, ground 14198904, intensity .9; environment intensity .7 is configured
+  but an imported HDRI is not loaded by this backdrop.
+- `Game` uses its real **clean** composer: AgX tone mapping, saturation .3,
+  brightness 0, contrast .2, bloom .4/threshold 1, split-tone shadow
+  [.94, .98, 1.06], highlights [1.04, 1.01, .96], lift [0, 0, .005], gain
+  [1.02, 1.02, 1], gamma 1. AO/shadow/AA choices remain tier-dependent.
+  The learned Driftwood LUT is absent because `sky.lut` is null. No cinematic
+  grain/chromatic aberration is added by the clean chain.
+
+Therefore this route can establish native geometry/rig admission in the actual
+engine, but cannot establish the requested final Noon Solid/Paint palette proof.
+That requires the real Driftwood backdrop/LUT/lighting and Model Explorer host,
+plus frozen animation/cloud/camera time and honest portrait screenshots. Paint
+there is unlit vertex paint plus the game's grading, not raw albedo. No rendered
+proof, geometric containment result, collider acceptance or phone result is
+claimed by the source tests or this document.

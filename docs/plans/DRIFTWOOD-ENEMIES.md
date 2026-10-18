@@ -120,3 +120,18 @@ Puffer experiment alongside Blender, with actual matched-view comparisons.
 Concentrate arena fixes on enabling Puffer end-to-end tests. This changes work
 priority, not the identities or prior mockup approvals. No current model has
 passed visual acceptance.
+
+## 2026-10-18 17:23 UTC — compare versions and build nine-view targets
+
+Rank all rendered Puffer versions by complete resemblance to the approved
+mockup, and show the top five. The owner identifies Blender V9 and img2threejs
+V8 as close and rejects the lost detail in Blender V16. The independent
+31-label review ranks V9, img2threejs V8, V11, V10 and V8 highest; no model
+is accepted. See docs/reviews/brine-puffer-version-ranking.md.
+
+E489 requests the Look Loop nine-angle Model Explorer mockups. Preserve the
+approved identity and generate a coherent nine-view grid before individual
+tile upscales. Exact model-scale cameras are recorded separately from world
+half-dome cameras. Hidden surfaces remain inferred. Pause further Blender
+iterations while these reference views are reconciled; preserve V25 as
+unrendered source and all prior failures.

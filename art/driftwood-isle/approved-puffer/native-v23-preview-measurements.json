@@ -1,0 +1,138 @@
+{
+  "schema": "wildshard.puffer.preview-dimensions.v1",
+  "candidate": "V23 UNACCEPTED WIP",
+  "sourceSha256": "18e8847e87e9e6d9546000572e1775cced8b20b78c0317e2a0599b5fb3a4fd68",
+  "colliderAcceptance": false,
+  "visualAcceptance": false,
+  "scope": "Conservative rest-geometry inputs for local actual-engine diagnostics only",
+  "method": {
+    "bodyY": "Actual body absolute bind Y",
+    "bodyHalfLen": "Half of maximum absolute hull Z offset from body pivot",
+    "bodyRadius": "Maximum actual hull-vertex distance to symmetric body Z segment plus 0.001 m",
+    "headRadius": "Maximum actual eye/pupil/highlight vertex distance from head pivot plus 0.001 m; not an anatomical head fit",
+    "legLen": "Body pivot Y minus lowest fin/toe vertex Y",
+    "feet": "Fin/toe AABB X/Z centres, ordered finL, finR, rearL, rearR; not terrain-tested contact points",
+    "halfWidth": "Maximum absolute X of all actual parts"
+  },
+  "bounds": {
+    "hull": {
+      "min": [
+        -0.6299999952316284,
+        0.11999999731779099,
+        -0.7549999952316284
+      ],
+      "max": [
+        0.6299999952316284,
+        1.3350000381469727,
+        0.8802737593650818
+      ]
+    },
+    "eyes": {
+      "min": [
+        -0.29635336995124817,
+        0.8969999551773071,
+        0.33095583319664
+      ],
+      "max": [
+        0.29574599862098694,
+        1.0619999170303345,
+        0.4356568157672882
+      ]
+    },
+    "limbs": {
+      "finL": {
+        "min": [
+          0.28999999165534973,
+          -0.009999999776482582,
+          0.2199999988079071
+        ],
+        "max": [
+          1.0134999752044678,
+          0.5849999785423279,
+          0.6200000047683716
+        ]
+      },
+      "finR": {
+        "min": [
+          -1.0134999752044678,
+          -0.009999999776482582,
+          0.2199999988079071
+        ],
+        "max": [
+          -0.28999999165534973,
+          0.5849999785423279,
+          0.6200000047683716
+        ]
+      },
+      "rearL": {
+        "min": [
+          0.3409999907016754,
+          -0.004000000189989805,
+          -0.36000001430511475
+        ],
+        "max": [
+          0.9459999799728394,
+          0.5550000071525574,
+          -0.14000000059604645
+        ]
+      },
+      "rearR": {
+        "min": [
+          -0.9459999799728394,
+          -0.004000000189989805,
+          -0.36000001430511475
+        ],
+        "max": [
+          -0.3409999907016754,
+          0.5550000071525574,
+          -0.14000000059604645
+        ]
+      }
+    },
+    "all": {
+      "min": [
+        -1.0134999752044678,
+        -0.009999999776482582,
+        -1.2000000476837158
+      ],
+      "max": [
+        1.0134999752044678,
+        1.593595266342163,
+        0.8802737593650818
+      ]
+    }
+  },
+  "restHullOutsideCapsule": 0,
+  "limitations": [
+    "Rest only; 1.05/1.10 inflation containment and collider response untested",
+    "Conservative capsule includes empty space and may feel oversized",
+    "Eye sphere is not a full head hit-volume design",
+    "No visual, fight, terrain, balance or phone acceptance"
+  ],
+  "dimensions": {
+    "bodyY": 0.699999988079071,
+    "bodyHalfLen": 0.4401368796825409,
+    "bodyRadius": 0.6597132312768383,
+    "headRadius": 0.3510253879578713,
+    "legLen": 0.7099999878555536,
+    "feet": [
+      [
+        0.6517499834299088,
+        0.42000000178813934
+      ],
+      [
+        -0.6517499834299088,
+        0.42000000178813934
+      ],
+      [
+        0.6434999853372574,
+        -0.2500000074505806
+      ],
+      [
+        -0.6434999853372574,
+        -0.2500000074505806
+      ]
+    ],
+    "halfWidth": 1.0134999752044678
+  }
+}

@@ -1,0 +1,762 @@
+{
+  "title": "Brine Puffer: all rendered version ranking",
+  "date": "2026-10-18",
+  "inventory_cutoff_utc": "2026-10-18T17:25:00Z",
+  "target": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+  "weights": {
+    "silhouette_proportions": 0.35,
+    "face_expression": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "scale": "0\u20135 expert visual judgment, not measured image similarity; two decimal arithmetic does not imply hundredth-point perceptual certainty.",
+  "rendered_version_labels": 31,
+  "distinct_geometry_states": 30,
+  "top_five": [
+    "blender-lowpoly-v9",
+    "img2threejs-v8",
+    "blender-lowpoly-v11",
+    "blender-lowpoly-v10",
+    "blender-lowpoly-v8"
+  ],
+  "caveats": [
+    "All versions judged against the approved low-poly target, including older detailed and clay studies originally made for different goals.",
+    "Deliberately deferred eyes, crown, mouth and other defining details count as missing in this overall likeness ranking. This is not a judgment of whether an anatomy test achieved its narrower purpose.",
+    "Blender dark studio and img2threejs white-background cameras, projection and lighting differ. Color warmth/saturation is not a separate score; no color-transfer correction or new render was made.",
+    "V24 warmed its palette before runtime comparison. That warmth earns no special credit.",
+    "Most early Blender versions have only one hero view. Their unseen sides are unverified, not assumed sound. Available multiview defects count; confidence is consequently unequal.",
+    "V20/V21 are the same geometry. Both version labels are listed, tied, and their combined front/hero/side images form one evidence set.",
+    "No animation, runtime performance, gameplay acceptance or export quality is scored. All candidates remain unaccepted.",
+    "Owner preference for Blender V9 and img2threejs V8 is consistent with this independent comparison; scores were assigned from the visual rubric, not recency."
+  ],
+  "omissions": [
+    "Blender clay V6 and low-poly V25 are source-only: no actual render exists at cutoff.",
+    "There is no separate rendered low-poly V1\u2013V6 sequence in this inventory: the earlier lineage is initial detailed V1 and clay V2\u2013V6.",
+    "Comparison boards, durable WEBP copies, reference masks/crops and duplicate exports are not separate candidates.",
+    "Existing production gameplay audit screenshots are contextual evidence, not versions in these reconstruction experiments, and are outside this version ranking."
+  ],
+  "candidates": [
+    {
+      "id": "blender-lowpoly-v9",
+      "label": "Blender low-poly V9",
+      "components": {
+        "silhouette_proportions": 3.5,
+        "face_expression": 3.4,
+        "defining_details": 3.5,
+        "facet_style": 3.2
+      },
+      "overall": 3.43,
+      "notes": "Best balance: broad cream pouch, rounded hooded amber eyes, substantial brows/muzzle and full fin/spine identity. External orbital cylinders, layered mantle and narrow presented tail remain wrong.",
+      "representative_image": "tmp/puffer-lowpoly-v9/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v9/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v9/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 1
+    },
+    {
+      "id": "img2threejs-v8",
+      "label": "img2threejs V8",
+      "components": {
+        "silhouette_proportions": 3.2,
+        "face_expression": 3.5,
+        "defining_details": 3.2,
+        "facet_style": 3.05
+      },
+      "overall": 3.27,
+      "notes": "Strong broad pouch, angry thick brows, open peaked mouth and tongue. Side views reveal protruding eye pieces and detached-looking slab fins; three claw tips, oversized tail and banded facets differ from target.",
+      "representative_image": "tmp/img2threejs-puffer/v8-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v8-hero.png",
+        "tmp/img2threejs-puffer/v8-front.png",
+        "tmp/img2threejs-puffer/v8-left.png",
+        "tmp/img2threejs-puffer/v8-right.png",
+        "tmp/img2threejs-puffer/v8-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v8-hero.png",
+        "tmp/img2threejs-puffer/v8-front.png",
+        "tmp/img2threejs-puffer/v8-left.png",
+        "tmp/img2threejs-puffer/v8-right.png",
+        "tmp/img2threejs-puffer/v8-rear.png"
+      ],
+      "geometry_alias": null,
+      "rank": 2
+    },
+    {
+      "id": "blender-lowpoly-v11",
+      "label": "Blender low-poly V11",
+      "components": {
+        "silhouette_proportions": 3.4,
+        "face_expression": 2.9,
+        "defining_details": 3.5,
+        "facet_style": 3.0
+      },
+      "overall": 3.21,
+      "notes": "V10 full silhouette with more legible eyes and narrower lip; eye cards still flatten expression and mantle plates look layered rather than continuous.",
+      "representative_image": "tmp/puffer-lowpoly-v11/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v11/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v11/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 3
+    },
+    {
+      "id": "blender-lowpoly-v10",
+      "label": "Blender low-poly V10",
+      "components": {
+        "silhouette_proportions": 3.4,
+        "face_expression": 2.7,
+        "defining_details": 3.4,
+        "facet_style": 3.0
+      },
+      "overall": 3.13,
+      "notes": "Strong complete proportions and toes, but angular orange eye cards and tiny almond eyes lose the target rounded lower eye lobe; cream beak remains broad.",
+      "representative_image": "tmp/puffer-lowpoly-v10/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v10/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v10/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 4
+    },
+    {
+      "id": "blender-lowpoly-v8",
+      "label": "Blender low-poly V8",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 3.1,
+        "defining_details": 3.2,
+        "facet_style": 3.0
+      },
+      "overall": 3.04,
+      "notes": "Strong rounded hooded eyes, thick brows and complete details; pouch is too small, limbs too long, and raised mantle/eye pieces remain conspicuous.",
+      "representative_image": "tmp/puffer-lowpoly-v8/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v8/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v8/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 5
+    },
+    {
+      "id": "blender-lowpoly-v24",
+      "label": "Blender low-poly V24",
+      "components": {
+        "silhouette_proportions": 3.2,
+        "face_expression": 2.7,
+        "defining_details": 2.8,
+        "facet_style": 3.1
+      },
+      "overall": 2.96,
+      "notes": "Solid swept feet and smaller connected arch improve construction, but bootlike feet bury toes, orange top bands are lost, brows are flat cheek paint, and mouth/eye cavities are oversized.",
+      "representative_image": "tmp/puffer-lowpoly-v24/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v24/matched-style.png",
+        "tmp/puffer-lowpoly-v24/front.png",
+        "tmp/puffer-lowpoly-v24/side.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v24/matched-style.png",
+        "tmp/puffer-lowpoly-v24/front.png",
+        "tmp/puffer-lowpoly-v24/side.png"
+      ],
+      "geometry_alias": null,
+      "rank": 6
+    },
+    {
+      "id": "blender-lowpoly-v23",
+      "label": "Blender low-poly V23",
+      "components": {
+        "silhouette_proportions": 3.1,
+        "face_expression": 2.6,
+        "defining_details": 2.8,
+        "facet_style": 3.0
+      },
+      "overall": 2.88,
+      "notes": "Spines and tail-face border restore identity, but bow-tie cream muzzle wings, flat orange cheek and leaf-thin profile feet remain.",
+      "representative_image": "tmp/puffer-lowpoly-v23/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v23/matched-style.png",
+        "tmp/puffer-lowpoly-v23/front.png",
+        "tmp/puffer-lowpoly-v23/side.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v23/matched-style.png",
+        "tmp/puffer-lowpoly-v23/front.png",
+        "tmp/puffer-lowpoly-v23/side.png"
+      ],
+      "geometry_alias": null,
+      "rank": 7
+    },
+    {
+      "id": "img2threejs-v7",
+      "label": "img2threejs V7",
+      "components": {
+        "silhouette_proportions": 2.5,
+        "face_expression": 2.5,
+        "defining_details": 2.8,
+        "facet_style": 2.6
+      },
+      "overall": 2.58,
+      "notes": "Buried crown roots and reduced sockets help, but eyes remain fully round/external, mouth is a slit, and fins read as separate folded leaves.",
+      "representative_image": "tmp/img2threejs-puffer/v7-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v7-hero.png",
+        "tmp/img2threejs-puffer/v7-front.png",
+        "tmp/img2threejs-puffer/v7-left.png",
+        "tmp/img2threejs-puffer/v7-right.png",
+        "tmp/img2threejs-puffer/v7-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v7-hero.png",
+        "tmp/img2threejs-puffer/v7-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 8
+    },
+    {
+      "id": "blender-lowpoly-v7",
+      "label": "Blender low-poly V7",
+      "components": {
+        "silhouette_proportions": 2.6,
+        "face_expression": 2.1,
+        "defining_details": 2.8,
+        "facet_style": 2.8
+      },
+      "overall": 2.52,
+      "notes": "Complete motif set, but small hanging pouch, long feet, googly external eye cylinders and a large dark nose seam.",
+      "representative_image": "tmp/puffer-lowpoly-v7/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v7/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v7/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 9
+    },
+    {
+      "id": "blender-lowpoly-v20",
+      "label": "Blender low-poly V20",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 2.3,
+        "defining_details": 1.5,
+        "facet_style": 2.7
+      },
+      "overall": 2.41,
+      "notes": "Both front pupils visible after outward recentering; lacks crown and integrated warm nose, with dark lower eye pockets. V21 supplies side/hero evidence for this same geometry.",
+      "representative_image": "tmp/puffer-lowpoly-v20/front.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v20/front.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v20/front.png"
+      ],
+      "geometry_alias": null,
+      "rank": 10
+    },
+    {
+      "id": "blender-lowpoly-v21",
+      "label": "Blender low-poly V21",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 2.3,
+        "defining_details": 1.5,
+        "facet_style": 2.7
+      },
+      "overall": 2.41,
+      "notes": "Same geometry as V20, shown from hero/side. Side eye sliver and leaf-thin feet count; no additional sculptural improvement.",
+      "representative_image": "tmp/puffer-lowpoly-v21/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v21/matched-style.png",
+        "tmp/puffer-lowpoly-v21/side.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v21/matched-style.png",
+        "tmp/puffer-lowpoly-v21/side.png"
+      ],
+      "geometry_alias": "blender-lowpoly-v20",
+      "rank": 10
+    },
+    {
+      "id": "img2threejs-v5",
+      "label": "img2threejs V5",
+      "components": {
+        "silhouette_proportions": 2.4,
+        "face_expression": 2.1,
+        "defining_details": 2.7,
+        "facet_style": 2.5
+      },
+      "overall": 2.39,
+      "notes": "Large boxy orange socket slabs and heavy cream mouth frame; floating crown roots and awkward pointed limbs.",
+      "representative_image": "tmp/img2threejs-puffer/v5-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v5-hero.png",
+        "tmp/img2threejs-puffer/v5-front.png",
+        "tmp/img2threejs-puffer/v5-left.png",
+        "tmp/img2threejs-puffer/v5-right.png",
+        "tmp/img2threejs-puffer/v5-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v5-hero.png",
+        "tmp/img2threejs-puffer/v5-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 12
+    },
+    {
+      "id": "blender-lowpoly-v22",
+      "label": "Blender low-poly V22",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 2.0,
+        "defining_details": 1.7,
+        "facet_style": 2.7
+      },
+      "overall": 2.36,
+      "notes": "Integrated cream muzzle becomes a projecting visor shelf across the eye bridge, weakening the small peaked lip; spines still absent.",
+      "representative_image": "tmp/puffer-lowpoly-v22/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v22/matched-style.png",
+        "tmp/puffer-lowpoly-v22/front.png",
+        "tmp/puffer-lowpoly-v22/side.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v22/matched-style.png",
+        "tmp/puffer-lowpoly-v22/front.png",
+        "tmp/puffer-lowpoly-v22/side.png"
+      ],
+      "geometry_alias": null,
+      "rank": 13
+    },
+    {
+      "id": "img2threejs-v6",
+      "label": "img2threejs V6",
+      "components": {
+        "silhouette_proportions": 2.4,
+        "face_expression": 2.0,
+        "defining_details": 2.6,
+        "facet_style": 2.5
+      },
+      "overall": 2.34,
+      "notes": "Low slit mouth and misplaced-looking tongue weaken expression; large socket blocks, suspended spikes and slab fins remain.",
+      "representative_image": "tmp/img2threejs-puffer/v6-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v6-hero.png",
+        "tmp/img2threejs-puffer/v6-front.png",
+        "tmp/img2threejs-puffer/v6-left.png",
+        "tmp/img2threejs-puffer/v6-right.png",
+        "tmp/img2threejs-puffer/v6-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v6-hero.png",
+        "tmp/img2threejs-puffer/v6-front.png",
+        "tmp/img2threejs-puffer/v6-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 14
+    },
+    {
+      "id": "blender-detailed-v1",
+      "label": "Blender initial detailed V1",
+      "components": {
+        "silhouette_proportions": 2.6,
+        "face_expression": 2.5,
+        "defining_details": 2.4,
+        "facet_style": 1.2
+      },
+      "overall": 2.32,
+      "notes": "Recognizable angry puffer, but dense overlapping scales, pleated pouch, crooked fine spikes and fingerlike fins contradict the approved broad low-poly surfaces.",
+      "representative_image": "tmp/approved-puffer/three-quarter.png",
+      "available_images": [
+        "tmp/approved-puffer/three-quarter.png",
+        "tmp/approved-puffer/front.png",
+        "tmp/approved-puffer/side.png",
+        "tmp/approved-puffer/back.png"
+      ],
+      "reviewed_images": [
+        "tmp/approved-puffer/three-quarter.png",
+        "tmp/approved-puffer/front.png",
+        "tmp/approved-puffer/side.png",
+        "tmp/approved-puffer/back.png"
+      ],
+      "geometry_alias": null,
+      "rank": 15
+    },
+    {
+      "id": "img2threejs-v4",
+      "label": "img2threejs V4",
+      "components": {
+        "silhouette_proportions": 2.3,
+        "face_expression": 2.1,
+        "defining_details": 2.5,
+        "facet_style": 2.5
+      },
+      "overall": 2.31,
+      "notes": "Diagonal brows improve anger, but exposed eye spheres, open gaps and disconnected fin volumes weaken the body.",
+      "representative_image": "tmp/img2threejs-puffer/v4-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v4-hero.png",
+        "tmp/img2threejs-puffer/v4-front.png",
+        "tmp/img2threejs-puffer/v4-left.png",
+        "tmp/img2threejs-puffer/v4-right.png",
+        "tmp/img2threejs-puffer/v4-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v4-hero.png",
+        "tmp/img2threejs-puffer/v4-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 16
+    },
+    {
+      "id": "blender-lowpoly-v17",
+      "label": "Blender low-poly V17",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 1.8,
+        "defining_details": 1.4,
+        "facet_style": 2.7
+      },
+      "overall": 2.24,
+      "notes": "Near eye recess is better; far eye is over-occluded, and missing spines/face detail leave an incomplete identity.",
+      "representative_image": "tmp/puffer-lowpoly-v17/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v17/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v17/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 17
+    },
+    {
+      "id": "blender-lowpoly-v19",
+      "label": "Blender low-poly V19",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 1.8,
+        "defining_details": 1.4,
+        "facet_style": 2.7
+      },
+      "overall": 2.24,
+      "notes": "Lowered eye layers expose more gold but front pupils are still largely hidden. Front-only new proof; unchanged body inferred from revision lineage.",
+      "representative_image": "tmp/puffer-lowpoly-v19/front.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v19/front.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v19/front.png"
+      ],
+      "geometry_alias": null,
+      "rank": 17
+    },
+    {
+      "id": "blender-lowpoly-v18",
+      "label": "Blender low-poly V18",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 1.7,
+        "defining_details": 1.4,
+        "facet_style": 2.7
+      },
+      "overall": 2.21,
+      "notes": "Mirrored eyelids improve symmetry, but front pupils remain hidden by the nasal hood; feet are leaf-thin in profile and crown absent.",
+      "representative_image": "tmp/puffer-lowpoly-v18/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v18/matched-style.png",
+        "tmp/puffer-lowpoly-v18/front.png",
+        "tmp/puffer-lowpoly-v18/side.png",
+        "tmp/puffer-lowpoly-v18/mirrored-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v18/matched-style.png",
+        "tmp/puffer-lowpoly-v18/front.png",
+        "tmp/puffer-lowpoly-v18/side.png",
+        "tmp/puffer-lowpoly-v18/mirrored-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 19
+    },
+    {
+      "id": "img2threejs-v3",
+      "label": "img2threejs V3",
+      "components": {
+        "silhouette_proportions": 2.2,
+        "face_expression": 1.9,
+        "defining_details": 2.4,
+        "facet_style": 2.4
+      },
+      "overall": 2.18,
+      "notes": "Flatter dome and angular pouch, but detached planar face surround and fins; circular eye coins protrude.",
+      "representative_image": "tmp/img2threejs-puffer/v3-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v3-hero.png",
+        "tmp/img2threejs-puffer/v3-front.png",
+        "tmp/img2threejs-puffer/v3-left.png",
+        "tmp/img2threejs-puffer/v3-right.png",
+        "tmp/img2threejs-puffer/v3-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v3-hero.png",
+        "tmp/img2threejs-puffer/v3-front.png",
+        "tmp/img2threejs-puffer/v3-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 20
+    },
+    {
+      "id": "blender-lowpoly-v16",
+      "label": "Blender low-poly V16",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 1.4,
+        "defining_details": 1.4,
+        "facet_style": 2.5
+      },
+      "overall": 2.09,
+      "notes": "Large projecting coin eyes, especially far eye, on a stripped plain hull; missing crown and muzzle details count against full likeness.",
+      "representative_image": "tmp/puffer-lowpoly-v16/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v16/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v16/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 21
+    },
+    {
+      "id": "blender-lowpoly-v15",
+      "label": "Blender low-poly V15",
+      "components": {
+        "silhouette_proportions": 2.9,
+        "face_expression": 1.1,
+        "defining_details": 1.2,
+        "facet_style": 2.6
+      },
+      "overall": 1.98,
+      "notes": "Coherent surface boundaries, but two orange racing stripes and empty cavities; sparse anatomy gate lacks full identity.",
+      "representative_image": "tmp/puffer-lowpoly-v15/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v15/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v15/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 22
+    },
+    {
+      "id": "img2threejs-v2",
+      "label": "img2threejs V2",
+      "components": {
+        "silhouette_proportions": 1.8,
+        "face_expression": 1.5,
+        "defining_details": 2.2,
+        "facet_style": 2.0
+      },
+      "overall": 1.82,
+      "notes": "Spherical teal body with separate hanging belly, raised circular eyes, floating straight brow and thin triangular feet.",
+      "representative_image": "tmp/img2threejs-puffer/v2-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v2-hero.png",
+        "tmp/img2threejs-puffer/v2-front.png",
+        "tmp/img2threejs-puffer/v2-left.png",
+        "tmp/img2threejs-puffer/v2-right.png",
+        "tmp/img2threejs-puffer/v2-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v2-hero.png",
+        "tmp/img2threejs-puffer/v2-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 23
+    },
+    {
+      "id": "blender-lowpoly-v14",
+      "label": "Blender low-poly V14",
+      "components": {
+        "silhouette_proportions": 2.8,
+        "face_expression": 1.0,
+        "defining_details": 1.1,
+        "facet_style": 2.0
+      },
+      "overall": 1.8,
+      "notes": "Improved lower pouch and irregular hull, but fragmented orange/cream triangles and noisy crown; eyes and spines absent.",
+      "representative_image": "tmp/puffer-lowpoly-v14/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v14/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v14/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 24
+    },
+    {
+      "id": "blender-lowpoly-v12",
+      "label": "Blender low-poly V12",
+      "components": {
+        "silhouette_proportions": 2.0,
+        "face_expression": 1.0,
+        "defining_details": 2.4,
+        "facet_style": 2.0
+      },
+      "overall": 1.78,
+      "notes": "Failed planar facial mask: open side seam, horizontal slots and projecting amber tabs; retained feet/spines cannot recover facial likeness.",
+      "representative_image": "tmp/puffer-lowpoly-v12/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v12/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v12/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 25
+    },
+    {
+      "id": "blender-lowpoly-v13",
+      "label": "Blender low-poly V13",
+      "components": {
+        "silhouette_proportions": 2.7,
+        "face_expression": 0.9,
+        "defining_details": 1.0,
+        "facet_style": 1.8
+      },
+      "overall": 1.69,
+      "notes": "Closed egg-shaped hull, but conspicuous latitude bands, broad orange cheek and empty sockets; iris and crown intentionally absent.",
+      "representative_image": "tmp/puffer-lowpoly-v13/matched-style.png",
+      "available_images": [
+        "tmp/puffer-lowpoly-v13/matched-style.png"
+      ],
+      "reviewed_images": [
+        "tmp/puffer-lowpoly-v13/matched-style.png"
+      ],
+      "geometry_alias": null,
+      "rank": 26
+    },
+    {
+      "id": "blender-clay-v5",
+      "label": "Blender clay V5",
+      "components": {
+        "silhouette_proportions": 2.1,
+        "face_expression": 1.7,
+        "defining_details": 0.9,
+        "facet_style": 1.5
+      },
+      "overall": 1.65,
+      "notes": "Triangular beak reads more clearly, but wrinkled pouch, smooth hood and missing identity details keep likeness low.",
+      "representative_image": "tmp/approved-puffer-clay-v5/matched-clay.png",
+      "available_images": [
+        "tmp/approved-puffer-clay-v5/matched-clay.png"
+      ],
+      "reviewed_images": [
+        "tmp/approved-puffer-clay-v5/matched-clay.png"
+      ],
+      "geometry_alias": null,
+      "rank": 27
+    },
+    {
+      "id": "blender-clay-v4",
+      "label": "Blender clay V4",
+      "components": {
+        "silhouette_proportions": 1.9,
+        "face_expression": 1.4,
+        "defining_details": 0.7,
+        "facet_style": 1.2
+      },
+      "overall": 1.41,
+      "notes": "Angrier brows improve expression; scalloped wrinkled chin and thin fins still miss the broad faceted target.",
+      "representative_image": "tmp/approved-puffer-clay-v4/matched-clay.png",
+      "available_images": [
+        "tmp/approved-puffer-clay-v4/matched-clay.png"
+      ],
+      "reviewed_images": [
+        "tmp/approved-puffer-clay-v4/matched-clay.png"
+      ],
+      "geometry_alias": null,
+      "rank": 28
+    },
+    {
+      "id": "blender-clay-v3",
+      "label": "Blender clay V3",
+      "components": {
+        "silhouette_proportions": 1.7,
+        "face_expression": 1.1,
+        "defining_details": 0.5,
+        "facet_style": 1.1
+      },
+      "overall": 1.19,
+      "notes": "Somewhat more integrated chin, but tiny googly eyes, slit mouth, smooth blob and missing spines/tail treatment.",
+      "representative_image": "tmp/approved-puffer-clay-v3/matched-clay.png",
+      "available_images": [
+        "tmp/approved-puffer-clay-v3/matched-clay.png"
+      ],
+      "reviewed_images": [
+        "tmp/approved-puffer-clay-v3/matched-clay.png"
+      ],
+      "geometry_alias": null,
+      "rank": 29
+    },
+    {
+      "id": "blender-clay-v2",
+      "label": "Blender clay V2",
+      "components": {
+        "silhouette_proportions": 1.4,
+        "face_expression": 0.8,
+        "defining_details": 0.5,
+        "facet_style": 1.1
+      },
+      "overall": 1.0,
+      "notes": "Smooth round head, tiny raised eyes and detached lip/pouch slab; long simple flippers and missing defining details.",
+      "representative_image": "tmp/approved-puffer-clay-v2/matched-clay.png",
+      "available_images": [
+        "tmp/approved-puffer-clay-v2/matched-clay.png"
+      ],
+      "reviewed_images": [
+        "tmp/approved-puffer-clay-v2/matched-clay.png"
+      ],
+      "geometry_alias": null,
+      "rank": 30
+    },
+    {
+      "id": "img2threejs-v1",
+      "label": "img2threejs V1",
+      "components": {
+        "silhouette_proportions": 0.4,
+        "face_expression": 0.4,
+        "defining_details": 0.8,
+        "facet_style": 0.8
+      },
+      "overall": 0.54,
+      "notes": "Primitive assembly failure: huge white/orange spheres, oversized spikes and incorrect body/limbs.",
+      "representative_image": "tmp/img2threejs-puffer/v1-hero.png",
+      "available_images": [
+        "tmp/img2threejs-puffer/v1-hero.png",
+        "tmp/img2threejs-puffer/v1-front.png",
+        "tmp/img2threejs-puffer/v1-left.png",
+        "tmp/img2threejs-puffer/v1-right.png",
+        "tmp/img2threejs-puffer/v1-rear.png"
+      ],
+      "reviewed_images": [
+        "tmp/img2threejs-puffer/v1-hero.png",
+        "tmp/img2threejs-puffer/v1-right.png"
+      ],
+      "geometry_alias": null,
+      "rank": 31
+    }
+  ]
+}
