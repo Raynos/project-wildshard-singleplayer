@@ -1,0 +1,3 @@
+View 05: AI target mockup, not game capture.
+Near-true overhead, almost circular pedestal, no visible pedestal side wall, front at image top and single tail image bottom. No face visible. Top-view foot shapes and dorsal spike roots are inferred; raster camera not calibrated.
+Built-in image_gen; exact prompt retained alongside. Original preserved in tmp/puffer-nine-angle-mockups/.

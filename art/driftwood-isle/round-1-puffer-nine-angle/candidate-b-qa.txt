@@ -1,0 +1,19 @@
+Candidate B — REJECT as canonical nine-camera target sheet
+Built-in image_gen, one joint generation, 1024 x 1536 PNG.
+Workspace output: candidate-b.png; exact input prompt: candidate-b.prompt.txt.
+No tile upscaling, commits, publication, runtime edits or heavy rendering performed.
+
+All nine views inspected together:
+01 FRONT: approximately centered front; identity broadly matches, but a pair of lateral orange-rimmed fan structures invents extra tail-like appendages.
+02 LEFT: opposed side profile with face right, tail left; acceptable approximate bearing but too much forward-facing chest relative to a strict side projection.
+03 RIGHT: opposed side profile with face left, tail right; matches 02 in broad design, though spike placement is not a rigid repeat.
+04 BACK: centered rear, but three orange-rimmed fan structures contradict side-view anatomy and the single approved broad tail.
+05 TOP: genuinely near-overhead with front up and tail down, satisfying orientation better than diagonals. Spike map and limb arrangement are invented and inconsistent with 01/04.
+06 DIAG FRONT: WRONG BEARING. Elevated front three-quarter, face angled image-left; required elevated centered head-on.
+07 DIAG LEFT: correct opposed direction relative to 08 but front-biased three-quarter instead of strict elevated side. Elevation appears too shallow.
+08 DIAG RIGHT: correct opposed direction relative to 07 but front-biased three-quarter instead of strict elevated side. Elevation appears too shallow.
+09 DIAG BACK: WRONG BEARING. Elevated rear three-quarter with flank/face visible on image-right; required centered elevated rear.
+
+Strengths: readable ordered labels; strong approved teal/ivory/orange identity and squat mass; consistent navy/cyan explorer styling; all major body parts uncropped; no false performance statistics; top view and opposed left/right pairs clearly distinct. Honest not-game-capture and inference labels present.
+Additional weaknesses: top disclaimer renders AI TARGETMOCKUP without the requested separating space; cards are closer to 0.75 width/height than requested 2:3; lens/radius and fixed world lighting cannot be validated from the raster and apparent model scale drifts; cream spikes/fan appendages change placement between views.
+Recommendation: preserve only as a rejected exploration and source of visual direction. Do not publish as a camera-accurate or approved reconstruction. Correction must explicitly fix 06/09 cardinal alignment and single-tail anatomy, then recheck all views.

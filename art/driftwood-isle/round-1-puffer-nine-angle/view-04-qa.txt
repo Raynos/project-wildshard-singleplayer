@@ -1,0 +1,3 @@
+View 04: AI target mockup, not game capture.
+Centred rear, one tail, two visible hind feet, no face, full silhouette within frame. Slightly elevated platform despite nominal near-level camera. Strong match to candidate C rear; hidden geometry remains inferred.
+Built-in image_gen; exact prompt retained alongside. Original preserved in tmp/puffer-nine-angle-mockups/.

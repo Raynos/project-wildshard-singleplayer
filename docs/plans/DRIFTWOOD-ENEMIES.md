@@ -135,3 +135,17 @@ tile upscales. Exact model-scale cameras are recorded separately from world
 half-dome cameras. Hidden surfaces remain inferred. Pause further Blender
 iterations while these reference views are reconciled; preserve V25 as
 unrendered source and all prior failures.
+
+## 2026-10-18 17:39 UTC — V9 foundation and 4.5/5 goal
+
+The owner explicitly requests building the best model on top of V9 and
+continuing until 4.5/5 resemblance. Resume V26 from V9, preserving its complete
+face, spikes and purposeful detail. Retain the unchanged weighted rubric:
+silhouette/proportions 35%, face/expression 30%, defining details 20%,
+facet/style 15%. Compare real renders against V9 and the approved original
+from all nine intended cameras; do not raise scores for recency or successful
+structural checks. Derived AI views contain inconsistent hidden anatomy and
+are supporting illustrations, not replacements for the approved original.
+The current best remains V9 at 3.43/5 until independently reviewed evidence
+beats it. Preserve rejected revisions and avoid publishing a worse successor
+as the current best. Runtime, animation and combat acceptance stay separate.

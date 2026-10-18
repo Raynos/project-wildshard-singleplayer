@@ -260,3 +260,15 @@ those views; overlapping screen-space silhouettes are insufficient.
 Exact back/underside topology, camera parameters and hidden anatomy remain
 inferred. The approved small front/side/back thumbnails provide coarse checks,
 not enough evidence to claim a unique reconstruction.
+
+## 2026-10-18: V26 from V9, complete-identity multiview review
+
+Reviewed `tmp/puffer-lowpoly-v26-from-v9/matched-style.png` and all nine numbered PNGs, 01 front through 09 elevated back. The original approved low-poly concept remains authoritative; derived nine-angle AI mockups are approximate. Those derived pictures inconsistently show the tail face-on from side, rear and overhead, vary toe/spine layouts, and introduce ambiguous paired orange-rim side forms in front views. They cannot be literal calibrated geometry targets.
+
+**V26 overall resemblance: 3.21/5**, unchanged full-identity rubric: silhouette/proportions **3.1** (35%), face/expression **3.2** (30%), defining details **3.5** (20%), facet/style **3.1** (15%). No animation, gameplay or export quality is scored. The original ranking remains a dated inventory rather than silently changing its V9 score.
+
+The matched hero improves V9's filled tail, pointed four-lobe toes and lower pouch contour while preserving its brows, rounded amber eyes, open mouth and spines. However, actual side/top/back views expose inherited defects that the earlier V9 hero-only score could not certify: fins are broad ribbons with nearly knife-thin fore/aft depth; the pouch hangs forward as a separate ball; orange orbital walls project as long tubes/straps; raised mantle plates produce broken overlapping edges. The tongue remains weakly readable. Side and elevated-side frames crop beak/tail extremes, so nine files do not constitute fully framed nine-angle evidence.
+
+The lower all-view score versus V9's 3.43 single-view estimate reflects stronger evidence, not a claim that V26's matched hero regressed. Neither reaches 4.5/5.
+
+Next bounded correction: preserve each fin's frontal width, orange top band and four distinct terminal lobes while adding real Y-depth cross-sections; roughly 0.07–0.10 half-depth at midfoot and 0.09–0.12 at the fan are initial modelling estimates, not reference-certified dimensions. Fit each diagnostic camera to the same complete object bounds. Then shorten orbital sidewalls without shrinking the amber opening, reduce muzzle shelf depth while keeping the peaked arch/tongue/nostrils, and integrate mantle surface relief without deleting the authored broad facets or spines.

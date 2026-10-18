@@ -1,0 +1,235 @@
+{
+  "status": "AI TARGET CAMERA SPEC: model-scale adaptation, not canonical world cameras and not measured game evidence",
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/brine-puffer-lowpoly.webp",
+  "coordinate_system": "Y up; face +Z. LEFT means left-facing screen profile: camera +X. RIGHT means right-facing screen profile: camera -X.",
+  "normalization": "height H=1 including spikes; floor Y=0",
+  "authoring_envelope": {
+    "width": 1.5,
+    "height": 1,
+    "depth": 1.5,
+    "source": "conservative illustration estimate, not measured mesh bounds"
+  },
+  "camera": {
+    "projection": "perspective",
+    "vertical_fov_deg": 40,
+    "radius_H": 3.0,
+    "target": [
+      0,
+      0.5,
+      0
+    ],
+    "model_viewport_px": [
+      402,
+      402
+    ],
+    "portrait_card_px": [
+      402,
+      603
+    ],
+    "note": "Square model area inset in portrait card; model about 70% viewport width and 45-55% height, with toes/tail/spike clearance. All shots share lens and radius. Not the full-phone tall game viewport."
+  },
+  "lighting": {
+    "space": "fixed model world",
+    "key": [
+      -3,
+      4,
+      4
+    ],
+    "fill": [
+      4,
+      2,
+      1
+    ],
+    "rim": [
+      0,
+      3,
+      -4
+    ],
+    "note": "broad soft warm key, weaker cool fill/rim; no view-dependent relighting"
+  },
+  "pose": "same frozen idle pose; no model rotation",
+  "inference": "Small rear thumbnail constrains rear silhouette; hidden spike roots, underside and tail attachment remain proposed.",
+  "shots": [
+    {
+      "id": "01-front",
+      "yaw_deg": 0,
+      "elevation_deg": 0,
+      "position": [
+        0.0,
+        0.5,
+        3.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "02-left",
+      "yaw_deg": 90,
+      "elevation_deg": 0,
+      "position": [
+        3.0,
+        0.5,
+        0.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "03-right",
+      "yaw_deg": -90,
+      "elevation_deg": 0,
+      "position": [
+        -3.0,
+        0.5,
+        0.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "04-back",
+      "yaw_deg": 180,
+      "elevation_deg": 0,
+      "position": [
+        0.0,
+        0.5,
+        -3.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "05-top",
+      "yaw_deg": 0,
+      "elevation_deg": 90,
+      "position": [
+        0.0,
+        3.5,
+        0.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "06-diag-front",
+      "yaw_deg": 0,
+      "elevation_deg": 39.2894069,
+      "position": [
+        0.0,
+        2.399713,
+        2.321872
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "07-diag-left",
+      "yaw_deg": 90,
+      "elevation_deg": 39.2894069,
+      "position": [
+        2.321872,
+        2.399713,
+        0.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "08-diag-right",
+      "yaw_deg": -90,
+      "elevation_deg": 39.2894069,
+      "position": [
+        -2.321872,
+        2.399713,
+        0.0
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "09-diag-back",
+      "yaw_deg": 180,
+      "elevation_deg": 39.2894069,
+      "position": [
+        0.0,
+        2.399713,
+        -2.321872
+      ],
+      "target": [
+        0,
+        0.5,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ]
+    }
+  ],
+  "revision_note": "After candidate C review, swap preliminary left/right camera conventions to match visible label directions. Original preliminary spec retained in tmp. Raster view angles remain approximate."
+}

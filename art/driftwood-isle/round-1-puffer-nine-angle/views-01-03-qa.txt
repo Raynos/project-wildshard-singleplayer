@@ -1,0 +1,12 @@
+Views 01–03: AI art-direction mockups, not measured camera or mesh evidence.
+Generated separately with built-in image_gen, using selected candidate C and the approved low-poly Brine Puffer reference. Each image is 1024 x 1536. Exact prompts accompany the JPEGs. Original PNGs remain non-destructively saved in the task's temporary image folder.
+
+Orientation convention: preserve candidate C's user-visible names. 02 LEFT has nose toward image-left and tail toward image-right; 03 RIGHT reverses this. These labels differ from the initial spatial-spec interpretation; root coordinator will reconcile camera labels before release.
+
+01 FRONT: centered head-on, both eyes visible symmetrically; squat mass, large brows, ivory chest and chunky feet retained. Lateral orange-rim shapes inherited from candidate C remain, so single-tail interpretation is not resolved by this view alone.
+02 LEFT: one eye visible, nose left, fan tail right. Strong side silhouette but some frontward bias remains; far-side feet and broadside tail presentation mean this is an approximate illustration, not a verified perpendicular projection.
+03 RIGHT: one eye visible, nose right, fan tail left. Opposed side silhouette; same approximate-view qualification as 02.
+
+Shared review: all feet, spikes and tail fit within frame; clear AI MOCKUP / NOT GAME CAPTURE and view labels; no false engine statistics; all are low-poly teal/ivory/orange and match the approved broad identity. Fine spike placement, tail orientation, lighting, font spacing, disclaimer location and UI borders vary between independently generated cards. Pixel-exact C identity and shared camera/lens/radius cannot be claimed. No runtime geometry changed.
+
+JPEG sizes: view-01.jpg 196395 bytes; view-02.jpg 205759 bytes; view-03.jpg 216493 bytes. Full dimensions preserved, quality 90 compression only.
