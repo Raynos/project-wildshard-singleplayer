@@ -1,12 +1,7 @@
-import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
-import { isMesh } from '@wildshard/engine/combat/view/ranged';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { sourceMultiplier, type SourceMulDef } from '@wildshard/engine/combat/effects/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
 import type { BowInstance } from '@wildshard/sdk/runtime/weapons/starterBow';
-import { Bow, type BowOptions, type BowWorld } from '@wildshard/game/weapons/Bow';
-import type { Targets } from '@wildshard/engine/combat/types';
 
 
 
@@ -27,15 +22,14 @@ export interface GoldenBowDeps {
   scene: THREE.Scene;
   sky: Sky;
   camera: THREE.Camera;
+  multipliers: readonly SourceMulDef[];
   /** the animals' ray test (AnimalManager.raycast): nearest hit along a straight segment */
   raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => { animal: PierceTarget; point: THREE.Vector3; distance: number; headshot: boolean; damage: number } | null;
 }
 export interface PierceTarget { kind: string; alive: boolean; applyDamage: (amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3) => boolean }
 
-const GOLD = new THREE.Color(0.78, 0.42, 0.07), GOLD_HI = new THREE.Color(1.0, 0.72, 0.26), GOLD_LO = new THREE.Color(0.36, 0.17, 0.03);
-const STRING_LIGHT = new THREE.Color(3.2, 2.6, 1.3);
 const STREAK_PTS = 48, SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
-const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Color();
+const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
 export class GoldenBowPower {
   private bow: BowInstance | null = null;
@@ -79,8 +73,8 @@ export class GoldenBowPower {
     const prevMul = bow.damageMultiplier;
     bow.damageMultiplier = (hit) => {
       const base = prevMul?.(hit) ?? 1;
-      return base * sourceMultiplier(NALATI_SOURCE_MULTIPLIERS, { weaponTags: ['weapon.golden-bow'],
-        sourceTags: goldenSourceTags(this.sunShot), targetTags: [`creature.${hit.animal.kind}`] });
+      return base * sourceMultiplier(this.deps.multipliers, { weaponTags: ['weapon.golden-bow'],
+        sourceTags: this.sunShot ? ['arrow.sun'] : [], targetTags: [`creature.${hit.animal.kind}`] });
     };
   }
 
@@ -159,83 +153,5 @@ export class GoldenBowPower {
       const balbal = q.target.kind === 'balbal' || q.target.kind === 'kurgan-balbal';
       q.target.applyDamage(balbal ? q.dmg * 3 : q.dmg, q.point, q.dir);
     }
-  }
-}
-
-/** the reward's display model: a Scythian recurve in gold, ibex heads at the limb tips, a string of light (≈ 1.2 m) */
-export function goldenBowModel(sky: Sky): THREE.Object3D {
-  const mat = painterlyMaterial(sky, { rim: 0.8, bands: 0.6, emissive: new THREE.Color(0.35, 0.2, 0.04) });
-  const group = new THREE.Group();
-  // the limbs: a recurve along a curve in the XY plane (grip at the origin, tips curling forward, +z = back of the bow)
-  const half = (s: number) => new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, s * 0.18, 0.02), new THREE.Vector3(0, s * 0.36, 0.1), new THREE.Vector3(0, s * 0.5, 0.2),
-    new THREE.Vector3(0, s * 0.58, 0.16), new THREE.Vector3(0, s * 0.62, 0.06),
-  ]);
-  const paintTube = (g: THREE.BufferGeometry, banded: boolean) => {
-    const pos = g.getAttribute('position'), n = pos.count, c = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      const y = Math.abs(pos.getY(i));
-      const band = banded && (Math.abs(y - 0.12) < 0.02 || Math.abs(y - 0.3) < 0.018 || Math.abs(y - 0.46) < 0.016);
-      _c.copy(band ? GOLD_HI : GOLD).lerp(GOLD_LO, banded ? 0.15 * Math.sin(y * 40) + 0.1 : 0);
-      if (y < 0.07) _c.setRGB(0.18, 0.1, 0.05);             // the leather grip
-      c[i * 3] = _c.r; c[i * 3 + 1] = _c.g; c[i * 3 + 2] = _c.b;
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-    return g;
-  };
-  const tips: THREE.Vector3[] = [];
-  for (const s of [1, -1]) {
-    const curve = half(s);
-    const tube = new THREE.TubeGeometry(curve, 40, 0.032, 8, false);
-    // taper the tube toward the tip
-    const pos = tube.getAttribute('position');
-    for (let i = 0; i < pos.count; i++) {
-      const y = pos.getY(i), t = Math.min(1, Math.abs(y) / 0.62), k = 1 - 0.5 * t;
-      const cp = curve.getPoint(Math.min(1, t));
-      pos.setX(i, cp.x + (pos.getX(i) - cp.x) * k); pos.setZ(i, cp.z + (pos.getZ(i) - cp.z) * k);
-    }
-    tube.computeVertexNormals();
-    group.add(new THREE.Mesh(paintTube(tube, true), mat));
-    const tip = curve.getPoint(1);
-    tips.push(tip);
-    // the ibex head: a muzzle and two swept-back horns
-    const head = new THREE.SphereGeometry(0.035, 10, 8).scale(0.8, 1, 1.6).translate(tip.x, tip.y + s * 0.02, tip.z - 0.03);
-    group.add(new THREE.Mesh(paintTube(head, false), mat));
-    for (const hx of [-0.012, 0.012]) {
-      const horn = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
-        new THREE.Vector3(tip.x + hx, tip.y + s * 0.03, tip.z - 0.01), new THREE.Vector3(tip.x + hx * 1.5, tip.y + s * 0.09, tip.z + 0.03),
-        new THREE.Vector3(tip.x + hx * 2, tip.y + s * 0.11, tip.z + 0.1), new THREE.Vector3(tip.x + hx * 2, tip.y + s * 0.08, tip.z + 0.14),
-      ]), 12, 0.007, 5, false);
-      group.add(new THREE.Mesh(paintTube(horn, false), mat));
-    }
-  }
-  // the string of light between the tips
-  const a = tips[0], b = tips[1];
-  if (a && b) {
-    const len = a.distanceTo(b);
-    const s = new THREE.CylinderGeometry(0.006, 0.006, len, 5);
-    s.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-    const n = s.getAttribute('position').count, c = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) { c[i * 3] = STRING_LIGHT.r; c[i * 3 + 1] = STRING_LIGHT.g; c[i * 3 + 2] = STRING_LIGHT.b; }
-    s.setAttribute('color', new THREE.BufferAttribute(c, 3));
-    group.add(new THREE.Mesh(s, mat));
-  }
-  group.traverse((o) => { if (isMesh(o)) { o.castShadow = false; o.receiveShadow = false; } });
-  group.rotation.z = -0.5;
-  const wrap = new THREE.Group(); wrap.add(group);
-  return wrap;
-}
-
-/** The Golden Bow over its supplied native equipment row, its power applied once the replaced bow's
- *  multiplier, loose hook and saddle are carried over; the power keeps its preloaded streak clock. */
-export class GoldenBow extends Bow {
-  constructor(world: BowWorld, targets: Targets, opts: BowOptions & { power: Pick<GoldenBowPower, 'apply'>; previous?: Bow }) {
-    super(world, targets, { ...opts, row: { ...opts.row, id: 'weapon.golden-bow',
-      ui: { ...opts.row.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...opts.row.meta, name: 'Golden Bow' } } });
-    if (opts.previous !== undefined) {
-      this.damageMultiplier = opts.previous.damageMultiplier; this.onLoose = opts.previous.onLoose;
-      this.carryMountState(opts.previous);
-    }
-    opts.power.apply(this);
   }
 }

@@ -50,7 +50,7 @@ test('the named Nalati W3 worn-skin grants fit the shared selector', () => {
   const rows = NALATI_SKINS.map(skin => ({ id: `effect.skin.${skin.id}` as const, key: skin.id }));
   const check = (): void => {
     const selected = new Set(Object.values(locker.worn));
-    const grants = selectEffectGrants(rows, key => selected.has(key));
+    const grants = selectEffectGrants(rows, selected);
     expect(grants.map(grant => grant.id).sort()).toEqual(locker.effects.active(locker.effectTarget).map(effect => effect.def.id).sort());
   };
   check();
@@ -60,15 +60,13 @@ test('the named Nalati W3 worn-skin grants fit the shared selector', () => {
 });
 
 test('invalid grant capacities and stacks refuse before reading ownership', () => {
-  let reads = 0;
-  const has = (): boolean => { reads++; return true; };
+  const owned = new Set<string>();
   const row = { id: 'effect.test' as const, key: 'test' };
-  expect(() => selectEffectGrants(Array.from({ length: 129 }, () => row), has)).toThrow('grant rows');
-  expect(() => selectEffectGrants([{ ...row, unless: Array.from({ length: 33 }, () => 'test') }], has)).toThrow('grant rows');
-  for (const stacks of [0, -1, 0.5, Infinity]) expect(() => selectEffectGrants([{ ...row, stacks }], has)).toThrow('grant rows');
-  expect(() => selectEffectGrants([{ ...row, key: '' }], has)).toThrow('grant rows');
-  expect(reads).toBe(0);
-  expect(selectEffectGrants([], has)).toEqual([]);
+  expect(() => selectEffectGrants(Array.from({ length: 129 }, () => row), owned)).toThrow('grant rows');
+  expect(() => selectEffectGrants([{ ...row, unless: Array.from({ length: 33 }, () => 'test') }], owned)).toThrow('grant rows');
+  for (const stacks of [0, -1, 0.5, Infinity]) expect(() => selectEffectGrants([{ ...row, stacks }], owned)).toThrow('grant rows');
+  expect(() => selectEffectGrants([{ ...row, key: '' }], owned)).toThrow('grant rows');
+  expect(selectEffectGrants([], owned)).toEqual([]);
 });
 
 test('item grant bindings refuse missing and duplicate equipment before installation', () => {

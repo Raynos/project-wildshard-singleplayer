@@ -209,14 +209,14 @@ export interface EffectGrantRow<Key extends string> {
   readonly stacks?: number;
 }
 
-/** Read current keys in authored order without applying effects or changing any ownership. */
-export function selectEffectGrants<Key extends string>(rows: readonly EffectGrantRow<Key>[], has: (key: Key) => boolean): { id: EffectId; stacks?: number }[] {
+/** Select from a data-only ownership set in authored order, without applying effects or changing ownership. */
+export function selectEffectGrants<Key extends string>(rows: readonly EffectGrantRow<Key>[], owned: ReadonlySet<Key>): { id: EffectId; stacks?: number }[] {
   const validKey = (key: string): boolean => key.length > 0 && key.length <= 256;
   if (rows.length > 128 || rows.some(row => !validKey(row.key) || (row.unless?.length ?? 0) > 32
     || row.unless?.some(key => !validKey(key)) === true
     || (row.stacks !== undefined && (!Number.isSafeInteger(row.stacks) || row.stacks <= 0)))) throw new Error('Invalid effect grant rows');
   const grants: { id: EffectId; stacks?: number }[] = [];
-  for (const row of rows) if (has(row.key) && row.unless?.some(has) !== true) {
+  for (const row of rows) if (owned.has(row.key) && row.unless?.some(key => owned.has(key)) !== true) {
     grants.push(row.stacks === undefined ? { id: row.id } : { id: row.id, stacks: row.stacks });
   }
   return grants;

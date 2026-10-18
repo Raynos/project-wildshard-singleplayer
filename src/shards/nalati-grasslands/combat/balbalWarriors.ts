@@ -7,7 +7,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { balbalPiercing } from '../weapons/effects';
 
 import * as THREE from 'three';
 
@@ -88,7 +87,8 @@ export class BalbalWarriors {
   private soilAcc = 0;
 
   constructor(private readonly ctx: BalbalWarriorsCtx) {
-    balbalCombat.isPiercing = balbalPiercing;
+    balbalCombat.isPiercing = request => request === undefined || request.sourceTags.includes('dmg.legacy') ? undefined
+      : request.sourceTags.includes('weapon.spear') || request.sourceTags.includes('weapon.javelin');
     this.debris = new NightParticles(ctx.scene, 'debris');
     for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle()));
     ctx.clock.onDusk(() => { this.wake(); });

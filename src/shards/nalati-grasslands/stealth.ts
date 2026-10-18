@@ -7,7 +7,7 @@ import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { declarePanel, mountPanel, panelScope, type PanelNode, type PanelSvg, type PanelView } from '@wildshard/sdk/panels';
-import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
+import { weaponEffects } from './boot/weaponEffects.generated';
 
 import type { Wildlife } from './creatures/wildlife';
 
@@ -125,7 +125,7 @@ export class Stealth {
   private onT = 0; private offT = 0;
   private toggleWas = false; private touchToggle = false;
   private t = 0;
-  private readonly shotEffects = new EffectService([SNEAK_SHOT]);
+  private readonly shotEffects = new EffectService([weaponEffects.sneak]);
   private readonly shotTarget: EffectTarget = { attributes: {} };
   private threatX = 0; private threatZ = 0;
   private hinted = false;
@@ -166,11 +166,11 @@ export class Stealth {
   }
   /** a shot was loosed now (main's weapons.onFire): remember whether it left from HIDDEN */
   noteShot(): void {
-    this.shotEffects.remove(this.shotTarget, SNEAK_SHOT.id);
-    if (this.state === 'hidden') this.shotEffects.apply(this.shotTarget, SNEAK_SHOT.id);
+    this.shotEffects.remove(this.shotTarget, weaponEffects.sneak.id);
+    if (this.state === 'hidden') this.shotEffects.apply(this.shotTarget, weaponEffects.sneak.id);
   }
   /** × 2 for a shot loosed from HIDDEN (landing within SNEAK_WINDOW s), else 1 */
-  sneakMultiplier(): number { return sourceMultiplier(NALATI_SOURCE_MULTIPLIERS, { sourceTags: this.shotTarget.effectTags ?? [] }); }
+  sneakMultiplier(): number { return sourceMultiplier(weaponEffects.multipliers, { sourceTags: this.shotTarget.effectTags ?? [] }); }
 
   // ── the crouch: long grass, the toggle, what stands you up ──
   crouchStep(dt: number): void {

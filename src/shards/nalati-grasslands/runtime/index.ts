@@ -1,7 +1,6 @@
 import { prepareStormTitan } from '../combat/stormTitan';
 import { prepareSabre } from './weapons/mountedSword';
 import { prepareSpear } from './weapons/javelinSpear';
-import { prepareRifleModel } from '../models/gear';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS, prepareGoldenKing } from '../species/rows';
 import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
@@ -96,7 +95,6 @@ export class NalatiPlugin extends ShardPlugin {
     this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, this.persistence ?? undefined))));
     await prepareSabre(ctx.product);
     await prepareSpear(ctx.product);
-    await prepareRifleModel(ctx.product);
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)
@@ -122,7 +120,7 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.rows.feat(NALATI_FEATS.map(readFeat));
     ctx.rows.weapon(['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'].map(id => readItemEquipment(ctx.product.shardfile.items, id)));
     shell.buildEquipment = async (targets, nolock) => {
-      const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask); // SF67: a task apart per weapon
+      const kit = await buildNalatiLoadoutSliced(world, targets, nolock, macrotask, ctx.product.shardfile.items); // SF67: a task apart per weapon
       this.loadout = kit;
       await macrotask();
       const rifleItem = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.rifle');

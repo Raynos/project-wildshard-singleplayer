@@ -10,7 +10,8 @@ import { swimHands } from '@wildshard/engine/models/swimHands';
 import content from './data/questContent.json' with { type: 'json' };
 import { marmot, sheep, stormTitan } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
-import { GEAR } from './models/gear';
+import gear from './boot/gear.generated.json' with { type: 'json' };
+import { weaponCatalogue } from './weapons/loadout';
 import { BUTTERFLIES, butterfly, RAPTORS, raptor } from './models/ambientLife';
 import { reins } from './models/reins';
 
@@ -30,6 +31,6 @@ export const ROSTER: readonly RosterEntry[] = [
   live(campPeople, { copies: Object.keys(content.people).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
   // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
   // won, the AR-15), the reins in the saddle (src/shards/nalati-grasslands/ride/ride.ts) and the gloved hands in the river (E348)
-  ...GEAR,
+  ...gear.catalogue.map(row => live(weaponCatalogue.model(row.key), { copies: row.copies, ...(row.drawnAs === 'instanced' ? { drawnAs: 'instanced' as const } : {}) })),
   live(reins, { copies: 1 }), live(swimHands, { copies: 1 }),
 ];

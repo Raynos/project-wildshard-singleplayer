@@ -1,7 +1,6 @@
-import { Sabre, sabreProfile, type SabreWeapon } from './mountedSword';
-import type { Targets } from '@wildshard/engine/combat/types';
+import type { SabreWeapon } from './mountedSword';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Move, SwordWorld } from '@wildshard/engine/combat/view/melee';
+import type { Move } from '@wildshard/engine/combat/view/melee';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
@@ -95,29 +94,6 @@ export class LightningStrip {
     }
     this.attr.needsUpdate = true;
   }
-}
-
-/** the display model in the reward orb: the blade point-down, pale steel with a white fork damascus, a gold guard */
-export function naizagaiModel(): THREE.Object3D {
-  const g = new THREE.Group();
-  const steel = new THREE.MeshStandardMaterial({ color: STORM_BLUE, emissive: STORM_GLOW, emissiveIntensity: 1.2, metalness: 0.85, roughness: 0.25 });
-  const gold = new THREE.MeshStandardMaterial({ color: 0xf2c25a, metalness: 0.9, roughness: 0.3 });
-  const grip = new THREE.MeshStandardMaterial({ color: 0x3a2216, roughness: 0.8 });
-  // a curved blade: a lofted strip bent along an arc
-  const seg = 16, P: number[] = [], I: number[] = [];
-  for (let i = 0; i <= seg; i++) {
-    const u = i / seg, y = -0.85 * u, x = 0.12 * u * u, w = 0.045 * (1 - 0.75 * u ** 3);
-    P.push(x - w, y, 0, x + w * 0.6, y, 0.012, x + w * 0.6, y, -0.012);
-    if (i < seg) { const k = i * 3; I.push(k, k + 3, k + 1, k + 1, k + 3, k + 4, k, k + 2, k + 3, k + 2, k + 5, k + 3, k + 1, k + 4, k + 2, k + 2, k + 4, k + 5); }
-  }
-  const bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); bg.setIndex(I); bg.computeVertexNormals();
-  g.add(new THREE.Mesh(bg, steel));
-  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.05), gold); guard.position.y = 0.01; g.add(guard);
-  const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.16, 8), grip); hilt.position.y = 0.1; g.add(hilt);
-  const pom = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), gold); pom.position.y = 0.19; g.add(pom);
-  g.position.y = 0.35;
-  const root = new THREE.Group(); root.add(g);
-  return root;
 }
 
 export const NAIZAGAI_PROFILE = {
@@ -278,16 +254,5 @@ export class NaizagaiPower {
     // the ring lies on the floor under that point: a deck, a rock top, else the terrain
     this.callAt.set(_v.x, (ph ? floorBelow(ph, _v.x, _v.z, _v.y + 0.5, 80) : undefined) ?? heightAt(_v.x, _v.z), _v.z);
     this.callT = 0;
-  }
-}
-
-
-/** The reward is a row over the sabre (an `instanceof Sabre`): NAIZAGAI_PROFILE, its power applied once it is built and told
- *  of every swing's start; the preloaded power meshes stay on the shard's Titan clock. */
-export class Naizagai extends Sabre {
-  constructor(world: SwordWorld, targets: Targets, opts: { allowUnlocked?: boolean; power: NaizagaiPower }) {
-    const base = sabreProfile();
-    super(world, targets, { ...opts, profile: { ...base, ...NAIZAGAI_PROFILE, id: 'weapon.naizagai', parent: base.id,
-      ui: { ...base.ui, name: 'Naizagai' }, meta: { ...base.meta, name: 'Naizagai' } } });
   }
 }

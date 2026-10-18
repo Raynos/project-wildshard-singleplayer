@@ -1,8 +1,8 @@
 import { CosmeticsLocker } from '@wildshard/game/cosmetics/locker';
-import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import { EffectService, selectEffectGrants } from '@wildshard/engine/combat/effects/EffectService';
 import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { nalatiSkinEffect } from './effects';
+import { weaponEffects } from '../boot/weaponEffects.generated';
 import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
 import type { SabreWeapon } from '../runtime/weapons/mountedSword';
@@ -37,16 +37,10 @@ export type NalatiSkinSlot = 'sabre' | 'bow' | 'arrows' | 'mount';
 export interface NalatiSkinDef { id: string; slot: NalatiSkinSlot; name: string; blurb: string }
 export interface NalatiSkinEntry extends NalatiSkinDef { worn: boolean }
 
-export const NALATI_SKINS: readonly NalatiSkinDef[] = [
-  { id: 'irbis-sabre', slot: 'sabre', name: 'Irbis', blurb: 'Sabre skin · pale frost steel' },
-  { id: 'sky-wolf-bow', slot: 'bow', name: 'Sky-Wolf', blurb: 'Bow skin · blue-grey horn, a silver string' },
-  { id: 'storm-wing-arrows', slot: 'arrows', name: 'Storm-Wing', blurb: 'Arrow skin · golden fletching' },
-  { id: 'night-rider-mount', slot: 'mount', name: 'Night Rider', blurb: 'Mount skin · black barding, a spectral glow' },
-  { id: 'sky-marked-saddle', slot: 'mount', name: 'Sky-Marked Saddle', blurb: 'Mount skin · white-and-blue felt, a lightning blaze' },
-];
+export const NALATI_SKINS: readonly NalatiSkinDef[] = weaponEffects.skins;
 /** Nalati profile: auto-wear bare slots and synchronize the authored skin effects. */
 export class NalatiSkinLocker extends CosmeticsLocker<NalatiSkinSlot, NalatiSkinDef> {
-  readonly effects = new EffectService(NALATI_SKINS.map((skin) => nalatiSkinEffect(skin.id, skin.slot)));
+  readonly effects = new EffectService(weaponEffects.skinEffects);
   readonly effectTarget: EffectTarget = { attributes: {} };
   constructor(save: Pick<typeof savedSlot, 'read' | 'write'> = savedSlot) {
     super('nalati-grasslands', NALATI_SKINS, { save, autoWear: true, slot: (row) => row.slot });
@@ -54,7 +48,8 @@ export class NalatiSkinLocker extends CosmeticsLocker<NalatiSkinSlot, NalatiSkin
     this.syncEffects();
   }
   private syncEffects(): void {
-    this.effects.sync(this.effectTarget, Object.values(this.worn).map((id) => ({ id: `effect.skin.${id}` })));
+    const selected = new Set(Object.values(this.worn));
+    this.effects.sync(this.effectTarget, selectEffectGrants(weaponEffects.skinGrants, selected));
   }
 }
 

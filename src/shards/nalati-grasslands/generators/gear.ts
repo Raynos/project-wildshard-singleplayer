@@ -1,3 +1,17 @@
+import * as THREE from 'three';
+import type { BowStyle } from '@wildshard/game/weapons/starterBowProfile';
+import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
+import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
+import { buildSabre } from './sabre';
+import { buildJavelin, buildSpear } from './spear';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
+import { goldenBowModel, naizagaiModel } from './weaponRewards';
+import rifleRows from '../data/heldRifle.json' with { type: 'json' };
+import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
+
 /**
  * Nalati's gear (E306 / E315 M5, `gear`): what the steppe's player holds — its own kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts: the
  * composite bow, the sabre, the spear and its javelins), the two legendary rewards the bosses pay (the Golden Bow, the
@@ -6,32 +20,13 @@
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
-import * as THREE from 'three';
-import { BOW, type BowStyle } from '@wildshard/game/weapons/starterBowProfile';
-import { RECURVE } from '../weapons/loadout';
-import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
-import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
-import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { buildSabre } from '../runtime/weapons/mountedSword';
-import { buildJavelin, buildSpear, type JavelinSpearDraws } from '../runtime/weapons/javelinSpear';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
-import { goldenBowModel } from '../runtime/weapons/GoldenBow';
-import { naizagaiModel } from '../runtime/weapons/Naizagai';
+const RECURVE = '/assets/nalati/baked/recurve-pool.json';
+type JavelinSpearDraws = ReturnType<typeof buildSpear>;
 
-import { live, type RosterEntry } from '@wildshard/engine/models/live';
-import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 
-const FILE = 'src/shards/nalati-grasslands/models/gear.ts';
+const FILE = 'src/shards/nalati-grasslands/generators/gear.ts';
 
-let rifleModel: ReturnType<typeof parseHeldFirearmRows> | null = null;
-/** Admit the built Explorer model before any card can construct it. */
-export async function prepareRifleModel(product: Pick<ShardProduct, 'file'>): Promise<void> {
-  rifleModel = parseHeldFirearmRows(JSON.parse(new TextDecoder().decode(await product.file('weapons/rifle-model.json'))));
-}
-
+const rifleModel = parseHeldFirearmRows(rifleRows);
 
 /** a card's parts: every draw casts and takes shadows on the turntable */
 const lit = (geometry: THREE.BufferGeometry, material: THREE.Material): ModelPart => ({ geometry, material, castShadow: true, receiveShadow: true });
@@ -134,20 +129,7 @@ export const ar15: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/ar-15', name: 'AR-15', category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
   build: (ctx) => {
-    if (rifleModel === null) throw new Error('Rifle model is not prepared');
     const group = heldFirearmDisplay(ctx.sky, rifleModel, {});
     group.name = 'AR-15'; return group;
   },
 });
-
-/** the steppe's kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts + src/main.ts): bow (+ its arrows) · sabre · spear (+ javelins), the bosses' rewards, the AR-15 */
-export const GEAR: readonly RosterEntry[] = [
-  live(bow, { copies: 1 }),
-  live(arrow, { copies: BOW.quiver, drawnAs: 'instanced' }),
-  live(sabre, { copies: 1 }),
-  live(spear, { copies: 1 }),
-  live(javelin, { copies: 3, drawnAs: 'instanced' }),
-  live(goldenBow, { copies: 1 }),
-  live(naizagai, { copies: 1 }),
-  live(ar15, { copies: 1 }),
-];

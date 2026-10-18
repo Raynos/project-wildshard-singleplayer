@@ -1,3 +1,5 @@
+import { weaponEffects } from '../boot/weaponEffects.generated';
+import { weaponSpecimen } from '../weapons/loadout';
 import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
@@ -23,7 +25,7 @@ import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
-import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
+import { GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
 import { KurganDungeon, goldenKingViews } from '../world/KurganDungeon';
 
@@ -245,7 +247,7 @@ export class KurganBoss {
     const { game, sky, player } = this.ctx;
     // build the adds' model now, not mid-fight (a prewarm: a broken add rig must not take the whole boot down)
     try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
-    this.golden = new GoldenBowPower({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
+    this.golden = new GoldenBowPower({ multipliers: weaponEffects.multipliers, scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
     const encounter = installBossEncounter({ definition: kingData.encounter, reward: kingData.reward }, () => {
       this.fight = goldenKingFight(this.dungeon, {
         player, animals: play.animals,
@@ -257,7 +259,7 @@ export class KurganBoss {
     }, {
       game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,
       reward: {
-        model: () => goldenBowModel(sky),
+        model: () => weaponSpecimen('goldenBow', sky),
         grant: () => { if (play.bow && this.golden) { play.upgradeBow(this.golden); } },
       },
       lockInput: (on) => { this.locked = on; play.setWeaponsEnabled(!on); this.applyMove(); },

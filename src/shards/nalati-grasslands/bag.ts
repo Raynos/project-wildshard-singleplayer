@@ -1,3 +1,4 @@
+import { weaponEffects } from './boot/weaponEffects.generated';
 import ecology from './data/ecology.generated.json' with { type: 'json' };
 import NALATI_FEATS from './data/feats.json' with { type: 'json' };
 /**
@@ -16,7 +17,7 @@ import type { FindsView } from '@wildshard/game/bag/bag';
 import type { IconId } from '@wildshard/engine/ui/icons';
 import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import content from './data/questContent.json' with { type: 'json' };
-import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
+import { NALATI_SKINS, type NalatiSkinLocker } from './weapons/nalatiSkins';
 
 export const NALATI_CHUNK_ID = 'chunk://local/nalati-grasslands';
 
@@ -29,17 +30,6 @@ export const FINDS_ELITES: readonly { id: string; icon: IconId }[] = [
   { id: 'argymaq', icon: 'horse' },
 ];
 
-/** a skin no elite drops: who pays it (src/shards/nalati-grasslands/stormTitan.ts: the Sky-Marked Saddle) */
-const OTHER_SOURCE: Readonly<Record<string, string>> = { 'sky-marked-saddle': 'Jel Ata, the Storm Titan' };
-/** each skin slot's card glyph */
-const SLOT_ICON: Readonly<Record<string, IconId>> = { sabre: 'sword', bow: 'longbow', arrows: 'bolt', mount: 'horse' };
-
-/** who drops a skin ("Aqbars the Pale"), or null for one nobody does */
-export function skinSource(skinId: string): string | null {
-  const elite = Object.values(ecology.elites).find((d) => d.drop.skin === skinId);
-  return elite?.name ?? OTHER_SOURCE[skinId] ?? null;
-}
-
 /** what an elite pays: its skin ("Irbis skin") or, for Argymaq, himself ("Your horse"), and its FEATS title */
 export function elitePrize(id: string): { prize: string; title: string | null } {
   const skin = ecology.elites[id]?.drop.skin ?? null;
@@ -49,15 +39,8 @@ export function elitePrize(id: string): { prize: string; title: string | null } 
 }
 
 /** GEAR's SKINS row: every Nalati skin; the ones not owned yet locked, saying who drops them */
-export function skinRows(locker: { entries: () => NalatiSkinEntry[] }): SkinRow[] {
-  const owned = new Map(locker.entries().map((e) => [e.id, e]));
-  return NALATI_SKINS.map((d) => {
-    const mine = owned.get(d.id);
-    const icon = SLOT_ICON[d.slot] ?? 'laurel';
-    if (mine) return { id: d.id, name: d.name, blurb: d.blurb, worn: mine.worn, icon };
-    const from = skinSource(d.id);
-    return { id: d.id, name: d.name, blurb: from !== null ? `${from} drops it` : d.blurb, worn: false, locked: true, icon };
-  });
+export function skinRows(locker: Pick<NalatiSkinLocker, 'cardRows'>): SkinRow[] {
+  return locker.cardRows(weaponEffects.cards);
 }
 
 /** FINDS: the elites (a `felled:<id>` flag each, src/shards/nalati-grasslands/adventure.ts) and the places (`seen:<id>`) */

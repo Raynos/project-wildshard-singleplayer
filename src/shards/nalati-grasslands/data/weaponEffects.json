@@ -1,0 +1,85 @@
+{
+  "sneak": {
+    "id": "effect.sneak-shot",
+    "kind": "timed",
+    "duration": 4,
+    "stacking": "refresh",
+    "tags": [],
+    "modifiers": [],
+    "grants": [
+      "state.sneak-shot"
+    ]
+  },
+  "multipliers": [
+    {
+      "id": "source.sneak",
+      "when": {
+        "sourceTags": [
+          "state.sneak-shot"
+        ]
+      },
+      "mul": 2
+    },
+    {
+      "id": "source.golden",
+      "when": {
+        "weaponTags": [
+          "weapon.golden-bow"
+        ],
+        "targetTags": [
+          "creature.balbal",
+          "creature.kurgan-balbal"
+        ]
+      },
+      "mul": 2
+    },
+    {
+      "id": "source.sun",
+      "when": {
+        "weaponTags": [
+          "weapon.golden-bow"
+        ],
+        "sourceTags": [
+          "arrow.sun"
+        ],
+        "targetTags": [
+          "creature.balbal",
+          "creature.kurgan-balbal"
+        ]
+      },
+      "mul": 1.5
+    }
+  ],
+  "skins": [
+    {
+      "id": "irbis-sabre",
+      "slot": "sabre",
+      "name": "Irbis",
+      "blurb": "Sabre skin \u00b7 pale frost steel"
+    },
+    {
+      "id": "sky-wolf-bow",
+      "slot": "bow",
+      "name": "Sky-Wolf",
+      "blurb": "Bow skin \u00b7 blue-grey horn, a silver string"
+    },
+    {
+      "id": "storm-wing-arrows",
+      "slot": "arrows",
+      "name": "Storm-Wing",
+      "blurb": "Arrow skin \u00b7 golden fletching"
+    },
+    {
+      "id": "night-rider-mount",
+      "slot": "mount",
+      "name": "Night Rider",
+      "blurb": "Mount skin \u00b7 black barding, a spectral glow"
+    },
+    {
+      "id": "sky-marked-saddle",
+      "slot": "mount",
+      "name": "Sky-Marked Saddle",
+      "blurb": "Mount skin \u00b7 white-and-blue felt, a lightning blaze"
+    }
+  ]
+}

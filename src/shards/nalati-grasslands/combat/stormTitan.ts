@@ -1,3 +1,4 @@
+import { weaponSpecimen } from '../weapons/loadout';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import { NALATI_STRIKES, sampleArena } from './strikes';
@@ -38,7 +39,7 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { wildEnv } from '../creatures/env';
 
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
-import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
+import { LightningStrip, NaizagaiPower } from '../runtime/weapons/Naizagai';
 import { titanCloudMaterial, setTitanAlbedo, syncTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import * as v from 'valibot';
@@ -963,7 +964,7 @@ export class StormTitan {
     });
     const encounter = installBossEncounter({ definition: this.data.TITAN_ENCOUNTER, reward: this.data.TITAN_REWARD }, () => this.fight, {
       game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,
-      reward: { model: () => naizagaiModel(), grant: () => {
+      reward: { model: () => weaponSpecimen('naizagai', game.sky), grant: () => {
         if (this.naizagai) play.upgradeSabre?.(this.naizagai);
         play.ownSkin?.(this.data.TITAN_SKIN.id); play.toast(this.data.TITAN_SKIN.toast);
       } },

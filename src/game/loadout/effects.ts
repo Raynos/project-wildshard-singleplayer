@@ -37,10 +37,12 @@ export function installItemEffects(context: ShardContext): void {
   const worn = (id: string): boolean => isOwnedId(id) && isCosmetic(id) && owned.worn(id);
   const apply = (): void => {
     if (context.scope.disposed) return;
+    const keys = grants.flatMap(grant => [grant.key].concat(grant.unless ?? []));
+    const ownedKeys = new Set(keys.filter(has)), wornKeys = new Set(keys.filter(worn));
     if (row.player.length > 0 || row.worn.length > 0 || row.hitCap !== undefined)
-      effects.sync(health, [...selectEffectGrants(row.player, has), ...selectEffectGrants(row.worn, worn),
+      effects.sync(health, [...selectEffectGrants(row.player, ownedKeys), ...selectEffectGrants(row.worn, wornKeys),
         ...(row.hitCap !== undefined && Number.isFinite(context.manifest.fight?.maxHitDamage ?? Infinity) ? [{ id: row.hitCap }] : [])]);
-    for (const entry of targets) for (const target of entry.items) effects.sync(target, selectEffectGrants(entry.grants, has));
+    for (const entry of targets) for (const target of entry.items) effects.sync(target, selectEffectGrants(entry.grants, ownedKeys));
   };
   apply(); context.scope.onDispose(owned.onChange(apply));
 }
