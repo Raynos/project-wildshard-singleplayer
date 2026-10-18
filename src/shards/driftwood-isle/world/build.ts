@@ -38,7 +38,7 @@ import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' 
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
 import type { CustomSections, CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
-import { Cove } from './Cove';
+import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BlenderIsland } from './BlenderIsland';
@@ -61,7 +61,7 @@ export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
   gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
-  palmSpecs: PalmSpec[]; cove: Cove | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
+  palmSpecs: PalmSpec[]; cove: { group: THREE.Group; placed: Placed[]; crabSites: CustomSections['custom/fixedLayouts']['cove']['spec']['crabSites']; anchors: CustomSections['custom/fixedLayouts']['cove']['native']['anchors']; update: () => void } | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
@@ -227,9 +227,21 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await stages.next('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
-  const cove = new Cove(sky, scenes).place(registry);
-  statics.push(...cove.colliders);
-  cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
+  const coveRows = driftwoodRows('custom/fixedLayouts').cove, coveView = coveRows.composition;
+  const coveSpec = structuredClone(coveRows.spec);
+  const cove = { group: scenes.group(coveView.root), placed: [] as Placed[], crabSites: coveSpec.crabSites,
+    anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
+  cove.group.add(scenes.group(coveView.cascade));
+  registry.add({ ...coveView.piece, object: cove.group,
+    colliders: readColliderRows(coveRows.native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true }),
+    floor: (x, z) => floorAtRects(coveRows.floors, x, z, 'first') });
+  if (coveRows.catalogue.placements.length > 0) {
+    const { colliders: _reefHulls, ...metadata } = reefRock;
+    cove.placed.push(place(metadata, coveRows.catalogue.placements, { ctx: modelContext(sky), draw: 'merged', registry,
+      drawnInto: { object: scenes.mesh(coveView.rocks), boxes: Float32Array.from(coveRows.catalogue.boxes) }, piece: { id: coveView.reefPiece } }));
+  }
+  statics.push(...structuredClone(coveRows.native.colliders));
+  cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');
   const palms = { placed: await scenes.place(`foliage.palms.${game.tier}`), mesh: scenes.mesh('palms.mesh'), colliders: structuredClone(rockMetadata.foliage[game.tier].palms), update: updateWind };
   palms.mesh.name = palms.placed.model; palms.mesh.userData['islandDressingClipped'] = true;
@@ -261,8 +273,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice(stages.completed + 1, total, 'Bridge physics and paths');
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
-      scene: game.scene, sky, registry, scenes, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
-      replace: [bushes.mesh], cover: cover.group, islandCover,
+      scene: game.scene, sky, registry, scenes, palmSpecs, islandCover,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
     return island;

@@ -1,7 +1,7 @@
 import {expect,it,vi} from 'vitest';
 import {BufferAttribute,BufferGeometry} from 'three';
 import {AuthorCoverGrid} from '../src/shards/driftwood-isle/generators/coverGrid';
-import {clipIslandDressing} from '../src/shards/driftwood-isle/world/islandDressing';
+import {clipIslandDressing} from '../src/shards/driftwood-isle/generators/clipDressing';
 import {loadIslandCover} from '../src/shards/driftwood-isle/world/islandCover';
 import ISLAND_COVER_FILES from '../src/shards/driftwood-isle/data/islandCoverFiles.json' with { type: 'json' };
 import {createShardProduct} from '../src/game/shardfile/shardProduct';

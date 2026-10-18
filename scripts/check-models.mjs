@@ -84,7 +84,7 @@ export const DONE = {
     'src/shards/driftwood-isle-legacy/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their baked smooth mesh', counts: { 'registry add with object': 1 } },
+    'src/shards/driftwood-isle/world/build.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their baked smooth mesh', counts: { 'registry add with object': 1 } },
     'src/shards/driftwood-isle-legacy/world/Cove.ts': { why: 'the frozen sea cave retains its original world geometry weld and reef-rock merge; the primary Cove now admits baked geometry', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
     'src/shards/driftwood-isle-legacy/world/GroundCover.ts': { why: 'Frozen ground cover retains the original scatter mesh; the primary composes the existing streamed-cover host from authored rows', counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle-legacy/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
@@ -144,6 +144,7 @@ export const DONE = {
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
     'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },
+    'src/game/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
     // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.
     'src/game/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },
@@ -232,7 +233,6 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/boat.ts', 'boat.ts'],
   ['driftwood-isle', 'runtime/models/captainHat.ts', 'captainHat.ts'],
   ['driftwood-isle', 'runtime/models/cargo.ts', 'cargo.ts'],
-  ['driftwood-isle', 'runtime/models/cove.ts', 'cove.ts'],
   ['driftwood-isle', 'runtime/models/creatures.ts', 'creatures.ts'],
   ['driftwood-isle', 'runtime/models/entryDeck.ts', 'entryDeck.ts'],
   ['driftwood-isle', 'runtime/models/hibiscusBush.ts', 'hibiscusBush.ts'],

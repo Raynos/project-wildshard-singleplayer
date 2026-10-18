@@ -1,5 +1,3 @@
-import DRESSING from '../data/islandDressing.generated.json' with {type:'json'};
-import { clipIslandDressing } from './islandDressing';
 import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 /**
  * The Blender-built island (DRIFTWOOD-REMASTER X2, E52): on Driftwood it always replaces the procedural spawn cove —
@@ -18,7 +16,7 @@ import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'jso
  * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + the plan and facts baked from island.json
  *   (colliders, extra palms, bake notes; generators/islandCover.ts, generators/islandFacts.ts, never read at runtime):
  *   each prototype is uploaded once and its copies placed instanced through the engine (`place`, one model per family,
- *   src/shards/driftwood-isle/runtime/models/cove.ts; G144 / G173, E435: the merged tiles held a world-space copy of every vertex,
+ *   src/shards/driftwood-isle/models/catalogue.ts; G144 / G173, E435: the merged tiles held a world-space copy of every vertex,
  *   ~104 MB). The phone builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a
  *   prefix). The scattered small rocks are the small-rock model (rockKit), placed merged (src/engine/models/place.ts).
  * - lm-ao / lm-bounce (.phone).webp: the terrain's baked GI — sky AO (5 m) and the sun's one-to-three-bounce indirect light.
@@ -39,13 +37,11 @@ import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
-import { area, BLENDER_MODELS } from './blenderArea';
 import type { CustomSections } from '../runtime/productSections.generated.d.ts';
 import sea from '../boot/sea.generated.json' with { type: 'json' };
-import { smallRock } from '../models/catalogue';
+import { smallRock, coveModels } from '../models/catalogue';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
-import { COVE_MODELS, coveLook, coveProtos, type CoveFamily, type CoveLook } from '../runtime/models/cove';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import type { IslandCover } from './islandCover';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -61,11 +57,12 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
+type CoveLook = CustomSections['custom/fixedLayouts']['island']['models'][number]['look'];
+
 type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
 
 const { WORLD_DROP } = sea;
 
-const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** the tier's cover share and reaches (data/islandRows.ts) */
 const tierLook = () => driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_TIERS[TIER];
 
@@ -74,19 +71,12 @@ export interface BlenderIslandCtx {
   sky: Sky;
   registry: WorldRegistry;
   scenes: SceneHandles;
-  terrain: THREE.Mesh;
-  palms: THREE.Mesh | null;
   palmSpecs: PalmSpec[];
-  /** merged world-space meshes the area replaces (bushes) */
-  replace: (THREE.Mesh | null)[];
-  /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
-  cover: THREE.Object3D | null;
   /** the tier's baked cover look (world/islandCover.ts): the plants' ground map and the tiles' cover bytes */
   islandCover: IslandCover;
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
@@ -98,7 +88,7 @@ const planIndices=v.pipe(v.array(planIndex),v.maxLength(50_000));
 const placementPlan=v.object({
   version:v.literal(1),used:planIndex,
   smallRocks:v.pipe(v.array(v.object({...planPoint,matrix:v.pipe(v.array(planFloat),v.length(16)),params:v.object({r:planFloat,sq:planFloat})})),v.maxLength(512)),
-  families:v.pipe(v.array(v.object({key:v.custom<CoveFamily>(value=>typeof value==='string'&&Object.hasOwn(COVE_MODELS,value)),indices:planIndices,colliders:v.pipe(v.array(planBox),v.maxLength(512))})),v.maxLength(16)),
+  families:v.pipe(v.array(v.object({key:v.custom<string>(value=>typeof value==='string'&&driftwoodRows('custom/fixedLayouts').island.models.some(row=>row.key===value)),indices:planIndices,colliders:v.pipe(v.array(planBox),v.maxLength(512))})),v.maxLength(16)),
   unclaimed:v.pipe(v.array(planBox),v.maxLength(512)),
 });
 async function readPlacementPlan():Promise<v.InferOutput<typeof placementPlan>> {
@@ -113,8 +103,6 @@ async function readPlacementPlan():Promise<v.InferOutput<typeof placementPlan>> 
 }
 
 export class BlenderIsland {
-  /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
-  static readonly area = area;
   group = new THREE.Group();
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
@@ -124,17 +112,17 @@ export class BlenderIsland {
   }
 
   private async build(ctx: BlenderIslandCtx): Promise<void> {
-    const phone = TIER === 'phone';
+    const phone = TIER === 'phone', base = driftwoodRows('custom/fixedLayouts').island.base;
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
     const tex = new THREE.TextureLoader();
     // E157: the lightmaps' KTX2 stand-ins when there are some (baked unflipped: these load flipY = false, below)
     const lm = async (name: string): Promise<THREE.Texture> => {
-      const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
+      const url = `${base}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
     const [gltf, placementBytes, ao, bounce, plan, protoFile] = await Promise.all([
-      load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
-      fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
+      load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${base}island.glb`, ok, undefined, bad); }),
+      fetch(`${base}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(), readDriftwoodBlob('world/island/protos.glb'),
     ]);
     if(plan.used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
@@ -194,21 +182,6 @@ export class BlenderIsland {
     ctx.scene.add(this.group);
     const unclaimed = await this.placeModels(models, new Float32Array(placementBytes), plan, protos, { cast: propsMat, cover: coverMat, big: bigMat });
 
-    // ── hide what the area replaces (the faceted ground is baked without the island's cells) ──
-    if (ctx.palms) {
-      // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
-      if (ctx.palms.userData['islandDressingClipped'] !== true) clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
-      await slice();
-    }
-    for (const r of ctx.replace) if (r) { if (r.userData['islandDressingClipped'] !== true) clipIslandDressing(r.geometry,DRESSING[TIER].bushes); await slice(); }
-    if (ctx.cover) {
-      // Streamed cover excludes the baked area before its first refill; only
-      // non-instanced drift logs still need their replaced triangles removed.
-      const coverMeshes: THREE.Mesh[] = [];
-      ctx.cover.traverse((o) => { if (isMesh(o) && !isInstanced(o)) coverMeshes.push(o); });
-      for (const m of coverMeshes) { clipIslandDressing(m.geometry,DRESSING[TIER].logs); await slice(); }
-    }
-
     // ── gameplay ──
     ctx.registry.add({ id: 'cove-unclaimed', name: 'Cove rocks', category: 'nature', file: 'src/shards/driftwood-isle/world/BlenderIsland.ts', colliders: unclaimed.map((c) => boxDesc(c, 'wood')), surface: 'wood', solidFloor: false });
     ctx.palmSpecs.push(...ISLAND_FACTS.extraPalms);
@@ -216,7 +189,7 @@ export class BlenderIsland {
   }
 
   /**
-   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/runtime/models/cove.ts), and each family is
+   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/models/catalogue.ts), and each family is
    * placed instanced under this group (G144: one InstancedMesh per prototype and level): each copy its placement's matrix
    * and tint (the engine's per-copy colour). The casters are drawn where the camera or a shadow cascade sees them (the
    * palms swap to their far copy at `ISLAND_LOOK.lod`); the cover is culled by cells and drawn within the tier's reach (its
@@ -230,7 +203,7 @@ export class BlenderIsland {
    * bridge tagged it. Returns the boxes no copy claims (none: they would stay on the bridge).
    */
   private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,protos:ReadonlyMap<string,THREE.BufferGeometry>,materials:Readonly<Record<CoveLook,THREE.Material>>):Promise<Collider[]> {
-    coveProtos(models,{protos,materials});
+    const catalogue = coveModels({ geometry: protos, materials });
     const slice=slicer(),cell={size:16,pad:4},sky=models.sky,view=new THREE.Frustum(),pv=new THREE.Matrix4(),box=new THREE.Box3(),ball=new THREE.Sphere();
     // a caster is drawn while the camera or any shadow cascade sees its box (padded 4 m: the frusta are a frame old), so no
     // shadow is lost; the camera's frustum is taken as each choice starts (copy 0)
@@ -242,13 +215,14 @@ export class BlenderIsland {
     };
     const culls:Readonly<Record<CoveLook,(placed:{p:Placed|null})=>CullOptions>>={cast:placed=>({test:seen(placed),flat:true}),cover:()=>({far:tierLook().cover.far+1,cells:cell}),big:()=>({far:tierLook().big.far+1,cells:cell})};
     for(const row of plan.families){
+      const family = catalogue.get(row.key); if (family === undefined) throw new Error('Missing admitted cove family');
       const placements=row.indices.map(i=>{
         const o=i*10,x=f[o+1]??0,y=(f[o+2]??0)-WORLD_DROP,z=f[o+3]??0,sc=f[o+8]??1,t=f[o+9]??1;
         const matrix=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1),new THREE.Vector3(sc,sc,sc));
         return {x,y,z,matrix,color:new THREE.Color(t,t,t),variant:ISLAND_FACTS.protos[f[o]??0]?.name??''};
       });
       const placed:{p:Placed|null}={p:null};
-      placed.p=await placeSliced(COVE_MODELS[row.key],placements,{ctx:models,draw:'instanced',parent:this.group,cull:culls[coveLook(row.key)](placed),piece:{id:`cove-${row.key}`,...(row.colliders.length>0?{colliders:row.colliders.map(c=>boxDesc(c,'wood'))}:{})}},slice.due);
+      placed.p=await placeSliced(family.model,placements,{ctx:models,draw:'instanced',parent:this.group,cull:culls[family.look](placed),piece:{id:`cove-${row.key}`,...(row.colliders.length>0?{colliders:row.colliders.map(c=>boxDesc(c,'wood'))}:{})}},slice.due);
     }
     if(plan.unclaimed.length>0)console.warn(`[island] ${plan.unclaimed.length} collider boxes stand on no cove copy: they stay on the P2 bridge`);
     return plan.unclaimed;

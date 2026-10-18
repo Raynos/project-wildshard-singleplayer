@@ -17,7 +17,7 @@ import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
-import { inArea } from '../world/blenderArea';
+import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }

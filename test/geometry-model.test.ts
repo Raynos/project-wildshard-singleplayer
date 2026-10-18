@@ -4,7 +4,7 @@ import { Rng } from '../src/engine/core/rng';
 import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/models/model';
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import crags from '../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
-import { COVE_MODELS, coveProtos, coveLook } from '../src/shards/driftwood-isle/runtime/models/cove';
+import { coveModels } from '../src/shards/driftwood-isle/models/catalogue';
 
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
@@ -13,12 +13,10 @@ test('all cove families retain clone, shadow, specimen and far-copy policy', () 
   admitDriftwoodFixtureRows();
   const ctx = modelContext(null), rng = new Rng(1), geometry = new Map<string, THREE.BufferGeometry>();
   const materials = { cast: new THREE.MeshBasicMaterial(), cover: new THREE.MeshBasicMaterial(), big: new THREE.MeshBasicMaterial() };
-  for (const model of Object.values(COVE_MODELS)) for (const variant of model.variants ?? []) {
+  for (const { model } of driftwoodRows('custom/fixedLayouts').island.models) for (const variant of model.variants) {
     geometry.set(variant.id, new THREE.BoxGeometry()); geometry.set(`${variant.id}_lo`, new THREE.BoxGeometry(2, 2, 2));
   }
-  coveProtos(ctx, { protos: geometry, materials });
-  for (const key of Object.keys(COVE_MODELS) as (keyof typeof COVE_MODELS)[]) {
-    const model = COVE_MODELS[key], look = coveLook(key);
+  for (const [key, { model, look }] of coveModels({ geometry, materials })) {
     for (const variant of model.variants ?? []) {
       const params = paramsOf(model, variant.id, undefined), built = model.build(ctx, params, rng), specimen = model.specimen?.(ctx, params, rng);
       if (built instanceof THREE.Object3D || specimen instanceof THREE.Object3D) throw new Error('Expected cove parts');

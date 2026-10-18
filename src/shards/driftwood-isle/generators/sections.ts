@@ -32,7 +32,15 @@ const npcScene = v.strictObject({ recipe: PrivateSceneSchema, parts: v.pipe(v.re
   bindings: v.pipe(v.record(text, v.strictObject({ kind: v.picklist(['group', 'object']), part: text })), v.maxEntries(16)) });
 const trailPoint = { x: number, y: number, z: number };
 const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
+const geometryPart = v.strictObject({ geometry: text, material: v.picklist(['cast', 'cover', 'big']), clone: v.boolean(), castShadow: v.boolean(), receiveShadow: v.boolean() });
+const geometryParts = v.record(text, v.array(geometryPart));
+const coveModels = v.array(v.strictObject({ key: text, look: v.picklist(['cast', 'cover', 'big']), model: v.strictObject({
+  id: text, name: text, file: text, category: v.literal('nature'), pipeline: v.union([v.picklist(['cc0', 'trellis', 'blender']), v.array(v.picklist(['cc0', 'trellis', 'blender']))]),
+  defaults: v.strictObject({ proto: text }), variants: v.array(v.strictObject({ id: text, label: text, params: v.strictObject({ proto: text }) })),
+  parts: geometryParts, specimenMaterial: text, lods: v.array(v.strictObject({ from: number, parts: geometryParts })),
+}) }));
 const cove = v.strictObject({
+  composition: v.strictObject({ root: text, rocks: text, cascade: text, look: text, reefPiece: text, piece: v.strictObject({ id: text, name: text, category: v.literal('nature'), file: text, surface: v.literal('rock'), solidFloor: v.literal(true) }) }),
   spec: v.strictObject({ pools: v.pipe(v.array(v.strictObject({ x: number, z: number, r: number })), v.maxLength(64)), crabSites: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(64)),
     fall: v.strictObject({ top: v.tuple([number, number]), foot: v.tuple([number, number]), width: number }),
     cave: v.strictObject({ x: number, z: number, yaw: number, w: number, h: number, depth: number }),
@@ -156,6 +164,7 @@ export const SECTIONS = {
     }),
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */
     cove,
+    island: v.strictObject({ base: text, models: coveModels }),
     /** the shrine's two admitted sites (knoll and flat Explorer specimen): origin, colliders, stair descriptors, anchors, levels */
     shrine: v.strictObject({ world: shrineSite, specimen: shrineSite }),
     /** the trophy plaques' board, empty and full vertex ranges */

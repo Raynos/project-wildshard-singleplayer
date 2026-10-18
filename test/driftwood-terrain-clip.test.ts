@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { PlaneGeometry } from 'three';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { islandClippedIndex } from '../src/shards/driftwood-isle/generators/islandClips';
-import { inArea } from '../src/shards/driftwood-isle/world/blenderArea';
+import { inArea } from '../src/shards/driftwood-isle/generators/blenderArea';
 
 it('bakes the native terrain index without the baked island, keeping its runs in order', () => {
   const geometry = new PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2);

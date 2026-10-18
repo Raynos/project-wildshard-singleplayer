@@ -1,3 +1,5 @@
+import clips from '../data/islandDressing.generated.json' with { type: 'json' };
+import { clipIslandDressing } from './clipDressing';
 import { Matrix4, type BufferGeometry } from 'three';
 import { captainHatGeometry } from './captainHat';
 import { boatGeometry } from './boat';
@@ -71,6 +73,7 @@ export function driftwoodFixedSource(): {
   rows['shrineBake']={world:shrine.world.rows,specimen:shrine.specimen.rows};
   rows['bridgeBake']=originalBridgeFacts();
   const logs = originalDuneLogs();
+  clipIslandDressing(logs.geometry, clips.phone.logs);
   geometries.set('cover-driftwood', logs.geometry);
   rows['duneLogsBake'] = logs.catalogue;
   const posts = originalBridgePosts();

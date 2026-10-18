@@ -5,7 +5,7 @@ import { writeFileSync } from 'node:fs';
 import { installInit } from './parity/init.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { coverGeometry } from '../src/shards/driftwood-isle/generators/groundCover.ts';
-import { area } from '../src/shards/driftwood-isle/world/blenderArea.ts';
+import { area } from '../src/shards/driftwood-isle/generators/blenderArea.ts';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url'), output = arg('output');

@@ -27,7 +27,7 @@ describe('model contract after client relocation', () => {
       .toContainEqual(expect.stringContaining('on the model contract — it places models'));
   });
 
-  it.each([['driftwood-isle', 'boat'], ['pine-hollow', 'logCabin']])('checks the relocated %s model', (slug, name) => {
+  it.each([['driftwood-isle', 'boat'], ['pine-hollow', 'fallenLog']])('checks the relocated %s model', (slug, name) => {
     const file = `src/shards/${slug}/runtime/models/${name}.ts`;
     expect(checkModels({ [file]: `defineModel({ id: '${slug}/specimen' });` }).violations).toEqual([]);
     expect(checkModels({ [file]: "defineModel({ id: 'other/specimen' });" }).violations)
@@ -40,23 +40,25 @@ describe('model contract after client relocation', () => {
     const files = {
       'src/shards/pine-hollow/runtime/world/specimen.ts': "defineModel({ id: 'pine-hollow/specimen' });",
       'src/shards/pine-hollow/runtime/models/unlisted.ts': "defineModel({ id: 'pine-hollow/unlisted' });",
+      'src/shards/pine-hollow/runtime/models/logCabin.ts': "defineModel({ id: 'pine-hollow/retired' });",
       'src/shards/far-reach/runtime/models/specimen.ts': "defineModel({ id: 'far-reach/specimen' });",
     };
     expect(checkModels(files).violations).toEqual([
       expect.stringContaining('pine-hollow/runtime/world/specimen.ts: defineModel outside'),
       expect.stringContaining('pine-hollow/runtime/models/unlisted.ts: defineModel outside'),
+      expect.stringContaining('pine-hollow/runtime/models/logCabin.ts: defineModel outside'),
       expect.stringContaining('far-reach/runtime/models/specimen.ts: defineModel outside'),
     ]);
   });
 
   it('keeps cross-shard model imports restricted at the relocated paths', () => {
     const file = 'src/shards/driftwood-isle/runtime/models/boat.ts';
-    expect(checkModels({ [file]: "import { model } from '../../../pine-hollow/runtime/models/logCabin'; defineModel({ id: 'driftwood-isle/specimen' });" }).violations)
+    expect(checkModels({ [file]: "import { model } from '../../../pine-hollow/runtime/models/fallenLog'; defineModel({ id: 'driftwood-isle/specimen' });" }).violations)
       .toEqual([expect.stringContaining("imports another shard's models")]);
   });
 
   it('recognizes the existing typed model factories without dropping prefix checks', () => {
-    const file = 'src/shards/driftwood-isle/runtime/models/cove.ts';
+    const file = 'src/shards/driftwood-isle/models/catalogue.ts';
     expect(checkModels({ [file]: "defineGeometryModel({ id: 'driftwood-isle/cove' });" }).violations).toEqual([]);
     expect(checkModels({ [file]: "defineGeometryModel({ id: 'other/cove' });" }).violations)
       .toEqual([expect.stringContaining("must start with 'driftwood-isle/'")]);
@@ -73,6 +75,7 @@ describe('model contract after client relocation', () => {
 
   it.each([
     ['src/game/plugin/ui.ts', 'new InstancedMesh();'],
+    ['src/game/shardfile/worldSceneWeld.ts', 'new InstancedMesh();'],
     ['src/sdk/bake/glb.ts', 'mergeGeometries(parts);'],
     ['src/sdk/looks/posedInstances.ts', 'new THREE.InstancedMesh();'],
   ])('retains a one-draw ceiling at %s', (file, draw) => {

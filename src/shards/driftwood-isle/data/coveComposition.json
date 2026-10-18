@@ -1,0 +1,15 @@
+{
+  "root": "cove.root",
+  "rocks": "cove.rocks",
+  "cascade": "cascade.root",
+  "look": "driftwood-cove-pool",
+  "piece": {
+    "id": "cove",
+    "name": "Wreck cove",
+    "category": "nature",
+    "file": "src/shards/driftwood-isle/world/build.ts",
+    "surface": "rock",
+    "solidFloor": true
+  },
+  "reefPiece": "wreck-cove-reef-rocks"
+}

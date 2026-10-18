@@ -34,6 +34,7 @@ const data=await islandDressing(url=>new Uint8Array(readFileSync(new URL(`public
  palmFiles[tier]=files;
 });
 _buildAs(null);
+if (JSON.stringify(data.tiers[0]?.clips.logs) !== JSON.stringify(data.tiers[1]?.clips.logs)) throw new Error('Fixed dune-log clip must be tier independent');
 console.log(`hibiscus-files ${JSON.stringify(hibiscusFiles)}`);
 console.log(`palm-files ${JSON.stringify(palmFiles)}`);
 const tiers={};

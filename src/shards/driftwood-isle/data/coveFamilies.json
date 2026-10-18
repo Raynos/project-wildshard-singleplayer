@@ -1,0 +1,179 @@
+{
+  "palm": {
+    "name": "Cove palm",
+    "protos": [
+      "palm0",
+      "palm1",
+      "palm2",
+      "palm3",
+      "palm4"
+    ],
+    "pipeline": [
+      "cc0",
+      "trellis",
+      "blender"
+    ],
+    "look": "cast",
+    "far": true
+  },
+  "bpalm": {
+    "name": "Broad-frond palm",
+    "protos": [
+      "bpalm0",
+      "bpalm1",
+      "bpalm2",
+      "bpalm3"
+    ],
+    "pipeline": "blender",
+    "look": "cast",
+    "far": true
+  },
+  "cliff": {
+    "name": "Crag plate",
+    "protos": [
+      "cliff0",
+      "cliff1",
+      "cliff2",
+      "cliff3",
+      "cliff4",
+      "cliff5"
+    ],
+    "pipeline": "blender",
+    "look": "cast"
+  },
+  "drift": {
+    "name": "Driftwood",
+    "protos": [
+      "drift0",
+      "drift1",
+      "drift2",
+      "drift3"
+    ],
+    "pipeline": [
+      "trellis",
+      "blender"
+    ],
+    "look": "cast"
+  },
+  "coconuts": {
+    "name": "Coconut cluster",
+    "protos": [
+      "coconuts0"
+    ],
+    "pipeline": [
+      "trellis",
+      "blender"
+    ],
+    "look": "cast"
+  },
+  "shell": {
+    "name": "Shell",
+    "protos": [
+      "shell0",
+      "shell1",
+      "shell2",
+      "shell3"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "star": {
+    "name": "Starfish",
+    "protos": [
+      "star0",
+      "star1",
+      "star2"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "pebble": {
+    "name": "Pebbles",
+    "protos": [
+      "pebble0",
+      "pebble1",
+      "pebble2",
+      "pebble3"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "beachgrass": {
+    "name": "Beach grass",
+    "protos": [
+      "beachgrass0",
+      "beachgrass1",
+      "beachgrass2"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "tuft": {
+    "name": "Grass tuft",
+    "protos": [
+      "tuft0",
+      "tuft1",
+      "tuft2",
+      "tuft3"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "fern": {
+    "name": "Cove fern",
+    "protos": [
+      "fern0",
+      "fern1",
+      "fern2"
+    ],
+    "pipeline": "blender",
+    "look": "big"
+  },
+  "hibiscus": {
+    "name": "Hibiscus clump",
+    "protos": [
+      "hibiscus0",
+      "hibiscus1",
+      "hibiscus2"
+    ],
+    "pipeline": "blender",
+    "look": "big"
+  },
+  "yellow": {
+    "name": "Yellow flowers",
+    "protos": [
+      "yellow0",
+      "yellow1"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "white": {
+    "name": "White flowers",
+    "protos": [
+      "white0",
+      "white1"
+    ],
+    "pipeline": "blender",
+    "look": "cover"
+  },
+  "bush": {
+    "name": "Cove bush",
+    "protos": [
+      "bush0",
+      "bush1",
+      "bush2"
+    ],
+    "pipeline": "blender",
+    "look": "big"
+  },
+  "flowerbush": {
+    "name": "Flowering bush",
+    "protos": [
+      "flowerbush0",
+      "flowerbush1"
+    ],
+    "pipeline": "blender",
+    "look": "big"
+  }
+}
