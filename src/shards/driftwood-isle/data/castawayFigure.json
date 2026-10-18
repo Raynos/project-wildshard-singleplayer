@@ -1,0 +1,84 @@
+{
+  "id": "castaway",
+  "name": "castaway",
+  "root": {
+    "part": "castaway.source"
+  },
+  "feet": [
+    0,
+    0,
+    0
+  ],
+  "yaw": 0,
+  "talkHeight": 1.67,
+  "rig": {
+    "skeleton": "castaway.pivots.v1",
+    "clips": [
+      "idle.fire-tend"
+    ],
+    "sockets": []
+  },
+  "joints": [
+    {
+      "id": "castaway.figure",
+      "source": {
+        "part": "castaway.figure.source"
+      }
+    },
+    {
+      "id": "castaway.head",
+      "source": {
+        "part": "castaway.head.source"
+      }
+    },
+    {
+      "id": "castaway.arm",
+      "source": {
+        "part": "castaway.arm.source"
+      }
+    },
+    {
+      "id": "castaway.camp",
+      "source": {
+        "part": "castaway.camp.source"
+      }
+    },
+    {
+      "id": "castaway.flames",
+      "source": {
+        "part": "castaway.flames.source"
+      }
+    }
+  ],
+  "sockets": [],
+  "visible": [
+    {
+      "part": "castaway.figure.source"
+    },
+    {
+      "part": "castaway.camp.source"
+    },
+    {
+      "part": "castaway.flames.source"
+    }
+  ],
+  "drawDistance": 85,
+  "pointAt": [
+    0,
+    0,
+    0
+  ],
+  "points": false,
+  "replacement": {
+    "target": {
+      "part": "castaway.head.source"
+    },
+    "geometry": "castaway.fitted-head"
+  },
+  "collider": {
+    "kind": "box",
+    "half": 0.28,
+    "top": 1.8,
+    "bottom": 0.3
+  }
+}

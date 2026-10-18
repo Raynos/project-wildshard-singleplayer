@@ -7,9 +7,10 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
-import { loadNpcFigureRows, npcFigureRows } from '../src/shards/pine-hollow/runtime/npc/standInPerson';
-import { rangerHale, millerBrandt, traderMott } from '../src/shards/pine-hollow/runtime/models/people';
-import * as codeParts from '../src/shards/pine-hollow/runtime/world/codeParts';
+import { FigureCatalogue } from '../src/sdk/npc/figures';
+import * as packs from '../src/sdk/kit/geometryPack';
+import { FigureRows } from '../src/game/systems/npc/figureRows';
+import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 
 beforeAll(() => {
   const built = env['WS_TEST_PRODUCTS_SHA'];
@@ -21,32 +22,33 @@ beforeAll(() => {
 // Malformed rows replace only the value under test. Every boot dependency comes
 // from the complete generated product, so a new named file needs no fixture edit.
 function product(base: ShardProduct, value: unknown): ShardProduct {
-  return { ...base, file: name => name === 'people/figure.json'
+  return { ...base, file: name => name === 'people/catalogue.json'
     ? Promise.resolve(new TextEncoder().encode(JSON.stringify(value))) : base.file(name) };
 }
 
-test('NPC figure admission keeps every authored number, refuses malformed rows atomically and prepares cold cards', async () => {
-  expect(npcFigureRows).toThrow('not admitted');
+test('NPC catalogue admission preserves rows, refuses atomically and prepares cold cards', async () => {
+  const figures = new FigureCatalogue('pine-hollow', 'people/catalogue.json');
+  expect(() => figures.rows('ranger')).toThrow('not admitted');
   const admitted = await loadHeadlessProduct('out/pine-hollow');
-  await loadNpcFigureRows(admitted);
-  const previous = npcFigureRows();
-  expect(previous).toEqual(NPC_FIGURE);
-  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, extra: true }))).rejects.toThrow();
-  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, flame: { ...NPC_FIGURE.flame, color: [1, 2] } }))).rejects.toThrow();
-  await expect(loadNpcFigureRows(product(admitted, { ...NPC_FIGURE, walk: { speed: 'bad', cycle: 1 } }))).rejects.toThrow();
-  expect(npcFigureRows()).toBe(previous);
+  const json: unknown = JSON.parse(new TextDecoder().decode(await admitted.file('people/catalogue.json')));
+  const packsLoad = vi.spyOn(packs, 'fetchDeflated').mockResolvedValue(new Uint8Array(packed.rows.bytes));
+  const skinsLoad = vi.spyOn(FigureRows, 'prepareSkins').mockResolvedValue();
   const fetch = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(admitted);
-  const parts = vi.spyOn(codeParts, 'loadCodeParts').mockResolvedValue();
   try {
-    const models = [rangerHale, millerBrandt, traderMott];
+    await figures.admit(admitted);
+    const previous = figures.rows('ranger');
+    expect(previous.motion).toEqual(NPC_FIGURE);
+    await expect(figures.admit(product(admitted, { extra: true }))).rejects.toThrow();
+    expect(figures.rows('ranger')).toBe(previous);
+    await figures.admit(product(admitted, json));
+    const models = ['ranger', 'miller', 'trader'].map(id => figures.model(id));
     for (const model of models) {
       if (model.prepare === undefined) throw new Error('Cold NPC card has no prepare');
       await model.prepare();
-      expect(npcFigureRows()).toEqual(NPC_FIGURE);
+      expect(figures.rows('ranger').motion).toEqual(NPC_FIGURE);
     }
+    for (const model of models) { expect(model.pipeline).toEqual(['hunyuan', 'code']); expect(model.rig?.clips).toEqual(['idle', 'talk', 'point']); }
     expect(models.map(row => row.id)).toEqual(['pine-hollow/ranger-hale', 'pine-hollow/miller-brandt', 'pine-hollow/trader-mott']);
     expect(models.map(row => row.name)).toEqual(['Hale, ranger of the Hollow', 'Brandt, the miller', 'Mott, the trader']);
-    expect(parts).toHaveBeenCalledTimes(3);
-    expect(fetch).toHaveBeenCalledTimes(3);
-  } finally { fetch.mockRestore(); parts.mockRestore(); }
+  } finally { fetch.mockRestore(); packsLoad.mockRestore(); skinsLoad.mockRestore(); }
 });

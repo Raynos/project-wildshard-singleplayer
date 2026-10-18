@@ -7,6 +7,7 @@ import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
+import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 
 /** Real published GLB source bytes with the same admitted asset and layout rows as the product writer. */
 export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createShardProduct>> {
@@ -16,6 +17,8 @@ export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createS
   }));
   const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups));
   blobs.push({ name: 'models/fixed-geometry.json', source: 'data/fixedGeometry.json', bytes, hash: createHash('sha256').update(bytes).digest('hex') });
+  const figures = new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE));
+  blobs.push({ name: 'people/catalogue.json', source: 'generators/figureCatalogue.ts', bytes: figures, hash: createHash('sha256').update(figures).digest('hex') });
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
   return createShardProduct({slug: 'driftwood-isle', revision: 1,
     shardfile: emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}),

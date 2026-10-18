@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./npc/figures": "./npc/figures.ts",
     "./kit/specimenSchemas": "./kit/specimenSchemas.ts",
     "./headlessAssembly": "./headlessAssembly.ts",
     "./panelTemplates": "./panelTemplates.ts",

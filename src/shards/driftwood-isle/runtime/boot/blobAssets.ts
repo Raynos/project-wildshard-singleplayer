@@ -1,3 +1,4 @@
+import { FigureCatalogue } from '@wildshard/sdk/npc/figures';
 import { CollectionCatalogue } from '@wildshard/game/models/collectionDisplay';
 import { createOwnedGeometryBatch, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { BufferGeometry } from 'three';
@@ -31,6 +32,8 @@ export async function readDriftwoodBlob(label: string, admitted?: ShardProduct):
   return product.file(driftwoodBlobName(product, label));
 }
 
+export const FIGURES = new FigureCatalogue('driftwood-isle', 'people/catalogue.json');
+
 const fixed = createOwnedGeometryBatch(), templates = new Map<string, OwnedGeometry>();
 let inventory: v.InferOutput<typeof FixedGeometryGroupsSchema> | null = null;
 let fixedReady = false;
@@ -62,6 +65,7 @@ export function fixedGeometryReady(): boolean { return fixedReady; }
 /** Acquire original source draws through the existing assembler, or named blobs for cold Explorer cards. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0]): Promise<void> {
   const product = bytes === undefined && owner === undefined ? await loadDriftwoodProduct() : driftwoodProduct();
+  await FIGURES.admit(product);
   const rows = product.section('custom/fixedLayouts', SECTIONS).fixedDraws;
   const aliases = Object.entries(driftwoodRows('custom/assets').byUrl).filter(([key]) => key.startsWith('fixed:'));
   if (rows.length !== 86 || aliases.length !== rows.length || aliases.some(([key]) => !rows.some(row => row.slot === key.slice(6)))) throw new Error('Undeclared fixed draw slots');

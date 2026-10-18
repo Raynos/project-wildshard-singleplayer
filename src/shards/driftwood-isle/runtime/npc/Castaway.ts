@@ -28,30 +28,28 @@ import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { driftwoodRows } from '../boot/rows';
-import { fixedDraw, fixedGeometryGroups, fixedGeometryReady } from '../boot/blobAssets';
+import { fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from '../boot/blobAssets';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 const NECK = 1.52;
-const NEAR_R = 85;
-
-/** The original fitted head, prepared offline and lent through the existing fixed-model library. */
-export async function loadWendellFace(): Promise<THREE.BufferGeometry> {
-  await fixedDraw('wendellHead').load();
-  return fixedDraw('wendellHead').copy();
-}
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
 
 export class Castaway {
   readonly group = new THREE.Group();
-  readonly collider: Collider;
+  private presentation: FigureRows | null = null;
+  get collider(): Collider { if (this.presentation === null) throw new Error('Figure is not built'); return this.presentation.collider; }
+  get model(): this { return this; }
+  dispose(): void { this.presentation?.dispose(); }
   talking = false;
   private body: THREE.Object3D = new THREE.Mesh();
   private camp: THREE.Object3D = new THREE.Mesh();
@@ -77,10 +75,9 @@ export class Castaway {
     // the fire in the NPC's frame (the group is placed at his feet, rotated with him)
     const dx = fire.x - feet.x, dz = fire.z - feet.z, c = Math.cos(-this.bodyYaw), s = Math.sin(-this.bodyYaw);
     this.fireLocal = V(dx * c + dz * s, fire.y - feet.y, -dx * s + dz * c);
-    this.collider = { x: feet.x, z: feet.z, hw: 0.28, hd: 0.28, rot: 0, yTop: feet.y + 1.8, yBottom: feet.y - 0.3 };
   }
 
-  build(): this {
+  build(owner?: Scope): this {
     const rows = driftwoodRows('custom/fixedLayouts').npcScenes.castaway;
     const mat = lowPolyLookMaterial(this.sky, 'still'), f = this.fireLocal;
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
@@ -107,23 +104,30 @@ export class Castaway {
     Object.assign(this, bindWorldSceneParts(made, rows.parts, rows.bindings));
     this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { head: this.head, arm: this.arm, flames: this.flames };
+    resources.publish('castaway.source', this.group);
+    resources.publish('castaway.figure.source', this.figure);
+    resources.publish('castaway.head.source', this.head);
+    resources.publish('castaway.arm.source', this.arm);
+    resources.publish('castaway.camp.source', this.camp);
+    resources.publish('castaway.flames.source', this.flames);
+    resources.publish('castaway.fitted-head', fixedDraw('wendellHead').copy());
+    this.presentation = FIGURES.create('castaway', resources, [0, 0, 0], 0, owner);
     return this;
   }
 
-  get faceMesh(): THREE.Mesh { if (!(this.head instanceof THREE.Mesh)) throw new Error('Castaway requires its face mesh'); return this.head; }
-
   /** the head's world position (the talk prompt / the name tag) */
-  headWorld(out: THREE.Vector3): THREE.Vector3 { return out.set(0, NECK + 0.15, 0).applyMatrix4(this.group.matrixWorld); }
+  headWorld(out: THREE.Vector3): THREE.Vector3 { if (this.presentation === null) throw new Error('Figure is not built'); return this.presentation.headWorld(out); }
   get position(): THREE.Vector3 { return this.group.position; }
 
   wave(): void { if (this.waveT < 0) this.waveT = 0; }
 
   update(dt: number, t: number, player: THREE.Vector3): void {
+    if (this.presentation?.active !== true) return;
+    this.presentation.syncAnchors();
     const gp = this.group.position;
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);
-    // past NEAR_R only the smoke column is drawn (the breadcrumb from the pier): the man and his fire are a few pixels there
-    const near = d < NEAR_R;
-    if (near !== this.figure.visible) { this.figure.visible = this.camp.visible = this.flames.visible = near; }
+    // past the declared draw distance only the smoke column is drawn (the breadcrumb from the pier): the man and his fire are a few pixels there
+    this.presentation.lod(d);
     // the body turns to face you when you come to talk (or while you do), and eases back to his idle facing after
     const toYou = Math.atan2(dx, dz);
     this.turn = stepNpcFacing(this.turn, d < driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_FACING.range || this.talking ? toYou - this.bodyYaw : 0, driftwoodRows('custom/fixedLayouts').nativeView.CASTAWAY_FACING, dt);

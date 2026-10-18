@@ -18,25 +18,23 @@ import { driftwoodRows } from '../boot/rows';
 import type * as THREE from 'three';
 import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Trader } from '../npc/Trader';
-import { traderRig } from '../npc/people';
-import type { NpcRig } from '@wildshard/game/systems/npc/npcRig';
+import { Trader } from '../npc/Trader';
+import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 
-import { loadFixedGeometry, fixedDraw } from '../boot/blobAssets';
+import { loadFixedGeometry, fixedDraw, FIGURES } from '../boot/blobAssets';
 
-const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
+const byGroup = new WeakMap<THREE.Object3D, Trader>();
 
 /** the live Trader behind a placed copy of `trader` (null: not one) */
-export function traderOf(o: THREE.Object3D): Trader | null { return byGroup.get(o)?.model ?? null; }
+export function traderOf(o: THREE.Object3D): Trader | null { return byGroup.get(o) ?? null; }
 
-export function traderRigOf(o: THREE.Object3D): NpcRig<Trader, Sky> | null { return byGroup.get(o) ?? null; }
+export function traderRigOf(o: THREE.Object3D): Trader | null { return byGroup.get(o) ?? null; }
 
 export const trader: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'flesh',
   prepare: loadFixedGeometry, defaults: {},
-  build: (ctx) => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; },
-  colliders: () => [{ kind: 'capsule', x: 0, y: 0.9, z: 0, halfHeight: 0.62, radius: 0.26 }],
+  build: (ctx) => { const rig = new Trader(ctx.sky).build(); byGroup.set(rig.group, rig); return rig.group; },
+  colliders: () => FigureRows.collidersFor(FIGURES.rows('trader')),
 });
 
 export const tradeCounter: ModelDef<object> = defineModel<object>({

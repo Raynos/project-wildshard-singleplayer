@@ -20,7 +20,7 @@ geometry they are built from, moved unchanged from the kit (SF54). The compositi
 `installKitPickups`; nothing installs on import. Their baked commons entries are SF54 step 4.
 
 `@wildshard/game/systems/species/view/{boar,bear}` define the lofted boar and bear looks (`BOAR_LOOK`, `BEAR_LOOK`, the
-palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg rig (`NpcRig`, `rigLegs`, `legPose`, `WALK`).
+palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg rig (`NpcRig`, `rigLegs`, `legBones`, `legPose`, `WALK`).
 Both moved unchanged from the kit (SF54); shard files outside `runtime/` import them directly. They stay runtime
 builders until their baked commons entries (SF54 step 4) replace the procedural path.
 
@@ -9705,3 +9705,39 @@ rows, dome dimensions and environment cadence without a host branch.
 Ordinary pending-user entries still require a named future shard, live plan
 row and recheck; an approval-only entry requires an exact known feature and
 its recorded decision. Both forms require public module documentation.
+
+
+### Row-owned NPC figures (C6)
+
+`format/figures` admits bounded JSON figure rows, baked humanoid skin/rest
+facts, material properties, fallback draw ids, pivot joints, sockets,
+box/capsule anchors and prompt heights. `game/systems/npc/figureRows.FigureRows`
+is client-only presentation: its inputs are the resident `SceneHandles`,
+rows and the owning scope. Roots, prompts, joints and sockets publish under
+explicit ids; no TypeScript callback, subclass or reflected shard path is
+accepted. Z2 `ScenePointRef` names scene parts. Story, dialogue and gesture
+decisions remain with their existing owners.
+
+A figure replaces a fallback with the declared baked skin after intake,
+using independent skeletons over cached geometry and textures. The existing
+humanoid `legBones`/`legPose` preserves the leg, talk, point and walk math;
+the quadruped limb-rig solver is a different skeleton contract. Declared
+hand attachments follow their socket. LOD, walking collision boxes and talk
+points retain their authored values. Pivot figures borrow existing scene
+parts and may replace a fitted mesh from a published geometry id. The
+replacement retains the old deferred completion order. Live quest builds
+supply their concrete resident scope at construction. Scope disposal stops
+late adoption and removes only identity-equal publications; it does not
+dispose borrowed scene geometry or materials.
+
+`game/models/figureCatalogue.FigureCatalogue` owns the model definitions.
+`sdk/npc/figures.FigureCatalogue` reads a named product catalogue containing
+the same live and Explorer rows, packed fallback geometry, tier-specific
+skin files and card identities. Pivot-only rows use their published scene
+parts without a geometry pack. Preparation is explicit and atomic. It
+shares the authored fallback material with compatible props, while each
+figure gets its own publication namespace and skeleton. Pine Hollow's three
+people and Driftwood's Castaway/Trader use the game host; their dialogue,
+prompt reach, save ownership and gesture laws stay unchanged. The callback
+`NpcRig` wrapper is retired from both current shards, alongside Pine's
+three figure runtime modules. The legacy snapshots still use the old wrapper.

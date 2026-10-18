@@ -1,33 +1,7 @@
+/** Retained pre-C6 standing executor, an independent exact pose oracle. */
 import * as THREE from 'three';
-import * as v from 'valibot';
-import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
-
-/**
- * A standing person (SHARD-PLATFORM M3, the npc system): a stand-in body (one merged mesh, plus a glowing part such as
- * lantern glass) until the person's rigged model is ready, then the rig in its place. The person turns to face you when
- * you come near, sways a little as it talks, eases a talk and a point clip in and out on the rig (the point toward one
- * spot, now and then while talking), walks to a spot on request (its collider and talk point go along), and draws inside
- * a distance, casting a shadow inside a nearer one. Every number is the shard's row; the shard passes the geometry, the
- * materials and the rig source.
- */
-
-const finite = v.pipe(v.number(), v.finite());
-/** The authored motion, reach, collider and flame facts, with no runtime defaults. */
-export const NpcFigureRowsSchema = v.strictObject({ collider: v.strictObject({ half: finite, top: finite, bottom: finite }),
-  talkHeight: finite, drawDistance: finite, shadowDistance: finite, noticeRadius: finite, walk: v.strictObject({ speed: finite, cycle: finite }),
-  flame: v.strictObject({ radius: finite, widthSegments: finite, heightSegments: finite, color: v.tuple([finite, finite, finite]) }),
-  point: v.strictObject({ period: finite, from: finite, to: finite }), sway: v.strictObject({ breathe: finite, breatheRate: finite, talk: finite, talkRate: finite }) });
-export type StandInPersonRow = v.InferOutput<typeof NpcFigureRowsSchema>;
-let admitted: StandInPersonRow | null = null;
-/** The page and cold Explorer await the same strictly parsed named rows. Failed admission keeps the previous value. */
-export async function loadNpcFigureRows(product: ShardProduct): Promise<void> {
-  admitted = v.parse(NpcFigureRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('people/figure.json'))));
-}
-export async function prepareNpcFigureRows(): Promise<void> { await loadNpcFigureRows(await loadFirstPartyProduct('pine-hollow')); }
-export function npcFigureRows(): StandInPersonRow { if (admitted === null) throw new Error('Pine NPC figure rows are not admitted'); return admitted; }
-
+import type { FigureMotionRow as StandInPersonRow } from '@wildshard/format/figures';
 /** The rigged person a stand-in gives way to (structural: the shard's rig loader returns one). */
 export interface StandInRig {
   readonly mesh: THREE.SkinnedMesh;

@@ -1,0 +1,66 @@
+{
+  "id": "trader",
+  "name": "trader",
+  "root": {
+    "part": "trader.source"
+  },
+  "feet": [
+    0,
+    0,
+    0
+  ],
+  "yaw": 0,
+  "talkHeight": 1.63,
+  "rig": {
+    "skeleton": "trader.pivots.v1",
+    "clips": [
+      "idle.counter"
+    ],
+    "sockets": []
+  },
+  "joints": [
+    {
+      "id": "trader.figure",
+      "source": {
+        "part": "trader.figure.source"
+      }
+    },
+    {
+      "id": "trader.head",
+      "source": {
+        "part": "trader.head.source"
+      }
+    },
+    {
+      "id": "trader.upper",
+      "source": {
+        "part": "trader.upper.source"
+      }
+    },
+    {
+      "id": "trader.fore",
+      "source": {
+        "part": "trader.fore.source"
+      }
+    }
+  ],
+  "sockets": [],
+  "visible": [
+    {
+      "part": "trader.figure.source"
+    }
+  ],
+  "drawDistance": 85,
+  "pointAt": [
+    0,
+    0,
+    0
+  ],
+  "points": false,
+  "collider": {
+    "kind": "capsule",
+    "y": 0.9,
+    "halfHeight": 0.62,
+    "radius": 0.26
+  }
+}

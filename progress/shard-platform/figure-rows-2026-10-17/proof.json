@@ -1,0 +1,971 @@
+{
+  "sourceFiles": {
+    "src/format/figures.ts": "2f1a53e6882e833215baa029336c7d0eb62d9725a2f889f9cd215146ccc7f041",
+    "src/game/models/figureCatalogue.ts": "d7fa0a1ee5fd725898b0fd28146e9e772f445af49e6f78b34267234e12b3e197",
+    "src/game/systems/npc/figureRows.ts": "ec638fe6464deb731313e94715c4514eabb6fd7ef146393415da1ab95f2ee59d",
+    "src/game/systems/npc/figureSkins.ts": "6adb7898d6b26aa3ef3d82b710b3af102c9ca841484c8ddf1d20b4b78fc63123",
+    "src/game/systems/npc/standingFigure.ts": "5ba669f2d03a029c254d686e6e8ce6d9b5a50ab3524a8222655db7af1b006c84",
+    "src/sdk/npc/figures.ts": "a534824786f5b5dd6253f3e9c2240c17495d0465578c4e538bba31b7e97a858b",
+    "src/shards/pine-hollow/generators/figureCatalogue.ts": "48c57e14e604b5eaa617293e19b960902c443c710e3c80fb4680306380203f97",
+    "src/shards/pine-hollow/generators/peopleLook.ts": "ca65e202d1693c4d55906d62aea6886e25d4a92ea62215ff592c06d42e3c2ee5",
+    "src/shards/pine-hollow/roster.ts": "c569a101112de1456b487d0fe3107db92f492217c68b3bd27cacf803a19cb1f5",
+    "src/shards/pine-hollow/quest/index.ts": "7b98267926fc20e1afbf3f1a4154f3b0433f6fd30bd480467ad4babdb4b5219b",
+    "src/shards/driftwood-isle/data/castawayFigure.json": "17c07894026d8b1bd9b7644b621d725622897e3c10704ae4b07cd9b3b0a2ef39",
+    "src/shards/driftwood-isle/data/traderFigure.json": "4be911ed3e374a3165ff038624d5e57901166bfc1c50eef8d9735a7f66c135bf",
+    "src/shards/driftwood-isle/generators/figureCatalogue.ts": "8977612449313cf35ec68337ce7e3430a45d81aa78ef14791aa9b8a40372560d",
+    "src/shards/driftwood-isle/runtime/npc/Castaway.ts": "d163074808db259d7c36be4246a1bfde26d602fe24117744e4dad51d1d27970a",
+    "src/shards/driftwood-isle/runtime/npc/Trader.ts": "49861cc80231c721bb4dd30632f42c774443eaa80e7f9bcdbf08e4d17f71f96b",
+    "src/shards/driftwood-isle/quest/adventure.ts": "dde74c60a941e86e665e607fb31f2c380a7db403beb43251688d095d192194a3",
+    "src/shards/driftwood-isle/runtime/models/people.ts": "90d7bed442052851a06c848348a651f4f497295ba24af7b4c8f15d59982360c7",
+    "src/shards/driftwood-isle/runtime/models/trader.ts": "bd04cf86c9755f509ac1e3a9890a8a060f4082874a1057ea3906fd45eb8e64f8",
+    "src/shards/driftwood-isle/runtime/npc/people.ts": null,
+    "src/shards/driftwood-isle/runtime/boot/blobAssets.ts": "2b15931ab9970e9c9394e43a793c1a63aedc97158123ac5af7ac38175ce9e97e",
+    "src/shards/pine-hollow/runtime/npc/standInPerson.ts": null,
+    "src/shards/pine-hollow/runtime/quest/npcModels.ts": null,
+    "src/shards/pine-hollow/runtime/models/people.ts": null,
+    "src/format/package.json": "915d89794c512c7d287b86f8eb8bc96cdc5dbc8ac9274cb3e75ef066f5c6cc52",
+    "src/game/package.json": "aad5a40973e28a3a7f9a68fd6e4de3c13a87ecdfda61bbfd2cb8c6636949e4af",
+    "src/sdk/package.json": "e53fd045d73d0a5466ce0934542c19085d815a478adf8f8a6c77df1716bcd967",
+    "src/shards/pine-hollow/generators/output.ts": "19dce994584baf7804059926ff8be6487167fc8282cb084e2d016c197e4e867a",
+    "src/shards/driftwood-isle/generators/output.ts": "2cbc674ff5b9f4c50e709ae7f48bbb90bf0f72b5a57002080fc74c7a7aceace1"
+  },
+  "date": "2026-10-17",
+  "source": "58b405d5b82e80bb80183485ed70e9e165cb9f76",
+  "beforeBuild": "1762328-mvd1jgt1",
+  "afterBuild": "58b405d-mvd5culs",
+  "profile": "iPhone 16 Pro; fixed real NPC pose; native render scale; plain actual-scene draw with other draws hidden only for parity",
+  "pass": true,
+  "rows": [
+    {
+      "key": "phone-pine-hollow-ranger-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "f4f4213058465bb54cdf5e0e77d1df9aaef5da1f2aa780660a2b2128c78d07d9",
+      "afterHash": "f4f4213058465bb54cdf5e0e77d1df9aaef5da1f2aa780660a2b2128c78d07d9",
+      "visibleTriangles": 10741,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -8.295184161424638,
+          5.193097448348999,
+          -35.86951230216323
+        ],
+        "label": "Talk to Hale",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0499999999999998,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-pine-hollow-ranger-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "d5a93f9973080542dc532c5bd3c5d651188e91a49689626c56ff84e02af9a8a9",
+      "afterHash": "d5a93f9973080542dc532c5bd3c5d651188e91a49689626c56ff84e02af9a8a9",
+      "visibleTriangles": 10741,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -8.295184161424638,
+          5.193097448348999,
+          -35.86951230216323
+        ],
+        "label": "Talk to Hale",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0499999999999998,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-pine-hollow-miller-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "87aaf61463cb86c7eebce5c3707700f60008de5e0f7220e1b255467200c5f320",
+      "afterHash": "87aaf61463cb86c7eebce5c3707700f60008de5e0f7220e1b255467200c5f320",
+      "visibleTriangles": 10685,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -142,
+          1.2001866388046742,
+          -167.7
+        ],
+        "label": "Talk to Brandt, the miller",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-pine-hollow-miller-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "3562b88ab4c0339aa2789b0a2ac50c15bbee870151bc513a6a796557e787a53a",
+      "afterHash": "3562b88ab4c0339aa2789b0a2ac50c15bbee870151bc513a6a796557e787a53a",
+      "visibleTriangles": 10685,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -142,
+          1.2001866388046742,
+          -167.7
+        ],
+        "label": "Talk to Brandt, the miller",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-pine-hollow-trader-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "f15c5a8042feae57efe674282aef73e24255eaffebaddf7d1f525cff71d22257",
+      "afterHash": "f15c5a8042feae57efe674282aef73e24255eaffebaddf7d1f525cff71d22257",
+      "visibleTriangles": 10374,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -128.10209064993094,
+          0.9999999940395354,
+          -118.4698970951361
+        ],
+        "label": "Trade with Mott",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.7500000000000001,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-pine-hollow-trader-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "714c67a4c62001d818a3e6eaac416445103b97ff94845da7e7f5a3bd6c16a94c",
+      "afterHash": "714c67a4c62001d818a3e6eaac416445103b97ff94845da7e7f5a3bd6c16a94c",
+      "visibleTriangles": 10374,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -128.10209064993094,
+          0.9999999940395354,
+          -118.4698970951361
+        ],
+        "label": "Trade with Mott",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.7500000000000001,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-driftwood-isle-castaway-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "6375ce127871d5bde15c7647d1c92cae0af5fc854e748d1738fbde333df1ee31",
+      "afterHash": "6375ce127871d5bde15c7647d1c92cae0af5fc854e748d1738fbde333df1ee31",
+      "visibleTriangles": 2065,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -19.6,
+          19.509208331390383,
+          -72.2
+        ],
+        "label": "Talk to Wendell",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0500000000000007,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-driftwood-isle-castaway-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "cdb4e6313fa2b4fe7695fde222337c79eca8a98156d838fcafa177646ad69d8e",
+      "afterHash": "cdb4e6313fa2b4fe7695fde222337c79eca8a98156d838fcafa177646ad69d8e",
+      "visibleTriangles": 2065,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -19.6,
+          19.509208331390383,
+          -72.2
+        ],
+        "label": "Talk to Wendell",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0500000000000007,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "phone-driftwood-isle-trader-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "45ca83b4b1c2e8e4208b40636cfd8cbc0a79c6e821857fac222f8d2e1714ebba",
+      "afterHash": "45ca83b4b1c2e8e4208b40636cfd8cbc0a79c6e821857fac222f8d2e1714ebba",
+      "visibleTriangles": 1630,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -24.389091476652016,
+          19.54887815791819,
+          -73.4674068675917
+        ],
+        "label": "Trade with Maren",
+        "radius": 2.8
+      },
+      "collider": [
+        {
+          "kind": "capsule",
+          "x": -25.3,
+          "y": 19.149127427188873,
+          "z": -71.8,
+          "halfHeight": 0.62,
+          "radius": 0.26,
+          "yaw": 2.641592653589793
+        }
+      ]
+    },
+    {
+      "key": "phone-driftwood-isle-trader-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 1095048,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "dab090be07f4c72222fd4d802663ca7f308d3fcacc1fef5d03dc7f1a8edbaeab",
+      "afterHash": "dab090be07f4c72222fd4d802663ca7f308d3fcacc1fef5d03dc7f1a8edbaeab",
+      "visibleTriangles": 1630,
+      "width": 804,
+      "height": 1362,
+      "prompt": {
+        "at": [
+          -24.389091476652016,
+          19.54887815791819,
+          -73.4674068675917
+        ],
+        "label": "Trade with Maren",
+        "radius": 2.8
+      },
+      "collider": [
+        {
+          "kind": "capsule",
+          "x": -25.3,
+          "y": 19.149127427188873,
+          "z": -71.8,
+          "halfHeight": 0.62,
+          "radius": 0.26,
+          "yaw": 2.641592653589793
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-ranger-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "49794d6b8c374b00905a6d89365ef0bbb1157b77dcc3eaf5de612cc51bbe21b7",
+      "afterHash": "49794d6b8c374b00905a6d89365ef0bbb1157b77dcc3eaf5de612cc51bbe21b7",
+      "visibleTriangles": 16958,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -8.295184161424638,
+          5.193097448348999,
+          -35.86951230216323
+        ],
+        "label": "Talk to Hale",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0499999999999998,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-ranger-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "4657e5478f2e1ed6c6cc9aac0d2415287003e67df7a3eba30859de75c2a5c3f8",
+      "afterHash": "4657e5478f2e1ed6c6cc9aac0d2415287003e67df7a3eba30859de75c2a5c3f8",
+      "visibleTriangles": 16958,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -8.295184161424638,
+          5.193097448348999,
+          -35.86951230216323
+        ],
+        "label": "Talk to Hale",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0499999999999998,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-miller-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "25ee99e043859ba13b765cde919627e9ca82bc0d4aa69e0be366db58bd74bf2b",
+      "afterHash": "25ee99e043859ba13b765cde919627e9ca82bc0d4aa69e0be366db58bd74bf2b",
+      "visibleTriangles": 16964,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -142,
+          1.2001866388046742,
+          -167.7
+        ],
+        "label": "Talk to Brandt, the miller",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-miller-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "d6a00a868bb9b3cbb809862a25f7c0264ccd3c7b09eb1b051053ffd5d433c472",
+      "afterHash": "d6a00a868bb9b3cbb809862a25f7c0264ccd3c7b09eb1b051053ffd5d433c472",
+      "visibleTriangles": 16964,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -142,
+          1.2001866388046742,
+          -167.7
+        ],
+        "label": "Talk to Brandt, the miller",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-trader-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "f4001e3469c897c2f3bb5f274676f1a0c76bfd9a3eb45ac640a2ba30a095ae9a",
+      "afterHash": "f4001e3469c897c2f3bb5f274676f1a0c76bfd9a3eb45ac640a2ba30a095ae9a",
+      "visibleTriangles": 16365,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -128.10209064993094,
+          0.9999999940395354,
+          -118.4698970951361
+        ],
+        "label": "Trade with Mott",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.7500000000000001,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-pine-hollow-trader-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "5bf7b37a7800ed71bffaddf54b6f3fe938acc86396aedefd3bf1a0f15822e689",
+      "afterHash": "5bf7b37a7800ed71bffaddf54b6f3fe938acc86396aedefd3bf1a0f15822e689",
+      "visibleTriangles": 16365,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -128.10209064993094,
+          0.9999999940395354,
+          -118.4698970951361
+        ],
+        "label": "Trade with Mott",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.7500000000000001,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.05,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-driftwood-isle-castaway-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "730d5387684a20a804909e49a6a4391bef109ead11b57911c740aa0882b269a4",
+      "afterHash": "730d5387684a20a804909e49a6a4391bef109ead11b57911c740aa0882b269a4",
+      "visibleTriangles": 2065,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -19.6,
+          19.509208331390383,
+          -72.2
+        ],
+        "label": "Talk to Wendell",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0500000000000007,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-driftwood-isle-castaway-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "d313c6f0693e92d2e0e4f3e799c71c139b5ebce4e81d17f1f49e17bea65c7710",
+      "afterHash": "d313c6f0693e92d2e0e4f3e799c71c139b5ebce4e81d17f1f49e17bea65c7710",
+      "visibleTriangles": 2065,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -19.6,
+          19.509208331390383,
+          -72.2
+        ],
+        "label": "Talk to Wendell",
+        "radius": 3.2
+      },
+      "collider": [
+        {
+          "kind": "box",
+          "x": 0,
+          "y": 0.75,
+          "z": 0,
+          "hx": 0.28,
+          "hy": 1.0500000000000007,
+          "hz": 0.28,
+          "yaw": 0,
+          "surface": "wood",
+          "rot": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "desktop-driftwood-isle-trader-idle",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "00f0423e2a34c649377d028dcf96b9f25afe2124bd15318d63e69dfc2b508d6e",
+      "afterHash": "00f0423e2a34c649377d028dcf96b9f25afe2124bd15318d63e69dfc2b508d6e",
+      "visibleTriangles": 1630,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -24.389091476652016,
+          19.54887815791819,
+          -73.4674068675917
+        ],
+        "label": "Trade with Maren",
+        "radius": 2.8
+      },
+      "collider": [
+        {
+          "kind": "capsule",
+          "x": -25.3,
+          "y": 19.149127427188873,
+          "z": -71.8,
+          "halfHeight": 0.62,
+          "radius": 0.26,
+          "yaw": 2.641592653589793
+        }
+      ]
+    },
+    {
+      "key": "desktop-driftwood-isle-trader-talk",
+      "exactPixels": true,
+      "differentBytes": 0,
+      "pixels": 615663,
+      "exactVisibility": true,
+      "exactGeometry": true,
+      "exactPrompt": true,
+      "exactCollider": true,
+      "beforeHash": "11a68385875823b7af981fa189bdcd0c9bf769fe4a61976891ed164e45876e76",
+      "afterHash": "11a68385875823b7af981fa189bdcd0c9bf769fe4a61976891ed164e45876e76",
+      "visibleTriangles": 1630,
+      "width": 603,
+      "height": 1021,
+      "prompt": {
+        "at": [
+          -24.389091476652016,
+          19.54887815791819,
+          -73.4674068675917
+        ],
+        "label": "Trade with Maren",
+        "radius": 2.8
+      },
+      "collider": [
+        {
+          "kind": "capsule",
+          "x": -25.3,
+          "y": 19.149127427188873,
+          "z": -71.8,
+          "halfHeight": 0.62,
+          "radius": 0.26,
+          "yaw": 2.641592653589793
+        }
+      ]
+    }
+  ],
+  "oldSaveContinuation": {
+    "fixtureBuild": "1762328-mvd1jgt1",
+    "resumedBuild": "58b405d-mvd5culs",
+    "device": "iPhone 16 Pro",
+    "muted": true,
+    "pass": true,
+    "rows": [
+      {
+        "shard": "pine-hollow",
+        "oldFlags": [
+          "seen:cabin-1"
+        ],
+        "retained": true,
+        "talkButton": "TALK TO HALE",
+        "dialogueName": "Hale, ranger of the Hollow"
+      },
+      {
+        "shard": "driftwood-isle",
+        "oldFlags": [
+          "seen:pier",
+          "seen:hut"
+        ],
+        "retained": true,
+        "talkButton": "TALK TO WENDELL",
+        "dialogueName": "Wendell, castaway"
+      }
+    ]
+  },
+  "validation": {
+    "products": 10,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "focusedTests": 25,
+    "shardHeadlessCases": 17
+  },
+  "ruler": {
+    "basis": "scripts/shard-platform.mjs source-basis component inventory in the build mirror",
+    "parentSource": "9b3b9f605747c92127656ec6e8013d1cbf89a053",
+    "source": "58b405d5b82e80bb80183485ed70e9e165cb9f76",
+    "before": {
+      "driftwood-isle": 4611,
+      "pine-hollow": 5876
+    },
+    "after": {
+      "driftwood-isle": 4573,
+      "pine-hollow": 5463
+    },
+    "netShard": {
+      "driftwood-isle": -38,
+      "pine-hollow": -413
+    },
+    "globalNetShard": -451,
+    "platform": {
+      "basis": "shard-platform.mjs codeLines; nonblank TS after parser comment removal",
+      "parent": "9b3b9f605747c92127656ec6e8013d1cbf89a053",
+      "rows": [
+        {
+          "path": "src/format/figures.ts",
+          "before": 0,
+          "after": 46,
+          "net": 46
+        },
+        {
+          "path": "src/game/models/figureCatalogue.ts",
+          "before": 0,
+          "after": 70,
+          "net": 70
+        },
+        {
+          "path": "src/game/systems/npc/figureRows.ts",
+          "before": 0,
+          "after": 126,
+          "net": 126
+        },
+        {
+          "path": "src/game/systems/npc/figureSkins.ts",
+          "before": 0,
+          "after": 79,
+          "net": 79
+        },
+        {
+          "path": "src/game/systems/npc/standingFigure.ts",
+          "before": 0,
+          "after": 103,
+          "net": 103
+        },
+        {
+          "path": "src/sdk/npc/figures.ts",
+          "before": 0,
+          "after": 41,
+          "net": 41
+        }
+      ],
+      "net": 465
+    },
+    "packageExportRows": 4,
+    "parent": "8b8d91759120c6613dcc3f0572200652d88acbc9",
+    "parentSourceEquivalence": {
+      "source": "9b3b9f605747c92127656ec6e8013d1cbf89a053",
+      "difference": "Only C1 proof receipts and coordinator state differ; all source and data inputs are identical."
+    }
+  }
+}

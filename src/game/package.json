@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./models/figureCatalogue": "./models/figureCatalogue.ts",
+    "./systems/npc/figureRows": "./systems/npc/figureRows.ts",
     "./looks/coverAppearance": "./looks/coverAppearance.ts",
     "./quest/eliteFeature": "./quest/eliteFeature.ts",
     "./quest/elitePage": "./quest/elitePage.ts",

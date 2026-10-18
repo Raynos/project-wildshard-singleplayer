@@ -21,18 +21,19 @@
  * Her shop (E314 stage 2) is src/shards/driftwood-isle/quest/TraderStall.ts's prompt + src/shards/driftwood-isle/loot/ShopPanel.ts; `offer()` plays the "take a
  * look" gesture on demand (the shop opening, a sale).
  *
- * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
+ * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past the declared draw distance none. No lights.
  */
 import * as THREE from 'three';
 import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
 import { createClientScene, bindWorldSceneParts } from '@wildshard/game/plugin/ui';
 import { driftwoodRows } from '../boot/rows';
-import { fixedDraw, fixedGeometryGroups } from '../boot/blobAssets';
+import { fixedDraw, fixedGeometryGroups, FIGURES } from '../boot/blobAssets';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { FigureRows } from '@wildshard/game/systems/npc/figureRows';
+import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 
 const NECK = 1.48;
-export const TRADER_NEAR_R = 85;   // past this she (and her counter) are not drawn: a few pixels at that range
 const GREET_R = 11;        // m: coming inside this she beckons you over (once, until you go past REARM_R)
 const REARM_R = 18;
 /** the most companions that hide with her (today one: her counter) */
@@ -43,6 +44,9 @@ const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, of
 
 export class Trader {
   readonly group = new THREE.Group();
+  private presentation: FigureRows | null = null;
+  get model(): this { return this; }
+  dispose(): void { this.presentation?.dispose(); }
   /** body + head + arm: turns about her feet to face you (E129) */
   private figure = new THREE.Group();
   private body: THREE.Object3D = new THREE.Mesh();
@@ -57,7 +61,7 @@ export class Trader {
   private idleT = 6;        // seconds to the next idle tidy
   private offerT = 3;       // seconds to the next "take a look" while you stand at the counter
   private greeted = false;
-  /** extra culling: things drawn with her (her counter) hide with her past TRADER_NEAR_R; up to MAX_COMPANIONS */
+  /** extra culling: things drawn with her (her counter) hide with her past the declared draw distance; up to MAX_COMPANIONS */
   readonly companions: THREE.Object3D[] = [];
 
   private readonly sky: Sky;
@@ -75,11 +79,18 @@ export class Trader {
     Object.assign(this, bindWorldSceneParts(made, rows.parts, rows.bindings));
     this.group.name = made.root.name; this.group.add(...made.root.children);
     this.pose.bones = { figure: this.figure, head: this.head, upper: this.upper, fore: this.fore };
+    const resources = new SceneHandles(this.sky);
+    resources.publish('trader.source', this.group);
+    resources.publish('trader.figure.source', this.figure);
+    resources.publish('trader.head.source', this.head);
+    resources.publish('trader.upper.source', this.upper);
+    resources.publish('trader.fore.source', this.fore);
+    this.presentation = FIGURES.create('trader', resources, [0, 0, 0], 0);
     return this;
   }
 
   /** the head's world position (a future prompt / name tag) */
-  headWorld(out: THREE.Vector3): THREE.Vector3 { return out.set(0, NECK + 0.15, 0).applyMatrix4(this.group.matrixWorld); }
+  headWorld(out: THREE.Vector3): THREE.Vector3 { if (this.presentation === null) throw new Error('Figure is not built'); return this.presentation.headWorld(out); }
   get position(): THREE.Vector3 { return this.group.position; }
 
   private start(g: Gesture): void { this.gesture = g; this.gT = 0; }
@@ -91,8 +102,12 @@ export class Trader {
   }
 
   update(dt: number, t: number, player: THREE.Vector3): void {
+    if (this.presentation?.active !== true) return;
+    this.presentation.syncAnchors();
     const gp = this.group.position;
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);
+    const near = d < FIGURES.rows('trader').drawDistance; this.setNear(near); this.presentation.lod(d);
+    if (!near) return;
     // her facing from the placed pose (a placement's matrix decomposes to Euler (π, a, π) past ±90°: rotation.y alone is not the yaw)
     const e = this.group.matrixWorld.elements, bodyYaw = Math.atan2(e[8], e[10]);
 

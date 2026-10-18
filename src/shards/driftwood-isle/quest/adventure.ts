@@ -24,7 +24,7 @@ import DRIFTWOOD_KIT_EVENTS from '../data/questEvents.json' with { type: 'json' 
 import { installAdventureInteractables } from './interactLifetime';
 import { installPlaces } from './Places';
 import { installQuestChapter, ownQuestTree, type QuestChapter } from '@wildshard/game/quest/chapter';
-import { castawayRig } from '../runtime/npc/people';
+import { Castaway } from '../runtime/npc/Castaway';
 import deathRows from '../data/questDeaths.json' with { type: 'json' };
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench } from '@wildshard/game/quest/story';
 import { installQuestTrader, type QuestTrader } from '@wildshard/game/quest/trader';
@@ -149,7 +149,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
-  const npc = castawayRig(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }), scenes);
+  const npc = new Castaway(w.sky, feet, place({ poi: 'hut', x: 0.7, z: -9.8 }), scenes).build(ctx.scope);
   adventure.spine = installQuestChapter(ctx, declaration, story, new Map([['world', w]]), new Map([['quest', { flags, facts: grants.facts, placement: { place },
     figures: new Map([['castaway', npc]]), adventure, deaths: deathRows.page,
     drops: [{ call: 'hold-key', item: 'hold-key' }], system: 'shard.driftwood-isle.installSpine' }]]));

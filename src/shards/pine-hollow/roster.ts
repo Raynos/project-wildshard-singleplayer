@@ -19,10 +19,12 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import { preparePineGrazers, pineGrazer } from './species/looks';
 import { antlerKing } from './runtime/models/antlerKing';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
-import { millerBrandt, rangerHale, traderMott } from './runtime/models/people';
+import { FigureCatalogue } from '@wildshard/sdk/npc/figures';
 import { heldGear } from '@wildshard/game/models/heldGear';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
+
+export const PINE_FIGURES = new FigureCatalogue('pine-hollow', 'people/catalogue.json');
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
@@ -42,7 +44,7 @@ function roster(wildlife: readonly RosterEntry[], gear: readonly RosterEntry[]):
     // the birds and the hares (src/shards/pine-hollow/life/index.ts)
     ...wildlife,
     // the people (src/shards/pine-hollow/quest/index.ts): one each, the generated person skinned on its code rig
-    live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
+    ...(['ranger', 'miller', 'trader'] as const).map(id => live(PINE_FIGURES.model(id), { copies: 1 })),
     // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
     // skinning knife) and the gloved hands in the pond and the creek (E348)
     ...gear,
@@ -57,6 +59,6 @@ export async function preparedRoster(product?: ShardProduct): Promise<readonly R
   const pack = source.section('held/finishes').source;
   if (pack === undefined) throw new Error('Held finishes require their declared geometry source');
   registerPackedGeometrySource(scope, 'held-finishes', { ...pack, label: 'held finishes' });
-  await Promise.all([HeldFinishes.prepare(source, scope, 'held-finishes'), preparePineGrazers(source), HeldEquipment.prepare(source)]);
+  await Promise.all([PINE_FIGURES.prepare(), HeldFinishes.prepare(source, scope, 'held-finishes'), preparePineGrazers(source), HeldEquipment.prepare(source)]);
   return roster((await PosedDraw.library(source, 'look/wildlife-draw.json')).models, heldGear(source.section('held/gear')));
 }

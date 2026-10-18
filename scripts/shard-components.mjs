@@ -38,7 +38,6 @@ const creatureOwners=new Set([
 ]);
 const questOwners=new Set([
   'src/sdk/runtime/prompts.ts',
-  'src/shards/pine-hollow/runtime/npc/standInPerson.ts',
   'src/shards/driftwood-isle/runtime/npc/Castaway.ts',
   'src/shards/driftwood-isle/runtime/npc/Trader.ts',
   'src/game/systems/npc/npcRig.ts',

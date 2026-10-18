@@ -7,7 +7,8 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { castawayRig } from '../npc/people';
+import { Castaway } from '../npc/Castaway';
+import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { loadFixedGeometry } from '../boot/blobAssets';
 
 /** the particle columns stripped from the card (today one: his campfire smoke) */
@@ -17,7 +18,7 @@ export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/people.ts', surface: 'flesh',
   prepare: loadFixedGeometry, defaults: {},
   build: (ctx) => {
-    const g = castawayRig(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).model.group;
+    const g = new Castaway(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky)).build().group;
     const smoke: THREE.Object3D[] = [];
     g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
     for (let i = 0; i < Math.min(smoke.length, MAX_SMOKE); i++) smoke[i]?.removeFromParent();

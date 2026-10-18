@@ -49,7 +49,7 @@ import source from '../shard.config';
  *   const quest = installPineQuest({ … });   // after installPineCombat + installCompendium (it chains animals.onKill)
  *   quest.useSfx(ambience.sfx);              // the barks, lanterns, the zipline, the thralls, once the ambience exists
  *
- *   src/shards/pine-hollow/runtime/models/people.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
+ *   src/shards/pine-hollow/roster.ts   the row-hosted ranger, miller and trader
  *   contracts.ts   the lodge's rotating three (pure)      trades.ts   the trader's swaps (pure)
  *   world/movers   the admitted canoe path and carry             hollowLog.ts   the hollow-log passage
  *   stagLead.ts    beat 5, the pale stag down the west road            nightThralls.ts the old-growth's night + the millrace
@@ -68,8 +68,9 @@ import { ZIP_YAW } from '../runtime/world/timberSites';
 import { hamletRoofs } from '../runtime/world/cabinBake';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
-import { npcMaterial, makeNpcFigure, type NpcFigure } from '../runtime/models/people';
-import { preloadNpcModels } from '../runtime/quest/npcModels';
+import { PINE_FIGURES } from '../roster';
+import type { FigureRows as NpcFigure } from '@wildshard/game/systems/npc/figureRows';
+import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { codePart, loadCodeParts } from '../runtime/world/codeParts';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from '@wildshard/game/quest/contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, presentQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
@@ -140,11 +141,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/mill-door.json'))));
   const clockRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/clock.json'))));
   const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file('quests/transactions.json'))));
-  await Promise.all([(deps.preload ?? preloadNpcModels)(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
+  await Promise.all([(deps.preload ?? (() => PINE_FIGURES.prepare()))(), loadCodeParts()]); // the people, and the stand-ins' and rides' baked parts
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
+  const figureScenes = new SceneHandles(sky);
   const flags = new Flags(h.chunkId);
   if (h.params.has('resetquest')) flags.reset();
   const beatParam = h.params.get('quest');
@@ -320,7 +322,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the people ──
   const figures: QuestNpcTalkPorts<NpcFigure>['figures'] = new Map((['ranger', 'miller', 'trader'] as const).map(kind => [kind, {
-    kind: 'posed', create: (at, yaw) => makeNpcFigure(kind, sky, at, yaw), bark: fig => { sfx?.bark(kind, fig.talkPoint); },
+    kind: 'posed', create: (at, yaw) => PINE_FIGURES.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx?.bark(kind, fig.talkPoint); },
   }]));
   const talks = installStoryTalks(ui, source, { flags, scene: game.scene, registry: h.registry,
     prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([['pay-miller', payMiller], ['trade', tradeOwner.open]]) });
@@ -351,12 +353,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> } | null = null, canoe: { group: THREE.Mesh } | null = null;
   let motion: MoverRuntime | null = null;
   if (lm) {
-    const trolley = new THREE.Mesh(codePart('zip-trolley'), npcMaterial(sky)); trolley.castShadow = true; trolley.name = 'zip-trolley';
+    const trolley = new THREE.Mesh(codePart('zip-trolley'), PINE_FIGURES.material(figureScenes)); trolley.castShadow = true; trolley.name = 'zip-trolley';
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
       { position: new THREE.Vector3(lm.zip.launch.x, lm.zip.launch.y + 1.1, lm.zip.launch.z), radius: 2.3, label: 'Ride the zipline' }, game.camera) };
     game.scene.add(zip.trolley); h.interactables.push(zip.prompt);
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
-    canoe = { group: new THREE.Mesh(codePart('canoe'), npcMaterial(sky)) }; canoe.group.castShadow = true; canoe.group.visible = false; canoe.group.name = 'canoe-ride';
+    canoe = { group: new THREE.Mesh(codePart('canoe'), PINE_FIGURES.material(figureScenes)) }; canoe.group.castShadow = true; canoe.group.visible = false; canoe.group.name = 'canoe-ride';
     game.scene.add(canoe.group);
     motion = await installDeclaredMovers(ctx, world, { data: ctx.product.shardfile.movers, modules: new Map(), flags, prompts: h.interactables, systemId: 'pine.movers',
       borrowed: { rows: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }], targets: { canoe } } });

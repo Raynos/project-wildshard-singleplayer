@@ -2,7 +2,7 @@
 // scripts/skin-playback/run.mjs (vite), opened in one muted headless Chromium as an iPhone 16 Pro. Each creature is drawn
 // twice under the same light and camera, stacked for the portrait phone frame:
 //   TODAY     the procedural original as the client builds it now: the template's grey blob and the kit boar from the
-//             species factory and their Animal pose (lowPolyMaterials), the ranger from Pine Hollow's own NpcModels
+//             species factory and their Animal pose (lowPolyMaterials), the ranger from the shared figure-row skin loader
 //             (ranger.phone.glb, its atlas + normal map material, npcRig.ts's pose closure)
 //   EXPORTED  the content-addressed GLB of public/assets/baked/skin-fixture/ through the client's skin player
 //             (src/game/shardfile/skinPlayback.ts: admission, GLTFLoader, bindRig, AnimMachine) with its bindings.json
@@ -14,12 +14,12 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { Scope } from '@wildshard/engine/app/scope';
 import { BASIS_PATH } from '@wildshard/engine/core/ktx2';
-import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import { loadSkin } from '../../src/game/shardfile/skinPlayback';
 import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
-import { NpcModels } from '../../src/shards/pine-hollow/runtime/quest/npcModels';
+import { FigureSkins } from '../../src/game/systems/npc/figureSkins';
+import { FIGURE_CATALOGUE } from '../../src/shards/pine-hollow/generators/figureCatalogue';
 import { creatureSkinSource } from '../../test/fixtures/sim-level/skins/sources';
 
 const W = 540, H = 960, HEAD = 120, GAP = 8, PANEL = (H - HEAD - GAP - 40) / 2;
@@ -47,7 +47,7 @@ function stage() {
 const ktx2 = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
 const fetchBytes = async (path) => new Uint8Array(await (await fetch(path)).arrayBuffer());
 const DIR = '/assets/baked/skin-fixture/';
-let rows, bindings; const textures = new Map(), creatures = {};
+let rows, bindings; const textures = new Map(), creatures = {}, figureSkins = new FigureSkins();
 
 async function exported(kind) {
   const row = rows.find((r) => r.id === kind), binding = bindings.find((b) => b.skin === kind);
@@ -56,10 +56,11 @@ async function exported(kind) {
 }
 async function today(kind) {
   if (kind !== 'pine-ranger') { const s = creatureSkinSource(kind); return { mesh: s.mesh, pose: s.pose, dispose: () => { s.dispose(); } }; }
-  // Pine Hollow's own people loader, on the phone hull the export read
-  const models = new NpcModels(() => loadRigFile('/assets/pine-hollow/npcs/ranger.phone.glb'));
-  await models.load('ranger');
-  const rig = models.rig('ranger', { setupMaterial: (material) => { material.needsUpdate = true; } });   // no sky in the harness
+  // The same admitted phone skin/rest/material row as the live figure host.
+  const row = FIGURE_CATALOGUE.figures.ranger.phone.skin;
+  await figureSkins.load(row);
+  const rig = figureSkins.rig(row, { setupMaterial: material => { material.needsUpdate = true; } });
+  if (rig === null) throw new Error('Prepared ranger skin is missing');
   return { mesh: rig.mesh, pose: (clip, t) => rig.pose(t, clip === 'idle.talk' ? 1 : 0, clip === 'idle.point' ? 1 : 0, 0.4, 0.2, clip === 'walk' ? 1 : 0, t % 1), dispose: () => { rig.mesh.skeleton.dispose(); } };
 }
 
