@@ -1,0 +1,96 @@
+{
+  "candidate": "bfd3f7133fe53fbb4837badfc3cab7df27ca34de",
+  "quick": {
+    "candidate": "bfd3f7133fe53fbb4837badfc3cab7df27ca34de",
+    "checks": [
+      {
+        "name": "root-types",
+        "rc": 0,
+        "seconds": 7.76,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/quick-bfd3f7133-root-types.log"
+      },
+      {
+        "name": "layer-types",
+        "rc": 0,
+        "seconds": 1.19,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/quick-bfd3f7133-layer-types.log"
+      },
+      {
+        "name": "scripts-types",
+        "rc": 0,
+        "seconds": 1.36,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/quick-bfd3f7133-scripts-types.log"
+      },
+      {
+        "name": "typed-lint",
+        "rc": 0,
+        "seconds": 9.51,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/quick-bfd3f7133-typed-lint.log"
+      },
+      {
+        "name": "source-ruler",
+        "rc": 0,
+        "seconds": 5.52,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/quick-bfd3f7133-source-ruler.log"
+      }
+    ]
+  },
+  "priorFull": {
+    "candidate": "23912b8c028c885c023f4773fce056df1c6c8a53",
+    "checks": [
+      {
+        "name": "generate",
+        "rc": 0,
+        "seconds": 114.31,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-generate.log"
+      },
+      {
+        "name": "strict-all10",
+        "rc": 1,
+        "seconds": 107.95,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-strict-all10.log",
+        "sourceOnlyMapRefusal": true,
+        "mapLines": [
+          "wildshard build: the baked map of driftwood-isle, pine-hollow does not match its world (SF66); rebake: node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=driftwood-isle,pine-hollow"
+        ]
+      },
+      {
+        "name": "root-types",
+        "rc": 0,
+        "seconds": 7.65,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-root-types.log"
+      },
+      {
+        "name": "layer-types",
+        "rc": 0,
+        "seconds": 1.32,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-layer-types.log"
+      },
+      {
+        "name": "scripts-types",
+        "rc": 0,
+        "seconds": 1.18,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-scripts-types.log"
+      },
+      {
+        "name": "typed-lint",
+        "rc": 0,
+        "seconds": 7.53,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-typed-lint.log"
+      },
+      {
+        "name": "focused-headless",
+        "rc": 0,
+        "seconds": 99.7,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-focused-headless.log"
+      },
+      {
+        "name": "source-ruler",
+        "rc": 0,
+        "seconds": 5.1,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/drive-hitches/check-23912b8c0-source-ruler.log"
+      }
+    ]
+  },
+  "note": "Final integrated source checks will be recorded before landing. The image/draw numeric bounds add no generated inputs."
+}

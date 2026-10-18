@@ -5,6 +5,17 @@ import type { MemoryAdmission, MemoryAdmissionWarning } from '@wildshard/format/
 import './memoryWarning.css';
 
 const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(3)} MB`;
+/** Name the report behind the maximum: a retained declaration is not the live page total. */
+export function memoryWarningChip(reports: readonly MemoryAdmissionWarning[]): string | null {
+  let largest: MemoryAdmissionWarning | undefined;
+  let over = -1;
+  for (const report of reports) {
+    const bytes = Math.max(report.playingOverBytes, report.loadingOverBytes);
+    if (bytes > over) { largest = report; over = bytes; }
+  }
+  return largest === undefined ? null
+    : `MEMORY LIMIT · ${largest.owner} ${largest.stage === 'resident' ? 'PAGE TOTAL' : 'ESTIMATE'} · +${(over / 1_000_000).toFixed(1)} MB`;
+}
 /** G216: visible only for a Developer override, showing full claims and original caps rather than an altered allowance. */
 export function memoryWarningLines(row: MemoryAdmissionWarning): readonly string[] {
   return [
@@ -43,8 +54,7 @@ export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudR
     if (!isDev() || reports.length === 0) { if (surface !== undefined) surface.root.hidden = true; return; }
     surface ??= createSurface();
     surface.root.hidden = false;
-    const over = Math.max(...reports.map(row => Math.max(row.playingOverBytes, row.loadingOverBytes)));
-    surface.chip.textContent = `MEMORY LIMIT · +${(over / 1_000_000).toFixed(1)} MB`;
+    surface.chip.textContent = memoryWarningChip(reports);
     const title = document.createElement('b'); title.textContent = 'DEVELOPER · MEMORY LIMIT EXCEEDED';
     const rows = reports.map(report => {
       const section = document.createElement('div'); section.className = 'ws-memory-warning-report';

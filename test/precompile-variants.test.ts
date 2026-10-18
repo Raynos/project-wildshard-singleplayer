@@ -144,3 +144,32 @@ test('every acquired node layout prepares blocks across paced frames', async () 
   expect(resolved).toHaveLength(2); expect(properties.currentProgram).toBe(last);
   prepareProgram.mockRestore(); geometry.dispose(); material.dispose(); shared.dispose();
 });
+
+test.each([['links', false, true], ['links', true, true], ['links', true, false], ['on', false, true]] as const)(
+  '%s isolates issue and first-use discovery (parallel %s, immediately ready %s)', async (pacing, parallel, immediate) => {
+    const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
+    const renderer: unknown = Object.create(WebGLRenderer.prototype);
+    if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+    const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), scene = new Scene();
+    scene.add(new Mesh(geometry, material));
+    let frame = 0;
+    const events: { operation: string; frame: number }[] = [], acquired: ProgramLike[] = [], programs = new Map<string, ProgramLike>();
+    const program: ProgramLike = { name: 'fixture', type: 'basic', cacheKey: 'fixture', id: 1, usedTimes: 1, program: {},
+      isReady: () => immediate || frame > 0, getUniforms: () => { events.push({ operation: 'resolve', frame }); } };
+    const diagnostics = { checkShaderErrors: true };
+    const fields: Record<string, unknown> = {
+      info: { programs: acquired, render: { frame: 0 } }, extensions: { has: () => parallel }, debug: diagnostics,
+      properties: { get: () => ({ programs }), has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+      compile: () => { events.push({ operation: 'issue', frame }); acquired.push(program); programs.set('fixture', program); },
+    };
+    for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+    try {
+      await runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null).jobs, 1, undefined, [], () => true, true,
+        () => { frame++; return Promise.resolve(); });
+      expect(events.map(event => event.operation)).toEqual(['issue', 'resolve']);
+      expect(events[0]?.frame).toBe(0);
+      if (pacing === 'links') expect(events[1]?.frame).toBeGreaterThan(0);
+      else expect(events[1]?.frame).toBe(0); // Existing pacing retains its same-frame behavior.
+      expect(diagnostics.checkShaderErrors).toBe(true);
+    } finally { geometry.dispose(); material.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+  });

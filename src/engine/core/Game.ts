@@ -830,15 +830,19 @@ export class Game {
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: NonNullable<Game['_entryPreparation']>,
     current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
+    const linkDraws = setting('buildPacing') === 'links';
+    if (linkDraws) cullPlaced(this.camera);
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
     const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
-    const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
+    const isolateImageUploads = setting('buildPacing') === 'links'
+      || navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const pause = (isolateImageUploads || setting('buildPacing') === 'entry') && this.frameCount > 0
       ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
-    const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
+    const uploadBudget = linkDraws ? { ms: 4, bytes: 1024 * 1024 }
+      : isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
       : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
     // Both browser families use the existing live slice; boot retains its larger bound.
     const sliceMs = this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
@@ -856,6 +860,7 @@ export class Game {
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
+    const drawBudget = linkDraws ? { budget: { drawables: 1, newMaterials: 1, bufferBytes: 1024 * 1024 } } : {};
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // Camera models live outside the parked world. Compilation linked them, but
     // their staged group and equipment roots still hide their first buffer draws.
@@ -864,7 +869,7 @@ export class Game {
       enter('parked-viewmodels');
       const start = diagnosticNow();
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, stagedModels, current,
-        drawnPause, { environment: futureEnvironment, revealChildren: true, ...(futureRoot === undefined ? {} : { lightingRoot: futureRoot }) });
+        drawnPause, { ...drawBudget, environment: futureEnvironment, revealChildren: true, ...(futureRoot === undefined ? {} : { lightingRoot: futureRoot }) });
       onStage('parked-viewmodels', diagnosticNow() - start, drawn);
     }
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
@@ -876,7 +881,7 @@ export class Game {
       // before yielding; the final painted barrier still precedes readiness. Desktop retains its prior cadence.
       const paced = isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off';
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
-        paced ? () => buildYield(owner) : drawnPause, { environment: futureEnvironment });
+        paced && !linkDraws ? () => buildYield(owner) : drawnPause, { ...drawBudget, environment: futureEnvironment });
       if (paced) await drawnPause();
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }

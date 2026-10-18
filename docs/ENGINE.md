@@ -919,6 +919,44 @@ Live WebKit shader preparation separates drawable compile jobs and settles one p
 Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
+The default-off `links` choice in Build pacing pairs only the drawn program;
+future layouts are paired in their own preparation slice. In that choice,
+`collectTextures(jobs, renderer)` also borrows the node backend's compiled
+samplers through `EngineNodesHandler.materialTextures(material)`. These are
+current uniform values, including pending layouts and retargeted textures;
+the inventory neither links programs nor uploads resources. The existing
+image budget uploads those samplers before their first visible draw.
+Live `prepareSceneRoots` also runs the existing tiny parked draws, one
+drawable per painted slice, before the caller publishes a streamed root.
+A detached root stays hidden between slices and leaves the page scene
+with its original visibility restored. Authored hidden children stay hidden.
+The same choice keeps cold retained runtime entries in their existing
+construction binding until `afterPlay` preparation finishes, then publishes
+entered services and runtime slots. Cancellation never publishes them.
+The construction binding spans the resident and its runtime children:
+resident-owned static services keep building into the hidden destination,
+while page-owned road callbacks temporarily restore the page frame.
+Camera model stages keep the runtime-child lifetime and include the active
+resident construction, so a yielded kit cannot mount directly on camera.
+It also uses the live one-program/image cadence on desktop. A pending
+first-use link check crosses a painted fence after issue; compile and
+native uniform discovery cannot share that experimental slice. Shader
+error diagnostics stay enabled. Compile-only light traversal borrows the real identities without reparenting them;
+shadow flags and child arrays restore synchronously, and an initially
+missing map remains source-owned and requests its first real redraw.
+Paced herd pages in this choice cap destination geometry at 1 MiB (one
+oversized rig still gets one slot), counting converted attributes and
+Uint32 indices. Shadow pages count only their retained attributes. Bone
+textures remain separate; one new page per frame and deferred rigs retain
+their existing behavior. Default pacing keeps its original 16-slot pages.
+Once a batch opens paced pages, a late frame cannot grow them through the
+loading-screen path; unpaced construction still starts at eight slots.
+Before entry preparation, the experimental path fills the destination forest's
+render-only view and ordinary placement cullers after its listeners are registered.
+It preserves the road's shared viewer/gust uniforms and advances no gameplay clock.
+Whole-world and camera pre-draws use one drawable, one new material and 1 MiB of
+new buffers per painted frame; images use 1 MiB / 4 ms batches. A single larger
+image or drawable remains indivisible.
 The same linked-program slice calls `EngineNodesHandler.prepareProgram` for its node materials.
 `NodeUniformBuffers.prepare` resolves their block indices without allocating buffers, uploading values,
 selecting a material variant or changing bindings; the first draw retains ordinary pairing and uploads.

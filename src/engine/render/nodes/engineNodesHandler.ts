@@ -63,6 +63,7 @@ import { Scope } from '../../app/scope';
 import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
+import { setting } from '../../ui/Settings';
 import type { Renderer } from '../renderer';
 import type { ProgramLike } from '../../boot/perflog';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
@@ -672,7 +673,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * since the last switch is paired with the program the renderer filed right after it (at the slot of the material's
    * program map that the build recorded) before the stock switch runs, so every program keeps its own build's uniforms.
    */
-  onUpdateProgram(material: THREE.Material, program: unknown, materialProperties: object): void {
+  private pairPrograms(material: THREE.Material, materialProperties: object, selected?: unknown): void {
     const pending = this.pendingBuilds.get(material);
     if (pending !== undefined) {
       this.pendingBuilds.delete(material);
@@ -682,14 +683,23 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         const cache = internals(this).programCache;
         const known = cache.get(material) ?? new Map<unknown, ProgramEntry>();
         cache.set(material, known);
+        const deferred: PendingBuild[] = [];
         for (const build of pending) {
           // a build from before the material was disposed filed into a map that is gone: nothing to pair
           const built: unknown = build.programs === programs ? acquired[build.slot] : undefined;
           if (built === undefined || known.has(built)) continue;
+          // A live draw must not resolve every queued future layout. Their
+          // uniform discovery belongs to each program's preparation slice.
+          if (selected !== undefined && built !== selected) { deferred.push(build); continue; }
           known.set(built, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes: build.updateNodes });
         }
+        if (deferred.length > 0) this.pendingBuilds.set(material, deferred);
       }
     }
+  }
+
+  onUpdateProgram(material: THREE.Material, program: unknown, materialProperties: object): void {
+    this.pairPrograms(material, materialProperties, setting('buildPacing') === 'links' ? program : undefined);
     const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
     if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
     if (internals(this).programCache.get(material)?.has(program) === true) Reflect.deleteProperty(material, '_latestBuilder');
@@ -701,10 +711,30 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
   }
 
+  /** Borrow current sampler values from compiled layouts, including unpaired future
+   * variants. Reading them neither resolves a program nor uploads a texture. */
+  materialTextures(material: THREE.Material): readonly THREE.Texture[] {
+    const textures = new Set<THREE.Texture>();
+    const read = (uniforms: Record<string, unknown>): void => {
+      for (const sampler of Object.values(uniforms)) {
+        const value: unknown = typeof sampler === 'object' && sampler !== null ? Reflect.get(sampler, 'value') : undefined;
+        if (isTexture(value)) textures.add(value);
+      }
+    };
+    for (const entry of internals(this).programCache.get(material)?.values() ?? []) read(entry.uniforms);
+    for (const build of this.pendingBuilds.get(material) ?? []) read(build.uniforms);
+    return [...textures];
+  }
+
   /** Resolve this linked program's block indices before its first visible draw.
-   * Pending variants keep their own groups; pairing and uploads remain owned by
-   * onUpdateProgram. This reads GL metadata without selecting a material variant. */
+   * Isolated links also pair only this prepared identity; other pending variants
+   * keep their own groups. No material selection, uniform upload or draw occurs. */
   prepareProgram(material: THREE.Material, program: Pick<ProgramLike, 'program'>): void {
+    if (setting('buildPacing') === 'links') {
+      const properties: unknown = this.classicRenderer().properties.get(material);
+      if (!isMaterialProperties(properties)) throw new Error('Missing prepared node material properties');
+      this.pairPrograms(material, properties, program);
+    }
     const blocks = this.blocks;
     if (blocks === null) return;
     const paired = internals(this).programCache.get(material)?.get(program);

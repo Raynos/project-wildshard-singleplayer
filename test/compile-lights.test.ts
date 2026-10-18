@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DepthTexture, DirectionalLight, Group, WebGLRenderTarget } from 'three';
+import { LightsNode } from 'three/webgpu';
 import { CompileLights } from '../src/engine/render/compileLights';
 
 function lightCopy(lights: CompileLights, source: DirectionalLight): DirectionalLight {
@@ -49,4 +50,32 @@ describe('compile-only light storage', () => {
       expect(retired).toHaveBeenCalledOnce(); source.dispose();
     }
   });
+  it('borrows actual node identities only during compile and retains source ownership', () => {
+    for (const allocated of [false, true]) {
+      const lights = new CompileLights(), source = new DirectionalLight(), live = new Group(), root = new Group();
+      const child = new Group(); source.add(child); live.add(source);
+      source.shadow.map = allocated ? target() : null;
+      const existing = source.shadow.map, children = source.children;
+      const key = (light: DirectionalLight): number => new LightsNode().setLights([light]).getCacheKey();
+      const expectedKey = key(source);
+      const copy = lightCopy(lights, source); root.add(copy); lights.prepare();
+      const restore = lights.borrowSources();
+      try {
+        expect(root.children).toEqual([source]); expect(source.id).not.toBe(copy.id);
+        const selected = root.children[0]; if (!(selected instanceof DirectionalLight)) throw new Error('Missing compile source');
+        expect(key(selected)).toBe(expectedKey); expect(key(copy)).not.toBe(expectedKey);
+        expect(source.parent).toBe(live); expect(live.children).toEqual([source]);
+        expect(source.children).toEqual([]); expect(child.parent).toBe(source);
+        if (allocated) { expect(source.shadow.autoUpdate).toBe(false); expect(source.shadow.needsUpdate).toBe(false); }
+        else source.shadow.map = target();
+      } finally { restore(); restore(); }
+      expect(root.children).toEqual([copy]); expect(copy.parent).toBe(root);
+      expect(source.children).toBe(children); expect(source.parent).toBe(live);
+      expect(source.shadow.autoUpdate).toBe(true); expect(source.shadow.needsUpdate).toBe(!allocated);
+      if (existing !== null) expect(source.shadow.map).toBe(existing);
+      const disposed = vi.fn(); source.shadow.map?.addEventListener('dispose', () => { disposed(); });
+      lights.dispose(); expect(disposed).not.toHaveBeenCalled(); source.dispose();
+    }
+  });
+
 });

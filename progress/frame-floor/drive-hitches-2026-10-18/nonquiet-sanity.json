@@ -1,0 +1,89 @@
+{
+  "protocol": "Non-quiet DW sanity; no exclusive resources and no paired performance claim",
+  "hashes": {
+    "scripts/frame-floor-args.mjs": "8d34606fb12c95ee4e22b90ec744a0bcdea74fa48e59818d19b9deb2da6a84d2",
+    "scripts/frame-floor-gpu-bisect.mjs": "c9bde686725933d77e1fd998ba222ae7f74653e6d11ba18a0d8538b9fbcb83f8",
+    "scripts/frame-floor-grid.mjs": "0168959bd15ada4d67e405b48bedcbbc5e59b888d052984a46f6576cf4abfc56",
+    "scripts/frame-floor-navigation.mjs": "29adbfec4d1a86a9baa31f6413ef51f119de84d0999fcb54f0ad25973edc6d28",
+    "scripts/frame-floor-programs.mjs": "fcada1610f97a9dae6cfc58a75f84508071ee9f0bdf9f136d25b8b885a2fd1b0",
+    "scripts/frame-floor-script-profile.mjs": "a6fe6680d5367d6a42eebaf8e62364aff769cda29a6f7ef7402dd9ff3f3a4b7d",
+    "scripts/frame-floor-settings.mjs": "c7c666a47eef39d285c25194429dc455ce77ba2b535b17213c66e10a1d13b7fb",
+    "scripts/frame-floor-task-clock.mjs": "023f4becbd690e32d6265f053d1591be94cbde7761a94d56f238864974ad06a3",
+    "scripts/frame-floor-webkit-timeline.mjs": "f4db070fdd60d3fb897cf749f11eab046eef79e1fb52b2faecccbb3d8f29d042",
+    "scripts/frame-floor.mjs": "9713d1f2ae4d7eee14f3396ff48f1b92c4b9f4be44125dd8afd3f57a1c1c46a7",
+    "scripts/debug-settings.mjs": "49a53f95151d78b80a4203308dbf8411ec1e36fd2687c6c09155259e52ffc5b8",
+    "scripts/public-grid.mjs": "7635a3acf082173b53ab44b7db2c8f03fa9ea6da528f175ea411a099c3b3f158",
+    "scripts/parity/glbytes.mjs": "4c631b7edebf7d513740dfbdc38eeb8dc0b5461c812cb98b4ea08ed21c180805",
+    "scripts/browser-lane.sh": "2a9ebd9f50bdde46bdef20166e4f8a8b375811faa73148eb921bb592fbf35337",
+    "scripts/sim-lane.sh": "eccf05b1f74e9acc558e1af7da7c5dadcaa949a002e4b5ef5be18242563f672a",
+    "src/engine/core/config.ts": "9e3a9e3fecc81e9fc4cfdf6945ac87e664998b1c3c79685246c300569841aa6b"
+  },
+  "sourceValidation": {
+    "checkedIntegration": "5e7a531c28c495929b130e105d7b23226e163eb2",
+    "checkedIsolated": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+    "renderedCandidate": "78f245528a1fd30abf97bfd06a198214687b73db",
+    "equivalenceSha256": "0f91a69100c03acdfd28abd30ffe8ff1e129ccb90f7e6dedefcb809d9962b621"
+  },
+  "records": [
+    {
+      "arm": "B-sanity",
+      "surface": "desktop",
+      "rc": 0,
+      "file": "78f245528-52304-1792323911751.json",
+      "complete": true,
+      "rows": [
+        {
+          "pose": "grid-driftwood-isle-road-entry-travel",
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "frames": 120
+        },
+        {
+          "pose": "grid-driftwood-isle-road-entry-drive",
+          "p95Ms": 16.7,
+          "maxMs": 33.4,
+          "frames": 1200
+        },
+        {
+          "pose": "grid-driftwood-isle-road-entry",
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "frames": 120
+        }
+      ],
+      "sha256": "995f2015dfd804d9d55e5ada45edd2212c99870aca7dd48e4e01159ba3e4971e",
+      "errors": [],
+      "contextLost": false
+    },
+    {
+      "arm": "B-sanity",
+      "surface": "sim",
+      "rc": 2,
+      "file": "78f245528-55591-1792323972423.json",
+      "complete": true,
+      "rows": [
+        {
+          "pose": "grid-driftwood-isle-road-entry-travel",
+          "p95Ms": 37,
+          "maxMs": 45,
+          "frames": 120
+        },
+        {
+          "pose": "grid-driftwood-isle-road-entry-drive",
+          "p95Ms": 34,
+          "maxMs": 78,
+          "frames": 900
+        },
+        {
+          "pose": "grid-driftwood-isle-road-entry",
+          "p95Ms": 34,
+          "maxMs": 35,
+          "frames": 120
+        }
+      ],
+      "sha256": "b3315048aab88a4659e8488dc9b59010f4d21b51f22d0477f474b1781bf6c88f",
+      "errors": [],
+      "contextLost": false
+    }
+  ]
+}

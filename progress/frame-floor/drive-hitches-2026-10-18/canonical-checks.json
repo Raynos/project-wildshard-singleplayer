@@ -1,0 +1,65 @@
+{
+  "candidate": "5e7a531c28c495929b130e105d7b23226e163eb2",
+  "checks": [
+    {
+      "name": "generate",
+      "rc": 0,
+      "seconds": 484.4,
+      "logSha256": "ca84e7b3ca1ddc5fd234f4848e2664eab76552782e981be82ec3c2b9344ba8bf",
+      "commandLog": "check-5e7a531c2-generate.log"
+    },
+    {
+      "name": "strict-all10",
+      "rc": 0,
+      "seconds": 112.85,
+      "logSha256": "558127c8925b24dd416fc55420699cf95ef50e91a98e8037cf27a9a4599329a2",
+      "commandLog": "check-5e7a531c2-strict-all10.log"
+    },
+    {
+      "name": "root-types",
+      "rc": 0,
+      "seconds": 8.14,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commandLog": "check-5e7a531c2-root-types.log"
+    },
+    {
+      "name": "layer-types",
+      "rc": 0,
+      "seconds": 7.84,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commandLog": "check-5e7a531c2-layer-types.log"
+    },
+    {
+      "name": "scripts-types",
+      "rc": 0,
+      "seconds": 1.25,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commandLog": "check-5e7a531c2-scripts-types.log"
+    },
+    {
+      "name": "typed-lint",
+      "rc": 0,
+      "seconds": 8.42,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commandLog": "check-5e7a531c2-typed-lint.log"
+    },
+    {
+      "name": "focused-headless",
+      "rc": 0,
+      "seconds": 115.97,
+      "logSha256": "dbc3ab0f6949d1945b680721d8567efd43b05a2497626f6bcceae01b9ca3b16a",
+      "commandLog": "check-5e7a531c2-focused-headless.log"
+    },
+    {
+      "name": "source-ruler",
+      "rc": 0,
+      "seconds": 5.08,
+      "logSha256": "08a57698997053961e495e46a9ca239938a3e7310899b63bbe5be35b733d059e",
+      "commandLog": "check-5e7a531c2-source-ruler.log"
+    }
+  ],
+  "strictMapStaleWarnings": 0,
+  "focusedTests": 67,
+  "shardHeadlessTests": 17,
+  "source": "Exact post-generation inventory in official build mirror; mirror slot before heavy lane."
+}

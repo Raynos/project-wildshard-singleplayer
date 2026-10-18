@@ -349,6 +349,20 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
     ? await pacedSceneJobs(scene, target, 1, roots, undefined, current) : sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
+  if (setting('buildPacing') === 'links' && pause !== undefined) {
+    const { warmParkedDraws } = await import('./parkedDraws');
+    for (const root of roots) {
+      if (!current()) throw new Error('Shader preparation owner left');
+      const detached = root !== scene && root.parent === null, visible = root.visible;
+      if (detached) { root.visible = false; scene.add(root); }
+      try {
+        await warmParkedDraws(renderer, scene, camera, target, root, current, pause, { budget: { drawables: 1, newMaterials: 1 } });
+        if (!current()) throw new Error('Shader preparation owner left');
+      } finally {
+        if (detached) { if (root.parent === scene) root.removeFromParent(); root.visible = visible; }
+      }
+    }
+  }
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
@@ -581,16 +595,20 @@ export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.Web
 /**
  * Every texture the first frame would upload — material maps, ShaderMaterial uniforms (the post
  * chain's lookup tables included), the scene's background / environment — read off the compile jobs.
+ * With a renderer, isolated graph preparation also reads compiled node samplers;
+ * those textures are nested in layouts rather than classic material properties.
  * Uploading (texImage + mipmaps, ~30 × 1024² on the phone) is otherwise the first draw's job,
  * inside the first frame's stall.
  */
-export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
+export function collectTextures(jobs: CompileJob[], renderer?: Renderer): THREE.Texture[] {
   const out = new Set<THREE.Texture>();
+  const nodes = renderer !== undefined && setting('buildPacing') === 'links' ? installedGraphBackend(renderer) : null;
   const isTexture = (v: unknown): v is THREE.Texture => typeof v === 'object' && v !== null && (v as { isTexture?: boolean }).isTexture === true;
   const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture) out.add(v); };
   const fromMaterial = (m: THREE.Material): void => {
     for (const v of Object.values(m)) add(v);
     for (const texture of shaderPatchTextures(m)) add(texture);
+    for (const texture of nodes?.materialTextures(m) ?? []) add(texture);
     const u = (m as THREE.Material & { uniforms?: Record<string, THREE.IUniform> }).uniforms;
     if (u) for (const uni of Object.values(u)) add(uni.value);
   };
@@ -737,7 +755,7 @@ function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): 
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
-  textures: THREE.Texture[] = collectTextures(jobs),
+  textures: THREE.Texture[] = collectTextures(jobs, renderer),
   current: () => boolean = () => true,
   isolateImageUploads = false,
   pause: () => Promise<void> = frame,
@@ -770,7 +788,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const borrowed = new Set<THREE.Material>();
   for (const job of jobs) job.root.traverse(object => { for (const material of materialsOf(object)) borrowed.add(material); });
   await waitMaterialPreparations([...borrowed], current);
-  for (const texture of collectTextures(jobs)) watch(texture);
+  for (const texture of collectTextures(jobs, renderer)) watch(texture);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
@@ -815,6 +833,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
+    let restoreLights: (() => void) | undefined;
     const restoreDrawn = isolateImageUploads || setting('buildPacing') === 'entry' ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
@@ -822,6 +841,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
       job.lights?.prepare();
+      if (setting('buildPacing') === 'links') restoreLights = job.lights?.borrowSources();
       job.prepare?.();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) {
@@ -834,6 +854,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         }
       } });
     } finally {
+      restoreLights?.();
       restoreDrawn?.();
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
@@ -849,8 +870,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
-    // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
-    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) { if (isolateImageUploads) settleOne(); await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) {
+      // Linking can finish quickly yet first uniform discovery still builds the native pipeline. Keep that work
+      // off the issuing frame: combining two individually bounded steps caused a 50 ms live preparation frame.
+      if (isolateImageUploads && setting('buildPacing') === 'links' && queued.length > settled) { await pause(); checkCurrent(); }
+      if (isolateImageUploads) settleOne();
+      // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
+      await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer);
+    }
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
@@ -902,7 +929,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
-  const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
+  const uploadTextures = [...new Set([...textures, ...collectTextures(jobs, renderer)])];
   for (const texture of uploadTextures) watch(texture);
   // Phase C: compressed textures retain their fenced slices. Live WebKit image preparation
   // isolates native uploads; a post-upload time check alone can overshoot before it yields.

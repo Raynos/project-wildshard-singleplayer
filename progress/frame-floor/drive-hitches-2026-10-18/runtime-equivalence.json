@@ -1,0 +1,251 @@
+{
+  "note": "Only the location/presence of the pre-existing narrow lint comment differs. Each owned runtime module emits identical normalized JavaScript; source SHA and rendered SHA remain explicitly identified.",
+  "tool": "TypeScript 6.0.3 transpileModule ES2022/ESNext removeComments=true; scanner skipTrivia=true token stream",
+  "revisions": [
+    "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+    "78f245528a1fd30abf97bfd06a198214687b73db",
+    "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233"
+  ],
+  "rows": [
+    {
+      "path": "src/engine/render/viewmodel.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "e9d263baf1eb1739280cc81de2cd57ce13582cef150ed085b3cc0c4775835aeb",
+          "codeSha256": "cc9646c483d60dfa902d015cd3cb3c66ef27ac5647a0aa6b3fc673901a1efaeb"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "e9d263baf1eb1739280cc81de2cd57ce13582cef150ed085b3cc0c4775835aeb",
+          "codeSha256": "cc9646c483d60dfa902d015cd3cb3c66ef27ac5647a0aa6b3fc673901a1efaeb"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "e9d263baf1eb1739280cc81de2cd57ce13582cef150ed085b3cc0c4775835aeb",
+          "codeSha256": "cc9646c483d60dfa902d015cd3cb3c66ef27ac5647a0aa6b3fc673901a1efaeb"
+        }
+      ]
+    },
+    {
+      "path": "src/game/grid/regionalRuntime.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "a1f3b40bdf5f7949711214f990d707c0e9ddbc02923d069297887386514e048f",
+          "codeSha256": "acc7a93010b393c27a48740330a70ad66c0321e7383f610c490c6601a9dcf34c"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "a1f3b40bdf5f7949711214f990d707c0e9ddbc02923d069297887386514e048f",
+          "codeSha256": "acc7a93010b393c27a48740330a70ad66c0321e7383f610c490c6601a9dcf34c"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "a1f3b40bdf5f7949711214f990d707c0e9ddbc02923d069297887386514e048f",
+          "codeSha256": "acc7a93010b393c27a48740330a70ad66c0321e7383f610c490c6601a9dcf34c"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/entities/farHerd.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "dccdce0eec1596d644dcbbd199cd72cfb2b5ee3b580c3553b921ae28109ad9f7",
+          "codeSha256": "105e6067a17e6023bb3c6af7d1084c2ae00adfdda9c8c90403acb350c10d68c9"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "dccdce0eec1596d644dcbbd199cd72cfb2b5ee3b580c3553b921ae28109ad9f7",
+          "codeSha256": "105e6067a17e6023bb3c6af7d1084c2ae00adfdda9c8c90403acb350c10d68c9"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "dccdce0eec1596d644dcbbd199cd72cfb2b5ee3b580c3553b921ae28109ad9f7",
+          "codeSha256": "105e6067a17e6023bb3c6af7d1084c2ae00adfdda9c8c90403acb350c10d68c9"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "1abb20becc6f29201a913155edc1800ac723e6cbfa6dfadb25ec4f146bc7990c",
+          "codeSha256": "e04eba0e5d08f5a20845271070d09559846fe8de4cb731cf27d5152895e40a33"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "1abb20becc6f29201a913155edc1800ac723e6cbfa6dfadb25ec4f146bc7990c",
+          "codeSha256": "e04eba0e5d08f5a20845271070d09559846fe8de4cb731cf27d5152895e40a33"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "1abb20becc6f29201a913155edc1800ac723e6cbfa6dfadb25ec4f146bc7990c",
+          "codeSha256": "e04eba0e5d08f5a20845271070d09559846fe8de4cb731cf27d5152895e40a33"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/render/compileLights.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "e44fc081de854678d238cd06ec5c60c9865fcb98f9d5d082809da9981e0abe17",
+          "codeSha256": "564416a7c0a108d0faff187f082640757dc70be49d233068e9691d4c28c1da41"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "e44fc081de854678d238cd06ec5c60c9865fcb98f9d5d082809da9981e0abe17",
+          "codeSha256": "564416a7c0a108d0faff187f082640757dc70be49d233068e9691d4c28c1da41"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "e44fc081de854678d238cd06ec5c60c9865fcb98f9d5d082809da9981e0abe17",
+          "codeSha256": "564416a7c0a108d0faff187f082640757dc70be49d233068e9691d4c28c1da41"
+        }
+      ]
+    },
+    {
+      "path": "src/game/shardfile/hybrid.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "3a0685f63a4876d767898f27fe44880b228064da882f0fd9b016c43e5ac5dbbf",
+          "codeSha256": "330912f46463bf78681d9b281e07db6410b307453785ca9b790ba73aa295db3e"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "3a0685f63a4876d767898f27fe44880b228064da882f0fd9b016c43e5ac5dbbf",
+          "codeSha256": "330912f46463bf78681d9b281e07db6410b307453785ca9b790ba73aa295db3e"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "3a0685f63a4876d767898f27fe44880b228064da882f0fd9b016c43e5ac5dbbf",
+          "codeSha256": "330912f46463bf78681d9b281e07db6410b307453785ca9b790ba73aa295db3e"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/render/precompile.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "ccce51dd5f469d266e9ecd0f6e34459a01e03da33b9760e4ab25520635bdada5",
+          "codeSha256": "0b094fd0209c8346d1a3d79380808e9def5dea92adb9b5b391fc89fc3148423b"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "6d1e76bd829c6dac5433ee6654a1e04072e01460411ffc62c7fa6867af1c409a",
+          "codeSha256": "0b094fd0209c8346d1a3d79380808e9def5dea92adb9b5b391fc89fc3148423b"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "0ce773af9812acbf62be0b29d46d5a1f835a9c9f957885c84a0a26bae8f5c465",
+          "codeSha256": "0b094fd0209c8346d1a3d79380808e9def5dea92adb9b5b391fc89fc3148423b"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/render/nodes/engineNodesHandler.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "ca0c99653ecf61983ebd94f263ed7e1b35b4caa9192c12766894ef1282f2e268",
+          "codeSha256": "602551bc74f26f9251691b60d9bf4cefb51e7c765426a443d6926dca6008e342"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "ca0c99653ecf61983ebd94f263ed7e1b35b4caa9192c12766894ef1282f2e268",
+          "codeSha256": "602551bc74f26f9251691b60d9bf4cefb51e7c765426a443d6926dca6008e342"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "ca0c99653ecf61983ebd94f263ed7e1b35b4caa9192c12766894ef1282f2e268",
+          "codeSha256": "602551bc74f26f9251691b60d9bf4cefb51e7c765426a443d6926dca6008e342"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/ui/Settings.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "671bd6c9b0d554695c49396f61e58002130f8ad2ab773b1cff607a21a88ac239",
+          "codeSha256": "a1408acab3bbc0a30ce240df3ae4dfdfad2437dcab54856ff83a13989962d0a6"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "671bd6c9b0d554695c49396f61e58002130f8ad2ab773b1cff607a21a88ac239",
+          "codeSha256": "a1408acab3bbc0a30ce240df3ae4dfdfad2437dcab54856ff83a13989962d0a6"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "671bd6c9b0d554695c49396f61e58002130f8ad2ab773b1cff607a21a88ac239",
+          "codeSha256": "a1408acab3bbc0a30ce240df3ae4dfdfad2437dcab54856ff83a13989962d0a6"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/ui/debugOptions.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "8afcf52ff4983a03b7a16bf0f886a4ecfa156752d555227a41ff426542f6b7f8",
+          "codeSha256": "d24059074dbc9a8061d5d2394c2084ae344341072f2c5e34bd41dfd8531ed574"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "8afcf52ff4983a03b7a16bf0f886a4ecfa156752d555227a41ff426542f6b7f8",
+          "codeSha256": "d24059074dbc9a8061d5d2394c2084ae344341072f2c5e34bd41dfd8531ed574"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "8afcf52ff4983a03b7a16bf0f886a4ecfa156752d555227a41ff426542f6b7f8",
+          "codeSha256": "d24059074dbc9a8061d5d2394c2084ae344341072f2c5e34bd41dfd8531ed574"
+        }
+      ]
+    },
+    {
+      "path": "src/engine/strings.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "5288cb825c438c13c9e81f8e3fcc1b51360041e017b0ea32011b758176e2b7d1",
+          "codeSha256": "0fc7a11611d1a3631c7e5ecb0d7c92aee2880ef4f7fbe43eade703f2ad6ba2f9"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "5288cb825c438c13c9e81f8e3fcc1b51360041e017b0ea32011b758176e2b7d1",
+          "codeSha256": "0fc7a11611d1a3631c7e5ecb0d7c92aee2880ef4f7fbe43eade703f2ad6ba2f9"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "5288cb825c438c13c9e81f8e3fcc1b51360041e017b0ea32011b758176e2b7d1",
+          "codeSha256": "0fc7a11611d1a3631c7e5ecb0d7c92aee2880ef4f7fbe43eade703f2ad6ba2f9"
+        }
+      ]
+    },
+    {
+      "path": "src/game/grid/memoryWarning.ts",
+      "outputs": [
+        {
+          "revision": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+          "sourceSha256": "f885eb4f15f1140e32178dfebcf3caf51c9d694499709ab30c476afadfd78b8b",
+          "codeSha256": "8403ca8c62c4cad27df54e286f9d38ee9308af1e9292da65a5f64801becc806b"
+        },
+        {
+          "revision": "78f245528a1fd30abf97bfd06a198214687b73db",
+          "sourceSha256": "f885eb4f15f1140e32178dfebcf3caf51c9d694499709ab30c476afadfd78b8b",
+          "codeSha256": "8403ca8c62c4cad27df54e286f9d38ee9308af1e9292da65a5f64801becc806b"
+        },
+        {
+          "revision": "8b971fa1ce24d7ed7845e4d98e9f8d4b1921b233",
+          "sourceSha256": "f885eb4f15f1140e32178dfebcf3caf51c9d694499709ab30c476afadfd78b8b",
+          "codeSha256": "8403ca8c62c4cad27df54e286f9d38ee9308af1e9292da65a5f64801becc806b"
+        }
+      ]
+    }
+  ]
+}

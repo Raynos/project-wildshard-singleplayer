@@ -1,0 +1,671 @@
+{
+  "note": "Instrumented run with overlapping source jobs; causal evidence only, no timing acceptance credit. Runtime matches78f245528 except removal of an unused lint comment.",
+  "sha": "a6ba1e6c45809836d552fd8e8803998db7bb3e93",
+  "source": "tmp/drive-hitches/diagnostic-fence-desktop/a6ba1e6c4-25542-1792321885030.json",
+  "sha256": "d5853c9c754d727434473bd8ebdd4c302642823ced24e4099f14ab4c919fa86d",
+  "complete": true,
+  "roads": [
+    {
+      "pose": {
+        "name": "grid-far-reach-road-entry-drive"
+      },
+      "p95Ms": 16.8,
+      "maxMs": 16.8,
+      "callbackMaxMs": 40.4,
+      "longFrames": {
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "at": []
+      },
+      "longFrameHooks": [],
+      "columns": [
+        "startMs",
+        "syncMs",
+        "operation",
+        "stack",
+        "compiled"
+      ],
+      "worstCalls": [
+        [
+          31146.9,
+          35.7,
+          "Renderer.initTexture",
+          "Error: frame-floor native call\n    at M_.measuredCall [as initTexture] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:21121)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ae (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:10113)\n    at async ES.prepare (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:206:10687)\n    at async Dj.warmSkyLayer (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:11338)\n    at async qC (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:562:14922)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:564:6395",
+          null
+        ],
+        [
+          31641,
+          11.5,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          33697.5,
+          8.1,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          44160,
+          7.1,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          43314.6,
+          7,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          43844.4,
+          7,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          43328.4,
+          6.9,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          43577.4,
+          6.9,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          44126.6,
+          6.9,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          44144.1,
+          6.8,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          44293,
+          6.8,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          43860.8,
+          6.7,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ]
+      ],
+      "entryPreparation": {
+        "root": "8b036712-8de1-4d60-8fc0-db07b67875d0",
+        "completed": true,
+        "stages": [
+          {
+            "phase": "programs:scene-other",
+            "elapsedMs": 0,
+            "units": 5
+          },
+          {
+            "phase": "programs:scene-entered",
+            "elapsedMs": 0,
+            "units": 56
+          },
+          {
+            "phase": "programs:family",
+            "elapsedMs": 0,
+            "units": 1
+          },
+          {
+            "phase": "programs:shadow",
+            "elapsedMs": 0,
+            "units": 1
+          },
+          {
+            "phase": "programs:exterior",
+            "elapsedMs": 0,
+            "units": 2
+          },
+          {
+            "phase": "compile",
+            "elapsedMs": 2121.0999999940395,
+            "units": 339
+          },
+          {
+            "phase": "link",
+            "elapsedMs": 35.099999994039536,
+            "units": 2
+          },
+          {
+            "phase": "upload",
+            "elapsedMs": 533.0999999940395,
+            "units": 72
+          },
+          {
+            "phase": "upload-kib",
+            "elapsedMs": 1.100000023841858,
+            "units": 106860
+          },
+          {
+            "phase": "shaders-and-composer",
+            "elapsedMs": 2700.5999999940395,
+            "units": 1
+          },
+          {
+            "phase": "node-builds",
+            "elapsedMs": 191.69999995827675,
+            "units": 52
+          },
+          {
+            "phase": "parked-viewmodels",
+            "elapsedMs": 229,
+            "units": 14
+          },
+          {
+            "phase": "parked-draws",
+            "elapsedMs": 7651.199999988079,
+            "units": 458
+          },
+          {
+            "phase": "offscreen-draws",
+            "elapsedMs": 0.5,
+            "units": 0
+          }
+        ]
+      }
+    },
+    {
+      "pose": {
+        "name": "grid-pine-hollow-road-entry-drive"
+      },
+      "p95Ms": 16.8,
+      "maxMs": 50.1,
+      "callbackMaxMs": 70.2,
+      "longFrames": {
+        "over50Ms": 1,
+        "over100Ms": 0,
+        "at": [
+          [
+            50090,
+            50,
+            {
+              "getProgramParameter": [
+                0,
+                1
+              ],
+              "clear": [
+                0,
+                10
+              ],
+              "bufferSubData": [
+                0.1,
+                8
+              ],
+              "drawElements": [
+                0,
+                37
+              ],
+              "drawArrays": [
+                0,
+                46
+              ],
+              "blitFramebuffer": [
+                0,
+                1
+              ]
+            },
+            {
+              "clear": [
+                0,
+                10
+              ],
+              "bufferSubData": [
+                0,
+                8
+              ],
+              "drawElements": [
+                0,
+                37
+              ],
+              "drawArrays": [
+                0,
+                46
+              ],
+              "blitFramebuffer": [
+                0,
+                1
+              ]
+            }
+          ]
+        ]
+      },
+      "longFrameHooks": [
+        {
+          "hook": "pine-hollow:world",
+          "frames": 1,
+          "maxMs": 50,
+          "totalMs": 50,
+          "gl": {
+            "bufferSubData": [
+              0.1,
+              8
+            ],
+            "getProgramParameter": [
+              0,
+              1
+            ],
+            "clear": [
+              0,
+              10
+            ],
+            "drawElements": [
+              0,
+              37
+            ],
+            "drawArrays": [
+              0,
+              46
+            ],
+            "blitFramebuffer": [
+              0,
+              1
+            ]
+          },
+          "glStart": {
+            "clear": [
+              0,
+              10
+            ],
+            "bufferSubData": [
+              0,
+              8
+            ],
+            "drawElements": [
+              0,
+              37
+            ],
+            "drawArrays": [
+              0,
+              46
+            ],
+            "blitFramebuffer": [
+              0,
+              1
+            ]
+          }
+        }
+      ],
+      "columns": [
+        "startMs",
+        "syncMs",
+        "operation",
+        "stack",
+        "compiled"
+      ],
+      "worstCalls": [
+        [
+          50063.9,
+          35,
+          "Renderer.initTexture",
+          "Error: frame-floor native call\n    at M_.measuredCall [as initTexture] (<anonymous>:178:193)\n    at http://127.0.0.1:4484/assets/keyedSky-DGdPhT7X.js:1:4147\n    at async Promise.all (index 1)\n    at async P.prepare (http://127.0.0.1:4484/assets/keyedSky-DGdPhT7X.js:1:2986)\n    at async Object.build (http://127.0.0.1:4484/assets/keyedSky-DGdPhT7X.js:1:8846)\n    at async http://127.0.0.1:4484/assets/graphDaySky-CLODS8-G.js:1:9567\n    at async Promise.all (index 0)\n    at async e.layeredBackdrop (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:562:5897)\n    at async Object.layered (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:564:6855)\n    at async qC (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:562:14301)",
+          null
+        ],
+        [
+          60693.2,
+          31.2,
+          "GL.getProgramInfoLog",
+          "Error: frame-floor native call\n    at WebGL2RenderingContext.measuredCall [as getProgramInfoLog] (<anonymous>:178:193)\n    at C (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4162:334)\n    at Kg.getUniforms (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4169:303)\n    at ne (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:18534)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19861)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190",
+          null
+        ],
+        [
+          72410.3,
+          26.8,
+          "Composer.render",
+          "Error: frame-floor native call\n    at me.measuredCall [as render] (<anonymous>:178:193)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          59072.1,
+          26,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          72410.4,
+          25,
+          "Renderer.render",
+          "Error: frame-floor native call\n    at M_.measuredCall [as render] (<anonymous>:178:193)\n    at bj.render (http://127.0.0.1:4484/assets/build-DzRh4pTX.js:115:3470)\n    at bj.render (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1836:1188)\n    at me.render (http://127.0.0.1:4484/assets/build-DzRh4pTX.js:45:10870)\n    at me.measuredCall [as render] (<anonymous>:168:28)\n    at s (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:21053)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5972\n    at m (http://127.0.0.1:4484/assets/ownership-on5TqUtJ.js:1:663)\n    at http://127.0.0.1:4484/assets/scope-DlRdNARb.js:1:5961\n    at wrapped (<anonymous>:308:95)",
+          null
+        ],
+        [
+          59009,
+          24.9,
+          "GL.getProgramInfoLog",
+          "Error: frame-floor native call\n    at WebGL2RenderingContext.measuredCall [as getProgramInfoLog] (<anonymous>:178:193)\n    at C (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4162:334)\n    at Kg.getUniforms (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4169:303)\n    at ne (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:18534)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19861)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190",
+          null
+        ],
+        [
+          60665,
+          22.7,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          60848.6,
+          21.3,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          59799.3,
+          20.6,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          59194.7,
+          19.8,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          58979.3,
+          19.6,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          59041.1,
+          19.5,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ]
+      ],
+      "entryPreparation": {
+        "root": "75f83600-cace-4e30-95c7-69754bf9aede",
+        "completed": true,
+        "stages": [
+          {
+            "phase": "programs:scene-other",
+            "elapsedMs": 0,
+            "units": 46
+          },
+          {
+            "phase": "programs:scene-entered",
+            "elapsedMs": 0,
+            "units": 59
+          },
+          {
+            "phase": "programs:family",
+            "elapsedMs": 0,
+            "units": 4
+          },
+          {
+            "phase": "programs:shadow",
+            "elapsedMs": 0,
+            "units": 16
+          },
+          {
+            "phase": "programs:previous-shadow",
+            "elapsedMs": 0,
+            "units": 11
+          },
+          {
+            "phase": "programs:exterior",
+            "elapsedMs": 0,
+            "units": 4
+          },
+          {
+            "phase": "compile",
+            "elapsedMs": 4836.5999999940395,
+            "units": 653
+          },
+          {
+            "phase": "link",
+            "elapsedMs": 32.70000001788139,
+            "units": 2
+          },
+          {
+            "phase": "upload",
+            "elapsedMs": 2666.5,
+            "units": 210
+          },
+          {
+            "phase": "upload-kib",
+            "elapsedMs": 0.4000000059604645,
+            "units": 31221
+          },
+          {
+            "phase": "shaders-and-composer",
+            "elapsedMs": 7716.600000023842,
+            "units": 1
+          },
+          {
+            "phase": "node-builds",
+            "elapsedMs": 362.6000000834465,
+            "units": 38
+          },
+          {
+            "phase": "parked-viewmodels",
+            "elapsedMs": 479.7000000178814,
+            "units": 29
+          },
+          {
+            "phase": "parked-draws",
+            "elapsedMs": 4932.5999999940395,
+            "units": 295
+          },
+          {
+            "phase": "offscreen-draws",
+            "elapsedMs": 0.9000000059604645,
+            "units": 0
+          }
+        ]
+      }
+    },
+    {
+      "pose": {
+        "name": "grid-driftwood-isle-road-entry-drive"
+      },
+      "p95Ms": 16.8,
+      "maxMs": 33.3,
+      "callbackMaxMs": 49.3,
+      "longFrames": {
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "at": []
+      },
+      "longFrameHooks": [],
+      "columns": [
+        "startMs",
+        "syncMs",
+        "operation",
+        "stack",
+        "compiled"
+      ],
+      "worstCalls": [
+        [
+          88043.9,
+          22.3,
+          "BuildStages.build:Shore boulders",
+          "Error: frame-floor native call\n    at A.measuredCall (<anonymous>:178:193)\n    at Ci (http://127.0.0.1:4484/assets/runtime-3aqpme1X.js:2:166377)\n    at async T (http://127.0.0.1:4484/assets/geometryKit-DInij66J.js:1:1682)",
+          null
+        ],
+        [
+          88462.9,
+          21.1,
+          "BufferGeometry.computeBoundingSphere",
+          "Error: frame-floor native call\n    at e.measuredCall (<anonymous>:178:193)\n    at g (http://127.0.0.1:4484/assets/gpuOnly-CBVdDNv6.js:1:538)\n    at http://127.0.0.1:4484/assets/gpuOnly-CBVdDNv6.js:1:954\n    at rs.traverse (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:1:62924)\n    at v (http://127.0.0.1:4484/assets/gpuOnly-CBVdDNv6.js:1:841)\n    at Ci (http://127.0.0.1:4484/assets/runtime-3aqpme1X.js:2:173381)\n    at async T (http://127.0.0.1:4484/assets/geometryKit-DInij66J.js:1:1682)",
+          null
+        ],
+        [
+          89293,
+          18.8,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          89978.3,
+          17.5,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          89593.7,
+          16.2,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          90063.9,
+          16.2,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          89774.1,
+          16.1,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          90001.6,
+          15.9,
+          "GL.getProgramInfoLog",
+          "Error: frame-floor native call\n    at WebGL2RenderingContext.measuredCall [as getProgramInfoLog] (<anonymous>:178:193)\n    at C (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4162:334)\n    at Kg.getUniforms (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4169:303)\n    at ne (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:18534)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19861)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190",
+          null
+        ],
+        [
+          90593.9,
+          15.9,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          90761.6,
+          15.9,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          90428.5,
+          15.8,
+          "Renderer.compile",
+          "Error: frame-floor native call\n    at M_.measuredCall [as compile] (<anonymous>:178:193)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19165)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190\n    at async ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:4811)\n    at async Dj.warmEnteredFrame (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:13829)\n    at async Object.afterPlay (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:116:70595)",
+          null
+        ],
+        [
+          89751.9,
+          15.7,
+          "GL.getProgramInfoLog",
+          "Error: frame-floor native call\n    at WebGL2RenderingContext.measuredCall [as getProgramInfoLog] (<anonymous>:178:193)\n    at C (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4162:334)\n    at Kg.getUniforms (http://127.0.0.1:4484/assets/three.module-D0kZyzyv.js:4169:303)\n    at ne (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:18534)\n    at Ye (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:19861)\n    at async Je (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:17719)\n    at async Ze (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:23575)\n    at async we (http://127.0.0.1:4484/assets/precompile-5MG2WfdH.js:2:6336)\n    at async Dj.warmEnteredStages (http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:15736)\n    at async http://127.0.0.1:4484/assets/session-DKYmqv1M.js:1840:14190",
+          null
+        ]
+      ],
+      "entryPreparation": {
+        "root": "2b58f197-94ba-4b8d-85ff-df1cbd30543c",
+        "completed": true,
+        "stages": [
+          {
+            "phase": "programs:scene-other",
+            "elapsedMs": 0,
+            "units": 17
+          },
+          {
+            "phase": "programs:scene-entered",
+            "elapsedMs": 0,
+            "units": 56
+          },
+          {
+            "phase": "programs:shadow",
+            "elapsedMs": 0,
+            "units": 6
+          },
+          {
+            "phase": "programs:previous-shadow",
+            "elapsedMs": 0,
+            "units": 11
+          },
+          {
+            "phase": "programs:exterior",
+            "elapsedMs": 0,
+            "units": 5
+          },
+          {
+            "phase": "compile",
+            "elapsedMs": 4220.300000011921,
+            "units": 352
+          },
+          {
+            "phase": "link",
+            "elapsedMs": 33.599999994039536,
+            "units": 2
+          },
+          {
+            "phase": "upload",
+            "elapsedMs": 101.2000000178814,
+            "units": 45
+          },
+          {
+            "phase": "upload-kib",
+            "elapsedMs": 0.09999999403953552,
+            "units": 1113
+          },
+          {
+            "phase": "shaders-and-composer",
+            "elapsedMs": 4366,
+            "units": 1
+          },
+          {
+            "phase": "node-builds",
+            "elapsedMs": 993.1999999284744,
+            "units": 99
+          },
+          {
+            "phase": "parked-viewmodels",
+            "elapsedMs": 62.70000001788139,
+            "units": 4
+          },
+          {
+            "phase": "parked-draws",
+            "elapsedMs": 2549.0999999940395,
+            "units": 152
+          },
+          {
+            "phase": "offscreen-draws",
+            "elapsedMs": 0.09999999403953552,
+            "units": 0
+          }
+        ]
+      }
+    }
+  ]
+}

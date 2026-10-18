@@ -1,0 +1,106 @@
+{
+  "revision": "5e7a531c28c495929b130e105d7b23226e163eb2",
+  "base": "58b7c9399c4a2bb723301e6a42b4e50f9ca1f106",
+  "platformLines": [
+    {
+      "path": "src/engine/render/viewmodel.ts",
+      "before": 81,
+      "after": 83,
+      "net": 2
+    },
+    {
+      "path": "src/game/grid/regionalRuntime.ts",
+      "before": 287,
+      "after": 297,
+      "net": 10
+    },
+    {
+      "path": "src/engine/entities/farHerd.ts",
+      "before": 267,
+      "after": 283,
+      "net": 16
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "before": 835,
+      "after": 840,
+      "net": 5
+    },
+    {
+      "path": "src/engine/render/compileLights.ts",
+      "before": 36,
+      "after": 59,
+      "net": 23
+    },
+    {
+      "path": "src/game/shardfile/hybrid.ts",
+      "before": 464,
+      "after": 471,
+      "net": 7
+    },
+    {
+      "path": "src/engine/render/precompile.ts",
+      "before": 762,
+      "after": 785,
+      "net": 23
+    },
+    {
+      "path": "src/engine/render/nodes/engineNodesHandler.ts",
+      "before": 571,
+      "after": 595,
+      "net": 24
+    },
+    {
+      "path": "src/engine/ui/Settings.ts",
+      "before": 225,
+      "after": 225,
+      "net": 0
+    },
+    {
+      "path": "src/engine/ui/debugOptions.ts",
+      "before": 152,
+      "after": 152,
+      "net": 0
+    },
+    {
+      "path": "src/engine/strings.ts",
+      "before": 636,
+      "after": 637,
+      "net": 1
+    },
+    {
+      "path": "src/game/grid/memoryWarning.ts",
+      "before": 52,
+      "after": 61,
+      "net": 9
+    }
+  ],
+  "netPlatformLines": 120,
+  "customRuntimeLines": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 3237,
+    "far-reach": 419,
+    "ink-cel-valley": 1122,
+    "nalati-grasslands": 20313,
+    "nine-dragon-stack": 11880,
+    "pastel-plain": 733,
+    "pine-hollow": 3962,
+    "sunscar-dunes": 208
+  },
+  "shardNet": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "deletedRuntimeFiles": [],
+  "inventorySha256": "48b5f8a25bf5d69cd01592849f5415483a140426bc3420f71bdb7e12f0ed42ed",
+  "source": "Official codeLines and sourceProgressInventory from scripts/shard-platform.mjs in build mirror."
+}

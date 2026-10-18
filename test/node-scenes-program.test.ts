@@ -2,6 +2,10 @@ import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { overrideSetting } from '../src/engine/ui/Settings';
+import { isDev, setDev } from '../src/engine/core/devMode';
+import { loadGraphBackend } from '../src/engine/render/graphBackend';
+import { collectTextures, sceneJobs } from '../src/engine/render/precompile';
 
 class LinkedProgram { readonly label = 'linked'; }
 class Buffers {
@@ -47,6 +51,70 @@ vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 vi.stubGlobal('WebGLProgram', LinkedProgram);
 vi.stubGlobal('WebGL2RenderingContext', Buffers);
 afterAll(() => { vi.unstubAllGlobals(); });
+
+test.each(['on', 'links'] as const)('a live draw isolates future variant discovery with %s pacing', async pacing => {
+  const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  const gl = new Buffers(), programs = new Map<string, object>();
+  const properties: { programs: typeof programs; currentProgram?: object; uniforms?: object; uniformsList?: unknown } = { programs };
+  for (const [key, value] of Object.entries({
+    extensions: { has: () => false, get: () => null }, getContext: (): Buffers => gl, getRenderTarget: (): THREE.WebGLRenderTarget | null => null,
+    toneMapping: THREE.NoToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.LinearSRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => properties, has: () => true },
+    setNodesHandler: (handler: EngineNodesHandler): void => { handler.setRenderer(renderer); },
+  })) Reflect.set(renderer, key, value);
+  const handler = await loadGraphBackend(renderer);
+  const sample = new THREE.DataTexture(new Uint8Array([64, 128, 192, 255]), 1, 1);
+  const replacement = new THREE.DataTexture(new Uint8Array([255, 0, 0, 255]), 1, 1);
+  const compiled = compileGraph({ version: 1, kind: 'material', model: 'unlit',
+    params: { sample: { type: 'texture', value: 'sample-slot', role: 'lent' } },
+    nodes: { uv: { op: 'uv' }, sample: { op: 'texture', param: 'sample', in: ['uv'] }, rgb: { op: 'swizzle', in: ['sample'], mask: 'xyz' } },
+    stages: { surface: { colour: 'rgb' } }, effectState: { fog: false } });
+  compiled.setTexture('sample', sample);
+  const material = compiled.material;
+  const geometry = new THREE.PlaneGeometry(), camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene();
+  const mesh = new THREE.Mesh(geometry, material); scene.add(mesh);
+  const compile = (name: string) => {
+    handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    const parameters: object = {};
+    const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+    if (!isParameters(parameters)) throw new Error('Missing parameters');
+    handler.build(material, mesh, parameters); handler.renderEnd();
+    const getUniforms = vi.fn(() => ({ seq: Object.keys(parameters.uniforms).map(id => ({ id })) }));
+    const program = { program: new LinkedProgram(), getUniforms };
+    programs.set(name, program);
+    return { program, uniforms: parameters.uniforms, getUniforms };
+  };
+  try {
+    const road = compile('road'), future = compile('future'), later = compile('later');
+    const jobs = sceneJobs(scene, null).jobs;
+    expect(handler.materialTextures(material)).toEqual([sample]);
+    expect(collectTextures(jobs, renderer)).toEqual(pacing === 'links' ? [sample] : []);
+    expect(road.getUniforms).not.toHaveBeenCalled(); expect(future.getUniforms).not.toHaveBeenCalled();
+    properties.currentProgram = road.program;
+    handler.onUpdateProgram(material, road.program, properties);
+    expect(road.getUniforms).toHaveBeenCalled();
+    if (pacing === 'links') {
+      expect(future.getUniforms).not.toHaveBeenCalled(); expect(later.getUniforms).not.toHaveBeenCalled();
+    } else { expect(future.getUniforms).toHaveBeenCalled(); expect(later.getUniforms).toHaveBeenCalled(); }
+    const uniforms = properties.uniforms, list = properties.uniformsList, writes = gl.writes;
+    compiled.setTexture('sample', replacement);
+    expect(handler.materialTextures(material)).toEqual([replacement]);
+    expect(collectTextures(jobs, renderer)).toEqual(pacing === 'links' ? [replacement] : []);
+    compiled.setTexture('sample', sample);
+    handler.prepareProgram(material, future.program);
+    expect(future.getUniforms).toHaveBeenCalled();
+    expect(properties.currentProgram).toBe(road.program); expect(properties.uniforms).toBe(uniforms);
+    expect(properties.uniformsList).toBe(list); expect(gl.writes).toBe(writes);
+    if (pacing === 'links') expect(later.getUniforms).not.toHaveBeenCalled();
+    handler.onUpdateProgram(material, future.program, properties);
+    expect(properties.uniforms).toBe(future.uniforms);
+    handler.prepareProgram(material, later.program); handler.onUpdateProgram(material, later.program, properties);
+    expect(properties.uniforms).toBe(later.uniforms);
+  } finally { material.dispose(); geometry.dispose(); sample.dispose(); replacement.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+});
 
 test('a shared material pairs its precompiled composer program after an environment draw', () => {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);

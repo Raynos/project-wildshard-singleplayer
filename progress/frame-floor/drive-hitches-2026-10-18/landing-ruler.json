@@ -1,0 +1,105 @@
+{
+  "revision": "b6c01e4ab7d4195cfb3c6c7fb5a1a89e598674f1",
+  "base": "4ed9c9a0fd1227e221cbfc4673fce06ddd10b05b",
+  "platformLines": [
+    {
+      "path": "src/engine/render/viewmodel.ts",
+      "before": 81,
+      "after": 83,
+      "net": 2
+    },
+    {
+      "path": "src/game/grid/regionalRuntime.ts",
+      "before": 287,
+      "after": 297,
+      "net": 10
+    },
+    {
+      "path": "src/engine/entities/farHerd.ts",
+      "before": 267,
+      "after": 283,
+      "net": 16
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "before": 835,
+      "after": 840,
+      "net": 5
+    },
+    {
+      "path": "src/engine/render/compileLights.ts",
+      "before": 36,
+      "after": 59,
+      "net": 23
+    },
+    {
+      "path": "src/game/shardfile/hybrid.ts",
+      "before": 464,
+      "after": 471,
+      "net": 7
+    },
+    {
+      "path": "src/engine/render/precompile.ts",
+      "before": 762,
+      "after": 785,
+      "net": 23
+    },
+    {
+      "path": "src/engine/render/nodes/engineNodesHandler.ts",
+      "before": 571,
+      "after": 595,
+      "net": 24
+    },
+    {
+      "path": "src/engine/ui/Settings.ts",
+      "before": 225,
+      "after": 225,
+      "net": 0
+    },
+    {
+      "path": "src/engine/ui/debugOptions.ts",
+      "before": 152,
+      "after": 152,
+      "net": 0
+    },
+    {
+      "path": "src/engine/strings.ts",
+      "before": 636,
+      "after": 637,
+      "net": 1
+    },
+    {
+      "path": "src/game/grid/memoryWarning.ts",
+      "before": 52,
+      "after": 61,
+      "net": 9
+    }
+  ],
+  "netPlatformLines": 120,
+  "customRuntimeLines": {
+    "_template": 1000,
+    "blender-template": 106,
+    "driftwood-isle": 3237,
+    "far-reach": 419,
+    "ink-cel-valley": 1122,
+    "nalati-grasslands": 20313,
+    "nine-dragon-stack": 12144,
+    "pastel-plain": 733,
+    "pine-hollow": 3962,
+    "sunscar-dunes": 208
+  },
+  "shardNet": {
+    "_template": 0,
+    "blender-template": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "ink-cel-valley": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0,
+    "pastel-plain": 0,
+    "pine-hollow": 0,
+    "sunscar-dunes": 0
+  },
+  "deletedRuntimeFiles": [],
+  "source": "Official source inventory in build mirror after the declared-proof ruler fix; no shard/public paths change."
+}

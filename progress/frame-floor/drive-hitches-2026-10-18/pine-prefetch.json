@@ -1,0 +1,52 @@
+{
+  "beforeBuild": "be39246-mvdhozlq",
+  "afterBuild": "24521b1-mvdlku11",
+  "extraBytes": 262144,
+  "added": [
+    {
+      "kind": "texture",
+      "asset": "generated/texture/Texture",
+      "bytes": 262144,
+      "count": 1
+    }
+  ],
+  "removed": [],
+  "source": [
+    {
+      "id": "texture:557",
+      "kind": "texture",
+      "bytes": 262144,
+      "owner": "unattributed",
+      "asset": "generated/texture/Texture",
+      "labelled": true,
+      "subresources": [
+        {
+          "face": 0,
+          "level": 0,
+          "w": 256,
+          "h": 256,
+          "d": 1,
+          "ifmt": 32856,
+          "bytes": 262144
+        }
+      ],
+      "texture": {
+        "id": "texture:557",
+        "path": "rain/graph:material.colorNode.node.bNode.node.cNode.node.node.cNode.node.fragmentSample._value",
+        "name": "",
+        "uuid": "34aa4a10-b01b-49dd-afd5-4ab45c5debd9",
+        "type": 1009,
+        "format": 1023,
+        "mipmaps": false,
+        "imageType": "Object",
+        "width": 256,
+        "height": 256
+      }
+    }
+  ],
+  "identified": "Existing Pine rain cover map (256x256 RGBA8, no mipmaps); now uploaded by current compiled-node sampler inventory while dry. No new asset, budget, or geometry; rainy first use was previously cold.",
+  "evidence": [
+    "src/shards/pine-hollow/runtime/looks/rainFx.ts:166 (isolated baseline/candidate)",
+    "src/shards/pine-hollow/data/weatherLook.ts coverN=256"
+  ]
+}

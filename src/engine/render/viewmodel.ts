@@ -42,7 +42,11 @@ export class ViewmodelRoot extends Group {
     // op-hitch37: a sliced build's later weapons are made in an `await` continuation, where the ambient owner is the
     // page's: the construction it belongs to still holds them back. An explicit owner section keeps its own owner.
     const owner = this.preparations.size === 0 ? null : enteredOwner() ?? constructionOwner() ?? currentOwner();
-    return [...this.preparations].find(([scope]) => owner?.belongsTo(scope) === true)?.[1];
+    // A resident construction also contains its runtime child's staged camera models. Parent-owned services and
+    // unwrapped awaits still build into that stage; unrelated page callbacks suspend the environment first.
+    const construction = constructionOwner();
+    return [...this.preparations].find(([scope]) => owner?.belongsTo(scope) === true
+      || construction !== null && scope.belongsTo(construction))?.[1];
   }
   /** Keep this owner's newly constructed models hidden until their ordinary shader preparation finishes.
    * The group stays under the same camera pass with identity transform; other owners mount normally. Geometry,

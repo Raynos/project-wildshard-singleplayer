@@ -1,0 +1,1894 @@
+{
+  "protocol": "Fixed harness; A=be3924670 default on, B=isolated candidate links. Desktop then Simulator per arm. No GL wall clock, frame timeline, CPU profiler or task clock. Normal GL census retained.",
+  "sourceSummarySha256": "3e1034d147c64b6b8b9df32f6d73866abf727d356cea920721fe83e8528d0f55",
+  "runs": [
+    {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "desktop",
+      "when": "2026-10-18T09:25:10.353Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "A1",
+      "source": "paired-bounded/A1-desktop/be3924670-48371-1792315415186.json",
+      "sha256": "64cb5ecc1cff1e3390e92657e52d9de8363e3d421b24aa04ca24cf930787ce4d",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 27682.3,
+                "endMs": 32715.5
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 50,
+              "position": {
+                "x": -0.049367889228290045,
+                "y": 0.020099957083418496,
+                "z": 249.75893712141863
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.4,
+              "gameP95Ms": 18.7,
+              "workP95Ms": 6.8,
+              "calls": 80,
+              "triangles": 188304,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 37215.3,
+                "endMs": 61081.1
+              },
+              "frames": 1410,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.3,
+              "maxMs": 66.6,
+              "position": {
+                "x": -0.0002800760137462756,
+                "y": 0.02003980206927769,
+                "z": -211.1970835124011
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.8,
+              "gameP95Ms": 19,
+              "workP95Ms": 11,
+              "calls": 87,
+              "triangles": 674055,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 1,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  44815,
+                  67
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 65614.2,
+                "endMs": 85596.8
+              },
+              "frames": 1170,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.4,
+              "maxMs": 66.6,
+              "position": {
+                "x": 0.001033769908442412,
+                "y": -0.7800004348530769,
+                "z": 211.33097810934385
+              },
+              "contextLost": false,
+              "callbackP95Ms": 20.1,
+              "gameP95Ms": 19.6,
+              "workP95Ms": 10.1,
+              "calls": 362,
+              "triangles": 6600408,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 1,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  67014,
+                  67
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 50,
+              "contextLost": false,
+              "position": {
+                "x": 0.008285681076017681,
+                "y": 0.4226780921950147,
+                "z": -298.35050941968075
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 33.4,
+              "contextLost": false,
+              "position": {
+                "x": -0.010234593216082999,
+                "y": 0.4527519523909196,
+                "z": 298.35169057519306
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 33.4,
+              "maxMs": 66.6,
+              "contextLost": false,
+              "position": {
+                "x": 0.1910208559080669,
+                "y": 0.4147446697319429,
+                "z": 256.6493463242021
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "sim",
+      "when": "2026-10-18T09:27:41.327Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "A1",
+      "source": "paired-bounded/A1-sim/be3924670-50749-1792315510407.json",
+      "sha256": "c5e7988b46b7878841aca55a60e990107b8ef7303b466082bb0dcaa6f0e1586b",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 41162,
+                "endMs": 51362
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 51,
+              "maxMs": 152,
+              "position": {
+                "x": 0.025902878595472044,
+                "y": 0.014864334854057581,
+                "z": 249.64334765957193
+              },
+              "contextLost": false,
+              "callbackP95Ms": 37,
+              "gameP95Ms": 34,
+              "workP95Ms": 8,
+              "calls": 52,
+              "triangles": 173995,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 4,
+                "over100Ms": 1
+              },
+              "worstFrames": [
+                [
+                  43145,
+                  152
+                ],
+                [
+                  49928,
+                  80
+                ],
+                [
+                  41362,
+                  69
+                ],
+                [
+                  41562,
+                  51
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 57978,
+                "endMs": 90178
+              },
+              "frames": 960,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 43,
+              "maxMs": 102,
+              "position": {
+                "x": 0.0018351598136988976,
+                "y": 0.019999947736523804,
+                "z": -211.23342862139808
+              },
+              "contextLost": false,
+              "callbackP95Ms": 38,
+              "gameP95Ms": 35,
+              "workP95Ms": 10,
+              "calls": 47,
+              "triangles": 254364,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 5,
+                "over100Ms": 1
+              },
+              "worstFrames": [
+                [
+                  79628,
+                  102
+                ],
+                [
+                  59152,
+                  79
+                ],
+                [
+                  59251,
+                  68
+                ],
+                [
+                  69379,
+                  53
+                ],
+                [
+                  66212,
+                  52
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 96762,
+                "endMs": 122862
+              },
+              "frames": 780,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 46,
+              "maxMs": 107,
+              "position": {
+                "x": 0.0007185720967722831,
+                "y": -0.7799002712861629,
+                "z": 211.270172465642
+              },
+              "contextLost": false,
+              "callbackP95Ms": 38,
+              "gameP95Ms": 35,
+              "workP95Ms": 11,
+              "calls": 161,
+              "triangles": 1821797,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 6,
+                "over100Ms": 1
+              },
+              "worstFrames": [
+                [
+                  109645,
+                  107
+                ],
+                [
+                  100078,
+                  60
+                ],
+                [
+                  101415,
+                  58
+                ],
+                [
+                  100138,
+                  57
+                ],
+                [
+                  100945,
+                  56
+                ],
+                [
+                  101001,
+                  51
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 152,
+              "contextLost": false,
+              "position": {
+                "x": -0.01947614180286905,
+                "y": 0.4458879816321926,
+                "z": -298.3505400336471
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 79,
+              "contextLost": false,
+              "position": {
+                "x": -0.017703434103017862,
+                "y": 0.4467023083089583,
+                "z": 298.3523688843427
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 46,
+              "maxMs": 60,
+              "contextLost": false,
+              "position": {
+                "x": 0.03178183016818912,
+                "y": 0.4561475566328182,
+                "z": 256.64833258379605
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "24521b16a131c432b5f85efd193838f8a44bb2d4",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "desktop",
+      "when": "2026-10-18T09:29:12.111Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "links",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "B1",
+      "source": "paired-bounded/B1-desktop/24521b16a-53319-1792315661375.json",
+      "sha256": "4a60a51efe65ff5716c05b5eef2abd7efaa3efd118e9a9d10b8b588dc5411a2b",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 27728.9,
+                "endMs": 32728.8
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "position": {
+                "x": 0.011086707681868646,
+                "y": 0.02000112530018361,
+                "z": 249.75126306255896
+              },
+              "contextLost": false,
+              "callbackP95Ms": 18.8,
+              "gameP95Ms": 18.4,
+              "workP95Ms": 6.7,
+              "calls": 80,
+              "triangles": 188304,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 37178.6,
+                "endMs": 60794.3
+              },
+              "frames": 1410,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 33.4,
+              "position": {
+                "x": -0.0038374406584729057,
+                "y": 0.020099704812060804,
+                "z": -211.19836733302265
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.7,
+              "gameP95Ms": 18.6,
+              "workP95Ms": 11.4,
+              "calls": 83,
+              "triangles": 262401,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 65410.8,
+                "endMs": 81093.5
+              },
+              "frames": 930,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.3,
+              "maxMs": 49.9,
+              "position": {
+                "x": 0.0034955179398572928,
+                "y": 1.219929558767742,
+                "z": 211.21460413927804
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.6,
+              "gameP95Ms": 18.5,
+              "workP95Ms": 9.6,
+              "calls": 314,
+              "triangles": 3707194,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "contextLost": false,
+              "position": {
+                "x": 0.01686280950730179,
+                "y": 0.450973946950085,
+                "z": -298.35680941181636
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "contextLost": false,
+              "position": {
+                "x": -0.02276431919017341,
+                "y": 0.4527404990732886,
+                "z": 298.3508878212904
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 33.3,
+              "maxMs": 49.9,
+              "contextLost": false,
+              "position": {
+                "x": 0.08102220642483735,
+                "y": 0.4577014348249004,
+                "z": 256.64678205271576
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "24521b16a131c432b5f85efd193838f8a44bb2d4",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "sim",
+      "when": "2026-10-18T09:31:43.568Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "links",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "B1",
+      "source": "paired-bounded/B1-sim/24521b16a-54953-1792315752159.json",
+      "sha256": "213957e68d0604c9094ca4d19b7629bd52056d15966463a126485451e3511f77",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 42823,
+                "endMs": 52906
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 48,
+              "maxMs": 79,
+              "position": {
+                "x": 0.012793920725055617,
+                "y": 0.014836773483113908,
+                "z": 249.6434605982498
+              },
+              "contextLost": false,
+              "callbackP95Ms": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 9,
+              "calls": 52,
+              "triangles": 173995,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 3,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  51173,
+                  79
+                ],
+                [
+                  43056,
+                  75
+                ],
+                [
+                  43357,
+                  55
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 59423,
+                "endMs": 93056
+              },
+              "frames": 990,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 46,
+              "maxMs": 458,
+              "position": {
+                "x": 0.0004013794302789845,
+                "y": 0.020047947512493225,
+                "z": -211.23344865933095
+              },
+              "contextLost": false,
+              "callbackP95Ms": 39,
+              "gameP95Ms": 35,
+              "workP95Ms": 11,
+              "calls": 45,
+              "triangles": 211612,
+              "pass": false,
+              "miss": "long frame: max 458 ms > 200 ms",
+              "longFrames": {
+                "over50Ms": 6,
+                "over100Ms": 1
+              },
+              "worstFrames": [
+                [
+                  82306,
+                  458
+                ],
+                [
+                  60766,
+                  80
+                ],
+                [
+                  60689,
+                  77
+                ],
+                [
+                  72497,
+                  59
+                ],
+                [
+                  72689,
+                  55
+                ],
+                [
+                  72445,
+                  52
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 99656,
+                "endMs": 120723
+              },
+              "frames": 630,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 36,
+              "p99Ms": 45,
+              "maxMs": 85,
+              "position": {
+                "x": -0.004498051553510878,
+                "y": 1.2197697571715458,
+                "z": 211.21553311895346
+              },
+              "contextLost": false,
+              "callbackP95Ms": 40,
+              "gameP95Ms": 37,
+              "workP95Ms": 10,
+              "calls": 143,
+              "triangles": 1439478,
+              "pass": false,
+              "miss": "frame cost / scheduling",
+              "longFrames": {
+                "over50Ms": 4,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  109823,
+                  85
+                ],
+                [
+                  103389,
+                  58
+                ],
+                [
+                  103447,
+                  53
+                ],
+                [
+                  103956,
+                  51
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 48,
+              "contextLost": false,
+              "position": {
+                "x": -0.018583557706506326,
+                "y": 0.46099388664208996,
+                "z": -298.3534377616197
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 80,
+              "contextLost": false,
+              "position": {
+                "x": -0.070669608752118,
+                "y": 0.3856147801625664,
+                "z": 298.35047104862065
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 41,
+              "maxMs": 58,
+              "contextLost": false,
+              "position": {
+                "x": -0.015842990704594738,
+                "y": 0.43495651002019997,
+                "z": 256.6494915470883
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "24521b16a131c432b5f85efd193838f8a44bb2d4",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "desktop",
+      "when": "2026-10-18T09:33:14.015Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "links",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "B2",
+      "source": "paired-bounded/B2-desktop/24521b16a-57129-1792315903622.json",
+      "sha256": "51646781888b158fc149da11f0138ab2701abe91b359e8b7ea2f057084a885bb",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 27898,
+                "endMs": 32397.8
+              },
+              "frames": 270,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "position": {
+                "x": -0.021611915132464965,
+                "y": 0.020100937478559122,
+                "z": 249.75143236672625
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19,
+              "gameP95Ms": 18.6,
+              "workP95Ms": 7,
+              "calls": 80,
+              "triangles": 188054,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 36897.6,
+                "endMs": 60530
+              },
+              "frames": 1410,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 50,
+              "position": {
+                "x": 0.0035006552723886586,
+                "y": 0.020099725396485135,
+                "z": -211.19653878493767
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.5,
+              "gameP95Ms": 18.6,
+              "workP95Ms": 11.8,
+              "calls": 83,
+              "triangles": 262401,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 65096.4,
+                "endMs": 80845.8
+              },
+              "frames": 930,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.3,
+              "maxMs": 50.1,
+              "position": {
+                "x": -0.0014851222938771658,
+                "y": 1.2200998231344122,
+                "z": 211.25646346419094
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.1,
+              "gameP95Ms": 18.6,
+              "workP95Ms": 9.6,
+              "calls": 314,
+              "triangles": 3707103,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 1,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  67796,
+                  50
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 16.8,
+              "contextLost": false,
+              "position": {
+                "x": -0.02820602419694751,
+                "y": 0.2242612591970775,
+                "z": 254.2413424315091
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 33.3,
+              "contextLost": false,
+              "position": {
+                "x": -0.040976156531379856,
+                "y": 0.43235456820888146,
+                "z": 298.34820343057237
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 33.3,
+              "maxMs": 50.1,
+              "contextLost": false,
+              "position": {
+                "x": 0.061369664907534566,
+                "y": 0.4390321962754548,
+                "z": 256.649534212176
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "24521b16a131c432b5f85efd193838f8a44bb2d4",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "sim",
+      "when": "2026-10-18T09:35:36.846Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "links",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "B2",
+      "source": "paired-bounded/B2-sim/24521b16a-58250-1792315994072.json",
+      "sha256": "198b2d567c34fdcbcceeb8dfdc14c743be2734dfcba121a454a50439c8c6d322",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 40848,
+                "endMs": 49898
+              },
+              "frames": 270,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 54,
+              "maxMs": 75,
+              "position": {
+                "x": 0.005143186423202235,
+                "y": 0.014862985491974068,
+                "z": 249.643379746025
+              },
+              "contextLost": false,
+              "callbackP95Ms": 40,
+              "gameP95Ms": 35,
+              "workP95Ms": 9,
+              "calls": 52,
+              "triangles": 173995,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 4,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  48798,
+                  75
+                ],
+                [
+                  41082,
+                  60
+                ],
+                [
+                  41232,
+                  54
+                ],
+                [
+                  41905,
+                  52
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 56482,
+                "endMs": 89715
+              },
+              "frames": 990,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 48,
+              "maxMs": 91,
+              "position": {
+                "x": -0.0004005343286665353,
+                "y": 0.020048515424375468,
+                "z": -211.23488446944103
+              },
+              "contextLost": false,
+              "callbackP95Ms": 37,
+              "gameP95Ms": 35,
+              "workP95Ms": 10,
+              "calls": 45,
+              "triangles": 211612,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 8,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  78932,
+                  91
+                ],
+                [
+                  57748,
+                  65
+                ],
+                [
+                  57684,
+                  64
+                ],
+                [
+                  74516,
+                  59
+                ],
+                [
+                  69182,
+                  55
+                ],
+                [
+                  69237,
+                  55
+                ],
+                [
+                  69482,
+                  52
+                ],
+                [
+                  74465,
+                  51
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 96132,
+                "endMs": 116200
+              },
+              "frames": 600,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 46,
+              "maxMs": 78,
+              "position": {
+                "x": -0.003905258333883145,
+                "y": 1.2199333750776742,
+                "z": 211.2151194682644
+              },
+              "contextLost": false,
+              "callbackP95Ms": 37,
+              "gameP95Ms": 35,
+              "workP95Ms": 10,
+              "calls": 139,
+              "triangles": 1432456,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 3,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  106098,
+                  78
+                ],
+                [
+                  100220,
+                  59
+                ],
+                [
+                  100147,
+                  54
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 52,
+              "contextLost": false,
+              "position": {
+                "x": -0.012105210057058002,
+                "y": 0.45448145260187495,
+                "z": -298.35096002484715
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 65,
+              "contextLost": false,
+              "position": {
+                "x": -0.112456636782403,
+                "y": 0.45549425963576823,
+                "z": 298.3514008673276
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 46,
+              "maxMs": 59,
+              "contextLost": false,
+              "position": {
+                "x": -0.027883262244358775,
+                "y": 0.4502147934905744,
+                "z": 256.6475380566626
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "desktop",
+      "when": "2026-10-18T09:37:12.414Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "A2",
+      "source": "paired-bounded/A2-desktop/be3924670-60198-1792316136902.json",
+      "sha256": "9c903e8b137b3d21cd692b4e261107248e8d441e4311986cdbbf29dd1f60cdba",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 27862.7,
+                "endMs": 32895.8
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 50,
+              "position": {
+                "x": 0.049188610088544804,
+                "y": 0.02009852692413372,
+                "z": 249.75152499109345
+              },
+              "contextLost": false,
+              "callbackP95Ms": 18.9,
+              "gameP95Ms": 18.6,
+              "workP95Ms": 6.9,
+              "calls": 80,
+              "triangles": 188054,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 37445.6,
+                "endMs": 61327.9
+              },
+              "frames": 1410,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.3,
+              "maxMs": 66.6,
+              "position": {
+                "x": -0.0008998636275348443,
+                "y": 0.01999973544601008,
+                "z": -211.19736193532688
+              },
+              "contextLost": false,
+              "callbackP95Ms": 19.8,
+              "gameP95Ms": 19.2,
+              "workP95Ms": 11.3,
+              "calls": 87,
+              "triangles": 674055,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 2,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  45812,
+                  67
+                ],
+                [
+                  44812,
+                  50
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 65777.8,
+                "endMs": 85893.6
+              },
+              "frames": 1170,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 33.4,
+              "maxMs": 50,
+              "position": {
+                "x": 0.0012846743131840234,
+                "y": -0.7799709183785827,
+                "z": 211.32919861975563
+              },
+              "contextLost": false,
+              "callbackP95Ms": 21.2,
+              "gameP95Ms": 20.6,
+              "workP95Ms": 10.7,
+              "calls": 362,
+              "triangles": 6600428,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 0,
+                "over100Ms": 0
+              },
+              "worstFrames": [],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.8,
+              "maxMs": 50,
+              "contextLost": false,
+              "position": {
+                "x": 0.09283315772165679,
+                "y": 0.42616117142396254,
+                "z": -298.3505934507775
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 16.7,
+              "maxMs": 16.8,
+              "contextLost": false,
+              "position": {
+                "x": -0.019949729605124634,
+                "y": 0.4485871981177754,
+                "z": 298.3505393265894
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 33.4,
+              "maxMs": 49.9,
+              "contextLost": false,
+              "position": {
+                "x": -0.03901019035401987,
+                "y": 0.44679527947882414,
+                "z": 256.64945107051244
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sha": "be3924670c374573564c7e31821d12fe01d2fa4a",
+      "harnessRevision": "af9e95182f4ed3a9b17989f98cd6afd2d2c87d16",
+      "surface": "sim",
+      "when": "2026-10-18T09:39:43.310Z",
+      "device": "frame-floor-iphone-17-pro",
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "complete": true,
+      "pass": false,
+      "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+      "glObserver": "on",
+      "glTime": false,
+      "frameTimeline": false,
+      "build": "devserver",
+      "arm": "A2",
+      "source": "paired-bounded/A2-sim/be3924670-61259-1792316232469.json",
+      "sha256": "dab226a27228a4fb3a2d2648fd99e64baf39f7927dcdda08a08629acfb56bb2e",
+      "groups": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "cameraSource": "manifest standing parity cameras",
+          "errors": [],
+          "roads": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 41209,
+                "endMs": 51375
+              },
+              "frames": 300,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 54,
+              "maxMs": 132,
+              "position": {
+                "x": -0.004066930881938234,
+                "y": 0.014916916207823705,
+                "z": 249.6433127826223
+              },
+              "contextLost": false,
+              "callbackP95Ms": 38,
+              "gameP95Ms": 35,
+              "workP95Ms": 8,
+              "calls": 52,
+              "triangles": 173995,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 4,
+                "over100Ms": 1
+              },
+              "worstFrames": [
+                [
+                  43192,
+                  132
+                ],
+                [
+                  41409,
+                  69
+                ],
+                [
+                  50275,
+                  69
+                ],
+                [
+                  41542,
+                  54
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 57992,
+                "endMs": 91209
+              },
+              "frames": 990,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 35,
+              "p99Ms": 46,
+              "maxMs": 83,
+              "position": {
+                "x": -0.001068708857430809,
+                "y": 0.020022538478493557,
+                "z": -211.2341509638424
+              },
+              "contextLost": false,
+              "callbackP95Ms": 38,
+              "gameP95Ms": 35,
+              "workP95Ms": 10,
+              "calls": 47,
+              "triangles": 254364,
+              "pass": true,
+              "miss": null,
+              "longFrames": {
+                "over50Ms": 6,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  81043,
+                  83
+                ],
+                [
+                  59292,
+                  78
+                ],
+                [
+                  59400,
+                  61
+                ],
+                [
+                  70925,
+                  56
+                ],
+                [
+                  67025,
+                  54
+                ],
+                [
+                  70191,
+                  54
+                ]
+              ],
+              "entryPreparation": null
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-drive"
+              },
+              "window": "whole-drive",
+              "sampleRange": {
+                "startMs": 97842,
+                "endMs": 125009
+              },
+              "frames": 810,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 36,
+              "p99Ms": 46,
+              "maxMs": 91,
+              "position": {
+                "x": 0.0005677428485801118,
+                "y": -0.7800690150175928,
+                "z": 211.33454154405186
+              },
+              "contextLost": false,
+              "callbackP95Ms": 38,
+              "gameP95Ms": 36,
+              "workP95Ms": 11,
+              "calls": 161,
+              "triangles": 1821797,
+              "pass": false,
+              "miss": "frame cost / scheduling",
+              "longFrames": {
+                "over50Ms": 5,
+                "over100Ms": 0
+              },
+              "worstFrames": [
+                [
+                  101816,
+                  91
+                ],
+                [
+                  111209,
+                  86
+                ],
+                [
+                  103106,
+                  60
+                ],
+                [
+                  101907,
+                  57
+                ],
+                [
+                  101542,
+                  56
+                ]
+              ],
+              "entryPreparation": null
+            }
+          ],
+          "travel": [
+            {
+              "pose": {
+                "name": "grid-far-reach-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 34,
+              "maxMs": 132,
+              "contextLost": false,
+              "position": {
+                "x": -0.012459302951505435,
+                "y": 0.42170602049372957,
+                "z": -298.3505226422312
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-pine-hollow-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 35,
+              "maxMs": 78,
+              "contextLost": false,
+              "position": {
+                "x": -0.03362583850609549,
+                "y": 0.4071796534926266,
+                "z": 298.3505468844886
+              }
+            },
+            {
+              "pose": {
+                "name": "grid-driftwood-isle-road-entry-travel"
+              },
+              "frames": 120,
+              "p95Ms": 45,
+              "maxMs": 91,
+              "contextLost": false,
+              "position": {
+                "x": 0.01419668810608618,
+                "y": 0.4482949524324102,
+                "z": 256.64895777227304
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "surface": "desktop",
+      "road": "grid-driftwood-isle-road-entry-drive",
+      "p95Ms": {
+        "A1": 16.8,
+        "B1": 16.8,
+        "B2": 16.8,
+        "A2": 16.8
+      },
+      "maxMs": {
+        "A1": 66.6,
+        "B1": 49.9,
+        "B2": 50.1,
+        "A2": 50
+      },
+      "beforeWorstMs": 66.6,
+      "afterWorstMs": 50.1,
+      "noP95Regression": true,
+      "targetPass": false
+    },
+    {
+      "surface": "desktop",
+      "road": "grid-far-reach-road-entry-drive",
+      "p95Ms": {
+        "A1": 16.8,
+        "B1": 16.7,
+        "B2": 16.8,
+        "A2": 16.7
+      },
+      "maxMs": {
+        "A1": 50,
+        "B1": 16.8,
+        "B2": 16.8,
+        "A2": 50
+      },
+      "beforeWorstMs": 50,
+      "afterWorstMs": 16.8,
+      "noP95Regression": true,
+      "targetPass": true
+    },
+    {
+      "surface": "desktop",
+      "road": "grid-pine-hollow-road-entry-drive",
+      "p95Ms": {
+        "A1": 16.8,
+        "B1": 16.7,
+        "B2": 16.7,
+        "A2": 16.8
+      },
+      "maxMs": {
+        "A1": 66.6,
+        "B1": 33.4,
+        "B2": 50,
+        "A2": 66.6
+      },
+      "beforeWorstMs": 66.6,
+      "afterWorstMs": 50,
+      "noP95Regression": true,
+      "targetPass": false
+    },
+    {
+      "surface": "sim",
+      "road": "grid-driftwood-isle-road-entry-drive",
+      "p95Ms": {
+        "A1": 35,
+        "B1": 36,
+        "B2": 35,
+        "A2": 36
+      },
+      "maxMs": {
+        "A1": 107,
+        "B1": 85,
+        "B2": 78,
+        "A2": 91
+      },
+      "beforeWorstMs": 107,
+      "afterWorstMs": 85,
+      "noP95Regression": true,
+      "targetPass": true
+    },
+    {
+      "surface": "sim",
+      "road": "grid-far-reach-road-entry-drive",
+      "p95Ms": {
+        "A1": 34,
+        "B1": 34,
+        "B2": 35,
+        "A2": 35
+      },
+      "maxMs": {
+        "A1": 152,
+        "B1": 79,
+        "B2": 75,
+        "A2": 132
+      },
+      "beforeWorstMs": 152,
+      "afterWorstMs": 79,
+      "noP95Regression": true,
+      "targetPass": true
+    },
+    {
+      "surface": "sim",
+      "road": "grid-pine-hollow-road-entry-drive",
+      "p95Ms": {
+        "A1": 35,
+        "B1": 35,
+        "B2": 35,
+        "A2": 35
+      },
+      "maxMs": {
+        "A1": 102,
+        "B1": 458,
+        "B2": 91,
+        "A2": 83
+      },
+      "beforeWorstMs": 102,
+      "afterWorstMs": 458,
+      "noP95Regression": true,
+      "targetPass": false
+    }
+  ],
+  "harnessHashes": {
+    "scripts/frame-floor-args.mjs": "8d34606fb12c95ee4e22b90ec744a0bcdea74fa48e59818d19b9deb2da6a84d2",
+    "scripts/frame-floor-gpu-bisect.mjs": "c9bde686725933d77e1fd998ba222ae7f74653e6d11ba18a0d8538b9fbcb83f8",
+    "scripts/frame-floor-grid.mjs": "0168959bd15ada4d67e405b48bedcbbc5e59b888d052984a46f6576cf4abfc56",
+    "scripts/frame-floor-navigation.mjs": "29adbfec4d1a86a9baa31f6413ef51f119de84d0999fcb54f0ad25973edc6d28",
+    "scripts/frame-floor-programs.mjs": "fcada1610f97a9dae6cfc58a75f84508071ee9f0bdf9f136d25b8b885a2fd1b0",
+    "scripts/frame-floor-script-profile.mjs": "a6fe6680d5367d6a42eebaf8e62364aff769cda29a6f7ef7402dd9ff3f3a4b7d",
+    "scripts/frame-floor-settings.mjs": "c7c666a47eef39d285c25194429dc455ce77ba2b535b17213c66e10a1d13b7fb",
+    "scripts/frame-floor-task-clock.mjs": "ec1ba732326a02a949b4e0d949584f5509b5d37b8c25b1c143f2643df82adf9e",
+    "scripts/frame-floor-webkit-timeline.mjs": "f4db070fdd60d3fb897cf749f11eab046eef79e1fb52b2faecccbb3d8f29d042",
+    "scripts/frame-floor.mjs": "9713d1f2ae4d7eee14f3396ff48f1b92c4b9f4be44125dd8afd3f57a1c1c46a7",
+    "scripts/debug-settings.mjs": "49a53f95151d78b80a4203308dbf8411ec1e36fd2687c6c09155259e52ffc5b8",
+    "scripts/public-grid.mjs": "7635a3acf082173b53ab44b7db2c8f03fa9ea6da528f175ea411a099c3b3f158",
+    "scripts/parity/glbytes.mjs": "4c631b7edebf7d513740dfbdc38eeb8dc0b5461c812cb98b4ea08ed21c180805",
+    "scripts/browser-lane.sh": "2a9ebd9f50bdde46bdef20166e4f8a8b375811faa73148eb921bb592fbf35337",
+    "scripts/sim-lane.sh": "eccf05b1f74e9acc558e1af7da7c5dadcaa949a002e4b5ef5be18242563f672a",
+    "src/engine/core/config.ts": "9e3a9e3fecc81e9fc4cfdf6945ac87e664998b1c3c79685246c300569841aa6b"
+  }
+}

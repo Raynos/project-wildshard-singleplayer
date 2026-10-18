@@ -24,6 +24,16 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   if (typeof W.__frameFloorTaskTake === 'function') return;
   let tasks = [], sites = [], siteIds = new Map(), calls = [], groups = [], open = null, current = '', serial = 0, dropped = 0;
   const activeGroups = [];
+  const drawName = object => {
+    const path = [];
+    for (let node = object; node && path.length < 5; node = node.parent) path.push(node.name === '' ? node.type : node.name);
+    return `${path.reverse().join('/')}:${object?.geometry?.type ?? ''}:${object?.geometry?.attributes?.position?.count ?? 0}`;
+  };
+  const shaderHash = source => {
+    let hash = 2166136261;
+    for (const point of source) hash = Math.imul(hash ^ point.codePointAt(0), 16777619);
+    return (hash >>> 0).toString(16);
+  };
   const now = () => performance.now();
   const round = (ms) => Math.round(ms * 10) / 10;
   const frames = (stack) => String(stack ?? '').split('\n').map((line) => line.trim())
@@ -41,6 +51,43 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   // Native/data work often resumes in an unwrapped promise continuation. Its exact
   // synchronous span distinguishes a slow unit from a task's queueing upper bound.
   const measured = new WeakMap();
+  const preparedGeometry = new WeakMap();
+  const seenPrograms = new WeakMap(), observedScenes = new WeakSet(), observedGeometry = new WeakSet();
+  const noteGeometry = object => {
+    const geometry = object?.geometry;
+    if (!geometry || observedGeometry.has(geometry)) return;
+    observedGeometry.add(geometry);
+    if (calls.length < cap) calls.push([round(now()), 0, `Geometry.draw:${drawName(object)}`, '', {
+      geometryBytes: Object.values(geometry.attributes).reduce((bytes, attribute) => bytes + attribute.count * attribute.itemSize
+        * (attribute.array?.BYTES_PER_ELEMENT ?? attribute.data?.array?.BYTES_PER_ELEMENT ?? 0),
+      (geometry.index?.count ?? 0) * (geometry.index?.array?.BYTES_PER_ELEMENT ?? 0)),
+      prepared: preparedGeometry.get(geometry), instanceCount: object.isInstancedMesh === true ? object.count : null,
+      boneMatrixBytes: object.skeleton?.boneMatrices?.byteLength ?? 0,
+      boneTextureBytes: object.skeleton?.boneTexture?.image?.data?.byteLength ?? 0,
+    }]);
+  };
+  const notePrograms = (renderer, root, phase) => {
+    if (!root || !renderer?.properties?.get) return;
+    root.traverse(object => {
+      const materials = Array.isArray(object.material) ? object.material : object.material ? [object.material] : [];
+      for (const material of materials) {
+        const programs = renderer.properties.get(material)?.programs;
+        if (!(programs instanceof Map)) continue;
+        let known = seenPrograms.get(material);
+        if (known === undefined) { known = new Map(); seenPrograms.set(material, known); }
+        for (const [key, program] of programs) {
+          const stages = known.get(key) ?? new Set();
+          if (stages.has(phase)) continue;
+          stages.add(phase); known.set(key, stages);
+          if (calls.length < cap) calls.push([round(now()), 0, `Program.${phase}:${drawName(object)}:${material.name}`, '',
+            { material: material.uuid, key, id: program.id, selected: renderer.properties.get(material).currentProgram === program,
+              object: object.uuid, parents: (() => { const parents = []; for (let node = object; node; node = node.parent) parents.push({ id: node.uuid, name: node.name === '' ? node.type : node.name, visible: node.visible }); return parents; })(),
+              pageScene: window.__wildshard?.world?.game?.rootScene?.uuid, contentScene: window.__wildshard?.world?.game?.scene?.uuid,
+              phase: window.__frameFloorGridStop?.phase }]);
+        }
+      }
+    });
+  };
   const measure = (target, name, label, before) => {
     if (!target || measured.get(target)?.has(name)) return;
     const fn = Reflect.get(target, name);
@@ -57,9 +104,14 @@ export function installTaskClock(minMs = 4, cap = 20000) {
       try { return Reflect.apply(fn, this, args); }
       finally {
         const ms = now() - start;
+        if (label === 'Renderer.compile') notePrograms(this, args[0], 'compile');
+        if (label === 'Renderer.renderBufferDirect') { noteGeometry(args[4]); notePrograms(this, args[4], 'draw'); }
         const operation = ['Game.runPhase', 'BuildStages.build'].includes(label) && typeof args[0] === 'string' ? `${label}:${args[0]}`
-          : label === 'Nodes.build' ? `${label}:${args[0]?.name ?? ''}` : label;
-        if ((ms >= minMs || label === 'RuntimeHooks.activate' || label === 'RuntimeSlots.activate') && calls.length < cap) calls.push([round(start), round(ms), operation, new Error('frame-floor native call').stack ?? '']);
+          : label === 'Nodes.build' ? `${label}:${drawName(args[1])}:${args[0]?.name ?? ''}`
+          : label === 'Renderer.renderBufferDirect' ? `${label}:${drawName(args[4])}:${args[3]?.name ?? ''}` : label;
+        const compiled = label === 'Nodes.build' ? { key: args[0].customProgramCacheKey(),
+          vertex: shaderHash(args[2].vertexShader), fragment: shaderHash(args[2].fragmentShader) } : null;
+        if ((ms >= minMs || compiled !== null || label === 'RuntimeHooks.activate' || label === 'RuntimeSlots.activate') && calls.length < cap) calls.push([round(start), round(ms), operation, new Error('frame-floor native call').stack ?? '', compiled]);
         if (children !== null) {
           activeGroups.pop();
           if ((ms >= minMs || label === 'RuntimeHooks.activate') && groups.length < cap) groups.push([round(start), round(ms), operation,
@@ -77,13 +129,29 @@ export function installTaskClock(minMs = 4, cap = 20000) {
   // Keep the exact query span and its caller, not just the adjacent frame's
   // aggregate GL bucket. A cold index can originate in preparation or a draw.
   for (const Context of [W.WebGLRenderingContext, W.WebGL2RenderingContext]) {
-    if (typeof Context === 'function') measure(Context.prototype, 'getUniformBlockIndex', 'GL.getUniformBlockIndex');
+    if (typeof Context === 'function') for (const name of ['getUniformBlockIndex', 'getProgramInfoLog']) measure(Context.prototype, name, `GL.${name}`);
   }
-  const moduleCalls = new Set();
+  const moduleCalls = new Set(), moduleErrors = [];
   const phaseLists = new WeakSet();
   const prepareWorldCalls = () => {
     const world = W.__wildshard?.world, game = world?.game, physics = game?.app?.physics;
     measure(game?.camera, 'clone', 'Camera.clone');
+    measure(game, 'warmEnteredStages', 'Game.warmEnteredStages', (_owner, _composer, _trace, _current, root) => {
+      if (!root) return;
+      const eye = game.camera.getWorldPosition(game.camera.position.clone());
+      calls.push([round(now()), 0, 'View.prepare', '', { root: root.name,
+        player: world.player.position.toArray(), eye: eye.toArray(), localEye: root.worldToLocal(eye.clone()).toArray() }]);
+      root.traverse(object => {
+        if (!object.geometry) return;
+        const ancestors = [];
+        for (let node = object; node; node = node.parent) {
+          ancestors.push({ name: node.name === '' ? node.type : node.name, visible: node.visible, layers: node.layers.mask });
+          if (node === root) break;
+        }
+        preparedGeometry.set(object.geometry, { atMs: round(now()), name: drawName(object), ancestors,
+          instanceCount: object.isInstancedMesh === true ? object.count : null, cameraLayers: game.camera.layers.mask });
+      });
+    });
     const input = game?.app?.input;
     for (const name of ['refresh', 'repaint', 'push', 'pop', 'register', 'touchLayout']) measure(input, name, `Input.${name}`);
     measure(game?.app, 'addSystem', 'App.addSystem');
@@ -96,7 +164,12 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     });
     for (const name of ['runFixed', 'flushEvents']) measure(game, name, `Game.${name}`);
     measure(game?.composer, 'render', 'Composer.render');
-    measure(game?.renderer, 'render', 'Renderer.render');
+    measure(game?.renderer, 'render', 'Renderer.render', scene => {
+      if (!scene || observedScenes.has(scene)) return; observedScenes.add(scene);
+      calls.push([round(now()), 0, 'Scene.render', new Error('scene render origin').stack ?? '',
+        { id: scene.uuid, name: scene.name, page: scene === game.rootScene, content: scene === game.scene, phase: W.__frameFloorGridStop?.phase }]);
+    });
+    measure(game?.renderer, 'renderBufferDirect', 'Renderer.renderBufferDirect');
     measure(game?.renderer, 'compile', 'Renderer.compile');
     measure(game?.renderer, 'initTexture', 'Renderer.initTexture');
     measure(game?.renderer?.shadowMap, 'render', 'ShadowMap.render');
@@ -117,8 +190,10 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     for (const resource of performance.getEntriesByType('resource')) {
       if (!/\/assets\/(?:place|weld|plan|audio|hybrid|engineNodesHandler)-[^/]+\.js$/u.test(resource.name) || moduleCalls.has(resource.name)) continue;
       moduleCalls.add(resource.name);
-      void import(resource.name).then(exports => {
-        const nodes = exports.EngineNodesHandler?.prototype;
+      void (async () => { try {
+        const exports = await import(resource.name);
+        const nodes = (exports.EngineNodesHandler ?? Object.values(exports).find(value => typeof value === 'function'
+          && value.prototype && typeof value.prototype.onUpdateProgram === 'function' && typeof value.prototype.setObject === 'function'))?.prototype;
         if (nodes) for (const name of ['build', 'setObject', 'beforeDraw', 'bindBlocks', 'bindDraw', 'onUpdateProgram', 'renderStart', 'updateLights']) measure(nodes, name, `Nodes.${name}`);
         for (const value of Object.values(exports)) {
           if (typeof value !== 'function' || !value.prototype) continue;
@@ -140,8 +215,7 @@ export function installTaskClock(minMs = 4, cap = 20000) {
             measure(prototype, 'build', 'BuildStages.build');
           }
         }
-        return undefined;
-      }).catch(() => undefined);
+      } catch (error) { moduleErrors.push({ module: resource.name, error: String(error) }); } })();
     }
   };
   W.addEventListener('ws:ready', prepareWorldCalls);
@@ -198,7 +272,9 @@ export function installTaskClock(minMs = 4, cap = 20000) {
     prepareWorldCalls();
     close(now(), 'e');
     const out = { minMs, columns: ['startMs', 'syncMs', 'totalMs', 'end', 'kind', 'site'], dropped, tasks, sites,
-      callColumns: ['startMs', 'syncMs', 'operation', 'stack'], calls,
+      callColumns: ['startMs', 'syncMs', 'operation', 'stack', 'compiled'], calls, modules: [...moduleCalls], moduleErrors: [...moduleErrors],
+      memoryWarning: { chip: document.querySelector('.ws-memory-warning-chip')?.textContent ?? null,
+        reports: [...document.querySelectorAll('.ws-memory-warning-report')].map(element => ({ owner: element.dataset.owner, text: element.textContent })) },
       groupColumns: ['startMs', 'syncMs', 'operation', 'children: [operation, calls, syncMs, maxMs]'], groups };
     tasks = []; sites = []; siteIds = new Map(); calls = []; groups = []; dropped = 0;
     return out;
