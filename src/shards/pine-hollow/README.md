@@ -54,7 +54,7 @@ geometry and data are unchanged by the entrypoint move.
 ## Budgets
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 40 s. F2 ceilings for the poses `gate`,
-`cabin`, `pond` in `budgetCeilings.ts`.
+`cabin`, `pond` in `data/budgets.json` alongside the unchanged allocation inputs.
 
 ## Look
 

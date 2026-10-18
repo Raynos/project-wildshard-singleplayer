@@ -1,0 +1,10 @@
+{
+  "before": "evaluated PINE_BUDGET_INPUTS at pre-C9 source",
+  "after": "src/shards/pine-hollow/data/budgets.json",
+  "equal": true,
+  "canonicalBeforeSha256": "84f5f7478b57f9dec087ca5806d01d40080000a59c6072a1db983323a27af870",
+  "canonicalAfterSha256": "84f5f7478b57f9dec087ca5806d01d40080000a59c6072a1db983323a27af870",
+  "budgetChanges": 0,
+  "platformApiChanges": 0,
+  "mapInputsChanged": []
+}

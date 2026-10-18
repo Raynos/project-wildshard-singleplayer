@@ -1,0 +1,128 @@
+{
+  "source": "dd615fcae7871d1c60042275a9cf76c2d6fd7f0f",
+  "pineCustomLines": 3962,
+  "component": "C9",
+  "lines": 699,
+  "retained": [
+    {
+      "path": "src/shards/pine-hollow/runtime/index.ts",
+      "lines": 187
+    },
+    {
+      "path": "src/game/population/roster.ts",
+      "lines": 175
+    },
+    {
+      "path": "src/game/population/shelter.ts",
+      "lines": 109
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/dev/perfLap.ts",
+      "lines": 47
+    },
+    {
+      "path": "src/shards/pine-hollow/boot/headlessModules.ts",
+      "lines": 32
+    },
+    {
+      "path": "src/shards/pine-hollow/shard.config.ts",
+      "lines": 29
+    },
+    {
+      "path": "src/shards/pine-hollow/roster.ts",
+      "lines": 20
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/baked.ts",
+      "lines": 12
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/boot/files.ts",
+      "lines": 12
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/boot/gpuTable.ts",
+      "lines": 9
+    },
+    {
+      "path": "src/game/plugin/nativeItems.ts",
+      "lines": 8
+    },
+    {
+      "path": "src/sdk/populationRoster.ts",
+      "lines": 7
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/world/landmarks.ts",
+      "lines": 6
+    },
+    {
+      "path": "src/sdk/populationShelter.ts",
+      "lines": 6
+    },
+    {
+      "path": "src/sdk/interactions.ts",
+      "lines": 5
+    },
+    {
+      "path": "src/game/shard/retainedHooks.ts",
+      "lines": 5
+    },
+    {
+      "path": "src/game/inventoryLaw.ts",
+      "lines": 4
+    },
+    {
+      "path": "src/shards/pine-hollow/data/layout.generated.d.json.ts",
+      "lines": 3
+    },
+    {
+      "path": "src/shards/pine-hollow/runtime/debug/options.ts",
+      "lines": 3
+    },
+    {
+      "path": "src/engine/boot/bakedApi.ts",
+      "lines": 3
+    },
+    {
+      "path": "src/game/shardfile/borrowedDecisions.ts",
+      "lines": 3
+    },
+    {
+      "path": "src/shards/pine-hollow/data/cabins.d.json.ts",
+      "lines": 2
+    },
+    {
+      "path": "src/shards/pine-hollow/data/physics.generated.d.json.ts",
+      "lines": 2
+    },
+    {
+      "path": "src/shards/pine-hollow/data/spots.generated.d.json.ts",
+      "lines": 2
+    },
+    {
+      "path": "src/shards/pine-hollow/data/wardensHollow.ts",
+      "lines": 2
+    },
+    {
+      "path": "src/shards/pine-hollow/world/treeFactory.ts",
+      "lines": 2
+    },
+    {
+      "path": "src/shards/pine-hollow/data/fauna.generated.ts",
+      "lines": 1
+    },
+    {
+      "path": "src/shards/pine-hollow/data/nativeLoadout.ts",
+      "lines": 1
+    },
+    {
+      "path": "src/sdk/blobs.ts",
+      "lines": 1
+    },
+    {
+      "path": "src/sdk/questGraph.ts",
+      "lines": 1
+    }
+  ]
+}

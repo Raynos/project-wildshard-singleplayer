@@ -1,0 +1,79 @@
+{
+  "ceilings": {
+    "phone": {
+      "cabin": {
+        "gpuMB": 587.1324214935303
+      },
+      "gate": {
+        "gpuMB": 587.1324214935303
+      },
+      "pond": {
+        "gpuMB": 587.1324214935303
+      }
+    },
+    "desktop": {
+      "cabin": {
+        "gpuMB": 1318.5415477752686
+      },
+      "gate": {
+        "gpuMB": 1318.5415477752686
+      },
+      "pond": {
+        "gpuMB": 1318.5415477752686
+      }
+    }
+  },
+  "phone": {
+    "fps": 30,
+    "variability": 1.3,
+    "cpuMs": 9.6,
+    "gcMs": 0.6,
+    "systems": {
+      "physics": 0.8,
+      "ai": 0.8,
+      "animation": 1,
+      "player": 0.4,
+      "world": 0.5,
+      "hud": 0.3,
+      "audio": 0.2
+    },
+    "vertexShare": 0.5,
+    "lanes": {
+      "opaque": 0.3125,
+      "foliage": 0.1875,
+      "shadow": 0.15625,
+      "transparent": 0.09375,
+      "viewmodel": 0.0625,
+      "post": 0.125,
+      "reserve": 0.0625
+    },
+    "linkMs": 1000
+  },
+  "desktop": {
+    "fps": 60,
+    "variability": 1.3,
+    "cpuMs": 4.8,
+    "gcMs": 0.3,
+    "systems": {
+      "physics": 0.4,
+      "ai": 0.4,
+      "animation": 0.5,
+      "player": 0.2,
+      "world": 0.25,
+      "hud": 0.15,
+      "audio": 0.1
+    },
+    "vertexShare": 0.5,
+    "lanes": {
+      "opaque": 0.5,
+      "post": 0.5
+    },
+    "linkMs": 1000
+  },
+  "load": {
+    "coldPlay4G": 40,
+    "fixedSeconds": 3,
+    "cpuRatio": 2,
+    "bytesPerSecond": 1125000
+  }
+}

@@ -728,8 +728,8 @@
   "bindings": {
     "accent": "moss",
     "budgets": {
-      "module": "./budgets",
-      "export": "PINE_BUDGET_INPUTS"
+      "module": "./data/budgets.json",
+      "export": "default"
     },
     "runtimeCost": {
       "module": "./data/runtimeCost.json",
