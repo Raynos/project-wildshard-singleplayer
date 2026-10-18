@@ -35,10 +35,12 @@ const DEFAULT_LIMITS: EntryWarmupLimits = { noFrameMs: ENTRY_NO_FRAME_MS, totalM
  */
 export async function boundEntryWarmup<T>(owner: Scope, drawn: () => number, stage: () => string,
   work: (current: () => boolean) => Promise<T>, limits: EntryWarmupLimits = DEFAULT_LIMITS): Promise<T> {
+  if (owner.disposed) throw new Error('Shader warm-up owner left');
   let stall: EntryWarmupStallError | null = null;
   const current = (): boolean => stall === null && !owner.disposed;
   const watch = owner.child('entry-warmup-bound');
   const expired = new Promise<never>((_resolve, reject) => {
+    watch.onDispose(() => { reject(new Error('Shader warm-up owner left')); });
     let presented = 0, sinceFrame = 0, last = Number.NaN, frames = drawn();
     const tick = (now: number): void => {
       if (!Number.isNaN(last)) {
@@ -56,6 +58,8 @@ export async function boundEntryWarmup<T>(owner: Scope, drawn: () => number, sta
     };
     watch.raf(tick);
   });
-  try { return await Promise.race([work(current), expired]); }
+  // Capture a synchronous preparation failure too, before disposing the watch rejects its wait.
+  const running = new Promise<T>(resolve => { resolve(work(current)); });
+  try { return await Promise.race([running, expired]); }
   finally { watch.dispose(); }
 }

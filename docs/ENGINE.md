@@ -867,6 +867,15 @@ and cell screens before exposure. Near views retain their far fallback while lin
 eviction or preparation failure retires the pending view without covering its far proxy. A screen's slot likewise
 stays hidden until its first painted canvas and material are prepared. The existing page draw barrier paces this work.
 
+Streamed-root preparation now shares the entered-frame presented-time bound: a stalled draw or driver link rejects
+with a named issue instead of leaving a far/near fetch pending forever. The draw barrier itself also carries this bound,
+including sky/post callers outside an entered-frame warm-up. Disposing its owner rejects immediately.
+
+The experimental `entry` choice in the existing Build pacing developer row slices scene-inventory traversal by the
+shared frame budget. Compile-only ordinary instanced stand-ins borrow population buffers rather than copying them; no live
+geometry, transforms or visibility change. Desktop preparation preserves already-drawn material selections across
+yields and waits for a completed game draw between compile batches. The default remains the measured `on` choice.
+
 `Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the installing content scene before yielding. Regional callers
 pass their whole view root so authored sibling lights outside the native scene are included. Only that root's parked
 visibility is ignored; hidden descendants remain hidden. The bound native scene supplies the PMREM independently.

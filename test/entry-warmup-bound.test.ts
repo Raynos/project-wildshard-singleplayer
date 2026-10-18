@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from '../src/engine/app/scopeEnvironment';
 import { boundEntryWarmup, EntryWarmupStallError } from '../src/engine/render/entryWarmupBound';
+import { waitForDrawnFrame } from '../src/engine/render/precompile';
 
 /** A hand-driven rAF: `frame(ms)` advances the clock and runs every queued callback once. */
 function manualFrames(): { frame: (ms: number) => void } {
@@ -78,8 +79,37 @@ describe('entered-frame warm-up bound', () => {
       .rejects.toThrow('Shader warm-up owner left');
     let fence: () => boolean = () => true;
     const left = new Scope('left');
-    void boundEntryWarmup(left, () => 1, () => 'shaders', current => { fence = current; return never(); }, limits);
+    const cancelled = settled(boundEntryWarmup(left, () => 1, () => 'shaders', current => { fence = current; return never(); }, limits));
     left.dispose();
     expect(fence()).toBe(false);
+    expect(String((await cancelled).error)).toMatch(/owner left/u);
+  });
+
+  it('does not start work for an owner that already left', async () => {
+    manualFrames();
+    const owner = new Scope('left'); owner.dispose();
+    let started = false;
+    await expect(boundEntryWarmup(owner, () => 1, () => 'streamed-scene-roots', () => { started = true; return never(); }, limits))
+      .rejects.toThrow('Shader warm-up owner left');
+    expect(started).toBe(false);
+  });
+
+  it('bounds a streamed draw barrier even without an entered-frame caller', async () => {
+    const frames = manualFrames(), owner = new Scope('far-view');
+    const run = settled(waitForDrawnFrame(owner, () => 22, () => true));
+    for (let i = 0; i < 320; i++) frames.frame(16);
+    const { error } = await run;
+    expect(error).toBeInstanceOf(EntryWarmupStallError);
+    expect(String(error)).toMatch(/stalled in drawn-frame: no drawn frame/u);
+    expect(owner.disposed).toBe(false);
+    owner.dispose();
+  });
+
+  it('keeps the original synchronous preparation error', async () => {
+    manualFrames();
+    const owner = new Scope('owner');
+    await expect(boundEntryWarmup(owner, () => 1, () => 'streamed-scene-roots', () => { throw new Error('bad material'); }))
+      .rejects.toThrow('bad material');
+    owner.dispose();
   });
 });

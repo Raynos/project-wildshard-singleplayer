@@ -3,6 +3,8 @@ import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMat
 import { runPrecompile, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
 import type { ProgramLike } from '../src/engine/boot/perflog';
 import { loadGraphBackend } from '../src/engine/render/graphBackend';
+import { overrideSetting } from '../src/engine/ui/Settings';
+import { isDev, setDev } from '../src/engine/core/devMode';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -33,6 +35,41 @@ test('preparation covers distinct skin array lengths without splitting instance 
   expect(copies.filter(copy => copy instanceof InstancedMesh)).toHaveLength(1);
   first.skeleton.dispose(); second.skeleton.dispose(); small.dispose(); large.dispose();
   geometry.dispose(); material.dispose();
+});
+
+test('paced entry borrows instance layout without copying population buffers', () => {
+  const developer = isDev(); setDev(true);
+  overrideSetting('buildPacing', 'entry');
+  const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const original = new InstancedMesh(geometry, material, 10000);
+  original.setColorAt(0, material.color); scene.add(original);
+  const clone = vi.spyOn(original, 'clone');
+  try {
+    const { jobs } = sceneJobs(scene, null);
+    const copy = jobs[0]?.root.children[0];
+    if (!(copy instanceof InstancedMesh)) throw new Error('Missing instanced compile stand-in');
+    expect(clone).not.toHaveBeenCalled();
+    expect(copy.instanceMatrix).toBe(original.instanceMatrix);
+    expect(copy.instanceColor).toBe(original.instanceColor);
+    expect(copy.count).toBe(original.count);
+    expect(original.parent).toBe(scene);
+    expect(copy.parent).not.toBe(scene);
+    copy.dispose();
+  } finally { overrideSetting('buildPacing', null); setDev(developer); clone.mockRestore(); original.dispose(); geometry.dispose(); material.dispose(); }
+});
+
+test('paced entry retains a specialized instanced constructor', () => {
+  class PresentationInstances extends InstancedMesh { readonly presentation = true; }
+  const developer = isDev(); setDev(true); overrideSetting('buildPacing', 'entry');
+  const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const original = new PresentationInstances(geometry, material, 2); scene.add(original);
+  try {
+    const copy = sceneJobs(scene, null).jobs[0]?.root.children[0];
+    if (!(copy instanceof PresentationInstances)) throw new Error('Specialized compile stand-in lost its constructor');
+    expect(copy.presentation).toBe(true);
+    expect(copy.instanceMatrix).not.toBe(original.instanceMatrix);
+    copy.dispose();
+  } finally { overrideSetting('buildPacing', null); setDev(developer); original.dispose(); geometry.dispose(); material.dispose(); }
 });
 
 test('shadow preparation compiles the depth variant a registered shadow draw substitutes (sp-o289)', () => {

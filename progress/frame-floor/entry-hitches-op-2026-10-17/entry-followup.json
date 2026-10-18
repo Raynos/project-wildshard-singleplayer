@@ -1,0 +1,1546 @@
+{
+  "schema": 1,
+  "records": [
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "76218-1792290840935",
+      "surface": "sim",
+      "when": "2026-10-18T02:37:07.583Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A1",
+      "rows": [
+        {
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 69,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "frames": 1440,
+          "p95Ms": 34,
+          "maxMs": 192,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "3184-1792291134711",
+      "surface": "sim",
+      "when": "2026-10-18T02:40:13.884Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "far-reach",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A1",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 49,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 480,
+          "p95Ms": 37,
+          "maxMs": 176,
+          "pass": false
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "89754-1792291027643",
+      "surface": "sim",
+      "when": "2026-10-18T02:38:54.657Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A1",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 37,
+          "maxMs": 103,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 900,
+          "p95Ms": 36,
+          "maxMs": 103,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "4987-1792291180502",
+      "surface": "sim",
+      "when": "2026-10-18T02:43:09.460Z",
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B1",
+      "rows": [
+        {
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 87,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "frames": 1440,
+          "p95Ms": 34,
+          "maxMs": 151,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "13337-1792291481818",
+      "surface": "sim",
+      "when": "2026-10-18T02:46:02.908Z",
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "far-reach",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B1",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 45,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 480,
+          "p95Ms": 34,
+          "maxMs": 152,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 34,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "10597-1792291389512",
+      "surface": "sim",
+      "when": "2026-10-18T02:44:41.766Z",
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B1",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 88,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 870,
+          "p95Ms": 35,
+          "maxMs": 88,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "17662-1792291563004",
+      "surface": "sim",
+      "when": "2026-10-18T02:48:58.587Z",
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B2",
+      "rows": [
+        {
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 36,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "frames": 1440,
+          "p95Ms": 35,
+          "maxMs": 175,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "29683-1792291832333",
+      "surface": "sim",
+      "when": "2026-10-18T02:51:52.976Z",
+      "complete": true,
+      "pass": true,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "far-reach",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B2",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 39,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 480,
+          "p95Ms": 34,
+          "maxMs": 172,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 36,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "24713-1792291738638",
+      "surface": "sim",
+      "when": "2026-10-18T02:50:32.268Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-B2",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 36,
+          "maxMs": 105,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 900,
+          "p95Ms": 38,
+          "maxMs": 105,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 40,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "32962-1792291913060",
+      "surface": "sim",
+      "when": "2026-10-18T02:55:05.129Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A2",
+      "rows": [],
+      "failure": {
+        "error": "Browser evaluation timed out: (async function stageFloorGrid(plan, documentOrigin, drive) {\n  window.__frameFl",
+        "modal": "Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement"
+      }
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "65362-1792292217299",
+      "surface": "sim",
+      "when": "2026-10-18T02:58:20.294Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "far-reach",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A2",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 34,
+          "maxMs": 34,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 480,
+          "p95Ms": 34,
+          "maxMs": 183,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 43,
+          "maxMs": 60,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "53771-1792292105206",
+      "surface": "sim",
+      "when": "2026-10-18T02:56:57.238Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "production-A2",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 36,
+          "maxMs": 110,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 930,
+          "p95Ms": 38,
+          "maxMs": 110,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 36,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "95560-1792291055979",
+      "surface": "desktop",
+      "when": "2026-10-18T02:39:28.535Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "gridScenario": "milestone",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": null,
+      "gridCellPose": null,
+      "build": "devserver",
+      "cpuSampler": false,
+      "label": "desktop-A",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 133.3,
+          "pass": false
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 330,
+          "p95Ms": 16.8,
+          "maxMs": 133.3,
+          "pass": false
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 1470,
+          "p95Ms": 16.8,
+          "maxMs": 83.3,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "pass": true
+        }
+      ],
+      "failure": {
+        "error": "Error: Drawn-frame sampler stalled (0/120)",
+        "modal": "Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement"
+      }
+    },
+    {
+      "sha": "f3bc1ec5b10e32b7e90ee34ef1f2784953ea4987",
+      "runId": "8273-1792291265596",
+      "surface": "desktop",
+      "when": "2026-10-18T02:42:48.210Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "gridScenario": "milestone",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": null,
+      "gridCellPose": null,
+      "build": "devserver",
+      "cpuSampler": false,
+      "label": "desktop-B-valid",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 33.3,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 300,
+          "p95Ms": 16.8,
+          "maxMs": 33.3,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 1440,
+          "p95Ms": 16.8,
+          "maxMs": 66.7,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        }
+      ],
+      "failure": {
+        "error": "Error: Drawn-frame sampler stalled (0/120)",
+        "modal": "Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement"
+      }
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "17365-1792291549731",
+      "surface": "desktop",
+      "when": "2026-10-18T02:48:04.243Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "desktop-DW-A",
+      "rows": [
+        {
+          "name": "grid-driftwood-isle-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry-drive",
+          "frames": 2550,
+          "p95Ms": 16.8,
+          "maxMs": 116.7,
+          "pass": false
+        },
+        {
+          "name": "grid-driftwood-isle-road-entry",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 16.8,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "53e8e36314f352edc15e7b67ccee3fdf3b863d0b",
+      "runId": "22745-1792291684300",
+      "surface": "desktop",
+      "when": "2026-10-18T02:50:45.741Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "driftwood-isle",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": false,
+      "label": "desktop-DW-B",
+      "rows": [],
+      "failure": {
+        "error": "Browser evaluation timed out: (async function stageFloorGrid(plan, documentOrigin, drive) {\n  window.__frameFl",
+        "modal": "Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement"
+      }
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "30750-1792290274379",
+      "surface": "sim",
+      "when": "2026-10-18T02:26:26.421Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "milestone",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": null,
+      "gridCellPose": null,
+      "build": "devserver",
+      "cpuSampler": false,
+      "label": "abba-A1",
+      "rows": [],
+      "failure": {
+        "error": "The title never showed INFINITE WILDSHARD",
+        "modal": null
+      }
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "62591-1792290650869",
+      "surface": "sim",
+      "when": "2026-10-18T02:32:40.937Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "on",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "milestone",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": null,
+      "gridCellPose": null,
+      "build": "devserver",
+      "cpuSampler": false,
+      "label": "abba-A2",
+      "rows": [],
+      "failure": {
+        "error": "The title never showed INFINITE WILDSHARD",
+        "modal": null
+      }
+    },
+    {
+      "sha": "f3bc1ec5b10e32b7e90ee34ef1f2784953ea4987",
+      "runId": "46004-1792290430983",
+      "surface": "sim",
+      "when": "2026-10-18T02:30:29.109Z",
+      "complete": false,
+      "pass": false,
+      "settings": {
+        "buildPacing": "entry",
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "milestone",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": false,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": null,
+      "gridCellPose": null,
+      "build": "devserver",
+      "cpuSampler": false,
+      "label": "abba-B1",
+      "rows": [
+        {
+          "name": "grid-far-reach-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 187,
+          "pass": true
+        },
+        {
+          "name": "grid-far-reach-road-entry-drive",
+          "frames": 330,
+          "p95Ms": 40,
+          "maxMs": 187,
+          "pass": false
+        },
+        {
+          "name": "grid-far-reach-road-entry",
+          "frames": 120,
+          "p95Ms": 42,
+          "maxMs": 45,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 36,
+          "maxMs": 85,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 930,
+          "p95Ms": 36,
+          "maxMs": 105,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 35,
+          "pass": true
+        }
+      ],
+      "failure": {
+        "error": "Error: Drawn-frame sampler stalled (0/120)",
+        "modal": "Error: Compressed texture rock_moss_set_01_diff lost its allocation after mip retirement"
+      }
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "98674-1792289778985",
+      "surface": "desktop",
+      "when": "2026-10-18T02:17:32.315Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "tier": "desktop",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": true,
+      "glTime": false,
+      "safariProfile": false,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": true,
+      "label": "profile-desktop",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 16.8,
+          "maxMs": 50,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 1410,
+          "p95Ms": 16.8,
+          "maxMs": 299.9,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 16.7,
+          "maxMs": 16.8,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "runId": "98968-1792289780230",
+      "surface": "sim",
+      "when": "2026-10-18T02:18:10.089Z",
+      "complete": true,
+      "pass": false,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto"
+      },
+      "gridScenario": "cell",
+      "glObserver": "on",
+      "travelGlCensus": true,
+      "frameTimeline": true,
+      "glTime": false,
+      "safariProfile": true,
+      "gridCell": "pine-hollow",
+      "gridCellPose": null,
+      "build": "production",
+      "cpuSampler": true,
+      "label": "profile-sim",
+      "rows": [
+        {
+          "name": "grid-pine-hollow-road-entry-travel",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 114,
+          "pass": true
+        },
+        {
+          "name": "grid-pine-hollow-road-entry-drive",
+          "frames": 900,
+          "p95Ms": 36,
+          "maxMs": 438,
+          "pass": false
+        },
+        {
+          "name": "grid-pine-hollow-road-entry",
+          "frames": 120,
+          "p95Ms": 35,
+          "maxMs": 35,
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "source": "e8b0319861b42b0dc670b5c962d283ca2a41c195",
+    "strictProducts": 10,
+    "mapStaleMessages": 0,
+    "rootTypes": true,
+    "layerTypes": true,
+    "typedLint": true,
+    "focusedTests": 37,
+    "headlessCases": 17,
+    "bootAndSignalMs": 29891,
+    "bootFaults": 0,
+    "entryChoiceGridWalk": {
+      "samples": 409,
+      "failures": 0,
+      "pageErrors": 0,
+      "choiceVerified": true
+    },
+    "releasedMainComposition": {
+      "source": "69d12f9c2d00f81d205f13a6f641246ef2ee6ac5",
+      "parent": "f934de980",
+      "strictProducts": 10,
+      "mapStaleMessages": 0,
+      "rootTypes": true,
+      "layerTypes": true,
+      "typedLint": true,
+      "focusedTests": 37,
+      "headlessCases": 17
+    },
+    "slowCpuSmoke": {
+      "source": "69d12f9c2d00f81d205f13a6f641246ef2ee6ac5",
+      "device": "iPhone 16 Pro",
+      "cpuSlowdown": 8,
+      "phases": {
+        "titleMs": 66314,
+        "entryMs": 66314,
+        "preparedMs": 170539,
+        "gameplayMs": 175393,
+        "framesStartMs": 175510,
+        "framesCompleteMs": 177060
+      },
+      "elapsedMs": 210653,
+      "faults": [],
+      "ringsReady": true,
+      "admissionIssues": {},
+      "gameplayFrames": {
+        "initial": 39,
+        "final": 52
+      },
+      "signalCrossingPassed": true
+    },
+    "seventhIntegration": {
+      "source": "69509b5cd56001d6c01b3c8b6439ec0cbe91f1fe",
+      "parent": "575fa937097b81e8b2efe10c5d1251c166954b4f",
+      "products": 10,
+      "strictProducts": false,
+      "inheritedMapStaleNotices": 1,
+      "rootTypes": true,
+      "layerTypes": true,
+      "typedLint": true,
+      "focusedTests": 37,
+      "headlessCases": 17,
+      "rulerBefore": {
+        "_template": 1000,
+        "blender-template": 106,
+        "driftwood-isle": 3709,
+        "far-reach": 518,
+        "ink-cel-valley": 1122,
+        "nalati-grasslands": 20486,
+        "nine-dragon-stack": 11890,
+        "pastel-plain": 733,
+        "pine-hollow": 4923,
+        "sunscar-dunes": 392
+      },
+      "rulerAfter": {
+        "_template": 1000,
+        "blender-template": 106,
+        "driftwood-isle": 3709,
+        "far-reach": 518,
+        "ink-cel-valley": 1122,
+        "nalati-grasslands": 20486,
+        "nine-dragon-stack": 11890,
+        "pastel-plain": 733,
+        "pine-hollow": 4923,
+        "sunscar-dunes": 392
+      },
+      "netShardLines": 0
+    },
+    "questIntegration": {
+      "source": "7463690b6b52b51351d24c8ffb241e350a9b18f1",
+      "parent": "25188dded2b35dd7c8855e67e01a470114984a35",
+      "actualParent": "470436a9985b4f77c0ff024d529e0fe85eb3dace",
+      "runtimeTreeMatchesActual": true,
+      "products": 10,
+      "strictProducts": false,
+      "inheritedMapStaleNotices": 1,
+      "rootTypes": true,
+      "layerTypes": true,
+      "typedLint": true,
+      "focusedTests": 37,
+      "headlessCases": 17,
+      "rulerBefore": {
+        "_template": 1000,
+        "blender-template": 106,
+        "driftwood-isle": 3708,
+        "far-reach": 518,
+        "ink-cel-valley": 1122,
+        "nalati-grasslands": 20486,
+        "nine-dragon-stack": 11890,
+        "pastel-plain": 733,
+        "pine-hollow": 4800,
+        "sunscar-dunes": 392
+      },
+      "rulerAfter": {
+        "_template": 1000,
+        "blender-template": 106,
+        "driftwood-isle": 3708,
+        "far-reach": 518,
+        "ink-cel-valley": 1122,
+        "nalati-grasslands": 20486,
+        "nine-dragon-stack": 11890,
+        "pastel-plain": 733,
+        "pine-hollow": 4800,
+        "sunscar-dunes": 392
+      },
+      "netShardLines": 0
+    }
+  },
+  "runtimeBaselineCheck": {
+    "from": "d860db471",
+    "to": "c302012dd",
+    "runtimeCodeChanges": false,
+    "publicAssetChanges": false,
+    "differences": "map input declarations and stamps, port share display data, process documentation"
+  },
+  "profiles": [
+    {
+      "longFrameHookOverlap": [
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 5,
+          "maxMs": 300,
+          "totalMs": 883,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "pine-hollow:world",
+          "frames": 3,
+          "maxMs": 233,
+          "totalMs": 483,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "pine-hollow:activate",
+          "frames": 1,
+          "maxMs": 67,
+          "totalMs": 67,
+          "gl": {},
+          "glStart": {}
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 37865,
+          "ms": 57,
+          "inclusive": [
+            "10 ms (anonymous) scope-DlRdNARb.js:1",
+            "10 ms m ownership-on5TqUtJ.js:1",
+            "9 ms s session-DF6OMQgP.js:1840",
+            "6 ms render build-DzRh4pTX.js:45",
+            "6 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "5 ms M_.render three.module-D0kZyzyv.js:4220",
+            "5 ms render build-DzRh4pTX.js:115",
+            "5 ms render session-DF6OMQgP.js:1836",
+            "5 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "4 ms vt three.module-D0kZyzyv.js:4220",
+            "4 ms _t three.module-D0kZyzyv.js:4220",
+            "4 ms ht three.module-D0kZyzyv.js:4220",
+            "3 ms Cn geometry-CyR5efed.js:49",
+            "3 ms (anonymous) GLTFLoader-BM0P2zwW.js:1",
+            "3 ms e.renderBufferDirect compressedUpload-BZER2m_C.js:1",
+            "3 ms run runtime-DciL6PeO.js:1",
+            "3 ms (anonymous) runtime-DciL6PeO.js:1",
+            "3 ms runPhase session-DF6OMQgP.js:1840"
+          ],
+          "self": [
+            "2 ms digest :0",
+            "1 ms (anonymous) :0",
+            "1 ms entries simulation-BvjbprG3.js:1",
+            "1 ms read :0",
+            "1 ms ~run dist-Bh0uBAfP.js:1",
+            "1 ms e.renderBufferDirect engineNodesHandler-XM1SNTJZ.js:329",
+            "1 ms copy three.module-D0kZyzyv.js:1",
+            "1 ms M_.renderBufferDirect three.module-D0kZyzyv.js:4220"
+          ]
+        },
+        {
+          "start": 40208,
+          "ms": 129,
+          "inclusive": [
+            "32 ms m ownership-on5TqUtJ.js:1",
+            "29 ms (anonymous) scope-DlRdNARb.js:1",
+            "28 ms s session-DF6OMQgP.js:1840",
+            "18 ms render build-DzRh4pTX.js:45",
+            "16 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "15 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "13 ms render build-DzRh4pTX.js:115",
+            "12 ms render session-DF6OMQgP.js:1836",
+            "12 ms M_.render three.module-D0kZyzyv.js:4220",
+            "8 ms run runtime-DciL6PeO.js:1",
+            "8 ms (anonymous) runtime-DciL6PeO.js:1",
+            "8 ms runPhase session-DF6OMQgP.js:1840",
+            "8 ms ht three.module-D0kZyzyv.js:4220",
+            "7 ms _t three.module-D0kZyzyv.js:4220",
+            "7 ms vt three.module-D0kZyzyv.js:4220",
+            "6 ms e.renderBufferDirect compressedUpload-BZER2m_C.js:1",
+            "6 ms e.renderBufferDirect engineNodesHandler-XM1SNTJZ.js:329",
+            "5 ms M_.renderBufferDirect three.module-D0kZyzyv.js:4220"
+          ],
+          "self": [
+            "2 ms B gpuLabels-BWRT7Ary.js:1",
+            "2 ms (anonymous) :0",
+            "2 ms entries simulation-BvjbprG3.js:1",
+            "2 ms Ct three.module-D0kZyzyv.js:4220",
+            "1 ms multiplyMatrices three.module-D0kZyzyv.js:1",
+            "1 ms wasm-function[36] 00c8f112:1",
+            "1 ms H gpuLabels-BWRT7Ary.js:1",
+            "1 ms close :0"
+          ]
+        },
+        {
+          "start": 40741,
+          "ms": 233,
+          "inclusive": [
+            "132 ms m ownership-on5TqUtJ.js:1",
+            "126 ms (anonymous) scope-DlRdNARb.js:1",
+            "125 ms s session-DF6OMQgP.js:1840",
+            "114 ms render build-DzRh4pTX.js:45",
+            "113 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "111 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "108 ms M_.render three.module-D0kZyzyv.js:4220",
+            "107 ms render session-DF6OMQgP.js:1836",
+            "107 ms render build-DzRh4pTX.js:115",
+            "99 ms e.renderBufferDirect engineNodesHandler-XM1SNTJZ.js:329",
+            "99 ms e.renderBufferDirect compressedUpload-BZER2m_C.js:1",
+            "97 ms vt three.module-D0kZyzyv.js:4220",
+            "97 ms _t three.module-D0kZyzyv.js:4220",
+            "97 ms ht three.module-D0kZyzyv.js:4220",
+            "97 ms M_.renderBufferDirect three.module-D0kZyzyv.js:4220",
+            "94 ms Ct three.module-D0kZyzyv.js:4220",
+            "78 ms C three.module-D0kZyzyv.js:4162",
+            "78 ms Kg.getUniforms three.module-D0kZyzyv.js:4169"
+          ],
+          "self": [
+            "78 ms getProgramInfoLog :0",
+            "2 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms (anonymous) :0",
+            "2 ms B gpuLabels-BWRT7Ary.js:1",
+            "2 ms updateMatrixWorld three.module-D0kZyzyv.js:1",
+            "1 ms fe gpuLabels-BWRT7Ary.js:1",
+            "1 ms (garbage collector) :0",
+            "1 ms e.properties.get compressedUpload-BZER2m_C.js:1"
+          ]
+        },
+        {
+          "start": 43646,
+          "ms": 73,
+          "inclusive": [
+            "30 ms m ownership-on5TqUtJ.js:1",
+            "23 ms (anonymous) scope-DlRdNARb.js:1",
+            "21 ms s session-DF6OMQgP.js:1840",
+            "16 ms render build-DzRh4pTX.js:45",
+            "14 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "13 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "11 ms M_.render three.module-D0kZyzyv.js:4220",
+            "11 ms render session-DF6OMQgP.js:1836",
+            "10 ms render build-DzRh4pTX.js:115",
+            "9 ms installPlay runtime-DLGtLvii.js:2",
+            "7 ms (anonymous) Grass-k5U7e3Dj.js:11",
+            "7 ms f Grass-k5U7e3Dj.js:11",
+            "6 ms e.renderBufferDirect engineNodesHandler-XM1SNTJZ.js:329",
+            "6 ms e.renderBufferDirect compressedUpload-BZER2m_C.js:1",
+            "6 ms vt three.module-D0kZyzyv.js:4220",
+            "6 ms _t three.module-D0kZyzyv.js:4220",
+            "6 ms ht three.module-D0kZyzyv.js:4220",
+            "6 ms flush Grass-k5U7e3Dj.js:81"
+          ],
+          "self": [
+            "5 ms (anonymous) :0",
+            "2 ms updateMatrixWorld three.module-D0kZyzyv.js:1",
+            "1 ms seedCell Grass-k5U7e3Dj.js:81",
+            "1 ms fx session-DF6OMQgP.js:116",
+            "1 ms flush Grass-k5U7e3Dj.js:81",
+            "1 ms q materialGraph-CteREh-_.js:1",
+            "1 ms encode :0",
+            "1 ms Q Grass-k5U7e3Dj.js:11"
+          ]
+        },
+        {
+          "start": 43888,
+          "ms": 273,
+          "inclusive": [
+            "247 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "199 ms s session-DF6OMQgP.js:1840",
+            "199 ms (anonymous) scope-DlRdNARb.js:1",
+            "199 ms m ownership-on5TqUtJ.js:1",
+            "189 ms render build-DzRh4pTX.js:45",
+            "184 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "183 ms M_.render three.module-D0kZyzyv.js:4220",
+            "182 ms render session-DF6OMQgP.js:1836",
+            "181 ms render build-DzRh4pTX.js:115",
+            "174 ms ht three.module-D0kZyzyv.js:4220",
+            "174 ms _t three.module-D0kZyzyv.js:4220",
+            "174 ms vt three.module-D0kZyzyv.js:4220",
+            "160 ms C three.module-D0kZyzyv.js:4162",
+            "160 ms Kg.getUniforms three.module-D0kZyzyv.js:4169",
+            "159 ms getProgramInfoLog :0",
+            "136 ms beforeDraw engineNodesHandler-XM1SNTJZ.js:329",
+            "136 ms r engineNodesHandler-XM1SNTJZ.js:329",
+            "136 ms UD.n.onBeforeRenderCallback engineNodesHandler-XM1SNTJZ.js:329"
+          ],
+          "self": [
+            "159 ms getProgramInfoLog :0",
+            "6 ms shaderSource :0",
+            "5 ms Dg three.module-D0kZyzyv.js:4128",
+            "4 ms (anonymous) :0",
+            "3 ms updateMatrixWorld three.module-D0kZyzyv.js:1",
+            "3 ms B gpuLabels-BWRT7Ary.js:1",
+            "3 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms entries simulation-BvjbprG3.js:1"
+          ]
+        },
+        {
+          "start": 45078,
+          "ms": 50,
+          "inclusive": [
+            "40 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "33 ms e.compile session-DF6OMQgP.js:737",
+            "33 ms Ie precompile-lppBfAWr.js:1",
+            "32 ms M_.compile three.module-D0kZyzyv.js:4220",
+            "31 ms traverse three.module-D0kZyzyv.js:1",
+            "30 ms yt three.module-D0kZyzyv.js:4220",
+            "30 ms at three.module-D0kZyzyv.js:4220",
+            "30 ms (anonymous) three.module-D0kZyzyv.js:4220",
+            "28 ms build engineNodesHandler-XM1SNTJZ.js:329",
+            "28 ms (anonymous) engineNodesHandler-XM1SNTJZ.js:329",
+            "27 ms build engineNodesHandler-XM1SNTJZ.js:324",
+            "27 ms uD engineNodesHandler-XM1SNTJZ.js:324",
+            "27 ms build engineNodesHandler-XM1SNTJZ.js:28",
+            "26 ms build engineNodesHandler-XM1SNTJZ.js:23",
+            "26 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "26 ms build engineNodesHandler-XM1SNTJZ.js:13",
+            "13 ms flowChildNode engineNodesHandler-XM1SNTJZ.js:25",
+            "13 ms m ownership-on5TqUtJ.js:1"
+          ],
+          "self": [
+            "6 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms (anonymous) :0",
+            "2 ms getNodeType engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms generate engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms build engineNodesHandler-XM1SNTJZ.js:13",
+            "2 ms H gpuLabels-BWRT7Ary.js:1",
+            "1 ms _getChildren engineNodesHandler-XM1SNTJZ.js:3",
+            "1 ms getTypeLength engineNodesHandler-XM1SNTJZ.js:24"
+          ]
+        },
+        {
+          "start": 45263,
+          "ms": 185,
+          "inclusive": [
+            "144 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "102 ms m ownership-on5TqUtJ.js:1",
+            "102 ms (anonymous) scope-DlRdNARb.js:1",
+            "100 ms s session-DF6OMQgP.js:1840",
+            "85 ms render build-DzRh4pTX.js:45",
+            "80 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "76 ms render build-DzRh4pTX.js:115",
+            "76 ms render session-DF6OMQgP.js:1836",
+            "74 ms M_.render three.module-D0kZyzyv.js:4220",
+            "64 ms Ie precompile-lppBfAWr.js:1",
+            "63 ms ht three.module-D0kZyzyv.js:4220",
+            "63 ms vt three.module-D0kZyzyv.js:4220",
+            "63 ms _t three.module-D0kZyzyv.js:4220",
+            "62 ms e.compile session-DF6OMQgP.js:737",
+            "59 ms M_.compile three.module-D0kZyzyv.js:4220",
+            "48 ms C three.module-D0kZyzyv.js:4162",
+            "48 ms Kg.getUniforms three.module-D0kZyzyv.js:4169",
+            "48 ms beforeDraw engineNodesHandler-XM1SNTJZ.js:329"
+          ],
+          "self": [
+            "48 ms getProgramInfoLog :0",
+            "8 ms (anonymous) :0",
+            "6 ms shaderSource :0",
+            "6 ms fromArray three.module-D0kZyzyv.js:1",
+            "4 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "3 ms applyMatrix4 three.module-D0kZyzyv.js:1",
+            "3 ms Dg three.module-D0kZyzyv.js:4128",
+            "3 ms H gpuLabels-BWRT7Ary.js:1"
+          ]
+        },
+        {
+          "start": 45466,
+          "ms": 230,
+          "inclusive": [
+            "220 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "210 ms s session-DF6OMQgP.js:1840",
+            "210 ms (anonymous) scope-DlRdNARb.js:1",
+            "210 ms m ownership-on5TqUtJ.js:1",
+            "208 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "208 ms render build-DzRh4pTX.js:45",
+            "207 ms render build-DzRh4pTX.js:115",
+            "207 ms render session-DF6OMQgP.js:1836",
+            "206 ms M_.render three.module-D0kZyzyv.js:4220",
+            "205 ms vt three.module-D0kZyzyv.js:4220",
+            "205 ms _t three.module-D0kZyzyv.js:4220",
+            "205 ms ht three.module-D0kZyzyv.js:4220",
+            "203 ms beforeDraw engineNodesHandler-XM1SNTJZ.js:329",
+            "203 ms r engineNodesHandler-XM1SNTJZ.js:329",
+            "203 ms UD.n.onBeforeRenderCallback engineNodesHandler-XM1SNTJZ.js:329",
+            "202 ms C three.module-D0kZyzyv.js:4162",
+            "202 ms Kg.getUniforms three.module-D0kZyzyv.js:4169",
+            "202 ms RD engineNodesHandler-XM1SNTJZ.js:329"
+          ],
+          "self": [
+            "202 ms getProgramInfoLog :0",
+            "4 ms (anonymous) :0",
+            "2 ms build engineNodesHandler-XM1SNTJZ.js:3",
+            "2 ms (garbage collector) :0",
+            "2 ms generate engineNodesHandler-XM1SNTJZ.js:3",
+            "1 ms H gpuLabels-BWRT7Ary.js:1",
+            "1 ms getChildren engineNodesHandler-XM1SNTJZ.js:3",
+            "1 ms getNodeFromHash engineNodesHandler-XM1SNTJZ.js:24"
+          ]
+        },
+        {
+          "start": 51106,
+          "ms": 77,
+          "inclusive": [
+            "21 ms m ownership-on5TqUtJ.js:1",
+            "21 ms s session-DF6OMQgP.js:1840",
+            "21 ms (anonymous) scope-DlRdNARb.js:1",
+            "12 ms render build-DzRh4pTX.js:45",
+            "12 ms (anonymous) gpuLabels-BWRT7Ary.js:1",
+            "11 ms S.e.render memorySaver-1LRt5qKa.js:1",
+            "11 ms render build-DzRh4pTX.js:115",
+            "10 ms render session-DF6OMQgP.js:1836",
+            "10 ms M_.render three.module-D0kZyzyv.js:4220",
+            "7 ms run runtime-DciL6PeO.js:1",
+            "7 ms runPhase session-DF6OMQgP.js:1840",
+            "6 ms (anonymous) runtime-DciL6PeO.js:1",
+            "5 ms vt three.module-D0kZyzyv.js:4220",
+            "5 ms _t three.module-D0kZyzyv.js:4220",
+            "5 ms ht three.module-D0kZyzyv.js:4220",
+            "4 ms e.renderBufferDirect engineNodesHandler-XM1SNTJZ.js:329",
+            "4 ms e.renderBufferDirect compressedUpload-BZER2m_C.js:1",
+            "4 ms (anonymous) :0"
+          ],
+          "self": [
+            "4 ms (anonymous) :0",
+            "2 ms updateMatrixWorld three.module-D0kZyzyv.js:1",
+            "1 ms fx session-DF6OMQgP.js:116",
+            "1 ms mt three.module-D0kZyzyv.js:4220",
+            "1 ms M_.renderBufferDirect three.module-D0kZyzyv.js:4220",
+            "1 ms multiplyMatrices three.module-D0kZyzyv.js:1",
+            "0 ms mapNewSoftBodies rapier-DUiwiXf8.js:1",
+            "0 ms wh three.module-D0kZyzyv.js:4118"
+          ]
+        }
+      ],
+      "source": "profile-desktop/pine-hollow-road-entry-1792289847861.cpuprofile",
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "diagnosticOnly": true,
+      "unit": "top-frame sample count, not milliseconds",
+      "top": {
+        "(idle)": 22482,
+        "": 3656,
+        "getProgramInfoLog": 2811,
+        "(program)": 2737,
+        "multiplyMatrices": 1982,
+        "updateMatrixWorld": 1496,
+        "M_.renderBufferDirect": 933,
+        "B": 796,
+        "update": 709,
+        "e.properties.get": 603,
+        "fx": 596,
+        "Ct": 577
+      }
+    },
+    {
+      "longFrameHookOverlap": [
+        {
+          "hook": "pine-hollow:world",
+          "frames": 6,
+          "maxMs": 438,
+          "totalMs": 1018,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "pine-hollow:afterPlay",
+          "frames": 5,
+          "maxMs": 307,
+          "totalMs": 537,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "between hooks",
+          "frames": 2,
+          "maxMs": 209,
+          "totalMs": 260,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "pine-hollow:activate",
+          "frames": 1,
+          "maxMs": 114,
+          "totalMs": 114,
+          "gl": {},
+          "glStart": {}
+        },
+        {
+          "hook": "pine-hollow:play",
+          "frames": 1,
+          "maxMs": 60,
+          "totalMs": 60,
+          "gl": {},
+          "glStart": {}
+        }
+      ],
+      "longTasks": null,
+      "source": "profile-sim/pine-hollow-road-entry-1792289879996.scriptprofile.json",
+      "sha": "d860db471b5445b3380ddb14803b106a53597d8d",
+      "diagnosticOnly": true,
+      "unit": "top-frame sample count, not milliseconds",
+      "top": {
+        "getProgramInfoLog": 602,
+        "": 425,
+        "stringify": 227,
+        "fx": 176,
+        "get": 166,
+        "Memory": 161,
+        "texSubImage2D": 147,
+        "updateMatrixWorld": 133,
+        "multiplyMatrices": 112,
+        "updateMatrix": 109,
+        "update": 107,
+        "getProgramParameter": 89
+      }
+    }
+  ]
+}

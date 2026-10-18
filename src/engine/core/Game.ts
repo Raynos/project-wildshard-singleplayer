@@ -743,14 +743,18 @@ export class Game {
   }
 
   /** Prepare newly streamed roots before exposure, using the allocated composer target.
-   * Early boot retains ordinary whole-world preparation. */
+   * Early boot retains ordinary whole-world preparation. Streamed views share the entered-frame
+   * time bound, so a stalled draw/link rejects through their admission issue path. */
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
-    const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current) : undefined;
-    await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, current, pause,
-      setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
+    await boundEntryWarmup(this.levelScope, () => this.frameCount, () => 'streamed-scene-roots', async withinBound => {
+      const live = (): boolean => withinBound() && current() && this._composer === composer;
+      const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
+      await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
+        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
+    });
   }
 
   private postPreparation: Promise<void> = Promise.resolve();
@@ -831,7 +835,8 @@ export class Game {
     const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
-    const pause = isolateImageUploads && this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
+    const pause = (isolateImageUploads || setting('buildPacing') === 'entry') && this.frameCount > 0
+      ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
     const uploadBudget = isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
       : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;

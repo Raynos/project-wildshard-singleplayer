@@ -22,6 +22,9 @@ import { readbackPreparation } from './readbackPreparation';
 import { postTriangle } from './postPreparation';
 import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
 import { installedGraphBackend } from './graphBackend';
+import { boundEntryWarmup } from './entryWarmupBound';
+import { setting } from '../ui/Settings';
+import { workSlice } from '../core/workSlice';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -263,10 +266,18 @@ function compileObjects(root: THREE.Object3D, visit: (object: THREE.Object3D) =>
  * variants compile again at the first frame.
  */
 function standIn(mesh: MeshLike): MeshLike {
-  const copy = mesh.clone(false) as BatchedLike;
-  linkStandIn(copy, mesh); // its uploads belong to the mesh's owner (SF57 upload-owner)
+  // compile inspects layouts, never instance values. InstancedMesh.copy otherwise
+  // allocates and copies the entire population's matrices/colours for each variant.
+  const borrowInstances = setting('buildPacing') === 'entry' && Object.getPrototypeOf(mesh) === THREE.InstancedMesh.prototype;
+  const copy = (borrowInstances && mesh instanceof THREE.InstancedMesh
+    ? THREE.Mesh.prototype.copy.call(new THREE.InstancedMesh(mesh.geometry, mesh.material, 0), mesh, false) : mesh.clone(false)) as BatchedLike;
   const src = mesh as BatchedLike;
   if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
+  if (borrowInstances && copy instanceof THREE.InstancedMesh && mesh instanceof THREE.InstancedMesh) {
+    copy.instanceMatrix = mesh.instanceMatrix; copy.instanceColor = mesh.instanceColor;
+    copy.morphTexture = mesh.morphTexture; copy.count = mesh.count;
+  }
+  linkStandIn(copy, mesh); // its uploads belong to the mesh's owner (SF57 upload-owner)
   return copy;
 }
 
@@ -279,28 +290,50 @@ function standIn(mesh: MeshLike): MeshLike {
  */
 export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene],
   excludedRoots?: ReadonlySet<THREE.Object3D>): { jobs: CompileJob[]; materials: number } {
+  const steps = sceneJobSteps(scene, rt, per, roots, excludedRoots);
+  for (;;) { const step = steps.next(); if (step.done) return step.value; }
+}
+
+function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
+  excludedRoots?: ReadonlySet<THREE.Object3D>): Generator<void, { jobs: CompileJob[]; materials: number }> {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
   const clones: THREE.Object3D[] = [];
-  for (const root of roots) compileObjects(root, (o) => {
+  const pending = [...roots].reverse();
+  while (pending.length > 0) {
+    const o = pending.pop();
+    if (o === undefined || excludedRoots?.has(o) === true) continue;
+    for (let i = o.children.length - 1; i >= 0; i--) { const child = o.children[i]; if (child !== undefined) pending.push(child); }
     const mesh = o as MeshLike;
     const list = materialsOf(mesh);
-    if (list.length === 0) return;
+    if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
     const first = wanted[0];
-    if (first === undefined) return;
+    if (first === undefined) { yield; continue; }
     const copy = standIn(mesh);
     copy.material = Array.isArray(mesh.material) ? wanted : first;
     clones.push(copy);
-  }, excludedRoots);
+    yield;
+  }
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length; i += per) {
     const root = new THREE.Group();
     for (const c of clones.slice(i, i + per)) root.add(c);
     jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
+    yield;
   }
   return { jobs, materials: mats.size };
+}
+
+async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
+  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
+  const steps = sceneJobSteps(scene, rt, per, roots, excluded), slice = workSlice();
+  for (;;) {
+    if (!current()) throw new Error('Shader preparation owner left');
+    const step = steps.next(); if (step.done) return step.value;
+    if (slice.due()) await slice.yield();
+  }
 }
 
 /** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
@@ -312,7 +345,8 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
   uploadBudget?: UploadBudget): Promise<void> {
   await prepareSceneResources(roots, camera, current);
-  const { jobs, materials } = sceneJobs(scene, target, 1, roots);
+  const { jobs, materials } = setting('buildPacing') === 'entry'
+    ? await pacedSceneJobs(scene, target, 1, roots, undefined, current) : sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
 }
@@ -663,9 +697,18 @@ function newUploadBatch(budget: UploadBudget): UploadBatch {
 }
 
 /** Wait for a new completed game draw, then a paint opportunity. A capped/skipped rAF cannot release preparation;
- * cancellation rejects before another batch. Does not advance simulation, force a draw or change frame pacing. */
+ * cancellation or the presented-time warm-up bound rejects before another batch. Does not advance simulation,
+ * force a draw or change frame pacing. */
 export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
   if (scope.disposed || !current()) return Promise.reject(new Error('Shader warm-up owner left'));
+  return boundEntryWarmup(scope, drawn, () => 'drawn-frame', async withinBound => {
+    const wait = scope.child('drawn-frame');
+    try { await drawnFrame(wait, drawn, () => withinBound() && current()); }
+    finally { wait.dispose(); }
+  });
+}
+
+function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
   const before = drawn();
   return new Promise<void>((resolve, reject) => {
     let done = false;
@@ -772,7 +815,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
-    const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
+    const restoreDrawn = isolateImageUploads || setting('buildPacing') === 'entry' ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
@@ -965,7 +1008,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
-    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per, [scene], excludedRoots);
+    const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
+      : setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true))
+      : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
     options.futureLighting?.traverse(object => { for (const material of materialsOf(object)) entered.add(material); });
