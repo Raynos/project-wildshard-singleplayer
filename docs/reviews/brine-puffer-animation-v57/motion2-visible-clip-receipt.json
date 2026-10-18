@@ -1,0 +1,77 @@
+[
+  {
+    "file": "gait.mp4",
+    "source_frames_inclusive": [
+      312,
+      407
+    ],
+    "bytes": 87496,
+    "sha256": "c764dbbdcf563053860e43c5f84c38d83a2c21c9cf458ee00dd3ce79b05a5ac5",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 390,
+          "height": 844,
+          "r_frame_rate": "25/1",
+          "nb_read_frames": "96"
+        }
+      ],
+      "format": {
+        "duration": "3.840000"
+      }
+    },
+    "timing": "Original 25fps encoded timing; no interpolation, frame thinning or speed change; lossy H264 re-encode only."
+  },
+  {
+    "file": "attack-alert.mp4",
+    "source_frames_inclusive": [
+      480,
+      817
+    ],
+    "bytes": 367625,
+    "sha256": "a4a701a062dc4ad7787dafd87d462ebadde7fb02adbc0de74507c090eb33ee5a",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 390,
+          "height": 844,
+          "r_frame_rate": "25/1",
+          "nb_read_frames": "338"
+        }
+      ],
+      "format": {
+        "duration": "13.520000"
+      }
+    },
+    "timing": "Original 25fps encoded timing; no interpolation, frame thinning or speed change; lossy H264 re-encode only."
+  },
+  {
+    "file": "hits-death-settle.mp4",
+    "source_frames_inclusive": [
+      1010,
+      1479
+    ],
+    "bytes": 533921,
+    "sha256": "039477cb83063f715ff3b3992f6fbbd6e552bd4028acbb80d2406553d56b6142",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 390,
+          "height": 844,
+          "r_frame_rate": "25/1",
+          "nb_read_frames": "470"
+        }
+      ],
+      "format": {
+        "duration": "18.800000"
+      }
+    },
+    "timing": "Original 25fps encoded timing; no interpolation, frame thinning or speed change; lossy H264 re-encode only."
+  }
+]

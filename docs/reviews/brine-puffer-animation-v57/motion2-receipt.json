@@ -26,5 +26,16 @@
     "motion2-telemetry.json",
     "motion2-visible-telemetry.json",
     "motion2-visible-standoff.png"
-  ]
+  ],
+  "cloudRenderSizing": {
+    "captureDeviceScaleFactor": 1,
+    "measuredLaterSameHostBuffer": [
+      390,
+      844
+    ],
+    "measuredLaterSameHostPixelRatio": 1,
+    "originalCaptureBufferDirectlyMeasured": false,
+    "phone2xVerified": false,
+    "note": "No scale setting changed. Game initializes min(devicePixelRatio,tier cap), so these cloud recordings are not 2x phone evidence."
+  }
 }

@@ -106,3 +106,7 @@ exclusive-lane no-probe standoff run measured0.22375s (~4.45Hz mean), and the im
 visible-body run0.2233s. Removing weighted probes did not materially improve this
 capture. Rendering/recording appears dominant, but GPU versus encoder cost was not
 separately profiled. Production render scale and simulation settings were unchanged.
+
+## Render-buffer correction
+
+Cloud captures used deviceScaleFactor:1. The later same-host baseline/bypass diagnostic directly measured pixelRatio1 and a390×844 drawing buffer before and after. Prior captures did not directly record their buffer dimensions; none verifies the mandated2×phone setting. Game initializes min(devicePixelRatio,tier cap), so this cloud host differs from a high-DPR phone. No public render-scale setting was changed. See no-post-diagnostic-result.md for the faster motion-only result and its limitations.

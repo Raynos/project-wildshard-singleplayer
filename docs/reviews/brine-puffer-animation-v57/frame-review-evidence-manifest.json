@@ -1,0 +1,67 @@
+{
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-frame-map.json": {
+    "bytes": 199146,
+    "sha256": "04688948c406bbbf1ef1aa54dfad5669805c2b67b803fefa4a3caffe00afcff5",
+    "limit_bytes": 5000000
+  },
+  "docs/reviews/brine-puffer-animation-v57/frame-review.md": {
+    "bytes": 5990,
+    "sha256": "5273944458e01097097b32b02b3f09b2e4398d40fd52f0f67d432f43c72efb49",
+    "limit_bytes": 1000000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-clip-receipt.json": {
+    "bytes": 1867,
+    "sha256": "a32431378d1791608f9a99adaf5dd44ad8536a31bfec0599cec3db7e1ae83996",
+    "limit_bytes": 5000000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-poses-1.jpg": {
+    "bytes": 178815,
+    "sha256": "3ab72500af76f65536f6d021c6b30f62b953e630a934b480036d0020360aa44b",
+    "limit_bytes": 250000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-fast-frame-map.json": {
+    "bytes": 22339,
+    "sha256": "d4fc79029fbf2cb70ff2c3af1b977f89170ede0504a1b81b949c69156d702ae4",
+    "limit_bytes": 5000000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-poses-3.jpg": {
+    "bytes": 177594,
+    "sha256": "60eb04ab1ba151f8b822c7810c4ffca9d3a41bba6a240b60ff40a7bb02f4cdb1",
+    "limit_bytes": 250000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-poses-2.jpg": {
+    "bytes": 190302,
+    "sha256": "13e213f1e31928e6ad2873e9fff1dde764cb0aedaf859d401cd2526d1f7369f7",
+    "limit_bytes": 250000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-selected-poses.jpg": {
+    "bytes": 248668,
+    "sha256": "47bb55b57548109bdd5cde0d5488f2024f9d03dbcf9a5d01e38af0df986754d1",
+    "limit_bytes": 250000
+  },
+  "docs/reviews/brine-puffer-animation-v57/faster-diagnostic-review.md": {
+    "bytes": 2135,
+    "sha256": "8a46e865013525f96e73b40692be1d38a52451bcce7a4861faa1d12ae82098ad",
+    "limit_bytes": 1000000
+  },
+  "docs/reviews/brine-puffer-animation-v57/motion2-visible-review-receipt.json": {
+    "bytes": 1412,
+    "sha256": "187ade099a5fc790f62b677ec23b4522f87212c162e9c9dbc4a7951ef9500f45",
+    "limit_bytes": 5000000
+  },
+  "public/review-evidence/puffer-animation-v57/hits-death-settle.mp4": {
+    "bytes": 533921,
+    "sha256": "039477cb83063f715ff3b3992f6fbbd6e552bd4028acbb80d2406553d56b6142",
+    "limit_bytes": 1000000
+  },
+  "public/review-evidence/puffer-animation-v57/gait.mp4": {
+    "bytes": 87496,
+    "sha256": "c764dbbdcf563053860e43c5f84c38d83a2c21c9cf458ee00dd3ce79b05a5ac5",
+    "limit_bytes": 1000000
+  },
+  "public/review-evidence/puffer-animation-v57/attack-alert.mp4": {
+    "bytes": 367625,
+    "sha256": "a4a701a062dc4ad7787dafd87d462ebadde7fb02adbc0de74507c090eb33ee5a",
+    "limit_bytes": 1000000
+  }
+}
