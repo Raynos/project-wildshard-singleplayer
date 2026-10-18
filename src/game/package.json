@@ -217,7 +217,9 @@
     "./practice/scene": "./practice/scene.ts",
     "./riding/hud": "./riding/hud.ts",
     "./riding/mount": "./riding/mount.ts",
-    "./riding/ride.css": "./riding/ride.css"
+    "./riding/ride.css": "./riding/ride.css",
+    "./boss/arenaRoom": "./boss/arenaRoom.ts",
+    "./boss/arenaFire": "./boss/arenaFire.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

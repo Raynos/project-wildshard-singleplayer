@@ -20,7 +20,6 @@ import { createNativeFlocks, readFlockBody } from '../runtime/flockDeclared';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { productRiggedHulls } from '@wildshard/sdk/looks/riggedHulls';
 import { TitanBody } from '../combat/stormTitan';
-import { syncTitanCloud } from '../combat/stormTitanLook';
 
 const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 
@@ -82,7 +81,7 @@ export const stormTitan: ModelDef<object> = defineModel<object>({
     const low = body.puffs.boundingBox?.min.y ?? body.root.position.y;
     own.position.set(-body.root.position.x, -low, -body.root.position.z);
     // his cloud lights the heart's glow from the heart's world position: keep it on the specimen's heart, wherever it stands
-    body.puffs.onBeforeRender = (): void => { body.heartWorld(body.uni.uHeart.value); syncTitanCloud(body.uni); };
+    body.puffs.onBeforeRender = (): void => { body.heartWorld(body.uni.uHeart.value); body.syncCloud(); };
     const g = new THREE.Group();
     g.name = 'storm-titan';
     g.add(own);

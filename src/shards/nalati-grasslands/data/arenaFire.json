@@ -1,0 +1,38 @@
+{
+  "flameLook": "nalati-titan-flame",
+  "smokeLook": "nalati-titan-smoke",
+  "flameCount": 420,
+  "smokeCount": [
+    90,
+    200
+  ],
+  "smokeDetail": [
+    1,
+    2
+  ],
+  "front": [
+    0.75,
+    0.55
+  ],
+  "heat": [
+    0.55,
+    0.45
+  ],
+  "flameWidth": 1.25,
+  "life": [
+    5,
+    3.5
+  ],
+  "rise": [
+    3.2,
+    2
+  ],
+  "radius": [
+    1.1,
+    0.8
+  ],
+  "expansion": [
+    5,
+    4
+  ]
+}

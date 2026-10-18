@@ -9,7 +9,7 @@ import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import type { Player } from '../../../src/engine/player/Player';
 import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing, BALBAL as KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/rows';
-import type { KurganDungeon } from '../../../src/shards/nalati-grasslands/combat/goldenKing';
+import type { BossArenaRoom } from '../../../src/game/boss/arenaRoom';
 import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
 import type { BossScript } from '../../../src/engine/ai/BossBrain';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/generators/goldenKingFight';
@@ -57,7 +57,7 @@ export class GoldenKingFight implements BossScript {
   private victoryT = -1;
   private readonly baseEmissive = 0.035;
 
-  constructor(private readonly dungeon: KurganDungeon, private readonly host: FightHost) {}
+  constructor(private readonly dungeon: BossArenaRoom, private readonly host: FightHost) {}
 
   // ── BossScript ──
   get hpFrac(): number { return this.king ? Math.max(0, this.king.hp / this.king.maxHp) : 0; }

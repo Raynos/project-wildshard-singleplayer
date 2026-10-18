@@ -5,7 +5,8 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
 import { WorldRegistry } from '../src/engine/world/registry';
-import { KurganDungeon } from '../src/shards/nalati-grasslands/combat/goldenKing';
+import type { BossArenaRoom } from '../src/game/boss/arenaRoom';
+import { bossArena } from './fake/bossArena';
 import { ShippingKurganDungeon } from './fixtures/kurgan-oracle/dungeon';
 import source from './fixtures/kurgan-oracle/source.json';
 
@@ -34,13 +35,13 @@ function meshes(group: Object3D): unknown[] {
   });
 }
 
-function colliders(dungeon: KurganDungeon | ShippingKurganDungeon): unknown {
+function colliders(dungeon: BossArenaRoom | ShippingKurganDungeon): unknown {
   const registry = new WorldRegistry(); dungeon.register(registry);
   return registry.pieceList().map(piece => ({ id: piece.id, surface: piece.surface,
     solidFloor: piece.solidFloor, colliders: piece.colliders, active: piece.active?.() ?? true }));
 }
 
-function floors(dungeon: KurganDungeon | ShippingKurganDungeon): string {
+function floors(dungeon: BossArenaRoom | ShippingKurganDungeon): string {
   const values: (number | null)[] = [];
   for (let x = -155; x <= 155; x++) for (let z = -110; z <= 240; z++) {
     values.push(dungeon.floorHeightAt(-40 + x / 10, -95 + z / 10) ?? null);
@@ -56,14 +57,14 @@ test('baked Kurgan fabric preserves shipping geometry, lighting, colliders and s
   }
   expect(hash(original)).toBe(source.sha256);
   const shipping = new ShippingKurganDungeon().build();
-  const baked = new KurganDungeon().build();
+  const baked = bossArena().build();
   expect(meshes(baked.group)).toEqual(meshes(shipping.group));
   expect(baked.tris).toBe(shipping.tris);
   expect(baked.colliders).toEqual(shipping.colliders);
   expect(colliders(baked)).toEqual(colliders(shipping));
   expect(floors(baked)).toBe(floors(shipping));
 
-  const lazy = new KurganDungeon().build(true);
+  const lazy = bossArena().build(true);
   expect(lazy.group.children.some(mesh => mesh.name === 'kurgan-interior')).toBe(false);
   await lazy.buildStaticSliced(() => Promise.resolve());
   expect(meshes(lazy.group)).toEqual(meshes(shipping.group));

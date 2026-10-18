@@ -79,3 +79,4 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they
   land.
+- G474 boss arenas: `game/boss/arenaRoom` consumes room, effect, floor and scene rows; `game/boss/arenaFire` consumes mesh capacity, graph ids and smoke tuning rows. Both are client-only presentation, with a second-shard vault/fire fixture in `test/boss-arena-room.test.ts`.

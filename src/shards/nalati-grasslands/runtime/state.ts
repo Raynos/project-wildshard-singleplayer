@@ -267,7 +267,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ShardManifest.weapon`; the Nalati kit hooks in here ──
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
-  const boss = await wireKurganSliced({ game, sky, player: ctx.player, entrance: pois.kurganEntrance, registry: plugin.app.registry }, macrotask); // SF67: its static interior a task apart per part
+  const boss = await wireKurganSliced({ game, sky, player: ctx.player, entrance: pois.kurganEntrance, registry: plugin.app.registry }, plugin.product, macrotask); // SF67: its static interior a task apart per part
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight

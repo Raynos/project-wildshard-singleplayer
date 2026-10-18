@@ -40,7 +40,8 @@ import { wildEnv } from '../creatures/env';
 
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip, NaizagaiPower } from '../runtime/weapons/Naizagai';
-import { titanCloudMaterial, setTitanAlbedo, syncTitanCloud, GrassFireFx } from './stormTitanLook';
+import { ArenaFireView } from '@wildshard/game/boss/arenaFire';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import * as v from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -50,6 +51,7 @@ const { CAIRN } = layoutRows;
 const finite = v.pipe(v.number(), v.finite()), text = v.string();
 const phaseRow = v.object({ at: finite, caption: text, name: text });
 const TitanFightRows = v.object({
+  arenaFire: v.unknown(),
   TITAN_PHASES: v.array(phaseRow),
   TITAN_ENCOUNTER: v.object({ id: text, name: text, title: text, retryTitle: text, phases: v.array(phaseRow), intro: finite, introShort: finite }),
   TITAN_REWARD: v.object({ tier: text, name: text, flavour: text, prompt: text }),
@@ -203,9 +205,9 @@ export class TitanBody {
 
     const geo = new THREE.IcosahedronGeometry(1, 2);
     // colour: the albedo the cloud lights — the exposed outer puffs full, his core, the skirt and the cloak darker
-    setTitanAlbedo(geo, rows.map((row) => row.colour));
+    geo.setAttribute('aAlbedo', new THREE.InstancedBufferAttribute(new Float32Array(rows.flatMap(row => row.colour)), 3));
     // dark cumulus, lightning veins, the heart's spiral (stormTitanLook.ts)
-    this.puffs = new THREE.InstancedMesh(geo, titanCloudMaterial(), this.list.length);
+    this.puffs = new THREE.InstancedMesh(geo, lentLook('nalati-titan-cloud'), this.list.length);
     this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false;
     this.puffs.name = 'titan-cloud';
     scene.add(this.puffs);
@@ -292,7 +294,14 @@ export class TitanBody {
       this.ringMat.opacity = open * (0.7 + 0.3 * Math.sin(t * 9));
     }
     this.domeMat.uniforms.uTime.value = t;
-    syncTitanCloud(this.uni);
+    this.syncCloud();
+  }
+
+  syncCloud(): void {
+    const t = this.uni.uT.value, h = this.uni.uHeart.value, c = this.uni.uFogC.value, look = 'nalati-titan-cloud';
+    setLentParam(look, 't', t); setLentParam(look, 'heart', [h.x, h.y, h.z]); setLentParam(look, 'glow', this.uni.uGlow.value);
+    setLentParam(look, 'flash', this.uni.uFlash.value); setLentParam(look, 'alpha', this.uni.uAlpha.value);
+    setLentParam(look, 'fogC', [c.r, c.g, c.b]); setLentParam(look, 'fog', this.uni.uFog.value);
   }
 }
 
@@ -350,7 +359,7 @@ export class StormTitanFight implements BossScript {
   private readonly burn = new Uint8Array(this.data.GRID * this.data.GRID);      // 0 grass · 1 burning · 2 burnt
   private readonly burnT = new Float32Array(this.data.GRID * this.data.GRID);
   private spreadT = 0; private fireOn = false; private fireDmgT = 0;
-  private readonly fire: GrassFireFx; private readonly scorch: THREE.InstancedMesh;
+  private readonly fire: ArenaFireView; private readonly scorch: THREE.InstancedMesh;
   private scorchN = 0;
   private readonly chains: Chain[];
   private chainCd = 4; private chainLeft = 0; private chainStep = 0;
@@ -396,7 +405,7 @@ export class StormTitanFight implements BossScript {
     this.debris.frustumCulled = false; this.debris.count = 0; this.debris.name = 'titan-debris';
     scene.add(this.debris);
     // fire: 3D flame tongues + rising smoke (stormTitanLook.ts) and scorch decals
-    this.fire = new GrassFireFx(scene, this.data.MAX_FLAMES, this.body.uni.uFogC, this.body.uni.uFlash, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
+    this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
     const sg = new THREE.PlaneGeometry(this.data.CELL * 1.25, this.data.CELL * 1.25); sg.rotateX(-Math.PI / 2);
     const scMat = new THREE.MeshBasicMaterial({ color: 0x0d0a08, alphaMap: scorchTexture(), transparent: true, opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: false });
     scMat.name = 'titan-scorch';
@@ -742,7 +751,7 @@ export class StormTitanFight implements BossScript {
   }
 
   private updateFire(dt: number, t: number, live: boolean): void {
-    this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed);
+    this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed, this.body.uni.uFogC.value, this.body.uni.uFlash.value);
     if (!this.fireOn) return;
     // spread downwind, 4 times a second
     this.spreadT -= dt;
