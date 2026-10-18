@@ -1,4 +1,8 @@
 {
+  "test/product-in-look.test.ts": [
+    "driftwood-isle",
+    "pine-hollow"
+  ],
   "test/authored-manifest.test.ts": [],
   "test/quadruped-rig-platform.test.ts": [],
   "test/ambient-flock-host.test.ts": [],

@@ -1,4 +1,3 @@
-import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
 import { describe, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the checkout root for the discovery generator.
 import { resolve } from 'node:path';
@@ -15,15 +14,14 @@ import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated'
 
 // progress/shard-platform/product-in-look-o272: the game binds the shard's loaded product into the look and roster loaders
 // it hands the engine; the engine's LevelSpec keeps plain zero-argument loaders.
-// The custom sections a look reads (Driftwood's custom/cumulusPuffs, W2b) come from the shard's emitted output.
+// Both platform look rows and custom rows come from the shard's emitted output.
 const emittedSections = async (slug: string): Promise<Map<string, unknown>> => {
-  const custom = (await readProjectAssets(`src/shards/${slug}`)).output.custom;
+  const output = (await readProjectAssets(`src/shards/${slug}`)).output;
   const sections = new Map<string, unknown>();
-  for (const row of custom?.sections ?? []) {
-    const bytes = custom?.files.get(row.path);
+  for (const group of [output.custom, output.platform]) for (const row of group?.sections ?? []) {
+    const bytes = group?.files.get(row.path);
     if (bytes !== undefined) sections.set(row.name, JSON.parse(new TextDecoder().decode(bytes)));
   }
-  if (slug === 'driftwood-isle') sections.set('held/arms', HELD_ARMS);
   return sections;
 };
 const productOf = async (slug: string): Promise<ShardProduct> => createShardProduct({ slug, revision: 1,
@@ -51,10 +49,13 @@ describe('toLevelSpec binds the product', () => {
 });
 
 describe('Driftwood and Pine looks read the product, not shard.config', () => {
-  for (const manifest of [driftwood, pine]) test(`${manifest.slug} builds its look from product.shardfile`, async () => {
+  for (const manifest of [driftwood, pine]) test(`${manifest.slug} builds its look from product sections`, async () => {
     const product = await productOf(manifest.slug);
     let reads = 0;
-    const counted: ShardProduct = { ...product, get shardfile() { reads += 1; return product.shardfile; } };
+    const counted = new Proxy(product, { get(target, key, receiver): unknown {
+      if (key === 'section') reads += 1;
+      return Reflect.get(target, key, receiver);
+    } });
     const look = await toLevelSpec(manifest, counted).look?.();
     expect(look?.backdrop).toBeTypeOf('function');
     expect(reads).toBeGreaterThan(0);
