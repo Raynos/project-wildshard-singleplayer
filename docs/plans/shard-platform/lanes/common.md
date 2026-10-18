@@ -9,6 +9,20 @@ Finish SHARD-PLATFORM. Read the compacted plan `docs/plans/SHARD-PLATFORM.md` (4
 the game holds **60–120 fps on desktop/laptop and 30–60 fps on the iOS Simulator** (gates: desktop max ≤ 100 ms,
 p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may regress them.
 
+## Proof per batch: G506 (Jake, 2026-10-18) — read this first
+
+Jake: *"What the fuck is all that proof work? … I don't know why you're always doing so much fucking process porn."*
+
+- A batch lands on **types + lint + focused tests of what it touched + the push gate**. Nothing else per batch.
+- **Not per batch:** exact replays (workerExact 1000/1200, replay counts), witnesses or re-recordings, old-save
+  envelopes, all-ten source-product runs, Simulator or iPhone progression runs, proof receipts in `progress/` or
+  `.git/proofs/`, receipt or ack relays between lanes over herdr.
+- Similar, not identical (G415). A fragile test that blocks a cut is deleted (G416).
+- Heavy proofs run only at a W3 milestone or before a grid deploy, once, by one lane.
+- Commit bodies say what changed and the line count (`net -N shard lines (<shard> -N, ...)`), nothing more.
+- Cuts are big (G468): the largest uncut mini-plan batch first; no sub-200 cuts while big ones remain.
+- Landings are source-only (G490): send sp-x10 your SHA plus the map inputs you changed; never bake maps yourself.
+
 ## Rules (AGENTS.md and `docs/process/` win where they say more)
 
 - **Never use the question tool** or wait on a prompt: decide, note the call in your report, keep going. A real fork for
