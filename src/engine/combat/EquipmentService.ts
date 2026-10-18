@@ -78,6 +78,15 @@ export class EquipmentService implements WeaponHooks {
   private readonly scope: Scope;
   private readonly input: EquipmentInput | undefined;
   readonly events: Events | undefined;
+  private readonly eventRoutes: { owner: Scope; events: Events }[] = [];
+  /** A temporary encounter owns equipment publications; compatibility presentation callbacks still run. */
+  routeEvents(owner: Scope, events: Events): void {
+    if (owner.disposed || this.scope.disposed) throw new Error('Equipment event owner is retired');
+    const route = { owner, events }; this.eventRoutes.push(route);
+    owner.onDispose(() => { const index = this.eventRoutes.indexOf(route); if (index !== -1) this.eventRoutes.splice(index, 1); });
+  }
+  private get publishedEvents(): Events | undefined { return this.eventRoutes.at(-1)?.events ?? this.events; }
+
   constructor(first: Weapon, opts: { scope?: Scope; events?: Events; input?: EquipmentInput; order?: WeaponId[] } = {}) {
     this.scope = opts.scope?.child('equipment') ?? new Scope('equipment');
     this.input = opts.input;
@@ -95,16 +104,16 @@ export class EquipmentService implements WeaponHooks {
   }
   private wire(w: Weapon): void {
     // Compatibility callbacks keep existing source clocks; each boundary publishes once for new subscribers.
-    w.onFire = () => { this.events?.emit('weapon.fired', { id: w.row.id }); this.onFire?.(); };
-    w.onHit = (kind, headshot, killed) => { this.events?.emit('weapon.hit', { id: w.row.id, kind, headshot, killed }); this.onHit?.(kind, headshot, killed); };
-    w.onImpact = (surface, point) => { this.events?.emit('weapon.impact', { id: w.row.id, surface, point: point.clone() }); this.onImpact?.(surface, point); };
-    w.onReloadStart = () => { this.events?.emit('weapon.reload', { id: w.row.id, phase: 'start' }); this.onReloadStart?.(); };
-    w.onReloadEnd = () => { this.events?.emit('weapon.reload', { id: w.row.id, phase: 'end' }); this.onReloadEnd?.(); };
-    w.onDry = () => { this.events?.emit('weapon.dry', { id: w.row.id }); this.onDry?.(); };
+    w.onFire = () => { this.publishedEvents?.emit('weapon.fired', { id: w.row.id }); this.onFire?.(); };
+    w.onHit = (kind, headshot, killed) => { this.publishedEvents?.emit('weapon.hit', { id: w.row.id, kind, headshot, killed }); this.onHit?.(kind, headshot, killed); };
+    w.onImpact = (surface, point) => { this.publishedEvents?.emit('weapon.impact', { id: w.row.id, surface, point: point.clone() }); this.onImpact?.(surface, point); };
+    w.onReloadStart = () => { this.publishedEvents?.emit('weapon.reload', { id: w.row.id, phase: 'start' }); this.onReloadStart?.(); };
+    w.onReloadEnd = () => { this.publishedEvents?.emit('weapon.reload', { id: w.row.id, phase: 'end' }); this.onReloadEnd?.(); };
+    w.onDry = () => { this.publishedEvents?.emit('weapon.dry', { id: w.row.id }); this.onDry?.(); };
   }
   add(w: Weapon | Tool, opts: { locked: boolean; order?: number }): void {
     if ([...this.list, ...this.tools].some((item) => item.row.id === w.row.id)) throw new Error(`Duplicate equipment ${w.row.id}`);
-    w.install({ scope: this.scope.child(w.row.id), ...(this.events === undefined ? {} : { events: this.events }) });
+    w.install({ scope: this.scope.child(w.row.id), ...(this.events === undefined ? {} : { events: this.events }), eventSource: () => this.publishedEvents });
     if (w instanceof Tool) this.tools.push(w);
     else {
       this.input?.bind(`swap.weapon.${w.id}`, () => { this.select(w.id); }, this.scope, () => this.enabled);
@@ -125,7 +134,7 @@ export class EquipmentService implements WeaponHooks {
     next.state.reloadProgress = previous.state.reloadProgress;
     next.state.ads = previous.state.ads;
     next.holster = previous.holster;
-    next.install({ scope: this.scope.child(next.row.id), ...(this.events === undefined ? {} : { events: this.events }) }); this.wire(next);
+    next.install({ scope: this.scope.child(next.row.id), ...(this.events === undefined ? {} : { events: this.events }), eventSource: () => this.publishedEvents }); this.wire(next);
     this.list[index] = next;
     if (this.current === previous) this.current = next;
     if (this.swapping?.from === previous) this.swapping.from = next;
@@ -184,7 +193,7 @@ export class EquipmentService implements WeaponHooks {
     this.unlocked.add(id);
     this.apply();
     const item = [...this.list, ...this.tools].find((w) => w.id === id);
-    if (item !== undefined) this.events?.emit('weapon.unlocked', { id: item.row.id });
+    if (item !== undefined) this.publishedEvents?.emit('weapon.unlocked', { id: item.row.id });
     this.onUnlock?.(id);
   }
   /** what the player owned before the practice room lent the whole kit (null = no loan running) */
@@ -219,7 +228,7 @@ export class EquipmentService implements WeaponHooks {
     }
     this.swapping = { from: this.current, to, t: 0, switched: false };
     this.apply();
-    this.events?.emit('weapon.swap', { to: to.row.id });
+    this.publishedEvents?.emit('weapon.swap', { to: to.row.id });
     this.onSwap?.(id);
   }
   /** Select the next owned slot, if there is one. */

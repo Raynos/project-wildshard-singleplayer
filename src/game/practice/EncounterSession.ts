@@ -82,6 +82,13 @@ export class EncounterSession<Selection, Actor extends object> {
     return this.selected === null ? Promise.resolve(false) : this.select(this.selected.value);
   }
 
+  /** A retained loaded actor opens a fresh bout on entry/retry; prior receipts never carry into it. */
+  begin(actor: Actor): boolean {
+    if ((this.current.phase !== 'active' && this.current.phase !== 'defeated') || this.current.actor !== actor) return false;
+    this.current = Object.freeze({ ...this.current, phase: 'active', attempt: this.current.attempt + 1, reward: null });
+    return true;
+  }
+
   /** Claims one in-memory practice result for the currently active actor. */
   defeat(actor: Actor): PracticeEncounterReward<Selection> | null {
     if (this.current.phase !== 'active' || this.current.actor !== actor || this.selected === null) return null;

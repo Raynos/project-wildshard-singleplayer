@@ -40,7 +40,7 @@ export interface EquipmentRow { pickup?: EquipmentPickupSpec; rangedFeel?: Range
 export interface EquipmentBlock { dispose: () => void }
 export type BlockSet = Partial<Record<'vm' | 'aim' | 'ads' | 'melee' | 'projectile' | 'hitStop' | 'ammo' | 'brass', EquipmentBlock>>;
 /** The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land. */
-export interface EquipContext { scope: Scope; events?: Events }
+export interface EquipContext { scope: Scope; events?: Events; eventSource?: () => Events | undefined }
 
 export abstract class Equipment {
   readonly attributes: AttributeSet = {};
@@ -50,7 +50,9 @@ export abstract class Equipment {
   abstract enabled: boolean;
   protected readonly blocks: BlockSet = {};
   private owner: Scope | undefined;
-  protected equipEvents: Events | undefined;
+  private baseEvents: Events | undefined;
+  private eventSource: (() => Events | undefined) | undefined;
+  protected get equipEvents(): Events | undefined { return this.eventSource === undefined ? this.baseEvents : this.eventSource(); }
   row: EquipmentRow;
   constructor(row: EquipmentRow) { this.row = row; }
   get meta(): EquipmentMeta { return this.row.meta; }
@@ -58,7 +60,7 @@ export abstract class Equipment {
   install(ctx: EquipContext): void {
     if (this.owner) throw new Error(`Equipment ${this.row.id} is already installed`);
     this.owner = ctx.scope;
-    this.equipEvents = ctx.events;
+    this.baseEvents = ctx.events; this.eventSource = ctx.eventSource;
     ctx.scope.onDispose(() => { this.enabled = false; for (const block of Object.values(this.blocks)) block.dispose(); });
   }
   abstract update(dt: number, t: number): void;

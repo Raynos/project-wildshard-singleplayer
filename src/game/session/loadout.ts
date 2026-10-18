@@ -120,11 +120,14 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
         const selected = choices.find(choice => choice.id === id);
         if (selected === undefined || !selected.support.supported) throw new Error('This opponent has no isolated practice adapter.');
         const actor = await PracticeCreature.create({ species: selected.species, strikes: program.strikes, variant: selected.variant,
-          scene: game.rootScene, sky, physics: world.physics, player: player.position, owner: game.levelScope,
-          onPlayerDamage: (_damage, remaining) => { reportPractice(`Practice health: ${remaining}/100. World health unchanged.`); },
+          scene: game.rootScene, sky, physics: world.physics, player, product, weapons, capExempt: chunk.fight?.capExempt, flash: () => hud.damageFlash(), style: game.level.creatureStyle ?? 'pbr', render: game.level.creatures, owner: game.levelScope,
+          onBegin: () => { encounter.begin(actor); reportPractice('Bout started. Local health and rewards reset.'); },
+          onPlayerDeath: () => { reportPractice('Defeated. Use Retry this opponent to start a fresh bout.'); },
+          onCollect: coins => { reportPractice(`Collected ${coins} practice coins. World purse unchanged.`); },
+          onPlayerDamage: (_damage, remaining) => { reportPractice(`Practice health: ${remaining}/${actor.playerMaxHealth}. World health unchanged.`); },
           onDamage: (amount, _point, died) => {
             if (died) { encounter.defeat(actor); reportPractice('Opponent defeated. Practice reward recorded once; no world progress.'); }
-            else reportPractice(`Hit: ${amount}. Practice health: ${actor.playerHealth}/100.`);
+            else reportPractice(`Hit: ${amount}. Practice health: ${actor.playerHealth}/${actor.playerMaxHealth}.`);
           },
         });
         return actor;
@@ -136,6 +139,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
         ? { id: choice.id, label: choice.label }
         : { id: choice.id, label: choice.label, unavailable: choice.support.reason ?? 'Unsupported isolated behavior' }),
       load: async id => await encounter.select(id) ? encounter.snapshot.actor : null,
+      retry: () => { encounter.snapshot.actor?.retry(); },
       clear: () => { encounter.exit(); }, tick: update => { game.onUpdate(update, 'practice-picker'); },
     });
     reportPractice = picker.status;

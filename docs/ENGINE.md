@@ -9818,3 +9818,27 @@ people and Driftwood's Castaway/Trader use the game host; their dialogue,
 prompt reach, save ownership and gesture laws stay unchanged. The callback
 `NpcRig` wrapper is retired from both current shards, alongside Pine's
 three figure runtime modules. The legacy snapshots still use the old wrapper.
+
+### Isolated practice opponents
+
+`AnimalFactory(sky, { kinds, style, render })` can prepare only the selected resident species looks. `kinds` is optional:
+ordinary level factories still preload the complete resident set. An unknown selected kind refuses construction;
+repeated kinds share one preload. The caller supplies the active shard's style/render contract.
+
+`TrainingArena` calls an optional opponent's `enter(at)` after weapon loan selection and the arena player spawn, so
+its owner observes the real bout start. Each entry/retry owns fresh creature health, decision authority, contacts,
+player health and local reward state; `exit()` releases those registrations. Default three-dummy practice is unchanged.
+Practice decision guests use admitted product bytes and bout-local events, and cannot receive world flag authority.
+Weapon damage formulas and actor-owned guard rules are retained. Arbitrary world modifier callbacks are not inherited;
+new effects need explicit bout-owned data admission before parity can be claimed. Coin pickup receipts are practice-only.
+
+Selected practice opponents may expose `playerVitals` and `land(hard)`; the room delegates landing damage and the HUD
+reads these local vitals. While the arena is active, world-player damage admission and regeneration are suspended.
+`EquipmentService.routeEvents(owner, events)` temporarily routes equipment publications to the encounter's event bus;
+owner disposal restores the previous route. Existing compatibility callbacks remain presentation-only at this boundary.
+`EquipContext.eventSource` optionally resolves the current event owner for direct weapon publications such as charge;
+without it, equipment keeps its installed `events` bus. EquipmentService supplies its scoped route as this source.
+
+The arena owns this equipment-event route before `lendAll()` and through `endLoan()`, covering loan unlocks as well as
+combat publications. Each opponent independently owns its damage/decision event bus; retries do not replace the room's
+publication route. Default dummy practice uses the same temporary equipment-publication boundary.

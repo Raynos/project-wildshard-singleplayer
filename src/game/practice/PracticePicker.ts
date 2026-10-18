@@ -13,6 +13,7 @@ export function installPracticePicker(options: {
   readonly choices: readonly PracticeChoice[];
   readonly load: (id: string) => Promise<PracticeOpponent | null>;
   readonly clear: () => void;
+  readonly retry: () => void;
   readonly tick: (update: () => void) => void;
 }): { status: (message: string) => void } {
   const scope = options.owner.child('practice-picker');
@@ -26,13 +27,18 @@ export function installPracticePicker(options: {
     option.disabled = row.unavailable !== undefined; option.title = row.unavailable ?? ''; select.append(option);
   }
   const status = document.createElement('p'); status.textContent = 'Experimental. Practice rewards stay in this bout.';
-  panel.append(summary, select, status); mountUi(panel, scope);
+  const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = 'Retry this opponent';
+  scope.listen(retry, 'click', () => {
+    if (!options.arena.entered) return;
+    try { options.retry(); } catch (error: unknown) { status.textContent = error instanceof Error ? error.message : 'Retry failed.'; }
+  });
+  panel.append(summary, select, retry, status); mountUi(panel, scope);
   let loading = false, request = 0;
   scope.listen(select, 'change', () => {
     if (options.arena.entered) return;
     const token = ++request, id = select.value;
     options.arena.setOpponent(null); options.clear();
-    if (id === '') { status.textContent = 'Three training dummies selected.'; return; }
+    if (id === '') { loading = false; status.textContent = 'Three training dummies selected.'; return; }
     loading = true; status.textContent = 'Preparing isolated opponent…';
     const prepare = async (): Promise<void> => {
       try {
@@ -50,6 +56,8 @@ export function installPracticePicker(options: {
   const update = (): void => {
     panel.hidden = !isDev() || (app.state !== 'explore' && !options.arena.entered);
     select.disabled = loading || options.arena.entered;
+    retry.hidden = !options.arena.entered || select.value === '';
+    retry.disabled = loading;
   };
   options.tick(update); const stopDev = onDev(update); scope.onDispose(stopDev); update();
   scope.onDispose(() => { request++; options.clear(); });

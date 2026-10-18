@@ -153,6 +153,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     impulse: (velocity) => player.impulse(velocity),
   });
   app.registerPlayer(playerHealth, game.levelScope);
+  app.events.answer('damage.admit', request => request !== null && arena.entered && request.target === playerHealth ? null : request, game.levelScope);
   installBounds(app, game.levelScope, bounds, { player,
     toSpawn: () => { if (gridLive === null) toSpawn(); else app.combat.fall(playerHealth, player.position, { kind: 'out-of-world', label: '' }); },
     fallFloor: () => gridLive?.fallFloor() ?? bounds?.floor ?? GRID_FALL_FLOOR,
@@ -279,7 +280,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     music.combat(0.7);
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
-    if (killed) { kills++; audio.kill(); }
+    if (killed) { if (!arena.entered) kills++; audio.kill(); }
     buzz(killed ? HAPTIC.kill : HAPTIC.hit);
   };
   // aim assist reads the live array; Nalati hands it a filtered copy each frame (B9 / B15: a wolf hidden in long grass, the
@@ -365,7 +366,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   lockSys.onNone = () => { audio.lockNone(); };
   lockSys.onFlickMiss = (dir) => { lockOn.flashMiss(dir); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
-  player.onLand = (hard) => playerHurt.fall(hard);
+  player.onLand = (hard) => { if (arena.entered) arena.land(hard); else playerHurt.fall(hard); };
   // ── death (E295): a fade to dark with a "Mauled by a brown bear / respawning at Wreck Cove" card (src/engine/ui/DeathFade.ts),
   // the respawn under the dark at the last named place you reached (src/game/LastPlace.ts; Driftwood's places, the spawn
   // when none), input frozen and no hit taken until the view is back. A boss fight's death keeps its own checkpoint. ──
@@ -655,7 +656,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       weaponUi: weapons.current.row.ui,
-      health: playerHealth.attributes.health, maxHealth: playerHealth.attributes.maxHealth, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+      health: arena.playerVitals?.health ?? playerHealth.attributes.health, maxHealth: arena.playerVitals?.maxHealth ?? playerHealth.attributes.maxHealth, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
     mark('hud');
@@ -665,7 +666,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     if (app.player !== playerHealth) return;
     if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
   }, game.levelScope);
-  app.addSystem({ id: 'engine.player.regen', phase: 'update', after: ['main.frame'], before: ['engine.player.hud'], run: (dt) => playerHealth.update(dt) }, game.levelScope);
+  app.addSystem({ id: 'engine.player.regen', phase: 'update', after: ['main.frame'], before: ['engine.player.hud'], run: (dt) => { if (!arena.entered) playerHealth.update(dt); } }, game.levelScope);
 
   // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/engine/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
   const at = (params.get('at') ?? '').split(',').map(Number);

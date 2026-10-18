@@ -162,3 +162,18 @@ test('victory is practice-only, once per actor attempt, and exit clears all rewa
   expect(save).not.toHaveBeenCalled();
   expect(f.dispose.mock.calls).toEqual([[first], [second]]);
 });
+
+test('retained actor reentry and retry reset the receipt and permit one new defeat per bout', async () => {
+  const actor = { id: 'one' };
+  const session = new EncounterSession<string, Actor>({ load: () => Promise.resolve(actor), dispose: () => undefined });
+  await session.select('selected');
+  expect(session.begin(actor)).toBe(true);
+  const first = session.defeat(actor);
+  expect(first).not.toBeNull(); expect(session.defeat(actor)).toBeNull();
+  expect(session.begin(actor)).toBe(true); expect(session.snapshot.reward).toBeNull();
+  const second = session.defeat(actor);
+  expect(second?.attempt).toBeGreaterThan(first?.attempt ?? 0);
+  expect(session.snapshot.rewardCount).toBe(2);
+  expect(session.begin({ id: 'one' })).toBe(false);
+  session.exit(); expect(session.begin(actor)).toBe(false);
+});

@@ -2,3 +2,5 @@
 .ws-practice-picker[hidden] { display: none; }
 .ws-practice-picker select { width: 100%; margin-top: 8px; min-height: 36px; background: #12304a; color: white; }
 .ws-practice-picker p { margin: 8px 0 0; line-height: 1.4; }
+
+.ws-practice-picker button { margin-top: 8px; min-height: 40px; width: 100%; background: #12304a; color: white; border: 1px solid #75d9ff; }

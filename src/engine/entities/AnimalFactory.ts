@@ -294,12 +294,18 @@ export class AnimalFactory {
   readonly ready: Promise<void>;
 
   private readonly sky: Sky;
-  constructor(sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+  constructor(sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined; kinds?: readonly string[] } = {}) {
     this.sky = sky;
     this.style = opts.style ?? 'pbr';
     this.render = opts.render ?? selectedLevel()?.creatures ?? DEFAULT_CREATURE_RENDER;
-    this.ready = this.render.waitForModels ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();
-    if (!this.render.waitForModels) for (const preload of app.species.preloads()) void preload().catch(() => undefined);
+    // An isolated encounter prepares its selected look; ordinary level factories retain the full resident set.
+    const preloads = opts.kinds === undefined ? app.species.preloads() : [...new Set(opts.kinds.flatMap(kind => {
+      if (app.species.get(kind) === undefined) throw new Error(`Unknown creature kind ${kind}`);
+      const preload = app.species.look(kind)?.preload;
+      return preload === undefined ? [] : [preload];
+    }))];
+    this.ready = this.render.waitForModels ? Promise.all(preloads.map(preload => preload())).then(() => undefined) : Promise.resolve();
+    if (!this.render.waitForModels) for (const preload of preloads) void preload().catch(() => undefined);
   }
 
   /** Resolves once the active level's looks have finished what their hulls started (`SpeciesLook.settle`: a coat painted
