@@ -1,0 +1,63 @@
+{
+  "sourceTree": "287a8997838e7497bd9f4b421ec27b0ee34d65b1",
+  "sourceParent": "287a8997838e7497bd9f4b421ec27b0ee34d65b1",
+  "commitParent": "287a8997838e7497bd9f4b421ec27b0ee34d65b1",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2318,
+  "shards": {
+    "pine-hollow": {
+      "inputHash": "6bce4e04fc1f1bb8f8587dd20471d968473433f9c2d3975abadf301d85ff7197",
+      "inputFiles": 271,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "6bce4e04fc1f1bb8f8587dd20471d968473433f9c2d3975abadf301d85ff7197",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "287a8997838e7497bd9f4b421ec27b0ee34d65b1",
+      "owner": "sp-x7",
+      "shards": [
+        "pine-hollow"
+      ],
+      "change": "Remove impossible ambience tuple checks; emitted coordinates unchanged; three fixture-only companion edits",
+      "ownerProof": "All10 source products, root/layer types, typedlint and37 focused including17headless green"
+    }
+  ],
+  "pixelComparison": {
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "pine-hollow": []
+  }
+}
