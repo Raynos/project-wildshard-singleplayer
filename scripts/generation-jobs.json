@@ -3,6 +3,43 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nalati-decorative",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-decorative.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-decorative.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/generators",
+        "src/shards/nalati-grasslands/data/places.json",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "src/shards/nalati-grasslands/data/campCatalogue.json",
+        "src/commons"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/decorative.generated.json",
+        "src/shards/nalati-grasslands/boot/poiScenes.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/decorative.generated.json": "6cda10539e2522b588d0d96d73f96beadb4ec7a92aaf07b988fa7eadb753567a",
+        "src/shards/nalati-grasslands/boot/poiScenes.generated.json": "d92a0f55ac10e59c60ca4120a0e749670aba07b5f8cb01aeb91c19f9c37d196c"
+      },
+      "seedOutputs": []
+    },
+    {
       "id": "nine-client-rows",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-client-rows.mjs",

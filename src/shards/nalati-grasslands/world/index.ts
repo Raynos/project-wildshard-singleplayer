@@ -1,5 +1,5 @@
+import { fence, signpostBaked as signpost, windCairn, kunesBridge, yurt, cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost, kazan, chest, ribbonPole, eaglePerch, stove, campBench, rugRack, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, firewood, kumisChurn, groundSaddle, perchedEagle, graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import * as THREE from 'three';
-import { graniteOutcrop, roundedBoulder, fieldstoneBaked as fieldstone, stoneStep, watchtower, cragLedge, leopardCave, kurganEntrance, kurganKerb, eagleRock } from '../models/catalogue';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { app } from '@wildshard/engine/app/runtime';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
@@ -11,16 +11,12 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { Flutter } from './Flutter';
-import { nomadCampSteps } from './NomadCamp';
-import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceSteps, bakedPlaceAnchors, placer } from './placeBake';
-import { buildBridge } from './Bridge';
-import { buildRoadFurniture } from './RoadFurniture';
-import { summerCampSteps } from './SummerCamp';
+import { preloadNalatiPlaces, bakedPlaceSliced, bakedPlaceSteps, bakedPlaceAnchors, bakedSignLettering, placer } from './placeBake';
 import { buildBalbals, type Balbals } from './Balbals';
-import { buildCairn } from './Cairn';
 import { buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
+import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import type { Box } from './solid';
-import { NO_PLUMES, type Ground, type PlumeOptions, type Plumes, type PoiCtx, type PoiPiece, type KurganEntrance, type Ledge } from './types';
+import type { Ground, PlumeOptions, Plumes, PoiCtx, PoiPiece, KurganEntrance, Ledge } from './types';
 
 
 /**
@@ -53,6 +49,7 @@ import { NO_PLUMES, type Ground, type PlumeOptions, type Plumes, type PoiCtx, ty
 /** the camp smoke's look (data/lookGraphs.json, compiled and lent by runtime/index.ts): each puff a camera-facing card
  *  whose whole life (rise, swell, lean downwind, fade) the graph computes from its plume, seed and the look clock */
 const SMOKE_LOOK = 'nalati-camp-smoke';
+const CAMP_PLACERS = new Map([placer(yurt), placer(ribbonPole), placer(eaglePerch), placer(stove), placer(campBench), placer(rugRack), placer(feltRug), placer(cart), placer(barrel), placer(hitchingRail), placer(waterTrough), placer(saddleRack), placer(corral), placer(hayPile), placer(feedTrough), placer(rugLine), placer(choppingBlock), placer(milkCans), placer(kazan), placer(chest), placer(firewood), placer(kumisChurn), placer(groundSaddle), placer(perchedEagle), placer(tetherLine), placer(kurtBoard), placer(ribbonPost), placer(kunesBridge), placer(windCairn), placer(fence), placer(signpost)]);
 const KURGAN_PLACERS = new Map([placer(kurganKerb), placer(fieldstone), placer(kurganEntrance)]);
 const EAGLE_PLACERS = new Map([placer(eagleRock)]);
 const CRAG_PLACERS = new Map([placer(cragLedge), placer(leopardCave)]);
@@ -127,13 +124,16 @@ export class NalatiPOIs {
         yield;
       }
     };
-    { const camp = yield* timed(nomadCampSteps(ctx)); add('camp', camp.value, camp.ms); }
+    { const camp = yield* timed(bakedPlaceSteps('camp', ctx, CAMP_PLACERS)); add('camp', camp.value, camp.ms); }
     yield;
-    run('bridge', buildBridge);
+    { const bridge = yield* timed(bakedPlaceSteps('bridge', ctx, CAMP_PLACERS)); add('bridge', bridge.value, bridge.ms); }
     yield;
-    run('roads', buildRoadFurniture);
+    { const roads = yield* timed(bakedPlaceSteps('roads', ctx, CAMP_PLACERS));
+      const text = bakedSignLettering(ctx.sky, 'roads');
+      roads.value.object.children.splice(1, 0, text); text.parent = roads.value.object;
+      add('roads', { ...roads.value, tris: roads.value.tris + (text.geometry.index?.count ?? 0) / 3 }, roads.ms); }
     yield;
-    { const summer = yield* timed(summerCampSteps(ctx)); add('summerCamp', summer.value, summer.ms); }
+    { const summer = yield* timed(bakedPlaceSteps('summerCamp', ctx, CAMP_PLACERS)); add('summerCamp', summer.value, summer.ms); }
     yield;
     let crownSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
     { const k = yield* timed(bakedPlaceSteps('kurgans', ctx, KURGAN_PLACERS)), anchors = bakedPlaceAnchors('kurgans'); this.kurganEntrance = anchors.entrance ?? null; crownSpots = anchors.balbalSpots ?? []; add('kurgans', k.value, k.ms); }
@@ -143,7 +143,8 @@ export class NalatiPOIs {
     yield;
     { const rock = yield* timed(bakedPlaceSteps('eagleRock', ctx, EAGLE_PLACERS)); add('eagleRock', rock.value, rock.ms); }
     yield;
-    run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
+    { const cairn = yield* timed(bakedPlaceSteps('cairn', ctx, CAMP_PLACERS)), at = poiLayout.WIND_CAIRN;
+      this.cairnTieSpot = new THREE.Vector3(at.x + 3.6, ctx.ground(at.x, at.z), at.z); add('cairn', cairn.value, cairn.ms); }
     yield;
     { const k = yield* timed(bakedPlaceSteps('crags', ctx, CRAG_PLACERS)), anchors = bakedPlaceAnchors('crags'); this.cragLedges = anchors.ledges ?? []; this.cragCave = anchors.cave ?? null; add('crags', k.value, k.ms); }
     yield;
@@ -229,5 +230,5 @@ export class NalatiPOIs {
 /** Static escarpment geometry shares the same baked-place owner as the landmarks. */
 export async function buildBakedOutcrops(sky: Sky, yieldTask: () => Promise<void>): Promise<PoiPiece> {
   await preloadNalatiPlaces();
-  return bakedPlaceSliced('outcrops', { sky, ground: () => 0, flutter: new Flutter(), smoke: NO_PLUMES }, new Map([placer(graniteOutcrop), placer(roundedBoulder)]), yieldTask, { every: 200, yieldTask });
+  return bakedPlaceSliced('outcrops', { sky, ground: () => 0, flutter: new Flutter(), smoke: { emitter: () => undefined } }, new Map([placer(graniteOutcrop), placer(roundedBoulder)]), yieldTask, { every: 200, yieldTask });
 }

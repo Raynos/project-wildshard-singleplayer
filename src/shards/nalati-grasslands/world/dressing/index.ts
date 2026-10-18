@@ -38,7 +38,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
 import { DressLayer, DRESSING_PLAN, type Inst, type DressPlan } from './layer';
 import { fallenLog, stump, ovoo, viewpointPole, skyGateway, fence, campClutter } from '../../models/catalogue';
-import { NO_PLUMES, type PoiPiece } from '../types';
+import type { PoiPiece } from '../types';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../modelView';
 import type { Box } from '../solid';
@@ -226,7 +226,7 @@ export class NalatiDressing {
   }
 
   private staticSteps(name: string): Generator<void, PoiPiece> {
-    return bakedPlaceSteps(name, { sky: this.sky, ground: () => 0, flutter: this.flutter, smoke: NO_PLUMES }, new Map([placer(fallenLog), placer(stump), placer(ovoo), placer(viewpointPole), placer(skyGateway), placer(fence), placer(campClutter)]));
+    return bakedPlaceSteps(name, { sky: this.sky, ground: () => 0, flutter: this.flutter, smoke: { emitter: () => undefined } }, new Map([placer(fallenLog), placer(stump), placer(ovoo), placer(viewpointPole), placer(skyGateway), placer(fence), placer(campClutter)]));
   }
 
   private addClutter(cl: PoiPiece): void {

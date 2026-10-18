@@ -19,8 +19,8 @@ const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.p
 const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
-// `pnpm gen` writes these two tables before the generation step; producers read them (scripts/gen.mjs).
-const preGenerationTables=new Set(['src/game/systems/viewmodel/clips.generated.ts','src/game/weapons/starter.generated.ts']);
+// `pnpm gen` writes these tables before the generation step; producers read them (scripts/gen.mjs).
+const preGenerationTables=new Set(['src/game/systems/viewmodel/clips.generated.ts','src/game/weapons/starter.generated.ts','src/game/bag/starter.generated.ts','src/game/systems/effects/starter.generated.ts']);
 /** @type {Map<string,Set<string>|null>} */
 const registeredOutputs=new Map();
 /** A gitignored table that `pnpm gen` writes only AFTER the generation step (boot byte / version / pack tables, the shard

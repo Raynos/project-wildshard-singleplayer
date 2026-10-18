@@ -14,8 +14,6 @@ export type Ground = (x: number, z: number) => number;
 export interface PlumeOptions { puffs?: number; rise?: number; size?: [number, number]; life?: number; density?: number }
 /** where the places put their plumes: world/index.ts draws them all on the camp-smoke look; a bake records them */
 export interface Plumes { emitter: (p: THREE.Vector3, o?: PlumeOptions) => void }
-/** plumes nobody draws (a dressing or model view with no smoke) */
-export const NO_PLUMES: Plumes = { emitter: () => undefined };
 export type Platform = (x: number, z: number) => number | undefined;
 
 /** what every POI builder is handed: the sky (material), the terrain, and the two shared animated meshes */

@@ -62,9 +62,10 @@ function sources(dir = join(ROOT, 'src')) {
  *    (M3, Nalati: every place; the camps and the roads joined in the second pass, with NalatiPOIs itself; E315).
  */
 export const ON_CONTRACT = [
-  'src/shards/nalati-grasslands/world/painted.ts', 'src/shards/nalati-grasslands/world/Balbals.ts', 'src/shards/nalati-grasslands/world/Bridge.ts',
-  'src/shards/nalati-grasslands/world/Cairn.ts',
-  'src/shards/nalati-grasslands/world/Bowl.ts', 'src/shards/nalati-grasslands/world/NomadCamp.ts', 'src/shards/nalati-grasslands/world/SummerCamp.ts', 'src/shards/nalati-grasslands/world/RoadFurniture.ts',
+  'src/shards/nalati-grasslands/world/painted.ts',
+  'src/shards/nalati-grasslands/world/placeBake.ts',
+  'src/shards/nalati-grasslands/world/Balbals.ts',
+  'src/shards/nalati-grasslands/world/Bowl.ts',
   'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
   'src/shards/nalati-grasslands-legacy/cragRock.ts',

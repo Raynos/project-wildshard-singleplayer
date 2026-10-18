@@ -1,3 +1,5 @@
+import scenes from '../boot/poiScenes.generated.json' with { type: 'json' };
+import { createClientScene } from '@wildshard/game/plugin/ui';
 import poiPaint from '../boot/poiPaint.json' with { type: 'json' };
 import signAtlases from '../boot/signAtlases.json' with { type: 'json' };
 import { unzlibSync } from 'fflate';
@@ -260,7 +262,7 @@ const placement = (p: PlacementRow): Omit<Placement<object>, 'params'> => {
   const at = heading === undefined ? rest : { ...rest, yaw: Math.atan2(heading[0], heading[1]) };
   return matrix === undefined ? at : { ...at, matrix: new THREE.Matrix4().fromArray(matrix) };
 };
-const member = (m: MemberRow): MemberData => ({
+export const bakedMember = (m: MemberRow): MemberData => ({
   draw: m.draw === 'instanced' ? 'instanced' : 'merged', inKit: m.inKit, placements: m.placements.map(placement), boxes: [...m.boxes],
   solid: m.solid.map(desc), descs: m.descs.map(desc), floors: m.floors.map((f) => ('kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))),
 });
@@ -297,30 +299,18 @@ export function* bakedPlaceSteps(name: string, ctx: PoiCtx, placers: ReadonlyMap
   for (let i = 0; i < index; i++) first += PLACES.rows[i]?.meshes.length ?? 0;
   // the builders made the group first, then the meshes in their own order (the yard, the felt, the painted mesh, the
   // timber), so the objects' and materials' ids (the render lists' ties) are the page's; each goes to its child slot
-  const top = row.group === null ? null : new THREE.Group();
-  if (top !== null && row.group !== null) top.name = row.group;
-  const meshes: THREE.Mesh[] = [];
-  for (const [k, m] of row.meshes.entries()) {
-    const geometry = yield* geometryAtSteps(bake.bytes, bake.at[first + k] ?? 0, m.geometry);
-    const mesh = new THREE.Mesh(geometry, materialOf(ctx, m.material));
-    mesh.name = m.name;
-    if (m.material === 'yard') { mesh.receiveShadow = true; mesh.renderOrder = 1; } else { mesh.castShadow = true; mesh.receiveShadow = true; }
-    meshes[m.slot] = mesh;
+  const geometry = new Map<string, THREE.BufferGeometry>();
+  for (const [k, mesh] of row.meshes.entries()) {
+    geometry.set(`mesh-${k}`, yield* geometryAtSteps(bake.bytes, bake.at[first + k] ?? 0, mesh.geometry));
     yield;
   }
+  const recipe = Object.entries(scenes).find(([key]) => key === name)?.[1];
+  if (recipe === undefined) throw new Error(`Missing prepared place scene: ${name}`);
+  const object = createClientScene(recipe, { geometry,
+    materials: new Map(row.meshes.map(mesh => [mesh.material, materialOf(ctx, mesh.material)])) }).root;
   replayEffects(ctx, row.effects);
-  const instances = row.instances.map(([n, l]): [NalatiModelName, InstanceData] => [n as NalatiModelName, { look: l.look, castShadow: l.castShadow, placements: [...l.placements] }]);
-  const members = row.members.map(([id, m]) => [id, member(m)] as const);
-  let object: THREE.Object3D;
-  if (top === null) {
-    const only = meshes[0];
-    if (only === undefined || meshes.length !== 1) throw new Error(`[nalati-grasslands] baked place '${name}' is not one mesh`);
-    object = only;
-  } else {
-    for (const m of meshes) top.add(m);
-    flushInstances(instances, top, ctx.sky);
-    object = top;
-  }
+  const members = row.members.map(([id, m]) => [id, bakedMember(m)] as const);
+  if (row.group !== null) flushInstances(row.instances.map(([model, instance]): [NalatiModelName, InstanceData] => [model as NalatiModelName, { ...instance, placements: [...instance.placements] }]), object, ctx.sky);
   const group = object;
   const register = (o: Omit<SetRegister, 'object' | 'group'>): Placed[] => members.map(([id, m]) => {
     const put = placers.get(id);

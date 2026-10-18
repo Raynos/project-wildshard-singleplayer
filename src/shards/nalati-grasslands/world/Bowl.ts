@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
-import { poiMaterial, loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
+import { instanceModel, poiMaterial, loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './modelView';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { inPoiClearing } from './terrain';
-import { NalatiSet } from './painted';
+import rows from '../boot/decorative.generated.json' with { type: 'json' };
 import type { PoiCtx, PoiPiece } from './types';
 import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';
-import { bakedActorGeometry, bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
+import { bakedMember, bakedActorGeometry, bakedPlaceSteps, bakedPlaceAnchors, placer, type Placer } from './placeBake';
 import { glacierSnout } from '../models/glacierSnout';
 import fixed from '../boot/poiPaint.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';
@@ -19,7 +19,7 @@ import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { BOWL_GLSL } from '../runtime/looks/bowlGlsl';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
 
-const { KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } = layoutRows;
+const { KOKPAR, KURGANS, SUMMER_YURTS } = layoutRows;
 
 
 /**
@@ -122,12 +122,6 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
 // ── the herds in the hundreds ────────────────────────────────────────────────────────────────────────────────────────
 
 /** the herds' grazing grounds on the bowl floor (the AI herd with the stallion is on HORSE_PLAINS too) */
-const HERDS: { x: number; z: number; r: number; n: number }[] = [
-  { x: HORSE_PLAINS.x + 8, z: HORSE_PLAINS.z - 6, r: 42, n: PHONE ? 50 : 80 },
-  { x: -16, z: 62, r: 30, n: PHONE ? 34 : 56 },
-  { x: 130, z: 6, r: 30, n: PHONE ? 34 : 56 },
-  { x: -150, z: 24, r: 26, n: PHONE ? 30 : 48 },
-];
 /** coats as a tint over the dun far LOD: bay, chestnut, dun, grey, black, a light dun */
 const COATS: [number, number, number][] = [[0.78, 0.55, 0.42], [1.0, 0.62, 0.42], [1, 1, 1], [1.25, 1.22, 1.18], [0.32, 0.3, 0.3], [1.15, 1.08, 0.95]];
 
@@ -143,25 +137,10 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
     inPoiClearing(x, z, 4) || KURGANS.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + 3) || Math.hypot(x - SUMMER_YURTS.x, z - SUMMER_YURTS.z) < 20;
   interface Horse { x: number; z: number; yaw: number; s: number; speed: number; turn: number; c: number }
   interface Herd { x: number; z: number; r: number; horses: Horse[]; mesh: THREE.InstancedMesh | null }
-  const herds: Herd[] = HERDS.map((h) => ({ x: h.x, z: h.z, r: h.r, horses: [], mesh: null }));
-  let total = 0;
-  for (const [hi, h] of HERDS.entries()) {
-    const herd = herds[hi];
-    if (!herd) continue;
-    const heading = rng.range(0, Math.PI * 2);
-    for (let i = 0, tries = 0; i < h.n && tries < h.n * 20; tries++) {
-      const a = rng.range(0, Math.PI * 2), d = Math.sqrt(rng.next()) * h.r;
-      const x = h.x + Math.cos(a) * d, z = h.z + Math.sin(a) * d;
-      if (blocked(x, z) || herd.horses.some((q) => Math.hypot(q.x - x, q.z - z) < 2.2)) continue;
-      const foal = rng.next() < 0.12;
-      herd.horses.push({ x, z, yaw: heading + rng.range(-1.2, 1.2), s: foal ? rng.range(0.58, 0.66) : rng.range(0.95, 1.06), speed: rng.range(0.05, 0.25), turn: rng.range(-0.15, 0.15), c: rng.int(0, COATS.length - 1) });
-      i++;
-    }
-    total += herd.horses.length;
-  }
-  // the herd horses where they start (they drift): counted on the model's card, nothing collides
-  const set = new NalatiSet(null, ctx);
-  set.moving(herdHorse, herds.flatMap((h) => h.horses.map((q) => ({ x: q.x, y: ground(q.x, q.z) - 0.04, z: q.z, rot: q.yaw, scale: q.s }))));
+  const data = rows[TIER].horses;
+  const herds: Herd[] = data.herds.map(herd => ({ ...herd, horses: herd.horses.map(horse => ({ ...horse })), mesh: null }));
+  rng.restore(data.random);
+  const copies = bakedMember(data.member), put = placer(herdHorse)[1];
   /** hidden within HIDE of the viewer (the AI herd is the near one); on the phone a whole herd goes past FAR */
   const HIDE = 45, FAR = PHONE ? 165 : Infinity;
   const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
@@ -217,32 +196,19 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
   };
-  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: total * FAR_TRIS['horse-wild'], update, register: (o) => set.register({ ...o, object: group }) };
+  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: data.total * FAR_TRIS['horse-wild'], update, register: (o) => [put(copies, { ...o, object: group }, group)] };
 }
 
 // ── snow lotus ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
-  const { sky, ground } = ctx;
+  const { sky } = ctx;
   const group = new THREE.Group();
   group.name = 'nalati-snow-lotus';
-  const rng = new Rng(0x5107);
-  const set = new NalatiSet(null, ctx);
-  const places: ModelPlacement[] = [];
-  const slope = (x: number, z: number): number => { const e = 1; return Math.hypot(ground(x + e, z) - ground(x - e, z), ground(x, z + e) - ground(x, z - e)) / (2 * e); };
-  for (const c of SNOW_LOTUS) {
-    const want = Math.round(c.n * (PHONE ? 0.6 : 1));
-    for (let i = 0, tries = 0; i < want && tries < want * 25; tries++) {
-      const a = rng.range(0, Math.PI * 2), d = Math.sqrt(rng.next()) * c.r;
-      const x = c.x + Math.cos(a) * d, z = c.z + Math.sin(a) * d, y = ground(x, z);
-      if (slope(x, z) > 0.9 || y > SNOW_LINE + 45 || places.some((p) => Math.hypot(p.x - x, p.z - z) < 0.9)) continue;
-      places.push({ x, y: y - 0.06, z, rot: rng.range(0, Math.PI * 2), scale: rng.range(0.75, 1.25) });
-      i++;
-    }
-  }
-  for (const p of places) set.instance(snowLotus, p, {});
-  set.flush(group, sky);
-  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: set.tris(), register: (o) => set.register({ ...o, object: group }) };
+  const data = rows[TIER].lotus, copies = bakedMember(data.member), put = placer(snowLotus)[1];
+  loadNalatiModel(sky, 'snow-lotus', data.look).then(model => { group.add(instanceModel(model, data.poses)); return model; })
+    .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
+  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: data.poses.length * MODEL_TRIS['snow-lotus'], register: (o) => [put(copies, { ...o, object: group }, group)] };
 }
 
 // ── the glacier ──────────────────────────────────────────────────────────────────────────────────────────────────────

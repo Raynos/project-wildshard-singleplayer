@@ -1,13 +1,11 @@
 import * as THREE from 'three';
-import type { Flutter } from './Flutter';
 import type { Box } from './solid';
-import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
-import type { Rng } from '@wildshard/engine/core/rng';
-import type { ModelBuild, ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
+import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './modelView';
+import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
-import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Ground, Platform, Plumes } from './types';
+import type { Platform } from './types';
 
 
 export interface GeneratedSpec<P> {
@@ -26,11 +24,6 @@ export interface GeneratedSpec<P> {
 }
 
 interface Made { readonly boxes?: readonly Box[]; readonly descs?: readonly ColliderDesc[]; readonly floor?: Platform }
-interface PaintCtx { readonly ground: Ground; readonly flutter: Flutter; readonly smoke: Plumes }
-type Build<P> = (ctx: ModelContext, p: P, rng: Rng) => ModelBuild;
-interface GeneratedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly gen: GeneratedSpec<P> }
-const isGenerated = <P>(b: Build<P>): b is GeneratedBuild<P> => 'gen' in b;
-const _box = new THREE.Box3();
 
 /** one model's copies in a set as data: where they stand, their boxes, what they made (the places bake writes these rows,
  *  generators/places.ts; the page places them back, ./placeBake.ts) */
@@ -48,11 +41,6 @@ export interface MemberData {
 }
 /** a set's generated models' instances of one model: their look and placements */
 export interface InstanceData { readonly look: ModelLook; readonly castShadow: boolean; readonly placements: ModelPlacement[] }
-
-/** one model's copies in a set, and how they are placed */
-interface Member extends MemberData {
-  place: (o: SetRegister, object: THREE.Object3D) => Placed;
-}
 
 /** Placement-only authored floors; all solid construction is baked. */
 function highest(floors: readonly Platform[]): Platform {
@@ -99,91 +87,6 @@ export interface SetRegister {
   readonly group?: THREE.Object3D;
   /** register each model's colliders `every` at a time, a task apart (the phone's per-task collider budget: `Placed.registered`) */
   readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
-}
-
-/**
- * Native placement of prepared instances and moving copies, in the original order.
- * Static kit composition and specimen painting live in generators/places.ts.
- */
-export class NalatiSet {
-  private readonly members = new Map<string, Member>();
-  /** the generated models' instances, per model, in the order they were first put */
-  private readonly instances = new Map<NalatiModelName, InstanceData>();
-  /** every box every copy made, in order (the POI's `colliders` data) */
-  readonly boxes: Box[] = [];
-
-  constructor(_paintKit: null, readonly c: PaintCtx) {}
-
-  private member<P extends object>(def: ModelDef<P>, draw: Draw, inKit: boolean): Member {
-    let m = this.members.get(def.id);
-    if (!m) {
-      const mm: Member = {
-        draw, inKit, placements: [], boxes: [], solid: [], descs: [], floors: [],
-        place: (o, object) => placeMember(def, mm, o, object),
-      };
-      this.members.set(def.id, mm);
-      m = mm;
-    }
-    return m;
-  }
-
-  private record(m: Member, pl: Omit<Placement<object>, 'params'>, box: THREE.Box3, made: Made): void {
-    m.placements.push(pl);
-    m.boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
-    const boxes = made.boxes ?? [];
-    this.boxes.push(...boxes);
-    m.solid.push(...boxes.filter(shape => shape.ghost !== true).map(shape => boxDesc(shape, shape.surface)));
-    m.descs.push(...(made.descs ?? []));
-    if (made.floor) m.floors.push(made.floor);
-  }
-
-  /** one copy of a generated model, instanced with the place's others of it when its GLB lands; returns what it collides with */
-  instance<P extends object>(def: ModelDef<P>, at: ModelPlacement, p: NoInfer<P>): Made {
-    const b = def.build;
-    if (!isGenerated(b)) throw new Error(`NalatiSet.instance: ${def.id} is not a generated model`);
-    const pose = b.gen.pose?.(at, p) ?? at;
-    let list = this.instances.get(b.gen.name);
-    if (!list) { list = { look: b.gen.look ?? {}, castShadow: b.gen.castShadow ?? true, placements: [] }; this.instances.set(b.gen.name, list); }
-    list.placements.push(pose);
-    const made = b.gen.collide?.(at, p) ?? {};
-    this.record(this.member(def, 'instanced', false), this.generatedCopy(b.gen.name, pose), _box, made);
-    return made;
-  }
-
-  /**
-   * Copies of a generated model the place draws and moves itself (the kokpar's galloping riders, the grazing herds):
-   * counted and boxed where they start; nothing collides.
-   */
-  moving<P extends object>(def: ModelDef<P>, at: readonly ModelPlacement[]): void {
-    const b = def.build;
-    if (!isGenerated(b)) throw new Error(`NalatiSet.moving: ${def.id} is not a generated model`);
-    const m = this.member(def, 'instanced', false);
-    for (const pose of at) this.record(m, this.generatedCopy(b.gen.name, pose), _box, {});
-  }
-
-  /** a generated copy's placement, and its world box into `_box` (the file's measured size, before it has loaded) */
-  private generatedCopy(name: NalatiModelName, pose: ModelPlacement): Omit<Placement<object>, 'params'> {
-    const matrix = placementMatrix(pose);
-    generatedBounds(name, _box).applyMatrix4(matrix);
-    return { x: pose.x, y: pose.y, z: pose.z, matrix };
-  }
-
-  /** the generated models' triangles (the POI's perf report) */
-  tris(): number { return instanceTris(this.instances); }
-
-  /** instance the generated models into `group` as their files land (`flushInstances`) */
-  flush(group: THREE.Object3D, sky: Sky): void { flushInstances(this.instances, group, sky); }
-
-  /** the set as data, in order: each model's copies (by model id) and the generated instances (the places bake) */
-  rows(): { readonly members: readonly (readonly [string, MemberData])[]; readonly instances: readonly (readonly [NalatiModelName, InstanceData])[] } {
-    return { members: [...this.members.entries()], instances: [...this.instances.entries()] };
-  }
-
-  /** place every model of the set, in the order they were first put (so the physics sees the old builder's colliders
-   *  in the old order); what each call registered */
-  register(o: SetRegister): Placed[] {
-    return [...this.members.values()].map((m) => m.place(o, m.inKit ? o.object : o.group ?? o.object));
-  }
 }
 
 /** Exact numeric floor profile recorded by the static painter. */

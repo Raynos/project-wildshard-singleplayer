@@ -5,6 +5,8 @@ import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
+import { genStarterBag } from './gen-starter-bag.mjs';
+import { genStarterEffects } from './gen-starter-effects.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
 import { execFileSync } from 'node:child_process';
 
@@ -21,6 +23,8 @@ async function step(name, run) {
 // Rig-generating producers read the shared aliases too, so emit their pure table before the cache walk.
 await step('arm-clips', () => genStarterArmClips());
 await step('starter-weapons', () => genStarterWeapons());
+await step('starter-bag', () => genStarterBag());
+await step('starter-effects', () => genStarterEffects());
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
 await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof ? 4 : 1 }));
 await import('./bake-loader.mjs');
