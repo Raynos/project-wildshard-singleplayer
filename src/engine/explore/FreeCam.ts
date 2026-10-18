@@ -94,6 +94,7 @@ export class FreeCam {
   private drag: Drag = 'none';
   private pivotDistance = 10;
   private locked = false;
+  private lockRequest: { cancelled: boolean } | null = null;
 
   private readonly camera: PerspectiveCamera;
   private readonly dom: HTMLElement;
@@ -230,7 +231,18 @@ export class FreeCam {
     else if (event.button === 0 && event.altKey) this.drag = 'orbit';
     else return;
     event.preventDefault();
-    if (this.pointerLock && this.drag !== 'orbit') void this.dom.requestPointerLock().catch(() => { /* refused: plain drag */ });
+    if (this.pointerLock && this.drag !== 'orbit' && !this.lockRequest && !this.locked) {
+      const request = { cancelled: false };
+      this.lockRequest = request;
+      void this.dom.requestPointerLock().then(() => {
+        if (this.lockRequest !== request) return undefined;
+        this.onPointerLockChange();
+        this.lockRequest = null;
+        return undefined;
+      }).catch(() => {
+        if (this.lockRequest === request) this.lockRequest = null; // refused: plain drag
+      });
+    }
   };
 
   private readonly onPointerMove = (event: PointerEvent): void => {
@@ -275,6 +287,17 @@ export class FreeCam {
   };
 
   private readonly onContextMenu = (event: MouseEvent): void => { if (this.enabled) event.preventDefault(); };
-  private readonly onPointerLockChange = (): void => { this.locked = document.pointerLockElement === this.dom; };
-  private releaseLock(): void { if (this.locked) document.exitPointerLock(); this.locked = false; }
+  private readonly onPointerLockChange = (): void => {
+    if (document.pointerLockElement !== this.dom) { this.locked = false; return; }
+    // The player shares this canvas. Only our own request may acquire ownership.
+    if (!this.lockRequest) return;
+    this.locked = true;
+    if (this.lockRequest.cancelled || !this.enabled) this.releaseLock();
+  };
+  private releaseLock(): void {
+    if (this.lockRequest) this.lockRequest.cancelled = true;
+    const owned = this.locked;
+    this.locked = false;
+    if (owned && document.pointerLockElement === this.dom) document.exitPointerLock();
+  }
 }
