@@ -1,4 +1,5 @@
 import type { BuiltWorld } from './context';
+import { finishedBootState } from './finishedBootState';
 import { gridCells } from '../plugin/context';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
@@ -102,7 +103,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
-  app.setState(hud.entered ? 'play' : 'title');
+  app.setState(finishedBootState(exploring(), hud.entered));
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
