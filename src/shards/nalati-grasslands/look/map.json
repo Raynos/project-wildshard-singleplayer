@@ -15,7 +15,9 @@
     "look/light.ts",
     "look/terrainPainter.ts",
     "behaviour/kokpar.as",
-    "data/layout.generated.json"
+    "data/layout.generated.json",
+    "data/peopleFrames.json",
+    "data/peopleChannels.generated.json"
   ],
   "style": {
     "kind": "ground",

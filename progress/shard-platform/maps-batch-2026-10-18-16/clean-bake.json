@@ -1,0 +1,327 @@
+{
+  "sourceTree": "f61e82c2150250ada987712d38c20878ee60ea25",
+  "sourceParent": "d60522050b5b5cca56f928a5ec3c70ae5c578ebc",
+  "commitParent": "23adb37df29b081da46e4cba27f46f978b5d7a64",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2551,
+  "shards": {
+    "pine-hollow": {
+      "inputHash": "540a8db4d86dc990c3fac7a50a0f2146f1cc921918f3c6c27f3692bbfe0180ef",
+      "inputFiles": 291,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "540a8db4d86dc990c3fac7a50a0f2146f1cc921918f3c6c27f3692bbfe0180ef",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "far-reach": {
+      "inputHash": "cd2c35a8920e2cc6eaf0defc73e836fe1cb2f87ed8a827271dceee475da21fe2",
+      "inputFiles": 169,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "cd2c35a8920e2cc6eaf0defc73e836fe1cb2f87ed8a827271dceee475da21fe2",
+        "pixelHash": "280bb9d964ac7adc95688defd60783214c6c960a2bd212f5a6a30cd2b0fd1f68",
+        "image": "/assets/far-reach/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:void",
+        "bytes": 23334
+      }
+    },
+    "sunscar-dunes": {
+      "inputHash": "81f6525228a7f7b5bbce1b2346b65c2d0dee4a91c6fd648a4ae855bd2435341a",
+      "inputFiles": 122,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "81f6525228a7f7b5bbce1b2346b65c2d0dee4a91c6fd648a4ae855bd2435341a",
+        "pixelHash": "0ac8178b0a3fa38cd2c2a852d06456764fd3d2ec1606792c7b4bbfd5e4fa33dc",
+        "image": "/assets/sunscar-dunes/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 27322
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "e1f73ff397e48cf88d79b8fff392ebd98ef521244b61f435669265357a9e7ccf",
+      "inputFiles": 169,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "e1f73ff397e48cf88d79b8fff392ebd98ef521244b61f435669265357a9e7ccf",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "d60522050b5b5cca56f928a5ec3c70ae5c578ebc",
+    "through": "23adb37df29b081da46e4cba27f46f978b5d7a64",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "68eb6e360d829687166dcedc0b78d03ef8b9186a",
+      "1e0d3523a33e01d66f72aed08d5b0888aaeb5a8e",
+      "ef99c92c202090974a57290de4be50299793585d",
+      "23adb37df29b081da46e4cba27f46f978b5d7a64"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "phoneProof": {
+    "bakeSource": "f61e82c2150250ada987712d38c20878ee60ea25",
+    "proofPassed": true,
+    "device": {
+      "name": "iPhone 16 Pro",
+      "width": 402,
+      "height": 681,
+      "scale": 2,
+      "muted": true
+    },
+    "shard": "nalati-grasslands",
+    "via": "Existing bootCase: real title, entry, ten live gameplay frames",
+    "observation": {
+      "mode": "standalone",
+      "phases": {
+        "titleMs": 3881,
+        "entryMs": 3925,
+        "gameplayMs": 4117,
+        "framesStartMs": 4118,
+        "framesCompleteMs": 4437
+      },
+      "gameplayFrames": {
+        "initial": 1,
+        "final": 11
+      },
+      "road": null,
+      "telemetryPosts": 0,
+      "lifecycleReports": 0,
+      "gridNavigationObserved": false,
+      "elapsedMs": 4437,
+      "fatal": [],
+      "ready": true,
+      "entered": true,
+      "revealing": false,
+      "frameGate": true,
+      "frame": 11,
+      "drawnFrame": 11,
+      "clockPaused": false,
+      "held": false,
+      "dead": false,
+      "visibility": "visible",
+      "states": [
+        "boot",
+        "loading",
+        "title",
+        "play"
+      ],
+      "shard": "nalati-grasslands",
+      "grid": null,
+      "appState": "play",
+      "playerValid": true,
+      "renderFrame": 50,
+      "faults": [],
+      "reports": []
+    }
+  },
+  "tailRecovery": {
+    "source": "f61e82c2150250ada987712d38c20878ee60ea25",
+    "passed": true,
+    "method": "Full clean restart after actual host repair; no failed-bake artifacts reused",
+    "priorSource": "d9bcf02fad44f9993dd1d89a6b8f04c196a3b905",
+    "priorFailedBakeProof": "20261018T104324-sp-x10-central-maps-sixteenth-14897",
+    "startupRedProof": "20261018T105753-sp-x10-sixteenth-nalati-startup-69389",
+    "startupRefusal": "Nalati STAGE level.play: Shardfile requires the normal play stage",
+    "cause": "Z1 removed generic presentation-only lifecycle selection for trusted hybrids",
+    "repairCommit": "838e1c1739b664c4f9d6aeb765f555d8a56d0962",
+    "repair": "Restore data-derived presentation ownership; preserve the strict full-play guard and avoid shard branches",
+    "correctedCleanProof": "20261018T110937-sp-x10-central-maps-sixteenth-v2-2731",
+    "strictAllTenPassed": true,
+    "staleMapWarnings": 0,
+    "nalatiOfficialBakePassed": true,
+    "nalatiPhone": {
+      "device": "muted iPhone 16 Pro, 2x",
+      "ready": true,
+      "gameplayFramesInitial": 1,
+      "gameplayFramesFinal": 11,
+      "faults": [],
+      "fatal": []
+    }
+  },
+  "includedSourceLandings": [
+    {
+      "sha": "2575d5aca4c555f34e9a5f8b0baf55729bccd518",
+      "owner": "sp-x4",
+      "summary": "Cue director rendering facts and native effect field dependency move",
+      "phoneReceipt": ".git/proofs/20261018T100810-sp-x4-landed-pine-motion2-93278.json",
+      "mapShards": [
+        "pine-hollow",
+        "far-reach",
+        "sunscar-dunes"
+      ],
+      "newDirectFacts": {
+        "pine-hollow": [
+          "data/kingCues.json"
+        ]
+      }
+    },
+    {
+      "sha": "98d57d8bcef036c1b6b6a2a3aa1e7804b3cf51ac",
+      "owner": "sp-x1",
+      "summary": "Native continuations with mapped Nalati model setup change",
+      "phoneReceipt": ".git/proofs/98d57d8bc-phone.json",
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "mappedPaths": [
+        "src/shards/nalati-grasslands/models/creatures.ts"
+      ],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "63c9c8cd2e2c5639e0ef9b719bd06cf34c9af567",
+      "owner": "sp-x9",
+      "summary": "Nalati camp people producer and admitted figure motion channels",
+      "phoneReceipt": ".git/proofs/63c9c8cd2-phone.json",
+      "sourceRulerReceipt": ".git/proofs/63c9c8cd2-source-ruler.json",
+      "mapShards": [
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "nalati-grasslands": [
+          "data/peopleFrames.json",
+          "data/peopleChannels.generated.json"
+        ]
+      },
+      "channelOutputSha256": "b1fd0a886784f8c68d6bcce6637c4acfe913b16c2b4047ce21be4fe81d6ab8ec"
+    },
+    {
+      "sha": "af0fee1125d4fba235c9eb08caaec88032160472",
+      "owner": "sp-x8 with sp-x5 static and sp-x4 Sky rows",
+      "summary": "Declared Z1 closes Far Reach and Sunscar runtimes and emits original scene geometry/buffer rows",
+      "mapShards": [
+        "far-reach",
+        "sunscar-dunes"
+      ],
+      "mapInputEvidence": "progress/shard-platform/z1-zero-2026-10-18/static-proof.json",
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "7a37c52a08edb1856b36ab59ae6339c2b45d155d",
+      "owner": "sp-x9",
+      "summary": "Map-neutral Pine stag 10 Hz decision cadence repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "838e1c1739b664c4f9d6aeb765f555d8a56d0962",
+      "owner": "sp-x8",
+      "summary": "Map-neutral generic trusted-hybrid presentation lifecycle repair for Nalati and Nine",
+      "mapShards": [],
+      "newDirectFacts": {},
+      "priorFailedBakeProof": "20261018T104324-sp-x10-central-maps-sixteenth-14897",
+      "startupRedProof": "20261018T105753-sp-x10-sixteenth-nalati-startup-69389"
+    }
+  ],
+  "pixelComparison": {
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "far-reach": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "sunscar-dunes": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "pine-hollow": [
+      "data/kingCues.json"
+    ],
+    "far-reach": [],
+    "sunscar-dunes": [],
+    "nalati-grasslands": [
+      "data/peopleFrames.json",
+      "data/peopleChannels.generated.json"
+    ]
+  }
+}
