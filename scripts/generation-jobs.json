@@ -798,15 +798,23 @@
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/sdk/random.ts",
-        "src/sdk/bake/terrain.ts"
+        "src/sdk/bake/terrain.ts",
+        "src/shards/nalati-grasslands/generators/weatherDecision.mjs",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/sdk",
+        "src/shards/nalati-grasslands/generators/skyPresentation.ts",
+        "src/shards/nalati-grasslands/generators/manifestRows.ts",
+        "src/shards/nalati-grasslands/data/skyTypes.d.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
-        "src/shards/nalati-grasslands/data/herdChannels.generated.json"
+        "src/shards/nalati-grasslands/data/herdChannels.generated.json",
+        "src/shards/nalati-grasslands/behaviour/weather.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
-        "src/shards/nalati-grasslands/data/herdChannels.generated.json"
+        "src/shards/nalati-grasslands/data/herdChannels.generated.json",
+        "src/shards/nalati-grasslands/behaviour/weather.generated.json"
       ],
       "platform": "portable"
     },

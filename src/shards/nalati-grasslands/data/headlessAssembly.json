@@ -1,8 +1,8 @@
 {
   "version": 1,
   "modules": {
-    "@wildshard/format/weatherProgram": [
-      "parseWeatherProgram"
+    "src/shards/nalati-grasslands/world/weatherStep": [
+      "readWeatherProgram"
     ],
     "src/shards/nalati-grasslands/runtime/baked": [
       "nalatiBake",
@@ -125,8 +125,8 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/format/weatherProgram",
-              "parseWeatherProgram"
+              "src/shards/nalati-grasslands/world/weatherStep",
+              "readWeatherProgram"
             ]
           },
           {

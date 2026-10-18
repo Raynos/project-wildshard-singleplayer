@@ -147,6 +147,7 @@ export function weatherPresentation(seed: number, heightAt: (x:number,z:number)=
  boltShape.setIndex(Array.from(boltShape.index?.array ?? []).slice(0, boltSegs * 6));
  const pool = puddles(), noise = noiseTexture(seed ^ 0x51);
  const shapes = {
+  sky: new THREE.SphereGeometry(2400,32,16),
   deck: new THREE.SphereGeometry(770,48,20,0,Math.PI*2,0,Math.PI*.56),
   curtains: new THREE.CylinderGeometry(745,745,330,64,1,true).translate(0,-5,0),
   bolt: boltShape, smoke: smoke().geometry, puddles: pool.geometry,

@@ -44,3 +44,18 @@ test('storm riders complete circle, committed charge and open flank without a se
   const pass = author.project('rider', { ...base, mode: 2, ax: 22 }); expect(pass['mode']).toBe(3); expect(pass['show']).toBe(0);
   const flank = author.project('rider', { ...base, mode: 3, t: 2 }); expect(flank['mode']).toBe(0); expect(flank['speed']).toBe(7);
 });
+
+test('chain storms schedule seven tells and land only inside their contact radius', () => {
+  const author = ReturnProgram.page(program), random = new Rng(503);
+  let cd = 0, left = 0, t = 0, strikes = 0;
+  for (let tick = 0; tick < 40; tick++) {
+    const result = author.project('chain', { dt: .1, cd, chain: left, t, mode: 1 }, random);
+    cd = result['cd'] ?? cd; left = result['left'] ?? left; t = result['t'] ?? t;
+    strikes += result['strike'] ?? 0;
+  }
+  expect(strikes).toBe(7); expect(left).toBe(0); expect(cd).toBeGreaterThan(0);
+  const tell = { dt: .1, t: .3, land: .6, radius: 4, x: 0, z: 0, px: 0, pz: 0 };
+  expect(author.project('chainLand', tell)).toMatchObject({ strike: 0, hurt: 0 });
+  expect(author.project('chainLand', { ...tell, t: .6 })).toMatchObject({ strike: 1, hurt: 1 });
+  expect(author.project('chainLand', { ...tell, t: .6, px: 8 })).toMatchObject({ strike: 1, hurt: 0 });
+});

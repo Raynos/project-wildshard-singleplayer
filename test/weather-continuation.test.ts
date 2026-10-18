@@ -1,10 +1,11 @@
+import weatherScript from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import { PineWeather } from '../src/shards/pine-hollow-legacy/world/weatherProfile';
-import { SteppeStorm as OldStorm } from '../src/shards/nalati-grasslands-legacy/world/Weather';
-import { Lightning } from '../src/shards/nalati-grasslands/world/Lightning';
+import { steppeStorm, readWeatherProgram } from '../src/shards/nalati-grasslands/world/weatherStep';
 import { installWeatherContinuation } from '../src/game/plugin/weather';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json' };
@@ -38,18 +39,30 @@ test('old v1 cadence/wind saves resume exactly and malformed restore is atomic',
     }
   }
 });
-test('Nalati keeps lightning, RNG, held phases and old save continuation on the same DATA host',()=>{
-  const world={heightAt:()=>0,exposed:()=>undefined,player:()=>({x:1,y:1.75,z:2,crouched:false,mounted:false,sheltered:false})};
-  for(const seed of [7,0x4a1a]){
-    const current=new Lightning(installWeatherContinuation({seed},parseWeatherProgram({...nalati,firstLength:{clear:[.6,1.2]}}),{phase:0},undefined),world),old=new OldStorm({seed,world,firstClear:[.01,.02]});
-    for(let i=0;i<3200;i++){
-      current.update(.5);old.update(.5);expect(current.snapshot()).toEqual(old.snapshot());
-      if(i===300){current.weather.force('storm',.4);old.force('storm',.4);}
-      if(i===900){current.weather.hold=true;old.hold=true;}
-      if(i===1100){current.weather.hold=false;old.hold=false;}
-      if(i===1700){const value=old.snapshot();current.restore(value);expect(current.snapshot()).toEqual(value);}
-    }
-  }
+test('Nalati dispatches weather reactions at ten Hz and keeps one phase owner',()=>{
+  const player={x:1,y:1.75,z:2,crouched:false,mounted:false,sheltered:true};
+  let queries=0;
+  const restore=overrideTerrain({heightAt:()=>0});
+  const current=steppeStorm(7,{heightAt:()=>0,exposed:()=>{queries++;},player:()=>player},readWeatherProgram({weather:nalati,reactions:weatherScript}));
+  current.weather.force('storm',.4);current.weather.hold=true;
+  const phases=current.weather;
+  for(let i=0;i<60;i++)current.update(1/60);
+  expect(queries).toBeGreaterThanOrEqual(10);expect(queries).toBeLessThanOrEqual(11);
+  expect(current.weather).toBe(phases);expect(current.getLow).toBe(false);
+  const checkpoint=current.snapshot();current.update(.1);current.restore(checkpoint);
+  expect(current.snapshot()).toEqual(checkpoint);restore();
+});
+test('Nalati scores every exposed target across bounded script requests',()=>{
+  const restore=overrideTerrain({heightAt:()=>0});
+  try {
+    const current=steppeStorm(19,{heightAt:()=>0,player:()=>({x:0,y:0,z:0,crouched:false,mounted:false,sheltered:false}),
+      exposed:(x,z,_radius,out)=>{for(let i=0;i<20;i++)out.push({x,z,top:i+10,kind:'tree',ref:i});}},
+    readWeatherProgram({weather:nalati,reactions:weatherScript}));
+    current.weather.force('storm',.4);current.weather.hold=true;current.weather.registers['nextBolt']=0;
+    const telegraphs:unknown[]=[];current.onTelegraph(strike=>{telegraphs.push(strike); });
+    current.update(.1);
+    expect(telegraphs).toHaveLength(1);expect(telegraphs[0]).toMatchObject({kind:'tree',y:29,ref:19});
+  } finally {restore();}
 });
 test('weather programs refuse incomplete phases, outputs and unbounded expressions',()=>{
   expect(()=>parseWeatherProgram({...pine,next:{clear:'missing'}})).toThrow();

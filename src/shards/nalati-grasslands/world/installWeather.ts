@@ -2,7 +2,10 @@ import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { wildEnv } from '../creatures/env';
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import * as v from 'valibot';
-import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, type SkyLook } from '../look/skyRig';
+import type { SkyKey as SteppeKey, SkyLook, SkyRows } from '../look/skyRig';
+import { dayLookPresets } from '@wildshard/game/looks/dayLookPresets';
+import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -29,7 +32,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
-import { DayCycle, type DayPhase } from '@wildshard/engine/world/dayCycle';
+import { DayCycle, compassDir, type DayPhase } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -39,8 +42,7 @@ import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../runtime/audio/synth';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { Lightning as Weather, Exposed, LightningPlayer, Strike } from './Lightning';
-import { steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
-import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
+import { readWeatherProgram, steppeStorm, stormWind, stepStorm, stormEnv, yurtsOf, yurtShelters, exposeTrees, type YurtCircle } from './weatherStep';
 import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
 import { RAIN_PROGRAM } from './rainProgram';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
@@ -80,7 +82,7 @@ export interface NalatiWeather {
   weather: Weather;
   /** Plain admitted weather owner; lightning is composed separately. */
   air: WeatherContinuation;
-  rig: SkyRig;
+  rig: Awaited<ReturnType<typeof weatherSky>>;
   fx: Awaited<ReturnType<typeof weatherEffects>>;
   /** the look applied last frame (clock + storm) */
   look: SkyLook;
@@ -108,8 +110,8 @@ function lightWater(L: SkyLook, dayFog: number, dayKey: number, rain: number): v
 }
 
 export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
-  const program=parseWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
-  const { game, sky, player, forest } = ctx;
+  const program=readWeatherProgram(JSON.parse(new TextDecoder().decode(await ctx.ctx.product.file('world/weather.json'))));
+  const { game, player, forest } = ctx;
   const def = ctx.manifest;
   const qs = ctx.ctx.app.params;
   const hooks: WeatherHooks = {};
@@ -123,8 +125,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
   if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) void clock.set(h); else if (isTimeName(tq)) void clock.set(tq); }
   clock.paused = qs.get('clock') === '0';
 
-  const rig = new SkyRig(game, sky, ctx.ctx.product.shardfile.clientChannels, clock, def);
-  const base = makeLook(), look = makeLook();
+  const rig = await weatherSky(ctx,clock), look=rig.look;
   const stormLook=installChannelPrograms(ctx.ctx.product.shardfile.clientChannels,'weather',new Map([['look',look]]));
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
 
@@ -150,7 +151,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
     if (phase) weather.weather.force(phase, Number.parseFloat(at) || 0);
   }
 
-  const fx = await weatherEffects(ctx);
+  const fx = weatherEffects(ctx,rig.rows);
 
   weather.onTelegraph((s) => {
     fx.telegraph(s);
@@ -195,11 +196,10 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
       // the storm (the Storm Titan's holds it open) and the wind it asks for (world/weatherStep.ts, the host's rule too)
       stepStorm(weather, windAsk, wind, dt, held);
       // the look
-      rig.look(clock, base);
-      copyLook(look, base);
+      rig.sample();
       stormLook.evaluate({time:0,delta:dt,values:{overcast:weather.weather.overcast,flash:weather.flash,rain:weather.weather.rain,wet:weather.weather.wet}});
       rig.flash = weather.flash * 0.7;
-      rig.apply(look, dt);
+      rig.apply(dt);
       lightWater(look, dayFog, dayKey, indoors ? 0 : weather.weather.rain);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
@@ -229,10 +229,7 @@ export async function wireWeather(ctx: WeatherCtx): Promise<NalatiWeather> {
 }
 
 /** Static weather is admitted data; events only place borrowed visuals. */
-async function weatherEffects(ctx: WeatherCtx) {
- const rows = await ctx.ctx.product.json<{
-  shapes: Record<string, { data: unknown }>; puddles: number[]; noise: number[]; glow: number[]; fire: number[];
- }>('world/weather-fx.json');
+function weatherEffects(ctx: WeatherCtx, rows: Awaited<ReturnType<typeof weatherSky>>['rows']) {
  const channels=ctx.ctx.product.shardfile.clientChannels, loader=new THREE.BufferGeometryLoader();
  const geometry=(id:string):THREE.BufferGeometry=>{const row=rows.shapes[id];if(row===undefined)throw new Error('Missing weather geometry');return loader.parse(row);};
  const texture=(bytes:number[],noise=false):THREE.DataTexture=>{
@@ -273,6 +270,47 @@ async function weatherEffects(ctx: WeatherCtx) {
    for(const [id,part] of parts)part.visible=(flags[id]??0)>0;
    rainU.uVel.value.set(uniforms.uVelx,uniforms.uVely,uniforms.uVelz);rainU.uCol.value.setRGB(uniforms.uColx,uniforms.uColy,uniforms.uColz);rainU.uLen.value=uniforms.uLen;rainU.uAlpha.value=uniforms.uAlpha;
    if(rain.visible){const box=rainU.uR.value*2;rainU.uOffset.value.addScaledVector(rainU.uVel.value,dt);for(const axis of ['x','y','z'] as const)rainU.uOffset.value[axis]=((rainU.uOffset.value[axis]%box)+box)%box;rain.geometry.setDrawRange(0,Math.ceil(draw.count)*6);}
+  },
+ };
+}
+
+/** Day presets create palettes; H4 rows project keys and feed the sky graph. */
+async function weatherSky(ctx: WeatherCtx, clock: DayCycle<SteppeKey>) {
+ const rows=await ctx.ctx.product.json<{sky:SkyRows;shapes:Record<string,{data:unknown}>;puddles:number[];noise:number[];glow:number[];fire:number[]}>('world/weather-fx.json');
+ const {game,sky}=ctx,day=rows.sky.day,key=structuredClone(day),kit=dayLookPresets(rows.sky.schema),channels=ctx.ctx.product.shardfile.clientChannels;
+ const create=():SkyLook=>({...kit.live(rows.sky.initial),sunDir:new THREE.Vector3(0,1,0),keyDir:new THREE.Vector3(0,1,0)});
+ const base=create(),look=create(),dayFog=game.scene.fog instanceof THREE.Fog?game.scene.fog.color:new THREE.Color(...day.fog);
+ day.fog=[dayFog.r,dayFog.g,dayFog.b];const shade=painterlyUniforms.uPShade.value,rim=painterlyUniforms.uPRimColor.value;day.shade=[shade.r,shade.g,shade.b];day.rim=[rim.r,rim.g,rim.b];
+ const clockRead={get elevation(){return clock.sunElevation;}},baseRead={fogDist:fogUniforms.fogDistDensity.value,fogHeightDensity:fogUniforms.fogHeightDensity.value,brightness:ctx.manifest.grade.brightness};
+ const owners=new Map<string,unknown>([['day',day],['key',key],['clock',clockRead],['base',baseRead],['look',base]]);
+ for(const field of Object.keys(key) as (keyof SteppeKey)[]){const value=key[field];if(Array.isArray(value))owners.set(`key.${field}`,{
+  get x(){return value[0];},set x(n:number){value[0]=n;},get y(){return value[1];},set y(n:number){value[1]=n;},get z(){return value[2];},set z(n:number){value[2]=n;},
+ });}
+ const keys=installChannelPrograms(channels,'nalati.day',owners),sample=installChannelPrograms(channels,'nalati.sky.sample',owners);
+ const shape=rows.shapes['sky'];if(shape===undefined)throw new Error('Missing sky geometry');
+ const dome=new THREE.Mesh(new THREE.BufferGeometryLoader().parse(shape),lentLook('nalati-sky-dome'));dome.frustumCulled=false;dome.renderOrder=-100;dome.name='sky-dome';game.scene.add(dome);game.scene.background=null;
+ const params=graphParamRoots(channels,'nalati.sky.dome',['nalati-sky-dome']);
+ const domeChannels=installChannelPrograms(channels,'nalati.sky.dome',new Map<string,unknown>([...params.roots,['look',look]]));
+ const disc=sky.sunDisc,discColor=disc.material instanceof THREE.MeshBasicMaterial?disc.material.color.clone():new THREE.Color(),discScale=disc.scale.x;
+ const halo=disc.children.find((child):child is THREE.Sprite=>child instanceof THREE.Sprite),haloScale=halo?.scale.clone(),moonDisc=new THREE.Color(.85,.9,1),tint=new THREE.Color();
+ game.levelScope.onDispose(()=>{dome.removeFromParent();dome.geometry.dispose();});
+ return {dome,rows,look,dayFog:dayFog.clone(),daySunIntensity:day.sunI,flash:0,
+  sample(){
+   keys.evaluate({time:0,delta:0,values:{}});sample.evaluate({time:0,delta:0,values:{}});
+   compassDir(clock.sunAzimuth,clock.sunElevation,base.sunDir);
+   if(base.moon>0)compassDir(clock.moonAzimuth,clock.moonElevation,base.keyDir);else base.keyDir.copy(base.sunDir);
+   kit.lerp(look,base,base,0);look.sunDir.copy(base.sunDir);look.keyDir.copy(base.keyDir);
+  },
+  apply(dt:number){
+   sky.setKeyLight(look.keyDir,look.keyColor,look.keyIntensity);syncPainterlySun(sky);
+   painterlyUniforms.uPShade.value.copy(look.shadeTint);painterlyUniforms.uPRimColor.value.copy(look.rimColor);
+   sky.hemi.color.copy(look.hemiSky);sky.hemi.groundColor.copy(look.hemiGround);sky.hemi.intensity=look.hemiIntensity;
+   game.scene.environmentIntensity=look.envIntensity;if(game.scene.fog instanceof THREE.Fog)game.scene.fog.color.copy(look.fogColor);
+   fogUniforms.fogSunColor.value.copy(look.fogSunColor);fogUniforms.fogDistDensity.value=look.fogDist;fogUniforms.fogHeightDensity.value=look.fogHeightDensity;
+   sky.setCloudLight(look.cloudSun,look.cloudLight);sky.setPlanetLight(look.planetLight,look.planetOpacity);
+   disc.visible=look.disc>.01;if(disc.material instanceof THREE.MeshBasicMaterial)disc.material.color.copy(tint.copy(discColor).lerp(moonDisc,look.moon)).multiplyScalar(look.disc*(look.moon>0?1.4:1));
+   disc.scale.setScalar(discScale*(look.moon>0?.55:1));if(halo&&haloScale){halo.scale.copy(haloScale).multiplyScalar(look.moon>0?.5:1);halo.material.opacity=look.disc*(look.moon>0?.35:1);}
+   domeChannels.evaluate({time:0,delta:dt,values:{flash:this.flash}});pushLentParams(params);dome.position.copy(game.camera.position);
   },
  };
 }

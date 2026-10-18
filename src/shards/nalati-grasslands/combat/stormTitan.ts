@@ -532,7 +532,7 @@ export class StormTitanFight implements BossScript {
       if (thinkDt > 0) this.decisionT = 0;
       if (this.phase !== 1) this.updateSpear(dt, t, thinkDt);
       if (this.phase === 1 && thinkDt > 0) this.updateRiders(thinkDt);
-      if (this.phase === 2) this.updateChains(dt, t);
+      if (this.phase === 2) this.updateChains(dt, t, thinkDt);
     }
     this.spearRing.setTime(t); this.spearFork.setTime(t);
     for (const l of this.lanes) l.setTime(t);
@@ -798,33 +798,26 @@ export class StormTitanFight implements BossScript {
     }
   }
 
-  private updateChains(dt: number, t: number): void {
-    const b = this.body;
-    this.chainCd -= dt;
-    if (this.chainLeft === 0 && this.chainCd <= 0 && this.spear === 'idle') { this.chainLeft = 7; this.chainStep = 0; }
-    b.castL += ((this.chainLeft > 0 ? 1 : 0) - b.castL) * Math.min(1, dt * 4);
-    if (this.chainLeft > 0) {
-      this.chainStep -= dt;
-      if (this.chainStep <= 0) {
-        this.chainStep = 0.42;
-        this.chainLeft--;
-        if (this.chainLeft === 0) this.chainCd = 5 + app.rng.stream('ai').next() * 2;
-        // a ring where you were ~0.4 s ago: stopping means being hit
-        const tr = this.trail[Math.max(0, this.trail.length - 5)] ?? { x: this.host.player.position.x, z: this.host.player.position.z };
-        const c = this.chains.find((x) => !x.on);
-        if (c) { c.on = true; c.t = 0; c.x = tr.x; c.z = tr.z; }
+  private updateChains(dt: number, t: number, thinkDt: number): void {
+    const b = this.body, p = this.host.player.position;
+    if (thinkDt > 0) {
+      const result = this.author.project('chain', { dt: thinkDt, cd: this.chainCd, chain: this.chainLeft, t: this.chainStep, mode: Number(this.spear === 'idle') }, app.rng.stream('ai'));
+      this.chainCd = result['cd'] ?? this.chainCd; this.chainLeft = result['left'] ?? this.chainLeft; this.chainStep = result['t'] ?? this.chainStep;
+      if (result['strike'] === 1) {
+        const tr = this.trail[Math.max(0, this.trail.length - 5)] ?? p, ring = this.chains.find(row => !row.on);
+        if (ring) { ring.on = true; ring.t = 0; ring.x = tr.x; ring.z = tr.z; }
       }
     }
-    const p = this.host.player.position;
-    for (const c of this.chains) {
-      if (!c.on) continue;
-      c.t += dt;
-      c.tell.ring(c.x, c.z, this.data.CHAIN_R, 0.85 * (0.6 + 0.4 * Math.sin(t * 24)));
-      if (c.t >= this.data.CHAIN_LAND) {
-        c.on = false; c.tell.hide();
-        this.bolt(c.x, c.z);
-        this.ignite(c.x, c.z);
-        if (Math.hypot(p.x - c.x, p.z - c.z) < this.data.CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(this.data.CHAIN_DMG, this.data.TITAN_LINES.chain); }, app.physics);
+    b.castL += ((this.chainLeft > 0 ? 1 : 0) - b.castL) * Math.min(1, dt * 4);
+    for (const ring of this.chains) {
+      if (!ring.on) continue;
+      ring.tell.ring(ring.x, ring.z, this.data.CHAIN_R, .85 * (.6 + .4 * Math.sin(t * 24)));
+      if (thinkDt <= 0) continue;
+      const result = this.author.project('chainLand', { dt: thinkDt, t: ring.t, land: this.data.CHAIN_LAND, radius: this.data.CHAIN_R, x: ring.x, z: ring.z, px: p.x, pz: p.z });
+      ring.t = result['t'] ?? ring.t;
+      if (result['strike'] === 1) {
+        ring.on = false; ring.tell.hide(); this.bolt(ring.x, ring.z); this.ignite(ring.x, ring.z);
+        if (result['hurt'] === 1) sampleArena(NALATI_STRIKES.chain, _v.set(ring.x, p.y, ring.z), p, () => { this.host.hurt(this.data.CHAIN_DMG, this.data.TITAN_LINES.chain); }, app.physics);
       }
     }
   }

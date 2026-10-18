@@ -5,9 +5,9 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import * as fight from './stormTitanFight.ts';
 import { titanGeometry } from './stormTitanGeometry.ts';
 
-const fields = ['dt','phase','mode','t','cd','x','z','px','pz','chain','aim','lock','stuck','ax','az','x0','z0','x1','z1','theta','hit','lane','flank'];
-const channels = ['mode','t','cd','x','z','strike','stuck','theta','hit','speed','turn','alpha','show','hurt'];
-const signals = ['spear','rider'];
+const fields = ['radius','land','dt','phase','mode','t','cd','x','z','px','pz','chain','aim','lock','stuck','ax','az','x0','z0','x1','z1','theta','hit','lane','flank'];
+const channels = ['left','mode','t','cd','x','z','strike','stuck','theta','hit','speed','turn','alpha','show','hurt'];
+const signals = ['spear','rider','chain','chainLand'];
 const aliases = names => Object.fromEntries(names.map(name => [name,name]));
 const registry = names => new Map([...names].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/titan.as',

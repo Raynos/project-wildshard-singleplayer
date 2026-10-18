@@ -3,10 +3,11 @@ import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { graphParamRoots } from '../src/game/looks/graphDaySky';
 import { PINE_RAIN_PROGRAMS } from '../src/shards/pine-hollow/data/weatherLook';
 import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';
-import { Object3D, BufferGeometryLoader } from 'three';
+import { Object3D, BufferGeometryLoader, Vector3 } from 'three';
 import { weatherFxChannels } from '../src/shards/nalati-grasslands/generators/weatherFxChannels';
 import { weatherPresentation } from '../src/shards/nalati-grasslands/generators/weatherPresentation';
-import { makeLook } from '../src/shards/nalati-grasslands/look/skyRig';
+import { skyRows } from '../src/shards/nalati-grasslands/generators/skyPresentation';
+import { dayLookPresets } from '../src/game/looks/dayLookPresets';
 
 const { rain, splash, lens, channels } = PINE_RAIN_PROGRAMS;
 function rig() {
@@ -46,7 +47,7 @@ describe('Nalati weather presentation rows', () => {
     const flags = { deck: 0, curtains: 0, rain: 0, bolt: 0, glow: 0, smoke: 0, fire: 0, puddles: 0 };
     const weather = { front: 0, stormFrom: 1, rainbow: 0, overcast: 0, rain: 0, flash: 0, wet: 0 };
     const rainU = { uVelx: 0, uVely: 0, uVelz: 0, uLen: 0, uAlpha: 0, uColx: 0, uColy: 0, uColz: 0 }, draw = { count: 0 };
-    const look = makeLook(), camera = { x: 10, y: 20, z: -30 }, wind = { x: 10, z: -20 };
+    const sky = skyRows(), look = { ...dayLookPresets(sky.schema).live(sky.initial), sunDir: new Vector3(0, 1, 0), keyDir: new Vector3(0, 1, 0) }, camera = { x: 10, y: 20, z: -30 }, wind = { x: 10, z: -20 };
     const owners = new Map<string, unknown>([...params.roots, ['flags', flags], ['weather', weather], ['look', look], ['camera', camera], ['wind', wind], ['rainU', rainU], ['draw', draw], ['glowMaterial', { opacity: 0 }], ['fireMaterial', { opacity: 0 }],
       ...['deck', 'curtains', 'glow', 'fire'].map(id => [id, new Object3D()] as const)]);
     const lane = installChannelPrograms(rows, 'nalati.fx', owners);

@@ -3,17 +3,15 @@ import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 
 /** Build-only expressions become bounded presentation DAGs, never evaluated JS. */
-export function weatherFxChannels(): ClientChannelProgram[] {
- const rows: ClientChannelProgram[] = [];
- function put(target: string, path: string, expression: string): void {
-  const b = new ClientChannels(`nalati.fx.${String(rows.length)}`);
+export function visualChannel(target: string, path: string, expression: string, id: string, group: string): ClientChannelProgram {
+  const b = new ClientChannels(id);
   const file = ts.createSourceFile('expression.ts', `(${expression})`, ts.ScriptTarget.Latest, true);
   const statement = file.statements[0];
   if (statement === undefined || !ts.isExpressionStatement(statement)) throw new Error('Missing visual expression');
   function lower(n: ts.Expression): number {
    if(ts.isParenthesizedExpression(n))return lower(n.expression);
    if(ts.isNumericLiteral(n))return b.constant(Number(n.text));
-   if(ts.isIdentifier(n)||ts.isPropertyAccessExpression(n))return b.read(n.getText(file));
+   if(ts.isIdentifier(n)||ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n))return b.read(n.getText(file).replaceAll(/\[(\d+)\]/gu, '.$1'));
    if(ts.isConditionalExpression(n))return b.select(lower(n.condition),lower(n.whenTrue),lower(n.whenFalse));
    if(ts.isPrefixUnaryExpression(n)&&n.operator===ts.SyntaxKind.MinusToken)return b.unary('neg',lower(n.operand));
    if(ts.isBinaryExpression(n)){
@@ -22,14 +20,21 @@ export function weatherFxChannels(): ClientChannelProgram[] {
    }
    if(ts.isCallExpression(n)){
     const a=n.arguments[0],c=n.arguments[1];if(a===undefined)throw new Error('Missing visual argument');
-    switch(n.expression.getText(file)){case 'sin':return b.unary('sin',lower(a));case 'cos':return b.unary('cos',lower(a));case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.expression.getText(file)==='min'?'min':'max',lower(a),lower(c));default:throw new Error('Unknown visual function');}
+    switch(n.expression.getText(file)){case 'sin':return b.unary('sin',lower(a));case 'cos':return b.unary('cos',lower(a));
+     case 'ss':{const hi=n.arguments[1],x=n.arguments[2];if(hi===undefined||x===undefined)throw new Error('Missing smoothstep argument');const lo=lower(a),t=b.binary('min',b.constant(1),b.binary('max',b.constant(0),b.binary('div',b.binary('sub',lower(x),lo),b.binary('sub',lower(hi),lo))));return b.binary('mul',b.binary('mul',t,t),b.binary('sub',b.constant(3),b.binary('mul',b.constant(2),t)));}
+     case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.expression.getText(file)==='min'?'min':'max',lower(a),lower(c));default:throw new Error('Unknown visual function');}
    }
    throw new Error(`Unsupported visual expression ${n.getText(file)}`);
   }
   b.output('value',lower(statement.expression));
   const built=b.build();
-  rows.push(...parseClientChannels([{...built,numeric:{group:'nalati.fx',outputs:[{property:'value',target,path:path.split('.')}],inputs:built.reads.filter(id=>id.includes('.')).map(input=>({input,owner:input.split('.')[0],path:input.split('.').slice(1)}))}}]));
- }
+  const row=parseClientChannels([{...built,numeric:{group,outputs:[{property:'value',target,path:path.split('.')}],inputs:built.reads.filter(input=>input.includes('.')).map(input=>({input,owner:input.split('.')[0],path:input.split('.').slice(1).map(part=>/^\d+$/u.test(part)?Number(part):part)}))}}])[0];
+  if(row===undefined)throw new Error('Missing visual expression row');return row;
+}
+
+export function weatherFxChannels(): ClientChannelProgram[] {
+ const rows: ClientChannelProgram[] = [];
+ const put=(target:string,path:string,expression:string):void=>{rows.push(visualChannel(target,path,expression,`nalati.fx.${String(rows.length)}`,'nalati.fx'));};
  const param=(id:string,path:string,expr:string):void=>put(`nalati-${id}`,path,expr);
  const flag=(id:string,expr:string):void=>put('flags',id,expr);
  const storm='(weather.front > .01 && weather.front < 1.499)';

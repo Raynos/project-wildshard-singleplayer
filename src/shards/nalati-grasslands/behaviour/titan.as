@@ -29,5 +29,14 @@ export function onSignal(signal:i32,value:f64,source:i32):void {
     }
     put(Channel.mode,mode);put(Channel.t,t);put(Channel.theta,theta);put(Channel.hit,hit);put(Channel.x,x);put(Channel.z,z);
     put(Channel.speed,speed);put(Channel.turn,turn);put(Channel.alpha,alpha);put(Channel.show,show);put(Channel.hurt,hurt);
+  } else if(signal==Signal.chain){
+    const dt=f(Field.dt);let cd=f(Field.cd)-dt,left=f(Field.chain),step=f(Field.t),strike=0.0;
+    if(left==0&&cd<=0&&f(Field.mode)>0){left=7;step=0;}
+    if(left>0){step-=dt;if(step<=0){step=.42;left--;strike=1;if(left==0)cd=5+Read.random()*2;}}
+    put(Channel.cd,cd);put(Channel.left,left);put(Channel.t,step);put(Channel.strike,strike);
+  }else if(signal==Signal.chainLand){
+    const t=f(Field.t)+f(Field.dt),land=t>=f(Field.land);
+    put(Channel.t,t);put(Channel.strike,land?1:0);put(Channel.hurt,land&&Math.hypot(f(Field.px)-f(Field.x),f(Field.pz)-f(Field.z))<f(Field.radius)?1:0);
   }
+
 }
