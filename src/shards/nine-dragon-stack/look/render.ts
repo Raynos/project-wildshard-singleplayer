@@ -174,7 +174,7 @@ export function shardRender(): LookStrategy {
   };
   const glow = glowUniforms();
   const grade = gradeUniforms();
-  void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
+  void (async (): Promise<void> => { const t = await loadLut(LUT_URL); grade.uLut.value = t; grade.uLutAmt.value = 1; })();
   let lastPr = 0;
   /** (SF63) inside a grid cell (no compose, no handle): the page's renderer, for the line widths and the buffer size */
   let cellBuffer: Buffer | null = null;
