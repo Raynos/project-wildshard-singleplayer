@@ -48,3 +48,20 @@ passed an integer identity-like seed to the factory's 0..1 tint argument.
 The source correction uses a deterministic unit RNG draw. Four focused tests
 (including real factory color conversion) pass. The original report
 and pre-hit/defeat portraits preserve this failure; actual rendering verification of the correction remains pending.
+
+## Corrected tint verification
+
+Source tree `c328df6df8432b28f588487c34864bc5b194a8ff` reproduced the boss and
+Conch contact checks with normal pre-hit base RGB
+[0.769731, 0.782758, 0.808812]. The overbright blob is gone in actual rendering;
+scene lighting and creature geometry were unchanged. The boss again caused
+local defeat, Retry restored full health, and both encounters exited with
+unchanged world snapshots. There were no page errors. Near-contact captures
+are technical evidence. The two wider portraits show the whole silhouettes with
+normal materials and the real HUD. The recorded diagnostic player poses are
+10 m from the boss and initially 5 m from Conch; the latter walks toward the
+player during capture. No damage, visibility, lighting or HUD state was forced.
+The picker was collapsed through its actual touch control.
+Reproduction: `scripts/qa-practice-portraits.mjs`; exact poses and observations
+are in `portraits-report.json`.
+This repair does not make the rejected creature models approved artwork.

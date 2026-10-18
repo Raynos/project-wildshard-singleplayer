@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-18",
+  "scope": "Five retained identities; revised low-poly concept pairs explicitly owner-approved. Not game captures.",
+  "entries": [
+    {
+      "id": "brine-puffer",
+      "prompt": "Use case: style-transfer. Edit the FIRST reference image into a LOW-POLY STYLE REVISION of its same approved character and paired UI concept. References 2 and 3 (original crab and monkey) are authoritative for character facet scale and art complexity; reference 4 sets rock/shrine geometry; reference 5 shows actual historical Blender island/world asset simplicity. Keep first image identity and general silhouette, LEFT model Explorer specimen on dark navy cyan-ring pedestal, RIGHT first-person encounter with angular wooden sword/hand, minimal original cyan/navy HUD, health100, mini-map, crosshair and bottom controls. Replace high-detail sculpted surfaces with clean game-ready LOW-POLY geometry: broad, visible planar anatomical facets, crisp polygon edges, flat-shaded matte vertex-color-like surfaces, large saturated color fields, sparse accents. Match the crab/monkey geometric language, NOT high-poly rendered with a triangulated texture. Do not reduce to disconnected cubes, basic primitives or smooth clay blobs. Simplify surroundings to actual historical world asset density: a few strong silhouettes, restrained ground clutter. No photographic PBR, fine texture/noise, smooth glossy surfaces, microchips, tiny overlapping scales, encrustation, detailed woodgrain, rope fibers, cinematic PS5 marketing sculpt. Preserve same 2-column portrait composition and character poses. Text banner at top exactly: \"AI CONCEPT / LOW-POLY STYLE REVISION / NOT GAME CAPTURE\". Character name legible below Explorer and above enemy healthbar. Retain a simple Explorer tab/control layout, omit fabricated performance/source-code claims. This is a concept mockup, never a game screenshot. BRINE PUFFER. Preserve squat chunky teal armored puffer silhouette, oversized cream inflatable throat/belly, angry orange brow/eye, fan tail, broad angular fins used as feet. Only 5-7 large cream crown spines, 4-6 large teal armored planes; remove tiny scales/chips, fine wrinkles and glossy iris. Cream pouch is a coherent polygon volume with at most 6 broad segment ridges. Right view inflated in shallow tidal pools with slate angular boulders and flat turquoise water, sparse palms in distance.",
+      "reference_paths": [
+        "art/driftwood-isle/concepts/2026-10-18/brine-puffer-explorer-gameplay.webp",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png",
+        "art/driftwood-isle/round-8-assets/ref-shrine.jpg",
+        "art/driftwood-isle/round-7-blender/sheet-blender-3x3.jpg"
+      ],
+      "original_file": "brine-puffer-lowpoly-style-revision.png",
+      "original_sha256": "4e81a02b5ef5ded323332c113a92c30cbbf73ba9080e4769416e1b2945966434",
+      "preview_file": "brine-puffer-lowpoly.webp",
+      "preview_sha256": "01ba7d0fbfb66bbdd929c975eb75729d7b28cd3aa023db0581df94a718e3d028",
+      "preview_bytes": 222292,
+      "quality": 90,
+      "status": "owner-approved low-poly visual target; model acceptance pending"
+    },
+    {
+      "id": "conch-duelist",
+      "prompt": "Use case: style-transfer. Edit the FIRST reference image into a LOW-POLY STYLE REVISION of its same approved character and paired UI concept. References 2 and 3 (original crab and monkey) are authoritative for character facet scale and art complexity; reference 4 sets rock/shrine geometry; reference 5 shows actual historical Blender island/world asset simplicity. Keep first image identity and general silhouette, LEFT model Explorer specimen on dark navy cyan-ring pedestal, RIGHT first-person encounter with angular wooden sword/hand, minimal original cyan/navy HUD, health100, mini-map, crosshair and bottom controls. Replace high-detail sculpted surfaces with clean game-ready LOW-POLY geometry: broad, visible planar anatomical facets, crisp polygon edges, flat-shaded matte vertex-color-like surfaces, large saturated color fields, sparse accents. Match the crab/monkey geometric language, NOT high-poly rendered with a triangulated texture. Do not reduce to disconnected cubes, basic primitives or smooth clay blobs. Simplify surroundings to actual historical world asset density: a few strong silhouettes, restrained ground clutter. No photographic PBR, fine texture/noise, smooth glossy surfaces, microchips, tiny overlapping scales, encrustation, detailed woodgrain, rope fibers, cinematic PS5 marketing sculpt. Preserve same 2-column portrait composition and character poses. Text banner at top exactly: \"AI CONCEPT / LOW-POLY STYLE REVISION / NOT GAME CAPTURE\". Character name legible below Explorer and above enemy healthbar. Retain a simple Explorer tab/control layout, omit fabricated performance/source-code claims. This is a concept mockup, never a game screenshot. CONCH DUELIST. Preserve broad diagonally tilted spiral shell with large open coral-colored aperture, stalk eyes, burgundy armored body and asymmetric cream/coral shield claw plus long thrust claw. Shell has only 3 large spiral steps and broad color bands, NOT hundreds of chips or barnacles. Keep meaningful angular anatomy and 4 grounded legs. Right view in sandy/rocky cove, sandy path, grey boulders, a few palms and turquoise edge of sea.",
+      "reference_paths": [
+        "art/driftwood-isle/concepts/2026-10-18/conch-duelist-explorer-gameplay.webp",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png",
+        "art/driftwood-isle/round-8-assets/ref-shrine.jpg",
+        "art/driftwood-isle/round-7-blender/sheet-blender-3x3.jpg"
+      ],
+      "original_file": "conch-duelist-lowpoly-style-revision.png",
+      "original_sha256": "48e6927f03b0a1ce63108935020502279a189ed5a362d858c7beb13d88751e20",
+      "preview_file": "conch-duelist-lowpoly.webp",
+      "preview_sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb",
+      "preview_bytes": 209288,
+      "quality": 90,
+      "status": "owner-approved low-poly visual target; model acceptance pending"
+    },
+    {
+      "id": "splinter-mantis",
+      "prompt": "Use case: style-transfer. Edit the FIRST reference image into a LOW-POLY STYLE REVISION of its same approved character and paired UI concept. References 2 and 3 (original crab and monkey) are authoritative for character facet scale and art complexity; reference 4 sets rock/shrine geometry; reference 5 shows actual historical Blender island/world asset simplicity. Keep first image identity and general silhouette, LEFT model Explorer specimen on dark navy cyan-ring pedestal, RIGHT first-person encounter with angular wooden sword/hand, minimal original cyan/navy HUD, health100, mini-map, crosshair and bottom controls. Replace high-detail sculpted surfaces with clean game-ready LOW-POLY geometry: broad, visible planar anatomical facets, crisp polygon edges, flat-shaded matte vertex-color-like surfaces, large saturated color fields, sparse accents. Match the crab/monkey geometric language, NOT high-poly rendered with a triangulated texture. Do not reduce to disconnected cubes, basic primitives or smooth clay blobs. Simplify surroundings to actual historical world asset density: a few strong silhouettes, restrained ground clutter. No photographic PBR, fine texture/noise, smooth glossy surfaces, microchips, tiny overlapping scales, encrustation, detailed woodgrain, rope fibers, cinematic PS5 marketing sculpt. Preserve same 2-column portrait composition and character poses. Text banner at top exactly: \"AI CONCEPT / LOW-POLY STYLE REVISION / NOT GAME CAPTURE\". Character name legible below Explorer and above enemy healthbar. Retain a simple Explorer tab/control layout, omit fabricated performance/source-code claims. This is a concept mockup, never a game screenshot. SPLINTER MANTIS. Preserve tall alert mantis anatomy, wooden brown body, green leaf-wings, two long antennae and two great hooked cream-edged forearms. Replace many wood flakes with 6-10 broad connected anatomical masses, wings are large simple angular leaves; hooks have only 3 broad teeth each. Right view in fern-rich INLAND shrine jungle/palm fringe: moss-green ground, angular fern leaves, palm trunks, grey stone ring shrine with cyan glyphs behind. NO ocean, beach, waterfall, wreck or hut.",
+      "reference_paths": [
+        "art/driftwood-isle/concepts/2026-10-18/splinter-mantis-explorer-gameplay.webp",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png",
+        "art/driftwood-isle/round-8-assets/ref-shrine.jpg",
+        "art/driftwood-isle/round-7-blender/sheet-blender-3x3.jpg"
+      ],
+      "original_file": "splinter-mantis-lowpoly-style-revision.png",
+      "original_sha256": "601a244962deabc489604604afe2d0911096b95098ced82611cea13cbb3c23cb",
+      "preview_file": "splinter-mantis-lowpoly.webp",
+      "preview_sha256": "9df569c2e487ce529e21cb0fc7e09ca5e7a82c4dbae45ed092ccc44a2e88e7de",
+      "preview_bytes": 241292,
+      "quality": 90,
+      "status": "owner-approved low-poly visual target; model acceptance pending",
+      "caveat": "Generated UI microcopy retains Coastal Forest/shores; depicted setting is inland shrine jungle."
+    },
+    {
+      "id": "bellback",
+      "prompt": "Use case: style-transfer. Edit the FIRST reference image into a LOW-POLY STYLE REVISION of its same approved character and paired UI concept. References 2 and 3 (original crab and monkey) are authoritative for character facet scale and art complexity; reference 4 sets rock/shrine geometry; reference 5 shows actual historical Blender island/world asset simplicity. Keep first image identity and general silhouette, LEFT model Explorer specimen on dark navy cyan-ring pedestal, RIGHT first-person encounter with angular wooden sword/hand, minimal original cyan/navy HUD, health100, mini-map, crosshair and bottom controls. Replace high-detail sculpted surfaces with clean game-ready LOW-POLY geometry: broad, visible planar anatomical facets, crisp polygon edges, flat-shaded matte vertex-color-like surfaces, large saturated color fields, sparse accents. Match the crab/monkey geometric language, NOT high-poly rendered with a triangulated texture. Do not reduce to disconnected cubes, basic primitives or smooth clay blobs. Simplify surroundings to actual historical world asset density: a few strong silhouettes, restrained ground clutter. No photographic PBR, fine texture/noise, smooth glossy surfaces, microchips, tiny overlapping scales, encrustation, detailed woodgrain, rope fibers, cinematic PS5 marketing sculpt. Preserve same 2-column portrait composition and character poses. Text banner at top exactly: \"AI CONCEPT / LOW-POLY STYLE REVISION / NOT GAME CAPTURE\". Character name legible below Explorer and above enemy healthbar. Retain a simple Explorer tab/control layout, omit fabricated performance/source-code claims. This is a concept mockup, never a game screenshot. BELLBACK. Preserve broad low timber quadruped silhouette, aggressive angular head, huge hollow bronze ship bell mounted on its back with visible interior and clapper, timber frame and sparse broad rope lashings. Bell is 8-12 sided matte muted turquoise/bronze polygon form with 2 broad bronze bands, no engraving or corrosion grain. Body from broad carved timber anatomical masses, not a pile of splinters; only 2-3 thick clean rope bands, no rope fiber. Remove coral and barnacle carpets. Right view at dry wreck timber area: broad broken hull beams, sand and ochre earth, a few sparse grasses and rocks, no splashing water.",
+      "reference_paths": [
+        "art/driftwood-isle/concepts/2026-10-18/bellback-explorer-gameplay.webp",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png",
+        "art/driftwood-isle/round-8-assets/ref-shrine.jpg",
+        "art/driftwood-isle/round-7-blender/sheet-blender-3x3.jpg"
+      ],
+      "original_file": "bellback-lowpoly-style-revision.png",
+      "original_sha256": "b4293ef272b0c6e9eea2cd47a4329fa110359eb231df2855a75f4ccea25a1a35",
+      "preview_file": "bellback-lowpoly.webp",
+      "preview_sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+      "preview_bytes": 198854,
+      "quality": 90,
+      "status": "owner-approved low-poly visual target; model acceptance pending"
+    },
+    {
+      "id": "tide-root-colossus",
+      "prompt": "Use case: style-transfer. Edit the FIRST reference image into a LOW-POLY STYLE REVISION of its same approved character and paired UI concept. References 2 and 3 (original crab and monkey) are authoritative for character facet scale and art complexity; reference 4 sets rock/shrine geometry; reference 5 shows actual historical Blender island/world asset simplicity. Keep first image identity and general silhouette, LEFT model Explorer specimen on dark navy cyan-ring pedestal, RIGHT first-person encounter with angular wooden sword/hand, minimal original cyan/navy HUD, health100, mini-map, crosshair and bottom controls. Replace high-detail sculpted surfaces with clean game-ready LOW-POLY geometry: broad, visible planar anatomical facets, crisp polygon edges, flat-shaded matte vertex-color-like surfaces, large saturated color fields, sparse accents. Match the crab/monkey geometric language, NOT high-poly rendered with a triangulated texture. Do not reduce to disconnected cubes, basic primitives or smooth clay blobs. Simplify surroundings to actual historical world asset density: a few strong silhouettes, restrained ground clutter. No photographic PBR, fine texture/noise, smooth glossy surfaces, microchips, tiny overlapping scales, encrustation, detailed woodgrain, rope fibers, cinematic PS5 marketing sculpt. Preserve same 2-column portrait composition and character poses. Text banner at top exactly: \"AI CONCEPT / LOW-POLY STYLE REVISION / NOT GAME CAPTURE\". Character name legible below Explorer and above enemy healthbar. Retain a simple Explorer tab/control layout, omit fabricated performance/source-code claims. This is a concept mockup, never a game screenshot. TIDE-ROOT COLOSSUS. Preserve towering root/trunk giant silhouette, branching crown, angular stern face, large massive hands, root feet and bright turquoise faceted heart clearly framed by a few broad wooden ribs. Keep root curves but use large connected flat-shaded wooden masses; crown 5-7 main angular branches, moss in large flat green patches, no fine vines, dangling roots, grain, barnacles or twig clutter. Right view in MOSSY INLAND RING-SHRINE CLEARING with broad green ground, grey angular boulders, prominent weathered stone ring shrine with cyan rune, surrounding palm/fern jungle. NO sea, beach, waterfall, hut or shipwreck.",
+      "reference_paths": [
+        "art/driftwood-isle/concepts/2026-10-18/tide-root-colossus-explorer-gameplay.webp",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png",
+        "art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png",
+        "art/driftwood-isle/round-8-assets/ref-shrine.jpg",
+        "art/driftwood-isle/round-7-blender/sheet-blender-3x3.jpg"
+      ],
+      "original_file": "tide-root-colossus-lowpoly-style-revision.png",
+      "original_sha256": "709015b080ce352b9561717f7c28b6711ad592b87e6eacde89dd582d6907d10c",
+      "preview_file": "tide-root-colossus-lowpoly.webp",
+      "preview_sha256": "157fe0ad0db0705fd0ca4604b0bbf6d24893a935079f7529b29b010a25bb80d3",
+      "preview_bytes": 207866,
+      "quality": 85,
+      "status": "owner-approved low-poly visual target; model acceptance pending"
+    }
+  ],
+  "ownerApproval": {
+    "atUTC": "2026-10-18T15:30:37Z",
+    "source": "Sentinel_2e9c348e8fa88191bb6bdaabe69f8435",
+    "scope": "All five revised low-poly concept pairs approved as build targets. No implementation acceptance implied."
+  }
+}

@@ -1,7 +1,7 @@
 # Approved Brine Puffer: sculpted source study
 
-Status: four rendered revisions failed the approved target. Clay v5 source is
-unexecuted. No model acceptance and no runtime replacement.
+Status: original-direction studies failed. Low-poly style revision v7 also fails
+anatomy; v8 is unexecuted. See [current style-revision record](LOWPOLY-REVISION.md). No model acceptance and no runtime replacement.
 The owner approved the concept image on 2026-10-18. This does not approve generated meshes.
 
 ## Visual target
@@ -91,3 +91,15 @@ forward egg-shaped pouch. Evidence: [failed clay v4 render](failed-clay-v4.webp)
 fin roots, adds a continuous carved beak/lip around the real mouth aperture,
 projects the throat as a broad mass with inset irregular creases, and slopes the
 lids more aggressively over smaller visible eye apertures. No armor or paint.
+
+## Preserved final old-direction status
+
+Clay v5 rendered and failed: broad fin roots improved, but the beak reads as a
+hollow duct and the lower mass still reads as chin lobes. Clay v6 was authored
+before the owner requested an art-direction audit; it was never executed. The
+old-direction modelling route stopped at that change. Later unexecuted labels
+in this document describe historical checkpoint state, not current acceptance.
+
+Low-poly v7/v8 are a separate style-revision route under the same Puffer identity;
+[its record](LOWPOLY-REVISION.md) distinguishes the revised target from a new
+human image approval. No failed study or runtime replacement is accepted.

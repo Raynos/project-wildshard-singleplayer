@@ -1,0 +1,225 @@
+{
+  "source": "c328df6df8432b28f588487c34864bc5b194a8ff",
+  "startedAt": "2026-10-18T15:21:37.757Z",
+  "captures": [
+    {
+      "kind": "tideRootColossus",
+      "diagnosticPose": {
+        "x": 0,
+        "y": 900,
+        "z": -191,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "before": {
+        "state": "practice",
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -191
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "opponent": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "position": [
+            0,
+            900,
+            -201
+          ],
+          "state": "idle",
+          "flash": 0
+        },
+        "materials": [
+          {
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "emissive": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "targets": 1,
+        "dummies": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "state": "practice",
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -191
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "opponent": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "position": [
+            0,
+            900,
+            -201
+          ],
+          "state": "idle",
+          "flash": 0
+        },
+        "materials": [
+          {
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "emissive": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "targets": 1,
+        "dummies": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "kind": "conch-duelist",
+      "diagnosticPose": {
+        "x": 0,
+        "y": 900,
+        "z": -196,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "before": {
+        "state": "practice",
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "opponent": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "position": [
+            5.215382614665032e-8,
+            900,
+            -200.92999999970198
+          ],
+          "state": "stalk",
+          "flash": 0
+        },
+        "materials": [
+          {
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "emissive": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "targets": 1,
+        "dummies": [
+          false,
+          false,
+          false
+        ]
+      },
+      "after": {
+        "state": "practice",
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "opponent": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "position": [
+            0.000005063039994146479,
+            900,
+            -199.8145409245044
+          ],
+          "state": "stalk",
+          "flash": 0
+        },
+        "materials": [
+          {
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "emissive": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "targets": 1,
+        "dummies": [
+          false,
+          false,
+          false
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "visualStatus": "Owner-rejected mechanics fixtures; no visual acceptance",
+  "endedAt": "2026-10-18T15:23:38.674Z"
+}

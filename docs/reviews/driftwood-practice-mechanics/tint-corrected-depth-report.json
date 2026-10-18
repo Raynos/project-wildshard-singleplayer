@@ -1,0 +1,3002 @@
+{
+  "startedAt": "2026-10-18T15:15:20.191Z",
+  "source": "c328df6df8432b28f588487c34864bc5b194a8ff",
+  "enemies": [
+    {
+      "kind": "tideRootColossus",
+      "worldBefore": {
+        "appState": "explore",
+        "clockNow": 2.1534000000003735,
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": -600,
+            "z": -3000
+          },
+          "yaw": 3.141592653589793,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "weapon": {
+          "id": "sword",
+          "state": {
+            "magazine": 30,
+            "reserve": 0,
+            "loaded": true,
+            "reloading": false,
+            "reloadProgress": 0,
+            "ads": false
+          },
+          "ammo": null
+        },
+        "creatures": [
+          {
+            "id": "bear:11",
+            "kind": "bear",
+            "pos": {
+              "x": 65.957,
+              "y": 5.327,
+              "z": -80.921
+            },
+            "hp": 320,
+            "brain": "idle"
+          },
+          {
+            "id": "bear:12",
+            "kind": "bear",
+            "pos": {
+              "x": -119.539,
+              "y": 2.825,
+              "z": -98.997
+            },
+            "hp": 220,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:0",
+            "kind": "boar",
+            "pos": {
+              "x": 69.034,
+              "y": 1.522,
+              "z": -139.777
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:1",
+            "kind": "boar",
+            "pos": {
+              "x": 80.325,
+              "y": 1.134,
+              "z": -142.393
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:10",
+            "kind": "boar",
+            "pos": {
+              "x": 33.554,
+              "y": 12.215,
+              "z": 145.421
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:2",
+            "kind": "boar",
+            "pos": {
+              "x": 72.009,
+              "y": 1.635,
+              "z": -138.087
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:3",
+            "kind": "boar",
+            "pos": {
+              "x": 73.189,
+              "y": 0.95,
+              "z": -144.849
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:4",
+            "kind": "boar",
+            "pos": {
+              "x": -144.701,
+              "y": 2.606,
+              "z": -39.701
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:5",
+            "kind": "boar",
+            "pos": {
+              "x": -142.605,
+              "y": 2.767,
+              "z": -43.969
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:6",
+            "kind": "boar",
+            "pos": {
+              "x": -137.462,
+              "y": 3.13,
+              "z": -42.744
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:7",
+            "kind": "boar",
+            "pos": {
+              "x": 39.924,
+              "y": 10.041,
+              "z": 148.447
+            },
+            "hp": 140,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:8",
+            "kind": "boar",
+            "pos": {
+              "x": 37.298,
+              "y": 12.79,
+              "z": 141.411
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:9",
+            "kind": "boar",
+            "pos": {
+              "x": 41.581,
+              "y": 12.338,
+              "z": 141.224
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:13",
+            "kind": "crab",
+            "pos": {
+              "x": 130,
+              "y": 1.007,
+              "z": 5
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:14",
+            "kind": "crab",
+            "pos": {
+              "x": 131.908,
+              "y": 0.876,
+              "z": 4.819
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:15",
+            "kind": "crab",
+            "pos": {
+              "x": 132.474,
+              "y": 0.826,
+              "z": 3.924
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:16",
+            "kind": "crab",
+            "pos": {
+              "x": 132,
+              "y": 0.549,
+              "z": -9
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:17",
+            "kind": "crab",
+            "pos": {
+              "x": 130.761,
+              "y": 0.515,
+              "z": -10.591
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:18",
+            "kind": "crab",
+            "pos": {
+              "x": 134.185,
+              "y": 0.501,
+              "z": -7.659
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:19",
+            "kind": "crab",
+            "pos": {
+              "x": 130.467,
+              "y": 0.799,
+              "z": -7.078
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:20",
+            "kind": "crab",
+            "pos": {
+              "x": 133.684,
+              "y": 0.271,
+              "z": -10.926
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:21",
+            "kind": "crab",
+            "pos": {
+              "x": -7,
+              "y": 1.027,
+              "z": -143
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:22",
+            "kind": "monkey",
+            "pos": {
+              "x": 105.368,
+              "y": 32.057,
+              "z": 107.867
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:23",
+            "kind": "monkey",
+            "pos": {
+              "x": 95.933,
+              "y": 32.924,
+              "z": 107.4
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:24",
+            "kind": "monkey",
+            "pos": {
+              "x": 103.156,
+              "y": 31.857,
+              "z": 104.309
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:25",
+            "kind": "monkey",
+            "pos": {
+              "x": 110.077,
+              "y": 31.13,
+              "z": 109.398
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:26",
+            "kind": "monkey",
+            "pos": {
+              "x": 60.999,
+              "y": 3.007,
+              "z": -114.676
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:27",
+            "kind": "monkey",
+            "pos": {
+              "x": 58.701,
+              "y": 3.604,
+              "z": -109.69
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:28",
+            "kind": "monkey",
+            "pos": {
+              "x": 53.334,
+              "y": 3.276,
+              "z": -114.315
+            },
+            "hp": 45,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:29",
+            "kind": "monkey",
+            "pos": {
+              "x": 62.347,
+              "y": 3.839,
+              "z": -106.378
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:30",
+            "kind": "monkey",
+            "pos": {
+              "x": -90.217,
+              "y": 3.855,
+              "z": 137.85
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:31",
+            "kind": "monkey",
+            "pos": {
+              "x": -98.121,
+              "y": 2.872,
+              "z": 150.005
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:32",
+            "kind": "monkey",
+            "pos": {
+              "x": -97.551,
+              "y": 3.158,
+              "z": 141.473
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "sailor:33",
+            "kind": "sailor",
+            "pos": {
+              "x": 153.488,
+              "y": -0.097,
+              "z": -0.203
+            },
+            "hp": 60,
+            "brain": "idle"
+          }
+        ],
+        "quest": {
+          "adventure": {
+            "adventure": [],
+            "quest": []
+          },
+          "level": []
+        }
+      },
+      "before": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 2.4017000000011186,
+        "elapsed": 0,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Bout started. Local health and rewards reset."
+      },
+      "beforeHit": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 1,
+          "tg-clock": 0.30000000000000004,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 3.90170000000112,
+        "elapsed": 1.5000000000000002,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -199
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Bout started. Local health and rewards reset."
+      },
+      "afterIdle": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 3,
+          "tg-clock": 2.1000000000000005,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 62,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 7.983900000001292,
+        "elapsed": 5.582200000000183,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.014,
+            "y": 900,
+            "z": -197.729
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Practice health: 62/100. World health unchanged."
+      },
+      "afterTouch": {
+        "kind": "tideRootColossus",
+        "hp": 462,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 3,
+          "tg-clock": 2.500000000000001,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 62,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 8.38390000000129,
+        "elapsed": 5.982200000000182,
+        "flash": 1,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              1,
+              1,
+              1
+            ],
+            "emissiveIntensity": 0.9,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.008,
+            "y": 900,
+            "z": -198.998
+          },
+          "yaw": 0.0010920743597380464,
+          "pitch": -0.1,
+          "vel": {
+            "x": -0.014,
+            "y": 0,
+            "z": -3.285
+          },
+          "health": 100
+        },
+        "status": "Hit: 18. Practice health: 62/100."
+      },
+      "afterLongContact": {
+        "kind": "tideRootColossus",
+        "hp": 462,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 3,
+          "tg-clock": 1.0999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.31741077825427055,
+          900,
+          -201.50916638225317
+        ],
+        "targets": 1,
+        "localHealth": 0,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 19.779400000001317,
+        "elapsed": 17.377700000000168,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.232,
+            "y": 900,
+            "z": -197.296
+          },
+          "yaw": 0.0010920743597380464,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 1.6,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Defeated. Use Retry this opponent to start a fresh bout."
+      },
+      "afterCapture": {
+        "kind": "tideRootColossus",
+        "hp": 462,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 6,
+          "tg-clock": 0,
+          "tg-awake": 0,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.31741077825427055,
+          900,
+          -201.50916638225317
+        ],
+        "targets": 1,
+        "localHealth": 0,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 21.27940000000134,
+        "elapsed": 18.87770000000019,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.232,
+            "y": 900,
+            "z": -197.296
+          },
+          "yaw": 0.0010920743597380464,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Defeated. Use Retry this opponent to start a fresh bout."
+      },
+      "afterRetry": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 21.56750000000097,
+        "elapsed": 0,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Bout started. Local health and rewards reset."
+      },
+      "exited": true,
+      "worldAfter": {
+        "appState": "play",
+        "clockNow": 21.56750000000097,
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "weapon": {
+          "id": "sword",
+          "state": {
+            "magazine": 30,
+            "reserve": 0,
+            "loaded": true,
+            "reloading": false,
+            "reloadProgress": 0,
+            "ads": false
+          },
+          "ammo": null
+        },
+        "creatures": [
+          {
+            "id": "bear:11",
+            "kind": "bear",
+            "pos": {
+              "x": 65.957,
+              "y": 5.327,
+              "z": -80.921
+            },
+            "hp": 320,
+            "brain": "idle"
+          },
+          {
+            "id": "bear:12",
+            "kind": "bear",
+            "pos": {
+              "x": -119.539,
+              "y": 2.825,
+              "z": -98.997
+            },
+            "hp": 220,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:0",
+            "kind": "boar",
+            "pos": {
+              "x": 69.034,
+              "y": 1.522,
+              "z": -139.777
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:1",
+            "kind": "boar",
+            "pos": {
+              "x": 80.325,
+              "y": 1.134,
+              "z": -142.393
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:10",
+            "kind": "boar",
+            "pos": {
+              "x": 33.554,
+              "y": 12.215,
+              "z": 145.421
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:2",
+            "kind": "boar",
+            "pos": {
+              "x": 72.009,
+              "y": 1.635,
+              "z": -138.087
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:3",
+            "kind": "boar",
+            "pos": {
+              "x": 73.189,
+              "y": 0.95,
+              "z": -144.849
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:4",
+            "kind": "boar",
+            "pos": {
+              "x": -144.701,
+              "y": 2.606,
+              "z": -39.701
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:5",
+            "kind": "boar",
+            "pos": {
+              "x": -142.605,
+              "y": 2.767,
+              "z": -43.969
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:6",
+            "kind": "boar",
+            "pos": {
+              "x": -137.462,
+              "y": 3.13,
+              "z": -42.744
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:7",
+            "kind": "boar",
+            "pos": {
+              "x": 39.924,
+              "y": 10.041,
+              "z": 148.447
+            },
+            "hp": 140,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:8",
+            "kind": "boar",
+            "pos": {
+              "x": 37.298,
+              "y": 12.79,
+              "z": 141.411
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:9",
+            "kind": "boar",
+            "pos": {
+              "x": 41.581,
+              "y": 12.338,
+              "z": 141.224
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:13",
+            "kind": "crab",
+            "pos": {
+              "x": 130,
+              "y": 1.007,
+              "z": 5
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:14",
+            "kind": "crab",
+            "pos": {
+              "x": 131.908,
+              "y": 0.876,
+              "z": 4.819
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:15",
+            "kind": "crab",
+            "pos": {
+              "x": 132.474,
+              "y": 0.826,
+              "z": 3.924
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:16",
+            "kind": "crab",
+            "pos": {
+              "x": 132,
+              "y": 0.549,
+              "z": -9
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:17",
+            "kind": "crab",
+            "pos": {
+              "x": 130.761,
+              "y": 0.515,
+              "z": -10.591
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:18",
+            "kind": "crab",
+            "pos": {
+              "x": 134.185,
+              "y": 0.501,
+              "z": -7.659
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:19",
+            "kind": "crab",
+            "pos": {
+              "x": 130.467,
+              "y": 0.799,
+              "z": -7.078
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:20",
+            "kind": "crab",
+            "pos": {
+              "x": 133.684,
+              "y": 0.271,
+              "z": -10.926
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:21",
+            "kind": "crab",
+            "pos": {
+              "x": -7,
+              "y": 1.027,
+              "z": -143
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:22",
+            "kind": "monkey",
+            "pos": {
+              "x": 105.368,
+              "y": 32.057,
+              "z": 107.867
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:23",
+            "kind": "monkey",
+            "pos": {
+              "x": 95.933,
+              "y": 32.924,
+              "z": 107.4
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:24",
+            "kind": "monkey",
+            "pos": {
+              "x": 103.156,
+              "y": 31.857,
+              "z": 104.309
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:25",
+            "kind": "monkey",
+            "pos": {
+              "x": 110.077,
+              "y": 31.13,
+              "z": 109.398
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:26",
+            "kind": "monkey",
+            "pos": {
+              "x": 60.999,
+              "y": 3.007,
+              "z": -114.676
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:27",
+            "kind": "monkey",
+            "pos": {
+              "x": 58.701,
+              "y": 3.604,
+              "z": -109.69
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:28",
+            "kind": "monkey",
+            "pos": {
+              "x": 53.334,
+              "y": 3.276,
+              "z": -114.315
+            },
+            "hp": 45,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:29",
+            "kind": "monkey",
+            "pos": {
+              "x": 62.347,
+              "y": 3.839,
+              "z": -106.378
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:30",
+            "kind": "monkey",
+            "pos": {
+              "x": -90.217,
+              "y": 3.855,
+              "z": 137.85
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:31",
+            "kind": "monkey",
+            "pos": {
+              "x": -98.121,
+              "y": 2.872,
+              "z": 150.005
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:32",
+            "kind": "monkey",
+            "pos": {
+              "x": -97.551,
+              "y": 3.158,
+              "z": 141.473
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "sailor:33",
+            "kind": "sailor",
+            "pos": {
+              "x": 153.488,
+              "y": -0.097,
+              "z": -0.203
+            },
+            "hp": 60,
+            "brain": "idle"
+          }
+        ],
+        "quest": {
+          "adventure": {
+            "adventure": [],
+            "quest": []
+          },
+          "level": []
+        }
+      },
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    },
+    {
+      "kind": "conch-duelist",
+      "worldBefore": {
+        "appState": "explore",
+        "clockNow": 22.128500000000976,
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": -600,
+            "z": -3000
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "weapon": {
+          "id": "sword",
+          "state": {
+            "magazine": 30,
+            "reserve": 0,
+            "loaded": true,
+            "reloading": false,
+            "reloadProgress": 0,
+            "ads": false
+          },
+          "ammo": null
+        },
+        "creatures": [
+          {
+            "id": "bear:11",
+            "kind": "bear",
+            "pos": {
+              "x": 65.957,
+              "y": 5.327,
+              "z": -80.921
+            },
+            "hp": 320,
+            "brain": "idle"
+          },
+          {
+            "id": "bear:12",
+            "kind": "bear",
+            "pos": {
+              "x": -119.539,
+              "y": 2.825,
+              "z": -98.997
+            },
+            "hp": 220,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:0",
+            "kind": "boar",
+            "pos": {
+              "x": 69.034,
+              "y": 1.522,
+              "z": -139.777
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:1",
+            "kind": "boar",
+            "pos": {
+              "x": 80.325,
+              "y": 1.134,
+              "z": -142.393
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:10",
+            "kind": "boar",
+            "pos": {
+              "x": 33.554,
+              "y": 12.215,
+              "z": 145.421
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:2",
+            "kind": "boar",
+            "pos": {
+              "x": 72.009,
+              "y": 1.635,
+              "z": -138.087
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:3",
+            "kind": "boar",
+            "pos": {
+              "x": 73.189,
+              "y": 0.95,
+              "z": -144.849
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:4",
+            "kind": "boar",
+            "pos": {
+              "x": -144.701,
+              "y": 2.606,
+              "z": -39.701
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:5",
+            "kind": "boar",
+            "pos": {
+              "x": -142.605,
+              "y": 2.767,
+              "z": -43.969
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:6",
+            "kind": "boar",
+            "pos": {
+              "x": -137.462,
+              "y": 3.13,
+              "z": -42.744
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:7",
+            "kind": "boar",
+            "pos": {
+              "x": 39.924,
+              "y": 10.041,
+              "z": 148.447
+            },
+            "hp": 140,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:8",
+            "kind": "boar",
+            "pos": {
+              "x": 37.298,
+              "y": 12.79,
+              "z": 141.411
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:9",
+            "kind": "boar",
+            "pos": {
+              "x": 41.581,
+              "y": 12.338,
+              "z": 141.224
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:13",
+            "kind": "crab",
+            "pos": {
+              "x": 130,
+              "y": 1.007,
+              "z": 5
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:14",
+            "kind": "crab",
+            "pos": {
+              "x": 131.908,
+              "y": 0.876,
+              "z": 4.819
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:15",
+            "kind": "crab",
+            "pos": {
+              "x": 132.474,
+              "y": 0.826,
+              "z": 3.924
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:16",
+            "kind": "crab",
+            "pos": {
+              "x": 132,
+              "y": 0.549,
+              "z": -9
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:17",
+            "kind": "crab",
+            "pos": {
+              "x": 130.761,
+              "y": 0.515,
+              "z": -10.591
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:18",
+            "kind": "crab",
+            "pos": {
+              "x": 134.185,
+              "y": 0.501,
+              "z": -7.659
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:19",
+            "kind": "crab",
+            "pos": {
+              "x": 130.467,
+              "y": 0.799,
+              "z": -7.078
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:20",
+            "kind": "crab",
+            "pos": {
+              "x": 133.684,
+              "y": 0.271,
+              "z": -10.926
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:21",
+            "kind": "crab",
+            "pos": {
+              "x": -7,
+              "y": 1.027,
+              "z": -143
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:22",
+            "kind": "monkey",
+            "pos": {
+              "x": 105.368,
+              "y": 32.057,
+              "z": 107.867
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:23",
+            "kind": "monkey",
+            "pos": {
+              "x": 95.933,
+              "y": 32.924,
+              "z": 107.4
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:24",
+            "kind": "monkey",
+            "pos": {
+              "x": 103.156,
+              "y": 31.857,
+              "z": 104.309
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:25",
+            "kind": "monkey",
+            "pos": {
+              "x": 110.077,
+              "y": 31.13,
+              "z": 109.398
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:26",
+            "kind": "monkey",
+            "pos": {
+              "x": 60.999,
+              "y": 3.007,
+              "z": -114.676
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:27",
+            "kind": "monkey",
+            "pos": {
+              "x": 58.701,
+              "y": 3.604,
+              "z": -109.69
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:28",
+            "kind": "monkey",
+            "pos": {
+              "x": 53.334,
+              "y": 3.276,
+              "z": -114.315
+            },
+            "hp": 45,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:29",
+            "kind": "monkey",
+            "pos": {
+              "x": 62.347,
+              "y": 3.839,
+              "z": -106.378
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:30",
+            "kind": "monkey",
+            "pos": {
+              "x": -90.217,
+              "y": 3.855,
+              "z": 137.85
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:31",
+            "kind": "monkey",
+            "pos": {
+              "x": -98.121,
+              "y": 2.872,
+              "z": 150.005
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:32",
+            "kind": "monkey",
+            "pos": {
+              "x": -97.551,
+              "y": 3.158,
+              "z": 141.473
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "sailor:33",
+            "kind": "sailor",
+            "pos": {
+              "x": 153.488,
+              "y": -0.097,
+              "z": -0.203
+            },
+            "hp": 60,
+            "brain": "idle"
+          }
+        ],
+        "quest": {
+          "adventure": {
+            "adventure": [],
+            "quest": []
+          },
+          "level": []
+        }
+      },
+      "before": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 22.277500000000977,
+        "elapsed": 0,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Bout started. Local health and rewards reset."
+      },
+      "beforeHit": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 1,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0.7999999999999999,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0.011054996575694531,
+          900,
+          -200.64435099903494
+        ],
+        "targets": 1,
+        "localHealth": 86,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 23.971300000001747,
+        "elapsed": 1.6938000000007456,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.1,
+            "y": 900,
+            "z": -197.872
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0.101,
+            "y": 0,
+            "z": 3.154
+          },
+          "health": 100
+        },
+        "status": "Practice health: 86/100. World health unchanged."
+      },
+      "afterIdle": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 1,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0.7,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0.029982637439388782,
+          900,
+          -200.04194525349885
+        ],
+        "targets": 1,
+        "localHealth": 72,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 28.035200000002174,
+        "elapsed": 5.7577000000011145,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.11,
+            "y": 900.043,
+            "z": -197.483
+          },
+          "yaw": 0,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0.161,
+            "y": 0.5,
+            "z": 5.125
+          },
+          "health": 100
+        },
+        "status": "Practice health: 72/100. World health unchanged."
+      },
+      "afterTouch": {
+        "kind": "conch-duelist",
+        "hp": 48,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 2,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.17433998378692195,
+          900,
+          -200.36725554335862
+        ],
+        "targets": 1,
+        "localHealth": 72,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 28.53520000000218,
+        "elapsed": 6.257700000001113,
+        "flash": 0.2857142857142857,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0.2857142857142857,
+              0.2857142857142857,
+              0.2857142857142857
+            ],
+            "emissiveIntensity": 0.9714285714285714,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.077,
+            "y": 900,
+            "z": -198.568
+          },
+          "yaw": 0.014266662906483797,
+          "pitch": -0.1,
+          "vel": {
+            "x": -0.083,
+            "y": 0,
+            "z": -2.647
+          },
+          "health": 100
+        },
+        "status": "Hit: 12. Practice health: 72/100."
+      },
+      "afterLongContact": {
+        "kind": "conch-duelist",
+        "hp": 48,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 1,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 1.6000000000000003,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.03532304865075275,
+          900,
+          -199.25663915928453
+        ],
+        "targets": 1,
+        "localHealth": 16,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 44.07020000000518,
+        "elapsed": 21.79270000000395,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.523,
+            "y": 900,
+            "z": -196.437
+          },
+          "yaw": 0.014266662906483797,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Practice health: 16/100. World health unchanged."
+      },
+      "afterCapture": {
+        "kind": "conch-duelist",
+        "hp": 48,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 2,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 1.4000000000000001,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.03532304865075275,
+          900,
+          -199.25663915928453
+        ],
+        "targets": 1,
+        "localHealth": 16,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 45.4902000000052,
+        "elapsed": 23.21270000000397,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0.523,
+            "y": 900,
+            "z": -196.437
+          },
+          "yaw": 0.014266662906483797,
+          "pitch": -0.1,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Practice health: 16/100. World health unchanged."
+      },
+      "afterRetry": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "st": 0,
+          "rise": 0,
+          "phase": 1,
+          "awake": 0,
+          "init": 0,
+          "cd": 0,
+          "subt": 0,
+          "combo": 0,
+          "burst-x": 0,
+          "burst-z": 0,
+          "pool-x": 0,
+          "pool-z": 0,
+          "arena": 22,
+          "puffer-st": 0,
+          "conch-st": 0,
+          "conch-guard": 0,
+          "mantis-st": 0,
+          "mantis-beat": 0,
+          "regular-clock": 0,
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -201
+        ],
+        "targets": 1,
+        "localHealth": 100,
+        "localMaxHealth": 100,
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "clock": 45.86800000000502,
+        "elapsed": 0,
+        "flash": 0,
+        "material": [
+          {
+            "type": "MeshStandardNodeMaterial",
+            "emissive": [
+              0,
+              0,
+              0
+            ],
+            "emissiveIntensity": 1,
+            "color": [
+              0.7697310801828281,
+              0.7827579721645452,
+              0.8088117561279796
+            ],
+            "toneMapped": true
+          }
+        ],
+        "dummies": [
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          },
+          {
+            "visible": false
+          }
+        ],
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "status": "Bout started. Local health and rewards reset."
+      },
+      "exited": true,
+      "worldAfter": {
+        "appState": "play",
+        "clockNow": 45.86800000000502,
+        "player": {
+          "pos": {
+            "x": 0,
+            "y": 900,
+            "z": -196.2
+          },
+          "yaw": 0,
+          "pitch": 0,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "health": 100
+        },
+        "weapon": {
+          "id": "sword",
+          "state": {
+            "magazine": 30,
+            "reserve": 0,
+            "loaded": true,
+            "reloading": false,
+            "reloadProgress": 0,
+            "ads": false
+          },
+          "ammo": null
+        },
+        "creatures": [
+          {
+            "id": "bear:11",
+            "kind": "bear",
+            "pos": {
+              "x": 65.957,
+              "y": 5.327,
+              "z": -80.921
+            },
+            "hp": 320,
+            "brain": "idle"
+          },
+          {
+            "id": "bear:12",
+            "kind": "bear",
+            "pos": {
+              "x": -119.539,
+              "y": 2.825,
+              "z": -98.997
+            },
+            "hp": 220,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:0",
+            "kind": "boar",
+            "pos": {
+              "x": 69.034,
+              "y": 1.522,
+              "z": -139.777
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:1",
+            "kind": "boar",
+            "pos": {
+              "x": 80.325,
+              "y": 1.134,
+              "z": -142.393
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:10",
+            "kind": "boar",
+            "pos": {
+              "x": 33.554,
+              "y": 12.215,
+              "z": 145.421
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:2",
+            "kind": "boar",
+            "pos": {
+              "x": 72.009,
+              "y": 1.635,
+              "z": -138.087
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:3",
+            "kind": "boar",
+            "pos": {
+              "x": 73.189,
+              "y": 0.95,
+              "z": -144.849
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:4",
+            "kind": "boar",
+            "pos": {
+              "x": -144.701,
+              "y": 2.606,
+              "z": -39.701
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:5",
+            "kind": "boar",
+            "pos": {
+              "x": -142.605,
+              "y": 2.767,
+              "z": -43.969
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:6",
+            "kind": "boar",
+            "pos": {
+              "x": -137.462,
+              "y": 3.13,
+              "z": -42.744
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:7",
+            "kind": "boar",
+            "pos": {
+              "x": 39.924,
+              "y": 10.041,
+              "z": 148.447
+            },
+            "hp": 140,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:8",
+            "kind": "boar",
+            "pos": {
+              "x": 37.298,
+              "y": 12.79,
+              "z": 141.411
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "boar:9",
+            "kind": "boar",
+            "pos": {
+              "x": 41.581,
+              "y": 12.338,
+              "z": 141.224
+            },
+            "hp": 100,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:13",
+            "kind": "crab",
+            "pos": {
+              "x": 130,
+              "y": 1.007,
+              "z": 5
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:14",
+            "kind": "crab",
+            "pos": {
+              "x": 131.908,
+              "y": 0.876,
+              "z": 4.819
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:15",
+            "kind": "crab",
+            "pos": {
+              "x": 132.474,
+              "y": 0.826,
+              "z": 3.924
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:16",
+            "kind": "crab",
+            "pos": {
+              "x": 132,
+              "y": 0.549,
+              "z": -9
+            },
+            "hp": 70,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:17",
+            "kind": "crab",
+            "pos": {
+              "x": 130.761,
+              "y": 0.515,
+              "z": -10.591
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:18",
+            "kind": "crab",
+            "pos": {
+              "x": 134.185,
+              "y": 0.501,
+              "z": -7.659
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:19",
+            "kind": "crab",
+            "pos": {
+              "x": 130.467,
+              "y": 0.799,
+              "z": -7.078
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:20",
+            "kind": "crab",
+            "pos": {
+              "x": 133.684,
+              "y": 0.271,
+              "z": -10.926
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "crab:21",
+            "kind": "crab",
+            "pos": {
+              "x": -7,
+              "y": 1.027,
+              "z": -143
+            },
+            "hp": 25,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:22",
+            "kind": "monkey",
+            "pos": {
+              "x": 105.368,
+              "y": 32.057,
+              "z": 107.867
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:23",
+            "kind": "monkey",
+            "pos": {
+              "x": 95.933,
+              "y": 32.924,
+              "z": 107.4
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:24",
+            "kind": "monkey",
+            "pos": {
+              "x": 103.156,
+              "y": 31.857,
+              "z": 104.309
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:25",
+            "kind": "monkey",
+            "pos": {
+              "x": 110.077,
+              "y": 31.13,
+              "z": 109.398
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:26",
+            "kind": "monkey",
+            "pos": {
+              "x": 60.999,
+              "y": 3.007,
+              "z": -114.676
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:27",
+            "kind": "monkey",
+            "pos": {
+              "x": 58.701,
+              "y": 3.604,
+              "z": -109.69
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:28",
+            "kind": "monkey",
+            "pos": {
+              "x": 53.334,
+              "y": 3.276,
+              "z": -114.315
+            },
+            "hp": 45,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:29",
+            "kind": "monkey",
+            "pos": {
+              "x": 62.347,
+              "y": 3.839,
+              "z": -106.378
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:30",
+            "kind": "monkey",
+            "pos": {
+              "x": -90.217,
+              "y": 3.855,
+              "z": 137.85
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:31",
+            "kind": "monkey",
+            "pos": {
+              "x": -98.121,
+              "y": 2.872,
+              "z": 150.005
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "monkey:32",
+            "kind": "monkey",
+            "pos": {
+              "x": -97.551,
+              "y": 3.158,
+              "z": 141.473
+            },
+            "hp": 30,
+            "brain": "idle"
+          },
+          {
+            "id": "sailor:33",
+            "kind": "sailor",
+            "pos": {
+              "x": 153.488,
+              "y": -0.097,
+              "z": -0.203
+            },
+            "hp": 60,
+            "brain": "idle"
+          }
+        ],
+        "quest": {
+          "adventure": {
+            "adventure": [],
+            "quest": []
+          },
+          "level": []
+        }
+      },
+      "isolation": {
+        "health": true,
+        "quest": true,
+        "weaponRestored": true
+      }
+    }
+  ],
+  "errors": [],
+  "visualStatus": "Rejected geometry; mechanics fixtures only",
+  "phase": "select:conch-duelist",
+  "boot": {
+    "state": "explore",
+    "dev": true,
+    "picker": "<details class=\"ws-practice-picker\"><summary>Developer · practice opponent</summary><select aria-label=\"Practice opponent\"><option value=\"\">Three training dummies</option><option value=\"brine-puffer:brine-puffer\" title=\"\">Brine Puffer · Brine Puffer</option><option value=\"conch-duelist:conch-duelist\" title=\"\">Conch Duelist · Conch Duelist</option><option value=\"splinter-mantis:splinter-mantis\" title=\"\">Splinter Mantis · Splinter Mantis</option><option value=\"bellback:bellback\" title=\"\">Bellback · Bellback</option><option value=\"tideRootColossus:tide-root-colossus\" title=\"\">Tide-Root Colossus · Tide-Root Colossus</option><option value=\"crab:small\" title=\"\">Reef crab · Reef crab</option><option value=\"crab:big\" title=\"\">Reef crab · Big reef crab</option><option value=\"monkey:monkey\" disabled=\"\" title=\"This behavior needs an isolated encounter adapter.\">Coconut monkey · Coconut monkey · unavailable</option><option value=\"monkey:elder\" disabled=\"\" title=\"This behavior needs an isolated encounter adapter.\">Coconut monkey · Grey elder · unavailable</option><option value=\"sailor:sailor\" disabled=\"\" title=\"This behavior needs an isolated encounter adapter.\">Drowned sailor · Drowned sailor · unavailable</option><option value=\"captain:captain\" title=\"\">The Drowned Captain · The Drowned Captain</option></select><button type=\"button\" hidden=\"\">Retry this opponent</button><p>Experimental. Practice rewards stay in this bout.</p></details>",
+    "body": " viewWhite flowersBLENDER · × 446 instancedbuilt on viewGrass tuftBLENDER · × 4,996 instancedbuilt on viewYellow flowersBLENDER · × 658 instancedbuilt on viewPebblesBLENDER · × 370 instancedbuilt on viewCove fernBLENDER · × 1,779 instancedbuilt on viewBeach grassBLENDER · × 548 instancedbuilt on viewCove bushBLENDER · × 614 instancedbuilt on viewHibiscus clumpBLENDER · × 542 instancedbuilt on viewFlowering bushBLENDER · × 244 instancedbuilt on viewShellBLENDER · × 642 instancedbuilt on viewStarfishBLENDER · × 188 instancedbuilt on viewTraining dummySHARED · TRELLIS + BLENDER · × 3 skinnedbuilt on viewHoverboardSHARED · CODE · × 1 singlebuilt on viewBoarSHARED · CODE · × 11 skinnedbuilt on viewBearSHARED · CODE · × 2 skinnedbuilt on viewReef crabCODE · × 9 skinnedbuilt on viewCoconut monkeyCODE · × 11 skinnedbuilt on viewDrowned sailorCODE · × 1 skinnedbuilt on viewThe Drowned CaptainHUNYUAN + CODE · × 1 skinnedbuilt on viewBrine PufferCODE · × 0 skinnedbuilt on viewConch DuelistCODE · × 0 skinnedbuilt on viewSplinter MantisCODE · × 0 skinnedbuilt on viewBellbackCODE · × 0 skinnedbuilt on viewTide-Root ColossusCODE · × 0 skinnedbuilt on viewHerring gullCODE · × 36 instancedbuilt on viewWendell, the castawayCODE · × 1 singlebuilt on viewArms: wooden swordBLENDER + CODE · × 1 singlebuilt on viewArms: iron swordBLENDER + CODE · × 1 singlebuilt on viewSea glass wind chimeCODE · × 0 singlebuilt on viewTrophy plaquesCODE · × 0 singlebuilt on viewCaptain's hatCODE · × 0 singlebuilt on viewSailcloth capeCODE · × 0 singlebuilt on view\n      SolidWireframeFacetsPaintTiers\n      DawnNoonDuskNight\n      \n        IdleWalkTrotChargeHitDie\n        Skeleton0.5×\n      \n      \n        ‹ Catalog‹›\n        \n        TrisDraw callsBuildMade withCopiesDrawn as\n        \n        View in worldPart of\n      \n      Sets · Driftwood Isle\n      Every named place, camp and square: the models placed there. Each opens where it stands in the world.\n      By regionA–ZMost copies\n      \n      ‹ Sets‹›\n      ModelsCopiesTrisDraws\n      \n      ◎ shows its copies · a row opens its cardTris each\n      \n      View in worldMap\n      \n      \n        Driftwood IsleWorld explorer · tap a place to fly there\n        Spawn\n        ✕\n      \n      \n        \n        \n        N\n        050100 m\n      JettyHutRing shrineLookoutWreck coveRope bridgeCompareCompare with the mockup✕Spawn · pierSpawn · rightIsland overlook\n      \n      \n      \n      ✕\n      In engineMockup\n      \n      Open in model explorerOrbit✕"
+  },
+  "pickerHit": {
+    "rect": {
+      "x": 75,
+      "y": 65,
+      "width": 310,
+      "height": 14
+    },
+    "hit": "",
+    "inside": true,
+    "parent": "BODY"
+  }
+}

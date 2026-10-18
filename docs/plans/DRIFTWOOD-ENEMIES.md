@@ -85,3 +85,28 @@ geometry remains rejected regardless of this separate rendering fix.
 Puffer and Conch approved-target rebuilds have editable sources and explicit
 failed clay comparisons. No implementation is accepted. Current state is in
 docs/plans/driftwood-enemies/STATE.md; earlier entries above remain history.
+
+## Latest owner direction — 2026-10-18 15:14 UTC
+
+Focus only the five approved identities. Leave the twenty additional mockups
+for later. Audit the five against existing low-poly assets and original
+mockups, revise style mismatches, then build toward the owner's 5/5 visual
+quality target and test actual arena behavior. This supersedes copying the
+fine sculpted surface detail of earlier approved image pairs verbatim.
+Preserve those approvals as history; no named identity was cancelled.
+
+The original crab/monkey, broad rock facets, palm leaves and shrine references
+support broad purposeful planes, clean matte colors and sparse accents.
+Relative current style fit: Mantis, Conch, Puffer, Colossus, Bellback.
+This is a comparative art judgment, not an acceptance score. Retain the five's
+silhouettes and gameplay roles; simplify noisy chips, fine roots, dense scales,
+rope grain and barnacle carpets. Present Mantis and Colossus in actual inland
+jungle/shrine habitats instead of putting every creature on the beach.
+
+## 2026-10-18 15:30 UTC revised targets approved
+
+The owner explicitly approved all five new low-poly mockup pairs. These are
+now the build targets in art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/.
+Keep the five identities and the 5/5 visual-quality goal. Model/animation/combat
+acceptance remains separate; no current implementation is complete. The twenty
+other concepts stay deferred. Preserve original targets and failed studies.
