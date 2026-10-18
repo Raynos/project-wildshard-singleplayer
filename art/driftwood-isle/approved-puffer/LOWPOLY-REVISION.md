@@ -62,3 +62,7 @@ V8 rendered successfully, but failed target anatomy: pouch too small, feet too l
 `build_puffer_lowpoly_v9.py` is unexecuted. It enlarges the forward ivory pouch, shortens and widens foot roots, lowers brow back planes, buries spine roots and angles the tail root toward its visible fan. These are geometry changes awaiting a single comparison render; no quality acceptance or runtime admission.
 
 V9 executed: pouch scale and grounding improved, but exposed eye rims, layered brow chunks, raised narrow mouth and incomplete tail webbing still fail the approved target. `failed-lowpoly-v9.webp` and `.glb` preserve the actual failed result: 2,889 triangles, eight joints, one material, 443,608 bytes. No implementation accepted.
+
+V10 executed: exposed orbital rings removed and tail center closed. Still failed: sleepy eye shape, oversized flat orange brow fields and raised cream beak frame differ from target. The labelled failed render/export preserve the actual result: 2,111 triangles, eight joints, one material, 317,644 bytes. No implementation accepted.
+
+V11 executed: more open eyes and narrower upper lip improve proportions, but protruding far brow, flat triangular cheek patch, lower lip seam and latitude-banded pouch still fail the target. Actual failed result: 2,105 triangles, eight joints, one material, 317,272 bytes. No implementation accepted.

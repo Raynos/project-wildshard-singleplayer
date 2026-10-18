@@ -110,3 +110,13 @@ now the build targets in art/driftwood-isle/concepts/lowpoly-revision-2026-10-18
 Keep the five identities and the 5/5 visual-quality goal. Model/animation/combat
 acceptance remains separate; no current implementation is complete. The twenty
 other concepts stay deferred. Preserve original targets and failed studies.
+
+## 2026-10-18 16:26 UTC — Puffer first
+
+The owner requests 100% focus on Brine Puffer, maximizing fidelity to its
+approved low-poly mockup before returning to the other four. Preserve their
+current sources and evidence as parked WIP. Continue a serious img2threejs
+Puffer experiment alongside Blender, with actual matched-view comparisons.
+Concentrate arena fixes on enabling Puffer end-to-end tests. This changes work
+priority, not the identities or prior mockup approvals. No current model has
+passed visual acceptance.

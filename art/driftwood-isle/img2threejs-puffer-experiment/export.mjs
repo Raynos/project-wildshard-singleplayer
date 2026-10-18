@@ -1,0 +1,3 @@
+import fs from 'node:fs';import {GLTFExporter} from 'three/examples/jsm/exporters/GLTFExporter.js';import {createBrinePufferLowPolyReferenceExperimentModel} from './createPuffer.js';
+globalThis.FileReader=class{readAsArrayBuffer(blob){blob.arrayBuffer().then(x=>{this.result=x;this.onloadend?.()})}readAsDataURL(blob){blob.arrayBuffer().then(x=>{this.result=`data:${blob.type};base64,${Buffer.from(x).toString('base64')}`;this.onloadend?.()})}};
+const m=createBrinePufferLowPolyReferenceExperimentModel();m.traverse(n=>{n.userData={}});const b=await new GLTFExporter().parseAsync(m,{binary:true,onlyVisible:true});const file=process.argv[2]??'tmp/img2threejs-puffer/v3.glb';fs.writeFileSync(file,Buffer.from(b));console.log(file,b.byteLength)

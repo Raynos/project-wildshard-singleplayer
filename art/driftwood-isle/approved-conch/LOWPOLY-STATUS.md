@@ -20,3 +20,16 @@ shield. `build_conch_lowpoly_v3.py` is an unrun correction using continuous
 helical growth bands, a pointed facial wedge and color-space-calibrated matte
 materials. No claim is made that these changes pass before rendering.
 All earlier studies and original targets are preserved unchanged.
+
+## 2026-10-18 16:26 UTC priority change
+
+The owner directed all effort to Brine Puffer. Conch is parked as WIP with
+acceptance 0. No further Conch render or refinement is scheduled.
+
+Actual low-poly V4 and V5 each built and rendered successfully but failed
+visual fidelity. Their GLBs and labelled comparison boards are preserved.
+V5 is 322,072 bytes / 4,186 triangles / 32 meshes; it improves continuous
+spiral band boundaries but retains a basal collar, overly smooth whorl form
+and schematic face/stance. `build_conch_lowpoly_v6.py` is syntax-checked but
+never built or rendered. It remains unverified source. No rig, animation,
+runtime replacement, arena acceptance or physical-device proof was added.

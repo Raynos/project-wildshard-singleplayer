@@ -56,3 +56,61 @@ there are no billboard or texture substitutions. These findings come from the
 inspected real color render, not runtime Model Explorer or arena evidence.
 Both GLB headers and length fields were checked; no external images are needed. No armature, animation, runtime integration,
 combat verification, mobile performance or human acceptance is claimed.
+
+## V3 construction plan and landmarks
+
+Read `.claude/skills/mockup-to-model/SKILL.md` and the Blender practice guide.
+The approved source is a single perspective concept: unseen rear anatomy is an
+interpretation, not a measured match. V3 retains a genuine full-3D construction.
+
+Numbered target details and carrying parts:
+1. Tall asymmetrical ship-timber silhouette: four canted broken ribs plus one
+   stern plank, with unequal tips; replace the regular six-picket fence.
+2. Bell dominates the upper body: a continuous thick teal shell with two thin
+   bronze cast bands, lower bronze rim and inward-facing cavity wall.
+3. Clearly open bell and distinct clapper: tilt the bell axis back 30 degrees,
+   move shell forward and up, shift the physical clapper toward the opening.
+4. Low predatory head: narrow pointed center keel, two broad brow timbers,
+   separate lower cheek timbers and recessed amber eyes.
+5. Two swept wood horns: real tapered bent volumes outside the cheek silhouette.
+6. Broad planted quadruped: articulated shoulders/elbows/wrists, rear legs
+   sweeping backward, front feet tucked beneath the loaded shoulder.
+7. Stone weight-bearing feet: smaller gray masses with two solid toe wedges.
+8. Sparse coarse rope bindings: two turns per major joint and one diagonal
+   lashing; no rope-grain, barnacle carpets or fine corrosion texture.
+9. Pale serrated mouth: tapered upper fangs and three raised lower jaw teeth.
+
+Study coordinates: Blender Z up, -Y front, centered footprint, foot level Z=0;
+GLB export converts to Y up and +Z front. Intended height ~3.8 m, footprint
+~3.2 by 3.5 m. Target phone/desktop budget 6,000 triangles; far tier, instances,
+colliders and motion sockets remain undecided/unimplemented. This is an elite
+single-creature visual study, not a world-placement or performance claim.
+
+The new hero camera is on the target's visible side at (-4.4,-8,2.65), looking
+at (0,-0.05,1.65), orthographic scale 4.65. This is a manually matched projection
+estimate, not recovered image metadata. V3 writes normalized 2D projections for
+bell crown/rim/clapper, nose, front feet and stern tip beside the render. Compare
+these identity landmarks and full-figure framing before further local tweaks.
+Four-view and runtime checks remain required; one hero render cannot establish
+final form, acceptance or completeness.
+
+V3 built and rendered successfully at 16:24 UTC: 2,834 triangles, 64 mesh objects,
+228,328-byte GLB. Actual image inspected, with target/candidate landmark board
+`comparison-board-v3.webp` and projection data `landmarks-v3-front.json`.
+V1/V2 evidence remains unchanged.
+
+Detail checks from this one actual view: 1 improved, but rear timbers too tall;
+2 clear; 3 clearly visible cavity and separate clapper; 4 improved narrow layered
+face; 5 clear; 6 distinct stance, but left rear foot clips the image; 7 clear;
+8 still too rectangular/angular at knots; 9 crowded. The matched-view estimate
+needs a wider framing before it can serve as a clean full-figure comparison.
+Do not treat the cropped first hero view as final review evidence.
+
+Remaining work is open: reduce rear-frame weight, simplify muzzle teeth and
+round binding turns, widen the same camera, then verify front/side/rear geometry.
+Do not claim completion, 5/5 quality, runtime registration or animation from V3.
+
+`build_bellback_v4.py` is a syntax-checked, **unbuilt** next correction. It keeps
+V3 intact, widens framing to 5.15 at the same viewing angle, shortens rear ribs,
+adds leg mass, rounds rope turns and removes two crowded upper teeth. It has
+no render, measured geometry count or visual pass yet.

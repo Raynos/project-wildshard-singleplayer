@@ -6,6 +6,7 @@ import { lendLooks, lentLook, setLentParam } from './game/shardfile/lentLooks';
 import { ToonArms } from './game/systems/viewmodel/toonArms';
 import { SWORD_WOOD } from './game/weapons/starterMeleeProfile';
 import type { SwordOptions } from './game/weapons/Sword';
+import { installPickupCatalogue } from './game/models/specimenCatalogue';
 import { readLootTables, registerLootTable } from './game/loot/tables';
 import type { Material } from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
@@ -32,6 +33,7 @@ function litMaterial(id: string): MeshStandardNodeMaterial {
 export async function preparePracticeContent(game: Game, product: ShardProduct): Promise<SwordOptions> {
   const owner = game.levelScope;
   const json = async (name: string): Promise<unknown> => JSON.parse(new TextDecoder().decode(await product.file(name)));
+  installPickupCatalogue(await json('practice/pickups.json'));
   const presentation = v.parse(presentationSchema, await json('practice/looks.json'));
   const ids = presentation.materials;
   lendLooks(owner, await runtimeLookMaterials({ scope: owner, renderer: game.renderer }, product.shardfile, true, Object.values(ids)));

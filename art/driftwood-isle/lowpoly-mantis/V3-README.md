@@ -24,6 +24,19 @@ Run from repository root after obtaining the coordinator's render lane:
 Then run `review_board_v3.py` for the compact labelled comparison. Raw outputs
 remain ignored in `tmp/lowpoly-mantis`; source is the editable artifact.
 
-Status: source syntax validated. Actual V3 render/export/topology review is
-pending. No rig, draw-call, animation, Model Explorer, runtime or device
-performance claim follows from this source change.
+Status: source syntax and actual Blender export/render pass. Inspected front
+render improves pointed insect head proportions, forward neck flow and broad
+connected hooks. It remains unaccepted and below target: the right blade is
+clipped by the changed framing, arms still have rigid cross-sections, and the
+body/leaf planes remain simpler than the approved image. This is incomplete
+work, not final quality.
+
+Metrics: 1,566 triangles, 55 mesh parts, zero boundary edges, zero nonmanifold
+edges and zero degenerate faces. Actual export is `mantis-study-v3.glb`;
+`metrics-v3.json` records counts and anatomical pivots. Evidence is
+`actual-v3-preview.webp` and `comparison-v3-board.webp`.
+
+Next: fit camera automatically to full object bounds, inspect side/rear
+silhouette, then refine neck/limb transitions and wing planes. No rig,
+draw-call, animation, Model Explorer, runtime or device performance claim
+follows from this source change.

@@ -9,6 +9,8 @@ import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
+import { installPickupCatalogue } from '../src/game/models/specimenCatalogue';
+import { coinModel } from '../src/game/loot/coinModel';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { scenario } from '@wildshard/sdk/scriptScenario';
 import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
@@ -59,9 +61,9 @@ test('practice product carries actual receipt, fresh Wasm, named poses and uncha
   expect(scripts.every(row => row.module !== `blobs/wasm/${'0'.repeat(64)}.wasm`)).toBe(true);
   expect(index.files.filter(row => row.kind === 'wasm')).toHaveLength(5);
   expect(index.files.filter(row => row.kind === 'json').map(row => row.name).sort((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual([
-    'poses/bellback.json', 'poses/brine-puffer.json', 'poses/conch-duelist.json', 'poses/splinter-mantis.json', 'poses/tide-root-colossus.json', 'practice/bodies.json', 'practice/looks.json',
+    'poses/bellback.json', 'poses/brine-puffer.json', 'poses/conch-duelist.json', 'poses/splinter-mantis.json', 'poses/tide-root-colossus.json', 'practice/bodies.json', 'practice/looks.json', 'practice/pickups.json',
   ]);
-  expect(index.files).toHaveLength(12); expect(index.runtime?.files).toEqual([]);
+  expect(index.files).toHaveLength(13); expect(index.runtime?.files).toEqual([]);
   expect(DRIFTWOOD_PRACTICE_DECISION_MEMORY).toBe(655360);
   expect(createDriftwoodPracticeSource().budgets.sim.resident).toBe(655360);
   expect(shard.budgets.sim.resident).toBe(655360 + index.files.filter(file => file.critical).reduce((sum, file) => sum + file.decoded + file.gpu, 0));
@@ -97,4 +99,15 @@ test.each([
   expect([...started, ...run.commands()].some(row => row[0] === 'strike')).toBe(true);
   expect(run.trace().filter(row => row.kind === 'call').every(row => row.ok)).toBe(true);
   expect(run.maxFuel()).toBeLessThanOrEqual(SCRIPT_LIMITS.fuelPerCall);
+});
+
+
+test('practice product installs the actual coin burst geometry without world pickups', () => {
+  const file = validateOutputProduct(destination).index.files.find(row => row.name === 'practice/pickups.json');
+  if (file === undefined) throw new Error('Missing practice coin recipe');
+  const data: unknown = JSON.parse(readFileSync(resolve(destination, file.path), 'utf8'));
+  installPickupCatalogue(data);
+  const geometry = coinModel(0xc01);
+  expect(geometry.getAttribute('position').count).toBeGreaterThan(0);
+  geometry.dispose();
 });

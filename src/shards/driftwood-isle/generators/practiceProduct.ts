@@ -11,6 +11,7 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 import { readSpeciesProgram } from '@wildshard/format/speciesPrograms';
 import practiceLooks from '../data/practiceLooks.json' with { type: 'json' };
 import creatureBodies from '../data/creatureBodies.generated.json' with { type: 'json' };
+import pickupCatalogue from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import authoredGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import heldArms from '../data/heldArms.json' with { type: 'json' };
 import brinePufferClips from '../data/brinePufferClips.generated.json' with { type: 'json' };
@@ -57,6 +58,7 @@ export function createDriftwoodPracticeSource(): Shardfile {
 
 const poses = emitNamedBlobs([
   ['practice/looks.json', practiceLooks], ['practice/bodies.json', creatureBodies],
+  ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
   ['poses/brine-puffer.json', brinePufferClips], ['poses/conch-duelist.json', conchDuelistClips],
   ['poses/splinter-mantis.json', splinterMantisClips], ['poses/bellback.json', bellbackClips],
   ['poses/tide-root-colossus.json', tideRootColossusClips],

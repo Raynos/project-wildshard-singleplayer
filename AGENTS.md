@@ -206,3 +206,11 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - Production ships the **newest CI-green `main` with an exact-SHA green boot smoke** hourly (`.github/deploy-pin.json`), with a launchd backstop.
   `gh workflow run deploy` for an immediate release. Never `vercel deploy` by hand while CI is healthy.
 - After a push you are done: the local gates are the check. **Don't wait for the CI run or the deploy** (Jake, E428); CI and the hourly deploy run on their own, and a red run someone sees gets fixed then.
+
+## Owner direction for dot cloud work — 2026-10-18
+
+- Own requested cloud project work end to end: make routine implementation decisions,
+  install approved tools, edit, test and preserve WIP without repeatedly asking for
+  approval already given. Continue useful independent work when one step is blocked.
+- Respect platform-required confirmations and granted access. Keep branch, publication,
+  preservation and no-Mac boundaries unless the owner explicitly changes them.
