@@ -1,0 +1,90 @@
+{
+  "base": "V58",
+  "scope": "six interior samples in shared-boundary upper-front crown patch; convex outward facets",
+  "changes": [
+    {
+      "sample": 83,
+      "before": [
+        -0.272974196405048,
+        0.33,
+        1.2417578393597923
+      ],
+      "after": [
+        -0.272974196405048,
+        0.29500000000000004,
+        1.2597578393597924
+      ]
+    },
+    {
+      "sample": 70,
+      "before": [
+        0.0,
+        0.33,
+        1.3
+      ],
+      "after": [
+        0.0,
+        0.365,
+        1.335
+      ]
+    },
+    {
+      "sample": 71,
+      "before": [
+        0.27297419640504855,
+        0.33,
+        1.2417578393597921
+      ],
+      "after": [
+        0.27297419640504855,
+        0.29500000000000004,
+        1.2597578393597921
+      ]
+    },
+    {
+      "sample": 97,
+      "before": [
+        -0.24782642553494263,
+        0.55,
+        1.2366974102124102
+      ],
+      "after": [
+        -0.24782642553494263,
+        0.5850000000000001,
+        1.2546974102124102
+      ]
+    },
+    {
+      "sample": 84,
+      "before": [
+        0.0,
+        0.55,
+        1.28
+      ],
+      "after": [
+        0.0,
+        0.515,
+        1.315
+      ]
+    },
+    {
+      "sample": 85,
+      "before": [
+        0.24782642553494275,
+        0.55,
+        1.2366974102124102
+      ],
+      "after": [
+        0.24782642553494275,
+        0.5850000000000001,
+        1.2546974102124102
+      ]
+    }
+  ],
+  "boundaryExact": true,
+  "removedTriangles": 24,
+  "newTriangles": 24,
+  "maximumOutwardSupportError": 2.7755575615628914e-17,
+  "eyeMouthBrowAndSpineComponentsChanged": false,
+  "status": "unaccepted geometry study; actual hero and nine-view review required"
+}

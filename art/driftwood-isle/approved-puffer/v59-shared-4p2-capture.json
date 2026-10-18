@@ -1,0 +1,437 @@
+{
+  "status": "rendered unchanged saved Puffer with explicit shared framing",
+  "version": "V59",
+  "sourceBlend": "tmp/puffer-lowpoly-v59-from-v9/inspection.blend",
+  "sourceBlendSha256": "b29c2d73c4b52402d33339f4dec82d4d1be8bec21641ca164db5f13287ca560c",
+  "sourceBuilder": "art/driftwood-isle/approved-puffer/build_puffer_lowpoly_v59_from_v9.py",
+  "sourceBuilderSha256": "262940d5be0deb068eb92636fab780ae033c67e810bf3166eeccf997c2d34a47",
+  "scriptSha256": "2579f0c21195a845f33d02bebf265a2f9e99835e5abe53f8ae661f0c6f5d6537",
+  "nineViewCamera": {
+    "projection": "orthographic",
+    "imageSize": [
+      600,
+      740
+    ],
+    "fixedScale": 4.2,
+    "target": [
+      0,
+      -0.05750000476837158,
+      0.7900000214576721
+    ],
+    "minimumMargin": 0.04
+  },
+  "shots": [
+    [
+      "01-front",
+      0,
+      0
+    ],
+    [
+      "02-left",
+      90,
+      0
+    ],
+    [
+      "03-right",
+      -90,
+      0
+    ],
+    [
+      "04-back",
+      180,
+      0
+    ],
+    [
+      "05-top",
+      0,
+      90
+    ],
+    [
+      "06-elevated-front",
+      0,
+      39.2894
+    ],
+    [
+      "07-elevated-left",
+      90,
+      39.2894
+    ],
+    [
+      "08-elevated-right",
+      -90,
+      39.2894
+    ],
+    [
+      "09-elevated-back",
+      180,
+      39.2894
+    ]
+  ],
+  "orbitRadius": 5,
+  "lights": [
+    [
+      "Warm key",
+      [
+        -3,
+        4,
+        5
+      ],
+      650,
+      4,
+      [
+        1,
+        0.9,
+        0.76
+      ]
+    ],
+    [
+      "Cool fill",
+      [
+        4,
+        1,
+        3
+      ],
+      360,
+      4,
+      [
+        0.73,
+        0.87,
+        1
+      ]
+    ],
+    [
+      "Rim",
+      [
+        0,
+        -4,
+        4
+      ],
+      500,
+      3,
+      [
+        0.66,
+        0.87,
+        1
+      ]
+    ]
+  ],
+  "lightTarget": [
+    0,
+    0,
+    0.7
+  ],
+  "worldColor": [
+    0.18,
+    0.18,
+    0.18
+  ],
+  "floorColor": [
+    0.028,
+    0.045,
+    0.06,
+    1
+  ],
+  "samples": 24,
+  "denoising": false,
+  "viewTransform": "AgX",
+  "scope": "New explicitly framed actual Blender diagnostic capture; not a replacement baseline, new model, game capture or visual acceptance",
+  "worldBounds": [
+    [
+      -0.9789999723434448,
+      0.9789999723434448
+    ],
+    [
+      -1.340000033378601,
+      0.9581454992294312
+    ],
+    [
+      0.004000000189989805,
+      1.4559999704360962
+    ]
+  ],
+  "cameras": [
+    {
+      "name": "01-front",
+      "yaw": 0,
+      "elevation": 0,
+      "location": [
+        0.0,
+        4.942500114440918,
+        0.7900000214576721
+      ],
+      "rotationEuler": [
+        -1.570796251296997,
+        3.141592502593994,
+        -0.0
+      ],
+      "normalizedBounds": [
+        [
+          0.2125159054994583,
+          0.7874841690063477
+        ],
+        [
+          0.3128570318222046,
+          0.6585713624954224
+        ]
+      ],
+      "minimumMargin": 0.21251583099365234
+    },
+    {
+      "name": "02-left",
+      "yaw": 90,
+      "elevation": 0,
+      "location": [
+        5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "rotationEuler": [
+        1.5707963705062866,
+        -0.0,
+        1.5707963705062866
+      ],
+      "normalizedBounds": [
+        [
+          0.12339290231466293,
+          0.7982451915740967
+        ],
+        [
+          0.312857061624527,
+          0.6585713624954224
+        ]
+      ],
+      "minimumMargin": 0.12339290231466293
+    },
+    {
+      "name": "03-right",
+      "yaw": -90,
+      "elevation": 0,
+      "location": [
+        -5.0,
+        -0.05750000476837158,
+        0.7900000214576721
+      ],
+      "rotationEuler": [
+        1.5707963705062866,
+        -0.0,
+        -1.5707963705062866
+      ],
+      "normalizedBounds": [
+        [
+          0.20175480842590332,
+          0.8766071200370789
+        ],
+        [
+          0.312857061624527,
+          0.6585713624954224
+        ]
+      ],
+      "minimumMargin": 0.12339287996292114
+    },
+    {
+      "name": "04-back",
+      "yaw": 180,
+      "elevation": 0,
+      "location": [
+        6.123233998228043e-16,
+        -5.057499885559082,
+        0.7900000214576721
+      ],
+      "rotationEuler": [
+        1.5707964897155762,
+        -0.0,
+        1.2246471172829639e-16
+      ],
+      "normalizedBounds": [
+        [
+          0.21251587569713593,
+          0.7874841094017029
+        ],
+        [
+          0.31285688281059265,
+          0.6585712432861328
+        ]
+      ],
+      "minimumMargin": 0.21251587569713593
+    },
+    {
+      "name": "05-top",
+      "yaw": 0,
+      "elevation": 90,
+      "location": [
+        0.0,
+        -0.05750000476837158,
+        5.789999961853027
+      ],
+      "rotationEuler": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "normalizedBounds": [
+        [
+          0.21251587569713593,
+          0.7874841094017029
+        ],
+        [
+          0.1946428418159485,
+          0.7418203949928284
+        ]
+      ],
+      "minimumMargin": 0.1946428418159485
+    },
+    {
+      "name": "06-elevated-front",
+      "yaw": 0,
+      "elevation": 39.2894,
+      "location": [
+        0.0,
+        3.812286853790283,
+        3.956188440322876
+      ],
+      "rotationEuler": [
+        0.8850669264793396,
+        6.76614888561744e-08,
+        3.141592502593994
+      ],
+      "normalizedBounds": [
+        [
+          0.21251581609249115,
+          0.7874840497970581
+        ],
+        [
+          0.20202961564064026,
+          0.6883379817008972
+        ]
+      ],
+      "minimumMargin": 0.20202961564064026
+    },
+    {
+      "name": "07-elevated-left",
+      "yaw": 90,
+      "elevation": 39.2894,
+      "location": [
+        3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "rotationEuler": [
+        0.8850669860839844,
+        3.609710930163601e-08,
+        1.5707963705062866
+      ],
+      "normalizedBounds": [
+        [
+          0.12339290231466293,
+          0.7982452511787415
+        ],
+        [
+          0.2075546532869339,
+          0.6476975679397583
+        ]
+      ],
+      "minimumMargin": 0.12339290231466293
+    },
+    {
+      "name": "08-elevated-right",
+      "yaw": -90,
+      "elevation": 39.2894,
+      "location": [
+        -3.8697869777679443,
+        -0.05750000476837158,
+        3.956188440322876
+      ],
+      "rotationEuler": [
+        0.8850669860839844,
+        -3.609710930163601e-08,
+        -1.5707963705062866
+      ],
+      "normalizedBounds": [
+        [
+          0.20175477862358093,
+          0.8766070604324341
+        ],
+        [
+          0.2075546532869339,
+          0.6476975679397583
+        ]
+      ],
+      "minimumMargin": 0.12339293956756592
+    },
+    {
+      "name": "09-elevated-back",
+      "yaw": 180,
+      "elevation": 39.2894,
+      "location": [
+        4.739122340712617e-16,
+        -3.9272871017456055,
+        3.956188440322876
+      ],
+      "rotationEuler": [
+        0.8850669860839844,
+        1.0943825922933573e-24,
+        1.2246468525851679e-16
+      ],
+      "normalizedBounds": [
+        [
+          0.21251587569713593,
+          0.7874841094017029
+        ],
+        [
+          0.23644408583641052,
+          0.6755726933479309
+        ]
+      ],
+      "minimumMargin": 0.21251587569713593
+    }
+  ],
+  "geometryFingerprint": "ca1183443114e935af5217dca8d8060990ec2c08909dcfb8c7606cc51358cbfa",
+  "geometryFingerprintUnchanged": true,
+  "images": [
+    {
+      "name": "01-front.png",
+      "sha256": "a19cad2f1cec273b40d199abccfbd72ba370ee84510d69d6920c32abc6611905",
+      "bytes": 325665
+    },
+    {
+      "name": "02-left.png",
+      "sha256": "c1a6025d39522685fbfb6e42d6056be6626aaa1cd551929a44bd42919a414533",
+      "bytes": 341225
+    },
+    {
+      "name": "03-right.png",
+      "sha256": "c65b3b2bc27fffc3346cfab59a3779dca9a3db0a7096e4473591f1de4a5f0884",
+      "bytes": 348157
+    },
+    {
+      "name": "04-back.png",
+      "sha256": "aa04f482b0aca11c9186b09448c74e67353f5ecb123d924f9d9920e354a45f7f",
+      "bytes": 318891
+    },
+    {
+      "name": "05-top.png",
+      "sha256": "3dd2e271a298f7d1e56b683817a7220a286ae2faed29e2c941014e3d54de0876",
+      "bytes": 783497
+    },
+    {
+      "name": "06-elevated-front.png",
+      "sha256": "4f33040403c037251f642fb744c7caacac31bcc91fb94914430f1024dc4684a6",
+      "bytes": 779483
+    },
+    {
+      "name": "07-elevated-left.png",
+      "sha256": "0a7b9b4fe71f1497eb493a1eabfe82373801c9469f9a8e5be20ba19cd32d2bee",
+      "bytes": 770232
+    },
+    {
+      "name": "08-elevated-right.png",
+      "sha256": "a255a9cb7d40e37686de8b2d2c097d6e080a3f1ed98494f9176eb66421b081d3",
+      "bytes": 788412
+    },
+    {
+      "name": "09-elevated-back.png",
+      "sha256": "193f2bf5182de4ff152a8a37007f2336f28561a479f705dce3a13d71e9d66b05",
+      "bytes": 768990
+    }
+  ]
+}
