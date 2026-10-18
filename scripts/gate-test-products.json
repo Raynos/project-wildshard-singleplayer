@@ -1,4 +1,5 @@
 {
+  "test/boot-smoke-partition.test.ts": [],
   "test/far-herd-upload.test.ts": [],
   "test/hybrid-entry-preparation.test.ts": [],
   "test/memory-warning.test.ts": [],

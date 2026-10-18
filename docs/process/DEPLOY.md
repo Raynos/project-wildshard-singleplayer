@@ -69,13 +69,14 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   bound through visible home residency. The following 90-second home proof still
   requires every visible ring and ten gameplay frames before the Signal road leg.
   Smoke receipts distinguish drawn frames, fixed ring steps and clock/pause state.
-  Four macOS legs keep public and Developer cases separate (`boot-public`, `boot-developer`, `hover-chromium` and
-  `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
-  serial HOVER drives exceeded the 12-minute deadline on 2026-10-12. Each leg now has a 20-minute outer deadline:
-  cold source generation and the complete build took 7–9 minutes on 2026-10-17, leaving too little of 12 minutes
-  for the required browser cases. Every case and its gameplay deadline remain unchanged. HOVER waits for the
-  loading overlay to close within its existing 150-second title budget before tapping the real entry button.
-  The `verdict` job requires all four legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
+  Five required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,
+  Chromium HOVER and WebKit HOVER/rendering (`boot-public`, `boot-developer`, `boot-grid`,
+  `hover-chromium`, `hover-webkit`). Each keeps its 20-minute outer deadline. The 2026-10-18
+  Developer job spent 9.5 minutes building, passed all seven standalone cases, then exhausted
+  the outer deadline before its grid case could finish. The grid now has its own required leg;
+  no case, gameplay deadline or failure condition changed. HOVER waits for the loading overlay
+  to close within its existing 150-second title budget before tapping the real entry button.
+  The `verdict` job requires all five legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
   release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
   push CI with no smoke status yet gets the same wait (up to 15 minutes after CI completion), covering dispatch and

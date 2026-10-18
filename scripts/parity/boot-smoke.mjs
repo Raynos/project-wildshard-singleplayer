@@ -91,10 +91,10 @@ export async function bootCaseBrowser(pool, mode) {
 
 /** Every public primary enters through its real public button; experimental primaries enter with Developer on.
  * @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue
- * @param {'all'|'public'|'developer'} [group]
+ * @param {'all'|'public'|'developer'|'grid'} [group]
  * @returns {readonly (readonly ['standalone'|'grid'|'public-policy',string,boolean])[]} */
 export function bootCases(catalogue, group = 'all') {
-  if (!['all', 'public', 'developer'].includes(group)) throw new Error('Unknown boot case group');
+  if (!['all', 'public', 'developer', 'grid'].includes(group)) throw new Error('Unknown boot case group');
   const seen = new Set();
   for (const row of catalogue) {
     if (!/^[a-z0-9_-]+$/u.test(row.slug) || seen.has(row.slug) || !['live', 'earlyAccess', 'experimental', 'hidden'].includes(row.status)) throw new Error('Invalid or duplicate built title shard');
@@ -111,8 +111,9 @@ export function bootCases(catalogue, group = 'all') {
   // proves entered gameplay; admission is never labelled public gameplay.
   const publicCases = primary.filter(row => row.status !== 'hidden' && (row.status !== 'experimental' || row.slug === 'nine-dragon-stack'))
     .map(row => /** @type {const} */ ([row.status === 'experimental' ? 'public-policy' : 'standalone', row.slug, false]));
-  const developerCases = [...primary.filter(row => row.status === 'experimental' || row.status === 'hidden').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
-  return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
+  const developerCases = primary.filter(row => row.status === 'experimental' || row.status === 'hidden').map(row => /** @type {const} */ (['standalone', row.slug, true]));
+  const gridCases = [/** @type {const} */ (['grid', home, false])];
+  return group === 'public' ? publicCases : group === 'developer' ? developerCases : group === 'grid' ? gridCases : [...publicCases, ...developerCases, ...gridCases];
 }
 
 /** Plan a genuine road crossing into the actual Signal cell, never a home/title substitute.
@@ -343,7 +344,7 @@ async function main() {
   try {
     const browser = await pool.browser(0);
     const group = option('case-group') ?? 'all';
-    if (group !== 'all' && group !== 'public' && group !== 'developer') throw new Error('usage: --case-group=all|public|developer');
+    if (group !== 'all' && group !== 'public' && group !== 'developer' && group !== 'grid') throw new Error('usage: --case-group=all|public|developer|grid');
     const catalogue = await discoverCatalogue(browser, base), cases = bootCases(catalogue, group);
     writeFileSync(join(out, 'cases.json'), `${JSON.stringify({ group, catalogue, cases }, null, 2)}\n`);
     for (const [mode, shard, developer] of cases) {

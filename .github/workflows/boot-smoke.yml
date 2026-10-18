@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [boot-public, boot-developer, hover-chromium, hover-webkit]
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit]
     concurrency:
       group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
@@ -81,9 +81,12 @@ jobs:
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
-      - name: Experimental shards, grid home and Signal road entry reach page-ready
+      - name: Experimental shards reach real page-ready
         if: matrix.part == 'boot-developer'
         run: node scripts/parity/boot-smoke.mjs --case-group=developer
+      - name: Grid home and Signal road entry reach real page-ready
+        if: matrix.part == 'boot-grid'
+        run: node scripts/parity/boot-smoke.mjs --case-group=grid
       - name: Chromium touch HOVER mounts in the template and on the grid road
         if: matrix.part == 'hover-chromium'
         run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
@@ -110,7 +113,7 @@ jobs:
           if-no-files-found: warn
 
   verdict:
-    # The exact-SHA proof requires all four legs. A replaced leg leaves this SHA unproven:
+    # The exact-SHA proof requires all five legs. A replaced leg leaves this SHA unproven:
     # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
     needs: boot-smoke
     if: always() && needs.boot-smoke.result != 'skipped'
