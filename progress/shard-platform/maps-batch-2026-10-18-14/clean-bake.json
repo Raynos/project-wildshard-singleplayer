@@ -1,0 +1,251 @@
+{
+  "sourceTree": "626c24b71ff11838e7c516af66267ee2f9a38a46",
+  "sourceParent": "d25a525e0caed00cb67a8cd809341300a51d521e",
+  "commitParent": "9d380f0210682323c023d5ea4aecbdff05ee9289",
+  "freshGenerateCache": true,
+  "coldUntrackedOutputsReset": true,
+  "coldResetOutputCount": 2559,
+  "shards": {
+    "pine-hollow": {
+      "inputHash": "b133a49801f693ed55e7838fb4ca17e1eef41bb1ef37590a8d6b12be4a884047",
+      "inputFiles": 290,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "b133a49801f693ed55e7838fb4ca17e1eef41bb1ef37590a8d6b12be4a884047",
+        "pixelHash": "342312e66a214176eea78f570e448fd18ef3a50e9aa2225715bbe20fb918f643",
+        "image": "/assets/pine-hollow/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 95148
+      }
+    },
+    "far-reach": {
+      "inputHash": "603fee6ba9d15cca4b41159bb6101a3bea41f8f11e13464659e70c56866f6589",
+      "inputFiles": 170,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "603fee6ba9d15cca4b41159bb6101a3bea41f8f11e13464659e70c56866f6589",
+        "pixelHash": "280bb9d964ac7adc95688defd60783214c6c960a2bd212f5a6a30cd2b0fd1f68",
+        "image": "/assets/far-reach/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:void",
+        "bytes": 23334
+      }
+    },
+    "sunscar-dunes": {
+      "inputHash": "3e9dbdf511c92c7508ef74c8623a7e4cde586ad3171a3dd548b80719c68e617c",
+      "inputFiles": 124,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "3e9dbdf511c92c7508ef74c8623a7e4cde586ad3171a3dd548b80719c68e617c",
+        "pixelHash": "0ac8178b0a3fa38cd2c2a852d06456764fd3d2ec1606792c7b4bbfd5e4fa33dc",
+        "image": "/assets/sunscar-dunes/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 27322
+      }
+    },
+    "nalati-grasslands": {
+      "inputHash": "7f2fc9ee8bebe25d6bf57bcd42241325c668c4b91b79dd2b10a1f9c6a1931a2b",
+      "inputFiles": 163,
+      "identicalManifests": [
+        "gen1",
+        "gen2",
+        "served",
+        "strict-products"
+      ],
+      "stamp": {
+        "version": 1,
+        "tilesHash": "7f2fc9ee8bebe25d6bf57bcd42241325c668c4b91b79dd2b10a1f9c6a1931a2b",
+        "pixelHash": "f66e232335433a5b3aea56eed36435eac20ba2bd4d0276a988c9e813b2546551",
+        "image": "/assets/nalati-grasslands/map/top.webp",
+        "size": 1000,
+        "metres": 500,
+        "north": "+z",
+        "east": "-x",
+        "style": "stylized:ground",
+        "bytes": 134876
+      }
+    }
+  },
+  "strictProducts": {
+    "command": "CI=1 node scripts/build-shardfiles.mjs",
+    "passed": true,
+    "staleMapWarnings": 0
+  },
+  "preservedMapNeutralTail": {
+    "from": "d25a525e0caed00cb67a8cd809341300a51d521e",
+    "through": "9d380f0210682323c023d5ea4aecbdff05ee9289",
+    "declaredInputRootsIdentical": true,
+    "commits": [
+      "d88331a34acad21c23ccc188fa93af43cb8b11af",
+      "9d380f0210682323c023d5ea4aecbdff05ee9289"
+    ],
+    "sourceRulerBasis": "Frozen sourceTree only; later cuts with no declared map input changes are preserved but excluded from this ruler."
+  },
+  "sourceRuler": "all10-source-ruler.json",
+  "netLineReport": {
+    "source": "all10-source-ruler.json",
+    "basis": "source-progress at frozen sourceTree",
+    "platformLayers": [
+      "engine",
+      "game",
+      "format",
+      "sdk"
+    ]
+  },
+  "phone": "muted iPhone 16 Pro at source HEAD, gate/cabin/pond; reading retained with local proof",
+  "includedSourceLandings": [
+    {
+      "sha": "c0731becf8bdfd466f3601c0c375408f81f70319",
+      "owner": "sp-x4",
+      "summary": "Typed painted look rows and pure colour graph facts",
+      "mapShards": [
+        "far-reach",
+        "sunscar-dunes",
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "far-reach": [
+          "data/rocSlate.json"
+        ],
+        "nalati-grasslands": [
+          "data/oliveColour.json",
+          "look/light.ts",
+          "look/terrainPainter.ts"
+        ]
+      },
+      "inputReceipt": "progress/shard-platform/painted-look-rows-2026-10-18/map-inputs.json"
+    },
+    {
+      "sha": "7b326dcb4af00bcb092fff86929fd2e33f8448af",
+      "owner": "sp-x1",
+      "summary": "Map-neutral four-layer ruler and net-line publication support",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "ba4e6d2a6605dc8f1f5238168b26cf27a071bc33",
+      "owner": "sp-x1",
+      "summary": "Authored storm timing and Nalati camp smoke fog repair",
+      "mapShards": [
+        "far-reach",
+        "nalati-grasslands"
+      ],
+      "newDirectFacts": {
+        "far-reach": [
+          "data/lookGraphs.json"
+        ],
+        "nalati-grasslands": [
+          "data/lookGraphs.json"
+        ]
+      }
+    },
+    {
+      "sha": "29b94cdbc3c60823a590b367d306d1aff900c8f2",
+      "owner": "sp-x9",
+      "summary": "Pine C5 stag walk script leaf and producer closure",
+      "mapShards": [
+        "pine-hollow"
+      ],
+      "newDirectFacts": {
+        "pine-hollow": [
+          "behaviour/stag.as",
+          "data/questLead.json"
+        ]
+      }
+    },
+    {
+      "sha": "749bdc9738f165a12995c25a3778f451dbf1e63c",
+      "owner": "sp-x6",
+      "summary": "Map-neutral G498 shard re-entry gate",
+      "mapShards": [],
+      "newDirectFacts": {}
+    },
+    {
+      "sha": "d25a525e0caed00cb67a8cd809341300a51d521e",
+      "owner": "sp-x6",
+      "summary": "Map-neutral private-index sweep guard repair",
+      "mapShards": [],
+      "newDirectFacts": {}
+    }
+  ],
+  "pixelComparison": {
+    "pine-hollow": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "far-reach": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "sunscar-dunes": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    },
+    "nalati-grasslands": {
+      "width": 1000,
+      "height": 1000,
+      "pixelsCompared": 1000000,
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0
+    }
+  },
+  "addedFactInputs": {
+    "pine-hollow": [
+      "behaviour/stag.as",
+      "data/questLead.json"
+    ],
+    "far-reach": [
+      "data/rocSlate.json",
+      "data/lookGraphs.json"
+    ],
+    "sunscar-dunes": [],
+    "nalati-grasslands": [
+      "data/oliveColour.json",
+      "data/lookGraphs.json",
+      "look/light.ts",
+      "look/terrainPainter.ts"
+    ]
+  }
+}

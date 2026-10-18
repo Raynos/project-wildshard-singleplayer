@@ -20,7 +20,9 @@
     "../../../public/assets/far-reach/baked/rest-winch.glb",
     "data/isletMotion.generated.json",
     "data/plumbing.json",
-    "manifest.json"
+    "manifest.json",
+    "data/rocSlate.json",
+    "data/lookGraphs.json"
   ],
   "hide": [
     "far.storm",

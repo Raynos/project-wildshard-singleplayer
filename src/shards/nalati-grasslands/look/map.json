@@ -9,7 +9,11 @@
     "generators",
     "models",
     "generators/clientMotion.ts",
-    "data/creatureRigs.json"
+    "data/creatureRigs.json",
+    "data/oliveColour.json",
+    "data/lookGraphs.json",
+    "look/light.ts",
+    "look/terrainPainter.ts"
   ],
   "style": {
     "kind": "ground",

@@ -107,6 +107,8 @@
     "data/cabinScenes.generated.json",
     "data/cabinLivingScenes.generated.json",
     "data/skyLook.json",
-    "behaviour/life.as"
+    "behaviour/life.as",
+    "behaviour/stag.as",
+    "data/questLead.json"
   ]
 }
