@@ -9,7 +9,7 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/product';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
@@ -24,7 +24,7 @@ const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
 const own = (): Scope => { const scope = new Scope('loader-test'); scopes.push(scope); return scope; };
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
-function fixture(platformRef = false, extra?: (source: schema.Shardfile) => ReadonlyMap<string, unknown>) {
+function fixture(platformRef = false, extra?: (source: schema.Shardfile) => ReadonlyMap<string, unknown>, logicalNames?: ReadonlyMap<string, string>) {
   const source = emptyShardfile({ slug: 'runtime-loader', name: 'Loader', author: 'Test', revision: 1, seed: 1 });
   const blob = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(blob);
   source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
@@ -43,7 +43,7 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
     sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(bytes({})), bytes: bytes({}).length }],
-    files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: file.hash === ref ? 'models/token.bin' : 'models/desktop.bin', path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: null });
+    files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: logicalNames?.get(file.hash) ?? (file.hash === ref ? 'models/token.bin' : 'models/desktop.bin'), path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: null });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
   const options: ProductOptions = { base, offline: false, firstParty: true,
@@ -260,6 +260,69 @@ test('tier residency excludes only a typed alternative with no other live refere
   const token = admitted.files.find(file => file.hash === f.ref); if (token === undefined) throw new Error('Missing token');
   token.dependencies.push(desktop);
   expect(tierLibrarySource(admitted, 'phone').budgets.library.resident).toBe(1003);
+});
+
+async function specimenCostFixture(profiles = false) {
+  const assets = new Map<string, Uint8Array>(), names = new Map<string, string>();
+  const add = (source: schema.Shardfile, name: string, wire: Uint8Array, decoded: number): string => {
+    const hash = hashImmutableBytes(wire); assets.set(hash, wire); names.set(hash, name);
+    source.files.push({ hash, kind: 'binary', compressed: wire.length, decoded, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+    source.library.push(hash); source.budgets.library.resident += decoded; return hash;
+  };
+  const f = fixture(false, source => {
+    const models = Array.from({ length: 8 }, (_, i) => {
+      const id = `m${String(i)}`, name = `models/${id}.bin`;
+      add(source, name, new Uint8Array([30 + i]), 100); return { id, file: name };
+    });
+    const catalogue = { product: 'runtime-loader', models: [{ key: 'crate', id: 'runtime-loader/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code', assembly: 'scene', defaults: { style: 0 },
+      choices: models.map((model, i) => ({ id: model.id, params: { style: i }, size: [1, 1, 1], colliders: [], draws: [], scene: { id: model.id, root: 'root', nodes: [
+        { id: 'mesh', parent: 'root', kind: 'mesh', geometry: { library: 'shapes', model: model.id }, material: 'paint', sphere: [0, 0, 0, 1] },
+      ] } })) }] };
+    const wire = bytes(catalogue); add(source, 'models/catalogue.json', wire, wire.length);
+    const welds = [];
+    if (profiles) {
+      models.push({ id: 'wide', file: 'models/wide.bin' }); add(source, 'models/wide.bin', new Uint8Array([99]), 1000);
+      source.plumbing = { namespace: 'fixture', knobs: [{ id: 'fixture.rich', phone: false, desktop: true }], input: [], debug: [] };
+      for (const [name, model] of [['plain', 'm0'], ['rich', 'wide']]) {
+        const graph = bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh', id: 'wall', parent: 'root', geometry: { library: 'shapes', model }, material: 'paint', sphere: [0, 0, 0, 1] }] });
+        add(source, `scenes/${name}.json`, graph, graph.length);
+      }
+      welds.push({ id: 'world', file: { knob: 'fixture.rich', false: 'scenes/plain.json', true: 'scenes/rich.json' } });
+    }
+    return new Map([['world/scenes', { version: 1, libraries: [{ id: 'shapes', kind: 'owned', models }], materials: [{ id: 'paint', kind: 'standard', properties: {} }], steps: [], welds, catalogue: 'models/catalogue.json' }]]);
+  }, names);
+  const resolved = await resolveOutputDescriptor(f.index, { offline: false, hash: f.options.hash, read: path => {
+    const wire = f.wires.get(path); if (wire === undefined) throw new Error('Missing cost fixture section'); return Promise.resolve(wire);
+  } });
+  const source = schema.parseShardfile(resolved); carryOutputDescriptor(resolved, source);
+  return { source, assets, ref: f.ref };
+}
+
+test('scoped specimen estimates reserve comparisons and cancelled decode while preserving other readers', async () => {
+  const { source, assets, ref } = await specimenCostFixture();
+  const before = source.budgets.library.resident;
+  expect(scopedSpecimenLibrarySource(source, assets).budgets.library.resident).toBe(before - 400);
+  expect(source.budgets.library.resident).toBe(before);
+  const first = hashImmutableBytes(new Uint8Array([30])), next = hashImmutableBytes(new Uint8Array([31]));
+  const geometry = source.files.find(file => file.hash === first); if (geometry === undefined) throw new Error('Missing cost fixture geometry');
+  geometry.gpu = 50; source.budgets.library.resident += 50;
+  // Draw geometry is copied from the intake: charge its CPU attributes too.
+  expect(scopedSpecimenLibrarySource(source, assets).budgets.library.resident).toBe(before);
+  geometry.gpu = 0; source.budgets.library.resident = before;
+  source.critical.push(first);
+  expect(scopedSpecimenLibrarySource(source, assets).budgets.library.resident).toBe(before - 300);
+  const token = source.files.find(file => file.hash === ref); if (token === undefined) throw new Error('Missing cost fixture token');
+  token.dependencies.push(next);
+  expect(scopedSpecimenLibrarySource(source, assets).budgets.library.resident).toBe(before - 200);
+  assets.clear(); expect(() => scopedSpecimenLibrarySource(source, assets)).toThrow('Missing specimen cost bytes');
+});
+
+test('selected world profiles keep their own geometry and charge a fresh expensive selection', async () => {
+  const { source, assets } = await specimenCostFixture(true), before = source.budgets.library.resident;
+  expect(scopedSpecimenLibrarySource(source, assets).budgets.library.resident).toBe(before - 300);
+  expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone' }).budgets.library.resident).toBe(before - 1300);
+  expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone', overrides: { 'fixture.rich': true } }).budgets.library.resident).toBe(before - 400);
+  expect(scopedSpecimenLibrarySource(source, assets, { tier: 'desktop' }).budgets.library.resident).toBe(before - 400);
 });
 
 test('a lower exact estimate clears a previous warning without changing the cap', () => {

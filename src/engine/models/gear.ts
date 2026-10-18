@@ -18,7 +18,8 @@ import { engineString } from '../strings';
 import * as THREE from 'three';
 import { applySkin, type SkinId, type WeaponKind, type SkinDef } from '../player/Skins';
 import type { SkyRig as Sky } from '../world/skyRig';
-import { announceModelReady, type ModelVariant } from './model';
+import { announceModelReady, trackSpecimenReady, type ModelVariant } from './model';
+import type { Scope } from '../app/scope';
 
 
 // ───────────────────────────── shared by every shard's gear ─────────────────────────────
@@ -40,7 +41,7 @@ export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky, rows
 }
 
 /** the wireframe box a specimen shows while its file loads (the training dummy's, E289) */
-function loadingBox(size: readonly [number, number, number]): THREE.Mesh {
+function loadingBox(size: readonly [number, number, number]): THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> {
   const [x, y, z] = size;
   const box = new THREE.Mesh(new THREE.BoxGeometry(x, y, z), new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.22, wireframe: true, depthWrite: false }));
   box.position.y = y / 2;
@@ -51,19 +52,25 @@ function loadingBox(size: readonly [number, number, number]): THREE.Mesh {
  * A specimen whose parts load (a GLB): a wireframe box of about its size until `fill` resolves, then what `fill` made and a
  * `ws:model-ready` for model `id` (the Explorer re-frames and re-shoots its card). A failed load keeps the box and says why.
  */
-export function loadingSpecimen(id: string, size: readonly [number, number, number], fill: () => Promise<THREE.Object3D>): THREE.Group {
+export function loadingSpecimen(id: string, size: readonly [number, number, number], fill: () => Promise<THREE.Object3D>, owner?: Scope): THREE.Group {
   const holder = new THREE.Group();
-  holder.add(loadingBox(size));
-  void (async (): Promise<void> => {
+  const box = loadingBox(size); holder.add(box);
+  const placeholder = owner?.child('loading-box');
+  placeholder?.own(box.geometry); placeholder?.own(box.material);
+  const pending = (async (): Promise<void> => {
     try {
       const made = await fill();
+      if (owner?.disposed === true) return;
+      if (placeholder !== undefined) placeholder.dispose();
+      else { box.geometry.dispose(); box.material.dispose(); }
       holder.clear();
       holder.add(made);
       announceModelReady(id);
     } catch (error) {
-      console.warn(`[models] ${id}: the specimen's file did not load`, error);
+      if (owner?.disposed !== true) console.warn(`[models] ${id}: the specimen's file did not load`, error);
     }
   })();
+  trackSpecimenReady(holder, pending);
   return holder;
 }
 

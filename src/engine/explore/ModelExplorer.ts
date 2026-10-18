@@ -113,9 +113,11 @@ export class ModelExplorer implements ExplorePane {
   /** what isolate moved off the camera's layer, and its layers before */
   private readonly layered = new Map<THREE.Object3D, number>();
   private readonly swapped = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
-  private readonly overlays: THREE.Object3D[] = [];
+  private readonly overlays: THREE.LineSegments<THREE.WireframeGeometry, THREE.LineBasicMaterial>[] = [];
   private readonly thumbs = new Map<string, HTMLCanvasElement>();
   private thumbQueue: CatalogEntry[] = [];
+  private pendingThumb: CatalogEntry | null = null;
+  private thumbnailVersion = 0;
   /** cards whose model threw while its thumbnail was drawn: kept out of the queue until the model says it is ready again */
   private readonly failedThumbs = new Set<string>();
   private frame = 0;
@@ -194,7 +196,7 @@ export class ModelExplorer implements ExplorePane {
       this.thumbs.delete(id); this.failedThumbs.delete(id);
       this.thumbQueue = this.thumbQueue.filter((candidate) => candidate.id !== id);
       this.grid.querySelector(`.ws-x-model[data-id="${id}"] .ws-x-model-thumb`)?.replaceChildren();
-      if (this.el.dataset['view'] === 'catalog') this.thumbQueue.push(entry);
+      if (this.el.dataset['view'] === 'catalog' && this.pendingThumb !== entry) this.thumbQueue.push(entry);
       if (this.current?.id !== id) return;
       const model = entry.object();
       this.frameModel(model);
@@ -269,9 +271,11 @@ export class ModelExplorer implements ExplorePane {
   }
 
   hide(): void {
+    this.thumbnailVersion++;
     this.el.classList.remove('show');
     this.sheetObserver.disconnect();
     this.closeModel();
+    this.pendingThumb?.release?.();
   }
 
   private placeVariantControls(): void {
@@ -339,7 +343,9 @@ export class ModelExplorer implements ExplorePane {
 
   // ── turntable ──
   private openModel(e: CatalogEntry): void {
+    this.thumbnailVersion++;
     this.closeModel();
+    if (this.pendingThumb !== e) this.pendingThumb?.release?.();
     this.current = e;
     this.el.dataset['view'] = 'model';
     const o = e.object();
@@ -401,6 +407,13 @@ export class ModelExplorer implements ExplorePane {
     this.restoreLight();
     this.releaseShadows();
     this.unisolate();
+    if (this.current.release !== undefined) {
+      this.fresh.delete(this.current.object());
+      this.tierBuilds.delete(this.current.id);
+      this.current.release();
+      for (const material of this.paintMats.values()) material.dispose();
+      this.paintMats.clear();
+    }
     this.current = null;
   }
 
@@ -588,7 +601,10 @@ export class ModelExplorer implements ExplorePane {
     // undo the previous swap
     for (const [mesh, mat] of this.swapped) mesh.material = mat;
     this.swapped.clear();
-    for (const ov of this.overlays) ov.removeFromParent();
+    for (const overlay of this.overlays) {
+      overlay.removeFromParent();
+      overlay.geometry.dispose(); overlay.material.dispose();
+    }
     this.overlays.length = 0;
     this.view = v;
     if (mark) this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.classList.toggle('on', b.dataset['v'] === v); });
@@ -641,7 +657,14 @@ export class ModelExplorer implements ExplorePane {
       (b as HTMLButtonElement).type = 'button';
       listenDom(this.uiScope, b, 'click', () => {
         const p = e.animal ? this.pin.get(e.animal) : undefined;
+        const view = this.view;
+        if (e.release !== undefined) {
+          this.setView('solid', false); this.tierBuilds.delete(e.id);
+          for (const material of this.paintMats.values()) material.dispose();
+          this.paintMats.clear();
+        }
         e.rebuild?.(v.id); this.adopt(e, p);
+        if (e.release !== undefined) this.setView(view, false);
         if (!e.animal) {
           const m = measure(e.object());
           const set = (key: string, value: string): void => { const el = this.sheet.querySelector<HTMLElement>(`.ws-x-stats b[data-s="${key}"]`); if (el) el.textContent = value; };
@@ -898,8 +921,31 @@ export class ModelExplorer implements ExplorePane {
    * again until its model is ready again (`ws:model-ready`).
    */
   private thumbnail(): void {
+    if (this.pendingThumb !== null) return;
     const e = this.thumbQueue.shift();
     if (!e) return;
+    if (e.ready !== undefined) {
+      try {
+        const root = e.object(); this.pendingThumb = e;
+        void this.prepareThumbnail(e, root, this.thumbnailVersion);
+      } catch (error) { this.failedThumbs.add(e.id); e.release?.(); console.error(`[explorer] ${e.id}: specimen preparation failed`, error); }
+      return;
+    }
+    this.captureThumbnail(e);
+  }
+
+  private async prepareThumbnail(e: CatalogEntry, root: THREE.Object3D, version: number): Promise<void> {
+    try {
+      await e.ready?.();
+      if (version === this.thumbnailVersion && this.el.classList.contains('show') && this.el.dataset['view'] === 'catalog') this.captureThumbnail(e);
+    } catch (error) { console.error(`[explorer] ${e.id}: thumbnail preparation failed`, error); }
+    finally {
+      if (this.current !== e) { this.fresh.delete(root); e.release?.(); }
+      if (this.pendingThumb === e) this.pendingThumb = null;
+    }
+  }
+
+  private captureThumbnail(e: CatalogEntry): void {
     const cam = this.world.game.camera;
     const pos = cam.position.clone(), quat = cam.quaternion.clone();
     try {

@@ -10,7 +10,7 @@ import { absentShardProduct, type ShardProduct } from './shardProduct';
 import type { ShardManifest } from '../shard/manifest';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
@@ -50,7 +50,8 @@ function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: 
 
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
-  return { base, firstParty, tier: TIER, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+  const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
+  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
 }

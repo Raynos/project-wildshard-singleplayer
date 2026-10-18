@@ -6,6 +6,87 @@ import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputIndex';
 import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
+import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { plumbingKnob } from '../shard/declaredPlumbing';
+import { recordSceneProfile } from './sceneProfile';
+
+/** View-scoped frozen specimens retain at most the current model and its two
+ * tier comparisons. Reserve a fourth complete choice for a cancelled decoder.
+ * Each choice includes its intake CPU storage and a copied draw geometry.
+ * World geometry, transport, external readers and dependencies stay charged. */
+export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality?: { readonly tier: 'phone' | 'desktop'; readonly overrides?: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> }): Shardfile {
+  const descriptor = outputDescriptor(source), input = descriptor?.sections.get('world/scenes');
+  if (descriptor === undefined || input === undefined) return source;
+  const scenes = parseWorldScenes(input);
+  if (scenes.catalogue === undefined) return source;
+  const names = new Map<string, string>();
+  for (const file of descriptor.index.files) for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`, ...file.name === undefined ? [] : [file.name]]) names.set(name, file.hash);
+  const read = (name: string): unknown => {
+    const hash = names.get(name), bytes = hash === undefined ? undefined : assets.get(hash);
+    if (bytes === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
+    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  };
+  const catalogue = parseWorldSceneModels(read(scenes.catalogue));
+  const libraries = new Map(scenes.libraries.filter(row => row.kind === 'owned').map(row => [row.id, row]));
+  const files = new Map(source.files.map(file => [file.hash, file]));
+  const refs = (library: string, model: string): string[] => {
+    const row = libraries.get(library)?.models.find(entry => entry.id === model);
+    return row === undefined ? [] : [typeof row.file === 'string' ? [row.file] : Object.values(row.file), row.segments ?? []].flat().map(name => {
+      const hash = names.get(name); if (hash === undefined) throw new Error('Missing specimen geometry cost'); return hash;
+    });
+  };
+  const eligible = new Set<string>(), retained = new Set(source.critical);
+  if (quality !== undefined) for (const library of libraries.values()) for (const model of library.models) for (const hash of refs(library.id, model.id)) eligible.add(hash);
+  let largest = 0;
+  for (const model of catalogue.models) {
+    for (const choice of model.choices) {
+      const graphs = worldSceneModelGraphs(choice).map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
+      const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
+      const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
+      if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); continue; }
+      for (const hash of hashes) eligible.add(hash);
+      // A view resolves exactly one topology leaf. Admission still checks all
+      // leaves; a union of mutually exclusive leaves is not one resident copy.
+      for (const graph of graphs) {
+        const selected = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [{ ...choice, scene: graph }] }] });
+        const selectedHashes = new Set(selected.geometry.flatMap(ref => refs(ref.library, ref.model)));
+        largest = Math.max(largest, [...selectedHashes].reduce((sum, hash) => { const file = files.get(hash); if (file === undefined) throw new Error('Missing specimen file cost'); return sum + file.decoded + file.gpu * 2; }, 0));
+      }
+    }
+  }
+  const visit = (value: unknown): void => {
+    if (typeof value === 'string') { const hash = names.get(value); if (hash !== undefined) retained.add(hash); }
+    else if (Array.isArray(value)) for (const child of value) visit(child);
+    else if (typeof value === 'object' && value !== null) {
+      if ('library' in value && 'model' in value && typeof value.library === 'string' && typeof value.model === 'string') for (const hash of refs(value.library, value.model)) retained.add(hash);
+      for (const [key, child] of Object.entries(value)) { visit(key); visit(child); }
+    }
+  };
+  const { files: _files, library: _library, critical: _critical, ...fields } = source;
+  visit(fields);
+  for (const [name, row] of descriptor.sections) {
+    if (name !== 'world/scenes') { visit(row); continue; }
+    const { libraries: _libraries, catalogue: _catalogue, ...world } = scenes;
+    visit(world);
+  }
+  const selectedFiles: string[] = [];
+  for (const weld of scenes.welds) {
+    if (quality !== undefined) {
+      const file = typeof weld.file === 'object' && 'knob' in weld.file ? weld.file[plumbingKnob(source.plumbing, quality.tier, weld.file.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : weld.file;
+      const selected = typeof file === 'string' ? file : file[quality.tier];
+      selectedFiles.push(selected); visit(parseWorldSceneWeld(read(selected))); continue;
+    }
+    const variants = typeof weld.file === 'object' && 'knob' in weld.file ? [weld.file.false, weld.file.true] : [weld.file];
+    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) visit(parseWorldSceneWeld(read(name)));
+  }
+  if (quality !== undefined) recordSceneProfile(source, selectedFiles);
+  for (const file of source.files) for (const dependency of file.dependencies) retained.add(dependency);
+  const charged = new Set(source.library);
+  const removable = source.files.reduce((sum, file) => sum + (charged.has(file.hash) && eligible.has(file.hash) && !retained.has(file.hash) ? file.decoded + file.gpu : 0), 0);
+  const saving = Math.max(0, removable - largest * 4);
+  return saving === 0 ? source : { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
+}
 
 /** Project only exclusive alternatives selected by existing typed presentation hosts.
  * Transport stays fully charged. References elsewhere or dependencies keep an asset resident;

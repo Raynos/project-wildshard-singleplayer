@@ -69,6 +69,8 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
     if (m.buildAt) e.buildAt = m.buildAt;
     if (m.variants) e.variants = m.variants;
     if (m.rebuild) e.rebuild = m.rebuild;
+    if (m.release) e.release = m.release;
+    if (m.ready) e.ready = m.ready;
     if (m.worldView === false) e.worldView = false;
     if (!m.live) {
       let built = false;

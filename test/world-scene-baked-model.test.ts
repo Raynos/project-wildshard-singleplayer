@@ -27,12 +27,46 @@ import { WorldScenePlacement } from '../src/game/shardfile/worldScenePlacement';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
+import { listModel } from '../src/engine/models/live';
+import { place } from '../src/engine/models/place';
 
 function fixtureSky(setupMaterial = vi.fn<SkyRig['setupMaterial']>()): SkyRig {
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   sky.setupMaterial = setupMaterial; return sky;
 }
+
+test.each(['roster', 'placement'])('%s catalogue lifetimes retire variants and tier copies without freeing world sources', async kind => {
+  const owner = new Scope('specimen-fixture'), ctx = sharedModelContext(fixtureSky()), registry = new WorldRegistry();
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
+  const material = new MeshStandardMaterial(), sourceDisposed = vi.spyOn(geometry, 'dispose'), materialDisposed = vi.spyOn(material, 'dispose');
+  const input = { product: 'fixture-quay', models: [{ key: 'marker', id: 'fixture-quay/scoped-marker', name: 'Marker', category: 'props', pipeline: 'code', file: 'marker.json', defaults: { style: 0 }, assembly: 'objects',
+    variants: [{ id: 'other', label: 'Other', params: { style: 1 } }], choices: [0, 1].map(style => ({ id: `style-${String(style)}`, params: { style }, size: [1, 1, 1], colliders: [],
+      draws: [{ id: 'face', library: 'shapes', model: 'face', material: 'paint' }] })) }] };
+  const catalogue = parseWorldSceneModels(input);
+  bindWorldSceneModelSources(ctx, 'fixture-quay', { catalogue, geometries: new Map([['["shapes","face"]', geometry]]), materials: new Map([['paint', material]]) }, owner);
+  try {
+    const model = defineWorldSceneCatalogue(catalogue).model('marker');
+    withOwner(owner, () => {
+      if (kind === 'roster') listModel(model, { ctx, registry });
+      else place(model, [{ x: 0, y: 0, z: 0 }], { ctx, registry, draw: 'single' });
+    });
+    const entry = registry.models()[0]; if (entry === undefined) throw new Error('Missing scoped model');
+    const first = entry.object(), mesh = first.children[0]?.children[0]; if (!(mesh instanceof Mesh)) throw new Error('Missing first specimen');
+    const released = vi.spyOn(mesh.geometry, 'dispose'), studio = new Group(); studio.add(first);
+    entry.rebuild?.('other'); expect(released).toHaveBeenCalledOnce(); expect(first.parent).toBe(studio);
+    const next = first.children[0]?.children[0]; if (!(next instanceof Mesh)) throw new Error('Missing variant specimen');
+    const nextReleased = vi.spyOn(next.geometry, 'dispose');
+    const tier = entry.buildAt?.('phone'), tierMesh = tier?.children[0]; if (!(tierMesh instanceof Mesh)) throw new Error('Missing tier specimen');
+    const tierReleased = vi.spyOn(tierMesh.geometry, 'dispose');
+    await entry.ready?.(); entry.release?.();
+    expect(first.children).toHaveLength(0); expect(first.parent).toBeNull();
+    expect(nextReleased).toHaveBeenCalledOnce(); expect(tierReleased).toHaveBeenCalledOnce();
+    expect(sourceDisposed).not.toHaveBeenCalled(); expect(materialDisposed).not.toHaveBeenCalled();
+    expect(entry.object().children).toHaveLength(1); entry.release?.();
+    expect(owner.census.geometries).toBe(kind === 'roster' ? 0 : 1);
+  } finally { owner.dispose(); registry.retire(); geometry.dispose(); material.dispose(); }
+});
 
 test('fictional scan rows share original PBR material identity and release it once', async () => {
   const map = new Texture(), normalMap = new Texture(), armMap = new Texture(), owner = new Scope('fixture-quay-surfaces');
@@ -55,7 +89,7 @@ test('fictional scan rows share original PBR material identity and release it on
 });
 
 test('surface leases survive the first owner and evict after the last owner', async () => {
-  const texture = new Texture(), first = new Scope('first'), second = new Scope('second'), later = new Scope('later');
+  const texture = new Texture(), textureDisposed = vi.spyOn(texture, 'dispose'), first = new Scope('first'), second = new Scope('second'), later = new Scope('later');
   let finish: ((value: assets.PBRSet) => void) | undefined;
   const load = vi.spyOn(assets, 'loadPBR').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const sky = fixtureSky();
@@ -71,7 +105,8 @@ test('surface leases survive the first owner and evict after the last owner', as
     const material = await pending, disposed = vi.fn<() => void>(); material.addEventListener('dispose', disposed);
     root.add(new Mesh(shape, material));
     expect(worldSceneSurfaceMaterial(row, sky, product, second)).toBe(pending);
-    expect(disposed).not.toHaveBeenCalled(); second.dispose(); await Promise.resolve(); expect(disposed).toHaveBeenCalledOnce();
+    expect(disposed).not.toHaveBeenCalled(); expect(textureDisposed).not.toHaveBeenCalled();
+    second.dispose(); await Promise.resolve(); expect(disposed).toHaveBeenCalledOnce(); expect(textureDisposed).toHaveBeenCalledOnce();
     load.mockResolvedValue({ map: texture, normalMap: texture, armMap: texture });
     const replacement = worldSceneSurfaceMaterial(row, sky, product, later);
     expect(replacement).not.toBe(pending); expect(await replacement).not.toBe(material); expect(load).toHaveBeenCalledTimes(2);

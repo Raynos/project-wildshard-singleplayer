@@ -1819,6 +1819,26 @@ The practice predicate isolates the room when true, even when it has no targets.
 The starter set (`@wildshard/game/plugin/ui`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
+**Explorer specimen ownership (CM1).** Data model catalogues use
+`ModelDef.specimenLifetime: 'view'`. `listModel` and `place` create a child scope for
+each displayed choice or temporary tier build and supply it as
+`ModelContext.specimenScope`. Registry entries forward `ready()` and
+`release()` to the Explorer. Thumbnail capture awaits geometry readiness;
+closing a card or switching variants retires its scopes and clears cached
+builds. World placement retains its resident source ownership. Scene
+catalogue intake borrows world sources and loads only the selected missing
+geometry into the view scope; it never extends the resident source maps.
+Borrowed world surfaces skip preparation; newly loaded scan maps share the
+surface lease and retire after its final owner, including eager GPU uploads.
+The memory projection retains world, dependency and transport costs and
+reserves four complete specimen choices: the shown copy, two tier builds
+and one cancelled decode, including each intake and its copied CPU draw
+attributes. It credits only geometry exclusive to these
+bounded frozen specimens and the selected world profile. The trusted
+admission records the resolved world files; scene intake refuses a different
+profile until fresh admission (quality switches reload the page). Other
+profiles remain metadata-only. No memory cap or multiplier changes.
+
 **Held arms (G474 / G475 / G477).** `@wildshard/game/systems/viewmodel/toonArms`
 defines `ToonArms`, the game host for sword arms, sockets, material binding and swimming.
 `new ToonArms(row)` admits `@wildshard/format/heldArms`'s `ToonArmsLookSchema` before

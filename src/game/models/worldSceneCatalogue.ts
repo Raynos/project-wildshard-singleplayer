@@ -1,4 +1,4 @@
-import { type BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, Sphere, Vector3 } from 'three';
+import { BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, Sphere, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
@@ -24,6 +24,7 @@ import { hasLentLook, lendLooks, lentLook } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '../shardfile/runtimeProduct';
 import { libraryModel } from './libraryModel';
 import { worldSceneSourceMaterial } from '../shardfile/worldSceneMaterials';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 
 interface Sources {
   readonly catalogue: WorldSceneModels;
@@ -84,14 +85,18 @@ function ready(sources: Sources | undefined, catalogue: WorldSceneModels, select
   return needed.geometry.every(ref => sources.geometries.has(JSON.stringify([ref.library, ref.model]))) && needed.materials.every(id => sources.materials.has(id));
 }
 
-async function load(ctx: ModelContext, product: string, catalogue: WorldSceneModels, selection: Selection): Promise<Sources> {
+async function load(ctx: ModelContext, product: string, catalogue: WorldSceneModels, selection: Selection, lifetime: Scope): Promise<Sources> {
   const current = state(ctx, product);
+  requireLive(lifetime);
   if (ready(current.value, catalogue, selection) && current.value !== undefined) return current.value;
   // Requests serialize only intake; concurrent choices still receive their own
   // captured tier/profile and never reuse another choice's incomplete resources.
-  if (current.pending !== undefined) return current.pending.then(() => load(ctx, product, catalogue, selection));
+  if (current.pending !== undefined) {
+    try { await current.pending; } catch { /* An abandoned view does not cancel the next requested choice. */ }
+    return load(ctx, product, catalogue, selection, lifetime);
+  }
   current.pending ??= (async () => {
-    const owner = (current.owner ?? resourceScope()).child(`scene-models/${product}`);
+    const owner = lifetime.child(`scene-models/${product}`);
     try {
     const admitted = await loadFirstPartyProduct(product, owner), rows = admitted.section('world/scenes');
     requireLive(owner);
@@ -100,8 +105,9 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     const geometries = new Map(current.value?.geometries);
     const scenes = current.value?.scenes ?? await admitWorldSceneModelGraphs(admitted, catalogue);
     const declared = selectedResources(catalogue, selection, { scenes, plumbing: admitted.shardfile.plumbing });
-    const slots = new Set(declared.materials), materialRows = rows.materials.filter(row => slots.has(row.id));
-    if (materialRows.length !== slots.size) throw new Error('Missing scene model material slot');
+    const slots = new Set(declared.materials), declaredMaterials = rows.materials.filter(row => slots.has(row.id));
+    if (declaredMaterials.length !== slots.size) throw new Error('Missing scene model material slot');
+    const materialRows = declaredMaterials.filter(row => !current.value?.materials.has(row.id));
     for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
     for (const draw of declared.geometry) {
       const key = JSON.stringify([draw.library, draw.model]);
@@ -142,13 +148,10 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     // world's original material maps and borrowed source-root identity.
     for (const [id, material] of current.value?.materials ?? []) materials.set(id, material);
     for (const [id, geometry] of current.value?.geometries ?? []) geometries.set(id, geometry);
-    const result: Sources = { catalogue, materials, geometries, plumbing: admitted.shardfile.plumbing, scenes };
-    current.value = result;
-    if (current.owner === undefined) {
-      current.owner = owner;
-      owner.onDispose(() => { if (current.owner === owner) { delete current.value; delete current.pending; delete current.owner; } });
-    }
-    return result;
+    // View resources never enter the resident world maps. A closed specimen
+    // retires this intake and its product lease, even after many different visits.
+    owner.onDispose(() => { geometries.clear(); materials.clear(); });
+    return { catalogue, materials, geometries, plumbing: admitted.shardfile.plumbing, scenes };
     } catch (error) { owner.dispose(); throw error; }
   })();
   const pending = current.pending;
@@ -170,42 +173,46 @@ export function defineWorldSceneCatalogue(input: unknown): {
     if (row.choices.some((choice, index) => row.choices.slice(0, index).some(other => same(choice.params, other.params)))) throw new Error('Ambiguous scene model parameters');
     const admitted = new WeakSet<WorldSceneModels>();
     const parts = new Map<string, typeof row.choices[number]['draws'][number]>(row.choices.flatMap(choice => choice.draws.map(draw => [JSON.stringify([choice.id, draw.id]), draw] as const)));
-    const rawParts = (draws: typeof row.choices[number]['draws'], ctx: ModelContext): ModelPart[] => draws.map(draw => {
-      const source = state(ctx, rows.product).value, geometry = source?.geometries.get(JSON.stringify([draw.library, draw.model])), material = source?.materials.get(draw.material);
+    const rawParts = (draws: typeof row.choices[number]['draws'], ctx: ModelContext, source = state(ctx, rows.product).value, owner?: Scope): ModelPart[] => draws.map(draw => {
+      const original = source?.geometries.get(JSON.stringify([draw.library, draw.model])), material = source?.materials.get(draw.material);
+      const geometry = owner === undefined ? original : original?.clone();
       if (geometry === undefined || material === undefined) throw new Error('Scene model parts are not ready');
+      if (owner !== undefined) ownSceneResource(geometry, owner);
       if (draw.sphere !== undefined) geometry.boundingSphere = new Sphere(new Vector3(draw.sphere[0], draw.sphere[1], draw.sphere[2]), draw.sphere[3]);
       return { geometry, material, castShadow: tierFlag(draw.castShadow, source), receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder, ...(draw.until === undefined ? {} : { until: tierNumber(draw.until, source) }) };
     });
-    const builder = (context: ModelContext) => libraryModel<Record<string, unknown>, string>({
-      draws: params => { const choice = select(params); return choice.draws.map(draw => ({ draw: JSON.stringify([choice.id, draw.id]), material: draw.material, castShadow: tierFlag(draw.castShadow, state(context, rows.product).value), receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder })); },
-      geometry: (ctx, key) => { const draw = parts.get(key), sources = state(ctx, rows.product).value; if (draw === undefined || sources === undefined) throw new Error('Scene model resources are not ready'); const geometry = sources.geometries.get(JSON.stringify([draw.library, draw.model])); if (geometry === undefined) throw new Error(`Missing scene model geometry: ${key}`); return geometry.clone(); },
-      material: (ctx, id) => { const material = state(ctx, rows.product).value?.materials.get(id); if (material === undefined) throw new Error(`Missing scene model material: ${id}`); return material; },
+    const builder = (sources: Sources) => libraryModel<Record<string, unknown>, string>({
+      draws: params => { const choice = select(params); return choice.draws.map(draw => ({ draw: JSON.stringify([choice.id, draw.id]), material: draw.material, castShadow: tierFlag(draw.castShadow, sources), receiveShadow: draw.receiveShadow, renderOrder: draw.renderOrder })); },
+      geometry: (_ctx, key) => { const draw = parts.get(key); if (draw === undefined) throw new Error('Scene model resources are not ready'); const geometry = sources.geometries.get(JSON.stringify([draw.library, draw.model])); if (geometry === undefined) throw new Error(`Missing scene model geometry: ${key}`); return geometry.clone(); },
+      material: (_ctx, id) => { const material = sources.materials.get(id); if (material === undefined) throw new Error(`Missing scene model material: ${id}`); return material; },
     });
     const { key: _key, choices: _choices, assembly: _assembly, surface, ...metadata } = row;
-    definitions.set(row.key, defineModel({ ...metadata, ...(surface === undefined ? {} : { surface }), colliders: params => colliders(select(params).colliders),
+    definitions.set(row.key, defineModel({ ...metadata, specimenLifetime: 'view', ...(surface === undefined ? {} : { surface }), colliders: params => colliders(select(params).colliders),
       build: (ctx, params, rng) => {
+        const owner = resourceScope();
         const quality = row.assembly === 'scene' ? { tier: buildTier(), overrides: Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean'))) } : undefined;
-        const choice = select(params), build = () => {
-          const source = state(ctx, rows.product).value?.catalogue;
-          if (source === undefined) throw new Error('Scene model resources are not ready');
+        const choice = select(params), build = (sources: Sources) => {
+          requireLive(owner);
+          const source = sources.catalogue;
           if (!admitted.has(source)) { if (!same(source, rows)) throw new Error('Scene model metadata differs from its resident catalogue'); admitted.add(source); }
           if (row.assembly === 'scene') {
-            const sources = state(ctx, rows.product).value, scene = choice.scene;
-            if (sources === undefined || scene === undefined || quality === undefined) throw new Error('Frozen specimen resources are not ready');
+            const scene = choice.scene;
+            if (scene === undefined || quality === undefined) throw new Error('Frozen specimen resources are not ready');
             const topology = 'knob' in scene ? scene[plumbingKnob(sources.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : scene;
             const leaf = 'nodes' in topology || 'file' in topology ? topology : topology[TIER];
             const recipe = 'file' in leaf ? sources.scenes?.get(leaf.file) : leaf;
             if (recipe === undefined) throw new Error('Missing admitted frozen specimen');
             if (recipe.culls.length > 0 || recipe.placements.length > 0 || recipe.sets.length > 0 || recipe.resources.length > 0) throw new Error('Frozen specimens cannot install world services');
             const handles = new SceneHandles(ctx.sky), root = new Group(); handles.publish(recipe.root, root);
-            return hydrateWorldSceneWeld(recipe, handles, { geometry: sources.geometries, materials: sources.materials, plumbing: sources.plumbing, quality }, resourceScope());
+            return hydrateWorldSceneWeld(recipe, handles, { geometry: sources.geometries, materials: sources.materials, plumbing: sources.plumbing, quality }, owner);
           }
-          if (row.assembly === 'parts') return rawParts(choice.draws, ctx);
+          if (row.assembly === 'parts') return rawParts(choice.draws, ctx, sources, ctx.specimenScope);
           if (row.assembly === 'objects') {
             const root = new Group();
-            for (const [i, part] of rawParts(choice.draws, ctx).entries()) {
+            for (const [i, part] of rawParts(choice.draws, ctx, sources).entries()) {
               const proxy = choice.draws[i]?.depthOnly === true;
               const mesh = new Mesh(part.geometry.clone(), proxy ? shadowProxyMaterial : part.material);
+              ownSceneResource(mesh.geometry, owner);
               mesh.castShadow = proxy || (part.castShadow ?? false); mesh.receiveShadow = part.receiveShadow ?? false; mesh.renderOrder = part.renderOrder ?? 0;
               if (proxy) mesh.layers.set(SHADOW_LAYER);
               if (part.until !== undefined) mesh.userData['until'] = part.until;
@@ -213,15 +220,17 @@ export function defineWorldSceneCatalogue(input: unknown): {
             }
             return root;
           }
-          const made = builder(ctx).build(ctx, params, rng); if (!(made instanceof Group)) throw new Error('Scene model library must build a group'); return made; };
+          const made = builder(sources).build(ctx, params, rng); if (!(made instanceof Group)) throw new Error('Scene model library must build a group');
+          made.traverse(node => { if (node instanceof Mesh) { const shape: unknown = node.geometry; if (shape instanceof BufferGeometry) ownSceneResource(shape, owner); } }); return made; };
         const selection: Selection = { model: row, choice, quality };
-        if (ready(state(ctx, rows.product).value, rows, selection)) return build();
+        const resident = state(ctx, rows.product).value;
+        if (ready(resident, rows, selection) && resident !== undefined) return build(resident);
         return loadingSpecimen(row.id, choice.size, async () => {
-          await load(ctx, rows.product, rows, selection); const made = build(); if (made instanceof Object3D) return made;
+          const sources = await load(ctx, rows.product, rows, selection, owner), made = build(sources); if (made instanceof Object3D) return made;
           const root = new Group();
           for (const part of made) { const mesh = new Mesh(part.geometry, part.material); mesh.castShadow = part.castShadow ?? false; mesh.receiveShadow = part.receiveShadow ?? false; mesh.renderOrder = part.renderOrder ?? 0; root.add(mesh); }
           return root;
-        });
+        }, owner);
       },
       lods: row.choices[0]?.lods.map((level, index) => ({ from: typeof level.from === 'number' ? level.from : level.from[TIER], build: (ctx, params) => rawParts(select(params).lods[index]?.draws ?? [], ctx) })) ?? [],
     }));

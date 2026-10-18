@@ -2,6 +2,7 @@ import { prepareSceneSources, sceneModelSource, sceneBakeSource, sceneSourceDecl
 import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneStepSources';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
+import { assertSceneProfile } from './sceneProfile';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
@@ -97,6 +98,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     sourceObjects.set(row.publishObject, key); published.add(row.publishObject);
   }
   const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>();
+  assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, product.shardfile.plumbing)));
   for (const declared of section.welds ?? []) {
     const selected = worldSceneWeldFile(declared, product.shardfile.plumbing);
     let row: WorldSceneWeld | undefined;

@@ -89,6 +89,9 @@ export interface ModelEntry extends ModelFacts {
   /** true: `object()` is already in the scene (the Model Explorer isolates it in place); false: it builds one on first view */
   live: boolean;
   object: () => THREE.Object3D;
+  /** Retire a view-scoped catalogue build without changing live world copies. */
+  release?: () => void;
+  ready?: () => Promise<void>;
   /** a batch member's builder at a given detail tier (DETAIL TIERS); absent → one build for every tier */
   buildAt?: (tier: Tier) => THREE.Object3D;
   /** Material or skin variants shown on the same turntable card. */
@@ -109,6 +112,8 @@ export interface RegisteredModel extends ModelFacts {
   /** true: `object()` is already in the scene (the Model Explorer isolates it in place) */
   live: boolean;
   object: () => THREE.Object3D;
+  release?: () => void;
+  ready?: () => Promise<void>;
   buildAt?: (tier: Tier) => THREE.Object3D;
   variants?: readonly { id: string; label: string }[];
   rebuild?: (variant?: string) => void;
@@ -300,6 +305,7 @@ export class WorldRegistry {
       if (!m) continue;
       const { id, category, object } = m;
       const e: RegisteredModel = {
+        ...(m.release === undefined ? {} : { release: m.release }), ...(m.ready === undefined ? {} : { ready: m.ready }),
         id, name: p.name, category, file: p.file, live: m.live, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
         ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
         ...(m.species === undefined ? {} : { species: m.species }), ...(m.dress === undefined ? {} : { dress: m.dress }),

@@ -1,0 +1,96 @@
+{
+  "source": "6e9e9a718557f566900e520017f57e16a2b74b49",
+  "standalone": "71e8240e7c2890ffa51499cf9a935ee52748990e",
+  "base": "afc113552e58f1f411244bda35d75d1e589f37b2",
+  "mapInputs": [],
+  "proofs": [
+    {
+      "id": "20261018T044232-cm1-checks-v5-68104",
+      "label": "cm1-checks-v5",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792316552,
+      "endedAt": 1792316836
+    },
+    {
+      "id": "20261018T045856-cm1-integrated-checks-63567",
+      "label": "cm1-integrated-checks",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792317536,
+      "endedAt": 1792317989
+    },
+    {
+      "id": "20261018T044757-cm1-final-explorer-16879",
+      "label": "cm1-final-explorer",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792316877,
+      "endedAt": 1792316946
+    },
+    {
+      "id": "20261018T044757-cm1-final-stress-16924",
+      "label": "cm1-final-stress",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792316877,
+      "endedAt": 1792316946
+    },
+    {
+      "id": "20261018T050435-cm1-native-specimens-before-87574",
+      "label": "cm1-native-specimens-before",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792317875,
+      "endedAt": 1792317918
+    },
+    {
+      "id": "20261018T050435-cm1-native-specimens-after-87500",
+      "label": "cm1-native-specimens-after",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792317875,
+      "endedAt": 1792317917
+    },
+    {
+      "id": "20261018T050538-cm1-composed-before-92869",
+      "label": "cm1-composed-before",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792317938,
+      "endedAt": 1792317976
+    },
+    {
+      "id": "20261018T050538-cm1-composed-after-92861",
+      "label": "cm1-composed-after",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792317939,
+      "endedAt": 1792317976
+    },
+    {
+      "id": "20261018T050709-cm1-integrated-explorer-98431",
+      "label": "cm1-integrated-explorer",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792318029,
+      "endedAt": 1792318091
+    },
+    {
+      "id": "20261018T050709-cm1-integrated-phone-98444",
+      "label": "cm1-integrated-phone",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792318029,
+      "endedAt": 1792318056
+    },
+    {
+      "id": "20261018T050709-cm1-integrated-world-98430",
+      "label": "cm1-integrated-world",
+      "state": "passed",
+      "rc": 0,
+      "startedAt": 1792318029,
+      "endedAt": 1792318132
+    }
+  ]
+}

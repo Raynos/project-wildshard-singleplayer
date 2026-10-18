@@ -86,10 +86,13 @@ import type { SkyRig as Sky } from '../world/skyRig';
 import type { Animal } from '../entities/AnimalView';
 import type { WeldBuild } from './weld';
 import type { Renderer } from '../render/renderer';
+import type { Scope } from '../app/scope';
 
 
 /** What a model's builder gets from the shard it's placed on. Make one per shard with `modelContext`. */
 export interface ModelContext {
+  /** The optional catalogue view owner; world placement continues to borrow resident sources. */
+  readonly specimenScope?: Scope;
   /** the shard's sky: materials are prepared by it (its fog, its toon / painterly / PBR / Jiehua look) */
   readonly sky: Sky;
   /** the renderer, when a builder needs it (KTX2 textures; the batched path's multi-draw check) */
@@ -234,6 +237,8 @@ export interface ModelDef<P extends object> {
   readonly seed?: number;
   /** Optional async code/resource preparation, awaited by the roster before any specimen builds. */
   readonly prepare?: () => Promise<void>;
+  /** Catalogue builds own their resources only while shown, including temporary tier comparisons. */
+  readonly specimenLifetime?: 'view';
   readonly build: (ctx: ModelContext, params: P, rng: Rng) => ModelBuild;
   readonly lods?: readonly ModelLod<P>[];
   /** own-space colliders per copy; `ctx` reaches what the shard loaded (a GLB's hull points) */
@@ -276,6 +281,21 @@ export interface ModelInfo {
 }
 
 const defined = new Map<string, ModelInfo>();
+
+const loading = new WeakMap<Object3D, Promise<void>>();
+/** Wait for asynchronous geometry before copying a catalogue thumbnail. */
+export async function specimenReady(root: Object3D): Promise<void> {
+  const pending: Promise<void>[] = [];
+  root.traverse(node => { const ready = loading.get(node); if (ready !== undefined) pending.push(ready); });
+  await Promise.all(pending);
+}
+
+/** Associate a pending decoder with the model root without retaining a closed view. */
+export function trackSpecimenReady(root: Object3D, pending: Promise<void>): void {
+  loading.set(root, pending);
+  const clear = (): void => { if (loading.get(root) === pending) loading.delete(root); };
+  void pending.then(clear, clear);
+}
 
 /**
  * Tell the Model Explorer that model `id`'s file has landed after its specimen was built (a stand-in drawn first): its card

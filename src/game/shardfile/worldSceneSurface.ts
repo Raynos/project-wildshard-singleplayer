@@ -1,4 +1,4 @@
-import { Color, MeshStandardMaterial, Vector2, type Material } from 'three';
+import { Color, MeshStandardMaterial, Vector2, Texture, type Material } from 'three';
 import { loadPBR, pbrMaterial } from '@wildshard/engine/core/assets';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { pageScope, resourceScope } from '@wildshard/engine/app/resources';
@@ -10,6 +10,7 @@ import type { ShardProduct } from './shardProduct';
 import { productCoverAppearance } from '../looks/coverAppearance';
 import { gridPage } from '../shard/runtimeVariant';
 import { lentMappedLook, setLentTexture } from './lentLooks';
+import { app } from '@wildshard/engine/app/runtime';
 
 interface Lease { readonly owners: Set<Scope>; readonly scope: Scope }
 interface Entry {
@@ -87,8 +88,12 @@ async function makeBase(row: WorldSceneSurface, product: ShardProduct, lease: Le
   const base = row.scan === undefined ? new MeshStandardMaterial(properties)
     : pbrMaterial(await loadPBR(row.scan, 1, cap), properties);
   ownSceneResource(base, lease.scope);
+  for (const value of new Set(Object.values(base))) if (value instanceof Texture) ownSceneResource(value, lease.scope, app.assets);
   if (lease.owners.size === 0) { release(lease); throw new Error('Scene surface owners are disposed'); }
-  if (row.map !== undefined) base.map = await (await productCoverAppearance(product, row.map.appearance)).texture(product, row.map.texture);
+  if (row.map !== undefined) {
+    base.map = await (await productCoverAppearance(product, row.map.appearance)).texture(product, row.map.texture);
+    ownSceneResource(base.map, lease.scope, app.assets);
+  }
   if (lease.owners.size === 0) throw new Error('Scene surface owners are disposed');
   return base;
 }

@@ -1,0 +1,5559 @@
+{
+  "version": {
+    "build": "71e8240-mvdn6i2t",
+    "time": "2026-10-18T09:47:41.971Z"
+  },
+  "device": "iPhone 16 Pro",
+  "muted": true,
+  "rows": [
+    {
+      "id": "pine-hollow/log-cabin",
+      "name": "Log cabin",
+      "pixels": "d7e983f4de525fc2563e39d80bcd7e7381650ec8efec3dc6e579ce8d3dd49717",
+      "calls": 133,
+      "triangles": 837905,
+      "camera": [
+        -16.11229349447852,
+        14.22850409601796,
+        -31.288921950129815
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/log-cabin",
+        "usedSize": 115585004,
+        "totalSize": 121274368,
+        "embedderHeapUsedSize": 7169152,
+        "backingStorageSize": 257243875,
+        "memory": {
+          "gpu": 323129022,
+          "ram": 186776426
+        },
+        "gpuBytes": 323129022,
+        "scopes": {
+          "geometries": 544,
+          "materials": 491,
+          "textures": 428,
+          "renderTargets": 0,
+          "meshes": 60,
+          "resources": 1256,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7655,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1606,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "The ranger's (the Hollow)",
+          "pixels": "00d631db4c904c053aa712575f93497a4a12d7948070cd8d4de24c1ff8ba312a",
+          "calls": 133,
+          "triangles": 837905,
+          "camera": [
+            -16.11229349447852,
+            14.22850409601796,
+            -31.288921950129815
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/log-cabin:The ranger's (the Hollow)",
+            "usedSize": 115834812,
+            "totalSize": 118128640,
+            "embedderHeapUsedSize": 7631984,
+            "backingStorageSize": 258441624,
+            "memory": {
+              "gpu": 323127062,
+              "ram": 194686826
+            },
+            "gpuBytes": 323127062,
+            "scopes": {
+              "geometries": 544,
+              "materials": 491,
+              "textures": 428,
+              "renderTargets": 0,
+              "meshes": 60,
+              "resources": 1255,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7655,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1606,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "East",
+          "pixels": "17f54e48e9b9f0f27cac32c4fab646f2df5433c00c5e366592bae930d3636157",
+          "calls": 127,
+          "triangles": 945209,
+          "camera": [
+            -19.785355622053395,
+            15.818563566404837,
+            -34.22094645983397
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/log-cabin:East",
+            "usedSize": 116312032,
+            "totalSize": 118390784,
+            "embedderHeapUsedSize": 7444496,
+            "backingStorageSize": 258250280,
+            "memory": {
+              "gpu": 323029792,
+              "ram": 194591516
+            },
+            "gpuBytes": 323029792,
+            "scopes": {
+              "geometries": 541,
+              "materials": 491,
+              "textures": 428,
+              "renderTargets": 0,
+              "meshes": 60,
+              "resources": 1252,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7655,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1600,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Ridge",
+          "pixels": "95f08ba7f27b98af944b80631ef878bb5e216a47406be9c0feeec3f60091071e",
+          "calls": 123,
+          "triangles": 814985,
+          "camera": [
+            -15.071319481936683,
+            12.63771698333623,
+            -27.430334873453535
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/log-cabin:Ridge",
+            "usedSize": 117051116,
+            "totalSize": 119177216,
+            "embedderHeapUsedSize": 7655008,
+            "backingStorageSize": 263051835,
+            "memory": {
+              "gpu": 323686096,
+              "ram": 198366672
+            },
+            "gpuBytes": 323686096,
+            "scopes": {
+              "geometries": 540,
+              "materials": 491,
+              "textures": 428,
+              "renderTargets": 0,
+              "meshes": 60,
+              "resources": 1254,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7655,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1598,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/hunting-lodge",
+      "name": "Hunting lodge",
+      "pixels": "673b23533ad179985e4ce3075d528f1bec742f4aadb9434eaa0c8d50171c782d",
+      "calls": 123,
+      "triangles": 1072737,
+      "camera": [
+        -17.716781891803,
+        15.103263506535836,
+        -33.09451562288937
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/hunting-lodge",
+        "usedSize": 117488752,
+        "totalSize": 119439360,
+        "embedderHeapUsedSize": 7436296,
+        "backingStorageSize": 261815975,
+        "memory": {
+          "gpu": 323782308,
+          "ram": 198275008
+        },
+        "gpuBytes": 323782308,
+        "scopes": {
+          "geometries": 540,
+          "materials": 491,
+          "textures": 429,
+          "renderTargets": 0,
+          "meshes": 60,
+          "resources": 1254,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7657,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1598,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/trader-stall",
+      "name": "Trader's stall",
+      "pixels": "198ccdb0a08989150571050fe607bedf2c93ddc2eed1418d754a93105e2fedab",
+      "calls": 81,
+      "triangles": 991857,
+      "camera": [
+        -11.253052245750787,
+        7.935187907769761,
+        -18.56126741476596
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/trader-stall",
+        "usedSize": 117694864,
+        "totalSize": 119963648,
+        "embedderHeapUsedSize": 7520200,
+        "backingStorageSize": 259614356,
+        "memory": {
+          "gpu": 322680140,
+          "ram": 197172840
+        },
+        "gpuBytes": 322680140,
+        "scopes": {
+          "geometries": 529,
+          "materials": 488,
+          "textures": 430,
+          "renderTargets": 0,
+          "meshes": 58,
+          "resources": 1238,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7658,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1567,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/millers-house",
+      "name": "Miller's house",
+      "pixels": "178530c03d2b0d586d8dc422e46c67dfcda69de91e671d8ac3c402f4ca13d72b",
+      "calls": 123,
+      "triangles": 815577,
+      "camera": [
+        -13.443654733124959,
+        11.490171289006813,
+        -23.20585660604563
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/millers-house",
+        "usedSize": 118005420,
+        "totalSize": 120225792,
+        "embedderHeapUsedSize": 7515080,
+        "backingStorageSize": 258887871,
+        "memory": {
+          "gpu": 323707936,
+          "ram": 195417372
+        },
+        "gpuBytes": 323707936,
+        "scopes": {
+          "geometries": 540,
+          "materials": 491,
+          "textures": 431,
+          "renderTargets": 0,
+          "meshes": 60,
+          "resources": 1254,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7659,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1598,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/watermill",
+      "name": "Watermill",
+      "pixels": "12b9d59d938c7556e83aba853114f0d08a6f6fa4c13aea6edc729387adb9faa2",
+      "calls": 107,
+      "triangles": 702609,
+      "camera": [
+        -35.18045467247517,
+        17.3866464077507,
+        -49.27804466489747
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/watermill",
+        "usedSize": 118402204,
+        "totalSize": 120750080,
+        "embedderHeapUsedSize": 7529520,
+        "backingStorageSize": 272098766,
+        "memory": {
+          "gpu": 323603804,
+          "ram": 197900768
+        },
+        "gpuBytes": 323603804,
+        "scopes": {
+          "geometries": 534,
+          "materials": 488,
+          "textures": 432,
+          "renderTargets": 0,
+          "meshes": 59,
+          "resources": 1244,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7661,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1580,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/hamlet-shed",
+      "name": "Hamlet shed",
+      "pixels": "81773acb4da0370d9b2a06c89414ce4e8a860ea1197b218e9c43e0ebe592264b",
+      "calls": 81,
+      "triangles": 437569,
+      "camera": [
+        -9.946302823775044,
+        7.350264524595858,
+        -15.518430009947856
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/hamlet-shed",
+        "usedSize": 118762232,
+        "totalSize": 121012224,
+        "embedderHeapUsedSize": 7527520,
+        "backingStorageSize": 270472505,
+        "memory": {
+          "gpu": 322645148,
+          "ram": 208017952
+        },
+        "gpuBytes": 322645148,
+        "scopes": {
+          "geometries": 529,
+          "materials": 488,
+          "textures": 433,
+          "renderTargets": 0,
+          "meshes": 58,
+          "resources": 1238,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7662,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1567,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/wooden-crate",
+      "name": "Wooden crate",
+      "pixels": "2ca0146e8cd4bd3e6772b0804bc80eddbd1e8c11c0ab49804a6a3c1f8ed013a6",
+      "calls": 33,
+      "triangles": 45465,
+      "camera": [
+        -1.5736585836660677,
+        1.123742049508903,
+        -2.5678934327799574
+      ],
+      "quaternion": [
+        -0.0405668156466938,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/wooden-crate",
+        "usedSize": 118730508,
+        "totalSize": 121012224,
+        "embedderHeapUsedSize": 7501136,
+        "backingStorageSize": 265194772,
+        "memory": {
+          "gpu": 321420536,
+          "ram": 203962404
+        },
+        "gpuBytes": 321420536,
+        "scopes": {
+          "geometries": 516,
+          "materials": 488,
+          "textures": 434,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7668,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1537,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/wine-barrel",
+      "name": "Wine barrel",
+      "pixels": "f1c454edeed68d91a95456b2841f058f28944b3b304e8f70f5b6c65c0561dc29",
+      "calls": 41,
+      "triangles": 177177,
+      "camera": [
+        -1.356623220517336,
+        1.2094226515865767,
+        -2.2065200777452296
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/wine-barrel",
+        "usedSize": 118993644,
+        "totalSize": 121012224,
+        "embedderHeapUsedSize": 7483952,
+        "backingStorageSize": 267983651,
+        "memory": {
+          "gpu": 322664056,
+          "ram": 205506052
+        },
+        "gpuBytes": 322664056,
+        "scopes": {
+          "geometries": 518,
+          "materials": 488,
+          "textures": 435,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1220,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7674,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1541,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/wooden-bucket",
+      "name": "Wooden bucket",
+      "pixels": "43844d05626c85efd7b9f71e43813c4595143552652162d3bd19e06998ba46a0",
+      "calls": 35,
+      "triangles": 45009,
+      "camera": [
+        -1.1257901211629409,
+        0.9109542294082643,
+        -1.8342172548947158
+      ],
+      "quaternion": [
+        -0.0405668156466938,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/wooden-bucket",
+        "usedSize": 119231772,
+        "totalSize": 121536512,
+        "embedderHeapUsedSize": 7614624,
+        "backingStorageSize": 265531698,
+        "memory": {
+          "gpu": 321437224,
+          "ram": 204279220
+        },
+        "gpuBytes": 321437224,
+        "scopes": {
+          "geometries": 516,
+          "materials": 488,
+          "textures": 436,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7680,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1539,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/hatchet",
+      "name": "Hatchet",
+      "pixels": "c15e858072501ece5b97631ce34a644a6c9a2fc2105db4a460d3ad4781bb8e80",
+      "calls": 31,
+      "triangles": 25081,
+      "camera": [
+        -1.038320293762804,
+        0.6670859399480887,
+        -1.6688849041481368
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/hatchet",
+        "usedSize": 119485392,
+        "totalSize": 121536512,
+        "embedderHeapUsedSize": 7554736,
+        "backingStorageSize": 264928697,
+        "memory": {
+          "gpu": 321284932,
+          "ram": 203826800
+        },
+        "gpuBytes": 321284932,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 437,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7685,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1536,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/stone-fire-pit",
+      "name": "Stone fire pit",
+      "pixels": "adc9f4424fdebdf6d9538bc2e0c18652b464803223b35f0bc6d498ad8545e5dd",
+      "calls": 27,
+      "triangles": 11831,
+      "camera": [
+        -1.9515150371191514,
+        1.1188710534241955,
+        -3.162858918226413
+      ],
+      "quaternion": [
+        -0.0405668156466938,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/stone-fire-pit",
+        "usedSize": 119769584,
+        "totalSize": 121536512,
+        "embedderHeapUsedSize": 7490600,
+        "backingStorageSize": 265296246,
+        "memory": {
+          "gpu": 321216626,
+          "ram": 204211786
+        },
+        "gpuBytes": 321216626,
+        "scopes": {
+          "geometries": 515,
+          "materials": 490,
+          "textures": 438,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7686,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1539,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/porch-lantern",
+      "name": "Porch lantern",
+      "pixels": "88a9a012dd0b306fd64f55e53fc81b6e50e588fd05142bfcd630f21d095c378a",
+      "calls": 29,
+      "triangles": 12913,
+      "camera": [
+        -1.0459003938564737,
+        0.7879742232975355,
+        -1.7071541383584385
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/porch-lantern",
+        "usedSize": 120090572,
+        "totalSize": 122060800,
+        "embedderHeapUsedSize": 7424592,
+        "backingStorageSize": 265036993,
+        "memory": {
+          "gpu": 321255104,
+          "ram": 203961496
+        },
+        "gpuBytes": 321255104,
+        "scopes": {
+          "geometries": 516,
+          "materials": 490,
+          "textures": 439,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1220,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7691,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1541,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/fire-lookout",
+      "name": "Fire lookout",
+      "pixels": "3c55715acc17a4e40af1605c5f89d279e6344e7f5040368daef42e60ab7f3cfa",
+      "calls": 39,
+      "triangles": 24321,
+      "camera": [
+        -19.141017258872665,
+        19.01669848573767,
+        -31.917121556370475
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/fire-lookout",
+        "usedSize": 120234468,
+        "totalSize": 122322944,
+        "embedderHeapUsedSize": 7427344,
+        "backingStorageSize": 265402044,
+        "memory": {
+          "gpu": 321799320,
+          "ram": 204460352
+        },
+        "gpuBytes": 321799320,
+        "scopes": {
+          "geometries": 520,
+          "materials": 488,
+          "textures": 440,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1222,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7692,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/zipline-landing",
+      "name": "Zipline landing",
+      "pixels": "e2da8c6ad4cbafdfcff1830403492b6346dbff0564c8611d5eb73e43e2cbb3a6",
+      "calls": 33,
+      "triangles": 7553,
+      "camera": [
+        -13.456481038183549,
+        10.029048295785175,
+        -18.836531596846907
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/zipline-landing",
+        "usedSize": 120437072,
+        "totalSize": 122322944,
+        "embedderHeapUsedSize": 7439728,
+        "backingStorageSize": 265354139,
+        "memory": {
+          "gpu": 321236136,
+          "ram": 204411556
+        },
+        "gpuBytes": 321236136,
+        "scopes": {
+          "geometries": 518,
+          "materials": 488,
+          "textures": 441,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1220,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7693,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/zip-cable",
+      "name": "Zip-line cable",
+      "pixels": "01df2c871cc57d9c749b5602e9f3cbb127ebc57b0005861de38c3ff1113cadb5",
+      "calls": 27,
+      "triangles": 5657,
+      "camera": [
+        -266.58033030723095,
+        121.5309451475749,
+        -503.5816233351173
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/zip-cable",
+        "usedSize": 120532756,
+        "totalSize": 122585088,
+        "embedderHeapUsedSize": 7444344,
+        "backingStorageSize": 265375363,
+        "memory": {
+          "gpu": 321140760,
+          "ram": 204431908
+        },
+        "gpuBytes": 321140760,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 442,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7693,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/creek-footbridge",
+      "name": "Creek footbridge",
+      "pixels": "40e3cd0bb922516b460845b5cc28d94da89c8ff448d0150e8bc4035f623bcb9a",
+      "calls": 35,
+      "triangles": 12553,
+      "camera": [
+        -32.52888582099192,
+        18.279186844142483,
+        -53.076913326910784
+      ],
+      "quaternion": [
+        -0.0405668156466938,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/creek-footbridge",
+        "usedSize": 120873848,
+        "totalSize": 123109376,
+        "embedderHeapUsedSize": 7409448,
+        "backingStorageSize": 265685421,
+        "memory": {
+          "gpu": 321400776,
+          "ram": 204691924
+        },
+        "gpuBytes": 321400776,
+        "scopes": {
+          "geometries": 519,
+          "materials": 488,
+          "textures": 443,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1221,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7694,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/standing-stone",
+      "name": "Standing stone",
+      "pixels": "c94937222ba0e6d88a7aeed759fa2451c4db267e61c7729bf089edfd8cb898e9",
+      "calls": 29,
+      "triangles": 12029,
+      "camera": [
+        -3.8021674968317334,
+        3.6856809598678355,
+        -6.180286656540835
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/standing-stone",
+        "usedSize": 121055044,
+        "totalSize": 123109376,
+        "embedderHeapUsedSize": 7472880,
+        "backingStorageSize": 265266004,
+        "memory": {
+          "gpu": 321206766,
+          "ram": 204382186
+        },
+        "gpuBytes": 321206766,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 444,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7698,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Stone A",
+          "pixels": "c94937222ba0e6d88a7aeed759fa2451c4db267e61c7729bf089edfd8cb898e9",
+          "calls": 29,
+          "triangles": 12029,
+          "camera": [
+            -3.8021674968317334,
+            3.6856809598678355,
+            -6.180286656540835
+          ],
+          "quaternion": [
+            -0.040566815646693795,
+            -0.9516418147062643,
+            -0.14382659317902305,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/standing-stone:Stone A",
+            "usedSize": 121192212,
+            "totalSize": 123109376,
+            "embedderHeapUsedSize": 7460568,
+            "backingStorageSize": 265414642,
+            "memory": {
+              "gpu": 321206766,
+              "ram": 204468544
+            },
+            "gpuBytes": 321206766,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 444,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1217,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7698,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Stone B",
+          "pixels": "7e7a211faa5da0d70505dd61479126f3d9c6e9009ded39523ac7694cc050e15a",
+          "calls": 29,
+          "triangles": 12025,
+          "camera": [
+            -4.420704536799869,
+            3.544758224713319,
+            -7.255748324415638
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/standing-stone:Stone B",
+            "usedSize": 121340376,
+            "totalSize": 123371520,
+            "embedderHeapUsedSize": 7462768,
+            "backingStorageSize": 265465924,
+            "memory": {
+              "gpu": 321257208,
+              "ram": 204518986
+            },
+            "gpuBytes": 321257208,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 444,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1217,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7698,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Stone C",
+          "pixels": "00287c5bb227e7de2048be64d1c11f45ed0fc50a7c456210ad28d6a8a79220b0",
+          "calls": 29,
+          "triangles": 11249,
+          "camera": [
+            -3.8714086414961737,
+            3.982590456060618,
+            -6.209152433486539
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/standing-stone:Stone C",
+            "usedSize": 121479404,
+            "totalSize": 123371520,
+            "embedderHeapUsedSize": 7421184,
+            "backingStorageSize": 265321258,
+            "memory": {
+              "gpu": 321198060,
+              "ram": 204373480
+            },
+            "gpuBytes": 321198060,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 444,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1217,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7698,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/waystone",
+      "name": "Waystone lantern",
+      "pixels": "595e6f6c9b40faab96c95eb093a0e3f3f7fa171c032f39186a11d0c1cdc2268d",
+      "calls": 31,
+      "triangles": 14249,
+      "camera": [
+        -2.117460749567849,
+        2.160135758553216,
+        -3.2158180687934634
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/waystone",
+        "usedSize": 121694088,
+        "totalSize": 123633664,
+        "embedderHeapUsedSize": 7515016,
+        "backingStorageSize": 265454167,
+        "memory": {
+          "gpu": 321252428,
+          "ram": 204505500
+        },
+        "gpuBytes": 321252428,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 445,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7701,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/beaver-dam",
+      "name": "Beaver dam",
+      "pixels": "d87fc47573cc2e729da57c7f3a62cb05dc76fd110be43739ad7620b23f227f50",
+      "calls": 31,
+      "triangles": 15661,
+      "camera": [
+        -11.495279788375022,
+        7.708831665192269,
+        -18.503345038724422
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/beaver-dam",
+        "usedSize": 121963544,
+        "totalSize": 124157952,
+        "embedderHeapUsedSize": 7493560,
+        "backingStorageSize": 266441846,
+        "memory": {
+          "gpu": 321379074,
+          "ram": 204920914
+        },
+        "gpuBytes": 321379074,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 446,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7702,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/canoe",
+      "name": "Canoe",
+      "pixels": "71d71ccde8228be6da40b3ff02ab0e2fcbb6a1d27a3f26d68449e692a86548e5",
+      "calls": 29,
+      "triangles": 11961,
+      "camera": [
+        -6.642746870116462,
+        4.416902303207279,
+        -10.78325177570267
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/canoe",
+        "usedSize": 122029028,
+        "totalSize": 123895808,
+        "embedderHeapUsedSize": 7437760,
+        "backingStorageSize": 265418822,
+        "memory": {
+          "gpu": 321215336,
+          "ram": 204468408
+        },
+        "gpuBytes": 321215336,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 447,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7703,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/contract-board",
+      "name": "Contract board",
+      "pixels": "a8958af81be1f47ddcb62d8294a3b7b1c60b69faaafe44d785fb0fd2fcb09a5c",
+      "calls": 29,
+      "triangles": 14221,
+      "camera": [
+        -4.013838692914897,
+        3.4356696736762347,
+        -6.219299381419975
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/contract-board",
+        "usedSize": 122183468,
+        "totalSize": 124420096,
+        "embedderHeapUsedSize": 7500496,
+        "backingStorageSize": 265413258,
+        "memory": {
+          "gpu": 321286566,
+          "ram": 204461986
+        },
+        "gpuBytes": 321286566,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 448,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7704,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/cave-arch",
+      "name": "Cave arch",
+      "pixels": "9d6264c0ab0a7d407847c94a1c570e92dc80240921bb966447192cfda4919734",
+      "calls": 29,
+      "triangles": 14981,
+      "camera": [
+        -11.94653009307349,
+        10.154054814510605,
+        -20.186068396904258
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/cave-arch",
+        "usedSize": 122342824,
+        "totalSize": 124682240,
+        "embedderHeapUsedSize": 7582808,
+        "backingStorageSize": 265688684,
+        "memory": {
+          "gpu": 321394938,
+          "ram": 204736516
+        },
+        "gpuBytes": 321394938,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 449,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1217,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7708,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Open (the cave behind)",
+          "pixels": "9d6264c0ab0a7d407847c94a1c570e92dc80240921bb966447192cfda4919734",
+          "calls": 29,
+          "triangles": 14981,
+          "camera": [
+            -11.94653009307349,
+            10.154054814510605,
+            -20.186068396904258
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/cave-arch:Open (the cave behind)",
+            "usedSize": 122470460,
+            "totalSize": 124682240,
+            "embedderHeapUsedSize": 7473632,
+            "backingStorageSize": 265689524,
+            "memory": {
+              "gpu": 321394938,
+              "ram": 204736516
+            },
+            "gpuBytes": 321394938,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 449,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1217,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7708,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Closed (no cave)",
+          "pixels": "49db5f9c359d624c546bcf4bf861f1177f1de801974f8fa4494b2dd3f486a303",
+          "calls": 31,
+          "triangles": 15905,
+          "camera": [
+            -11.946586014561316,
+            10.154054788488295,
+            -20.186159643188525
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/cave-arch:Closed (no cave)",
+            "usedSize": 122667788,
+            "totalSize": 124682240,
+            "embedderHeapUsedSize": 7485472,
+            "backingStorageSize": 266107358,
+            "memory": {
+              "gpu": 321396458,
+              "ram": 204860646
+            },
+            "gpuBytes": 321396458,
+            "scopes": {
+              "geometries": 516,
+              "materials": 488,
+              "textures": 449,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1219,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7708,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/crag-cliff",
+      "name": "Ridge crag",
+      "pixels": "b1547685d615ad21e36dd0c5ce20c89220e3d197e7719c939d9ef8998988df11",
+      "calls": 29,
+      "triangles": 19657,
+      "camera": [
+        -21.662428127799195,
+        17.77249322236389,
+        -35.659145904554045
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/crag-cliff",
+        "usedSize": 123057028,
+        "totalSize": 125730816,
+        "embedderHeapUsedSize": 7468240,
+        "backingStorageSize": 265037796,
+        "memory": {
+          "gpu": 321359560,
+          "ram": 204130710
+        },
+        "gpuBytes": 321359560,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 450,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7716,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Cliff band A",
+          "pixels": "b1547685d615ad21e36dd0c5ce20c89220e3d197e7719c939d9ef8998988df11",
+          "calls": 29,
+          "triangles": 19657,
+          "camera": [
+            -21.662428127799195,
+            17.77249322236389,
+            -35.659145904554045
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Cliff band A",
+            "usedSize": 122976840,
+            "totalSize": 125206528,
+            "embedderHeapUsedSize": 7468328,
+            "backingStorageSize": 265087788,
+            "memory": {
+              "gpu": 321359560,
+              "ram": 204130710
+            },
+            "gpuBytes": 321359560,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Cliff band B",
+          "pixels": "56aab0ae835fabb51197baa1434f9de0ef84e082cfc334224d780718a6ee20be",
+          "calls": 29,
+          "triangles": 16857,
+          "camera": [
+            -17.534307556081426,
+            14.644826722562293,
+            -28.515665917404007
+          ],
+          "quaternion": [
+            -0.040566815646693795,
+            -0.9516418147062643,
+            -0.14382659317902305,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Cliff band B",
+            "usedSize": 123066800,
+            "totalSize": 125206528,
+            "embedderHeapUsedSize": 7609088,
+            "backingStorageSize": 264776098,
+            "memory": {
+              "gpu": 321323080,
+              "ram": 203818180
+            },
+            "gpuBytes": 321323080,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Cliff band C",
+          "pixels": "b2959bed53b3715bb7072ee2af6770659abf349ff68cee97631e4585f7c00ab2",
+          "calls": 29,
+          "triangles": 19857,
+          "camera": [
+            -27.307130771345197,
+            22.79239792910727,
+            -43.93603804501897
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Cliff band C",
+            "usedSize": 123286916,
+            "totalSize": 125468672,
+            "embedderHeapUsedSize": 7486760,
+            "backingStorageSize": 265035538,
+            "memory": {
+              "gpu": 321380416,
+              "ram": 204076780
+            },
+            "gpuBytes": 321380416,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Buttress",
+          "pixels": "411998ce3adbdeaf4c894ee453204912240e7c88eb15e3d8fc6f70031d44be2d",
+          "calls": 29,
+          "triangles": 16857,
+          "camera": [
+            -19.643004717442405,
+            18.174780774013513,
+            -31.54620819833267
+          ],
+          "quaternion": [
+            -0.0405668156466938,
+            -0.9516418147062643,
+            -0.14382659317902305,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Buttress",
+            "usedSize": 123411012,
+            "totalSize": 125468672,
+            "embedderHeapUsedSize": 7541424,
+            "backingStorageSize": 264988786,
+            "memory": {
+              "gpu": 321332824,
+              "ram": 204029188
+            },
+            "gpuBytes": 321332824,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Slab",
+          "pixels": "3acbf108802f1bc024621b79e067ab983346c73678f9a086d701f315d5d6a76b",
+          "calls": 31,
+          "triangles": 14377,
+          "camera": [
+            -17.971498766941846,
+            15.230220584547531,
+            -31.481556612070662
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Slab",
+            "usedSize": 123514968,
+            "totalSize": 125468672,
+            "embedderHeapUsedSize": 7503064,
+            "backingStorageSize": 264904018,
+            "memory": {
+              "gpu": 321247216,
+              "ram": 203943580
+            },
+            "gpuBytes": 321247216,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Tor A",
+          "pixels": "b2baf39e22e2834af3a4f40f3c564fbd71a312cd5136797ba4754b2cbac20807",
+          "calls": 31,
+          "triangles": 12881,
+          "camera": [
+            -12.072774400417941,
+            11.096820793248456,
+            -21.001399274764395
+          ],
+          "quaternion": [
+            -0.0405668156466938,
+            -0.9516418147062643,
+            -0.14382659317902305,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Tor A",
+            "usedSize": 123654936,
+            "totalSize": 125468672,
+            "embedderHeapUsedSize": 7565696,
+            "backingStorageSize": 264983602,
+            "memory": {
+              "gpu": 321213880,
+              "ram": 203997748
+            },
+            "gpuBytes": 321213880,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Tor B",
+          "pixels": "6741fab9a2d0fa8d64e706911ccaa97171ab2d05ffc60156e3ed63eae4b4c71d",
+          "calls": 29,
+          "triangles": 10457,
+          "camera": [
+            -8.521313850891625,
+            7.412285328974969,
+            -14.703572957557984
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Tor B",
+            "usedSize": 123767000,
+            "totalSize": 125992960,
+            "embedderHeapUsedSize": 7605496,
+            "backingStorageSize": 264735370,
+            "memory": {
+              "gpu": 321186088,
+              "ram": 203773252
+            },
+            "gpuBytes": 321186088,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Hero crag",
+          "pixels": "566ac32b13614ba33801f1d955de008b819ecab5f9a7f85da6a34cb500790b0a",
+          "calls": 29,
+          "triangles": 39953,
+          "camera": [
+            -41.733656406907386,
+            35.13040737367258,
+            -69.48156280174805
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-cliff:Hero crag",
+            "usedSize": 123961328,
+            "totalSize": 125992960,
+            "embedderHeapUsedSize": 7476168,
+            "backingStorageSize": 265170202,
+            "memory": {
+              "gpu": 321620080,
+              "ram": 204207244
+            },
+            "gpuBytes": 321620080,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 450,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7716,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/crag-boulder",
+      "name": "Crag boulder",
+      "pixels": "b03d467567c034ee5a0942542da3228afc406b11a628f651e8f6f3adc316cb68",
+      "calls": 29,
+      "triangles": 5737,
+      "camera": [
+        -4.190598768105381,
+        3.1135158489941688,
+        -6.8683178002723295
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/crag-boulder",
+        "usedSize": 124191176,
+        "totalSize": 125992960,
+        "embedderHeapUsedSize": 7524496,
+        "backingStorageSize": 264969526,
+        "memory": {
+          "gpu": 321139864,
+          "ram": 203923732
+        },
+        "gpuBytes": 321139864,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 451,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7720,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Boulder A",
+          "pixels": "b03d467567c034ee5a0942542da3228afc406b11a628f651e8f6f3adc316cb68",
+          "calls": 29,
+          "triangles": 5737,
+          "camera": [
+            -4.190598768105381,
+            3.1135158489941688,
+            -6.8683178002723295
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-boulder:Boulder A",
+            "usedSize": 124295404,
+            "totalSize": 126255104,
+            "embedderHeapUsedSize": 7494800,
+            "backingStorageSize": 264617726,
+            "memory": {
+              "gpu": 321139864,
+              "ram": 203653012
+            },
+            "gpuBytes": 321139864,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 451,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7720,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Boulder B",
+          "pixels": "5385e99e6fccc44af7f7dd3813ce65ee3acfc7ff4cc5fd3bbdac2a2f4871912b",
+          "calls": 29,
+          "triangles": 5337,
+          "camera": [
+            -2.512421423445955,
+            1.7945445538401086,
+            -4.0125043903082975
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-boulder:Boulder B",
+            "usedSize": 124397908,
+            "totalSize": 126779392,
+            "embedderHeapUsedSize": 7532736,
+            "backingStorageSize": 264618518,
+            "memory": {
+              "gpu": 321139816,
+              "ram": 203652964
+            },
+            "gpuBytes": 321139816,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 451,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7720,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Boulder C",
+          "pixels": "ee9920ef5c47df66b21ab1c5862cd562779d7c7e603c6df64b90799c0345d88c",
+          "calls": 29,
+          "triangles": 6137,
+          "camera": [
+            -5.746343760030819,
+            4.318926378224842,
+            -9.679801193764288
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/crag-boulder:Boulder C",
+            "usedSize": 124557952,
+            "totalSize": 126255104,
+            "embedderHeapUsedSize": 7596816,
+            "backingStorageSize": 264925886,
+            "memory": {
+              "gpu": 321145288,
+              "ram": 203947204
+            },
+            "gpuBytes": 321145288,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 451,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7720,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/scree",
+      "name": "Scree fan",
+      "pixels": "428670e6feffd7614c73c2808d936de61a56fe6981b5ace372759d55ae9cbd98",
+      "calls": 29,
+      "triangles": 10053,
+      "camera": [
+        -9.548302199144674,
+        5.682513715123646,
+        -15.360807221775785
+      ],
+      "quaternion": [
+        -0.04056681564669386,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.2684140478167474
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/scree",
+        "usedSize": 124675748,
+        "totalSize": 126779392,
+        "embedderHeapUsedSize": 7548144,
+        "backingStorageSize": 264696782,
+        "memory": {
+          "gpu": 321234364,
+          "ram": 203729464
+        },
+        "gpuBytes": 321234364,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 452,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7724,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Scree A",
+          "pixels": "428670e6feffd7614c73c2808d936de61a56fe6981b5ace372759d55ae9cbd98",
+          "calls": 29,
+          "triangles": 10053,
+          "camera": [
+            -9.548302199144674,
+            5.682513715123646,
+            -15.360807221775785
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/scree:Scree A",
+            "usedSize": 124862932,
+            "totalSize": 126779392,
+            "embedderHeapUsedSize": 7535008,
+            "backingStorageSize": 264810170,
+            "memory": {
+              "gpu": 321234364,
+              "ram": 203842012
+            },
+            "gpuBytes": 321234364,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 452,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7724,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Scree B",
+          "pixels": "3b40bd8f7cb100679c8c56ab4c8107c9c46b003ff8f2efd7eadecd694e1d7882",
+          "calls": 29,
+          "triangles": 7853,
+          "camera": [
+            -6.177666880377621,
+            3.6593380328603686,
+            -10.179677624356374
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/scree:Scree B",
+            "usedSize": 125001236,
+            "totalSize": 127041536,
+            "embedderHeapUsedSize": 7598136,
+            "backingStorageSize": 265085802,
+            "memory": {
+              "gpu": 321191716,
+              "ram": 204088132
+            },
+            "gpuBytes": 321191716,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 452,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7724,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/mossy-boulder",
+      "name": "Mossy boulder",
+      "pixels": "bbafec8c3c1e76da13a7b5b7864341beb9972b84935944ce858ec0d095e5b4a7",
+      "calls": 29,
+      "triangles": 9337,
+      "camera": [
+        -4.743869611205115,
+        3.5139057999876826,
+        -7.740503550404786
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/mossy-boulder",
+        "usedSize": 125146840,
+        "totalSize": 127303680,
+        "embedderHeapUsedSize": 7667136,
+        "backingStorageSize": 264693672,
+        "memory": {
+          "gpu": 321158696,
+          "ram": 203723696
+        },
+        "gpuBytes": 321158696,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 453,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7741,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Rock A",
+          "pixels": "bbafec8c3c1e76da13a7b5b7864341beb9972b84935944ce858ec0d095e5b4a7",
+          "calls": 31,
+          "triangles": 9361,
+          "camera": [
+            -4.743869611205115,
+            3.5139057999876826,
+            -7.740503550404786
+          ],
+          "quaternion": [
+            -0.040566815646693795,
+            -0.9516418147062643,
+            -0.14382659317902305,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock A",
+            "usedSize": 125291060,
+            "totalSize": 127827968,
+            "embedderHeapUsedSize": 7538384,
+            "backingStorageSize": 264731392,
+            "memory": {
+              "gpu": 321158696,
+              "ram": 203760576
+            },
+            "gpuBytes": 321158696,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Rock B",
+          "pixels": "b2080a6ab0a27db1838e42b405897d236ba2d80c37fa64bf426b05002271e498",
+          "calls": 31,
+          "triangles": 9353,
+          "camera": [
+            -4.575786587929062,
+            3.3065616781025406,
+            -7.466244908186214
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock B",
+            "usedSize": 125465228,
+            "totalSize": 127565824,
+            "embedderHeapUsedSize": 7540480,
+            "backingStorageSize": 265594428,
+            "memory": {
+              "gpu": 321160732,
+              "ram": 204051380
+            },
+            "gpuBytes": 321160732,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Rock C",
+          "pixels": "56751cc508fcaa1f19c5caac2b123fa587257179bdf8b61bffb3a334b0a34c98",
+          "calls": 29,
+          "triangles": 6833,
+          "camera": [
+            -3.0479294779230606,
+            2.3217037324254317,
+            -4.973262521701878
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock C",
+            "usedSize": 125529036,
+            "totalSize": 127565824,
+            "embedderHeapUsedSize": 7641912,
+            "backingStorageSize": 264678836,
+            "memory": {
+              "gpu": 321141340,
+              "ram": 203706340
+            },
+            "gpuBytes": 321141340,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Rock D",
+          "pixels": "7c35ae855d02cbdf71a320cf0796e64024d33b7d822aa9c492ce1b2fc71330bc",
+          "calls": 29,
+          "triangles": 9137,
+          "camera": [
+            -3.649907374432556,
+            3.012278069366073,
+            -5.9555011637992195
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock D",
+            "usedSize": 125737340,
+            "totalSize": 127827968,
+            "embedderHeapUsedSize": 7523024,
+            "backingStorageSize": 264713280,
+            "memory": {
+              "gpu": 321155420,
+              "ram": 203739944
+            },
+            "gpuBytes": 321155420,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Rock E",
+          "pixels": "1f9f9497839d24d86c9c120f6482ae2b3d5a612f5e4510ecd7285bb267323758",
+          "calls": 29,
+          "triangles": 11993,
+          "camera": [
+            -4.217958135244502,
+            3.0658280159002507,
+            -6.882381388434654
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock E",
+            "usedSize": 125909172,
+            "totalSize": 127565824,
+            "embedderHeapUsedSize": 7587664,
+            "backingStorageSize": 265074404,
+            "memory": {
+              "gpu": 321169592,
+              "ram": 204042884
+            },
+            "gpuBytes": 321169592,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Rock F",
+          "pixels": "4812ee6ef3e0c7fe8a4da6a9232e401fd99e711a4a42ebb9715c42d6a8f36877",
+          "calls": 29,
+          "triangles": 8369,
+          "camera": [
+            -3.886696441505342,
+            2.8985408110356765,
+            -6.341866465671065
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/mossy-boulder:Rock F",
+            "usedSize": 125995384,
+            "totalSize": 128090112,
+            "embedderHeapUsedSize": 7520512,
+            "backingStorageSize": 264709296,
+            "memory": {
+              "gpu": 321149756,
+              "ram": 203734280
+            },
+            "gpuBytes": 321149756,
+            "scopes": {
+              "geometries": 515,
+              "materials": 488,
+              "textures": 453,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1218,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7741,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1530,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/tree-stump",
+      "name": "Tree stump",
+      "pixels": "619f1759ce5e086ee8745cd9af64fa108780a7acf78c83e5176bbd231c6a1175",
+      "calls": 29,
+      "triangles": 17177,
+      "camera": [
+        -2.2074833852970377,
+        1.3270664589600067,
+        -3.450033896226104
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/tree-stump",
+        "usedSize": 126119232,
+        "totalSize": 128090112,
+        "embedderHeapUsedSize": 7503728,
+        "backingStorageSize": 264755822,
+        "memory": {
+          "gpu": 321214936,
+          "ram": 203779936
+        },
+        "gpuBytes": 321214936,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 454,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7746,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/fallen-log",
+      "name": "Fallen log",
+      "pixels": "713f8051eedb1488996bf1bb5da46b5edbfadbec117ce5072abf681c876d5381",
+      "calls": 29,
+      "triangles": 18305,
+      "camera": [
+        -4.053971485199507,
+        2.4779198593246297,
+        -6.62393215177309
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/fallen-log",
+        "usedSize": 126365748,
+        "totalSize": 128090112,
+        "embedderHeapUsedSize": 7653848,
+        "backingStorageSize": 265721552,
+        "memory": {
+          "gpu": 321214228,
+          "ram": 204161116
+        },
+        "gpuBytes": 321214228,
+        "scopes": {
+          "geometries": 515,
+          "materials": 488,
+          "textures": 455,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1218,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7753,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1530,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/forest-tree",
+      "name": "Forest tree",
+      "pixels": "3e4ce83eafbb6e638f3e769d6630d2332b2ee042ed4597c48be609e786109c8d",
+      "calls": 37,
+      "triangles": 18273,
+      "camera": [
+        -33.84788765248812,
+        32.19207506188113,
+        -55.698011240955395
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.159710471088541,
+        0,
+        0,
+        0,
+        0,
+        1.2748951679553502,
+        0,
+        0,
+        -1.8732502277551106e-16,
+        -0.20558002936857564,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/forest-tree",
+        "usedSize": 126860976,
+        "totalSize": 129662976,
+        "embedderHeapUsedSize": 7556720,
+        "backingStorageSize": 264631689,
+        "memory": {
+          "gpu": 321386360,
+          "ram": 203710036
+        },
+        "gpuBytes": 321386360,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 456,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1220,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7771,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1531,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": [
+        {
+          "label": "Scots pine A",
+          "pixels": "34dc3c76a5210fcf4460fcdbb1771f54fa7d0cced70b57ecb4a7e069df36a433",
+          "calls": 37,
+          "triangles": 18273,
+          "camera": [
+            -33.84788765248812,
+            32.19207506188113,
+            -55.698011240955395
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Scots pine A",
+            "usedSize": 126990068,
+            "totalSize": 129138688,
+            "embedderHeapUsedSize": 7552008,
+            "backingStorageSize": 264600849,
+            "memory": {
+              "gpu": 321386360,
+              "ram": 203616916
+            },
+            "gpuBytes": 321386360,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1220,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1531,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Scots pine B",
+          "pixels": "7ece98fe3564645b17f317e250195626f22a4d8db3fd8c591bd09931d4811c81",
+          "calls": 37,
+          "triangles": 12265,
+          "camera": [
+            -25.819454185900913,
+            24.766483613329456,
+            -41.4508713696827
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Scots pine B",
+            "usedSize": 127168636,
+            "totalSize": 129400832,
+            "embedderHeapUsedSize": 7554888,
+            "backingStorageSize": 264601689,
+            "memory": {
+              "gpu": 321531784,
+              "ram": 203616916
+            },
+            "gpuBytes": 321531784,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1223,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1534,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Scots pine C",
+          "pixels": "4f7dadc900b3866106515056d7c03155aae91915c3e8210c5a24f7332490a577",
+          "calls": 37,
+          "triangles": 20761,
+          "camera": [
+            -41.21820255718332,
+            38.514545112325045,
+            -67.62435384363962
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Scots pine C",
+            "usedSize": 127297540,
+            "totalSize": 129400832,
+            "embedderHeapUsedSize": 7691544,
+            "backingStorageSize": 264602529,
+            "memory": {
+              "gpu": 321838184,
+              "ram": 203616916
+            },
+            "gpuBytes": 321838184,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1226,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1537,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Young pine",
+          "pixels": "dcf4f089997503ee73ecff4cccafc05cfb601e838a4369c6dccf126a592ca7c7",
+          "calls": 39,
+          "triangles": 15337,
+          "camera": [
+            -20.047561800629005,
+            18.963383007406573,
+            -32.88572674486525
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Young pine",
+            "usedSize": 127419144,
+            "totalSize": 129925120,
+            "embedderHeapUsedSize": 7558408,
+            "backingStorageSize": 264605564,
+            "memory": {
+              "gpu": 322038840,
+              "ram": 203616916
+            },
+            "gpuBytes": 322038840,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1229,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1540,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Fir A",
+          "pixels": "824e115a8cd65dd3622d5e4a35b925a475f949ac829f64a083c81589a3f96e19",
+          "calls": 39,
+          "triangles": 14857,
+          "camera": [
+            -33.05372901625906,
+            31.48153036479534,
+            -53.989375751079606
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Fir A",
+            "usedSize": 127577680,
+            "totalSize": 129662976,
+            "embedderHeapUsedSize": 7601736,
+            "backingStorageSize": 264606404,
+            "memory": {
+              "gpu": 322232820,
+              "ram": 203616916
+            },
+            "gpuBytes": 322232820,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1232,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1543,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Fir B",
+          "pixels": "d5d324ba95f8fbc5b17767e7edea9151b654a464a8ad8ce2569996c919beed76",
+          "calls": 37,
+          "triangles": 18073,
+          "camera": [
+            -41.65241833087845,
+            39.325462068606896,
+            -67.6665153789782
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Fir B",
+            "usedSize": 127833876,
+            "totalSize": 129925120,
+            "embedderHeapUsedSize": 7615360,
+            "backingStorageSize": 265467404,
+            "memory": {
+              "gpu": 322483356,
+              "ram": 203905684
+            },
+            "gpuBytes": 322483356,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1235,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1546,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Cedar giant A",
+          "pixels": "a207f190360f406ab2340049d834dbc4dfcbf53175c150b2aff1b56ba0cdef30",
+          "calls": 37,
+          "triangles": 33377,
+          "camera": [
+            -63.22054198456619,
+            60.08261554886523,
+            -103.48004526285241
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Cedar giant A",
+            "usedSize": 127898840,
+            "totalSize": 130187264,
+            "embedderHeapUsedSize": 7594968,
+            "backingStorageSize": 264608084,
+            "memory": {
+              "gpu": 322965900,
+              "ram": 203616916
+            },
+            "gpuBytes": 322965900,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1238,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1549,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Cedar giant B",
+          "pixels": "b6dcb4287362878b0b2be90106cf44a04fa568716cce37b995d287ad6241d33b",
+          "calls": 37,
+          "triangles": 37257,
+          "camera": [
+            -72.9045820744553,
+            69.72519926512427,
+            -118.91111880855061
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Cedar giant B",
+            "usedSize": 128053760,
+            "totalSize": 130187264,
+            "embedderHeapUsedSize": 7614072,
+            "backingStorageSize": 264608924,
+            "memory": {
+              "gpu": 323518704,
+              "ram": 203616916
+            },
+            "gpuBytes": 323518704,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1241,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1552,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Birch",
+          "pixels": "a9e165894c9961e1b7e7ee3f32dd579e144456a856154937384d69060ee45dc6",
+          "calls": 37,
+          "triangles": 11625,
+          "camera": [
+            -25.21207829785002,
+            23.008474015909584,
+            -40.72154953673819
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Birch",
+            "usedSize": 128392904,
+            "totalSize": 130433024,
+            "embedderHeapUsedSize": 7726136,
+            "backingStorageSize": 264609764,
+            "memory": {
+              "gpu": 323645160,
+              "ram": 203616916
+            },
+            "gpuBytes": 323645160,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1244,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1555,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Twin birch",
+          "pixels": "aab2e3409452784c52b1fd8937ef27013ffe79364663cc37e672cc76d5d9fa37",
+          "calls": 37,
+          "triangles": 14089,
+          "camera": [
+            -20.214988462854684,
+            19.112022184048,
+            -34.28906419480693
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Twin birch",
+            "usedSize": 128544740,
+            "totalSize": 130957312,
+            "embedderHeapUsedSize": 7643856,
+            "backingStorageSize": 264610604,
+            "memory": {
+              "gpu": 323807376,
+              "ram": 203616916
+            },
+            "gpuBytes": 323807376,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1247,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1558,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Snag A",
+          "pixels": "0099b762d923ec732f31963d7caee1df7a4a10487d81bf1c42c7b1015c463b69",
+          "calls": 37,
+          "triangles": 5993,
+          "camera": [
+            -18.368080492079283,
+            17.680884785336627,
+            -30.567647044076367
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Snag A",
+            "usedSize": 128694652,
+            "totalSize": 130957312,
+            "embedderHeapUsedSize": 7603320,
+            "backingStorageSize": 264611444,
+            "memory": {
+              "gpu": 323832304,
+              "ram": 203616916
+            },
+            "gpuBytes": 323832304,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1250,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1561,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Snag B",
+          "pixels": "fb9908a60c3234b139b75a12c95de4224d27d6962c51841786e014f54b16c509",
+          "calls": 37,
+          "triangles": 5849,
+          "camera": [
+            -13.969756784406053,
+            13.174119150849428,
+            -22.20755574772834
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Snag B",
+            "usedSize": 128846020,
+            "totalSize": 132005888,
+            "embedderHeapUsedSize": 7619568,
+            "backingStorageSize": 264612284,
+            "memory": {
+              "gpu": 323855728,
+              "ram": 203616916
+            },
+            "gpuBytes": 323855728,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1253,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1564,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Pine sapling",
+          "pixels": "34ffec4c80ed9adbdd980a77d79f0821af07920f478018bf856069561558fe68",
+          "calls": 37,
+          "triangles": 4913,
+          "camera": [
+            -5.980844498243748,
+            5.25408762469345,
+            -9.556859749433684
+          ],
+          "quaternion": [
+            -0.04056681564669385,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.26841404781674744
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Pine sapling",
+            "usedSize": 128980468,
+            "totalSize": 131219456,
+            "embedderHeapUsedSize": 7625544,
+            "backingStorageSize": 264613124,
+            "memory": {
+              "gpu": 323871556,
+              "ram": 203616916
+            },
+            "gpuBytes": 323871556,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1256,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1567,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Fir sapling",
+          "pixels": "47f91ab3a59d2c4440e535d60af81d6e130d47258ab8ef9ba8c3a8f0940e351d",
+          "calls": 37,
+          "triangles": 7665,
+          "camera": [
+            -7.660117316845648,
+            6.5844438753792405,
+            -12.510995580894678
+          ],
+          "quaternion": [
+            -0.04056681564669386,
+            -0.9516418147062643,
+            -0.14382659317902283,
+            0.2684140478167474
+          ],
+          "projection": [
+            2.159710471088541,
+            0,
+            0,
+            0,
+            0,
+            1.2748951679553502,
+            0,
+            0,
+            -1.8732502277551106e-16,
+            -0.20558002936857564,
+            -1.0000615403550879,
+            -1,
+            0,
+            0,
+            -0.16000492322840704,
+            0
+          ],
+          "memory": {
+            "label": "pine-hollow/forest-tree:Fir sapling",
+            "usedSize": 129172940,
+            "totalSize": 131481600,
+            "embedderHeapUsedSize": 7613664,
+            "backingStorageSize": 264613964,
+            "memory": {
+              "gpu": 323940976,
+              "ram": 203616916
+            },
+            "gpuBytes": 323940976,
+            "scopes": {
+              "geometries": 514,
+              "materials": 488,
+              "textures": 456,
+              "renderTargets": 0,
+              "meshes": 51,
+              "resources": 1259,
+              "bodies": 10,
+              "sounds": 3,
+              "listeners": 7771,
+              "timers": 2,
+              "rafs": 0,
+              "disposers": 1570,
+              "systems": 39,
+              "colliders": 2416,
+              "nodes": 165
+            },
+            "chip": [
+              {
+                "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+                "display": "none",
+                "visibility": "visible"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pine-hollow/fern",
+      "name": "Fern",
+      "pixels": "658572ed688966a156e8d1f9602b65e489b00719461463b9f533d282ae92f15f",
+      "calls": 29,
+      "triangles": 4345,
+      "camera": [
+        -2.2972828881686054,
+        1.6352136444000203,
+        -3.8093742785822964
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/fern",
+        "usedSize": 129413428,
+        "totalSize": 131743744,
+        "embedderHeapUsedSize": 7602424,
+        "backingStorageSize": 264590273,
+        "memory": {
+          "gpu": 323940976,
+          "ram": 203616916
+        },
+        "gpuBytes": 323940976,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 457,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1261,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7779,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1571,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/bilberry-shrub",
+      "name": "Bilberry shrub",
+      "pixels": "64c9bb3fb91c1a6a321b53e0380bcfd61870390d3167f2c52cde1ec231656eb0",
+      "calls": 31,
+      "triangles": 4145,
+      "camera": [
+        -1.5147371612413674,
+        1.2781642331133,
+        -2.4596677471915043
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/bilberry-shrub",
+        "usedSize": 129531508,
+        "totalSize": 131743744,
+        "embedderHeapUsedSize": 7766200,
+        "backingStorageSize": 264615689,
+        "memory": {
+          "gpu": 323940976,
+          "ram": 203616916
+        },
+        "gpuBytes": 323940976,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 458,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1263,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7787,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1572,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/needle-litter",
+      "name": "Needle litter",
+      "pixels": "a6dce827e65dc119c07c72067582e787d5059b5d6f5ffbcc6dce5e362bd88b22",
+      "calls": 31,
+      "triangles": 4089,
+      "camera": [
+        -1.8469769188886678,
+        1.063389854088452,
+        -3.0136855710377732
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/needle-litter",
+        "usedSize": 129698872,
+        "totalSize": 132005888,
+        "embedderHeapUsedSize": 7610936,
+        "backingStorageSize": 264616529,
+        "memory": {
+          "gpu": 323940976,
+          "ram": 203616916
+        },
+        "gpuBytes": 323940976,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 459,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1265,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7795,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1573,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/pebbles",
+      "name": "Pebbles",
+      "pixels": "dd4ec40f0c15f82bbb6f42a3aa5acc992f463cd67f8035c98cc7e825ba57e649",
+      "calls": 29,
+      "triangles": 4065,
+      "camera": [
+        -1.1889229712213238,
+        0.6738292145027348,
+        -1.939948445918311
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/pebbles",
+        "usedSize": 129876944,
+        "totalSize": 132268032,
+        "embedderHeapUsedSize": 7704216,
+        "backingStorageSize": 264617369,
+        "memory": {
+          "gpu": 323940976,
+          "ram": 203616916
+        },
+        "gpuBytes": 323940976,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 460,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1267,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7803,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1574,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/moss-patch",
+      "name": "Moss patch",
+      "pixels": "0b0b5e95cb474b8e169a308c6747990797e1fed73b77ea2487f9a841484b73a5",
+      "calls": 29,
+      "triangles": 4065,
+      "camera": [
+        -1.3205336342114133,
+        0.7517412675076011,
+        -2.1546956644631985
+      ],
+      "quaternion": [
+        -0.04056681564669385,
+        -0.9516418147062643,
+        -0.14382659317902283,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/moss-patch",
+        "usedSize": 130035572,
+        "totalSize": 132268032,
+        "embedderHeapUsedSize": 7682408,
+        "backingStorageSize": 264618209,
+        "memory": {
+          "gpu": 323940976,
+          "ram": 203616916
+        },
+        "gpuBytes": 323940976,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 461,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1269,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7808,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1575,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    },
+    {
+      "id": "pine-hollow/reeds",
+      "name": "Reeds",
+      "pixels": "1d7fa545c82a8659774001c051ca97e33dd379a41f169b9190ae05874923042e",
+      "calls": 29,
+      "triangles": 4129,
+      "camera": [
+        -1.4445468506059465,
+        1.328070281227936,
+        -2.374906203308315
+      ],
+      "quaternion": [
+        -0.040566815646693795,
+        -0.9516418147062643,
+        -0.14382659317902305,
+        0.26841404781674744
+      ],
+      "projection": [
+        2.0650094029287507,
+        0,
+        0,
+        0,
+        0,
+        1.2189923347685137,
+        0,
+        0,
+        0,
+        -0.15271659324522768,
+        -1.0000615403550879,
+        -1,
+        0,
+        0,
+        -0.16000492322840704,
+        0
+      ],
+      "memory": {
+        "label": "pine-hollow/reeds",
+        "usedSize": 130217560,
+        "totalSize": 132268032,
+        "embedderHeapUsedSize": 7708360,
+        "backingStorageSize": 264619066,
+        "memory": {
+          "gpu": 323941948,
+          "ram": 203616916
+        },
+        "gpuBytes": 323941948,
+        "scopes": {
+          "geometries": 514,
+          "materials": 488,
+          "textures": 462,
+          "renderTargets": 0,
+          "meshes": 51,
+          "resources": 1272,
+          "bodies": 10,
+          "sounds": 3,
+          "listeners": 7811,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1576,
+          "systems": 39,
+          "colliders": 2416,
+          "nodes": 165
+        },
+        "chip": [
+          {
+            "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+            "display": "none",
+            "visibility": "visible"
+          }
+        ]
+      },
+      "variants": []
+    }
+  ],
+  "faults": [],
+  "initial": {
+    "label": "catalogue-before-sweep",
+    "usedSize": 110238232,
+    "totalSize": 113082368,
+    "embedderHeapUsedSize": 7535152,
+    "backingStorageSize": 242984380,
+    "memory": {
+      "gpu": 287236296,
+      "ram": 180451192
+    },
+    "gpuBytes": 287236296,
+    "scopes": {
+      "geometries": 514,
+      "materials": 488,
+      "textures": 424,
+      "renderTargets": 0,
+      "meshes": 51,
+      "resources": 1203,
+      "bodies": 10,
+      "sounds": 0,
+      "listeners": 7646,
+      "timers": 2,
+      "rafs": 0,
+      "disposers": 1524,
+      "systems": 39,
+      "colliders": 2416,
+      "nodes": 165
+    },
+    "chip": [
+      {
+        "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+        "display": "none",
+        "visibility": "visible"
+      }
+    ]
+  },
+  "final": {
+    "label": "closed-all-cards",
+    "usedSize": 129377132,
+    "totalSize": 131743744,
+    "embedderHeapUsedSize": 8218792,
+    "backingStorageSize": 265230198,
+    "memory": {
+      "gpu": 298776124,
+      "ram": 203616916
+    },
+    "gpuBytes": 298776124,
+    "scopes": {
+      "geometries": 515,
+      "materials": 489,
+      "textures": 463,
+      "renderTargets": 0,
+      "meshes": 51,
+      "resources": 1272,
+      "bodies": 10,
+      "sounds": 3,
+      "listeners": 7867,
+      "timers": 2,
+      "rafs": 0,
+      "disposers": 1582,
+      "systems": 39,
+      "colliders": 2416,
+      "nodes": 165
+    },
+    "chip": [
+      {
+        "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+        "display": "none",
+        "visibility": "visible"
+      }
+    ]
+  },
+  "peakBacking": 272098766,
+  "peakGpu": 323941948
+}

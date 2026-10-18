@@ -32,10 +32,12 @@ import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/
 import { FrameCamera } from '../world/frameCamera';
 import { geometryBoundsSteps } from '../world/geometryBounds';
 import { withTier } from '../explore/tiers';
-import { paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
+import { specimenReady, paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
 import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
 import { UnitParts, nearProxy, weldAcross, type WeldBuild } from './weld';
+import { resourceScope } from '../app/resources';
+import { ownSceneResource } from '../app/sceneOwnership';
 
 
 /** how the copies are drawn (see ./model.ts step 3) */
@@ -1066,17 +1068,31 @@ function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<
 function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: ModelRecord, drawnAs: DrawnAs): ModelEntry {
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;
+  const parent = resourceScope(), owners = new Set<Scope>();
   const build = (variant?: string): THREE.Object3D => {
-    const built = (def.specimen ?? def.build)(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    const owner = def.specimenLifetime === 'view' ? parent.child(`specimen/${def.id}`) : undefined;
+    if (owner !== undefined) owners.add(owner);
+    const make = () => (def.specimen ?? def.build)(owner === undefined ? o.ctx : { ...o.ctx, specimenScope: owner }, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    let built: ReturnType<typeof make>;
+    try { built = owner === undefined ? make() : withOwner(owner, make); }
+    catch (error) { owner?.dispose(); if (owner !== undefined) owners.delete(owner); throw error; }
     // (a model its shard culls draws with its in-world program, which may need instancing: the specimen is one instance)
     const one = (x: ModelPart): THREE.Mesh => (o.culler === undefined ? meshOf(x) : instanceOf(x));
     const obj = Array.isArray(built) ? wrap((built as readonly ModelPart[]).map(one), def.id) : built as THREE.Object3D;
+    if (owner !== undefined) {
+      obj.traverse(node => { if (node instanceof THREE.InstancedMesh) ownSceneResource(node, owner); });
+      owner.onDispose(() => { obj.removeFromParent(); });
+    }
     if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
     return obj;
   };
-  // one specimen per variant, built on first view and kept: switching variants shows the kept one — nothing rebuilt, nothing
-  // left behind undisposed (the phone's Explorer has a 1.0 GB cap, E264 / E323)
+  // World copies retain their own resources; scoped catalogue choices retire on close.
   const specimens = new Map<string, THREE.Object3D>();
+  const release = (): void => {
+    specimen.removeFromParent(); specimen.clear(); specimens.clear();
+    for (const owner of owners) owner.dispose(); owners.clear();
+  };
+  if (def.specimenLifetime === 'view') parent.onDispose(release);
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
@@ -1084,11 +1100,15 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
     return obj;
   };
   const rebuild = (variant?: string): void => {
+    const container = specimen.parent;
+    if (def.specimenLifetime === 'view') release();
     specimen.clear();
     specimen.add(kept(variant));
+    container?.add(specimen);
     if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
   };
   const entry: ModelEntry = {
+    ...(def.specimenLifetime === 'view' ? { release, ready: () => specimenReady(specimen) } : {}),
     id: def.id, category: def.category, live: false, pipeline: def.pipeline, drawnAs,
     object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),

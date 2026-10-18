@@ -21,7 +21,10 @@ import { Rng } from '../core/rng';
 import type { DrawnAs, ModelEntry, Pipeline, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
 import type { Animal } from '../entities/AnimalView';
-import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart } from './model';
+import { specimenReady, paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart } from './model';
+import { resourceScope } from '../app/resources';
+import { withOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 
 export interface ListOptions {
   readonly ctx: ModelContext;
@@ -46,15 +49,27 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
   if (registry.get(pieceId(def.id)) !== undefined) return;
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;
+  const parent = resourceScope(), owners = new Set<Scope>();
   const build = (variant?: string): THREE.Object3D => {
-    const built = def.build(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    const owner = def.specimenLifetime === 'view' ? parent.child(`specimen/${def.id}`) : undefined;
+    if (owner !== undefined) owners.add(owner);
+    const make = () => def.build(owner === undefined ? o.ctx : { ...o.ctx, specimenScope: owner }, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    let built: ReturnType<typeof make>;
+    try { built = owner === undefined ? make() : withOwner(owner, make); }
+    catch (error) { owner?.dispose(); if (owner !== undefined) owners.delete(owner); throw error; }
     const obj = Array.isArray(built) ? group((built as readonly ModelPart[]).map(meshOf), def.id) : built as THREE.Object3D;
+    owner?.onDispose(() => { obj.removeFromParent(); });
     if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
     return obj;
   };
-  // one specimen per variant, built on first view and kept: switching variants shows the kept one — nothing rebuilt, nothing
-  // left behind undisposed (the phone's Explorer has a 1.0 GB cap, E264 / E323)
+  // Retained builders keep their variants; scoped builders keep only the shown
+  // choice and any temporary tier comparison until the view closes.
   const specimens = new Map<string, THREE.Object3D>();
+  const release = (): void => {
+    specimen.removeFromParent(); specimen.clear(); specimens.clear();
+    for (const owner of owners) owner.dispose(); owners.clear();
+  };
+  if (def.specimenLifetime === 'view') parent.onDispose(release);
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
@@ -63,6 +78,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
   };
   const { copies } = o;
   const entry: ModelEntry = {
+    ...(def.specimenLifetime === 'view' ? { release, ready: () => specimenReady(specimen) } : {}),
     id: def.id, category: def.category, live: false, pipeline: o.pipeline ?? def.pipeline, drawnAs: o.drawnAs ?? (def.rig ? 'skinned' : 'single'),
     object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
@@ -74,8 +90,11 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
   if (def.variants && def.variants.length > 0) {
     entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label }));
     entry.rebuild = (variant?: string): void => {
+      const container = specimen.parent;
+      if (def.specimenLifetime === 'view') release();
       specimen.clear();
       specimen.add(kept(variant));
+      container?.add(specimen);
       if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
     };
   }
@@ -113,7 +132,7 @@ export interface RosterEntry {
  * A roster entry: `pipeline` how this shard makes it (a shared model), `planned` the copies it stands up when none is
  * alive (a boss that comes at night; default 1), `copies` a count of its own (the gear held: 1; the people of a camp).
  */
-export function live<P extends object>(def: ModelDef<P>, o: { pipeline?: Pipeline | readonly Pipeline[]; planned?: number; copies?: number | (() => number); drawnAs?: DrawnAs } = {}): RosterEntry {
+export function live<P extends object>(def: ModelDef<P>, o: { pipeline?: Pipeline | readonly Pipeline[]; planned?: number; copies?: number | (() => number); drawnAs?: DrawnAs; } = {}): RosterEntry {
   const kind = def.rig?.species;
   return {
     id: def.id, ...(kind === undefined ? {} : { species: kind }), ...(def.prepare === undefined ? {} : { prepare: def.prepare }),

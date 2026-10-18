@@ -10,6 +10,7 @@ import { parseWorldScenes } from '../src/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
+import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -48,6 +49,18 @@ function fixture(cell = false): ShardContext {
     product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
+
+test('world profile changes refuse before geometry intake and a fresh admission permits rebuilding', async () => {
+  const context = fixture(), reads: string[] = [], file = context.product.file.bind(context.product);
+  vi.spyOn(context.product, 'file').mockImplementation(name => { reads.push(name); return file(name); });
+  try {
+    recordSceneProfile(context.product.shardfile, ['scenes/other-profile.json']);
+    await expect(installWorldScenes(context, section())).rejects.toThrow('World profile changed after memory admission');
+    expect(reads).not.toContain('models/stone.glb');
+    recordSceneProfile(context.product.shardfile, []);
+    await installWorldScenes(context, section()); expect(reads).toContain('models/stone.glb');
+  } finally { vi.restoreAllMocks(); context.scope.dispose(); }
+});
 
 test('resident worlds admit every frozen choice and load only requested specimen buffers', async () => {
   const { defineWorldSceneCatalogue } = await import('../src/game/models/worldSceneCatalogue');
@@ -211,16 +224,20 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
   geometry.dispose(); material.dispose(); registry.retire();
 });
 
-test('cold Explorer cards admit their product catalogue and fill from verified geometry', async () => {
-  const [{ defineWorldSceneCatalogue }, { modelContext }, { Rng }, { withOwner }, runtime] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'),
+test.each([false, true])('cold Explorer cards fill verified geometry while borrowing resident surfaces: %s', async borrowed => {
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, runtime, assets, { parseWorldSceneModels }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'), import('../src/engine/core/assets'), import('../src/format/worldSceneModels'),
   ]);
   const context = fixture(), owner = new Scope('cold-catalogue'), ctx = modelContext(null), rows = section();
   const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
   const oldFile = context.product.file.bind(context.product);
   const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogueRows))) : oldFile(name));
-  Object.assign(context.product, { section: () => parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json' }) });
+  Object.assign(context.product, { section: () => parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json',
+    ...(borrowed ? { materials: [{ id: 'paint', kind: 'surface', scan: 'fixture_stone', properties: {} }] } : {}) }) });
   const product = vi.spyOn(runtime, 'loadFirstPartyProduct').mockResolvedValue(context.product);
+  const scan = vi.spyOn(assets, 'loadPBR').mockRejectedValue(new Error('A borrowed surface must not upload again'));
+  const material = new MeshStandardMaterial(), materialDisposed = vi.spyOn(material, 'dispose');
+  if (borrowed) bindWorldSceneModelSources(ctx, 'fixture-harbour', { catalogue: parseWorldSceneModels(catalogueRows), geometries: new Map(), materials: new Map([['paint', material]]) }, context.scope);
   try {
     const catalogue = defineWorldSceneCatalogue(catalogueRows), built = withOwner(owner, () => catalogue.model('cold').build(ctx, {}, new Rng(1)));
     if (!(built instanceof Group)) throw new Error('Missing loading specimen');
@@ -231,7 +248,22 @@ test('cold Explorer cards admit their product catalogue and fill from verified g
     expect(file).toHaveBeenCalledWith('models/catalogue.json');
     const filled = built.children[0]; if (!(filled instanceof Group)) throw new Error('Missing filled specimen');
     expect(filled.children[0]).toBeInstanceOf(Mesh);
-  } finally { file.mockRestore(); product.mockRestore(); owner.dispose(); context.scope.dispose(); }
+    // Cold view intake must never become resident state for the next card.
+    if (borrowed) expect(catalogue.material('paint', ctx)).toBe(material);
+    else expect(() => catalogue.material('paint', ctx)).toThrow('Missing scene model material');
+    expect(scan).not.toHaveBeenCalled();
+    const draw = filled.children[0]; if (!(draw instanceof Mesh)) throw new Error('Missing cold specimen draw');
+    if (borrowed) expect(draw.material).toBe(material);
+    const dispose = vi.spyOn(draw.geometry, 'dispose');
+    owner.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(materialDisposed).not.toHaveBeenCalled();
+    const again = new Scope('next-cold-card');
+    try {
+      const next = withOwner(again, () => catalogue.model('cold').build(ctx, {}, new Rng(1)));
+      if (!(next instanceof Group)) throw new Error('Missing revisited specimen');
+      await vi.waitFor(() => { expect(next.children[0]).toBeInstanceOf(Group); });
+      expect(product).toHaveBeenCalledTimes(2);
+    } finally { again.dispose(); }
+  } finally { file.mockRestore(); product.mockRestore(); scan.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
 });
 
 test('trail scene collider rows retain the native decoder output exactly', async () => {

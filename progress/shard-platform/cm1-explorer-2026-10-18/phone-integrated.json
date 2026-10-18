@@ -1,0 +1,54 @@
+{
+  "version": {
+    "build": "6e9e9a7-mvdnv5u1",
+    "time": "2026-10-18T10:06:52.076Z"
+  },
+  "device": "iPhone 16 Pro",
+  "muted": true,
+  "rows": [
+    {
+      "developer": false,
+      "chips": [],
+      "reports": [],
+      "canvas": [
+        804,
+        1362
+      ],
+      "memory": {
+        "gpu": 271789826,
+        "ram": 330829148
+      },
+      "faults": []
+    },
+    {
+      "developer": true,
+      "chips": [
+        {
+          "text": "MEMORY LIMIT · +81.7 MBDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · pine-hollow:worst-location\nPLAYING 1281.674 MB / 1200.000 MB · OVER 81.674 MB\nLOADING 1361.674 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 812.319 MB · TOTAL ACCOUNTED 812.319 MB",
+          "display": "flex",
+          "hidden": false,
+          "visible": true
+        }
+      ],
+      "reports": [
+        {
+          "owner": "pine-hollow",
+          "claimedBytes": "812318946",
+          "playingBytes": "1281674031",
+          "loadingBytes": "1361674031",
+          "playingCap": "1200000000",
+          "loadingCap": "1800000000"
+        }
+      ],
+      "canvas": [
+        804,
+        1362
+      ],
+      "memory": {
+        "gpu": 286067498,
+        "ram": 330829148
+      },
+      "faults": []
+    }
+  ]
+}

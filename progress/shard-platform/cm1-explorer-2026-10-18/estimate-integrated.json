@@ -1,0 +1,56 @@
+{
+  "build": {
+    "build": "6e9e9a7-mvdnv5u1",
+    "time": "2026-10-18T10:06:52.076Z"
+  },
+  "rows": [
+    {
+      "tier": "phone",
+      "libraryBefore": 636195224,
+      "libraryAfter": 582864532,
+      "saving": 53330692,
+      "before": {
+        "playing": 1340871099,
+        "loading": 1420871099,
+        "accounted": 865649638,
+        "location": [
+          -280,
+          -280
+        ]
+      },
+      "after": {
+        "playing": 1281674031,
+        "loading": 1361674031,
+        "accounted": 812318946,
+        "location": [
+          -280,
+          -280
+        ]
+      }
+    },
+    {
+      "tier": "desktop",
+      "libraryBefore": 692497254,
+      "libraryAfter": 692497254,
+      "saving": 0,
+      "before": {
+        "playing": 1403366352,
+        "loading": 1483366352,
+        "accounted": 921951668,
+        "location": [
+          -280,
+          -280
+        ]
+      },
+      "after": {
+        "playing": 1403366352,
+        "loading": 1483366352,
+        "accounted": 921951668,
+        "location": [
+          -280,
+          -280
+        ]
+      }
+    }
+  ]
+}
