@@ -36,5 +36,6 @@ test('built scene libraries retain every logical reference after hash deduplicat
   }
   const timber = scenes.libraries.find(row => row.id === 'timbers');
   if (timber?.kind !== 'owned') throw new Error('Missing timber library');
-  expect(timber.models).toHaveLength(26); expect(new Set(timber.models.map(row => row.id)).size).toBe(26);
+  expect(timber.models).toHaveLength(31); expect(new Set(timber.models.map(row => row.id)).size).toBe(31);
+  expect(timber.models.map(row => row.id)).toEqual(expect.arrayContaining(['hollow-log-outer', 'hollow-log-inner', 'hollow-log-rim-0', 'hollow-log-rim-1', 'hollow-log-bed']));
 });
