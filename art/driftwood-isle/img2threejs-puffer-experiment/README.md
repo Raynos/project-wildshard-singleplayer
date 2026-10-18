@@ -1,6 +1,7 @@
 # Puffer img2threejs experiment
 
-Status: approved and executed; V1/V2/V3 actual renders fail likeness; refinement ongoing.
+Status: approved and executed; eight actual reviewed renders fail likeness.
+Bounded report ready: [RESULT.md](RESULT.md). Root decides next use.
 
 Purpose: give the upstream img2threejs reconstruction workflow a meaningful
 trial against the approved low-poly Puffer, preserving all Blender studies.
@@ -12,7 +13,7 @@ This experiment is separate from runtime admission and does not replace assets.
 - Comparison baseline: `../approved-puffer/failed-lowpoly-v9.webp` and `.glb`.
 - Workflow: https://github.com/img2threejs/img2threejs, upstream `SKILL.md`
   declares v2.0.0. Executed checkout: `d508b596cb221f1509f6e50ab68fce275a5cfb44`.
-- Baseline recorded metrics: 2,889 triangles, eight joints, one material,
+- Baseline recorded metrics: 2,889 triangles, nine skeleton nodes, one material,
   443,608-byte GLB. Runtime integration and visual acceptance are absent.
 
 ## Reference interpretation
@@ -150,3 +151,25 @@ V5 visible geometry is 2,825 triangles, 3,561 vertices, 45 meshes, zero skinned
 meshes. Only the intentionally open mouth interior has boundary edges under
 position-weld topology inspection. These are structural findings, not likeness
 or animation acceptance. V6 source work continues separately.
+
+## V6 actual review
+
+V6 broadens/lowers the hull, enlarges the upper pouch, compresses mouth height
+42%, replaces rectangle sockets with tapered outlines and gives each fan four
+cream lobes. Actual five-view review still fails: large protruding eyes and brow
+plates, floating crown roots after the body change, mirrored toe winding and
+toe overlap. Source, five-view board, hero, GLB and measured metrics are retained.
+Visible geometry: 2,833 triangles, 3,585 vertices, 33 meshes, zero skinned meshes.
+Static GLB is 165,192 bytes; glTF Validator reports zero errors and warnings.
+Only the intentionally open mouth interior has boundary edges. All these
+structural checks are independent of the failed likeness judgment. V7 is ongoing.
+
+## Final batch report
+
+See [RESULT.md](RESULT.md) and comparison-final-v8-v16.webp. The final state
+records eight reviewed captures, comprising initial V1 plus seven corrective
+rebuilds. Seven of eight allowed corrections are recorded. A final stop review
+marks the requested reporting milestone; the tool state still says active/blockout.
+There is no claim of exhausted automated hard stop, visual acceptance or shipping
+readiness. Latest sources and state are versioned separately, preserving all
+earlier failed evidence. V8 still fails likeness; V16 is an unfinished anatomy study.

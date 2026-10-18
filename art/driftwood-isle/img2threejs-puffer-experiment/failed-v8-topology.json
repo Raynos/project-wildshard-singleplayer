@@ -1,0 +1,18 @@
+{
+  "finite": true,
+  "vertices": 3585,
+  "triangles": 2833,
+  "visibleMeshes": 33,
+  "skinnedMeshes": 0,
+  "boundary": [
+    {
+      "name": "mouth",
+      "vertices": 15,
+      "triangles": 5,
+      "finite": true,
+      "boundaryEdges": 5,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0
+    }
+  ]
+}

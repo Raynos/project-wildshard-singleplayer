@@ -1,0 +1,23 @@
+{
+  "source": "/tmp/puffer-lowpoly-v16/puffer-style-v16.glb",
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -1.0134999752044678,
+      "y": -0.009999999776482582,
+      "z": -1.1799999475479128
+    },
+    "max": {
+      "x": 1.013499975204468,
+      "y": 1.3350000381469727,
+      "z": 0.8837705850601197
+    }
+  },
+  "drawCalls": 1,
+  "triangles": 3962,
+  "vertices": 7027,
+  "meshes": 1,
+  "skinnedMeshes": 1,
+  "bones": 9,
+  "materials": 1
+}

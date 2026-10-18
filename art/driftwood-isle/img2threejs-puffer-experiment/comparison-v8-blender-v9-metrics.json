@@ -1,0 +1,23 @@
+{
+  "source": "/art/driftwood-isle/approved-puffer/failed-lowpoly-v9.glb",
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.9200000166893006,
+      "y": -0.009999999776482582,
+      "z": -1.1799999475479128
+    },
+    "max": {
+      "x": 0.9200000166893006,
+      "y": 1.5889999866485596,
+      "z": 1.0850000381469729
+    }
+  },
+  "drawCalls": 1,
+  "triangles": 2889,
+  "vertices": 7557,
+  "meshes": 1,
+  "skinnedMeshes": 1,
+  "bones": 9,
+  "materials": 1
+}

@@ -1,6 +1,74 @@
 # Brine Puffer reference review
 
-Date: 2026-10-18. Status: V14 anatomy gate inspected; implementation remains unaccepted.
+Date: 2026-10-18. Status: V18 four-view eye gate inspected; implementation remains unaccepted.
+
+## V18 four-view gate, 16:55 UTC
+
+Actual front, side and both three-quarter renders were inspected. The mirror
+correction works: opposing hero views consistently swap near/far visibility.
+However, the frontal view hides both pupils, leaving gold upper-inner crescents
+above large black teardrop sockets; the side view shows little eye. Revised
+face/character score across views: **2.25/5**, below the earlier hero-only 2.75.
+
+Test lowering the complete eye assembly within the socket while recomputing
+containment, then modestly opening the upper lid only if necessary. Inspect
+front first. Do not alter the far eye asymmetrically to suit one camera. The
+central teal bridge dips too far over both eyes; the eventual cream nose
+bridge should be integrated rather than applied as a separate facial mask.
+
+The side view also reveals nearly leaf-thin feet in the fore/aft direction
+and a tail border visible mainly on thickness edges. These remain genuine
+3D reference-fidelity issues, not reasons to abandon the improved closed hull.
+
+## V17 eye gate, 16:50 UTC
+
+The near eye now reads as recessed and hooded, a genuine improvement.
+Provisional face/character score: **2.75/5**. The far eye is excessively
+occluded, so the whole face is not accepted.
+
+Source inspection identifies a concrete mirror defect: the upper clipping
+slope uses `0.30 + 0.50*u` for both eyes while each local tangent points toward
+positive world X. The upper lids therefore are not reflections. Apply the
+side sign consistently to rim sampling, cavity clipping and iris clipping.
+Inspect front and mirrored three-quarter views before altering one eye's depth.
+Preserve the actual-hull clearance test; the mirror defect does not justify
+returning to nominal-plane containment.
+
+## V16 eye gate, 16:47 UTC
+
+The unified orange cheek field improves on the two stripes. The actual eye
+render fails containment: round lenses project beyond the hood, and the far
+eye reads as an upright coin. Provisional face/character score: **1.5/5**.
+The unchanged base retains silhouette 3.25/5 and facet language 3/5; spines
+remain deliberately absent. No overall acceptance follows from those scores.
+
+Checking against a nominal cutter plane is insufficient because the curved
+hull recedes behind it. Sample the original pre-cut hull along the local eye
+normal, constrain the entire lens behind its actual surface, and constrain
+the lens footprint to the cavity's clipped upper arc. Reduce cap bulge and
+pupil/highlight depth increments to avoid stacked coin-like layers. Deepen
+the socket if necessary rather than shrinking the visible eye into a slit.
+
+## V15 anatomy gate, 16:43 UTC
+
+Connected color-region cuts remove V14's fragmented triangles, and cavity
+walls now read as coherent dark recesses. The base is ready for a recessed-eye
+render, not another hull restart. Provisional geometry-only scores:
+**silhouette 3.25/5; facet language 3/5**. Finished face/character and
+reference-fidelity scores remain deferred while iris and spines are absent.
+
+Near aperture is approximately 82 × 61 pixels against a pouch width of 338:
+the 0.24 width ratio matches the target. Preserve this opening size. Socket
+center to mouth separation remains approximately 0.26 pouch-width versus
+the target's 0.19; establish the visible iris center before another cavity
+position adjustment. Its amber lower lobe should fill the rounded socket,
+with the upper third occluded by a shared sloping brow. Inspect side-on to
+ensure all eye geometry stays behind the aperture plane.
+
+Merge the two orange stripes and their intervening teal gap into one localized
+cheek/brow field, terminating around the outer orbit. The near cream edge is
+too straight and can rise gently under the eye. Narrow crown triangles and
+slightly excess mouth height are secondary to evaluating the actual eyes.
 
 ## V14 anatomy gate, 16:37 UTC
 

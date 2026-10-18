@@ -1,0 +1,5 @@
+{
+  "testedVertices": 480,
+  "minimumClearanceBehindOriginalHull": 0.032560871448367834,
+  "method": "raycast against pre-cut closed hull, local orbital frame"
+}

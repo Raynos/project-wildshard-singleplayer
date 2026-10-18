@@ -1,0 +1,1681 @@
+{
+  "source": "214d74abf4282a4b84aea426105cb2669f8d7dd0",
+  "runnerSha256": "32bb64a5897d6d0ce5b0e4795b0c2e86bc63be635b7ad89dea2a0eccc1d98eea",
+  "startedAt": "2026-10-18T16:51:14.203Z",
+  "samples": [
+    {
+      "time": 0.84860000000149,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002387479122757512,
+          900.0028999988208,
+          -5.322750781286379
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 1.1486000000014902,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002387746202722767,
+          900.0037999986162,
+          -5.322750847244384
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 1.7486000000014907,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022528178501429897,
+          900.0200388426892,
+          -4.766507192227129
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 2.6780999999996284,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022548458840189346,
+          900.0200859026372,
+          -4.766511059039559
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 3.2888999999985113,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022641018624346577,
+          900.0197680609745,
+          -4.766514707170781
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 4.170599999999629,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.002477039349552637,
+          900,
+          -6.906156254932284
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002270256243514972,
+          900.0198114413724,
+          -4.7665169258417635
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 5.052899999998509,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.0024733214940323017,
+          900,
+          -6.8680580370128155
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022727098809575286,
+          900.0200446823546,
+          -4.766516469517085
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 6.045699999999253,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0024719440712413637,
+          900,
+          -6.853451517410576
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002284298246342147,
+          900.0198270676556,
+          -4.766528039574182
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 6.91879999999888,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0024719440712413637,
+          900,
+          -6.853451517410576
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022755398593420507,
+          900.0200027077626,
+          -4.211266803084021
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 7.814399999998505,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.0024719440712413637,
+          900,
+          -6.853451517410576
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002276212947124894,
+          900.0199954945128,
+          -4.2112655978015425
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 8.633399999998504,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.0024719440712413637,
+          900,
+          -6.853451517410576
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002293264948060163,
+          900.0199455354377,
+          -4.211272408160161
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 9.461399999998505,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.0024719440712413637,
+          900,
+          -6.853451517410576
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0023048467107619364,
+          900.020073784628,
+          -4.21127718834575
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 10.437599999999621,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.005334865953993198,
+          900,
+          -6.448015914298594
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.002302572048034428,
+          900.0199695277734,
+          -4.211270474860857
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 11.237599999999619,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 76,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0022988962484301757,
+          900.0200118878529,
+          -4.211268727837467
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 12.048099999999616,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0023022528097666074,
+          900.0198621285745,
+          -4.211272940564005
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 12.963499999999987,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0017181998264858157,
+          900.0156168953145,
+          -3.655028485638664
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 13.669499999999987,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0017234017121487023,
+          900.0155651525529,
+          -3.6550289873729387
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 14.629999999999987,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0017214003807245627,
+          900.016261578894,
+          -3.6550248424033445
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 15.590800000002593,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.004093318569213647,
+          900,
+          -6.301468118093908
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0017176143200817885,
+          900.0158906325996,
+          -3.65502430765547
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 16.504000000001856,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.0038035163188777227,
+          900,
+          -5.855734064243734
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.001714352025767989,
+          900.0156127462469,
+          -3.6550224665810678
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 17.46860000000149,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0038517496523507583,
+          900,
+          -5.732116622850299
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 64,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.001715614727016439,
+          900.0156058278044,
+          -3.6550233585254945
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 18.364700000002983,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0038517496523507583,
+          900,
+          -5.732116622850299
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0008383441456235752,
+          900.0200010710541,
+          -3.098793489461932
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 19.185400000005963,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0038517496523507583,
+          900,
+          -5.732116622850299
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0008395456171147609,
+          900.0168715921973,
+          -3.098793658110697
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 19.962100000005226,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.0038517496523507583,
+          900,
+          -5.732116622850299
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0008316842747394682,
+          900.0172104422309,
+          -3.0987792221065966
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 20.924000000005606,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.0038517496523507583,
+          900,
+          -5.732116622850299
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000815042882105781,
+          900.0168767493888,
+          -3.0987670409942716
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 21.880100000005235,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.0036971392856156166,
+          900,
+          -5.5984810423105955
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0008060838001992133,
+          900.0169308875775,
+          -3.09874923017407
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 22.841200000003003,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.0064395578865895226,
+          900,
+          -5.213921984657645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0008013341681160236,
+          900.0174197439846,
+          -3.098742792893992
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 23.881300000002632,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006320011210884172,
+          900,
+          -5.1987051563337445
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 52,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000795881360785915,
+          900.0171914657585,
+          -3.0987390868990525
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 24.615300000002637,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006320011210884172,
+          900,
+          -5.1987051563337445
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.00035069309677502984,
+          900.0180663841384,
+          -2.542296667647272
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 25.62530000000078,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006320011210884172,
+          900,
+          -5.1987051563337445
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.00033196007093515105,
+          900.0180326530681,
+          -2.542317440215357
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 26.434400000002274,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006320011210884172,
+          900,
+          -5.1987051563337445
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.00032199668041542166,
+          900.0180479109767,
+          -2.5423261729119857
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 27.496300000002655,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006320011210884172,
+          900,
+          -5.1987051563337445
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.000296215394981909,
+          900.0180290834178,
+          -2.5423565606792073
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 28.352400000002287,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.008477310932032037,
+          900,
+          -4.758227848447859
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0002947715112919646,
+          900.0180796154455,
+          -2.5423665807224274
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 29.327900000002295,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006795944003935642,
+          900,
+          -4.627773875370622
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 40,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0002811528463122336,
+          900.0180943573141,
+          -2.542378658890241
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 30.24620000000118,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006795944003935642,
+          900,
+          -4.627773875370622
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0010932558321878737,
+          900.0216674340845,
+          -1.9952089605185797
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 31.031300000000815,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006795944003935642,
+          900,
+          -4.627773875370622
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0011333552962002735,
+          900.0188989393864,
+          -1.9868062986862838
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 32.05230000000083,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006795944003935642,
+          900,
+          -4.627773875370622
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0011339166770727282,
+          900.0189814140758,
+          -1.9868074814136674
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 32.8237000000012,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006795944003935642,
+          900,
+          -4.627773875370622
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0011400882006609003,
+          900.0188969327137,
+          -1.9868102742316012
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 33.87610000000158,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.006274187542696222,
+          900,
+          -4.44606758095324
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0011476802307106414,
+          900.0187796782193,
+          -1.9868177960853508
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 34.71410000000345,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.008797638909565489,
+          900,
+          -4.112482855096459
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.001147599547304019,
+          900.0188825486475,
+          -1.9868245318595825
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 35.756500000003825,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.005762898692448129,
+          900,
+          -4.067118821665645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 28,
+          "maxHealth": 100
+        },
+        "position": [
+          0.001147310536138797,
+          900.0188901927977,
+          -1.9868277384929591
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 36.66620000000495,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.005762898692448129,
+          900,
+          -4.067118821665645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0028006604560266556,
+          900.0194024449775,
+          -1.4303332419388628
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 37.61860000000533,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.005762898692448129,
+          900,
+          -4.067118821665645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.002802619856497863,
+          900.0194624680844,
+          -1.430328475016145
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 38.49060000000534,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.005762898692448129,
+          900,
+          -4.067118821665645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0028034530187339545,
+          900.0193009503964,
+          -1.4303264048122184
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 39.3843000000046,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.005762898692448129,
+          900,
+          -4.067118821665645
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.002809076611392165,
+          900.0195828853466,
+          -1.4303265264084697
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 40.25230000000274,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.00490473048743463,
+          900,
+          -3.671722201630473
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.002809232011330416,
+          900.019460106214,
+          -1.430327889150652
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 41.20690000000236,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006497831398557377,
+          900,
+          -3.527053337544203
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.002899691728662319,
+          900.0194394665778,
+          -1.430242089469072
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 42.27890000000235,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.006497831398557377,
+          900,
+          -3.527053337544203
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005505636987169311,
+          900.0200166832983,
+          -0.874150580519407
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 43.11790000000422,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006497831398557377,
+          900,
+          -3.527053337544203
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005510897042277236,
+          900.0200145701747,
+          -0.8741497778499738
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 43.98690000000236,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006497831398557377,
+          900,
+          -3.527053337544203
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005506822987391786,
+          900.019569034037,
+          -0.8741620269793149
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 44.724900000004226,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "alert",
+        "position": [
+          -0.006497831398557377,
+          900,
+          -3.527053337544203
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005507913355858414,
+          900.0197925338107,
+          -0.8741614850185222
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 45.78370000000497,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.007484059047821415,
+          900,
+          -3.3437258675694466
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005503103165978225,
+          900.0197281824039,
+          -0.8741634430548795
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 46.75760000000535,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "stalk",
+        "position": [
+          -0.0058892111428957145,
+          900,
+          -2.9716462027281523
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005495697887389668,
+          900.0198291646957,
+          -0.8741752938187923
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 47.67280000000647,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "attack",
+        "position": [
+          -0.0058892111428957145,
+          900,
+          -2.9716462027281523
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 4,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0054933698253069995,
+          900.0196778117534,
+          -0.8741782427740092
+        ],
+        "carried": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "time": 48.31890000000797,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "brine-puffer",
+        "hp": 45,
+        "state": "idle",
+        "position": [
+          -0.0058892111428957145,
+          900,
+          -2.9716462027281523
+        ]
+      },
+      "player": {
+        "health": {
+          "health": 0,
+          "maxHealth": 100
+        },
+        "position": [
+          0.005493953134302771,
+          900.0196805606902,
+          -0.8741793080431852
+        ],
+        "carried": true
+      },
+      "status": "Defeated. Retry starts a fresh local bout."
+    }
+  ],
+  "errors": [],
+  "visualStatus": "Rejected mechanics fixture",
+  "storageBefore": {
+    "local": {},
+    "session": {}
+  },
+  "before": {
+    "time": 0.20060000000149014,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "state": "stalk",
+      "position": [
+        -0.0023862572852522135,
+        900,
+        -6.932386256754398
+      ]
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        1.7745994913354393e-10,
+        900.0003999999826,
+        -0.3123291204211061
+      ],
+      "carried": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "diagnosticPose": {
+    "position": [
+      -0.0023862572849865944,
+      900,
+      -5.3227526532486085
+    ],
+    "yaw": 0,
+    "pitch": -0.08
+  },
+  "after": {
+    "time": 48.31890000000797,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "state": "idle",
+      "position": [
+        -0.0058892111428957145,
+        900,
+        -2.9716462027281523
+      ]
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        0.005493953134302771,
+        900.0196805606902,
+        -0.8741793080431852
+      ],
+      "carried": true
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "defeated": true,
+  "afterDefeatedAttack": {
+    "time": 50.63880000000837,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "state": "idle",
+      "position": [
+        -0.0058892111428957145,
+        900,
+        -2.9716462027281523
+      ]
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        0.005493953134302771,
+        900.0196805606902,
+        -0.8741793080431852
+      ],
+      "carried": true
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "retry": {
+    "time": 51.22710000000911,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "state": "stalk",
+      "position": [
+        -0.003003268349857535,
+        900,
+        -6.829733244143426
+      ]
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        0.0030200874056731664,
+        900.0011682215772,
+        0.24385343252453495
+      ],
+      "carried": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "storageAfter": {
+    "local": {},
+    "session": {}
+  },
+  "storageUnchanged": true,
+  "endedAt": "2026-10-18T16:52:18.686Z"
+}
