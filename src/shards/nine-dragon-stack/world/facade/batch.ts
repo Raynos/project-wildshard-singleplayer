@@ -10,7 +10,7 @@ import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matri
 import type { Dressing } from './dressing';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { BAKED, DRAWN_AS, SMALL, type PieceId } from './pieceIds';
-import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
+import { FACADE_BAKED, FACADE_MODELS } from '../../models/catalogue';
 import type { NdLook } from '../modelLook';
 import { namePlacedDraws } from '../../runtime/cull/placedDraws';
 
@@ -79,7 +79,7 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
       const model = FACADE_BAKED[id], own = d.merged.get(id);
       if (model === undefined || own === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
       const boxes = new Float32Array(list.length * 6);
-      const placements: Placement<FacadeParams>[] = list.map((p, i) => {
+      const placements: Placement<Record<string, unknown>>[] = list.map((p, i) => {
         box.copy(own).applyMatrix4(p.m);
         boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
         return { x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c };
@@ -92,7 +92,7 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
   for (const [id, list] of byPiece) {
     const model = FACADE_MODELS[id];
     if (model === undefined) throw new Error(`facade: no model draws the piece '${id}' (models/facade.ts FACADE_MODELS)`);
-    const placements: Placement<FacadeParams>[] = list.map((p) => ({ x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c }));
+    const placements: Placement<Record<string, unknown>>[] = list.map((p) => ({ x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c }));
     const placed = place(model, placements, {
       ctx: models.ctx, draw: 'instanced', culler: models.culler, parent: group,
       // the small clutter is not drawn past 85 m, where its program has shrunk it into the wall

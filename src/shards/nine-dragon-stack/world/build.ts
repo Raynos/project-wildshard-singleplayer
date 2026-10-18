@@ -12,17 +12,11 @@ import {
   Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
 } from 'three';
 import { Ctx, type InKit, type Piece } from './ctx';
-import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
-import { paifang } from '../models/paifang';
+import { inkFigure } from '../models/inKit';
+import { brassDragonHook, drumStool, mahjongTableModel, parkedScooter, paifang, hawkerStallModel, noodleStallModel, lotusFinial, laundryLineModel, landingPlanterModel, wellBalustrade, lampPostModel, lotusPostModel, airConBox, galleryPlant } from '../models/catalogue';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
-import { hawkerStallModel, noodleStallModel } from '../models/stalls';
 import { registerSigns } from '../models/signs';
 import { placeRegionSets } from './sets';
-import { lotusFinial } from '../models/lotusFinial';
-import { laundryLineModel } from '../models/laundry';
-import { landingPlanterModel } from '../models/landingPlanter';
-import { wellBalustrade } from '../models/wellBalustrade';
-import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
 import type { Emitter } from '../runtime/looks/emitterCards';
 import { NeonText, loadGlyphField } from '../runtime/signs/neonText';
@@ -53,7 +47,6 @@ import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
-import { airConBox, galleryPlant } from '../models/wallKit';
 import { cableGondola, drone, monorailTrain } from '../models/movers';
 import { buildPortals } from './portals';
 import type { PortalSlot } from './portalRide';
@@ -78,7 +71,7 @@ const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in
 const CULL_R = 40;
 
 /** the wall kit's model per piece (ctx.put's pieces that are placed: models/wallKit.ts) */
-const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<object>>>> = { plant: galleryPlant };
+const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<Record<string, unknown>>>>> = { plant: galleryPlant };
 
 /** the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and brush-drawn
  *  figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts), registered on
@@ -92,7 +85,7 @@ const IN_KIT: readonly InKitModel[] = [
 ];
 
 /** a placement from a copy's matrix (its translation is where it stands) */
-const at = (m: Matrix4, color?: Color): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
+const at = <P extends object = object>(m: Matrix4, color?: Color): Placement<P> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
 
 export interface NineDragonWorld {
   /** everything the fragment draws (add it to the engine's scene) */
@@ -282,13 +275,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const piece = key.slice(0, key.indexOf('@')) as Piece;
     const model = WALL_KIT[piece];
     if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
-    const placed = await placeSliced(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
+    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
     nameDraws(placed, `inst:${key}`);
     if (!key.endsWith('@town')) wellKit.push(placed);
   }
   // the fragment's named places as Sets (../places.ts, world/sets.ts): what each region's kits carry
   placeRegionSets(inKitPlaced, { ...squareSets, well: wellKit });
-  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
+  if (ctx.acs.length > 0) nameDraws(await placeSliced(airConBox, ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
   await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0

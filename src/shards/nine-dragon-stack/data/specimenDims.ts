@@ -21,12 +21,6 @@ export const PLANTER = { w: 1.1, d: 0.5 } as const;
 /** where the Well's balustrade model stands: the corner where the square's run and the street's meet */
 export const WELL_BALUSTRADE_AT = { x: PLAZA.x0, y: Y0, z: PLAZA.z0 } as const;
 
-/**
- * (E283, Jake's pick: the distance LODs) the balustrade's carved panel past PANEL_LOD m:
- * its frame and medallion without the ruyi scrolls, strokes 2–5 cm wide, about half a pixel there on the phone frame
- */
-export const PANEL_LOD = 50;
-
 /** which laundry the laundry line model's copy is (../models/laundry.ts): strung between gallery posts (`laundry`), along
  *  a lower-Well front (well-lower-life.ts `laundryLine`), a pole out from a wall (`laundryPole`) */
 export type LaundryKind = 'gallery' | 'lower' | 'pole';

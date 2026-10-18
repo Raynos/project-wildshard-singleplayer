@@ -4,7 +4,10 @@
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
 import { type BufferGeometry, Group, Matrix4, type Material, Mesh, type ShaderMaterial } from 'three';
-import { modelContext, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { modelContext, type ModelBuild, type ModelContext, type ModelPart, type ModelDef } from '@wildshard/engine/models/model';
+import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '@wildshard/game/models/worldSceneCatalogue';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { BakedSigns } from './casts';
@@ -119,4 +122,44 @@ export function withSpecimens(ctx: ModelContext, id: string, parts: () => readon
     }
     return group;
   });
+}
+
+const catalogueRows = parseWorldSceneModels(metadata.explorerModels.catalogue), catalogue = defineWorldSceneCatalogue(catalogueRows);
+const sources = new Map(metadata.explorerModels.sources.map(row => [row.id, row]));
+const yaws = new Map(Object.entries(metadata.explorerModels.yaw));
+const sourceBooks = new WeakMap<ModelContext, { catalogue: typeof catalogueRows; geometries: Map<string, BufferGeometry>; materials: Map<string, Material> }>();
+/** The native page lends its existing geometry and programs; the shared catalogue
+ * owns choices, draw flags, colliders and LODs. Lazy cards retain their intake. */
+export function nativeSpecimen(key: string): ModelDef<Record<string, unknown>> {
+  const row = catalogueRows.models.find(entry => entry.key === key);
+  if (row === undefined) throw new Error(`No Nine specimen row: ${key}`);
+  // Native cards retain their page-owned geometry and GPU bindings as before.
+  const { colliders, specimenLifetime: _specimenLifetime, ...model } = catalogue.model(key), yaw = yaws.get(key);
+  const parts = (ctx: ModelContext, params: Record<string, unknown>, rng: Parameters<typeof model.build>[2]): readonly ModelPart[] => {
+    const choice = row.choices.find(entry => Object.keys(params).length === Object.keys(entry.params).length && Object.entries(entry.params).every(([name, value]) => params[name] === value));
+    if (choice === undefined) throw new Error(`No native specimen profile: ${key}`);
+    const look = ndLook(ctx);
+    let book = sourceBooks.get(ctx);
+    if (book === undefined) {
+      book = { catalogue: catalogueRows, geometries: new Map<string, BufferGeometry>(), materials: new Map<string, Material>() };
+      bindWorldSceneModelSources(ctx, catalogueRows.product, book, look.owner); sourceBooks.set(ctx, book);
+    }
+    const materials = new Map([['kit', look.mat], ['facade', look.facade?.mat], ['small', look.facade?.small]]);
+    for (const draw of choice.draws.concat(choice.lods.flatMap(level => level.draws))) {
+      const id = JSON.stringify([draw.library, draw.model]);
+      if (!book.geometries.has(id)) {
+        const source = sources.get(draw.model);
+        if (source === undefined) throw new Error(`No Nine specimen source: ${draw.model}`);
+        let geometry = source.resident === undefined ? specimen(ctx, source.key) : look.geo.get(source.resident) ?? specimen(ctx, source.key);
+        if (source.transform !== undefined) geometry = geometry.clone().applyMatrix4(new Matrix4().fromArray(source.transform));
+        book.geometries.set(id, geometry);
+      }
+      book.materials.set(draw.material, need(materials.get(draw.material), `specimen look ${draw.material}`));
+    }
+    const built = model.build(ctx, params, rng);
+    if (!Array.isArray(built)) throw new Error('Nine specimen requires its prepared parts');
+    return built as readonly ModelPart[];
+  };
+  return { ...model, ...(metadata.explorerModels.colliding.includes(key) ? { colliders } : {}), ...(yaw === undefined ? {} : { specimenYaw: yaw }),
+    build: (ctx, params, rng) => metadata.explorerModels.lazy.includes(key) ? withSpecimens(ctx, model.id, () => parts(ctx, params, rng)) : parts(ctx, params, rng) };
 }

@@ -1,0 +1,2713 @@
+{
+  "catalogue": {
+    "product": "nine-dragon-stack",
+    "models": [
+      {
+        "key": "brassDragonHook",
+        "id": "nine-dragon-stack/brass-dragon-hook",
+        "name": "Brass dragon hook (grapple anchor)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "reach": 0.9
+        },
+        "variants": [
+          {
+            "id": "reach-0.6",
+            "label": "Reach 0.6 m",
+            "params": {
+              "reach": 0.6
+            }
+          },
+          {
+            "id": "reach-0.7",
+            "label": "Reach 0.7 m",
+            "params": {
+              "reach": 0.7
+            }
+          },
+          {
+            "id": "reach-0.8",
+            "label": "Reach 0.8 m",
+            "params": {
+              "reach": 0.8
+            }
+          },
+          {
+            "id": "reach-0.9",
+            "label": "Reach 0.9 m",
+            "params": {
+              "reach": 0.9
+            }
+          },
+          {
+            "id": "reach-1",
+            "label": "Reach 1 m",
+            "params": {
+              "reach": 1
+            }
+          },
+          {
+            "id": "reach-1.3",
+            "label": "Reach 1.3 m",
+            "params": {
+              "reach": 1.3
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "reach": 0.9
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:0.9",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "reach": 0.6
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:0.6",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "reach": 0.7
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:0.7",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "3",
+            "params": {
+              "reach": 0.8
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:0.8",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "4",
+            "params": {
+              "reach": 1
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:1",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "5",
+            "params": {
+              "reach": 1.3
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:hook:1.3",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "drumStool",
+        "id": "nine-dragon-stack/stool",
+        "name": "Drum stool",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "wash": 12729122
+        },
+        "variants": [
+          {
+            "id": "c23b22",
+            "label": "Cinnabar",
+            "params": {
+              "wash": 12729122
+            }
+          },
+          {
+            "id": "2e5fa3",
+            "label": "Azurite",
+            "params": {
+              "wash": 3039139
+            }
+          },
+          {
+            "id": "3e5a4a",
+            "label": "Malachite",
+            "params": {
+              "wash": 4086346
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "wash": 12729122
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:stool:12729122",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "wash": 3039139
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:stool:3039139",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "wash": 4086346
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:stool:4086346",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "mahjongTableModel",
+        "id": "nine-dragon-stack/mahjong-table",
+        "name": "Mahjong table",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:mahjong",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "parkedScooter",
+        "id": "nine-dragon-stack/scooter",
+        "name": "Scooter",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "wash": 12071455
+        },
+        "variants": [
+          {
+            "id": "b8321f",
+            "label": "Red",
+            "params": {
+              "wash": 12071455
+            }
+          },
+          {
+            "id": "2e5fa3",
+            "label": "Blue",
+            "params": {
+              "wash": 3039139
+            }
+          },
+          {
+            "id": "7fbf9a",
+            "label": "Mint",
+            "params": {
+              "wash": 8372122
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "wash": 12071455
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:scooter:12071455",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "wash": 3039139
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:scooter:3039139",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "wash": 8372122
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "inkit:scooter:8372122",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "lampPostModel",
+        "id": "nine-dragon-stack/lamp-post",
+        "name": "Stone lamp post",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "bridge-post:lamp",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "lotusPostModel",
+        "id": "nine-dragon-stack/lotus-post",
+        "name": "Lotus-capped balustrade post",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "capped": true
+        },
+        "variants": [
+          {
+            "id": "lotus",
+            "label": "Lotus cap",
+            "params": {
+              "capped": true
+            }
+          },
+          {
+            "id": "bare",
+            "label": "Far crossings (no cap)",
+            "params": {
+              "capped": false
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "capped": true
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "bridge-post:lotus:true",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "capped": false
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "bridge-post:lotus:false",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "lotusFinial",
+        "id": "nine-dragon-stack/lotus-finial",
+        "name": "Lotus-bud finial",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "lotus-finial",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "wellBalustrade",
+        "id": "nine-dragon-stack/well-balustrade",
+        "name": "The Well's balustrade",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "surface": "stone",
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0.2,
+                "y": 0.5600000000000023,
+                "z": 14.3,
+                "hx": 0.3,
+                "hy": 0.5600000000000023,
+                "hz": 32.3,
+                "surface": "stone"
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 6.560000000000002,
+                "z": -5,
+                "hx": 0.1,
+                "hy": 5.439999999999998,
+                "hz": 13,
+                "surface": "stone"
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 6.560000000000002,
+                "z": 44.3,
+                "hx": 0.1,
+                "hy": 5.439999999999998,
+                "hz": 2.3000000000000007,
+                "surface": "stone"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "well-balustrade",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "landingPlanterModel",
+        "id": "nine-dragon-stack/landing-planter",
+        "name": "Stone planter in flower",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0.29,
+                "z": 0,
+                "hx": 0.5900000000000001,
+                "hy": 0.29,
+                "hz": 0.29,
+                "surface": "stone"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "landing-planter",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "airConBox",
+        "id": "nine-dragon-stack/air-con-box",
+        "name": "Air-con box (gallery wall)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "kit:ac",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "galleryPlant",
+        "id": "nine-dragon-stack/gallery-plant",
+        "name": "Potted plant (gallery)",
+        "category": "nature",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "kit:plant",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:balcony",
+        "id": "nine-dragon-stack/facade-balcony",
+        "name": "Balcony (railed)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:balcony",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 50,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:balcony:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:balconySolid",
+        "id": "nine-dragon-stack/facade-balcony-solid",
+        "name": "Balcony (carved parapet)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:balconySolid",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:balconyTimber",
+        "id": "nine-dragon-stack/facade-balcony-timber",
+        "name": "Timber veranda balcony",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:balconyTimber",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 100,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:balconyTimber:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:cage",
+        "id": "nine-dragon-stack/facade-cage",
+        "name": "Window cage",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "variants": [
+          {
+            "id": "cageS",
+            "label": "Narrow (1.5 m)",
+            "params": {
+              "alias": "cageS"
+            }
+          },
+          {
+            "id": "cageW",
+            "label": "Wide (2.7 m)",
+            "params": {
+              "alias": "cageW"
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:cage",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 40,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:cage:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "1",
+            "params": {
+              "alias": "cageS"
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:cage@[0.75,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 40,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:cage:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "params": {
+              "alias": "cageW"
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:cage@[1.35,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 40,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:cage:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:acUnit",
+        "id": "nine-dragon-stack/facade-ac-unit",
+        "name": "Air-con condenser",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:acUnit",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 70,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:acUnit:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:pipe",
+        "id": "nine-dragon-stack/facade-pipe",
+        "name": "Drain pipe",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:pipe",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:laundryOut",
+        "id": "nine-dragon-stack/facade-laundry-out",
+        "name": "Laundry pole (out from the wall)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:laundryOut",
+                "material": "small"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:laundryAlong",
+        "id": "nine-dragon-stack/facade-laundry-along",
+        "name": "Laundry pole (along the wall)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:laundryAlong",
+                "material": "small"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:plant",
+        "id": "nine-dragon-stack/facade-plant",
+        "name": "Potted plant (sill)",
+        "category": "nature",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:plant",
+                "material": "small"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:planter",
+        "id": "nine-dragon-stack/facade-planter",
+        "name": "Planter trough",
+        "category": "nature",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:planter",
+                "material": "small"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:tank",
+        "id": "nine-dragon-stack/facade-tank",
+        "name": "Rooftop water tank",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:tank",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:shack",
+        "id": "nine-dragon-stack/facade-shack",
+        "name": "Rooftop shack (malachite · azurite roof)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:shack",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:box",
+        "id": "nine-dragon-stack/facade-box",
+        "name": "Wall box (ledge · bay box · gallery post)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "variants": [
+          {
+            "id": "ledge",
+            "label": "Ledge",
+            "params": {
+              "alias": "ledge"
+            }
+          },
+          {
+            "id": "bayBox",
+            "label": "Bay box",
+            "params": {
+              "alias": "bayBox"
+            }
+          },
+          {
+            "id": "post",
+            "label": "Gallery post",
+            "params": {
+              "alias": "post"
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:box",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "alias": "ledge"
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:box@[1,0,0,0,0,0.1,0,0,0,0,0.36,0,0,0,0,1]",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "alias": "bayBox"
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:box@[1,0,0,0,0,1,0,0,0,0,0.6,0,0,0,0,1]",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "3",
+            "params": {
+              "alias": "post"
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:box@[0.22,0,0,0,0,1,0,0,0,0,0.22,0,0,0,-0.11,1]",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:eave",
+        "id": "nine-dragon-stack/facade-eave",
+        "name": "Pent eave strip",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:eave",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:rail",
+        "id": "nine-dragon-stack/facade-rail",
+        "name": "Lattice railing",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:rail",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 55,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:rail:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:antenna",
+        "id": "nine-dragon-stack/facade-antenna",
+        "name": "Antenna mast",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:antenna",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:dish",
+        "id": "nine-dragon-stack/facade-dish",
+        "name": "Satellite dish",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:dish",
+                "material": "small"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:lantern",
+        "id": "nine-dragon-stack/facade-lantern",
+        "name": "Wall lantern (red paper, facade)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:lantern",
+                "material": "facade"
+              }
+            ],
+            "lods": [
+              {
+                "from": 60,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "facade:lantern:far",
+                    "material": "facade"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "facade:couplet",
+        "id": "nine-dragon-stack/facade-couplet",
+        "name": "Red paper couplet (春聯)",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:couplet",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:shutter",
+        "id": "nine-dragon-stack/facade-shutter",
+        "name": "Roll shutter (a closed shop)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:shutter",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:signFlat",
+        "id": "nine-dragon-stack/facade-sign-flat",
+        "name": "Flat sign board",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:signFlat",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:signBox",
+        "id": "nine-dragon-stack/facade-sign-box",
+        "name": "Lit sign box",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:signBox",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:acBox",
+        "id": "nine-dragon-stack/facade-ac-box",
+        "name": "Window air-con box",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:acBox",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:washLine",
+        "id": "nine-dragon-stack/facade-wash-line",
+        "name": "Wash on a street line",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:washLine",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "facade:awning",
+        "id": "nine-dragon-stack/facade-awning",
+        "name": "Striped window awning",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "facade:awning",
+                "material": "facade"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "balustradePanel",
+        "id": "nine-dragon-stack/balustrade-panel",
+        "name": "Carved balustrade panel",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "panel",
+                "material": "kit"
+              }
+            ],
+            "lods": [
+              {
+                "from": 50,
+                "draws": [
+                  {
+                    "id": "main",
+                    "library": "native",
+                    "model": "panel:far",
+                    "material": "kit"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "laundryLineModel",
+        "id": "nine-dragon-stack/laundry-line",
+        "name": "Laundry line",
+        "category": "props",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "kind": "gallery",
+          "span": 2.6,
+          "rise": -0.05
+        },
+        "variants": [
+          {
+            "id": "gallery",
+            "label": "Between gallery posts",
+            "params": {
+              "kind": "gallery",
+              "span": 2.6,
+              "rise": -0.05
+            }
+          },
+          {
+            "id": "lower",
+            "label": "Along a lower-Well front",
+            "params": {
+              "kind": "lower",
+              "span": 2.4,
+              "rise": -0.05
+            }
+          },
+          {
+            "id": "pole",
+            "label": "A pole out from the wall",
+            "params": {
+              "kind": "pole",
+              "span": 1.6,
+              "rise": 0.05
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "kind": "gallery",
+              "span": 2.6,
+              "rise": -0.05
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "laundry:gallery:2.6:-0.05",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "kind": "lower",
+              "span": 2.4,
+              "rise": -0.05
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "laundry:lower:2.4:-0.05",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "kind": "pole",
+              "span": 1.6,
+              "rise": 0.05
+            },
+            "colliders": [],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "laundry:pole:1.6:0.05",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "paifang",
+        "id": "nine-dragon-stack/paifang",
+        "name": "Paifang (memorial gate)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {
+          "kind": "square"
+        },
+        "variants": [
+          {
+            "id": "square",
+            "label": "Lantern Square (cinnabar)",
+            "params": {
+              "kind": "square"
+            }
+          },
+          {
+            "id": "stair",
+            "label": "The stair-street",
+            "params": {
+              "kind": "stair"
+            }
+          },
+          {
+            "id": "well",
+            "label": "The Well's gate bridge (mineral)",
+            "params": {
+              "kind": "well"
+            }
+          }
+        ],
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {
+              "kind": "square"
+            },
+            "colliders": [
+              {
+                "kind": "box",
+                "x": -5.45,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": -2.15,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": 2.15,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": 5.45,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "paifang:square",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "1",
+            "params": {
+              "kind": "stair"
+            },
+            "colliders": [
+              {
+                "kind": "box",
+                "x": -5.6,
+                "y": 4.5,
+                "z": 0,
+                "hx": 0.9099999999999999,
+                "hy": 4.5,
+                "hz": 1.8199999999999998,
+                "surface": "stone"
+              },
+              {
+                "kind": "box",
+                "x": -3.1,
+                "y": 4.5,
+                "z": 0,
+                "hx": 0.9099999999999999,
+                "hy": 4.5,
+                "hz": 1.8199999999999998,
+                "surface": "stone"
+              },
+              {
+                "kind": "box",
+                "x": 3.1,
+                "y": 4.5,
+                "z": 0,
+                "hx": 0.9099999999999999,
+                "hy": 4.5,
+                "hz": 1.8199999999999998,
+                "surface": "stone"
+              },
+              {
+                "kind": "box",
+                "x": 5.6,
+                "y": 4.5,
+                "z": 0,
+                "hx": 0.9099999999999999,
+                "hy": 4.5,
+                "hz": 1.8199999999999998,
+                "surface": "stone"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "paifang:stair",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          },
+          {
+            "id": "2",
+            "params": {
+              "kind": "well"
+            },
+            "colliders": [
+              {
+                "kind": "box",
+                "x": -5.4,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": -2.3,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": 2.3,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              },
+              {
+                "kind": "box",
+                "x": 5.4,
+                "y": 3.5,
+                "z": 0,
+                "hx": 0.45,
+                "hy": 3.5,
+                "hz": 0.45,
+                "surface": "wood"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "paifang:well",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "hawkerStallModel",
+        "id": "nine-dragon-stack/hawker-stall",
+        "name": "Hawker stall",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [
+              {
+                "kind": "box",
+                "x": -4.440892098500626e-16,
+                "y": 1.2,
+                "z": 0,
+                "hx": 1.6999999999999997,
+                "hy": 1.2,
+                "hz": 1.1,
+                "surface": "wood"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "stall:hawker",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      },
+      {
+        "key": "noodleStallModel",
+        "id": "nine-dragon-stack/noodle-stall",
+        "name": "Noodle stall (大牌檔)",
+        "category": "buildings",
+        "pipeline": "code",
+        "file": "src/shards/nine-dragon-stack/data/explorerModels.json",
+        "defaults": {},
+        "assembly": "parts",
+        "choices": [
+          {
+            "id": "0",
+            "params": {},
+            "colliders": [
+              {
+                "kind": "box",
+                "x": -1.7763568394002505e-15,
+                "y": 1.6,
+                "z": 0.2999999999999982,
+                "hx": 2.9000000000000004,
+                "hy": 1.6,
+                "hz": 1.8999999999999997,
+                "surface": "wood"
+              }
+            ],
+            "size": [
+              1,
+              1,
+              1
+            ],
+            "draws": [
+              {
+                "id": "main",
+                "library": "native",
+                "model": "stall:noodle",
+                "material": "kit"
+              }
+            ],
+            "lods": []
+          }
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "inkit:hook:0.9",
+      "key": "inkit:hook:0.9"
+    },
+    {
+      "id": "inkit:hook:0.6",
+      "key": "inkit:hook:0.6"
+    },
+    {
+      "id": "inkit:hook:0.7",
+      "key": "inkit:hook:0.7"
+    },
+    {
+      "id": "inkit:hook:0.8",
+      "key": "inkit:hook:0.8"
+    },
+    {
+      "id": "inkit:hook:1",
+      "key": "inkit:hook:1"
+    },
+    {
+      "id": "inkit:hook:1.3",
+      "key": "inkit:hook:1.3"
+    },
+    {
+      "id": "inkit:stool:12729122",
+      "key": "inkit:stool:12729122"
+    },
+    {
+      "id": "inkit:stool:3039139",
+      "key": "inkit:stool:3039139"
+    },
+    {
+      "id": "inkit:stool:4086346",
+      "key": "inkit:stool:4086346"
+    },
+    {
+      "id": "inkit:mahjong",
+      "key": "inkit:mahjong"
+    },
+    {
+      "id": "inkit:scooter:12071455",
+      "key": "inkit:scooter:12071455"
+    },
+    {
+      "id": "inkit:scooter:3039139",
+      "key": "inkit:scooter:3039139"
+    },
+    {
+      "id": "inkit:scooter:8372122",
+      "key": "inkit:scooter:8372122"
+    },
+    {
+      "id": "bridge-post:lamp",
+      "key": "bridge-post:lamp"
+    },
+    {
+      "id": "bridge-post:lotus:true",
+      "key": "bridge-post:lotus:true"
+    },
+    {
+      "id": "bridge-post:lotus:false",
+      "key": "bridge-post:lotus:false"
+    },
+    {
+      "id": "lotus-finial",
+      "key": "lotus-finial"
+    },
+    {
+      "id": "well-balustrade",
+      "key": "well-balustrade"
+    },
+    {
+      "id": "landing-planter",
+      "key": "landing-planter"
+    },
+    {
+      "id": "kit:ac",
+      "key": "kit:ac"
+    },
+    {
+      "id": "kit:plant",
+      "key": "kit:plant"
+    },
+    {
+      "id": "facade:balcony",
+      "key": "facade:balcony"
+    },
+    {
+      "id": "facade:balcony:far",
+      "key": "facade:balcony:far"
+    },
+    {
+      "id": "facade:balconySolid",
+      "key": "facade:balconySolid"
+    },
+    {
+      "id": "facade:balconyTimber",
+      "key": "facade:balconyTimber"
+    },
+    {
+      "id": "facade:balconyTimber:far",
+      "key": "facade:balconyTimber:far"
+    },
+    {
+      "id": "facade:cage",
+      "key": "facade:cage"
+    },
+    {
+      "id": "facade:cage:far",
+      "key": "facade:cage:far"
+    },
+    {
+      "id": "facade:cage@[0.75,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]",
+      "key": "facade:cage",
+      "transform": [
+        0.75,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "facade:cage@[1.35,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]",
+      "key": "facade:cage",
+      "transform": [
+        1.35,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "facade:acUnit",
+      "key": "facade:acUnit"
+    },
+    {
+      "id": "facade:acUnit:far",
+      "key": "facade:acUnit:far"
+    },
+    {
+      "id": "facade:pipe",
+      "key": "facade:pipe"
+    },
+    {
+      "id": "facade:laundryOut",
+      "key": "facade:laundryOut"
+    },
+    {
+      "id": "facade:laundryAlong",
+      "key": "facade:laundryAlong"
+    },
+    {
+      "id": "facade:plant",
+      "key": "facade:plant"
+    },
+    {
+      "id": "facade:planter",
+      "key": "facade:planter"
+    },
+    {
+      "id": "facade:tank",
+      "key": "facade:tank"
+    },
+    {
+      "id": "facade:shack",
+      "key": "facade:shack"
+    },
+    {
+      "id": "facade:box",
+      "key": "facade:box"
+    },
+    {
+      "id": "facade:box@[1,0,0,0,0,0.1,0,0,0,0,0.36,0,0,0,0,1]",
+      "key": "facade:box",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0.1,
+        0,
+        0,
+        0,
+        0,
+        0.36,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "facade:box@[1,0,0,0,0,1,0,0,0,0,0.6,0,0,0,0,1]",
+      "key": "facade:box",
+      "transform": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0.6,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "facade:box@[0.22,0,0,0,0,1,0,0,0,0,0.22,0,0,0,-0.11,1]",
+      "key": "facade:box",
+      "transform": [
+        0.22,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0.22,
+        0,
+        0,
+        0,
+        -0.11,
+        1
+      ]
+    },
+    {
+      "id": "facade:eave",
+      "key": "facade:eave"
+    },
+    {
+      "id": "facade:rail",
+      "key": "facade:rail"
+    },
+    {
+      "id": "facade:rail:far",
+      "key": "facade:rail:far"
+    },
+    {
+      "id": "facade:antenna",
+      "key": "facade:antenna"
+    },
+    {
+      "id": "facade:dish",
+      "key": "facade:dish"
+    },
+    {
+      "id": "facade:lantern",
+      "key": "facade:lantern"
+    },
+    {
+      "id": "facade:lantern:far",
+      "key": "facade:lantern:far"
+    },
+    {
+      "id": "facade:couplet",
+      "key": "facade:couplet"
+    },
+    {
+      "id": "facade:shutter",
+      "key": "facade:shutter"
+    },
+    {
+      "id": "facade:signFlat",
+      "key": "facade:signFlat"
+    },
+    {
+      "id": "facade:signBox",
+      "key": "facade:signBox"
+    },
+    {
+      "id": "facade:acBox",
+      "key": "facade:acBox"
+    },
+    {
+      "id": "facade:washLine",
+      "key": "facade:washLine"
+    },
+    {
+      "id": "facade:awning",
+      "key": "facade:awning"
+    },
+    {
+      "id": "panel",
+      "key": "panel",
+      "resident": "set:balustrade-panel"
+    },
+    {
+      "id": "panel:far",
+      "key": "panel:far"
+    },
+    {
+      "id": "laundry:gallery:2.6:-0.05",
+      "key": "laundry:gallery:2.6:-0.05"
+    },
+    {
+      "id": "laundry:lower:2.4:-0.05",
+      "key": "laundry:lower:2.4:-0.05"
+    },
+    {
+      "id": "laundry:pole:1.6:0.05",
+      "key": "laundry:pole:1.6:0.05"
+    },
+    {
+      "id": "paifang:square",
+      "key": "paifang:square"
+    },
+    {
+      "id": "paifang:stair",
+      "key": "paifang:stair"
+    },
+    {
+      "id": "paifang:well",
+      "key": "paifang:well"
+    },
+    {
+      "id": "stall:hawker",
+      "key": "stall:hawker"
+    },
+    {
+      "id": "stall:noodle",
+      "key": "stall:noodle"
+    }
+  ],
+  "colliding": [
+    "wellBalustrade",
+    "landingPlanterModel",
+    "paifang",
+    "hawkerStallModel",
+    "noodleStallModel"
+  ],
+  "lazy": [
+    "lampPostModel",
+    "lotusPostModel",
+    "lotusFinial",
+    "wellBalustrade",
+    "landingPlanterModel",
+    "laundryLineModel",
+    "paifang",
+    "hawkerStallModel",
+    "noodleStallModel"
+  ],
+  "yaw": {
+    "laundryLineModel": 3.141592653589793,
+    "hawkerStallModel": 3.141592653589793,
+    "noodleStallModel": 3.141592653589793
+  },
+  "facade": [
+    {
+      "key": "facade:balcony",
+      "piece": "balcony",
+      "baked": false
+    },
+    {
+      "key": "facade:balconySolid",
+      "piece": "balconySolid",
+      "baked": false
+    },
+    {
+      "key": "facade:balconyTimber",
+      "piece": "balconyTimber",
+      "baked": false
+    },
+    {
+      "key": "facade:cage",
+      "piece": "cage",
+      "baked": false
+    },
+    {
+      "key": "facade:acUnit",
+      "piece": "acUnit",
+      "baked": false
+    },
+    {
+      "key": "facade:pipe",
+      "piece": "pipe",
+      "baked": false
+    },
+    {
+      "key": "facade:laundryOut",
+      "piece": "laundryOut",
+      "baked": false
+    },
+    {
+      "key": "facade:laundryAlong",
+      "piece": "laundryAlong",
+      "baked": false
+    },
+    {
+      "key": "facade:plant",
+      "piece": "plant",
+      "baked": false
+    },
+    {
+      "key": "facade:planter",
+      "piece": "planter",
+      "baked": false
+    },
+    {
+      "key": "facade:tank",
+      "piece": "tank",
+      "baked": false
+    },
+    {
+      "key": "facade:shack",
+      "piece": "shack",
+      "baked": false
+    },
+    {
+      "key": "facade:box",
+      "piece": "box",
+      "baked": false
+    },
+    {
+      "key": "facade:eave",
+      "piece": "eave",
+      "baked": false
+    },
+    {
+      "key": "facade:rail",
+      "piece": "rail",
+      "baked": false
+    },
+    {
+      "key": "facade:antenna",
+      "piece": "antenna",
+      "baked": false
+    },
+    {
+      "key": "facade:dish",
+      "piece": "dish",
+      "baked": false
+    },
+    {
+      "key": "facade:lantern",
+      "piece": "lantern",
+      "baked": false
+    },
+    {
+      "key": "facade:couplet",
+      "piece": "couplet",
+      "baked": true
+    },
+    {
+      "key": "facade:shutter",
+      "piece": "shutter",
+      "baked": true
+    },
+    {
+      "key": "facade:signFlat",
+      "piece": "signFlat",
+      "baked": true
+    },
+    {
+      "key": "facade:signBox",
+      "piece": "signBox",
+      "baked": true
+    },
+    {
+      "key": "facade:acBox",
+      "piece": "acBox",
+      "baked": true
+    },
+    {
+      "key": "facade:washLine",
+      "piece": "washLine",
+      "baked": true
+    },
+    {
+      "key": "facade:awning",
+      "piece": "awning",
+      "baked": true
+    }
+  ]
+}

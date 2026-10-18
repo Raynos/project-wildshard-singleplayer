@@ -9,6 +9,7 @@
     "data/floorPlan.ts",
     "data/specimenProfiles.json",
     "data/layoutPlan.ts",
+    "data/explorerModels.json",
     "data/specimenDims.ts",
     "data/weaponLooks.ts",
     "data/plumbing.json",

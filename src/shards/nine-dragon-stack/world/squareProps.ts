@@ -9,15 +9,15 @@ import { type InstancedCuller, type Placed, copiesAt, placeSliced } from '@wilds
 import { placeSet } from '@wildshard/engine/models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
-import { balustradePanel } from '../models/balustradePanel';
+import { balustradePanel } from '../models/catalogue';
 import { nameDraws } from './facade/batch';
 import type { NdLook } from './modelLook';
 import { lionShares, takeLions, takeSets } from './props3d';
 
 /** the model each queued set is (and the pavilion: diningPavilion, its copies carrying their turn) */
-const SETS: Readonly<Record<string, ModelDef<object>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel };
+const SETS: Readonly<Record<string, ModelDef<Record<string, unknown>>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel };
 
-const at = (m: Matrix4): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m });
+const at = (m: Matrix4): Placement<Record<string, unknown>> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m });
 
 /** what the named places' Sets take from the square's props (world/sets.ts): Lantern Square's balustrade panels and its
  *  lions, the stair-street's lions (the street's balustrade), the Well rim's */

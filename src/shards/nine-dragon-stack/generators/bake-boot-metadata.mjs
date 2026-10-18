@@ -9,6 +9,7 @@ import strings from '../data/strings.json' with { type: 'json' };
 import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
 import samples from '../data/audioSamples.json' with { type: 'json' };
+import explorerModels from '../data/explorerModels.json' with { type: 'json' };
 import { readdirSync, statSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -43,7 +44,7 @@ const sources = { modes: {
   desktop: { img: resolveMode('desktop', 'img'), ktx2: resolveMode('desktop', 'ktx2') },
 } };
 const writer = byteWriter(process.argv.includes('--check'), 'nine-boot-metadata');
-writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS }));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/metadata.generated.json'), jsonBytes({ sources, manifest: { BOOT_FILES: manifest.BOOT_FILES, COMPARE_ROWS: manifest.COMPARE_ROWS }, ceilings, runtimeCost, samples, strings, rows: NINE_MANIFEST_ROWS, explorerModels }));
 const { extraArt, compareImages, ...fixed } = discovery;
 if (compareImages.length !== manifest.COMPARE_ROWS.length) throw new Error('Comparison rows require one image pair each');
 const explore = { ...fixed.explore, compare: manifest.COMPARE_ROWS.map((row, index) => ({ ...row, ...compareImages[index] })) };

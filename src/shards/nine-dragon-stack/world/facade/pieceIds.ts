@@ -50,18 +50,3 @@ export const DRAWN_AS: Readonly<Partial<Record<PieceId, { readonly as: PieceId; 
   shackB: { as: 'shack', local: new Matrix4(), tint: PAL.azurite },
 };
 export const BAKED: ReadonlySet<PieceId> = new Set<PieceId>(['couplet', 'shutter', 'signFlat', 'signBox', 'acBox', 'washLine', 'awning']);
-
-/**
- * (E283, Jake's pick: the distance LODs) the pieces with parts thinner than a pixel from
- * a distance: past `from` m the batch draws the piece without them (the cage's and railings' flat bars, the ACs'
- * brackets, the lanterns' cords) — `from` is where the dropped part is ~half a pixel wide on the phone frame (1 px ≈ 1 mm
- * a metre off), so it was a broken dotted line there already
- */
-export const PIECE_LOD_FROM: Readonly<Partial<Record<PieceId, number>>> = {
-  cage: 40, // bars 1.8 cm, cross bars 2 cm
-  balcony: 50, // bars 2.4 cm
-  rail: 55, // lattice 2.8 cm
-  lantern: 60, // cord 1.5 cm, tassel 3 cm
-  acUnit: 70, // brackets 3–4 cm
-  balconyTimber: 100, // balusters 5 cm
-};
