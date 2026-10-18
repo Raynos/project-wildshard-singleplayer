@@ -2,7 +2,7 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { driftwoodRows, driftwoodProduct, driftwoodTierShadows } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
-import { readDriftwoodBlob, loadFixedGeometry, fixedDraw } from '../runtime/boot/blobAssets';
+import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -37,12 +37,12 @@ import SEABED from '../data/seabedLook.json' with { type: 'json' };
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
-import type { CustomSections } from '../runtime/productSections.generated.d.ts';
+import type { CustomSections, CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
 import { Cove } from './Cove';
-import { GroundCover } from './GroundCover';
+import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
+import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, LOWERED_SEA, SHORE_INNER_FACE, type DryRect } from './sea';
-import entryLandingRows from '../data/entryFloors.generated.json' with { type: 'json' };
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
 import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
@@ -52,8 +52,7 @@ interface Boat { placed: Placed; group: THREE.Object3D; ropes: THREE.Mesh; colli
 interface Seabed { mesh: THREE.Mesh; fish: THREE.InstancedMesh; tick: (dt: number) => void }
 type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
 
-const ENTRY_LANDINGS = entryLandingRows.rows;
-type EntryLanding = (typeof entryLandingRows.rows)[number];
+type EntryLanding = EntryLandings['rows'][number];
 
 type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
 
@@ -62,7 +61,7 @@ export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed; colliders: Collider[] } | null;
   hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; colliders: Collider[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
   gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; colliders: Collider[]; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
-  palmSpecs: PalmSpec[]; cove: Cove | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: GroundCover | null;
+  palmSpecs: PalmSpec[]; cove: Cove | null; palms: { placed: Placed; mesh: THREE.Mesh; colliders: Collider[]; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
@@ -80,7 +79,7 @@ export interface DriftwoodLowered {
   readonly landings: readonly EntryLanding[];
 }
 /** G164's lowered world: the sea at road level */
-export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
+const loweredWorld = { level: LOWERED_SEA, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE };
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -91,7 +90,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles): Promise<DriftwoodWorld> {
-  const lowered = G164_LOWERED, fixed = driftwoodRows('custom/fixedLayouts');
+  const lowered: DriftwoodLowered = { ...loweredWorld, landings: (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows }, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
@@ -236,7 +235,13 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover({ cells: coverCells }, scenes, await scenes.place('foliage.logs')).build(); // its plants baked per cell (generators/coverCells.ts)
+  const coverComposition = await driftwoodProduct().json<CoverComposition>('world/cover-composition.json');
+  const coverPlaced = await scenes.place(coverComposition.placement);
+  for (const [kind, slot] of Object.entries(fixedGeometryGroups().cover)) scenes.publish(kind, fixedDraw(slot).copy());
+  const cover = Object.assign(createStreamedCover(scenes, authoredCover.GROUND_COVER, coverCells), { placed: [coverPlaced] });
+  cover.group.name = coverComposition.name;
+  const coverLogs = scenes.mesh(coverComposition.mesh);
+  Object.assign(coverLogs.userData, coverComposition.userData); cover.group.add(coverLogs);
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await stages.next('Palms and ground cover');

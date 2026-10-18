@@ -1,0 +1,6 @@
+{
+  "name": "ground-cover",
+  "placement": "foliage.logs",
+  "mesh": "logs.mesh",
+  "userData": { "coverProp": true }
+}
