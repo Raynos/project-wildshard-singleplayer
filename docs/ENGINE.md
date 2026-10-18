@@ -9527,6 +9527,11 @@ mount the root where their existing hierarchy requires it; the host preserves
 recipe child order. The engine frame budget paces library reads, slots, steps
 and registrations. Existing lent look materials remain shared with their live
 uniform writers; missing look slots compile under the resident.
+The data client and regional presentation lend their terrain family instance
+to these same slots. A skirt or other scene borrowing that family shares the
+terrain's curves, textures and cascade binding without recompiling a material.
+These loans belong to the resident scope and product identity, so overlapping
+worlds with the same family id keep their own materials.
 
 The first adopters replace Driftwood's cascade and cove geometry modules and
 Pine Hollow's stream assembly module without changing its

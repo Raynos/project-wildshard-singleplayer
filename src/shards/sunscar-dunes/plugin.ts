@@ -9,7 +9,6 @@ import { lastLightAll } from './look/light';
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
-import { SAND, SKIRT } from './look/render';
 
 type ShardContext = Parameters<HybridRuntimePlugin['world']>[0];
 
@@ -27,17 +26,12 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked, this.keepClientChannels.bind(this, ctx)); this.fire = this.places.fire;
-    // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
-    // its dusk curves read the declared host field. In a grid cell the region lends it the same way.
+    // Preserve the original cascade binding on the one shared sand material.
     const sand = runtimePresentation(source)?.material('pbr') ?? null;
     if (sand !== null) {
       // the sky's cascades on the sand, as the level painter's terrain group had them (the data client's tiles have none)
       ctx.game.runtime?.world?.sky.setupMaterial(sand);
-      SAND.material = sand; SKIRT.wear(sand, source.terrain?.order);
-      ctx.scope.onDispose(() => { if (SAND.material === sand) SAND.material = null; });
     }
-    // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
-    if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }

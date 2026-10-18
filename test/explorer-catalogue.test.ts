@@ -46,7 +46,7 @@ test('every emitted Sky and Signal scene recipe passes runtime admission', async
     const blobs = output.namedFiles.flatMap(file => {
       if (file.name === undefined) return [];
       const data = output.assets.get(file.hash); if (data === undefined) throw new Error('Missing declared source');
-      return [nameBlob(file.name, 'json', data)];
+      return [nameBlob(file.name, file.kind, data)];
     });
     const product = fixture(`fixture-sources-${String(index)}`, { version: 1, entries: [] }, scenes, blobs);
     await sceneSources.prepareSceneSources(product);

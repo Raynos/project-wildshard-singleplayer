@@ -80,6 +80,7 @@ import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct, runtimeProduct, shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
+import { lendSceneMaterials } from '../shardfile/lentLooks';
 import { clientWorld } from '../shardfile/clientWorld';
 import { clientViews } from '../shardfile/clientViews';
 import { clientGround } from '../shardfile/clientGround';
@@ -146,6 +147,9 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   if (scope.disposed) throw new Error('Regional world left while reading its presentation collider');
   // a runtime-bound host field keeps its declared default for the look's curves until the runtime answers (bindState)
   const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope);
+  const material = presentation.materials.get(terrain.family);
+  if (material === undefined) throw new Error('Regional terrain requires its admitted family material');
+  lendSceneMaterials(scope, full.identity.slug, new Map([[terrain.family, material]]));
   const host = lendHybridPresentation(full.identity.slug, presentation, clientGround(data, assets.retained), scope);
   presentation.graphs.bind({ hour, state: host });
   const tiles = await clientWorld({ ...data, props: null }, assets, { scope, x: start.x, z: start.z,

@@ -1,6 +1,7 @@
 import type { Material, Texture } from 'three';
 import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 /**
  * Lent looks (SHARD-PLATFORM W2 C2): a shard's runtime compiles its look.materials graphs (`runtimeLookMaterials`) and
@@ -28,6 +29,22 @@ export interface LentLooks {
 }
 
 const lends: LentLooks[] = [];
+const sceneMaterials = new WeakMap<Scope, Map<string, ReadonlyMap<string, Material>>>();
+
+/** Internal terrain loan, isolated to its resident and product identity. Scene
+ * construction can overlap other worlds that happen to name the same family. */
+export function lendSceneMaterials(scope: Scope, slug: string, materials: ReadonlyMap<string, Material>): void {
+  if (scope.disposed) throw new Error('Scene material loan needs a live resident');
+  let rows = sceneMaterials.get(scope);
+  if (rows === undefined) { rows = new Map(); sceneMaterials.set(scope, rows); scope.onDispose(() => { sceneMaterials.delete(scope); }); }
+  if (rows.has(slug)) throw new Error('Scene material book is already lent');
+  rows.set(slug, materials);
+}
+
+/** A loan is optional; an unloaned graph still follows normal scene compilation. */
+export function sceneMaterial(scope: Scope, slug: string, id: string): Material | undefined {
+  return sceneMaterials.get(scope)?.get(slug)?.get(id);
+}
 
 /** Lend a compile pass's looks until `scope` ends. */
 export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks): void {

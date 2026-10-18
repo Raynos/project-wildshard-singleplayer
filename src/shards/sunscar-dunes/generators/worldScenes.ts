@@ -5,9 +5,10 @@ import scenes from '../data/restScenes.generated.json' with { type: 'json' };
 import pieces from '../assets/pieces.generated.json' with { type: 'json' };
 import world from '../data/worldBakes.generated.json' with { type: 'json' };
 import { SIGNAL_SOURCE_LIBRARIES, SIGNAL_SOURCE_BLOBS } from './sceneSources';
+import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';
 
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
-export const SIGNAL_SCENE_BLOBS = [...SIGNAL_SOURCE_BLOBS];
+export const SIGNAL_SCENE_BLOBS = [...SIGNAL_SOURCE_BLOBS, ...SIGNAL_SKIRT_BLOBS];
 const steps: unknown[] = [], effects: { readonly part: string; readonly pool: string | null; readonly rows: unknown }[] = [];
 /** Original order, native hierarchy and fields. Sources remain the existing
  * model libraries and kind bakes; this only declares their assembly bindings. */
@@ -48,4 +49,5 @@ for (const [id, piece, source, colliders] of definitions) {
   });
 }
 SIGNAL_SCENE_BLOBS.push(json('world/places-effects.json', effects));
-export const SIGNAL_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: SIGNAL_SOURCE_LIBRARIES, materials: [], steps });
+export const SIGNAL_WORLD_SCENES = parseWorldScenes({ version: 1, libraries: [...SIGNAL_SOURCE_LIBRARIES, SIGNAL_SKIRT_LIBRARY],
+  materials: [{ id: 'sand', kind: 'look', look: 'pbr' }], steps: [...SIGNAL_SKIRT_STEPS, ...steps] });

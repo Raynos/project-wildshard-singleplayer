@@ -26,7 +26,7 @@ import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/client
 import type { ShardContext } from '../plugin/context';
 import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
 import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
-import { hasLentLook, lentLook, lentMappedLook, lendLooks } from './lentLooks';
+import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
@@ -221,7 +221,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       }
       await buildYield(owner);
     }
-    const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined && !hasLentLook(row.look) ? [row.look] : []);
+    const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined
+      && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : []);
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
@@ -245,7 +246,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       else if (row.kind === 'lowpoly') {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
         material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
-      } else material = model === undefined || model === null ? lentLook(row.look) : lentMappedLook(row.look, model.map);
+      } else material = model === undefined || model === null ? sceneMaterial(resident, product.slug, row.look) ?? lentLook(row.look) : lentMappedLook(row.look, model.map);
       if (row.kind === 'standard' && row.sky === true) {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
         sky.setupMaterial(material);

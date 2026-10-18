@@ -37,6 +37,7 @@ import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
+import { lendSceneMaterials } from './lentLooks';
 import type { GraphSources } from './clientGraphs';
 import { clientGround } from './clientGround';
 import { lendHybridPresentation } from './hybridPresentation';
@@ -223,6 +224,10 @@ export class ShardfileClient {
     if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer) });
     const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope, { trustedGraphs: this.bindings.trustedRuntime === true });
     this.presentation = presentation;
+    const family = this.source.terrain?.family, material = family === undefined ? undefined : presentation.materials.get(family);
+    // Scene look slots borrow the exact terrain instance, including its curves
+    // and cascade binding, rather than compiling a second family material.
+    if (family !== undefined && material !== undefined) lendSceneMaterials(ctx.scope, this.source.identity.slug, new Map([[family, material]]));
     if (this.mode === 'presentation') { await this.drawPresentation(ctx, runtime, presentation); return; }
     this.lend(ctx, presentation, null);
     this.itemModels = await loadItemModels(this.source.items, this.assets.retained, ctx.scope);

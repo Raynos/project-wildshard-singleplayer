@@ -40,6 +40,7 @@
     "./plumbing": "./plumbing.ts",
     "./bake/props": "./bake/props.ts",
     "./bake/glb": "./bake/glb.ts",
+    "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
     "./bake/placeholders": "./bake/placeholders.ts",
     "./bake/kinds": "./bake/kinds.ts",

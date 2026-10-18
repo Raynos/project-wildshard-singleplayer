@@ -2,7 +2,7 @@ import { Color, Float32BufferAttribute, PlaneGeometry, type BufferGeometry } fro
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { SKIRT_CUBE, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './rows/sand';
 import { SAND_TINT } from "./duneRows";
-import { signalDunesField } from './tiles';
+import { signalHeightAt } from './landscape';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, SF72): the dune skirt past the ground's edge, which the look used to build behind the
@@ -41,7 +41,7 @@ export interface SkirtPackRows extends PackedGeometryRows { readonly cubeHalf: n
 /** The skirt as a pack: geometry 0 the standalone skirt, geometry 1 the grid cell's (cut to `SKIRT_CUBE`). */
 export function bakeSignalSkirt(): { bytes: Uint8Array; rows: SkirtPackRows } {
   // the dusk look's skirt and sand tint rows (data/lastLight.ts SIGNAL_DUSK_LOOK carries these same rows to the client)
-  const grid = SKIRT_GRID, swell = SKIRT_SWELL, tint = SAND_TINT, heightAt = signalDunesField().heightAt;
+  const grid = SKIRT_GRID, swell = SKIRT_SWELL, tint = SAND_TINT, heightAt = signalHeightAt();
   const colour = new Color(...tint.sand).lerp(new Color(...tint.hollow), tint.skirtHollow);
   const pack = new GeometryPackWriter('sunscar-dunes skirt');
   for (const reach of [grid.reach, SKIRT_CUBE]) pack.add(skirtGrid(grid, swell, heightAt, colour, reach));
