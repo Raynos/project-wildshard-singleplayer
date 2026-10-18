@@ -1,0 +1,5 @@
+{
+  "testedVertices": 480,
+  "minimumClearance": 0.022873939480632544,
+  "method": "actual union-hull raycasts in local orbital frames; measured before shared10cm stance translation"
+}

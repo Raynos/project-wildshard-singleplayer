@@ -1,0 +1,30 @@
+{
+  "-1": {
+    "front": {
+      "blockedByHull": false,
+      "hit": null,
+      "faceIndex": null
+    },
+    "hero": {
+      "blockedByHull": true,
+      "hit": [
+        -0.1601712703704834,
+        0.6625587940216064,
+        1.0371503829956055
+      ],
+      "faceIndex": 606
+    }
+  },
+  "1": {
+    "front": {
+      "blockedByHull": false,
+      "hit": null,
+      "faceIndex": null
+    },
+    "hero": {
+      "blockedByHull": false,
+      "hit": null,
+      "faceIndex": null
+    }
+  }
+}
