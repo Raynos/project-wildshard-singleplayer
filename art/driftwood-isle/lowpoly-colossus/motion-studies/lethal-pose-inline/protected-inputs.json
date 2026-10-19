@@ -1,0 +1,230 @@
+{
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/colossusDeathFoldClips.ts": {
+    "sha256": "b5d7650ab7e2981c10f5e2041a9aaa6463c005b7664fe827b18067a5f3fef383",
+    "bytes": 6794
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/death-fold1/world-replay.json": {
+    "sha256": "fb4feeb81f37ac8d80ca718e318449f3b4dfd0f712715a0ad9bdcc8fc97bff8b",
+    "bytes": 26008
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/baseline-dispatch.log": {
+    "sha256": "a443fb4243313826b43891ba022cd261bc6ace0a4a295dc0d9c232e5c23aaf49",
+    "bytes": 2348
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/behaviour/tide-root-colossus.as": {
+    "sha256": "af4f2b5ed29f5415ff9991dfa5edbbdbce12d6cd9135435304478967f9cd8d4f",
+    "bytes": 3498
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/candidateFactory.ts": {
+    "sha256": "3d03a3dabfdd4a12bb345c23b030a14b08f5fe4b2370cfd8074404f5776a80b9",
+    "bytes": 8517
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/checkpoint-normalization.json": {
+    "sha256": "9a162f90e8f12b58ca094d50ed34e2dd5d3efc26e188cb1b7c44900a4088be56",
+    "bytes": 1060
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/clips.json": {
+    "sha256": "6c160e8a0a3eed3d5bfcc27755254c29e4cef3f24384df05b34db8b03f417cfe",
+    "bytes": 188556
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/closure.json": {
+    "sha256": "aa7d1bf49dd86b0ce33ada0c5de40a762d55cce5cb3ef3bc0ab175585eda701a",
+    "bytes": 2225
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/colossusLethalPoseClips.ts": {
+    "sha256": "eccafe6d02ebe7439c7414daa571483503c88cb895339c2f43f1809b862fd849",
+    "bytes": 7026
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/evidence.json": {
+    "sha256": "8c70029f5e4b969ca4f7073089a068e905781b152c552cc627e5dd376eb87410",
+    "bytes": 742
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/lethal-pose.test.ts": {
+    "sha256": "52c6f9d2384cf47baa15c9fa7a4beca6882a592272f16ca934bdcc7a7038f146",
+    "bytes": 13747
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/observed-fuel-failure.json": {
+    "sha256": "015d22947fc16752ac209bce193420e89b05be136a00c5fd66fe189856342ad3",
+    "bytes": 1022
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/onset-results.json": {
+    "sha256": "7a794b7ec481d1ab707b19cb831e12efafdcd569b26a9bcd688782ff46a0fa8b",
+    "bytes": 184
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/ordering-results.json": {
+    "sha256": "41b7fd77a078193f66ebe4c387738d02ea848f8e30cc2c1deb4840c6eaa2fe30",
+    "bytes": 16506
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/paired-dispatch-failure.json": {
+    "sha256": "eadda6d961f3f77bebee4ec0bed0d37cc2b52e47bc7ce023a8d3f3f2d72d7e2a",
+    "bytes": 6249
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/rig.ts": {
+    "sha256": "37c7026efafff20802cc02c4b34f5c64f742fdf95e7a6dc5b82dd80c0854135b",
+    "bytes": 1670
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/test-complete.log": {
+    "sha256": "973e5da2db1b56d9e23865efc0fdd10091d46add51888953bbf2ec51bc8b7f3b",
+    "bytes": 111977
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/test-final.log": {
+    "sha256": "fb9a61797bf9c2a4c69d45eb435df55e90b61068f2243b94366d72f79031c525",
+    "bytes": 3041
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/test.log": {
+    "sha256": "2bb602a0e3c4393598e7368dec2cece12b0df61594988a07f76125e5e983d5dd",
+    "bytes": 2975
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/tsconfig.json": {
+    "sha256": "d79200a0bf00834a278f0bef84107bc04cab4fbd48012abbb56fafea8103e22f",
+    "bytes": 294
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/types.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/vitest.config.ts": {
+    "sha256": "87c3b01c3569386be7f7fe93c5f40b11cdff91e8eaccfceacddb43454fdad7f1",
+    "bytes": 271
+  },
+  "art/driftwood-isle/lowpoly-colossus/runtime-admission/arena-candidate2/metadata.json": {
+    "sha256": "f948d9e00ad762c7dfbdc1cc4bbe406398a82ba0dcd902ffde1a2e24acc81a79",
+    "bytes": 15815
+  },
+  "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/colossus-v4-native.json": {
+    "sha256": "32c4f9b55c5303e75877c8abae7765947a3814c39bb15d3c7a0046e61cb93641",
+    "bytes": 2395775
+  },
+  "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/metadata.json": {
+    "sha256": "1ddb3e8fc73496e44434b325b66ea2c2f39bce5acecae0507b3fc22eb762c8ce",
+    "bytes": 4811
+  },
+  "art/driftwood-isle/lowpoly-colossus/runtime-admission/v4-skin1/payload.bin": {
+    "sha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+    "bytes": 76711
+  },
+  "package.json": {
+    "sha256": "271d57c47ea7c9771dc3f7c317848a9b0865ff973e57a89638d1858024ba553a",
+    "bytes": 3843
+  },
+  "pnpm-lock.yaml": {
+    "sha256": "1495ce479562f459d0af5e19d976df79c957d5b54dbc031fd803475c264e96ea",
+    "bytes": 141275
+  },
+  "src/engine/entities/rigidCorpsePose.ts": {
+    "sha256": "c8e6957432df0ad3f6cdc673c655ec720e58656e74b99938e38e155dd99cb5b6",
+    "bytes": 5372
+  },
+  "src/engine/script/decision.ts": {
+    "sha256": "664d5e5a92e16e109831385632498b44d13188e744eaec384569e1feeda3e939",
+    "bytes": 35001
+  },
+  "src/engine/script/decisionModule.ts": {
+    "sha256": "d337bcbf9e0f919fd33cfe622c046a13a5183f6642486f7f86d887bb252b93c3",
+    "bytes": 7727
+  },
+  "src/format/clientChannels.ts": {
+    "sha256": "df48f18d91858bd56c641a626029de7d47d876c7694a7c0ce27485d3aa0825bd",
+    "bytes": 29157
+  },
+  "src/format/decisionBindings.ts": {
+    "sha256": "bf410206e84bfc632944859e6eb751658642ef47f40ad6b2f3fa1ff19775d504",
+    "bytes": 6122
+  },
+  "src/format/decisionScripts.ts": {
+    "sha256": "134932b0130008896e23798be598e1a0852a7d72e6f0a85d894bd452187111cc",
+    "bytes": 12635
+  },
+  "src/format/scriptAbiV1.ts": {
+    "sha256": "e2612e87ccfa0eeb3c6dd03c3ba5fe3f48a12f82748d305effb60fba43132c60",
+    "bytes": 3839
+  },
+  "src/format/scriptContract.ts": {
+    "sha256": "567d117f5a91aa158674f8947f33fb533adf73ae96dc89547642b16047d927ff",
+    "bytes": 2891
+  },
+  "src/format/shardSchema.ts": {
+    "sha256": "27632580ab22807086055e72358d72d176b6045e2e805f5df922c0e56b1f97dc",
+    "bytes": 29250
+  },
+  "src/format/speciesPrograms.ts": {
+    "sha256": "db820865d240d0bce868714325f65e65fafacdcb299622bd320148b89bf8b684",
+    "bytes": 8175
+  },
+  "src/game/plugin/channelPrograms.ts": {
+    "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d",
+    "bytes": 10384
+  },
+  "src/game/plugin/geometry.ts": {
+    "sha256": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd",
+    "bytes": 137286
+  },
+  "src/sdk/as/ws.ts": {
+    "sha256": "43de9c8ba43c2babd55c26122c83dfc915d62075a44dc7f9de8dc0cc61502d78",
+    "bytes": 2462
+  },
+  "src/sdk/assemblyscriptCompiler.mjs": {
+    "sha256": "a3262098cced12b681d30e8a08c4cecd401fd9c99ed5b6609e78c8d53de8294e",
+    "bytes": 846
+  },
+  "src/sdk/bake/compileScript.ts": {
+    "sha256": "14c6c34d18cbb70ea0c98c5548f7f27793cdcd65ffbe3fede0ae65b74a9fe786",
+    "bytes": 8946
+  },
+  "src/sdk/buildDecisionScripts.ts": {
+    "sha256": "acbdbb506a55eea3160bc26ae1175bd210bfc4ca6662a82519e1a2b4609fdd95",
+    "bytes": 6981
+  },
+  "src/sdk/decisionScriptBindings.ts": {
+    "sha256": "fe068bd53574c8fe8a962124150255d1ed9643ce96da3f48f8e1eb77c918d417",
+    "bytes": 10706
+  },
+  "src/sdk/decisionSource.ts": {
+    "sha256": "2458a8b9d96156c426e35d5de6ff8df13659a98e9657c070ae849bcead442858",
+    "bytes": 3295
+  },
+  "src/shards/driftwood-isle/behaviour/tide-root-colossus.as": {
+    "sha256": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+    "bytes": 2893
+  },
+  "src/shards/driftwood-isle/data/heldArms.json": {
+    "sha256": "439af7f46f4119f4cf9dc49e40aed8050ace06db62fd4ed42efc3aa4e11db69f",
+    "bytes": 3818
+  },
+  "src/shards/driftwood-isle/data/lookGraphs.json": {
+    "sha256": "c74633abb6c1558ef7092f2fba4b3df7e48272517e4241a0f2b52f25661443fb",
+    "bytes": 259176
+  },
+  "src/shards/driftwood-isle/data/practiceLighting.json": {
+    "sha256": "0e39d9246fd4e547fc5ef087fb2bd3467538aef2d3a5966885ad4d112e729765",
+    "bytes": 231
+  },
+  "src/shards/driftwood-isle/data/practiceLooks.json": {
+    "sha256": "e4d0634a643e6312813a3a0120fa18017144c1ddf578c03ff3cb119737fc3910",
+    "bytes": 1912
+  },
+  "src/shards/driftwood-isle/data/practiceNeutralGrayLighting.json": {
+    "sha256": "b0871ebc6bb4b1584cc3b970861dd9d577dd1d6f03c59b752f4d937571c29101",
+    "bytes": 176
+  },
+  "src/shards/driftwood-isle/generators/colossusNativeClips.ts": {
+    "sha256": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+    "bytes": 5764
+  },
+  "src/shards/driftwood-isle/generators/colossusNativePreview.ts": {
+    "sha256": "412e5c9c630cf29a072ae42b26526a3f44ed05f90891c8421376064ce3ce1582",
+    "bytes": 7576
+  },
+  "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts": {
+    "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+    "bytes": 5832
+  },
+  "tsconfig.json": {
+    "sha256": "d46300e3eb417067b03fd756823b853f19dbf86a36beb2a9e66a07061f0ef048",
+    "bytes": 1184
+  },
+  "vitest.config.ts": {
+    "sha256": "14db3c8a61764ee84c79b514cda1073b0e8ddaad6adbc809dcc833ddce1ae601",
+    "bytes": 615
+  }
+}

@@ -1,0 +1,2522 @@
+[
+  {
+    "hpShare": 1,
+    "i": 0,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1465435,
+        "maxFuel": 352487,
+        "commands": 26,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1249918,
+        "maxFuel": 313199,
+        "commands": 23,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 1,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 2227181,
+        "maxFuel": 352487,
+        "commands": 35,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 1926540,
+        "maxFuel": 313199,
+        "commands": 32,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 2,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2988927,
+        "maxFuel": 352487,
+        "commands": 44,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2603162,
+        "maxFuel": 313199,
+        "commands": 41,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 3,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3751479,
+        "maxFuel": 352487,
+        "commands": 58,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3280590,
+        "maxFuel": 313199,
+        "commands": 55,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 4,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 4514800,
+        "maxFuel": 352487,
+        "commands": 71,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 3958787,
+        "maxFuel": 313199,
+        "commands": 68,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 5,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 5629033,
+        "maxFuel": 352487,
+        "commands": 87,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 4948608,
+        "maxFuel": 313199,
+        "commands": 84,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 6,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 6390779,
+        "maxFuel": 352487,
+        "commands": 96,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 5625230,
+        "maxFuel": 313199,
+        "commands": 93,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 7,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 7152525,
+        "maxFuel": 352487,
+        "commands": 105,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 6301852,
+        "maxFuel": 313199,
+        "commands": 102,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 8,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 7915077,
+        "maxFuel": 352487,
+        "commands": 119,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 6979280,
+        "maxFuel": 313199,
+        "commands": 116,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 9,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 8677364,
+        "maxFuel": 352487,
+        "commands": 132,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 7656443,
+        "maxFuel": 313199,
+        "commands": 129,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 10,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 9791597,
+        "maxFuel": 352487,
+        "commands": 148,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 8646264,
+        "maxFuel": 313199,
+        "commands": 145,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 11,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 10553343,
+        "maxFuel": 352487,
+        "commands": 157,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 9322886,
+        "maxFuel": 313199,
+        "commands": 154,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 12,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 11315089,
+        "maxFuel": 352487,
+        "commands": 166,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 9999508,
+        "maxFuel": 313199,
+        "commands": 163,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 13,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 12077641,
+        "maxFuel": 352487,
+        "commands": 180,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 10676936,
+        "maxFuel": 313199,
+        "commands": 177,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 14,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 12840938,
+        "maxFuel": 352487,
+        "commands": 189,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 11355109,
+        "maxFuel": 313199,
+        "commands": 186,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 15,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 13956722,
+        "maxFuel": 352487,
+        "commands": 205,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 12346481,
+        "maxFuel": 313199,
+        "commands": 202,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 16,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 14718468,
+        "maxFuel": 352487,
+        "commands": 214,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 13023103,
+        "maxFuel": 313199,
+        "commands": 211,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 17,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 15480214,
+        "maxFuel": 352487,
+        "commands": 223,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 13699725,
+        "maxFuel": 313199,
+        "commands": 220,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 18,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 16242766,
+        "maxFuel": 352487,
+        "commands": 237,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 14377153,
+        "maxFuel": 313199,
+        "commands": 234,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 19,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 17006063,
+        "maxFuel": 352487,
+        "commands": 246,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 15055326,
+        "maxFuel": 313199,
+        "commands": 243,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 20,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 18121871,
+        "maxFuel": 352487,
+        "commands": 266,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 16046722,
+        "maxFuel": 313199,
+        "commands": 263,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 21,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 18883617,
+        "maxFuel": 352487,
+        "commands": 275,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 16723344,
+        "maxFuel": 313199,
+        "commands": 272,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 22,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 19645363,
+        "maxFuel": 352487,
+        "commands": 284,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 17399966,
+        "maxFuel": 313199,
+        "commands": 281,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 23,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 20407915,
+        "maxFuel": 352487,
+        "commands": 298,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 18077394,
+        "maxFuel": 313199,
+        "commands": 295,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 24,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 21171236,
+        "maxFuel": 352487,
+        "commands": 311,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 18755591,
+        "maxFuel": 313199,
+        "commands": 308,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 25,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 22285469,
+        "maxFuel": 352487,
+        "commands": 327,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 19745412,
+        "maxFuel": 313199,
+        "commands": 324,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 26,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 23047215,
+        "maxFuel": 352487,
+        "commands": 336,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 20422034,
+        "maxFuel": 313199,
+        "commands": 333,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 27,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 23808961,
+        "maxFuel": 352487,
+        "commands": 345,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 21098656,
+        "maxFuel": 313199,
+        "commands": 342,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 28,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 24571513,
+        "maxFuel": 352487,
+        "commands": 359,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 21776084,
+        "maxFuel": 313199,
+        "commands": 356,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 1,
+    "i": 29,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 25333800,
+        "maxFuel": 352487,
+        "commands": 372,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 22453247,
+        "maxFuel": 313199,
+        "commands": 369,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 0,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1465436,
+        "maxFuel": 352488,
+        "commands": 26,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1249919,
+        "maxFuel": 313200,
+        "commands": 23,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 1,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 2227182,
+        "maxFuel": 352488,
+        "commands": 35,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 1926541,
+        "maxFuel": 313200,
+        "commands": 32,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 2,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2988928,
+        "maxFuel": 352488,
+        "commands": 44,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2603163,
+        "maxFuel": 313200,
+        "commands": 41,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 3,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3751480,
+        "maxFuel": 352488,
+        "commands": 58,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3280591,
+        "maxFuel": 313200,
+        "commands": 55,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 4,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 4514801,
+        "maxFuel": 352488,
+        "commands": 71,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 3958788,
+        "maxFuel": 313200,
+        "commands": 68,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 5,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 5629035,
+        "maxFuel": 352488,
+        "commands": 87,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 4948610,
+        "maxFuel": 313200,
+        "commands": 84,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 6,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 6390781,
+        "maxFuel": 352488,
+        "commands": 96,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 5625232,
+        "maxFuel": 313200,
+        "commands": 93,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 7,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 7152527,
+        "maxFuel": 352488,
+        "commands": 105,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 6301854,
+        "maxFuel": 313200,
+        "commands": 102,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 8,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 7915079,
+        "maxFuel": 352488,
+        "commands": 119,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 6979282,
+        "maxFuel": 313200,
+        "commands": 116,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 9,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 8677366,
+        "maxFuel": 352488,
+        "commands": 132,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 7656445,
+        "maxFuel": 313200,
+        "commands": 129,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 10,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 9791600,
+        "maxFuel": 352488,
+        "commands": 148,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 8646267,
+        "maxFuel": 313200,
+        "commands": 145,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 11,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 10553346,
+        "maxFuel": 352488,
+        "commands": 157,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 9322889,
+        "maxFuel": 313200,
+        "commands": 154,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 12,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 11315092,
+        "maxFuel": 352488,
+        "commands": 166,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 9999511,
+        "maxFuel": 313200,
+        "commands": 163,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 13,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 12077644,
+        "maxFuel": 352488,
+        "commands": 180,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 10676939,
+        "maxFuel": 313200,
+        "commands": 177,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 14,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 12840941,
+        "maxFuel": 352488,
+        "commands": 189,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 11355112,
+        "maxFuel": 313200,
+        "commands": 186,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 15,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 13956726,
+        "maxFuel": 352488,
+        "commands": 205,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 12346485,
+        "maxFuel": 313200,
+        "commands": 202,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 16,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 14718472,
+        "maxFuel": 352488,
+        "commands": 214,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 13023107,
+        "maxFuel": 313200,
+        "commands": 211,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 17,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 15480218,
+        "maxFuel": 352488,
+        "commands": 223,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 13699729,
+        "maxFuel": 313200,
+        "commands": 220,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 18,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 16242770,
+        "maxFuel": 352488,
+        "commands": 237,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 14377157,
+        "maxFuel": 313200,
+        "commands": 234,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 19,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 17006067,
+        "maxFuel": 352488,
+        "commands": 246,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 15055330,
+        "maxFuel": 313200,
+        "commands": 243,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 20,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 18121876,
+        "maxFuel": 352488,
+        "commands": 266,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 16046727,
+        "maxFuel": 313200,
+        "commands": 263,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 21,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 18883622,
+        "maxFuel": 352488,
+        "commands": 275,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 16723349,
+        "maxFuel": 313200,
+        "commands": 272,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 22,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 19645368,
+        "maxFuel": 352488,
+        "commands": 284,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 17399971,
+        "maxFuel": 313200,
+        "commands": 281,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 23,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 20407920,
+        "maxFuel": 352488,
+        "commands": 298,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 18077399,
+        "maxFuel": 313200,
+        "commands": 295,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 24,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 21171241,
+        "maxFuel": 352488,
+        "commands": 311,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 18755596,
+        "maxFuel": 313200,
+        "commands": 308,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 25,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 22285475,
+        "maxFuel": 352488,
+        "commands": 327,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 19745418,
+        "maxFuel": 313200,
+        "commands": 324,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 26,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 23047221,
+        "maxFuel": 352488,
+        "commands": 336,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 20422040,
+        "maxFuel": 313200,
+        "commands": 333,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 27,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 23808967,
+        "maxFuel": 352488,
+        "commands": 345,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 21098662,
+        "maxFuel": 313200,
+        "commands": 342,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 28,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 24571519,
+        "maxFuel": 352488,
+        "commands": 359,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 21776090,
+        "maxFuel": 313200,
+        "commands": 356,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.5,
+    "i": 29,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 25333806,
+        "maxFuel": 352488,
+        "commands": 372,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 22453253,
+        "maxFuel": 313200,
+        "commands": 369,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 0,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1465690,
+        "maxFuel": 352746,
+        "commands": 27,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 5,
+        "fuel": 1250173,
+        "maxFuel": 313458,
+        "commands": 24,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 1,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 2228726,
+        "maxFuel": 352746,
+        "commands": 36,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 8,
+        "fuel": 1928085,
+        "maxFuel": 313458,
+        "commands": 33,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 2,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2992020,
+        "maxFuel": 352746,
+        "commands": 45,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 11,
+        "fuel": 2606255,
+        "maxFuel": 313458,
+        "commands": 42,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 3,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3755314,
+        "maxFuel": 352746,
+        "commands": 54,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 14,
+        "fuel": 3284425,
+        "maxFuel": 313458,
+        "commands": 51,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 4,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 4518632,
+        "maxFuel": 352746,
+        "commands": 67,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 17,
+        "fuel": 3962619,
+        "maxFuel": 313458,
+        "commands": 64,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 5,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 5633121,
+        "maxFuel": 352746,
+        "commands": 84,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 21,
+        "fuel": 4952696,
+        "maxFuel": 313458,
+        "commands": 81,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 6,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 6396157,
+        "maxFuel": 352746,
+        "commands": 93,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 24,
+        "fuel": 5630608,
+        "maxFuel": 313458,
+        "commands": 90,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 7,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 7159451,
+        "maxFuel": 352746,
+        "commands": 102,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 27,
+        "fuel": 6308778,
+        "maxFuel": 313458,
+        "commands": 99,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 8,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 7922769,
+        "maxFuel": 352746,
+        "commands": 115,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 30,
+        "fuel": 6986972,
+        "maxFuel": 313458,
+        "commands": 112,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 9,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 8684512,
+        "maxFuel": 352746,
+        "commands": 124,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 33,
+        "fuel": 7663591,
+        "maxFuel": 313458,
+        "commands": 121,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 10,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 9799001,
+        "maxFuel": 352746,
+        "commands": 141,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 37,
+        "fuel": 8653668,
+        "maxFuel": 313458,
+        "commands": 138,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 11,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 10562037,
+        "maxFuel": 352746,
+        "commands": 150,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 40,
+        "fuel": 9331580,
+        "maxFuel": 313458,
+        "commands": 147,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 12,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 11325355,
+        "maxFuel": 352746,
+        "commands": 163,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 43,
+        "fuel": 10009774,
+        "maxFuel": 313458,
+        "commands": 160,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 13,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 12087098,
+        "maxFuel": 352746,
+        "commands": 172,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 46,
+        "fuel": 10686393,
+        "maxFuel": 313458,
+        "commands": 169,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 14,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 12848841,
+        "maxFuel": 352746,
+        "commands": 181,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 49,
+        "fuel": 11363012,
+        "maxFuel": 313458,
+        "commands": 178,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 15,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 13963330,
+        "maxFuel": 352746,
+        "commands": 198,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 53,
+        "fuel": 12353089,
+        "maxFuel": 313458,
+        "commands": 195,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 16,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 14726390,
+        "maxFuel": 352746,
+        "commands": 211,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 56,
+        "fuel": 13031025,
+        "maxFuel": 313458,
+        "commands": 208,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 17,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 15488133,
+        "maxFuel": 352746,
+        "commands": 220,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 59,
+        "fuel": 13707644,
+        "maxFuel": 313458,
+        "commands": 217,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 18,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 16249876,
+        "maxFuel": 352746,
+        "commands": 229,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 62,
+        "fuel": 14384263,
+        "maxFuel": 313458,
+        "commands": 226,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 19,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 17011619,
+        "maxFuel": 352746,
+        "commands": 238,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 65,
+        "fuel": 15060882,
+        "maxFuel": 313458,
+        "commands": 235,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 20,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 18125883,
+        "maxFuel": 352746,
+        "commands": 260,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 69,
+        "fuel": 16050734,
+        "maxFuel": 313458,
+        "commands": 257,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 21,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 18888145,
+        "maxFuel": 352746,
+        "commands": 269,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 72,
+        "fuel": 16727872,
+        "maxFuel": 313458,
+        "commands": 266,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 22,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 19650665,
+        "maxFuel": 352746,
+        "commands": 278,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 75,
+        "fuel": 17405268,
+        "maxFuel": 313458,
+        "commands": 275,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 23,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 20413185,
+        "maxFuel": 352746,
+        "commands": 287,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 78,
+        "fuel": 18082664,
+        "maxFuel": 313458,
+        "commands": 284,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 24,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 21175729,
+        "maxFuel": 352746,
+        "commands": 300,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 81,
+        "fuel": 18760084,
+        "maxFuel": 313458,
+        "commands": 297,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 25,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 22290218,
+        "maxFuel": 352746,
+        "commands": 317,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 85,
+        "fuel": 19750161,
+        "maxFuel": 313458,
+        "commands": 314,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 26,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 23053254,
+        "maxFuel": 352746,
+        "commands": 326,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 88,
+        "fuel": 20428073,
+        "maxFuel": 313458,
+        "commands": 323,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 27,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 23816548,
+        "maxFuel": 352746,
+        "commands": 335,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 91,
+        "fuel": 21106243,
+        "maxFuel": 313458,
+        "commands": 332,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 28,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 24579866,
+        "maxFuel": 352746,
+        "commands": 348,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 94,
+        "fuel": 21784437,
+        "maxFuel": 313458,
+        "commands": 345,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "hpShare": 0.2,
+    "i": 29,
+    "candidate": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 25341609,
+        "maxFuel": 352746,
+        "commands": 357,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "baseline": [
+      {
+        "binding": 1,
+        "calls": 97,
+        "fuel": 22461056,
+        "maxFuel": 313458,
+        "commands": 354,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ]
+  }
+]

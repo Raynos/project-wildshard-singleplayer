@@ -1,0 +1,33 @@
+{
+  "strictSchema": true,
+  "unknownKeyRefused": true,
+  "packedPayloadSha256": "bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46",
+  "parts": 12,
+  "vertices": 15600,
+  "joints": [
+    "body",
+    "head",
+    "arm-1",
+    "forearm-1",
+    "hand-1",
+    "outer-1",
+    "middle-1",
+    "inner-1",
+    "thumb-1",
+    "leg-1",
+    "shin-1",
+    "foot-1",
+    "arm1",
+    "forearm1",
+    "hand1",
+    "outer1",
+    "middle1",
+    "inner1",
+    "thumb1",
+    "leg1",
+    "shin1",
+    "foot1"
+  ],
+  "mounted": false,
+  "physicalAcceptance": false
+}

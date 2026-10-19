@@ -1,0 +1,14 @@
+{
+  "sourceSha256": "af4f2b5ed29f5415ff9991dfa5edbbdbce12d6cd9135435304478967f9cd8d4f",
+  "candidateSha256": "9dd24b8a26ca8bc0ca7cb65f7dd044f24886025dfcf5d11e061468078f4f79b3",
+  "onlyChanges": [
+    "@inline onHit",
+    "@inline onDeath"
+  ],
+  "bodiesByteIdentical": true,
+  "identicalFiles": {
+    "candidateFactory.ts": "3d03a3dabfdd4a12bb345c23b030a14b08f5fe4b2370cfd8074404f5776a80b9",
+    "colossusLethalPoseClips.ts": "eccafe6d02ebe7439c7414daa571483503c88cb895339c2f43f1809b862fd849",
+    "rig.ts": "37c7026efafff20802cc02c4b34f5c64f742fdf95e7a6dc5b82dd80c0854135b"
+  }
+}

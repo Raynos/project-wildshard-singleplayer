@@ -1,0 +1,14 @@
+{
+  "status": "PASS bounded read-only checks",
+  "raw_captures_verified": 30,
+  "paired_cameras_lights_capture_script": "identical across all three sets",
+  "source_hashes_verified": true,
+  "final_source_sha256": "c451297f4f6aafa17bf964289d818bc29583a8a498a814a1c5408de96b40bfda",
+  "final_glb_sha256": "ed162247af6a0d6075bb58b4ffbe4922734bc4fa1aee32fb1e01c348fa096890",
+  "reference_sha256": "92b3a72c20b2e820d843956f8d076fb981af9d4ec9e5669794cb717dd552f4ae",
+  "triangles": 4766,
+  "invalid_area_or_normal_triangles": 0,
+  "skins": 0,
+  "animations": 0,
+  "limitation": "No rerender, runtime, rigging, collision, animation or performance test."
+}

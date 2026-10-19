@@ -1,0 +1,15 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only; original closure pins pre-normalized logs retained locally. Source/evidence unchanged.",
+  "changes": [
+    {
+      "path": "baseline-comparison-red.log",
+      "originalSha256": "10997b46766c43820b16608cbfa400f25598b8d68b00e04bf6d1a33e1ccd85b3",
+      "sha256": "fd9b835c49ccf7738cc9d746bf4120d2d164149d69f08c5b98c3afb3cd44d193"
+    },
+    {
+      "path": "candidate-test.log",
+      "originalSha256": "3b57a8c1896a4fe30f5bc75f4c9220183ddb80879327aad92a8778d6bb61287e",
+      "sha256": "947e2da7db2d86661d24e4334ac206812eb82930064c7a9d3e0b7588787eee83"
+    }
+  ]
+}

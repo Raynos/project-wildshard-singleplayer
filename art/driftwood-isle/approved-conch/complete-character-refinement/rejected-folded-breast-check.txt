@@ -1,0 +1,2 @@
+Actual source sweep check terminal output before breast correction, 2026-10-19 15:35 UTC. This source reconstruction reverses only the breast profile edit; it is not a second art candidate. Full intermediate JSON was overwritten by the subsequent build and is not represented as preserved.
+[('Raised breast carapace -1', -0.8647028189152479, [[1, 1, -0.7328563248738647], [1, 6, -0.2273167222738266]]), ('Raised breast carapace 1', -0.86402159743011, [[1, 2, -0.6257918030023575], [1, 4, -0.3522644527256489]])]

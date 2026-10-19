@@ -1,0 +1,19 @@
+{
+  "extends": "../../../../../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "candidateFactory.ts",
+    "colossusLethalPoseClips.ts",
+    "lethal-pose.test.ts",
+    "rig.ts",
+    "../../../../../src/**/*.d.ts",
+    "../../../../../src/engine/boot/shardPrefetch.ts",
+    "admission.test.ts"
+  ]
+}

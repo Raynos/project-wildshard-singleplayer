@@ -1,0 +1,221 @@
+{
+  "method": "Parallel-transport section frames; outward radial and paired strip triangle orientation before mirroring or normal recalculation",
+  "meshes": [
+    {
+      "mesh": "Compact thorax core",
+      "minimumOutwardRadialCosine": 0.8364778137765825,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Raised breast carapace -1",
+      "minimumOutwardRadialCosine": 0.8487474396824837,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Raised breast carapace 1",
+      "minimumOutwardRadialCosine": 0.8324379697442055,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Continuous tucked abdomen",
+      "minimumOutwardRadialCosine": 0.8334895893931389,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Sculpted cheek -1",
+      "minimumOutwardRadialCosine": 0.6650179028511047,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Angular brow root -1",
+      "minimumOutwardRadialCosine": 0.795363636687398,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Sculpted cheek 1",
+      "minimumOutwardRadialCosine": 0.7040088102221489,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Angular brow root 1",
+      "minimumOutwardRadialCosine": 0.7171166092157364,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Eyestalk -1",
+      "minimumOutwardRadialCosine": 0.935109369456768,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Eyestalk 1",
+      "minimumOutwardRadialCosine": 0.9138230825774372,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Leg hinge -1",
+      "minimumOutwardRadialCosine": 0.9115661382675171,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Bent armored thigh -1",
+      "minimumOutwardRadialCosine": 0.8328329548239708,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Armored shin -1",
+      "minimumOutwardRadialCosine": 0.931070938706398,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Planted foot -1",
+      "minimumOutwardRadialCosine": 0.54364906065166,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (-1, -1)",
+      "minimumOutwardRadialCosine": 0.7089951932430267,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (-1, 1)",
+      "minimumOutwardRadialCosine": 0.6927961017936468,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Leg hinge 1",
+      "minimumOutwardRadialCosine": 0.921336455619894,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Bent armored thigh 1",
+      "minimumOutwardRadialCosine": 0.8906772881746292,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Armored shin 1",
+      "minimumOutwardRadialCosine": 0.9198089130222797,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Planted foot 1",
+      "minimumOutwardRadialCosine": 0.5387902157381177,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (1, -1)",
+      "minimumOutwardRadialCosine": 0.7090081237256527,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Toe blade (1, 1)",
+      "minimumOutwardRadialCosine": 0.6927954759448767,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Shoulder hinge -1",
+      "minimumOutwardRadialCosine": 0.9536631163209677,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Swept shoulder armor -1",
+      "minimumOutwardRadialCosine": 0.763324573636055,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Bent upper arm -1",
+      "minimumOutwardRadialCosine": 0.9030141644179821,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Elbow joint -1",
+      "minimumOutwardRadialCosine": 0.956983894109726,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Shoulder hinge 1",
+      "minimumOutwardRadialCosine": 0.9536632522940636,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Swept shoulder armor 1",
+      "minimumOutwardRadialCosine": 0.7499854527413845,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Bent upper arm 1",
+      "minimumOutwardRadialCosine": 0.905583094805479,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Elbow joint 1",
+      "minimumOutwardRadialCosine": 0.9569836929440498,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Shield supporting forearm",
+      "minimumOutwardRadialCosine": 0.9282843843102455,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Shield opposed articulated thumb",
+      "minimumOutwardRadialCosine": 0.766771487891674,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Rapier forearm cuff",
+      "minimumOutwardRadialCosine": 0.9041206985712051,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Coral rapier knuckle",
+      "minimumOutwardRadialCosine": 0.8475696183741093,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Long ivory conch rapier",
+      "minimumOutwardRadialCosine": 0.7838949933648109,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    },
+    {
+      "mesh": "Rapier gripping thumb",
+      "minimumOutwardRadialCosine": 0.8126808383967727,
+      "opposedSideTriangles": [],
+      "opposedStripTrianglePairs": []
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "stage": "source frozen before first capture",
+  "runtimeAcceptance": false,
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-character-refinement/build_conch_character_refinement.py",
+      "bytes": 19975,
+      "sha256": "54c8e4aa61315c8d470be86b63428dfccc441109fe54a7f363799ff885fd18e0"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-character-refinement/render_conch_character_refinement_nine.py",
+      "bytes": 2723,
+      "sha256": "fb4724f0e15416bb2d3875b35fb1c4178fb9baee913168a762cfa94bcfef7171"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-character-refinement/conch-character-refinement.glb",
+      "bytes": 216544,
+      "sha256": "6a2740b1059be2ba7c20eb6e1b34ec2c5fff126202eb4a2aa16248da2ba8dbbd"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/conch-source.blend",
+      "bytes": 1153820,
+      "sha256": "e1c27076d345c8f7f3a3e0cad368ed94fdf238a604e587030f9182ba49912989"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/conch-complete-pass2-study.glb",
+      "bytes": 217028,
+      "sha256": "a795444bb6d0db207d280c5eb9236197f44be1a701e7c153056b9b871528a8ab"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass2/build_conch_complete_pass2.py",
+      "bytes": 17869,
+      "sha256": "523529889cd3402645f9dd9308f4562503defad520eb86bb1cf1e940811782a5"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+      "bytes": 209288,
+      "sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb"
+    },
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-pass1/cameras-complete-pass1.json",
+      "bytes": 2575,
+      "sha256": "305663ad9378980ae5e3950a6b1d75b9057c34634304bf1994f30d5a84dc27ae"
+    }
+  ]
+}

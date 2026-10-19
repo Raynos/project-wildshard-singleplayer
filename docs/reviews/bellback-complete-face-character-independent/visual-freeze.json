@@ -1,0 +1,24 @@
+{
+  "reviewer": "independent complete-character reviewer",
+  "order": "Approved original pixels first; all ten final PNGs individually; scores frozen before predecessor, prior reviews, author claims, or provenance inspection.",
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/bellback-lowpoly.webp",
+  "candidate": "tmp/bellback-complete-face-character/final/",
+  "weights": {"silhouette": 0.35, "face": 0.30, "details": 0.20, "facet": 0.15},
+  "scores": {"silhouette": 4.0, "face": 3.4, "details": 3.8, "facet": 3.8},
+  "weighted_score": 3.75,
+  "threshold": 4.0,
+  "passes": false,
+  "observations": {
+    "hero": "Recognizable bell-backed wreck guardian. Bell, timber arch, broad feet and orange eyes read immediately. Face is a broad armored feline/reptile mask with a short fang mouth; original has a narrower downward-projecting woody snout and more forceful ivory jaw silhouette.",
+    "01-front": "Broad symmetrical forehead and tiny mouth dominate the difference; original face has a more pointed, tooth-led lower contour. Bell and leg spread read well.",
+    "02-left": "Long projecting snout over a thick horizontal jaw; tall upright fence construction dominates the body. Original feels more densely collapsed wreckage.",
+    "03-right": "Same snout/jaw separation and regular fence rails on opposite side; robust three-dimensional silhouette.",
+    "04-back": "Tall plank cage and round rear cap are coherent but generic; no direct rear reference exists.",
+    "05-top": "Face is broad and tapered but substantially more regular and shield-like than original. Bell nesting is clear.",
+    "06-diag-front": "Large armored forehead overwhelms the small tooth ring. Bell mouth and clapper remain readable.",
+    "07-diag-left": "Strong bell and irregular plank tips; repetitive rail scaffold reads cleaner than the concept's tangled wreckage.",
+    "08-diag-right": "Consistent full-volume construction; head is a long horizontal wedge rather than the original's descending jaw mass.",
+    "09-diag-back": "Stable low-poly shell and supports; rear remains extrapolation, not reference-verified likeness."
+  },
+  "limits": "Static likeness only. Original contains only two similar front three-quarter depictions; unseen sides cannot independently prove matching design. No runtime, animation, performance or gameplay approval."
+}

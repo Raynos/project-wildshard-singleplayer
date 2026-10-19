@@ -1,0 +1,17 @@
+{
+  "status": "Actual two-annotation source candidate; unchanged baseline paired gate remains FAILED; not promotion",
+  "publicInputs": {
+    "src/shards/driftwood-isle/generators/colossusNativeClips.ts": "d08b8c09adfd8148d6562ac26c8a830d2e9d737e0b4af36e484ab481c8d7ec45",
+    "src/shards/driftwood-isle/behaviour/tide-root-colossus.as": "f95eeb9abd37f25c9fa493b98e09adf65ab71406a978d5ed4bad944784ffd774",
+    "art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-input/../death-fold1/world-replay.json": "fb4feeb81f37ac8d80ca718e318449f3b4dfd0f712715a0ad9bdcc8fc97bff8b"
+  },
+  "contact": {
+    "status": "FAILED",
+    "framesBelow": 135,
+    "total": 141
+  },
+  "orderingCases": 136,
+  "livingPoseSamples": 606,
+  "engineChanges": 0,
+  "bodyChanges": 0
+}

@@ -1,0 +1,124 @@
+{
+  "status": "source-admitted; not mounted or promoted",
+  "candidateTests": {
+    "passed": 145,
+    "deselectedBaselineComparison": 1,
+    "exit": 0
+  },
+  "baselineComparison": {
+    "failed": 1,
+    "deselected": 142,
+    "exit": 1
+  },
+  "strictTypeScriptExit": 0,
+  "orderingCases": 136,
+  "orderingRefusals": 0,
+  "ordinaryPairedFuel": 350927,
+  "maximumRecordedScenarioFuel": 351202,
+  "fuelLimit": 400000,
+  "contact": {
+    "status": "REJECTED",
+    "framesBelow5mm": 135,
+    "frames": 141,
+    "minimumMeters": -2.353892661
+  },
+  "mountedCombatTested": false,
+  "actualRewardLifecycleTested": false,
+  "uiRetryReloadTested": false,
+  "publicPromotion": false,
+  "appOrProductBuild": false,
+  "files": {
+    "paired-dispatch-failure.json": {
+      "bytes": 7137,
+      "sha256": "12feaaa4fd1b6b4ed9efcc6fd63682955cd96a191a9f3cdabb38abfa31e4c43b"
+    },
+    "types.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "colossusLethalPoseClips.ts": {
+      "bytes": 7026,
+      "sha256": "eccafe6d02ebe7439c7414daa571483503c88cb895339c2f43f1809b862fd849"
+    },
+    "compilation-inputs.json": {
+      "bytes": 13977,
+      "sha256": "8d57bc310bc4cc1936e94b4374c8532dc643bf2736032b51d1b06cb7494f8d34"
+    },
+    "rig.ts": {
+      "bytes": 1670,
+      "sha256": "37c7026efafff20802cc02c4b34f5c64f742fdf95e7a6dc5b82dd80c0854135b"
+    },
+    "native-admission.json": {
+      "bytes": 559,
+      "sha256": "0e7db64d17a3a5a41bdf4fd1b10ca4c26459b727adf0483678b0c812172c58cc"
+    },
+    "admission.test.ts": {
+      "bytes": 4645,
+      "sha256": "73f2e3878d900bc5b1ed3bac7c2f0a913296c9415247bbb094c76ae72458afec"
+    },
+    "vitest.config.ts": {
+      "bytes": 272,
+      "sha256": "1c26927e779e486176253543b23df3ae8d6133cd0522270dd6e6bf8ee142bd30"
+    },
+    "tsconfig.json": {
+      "bytes": 399,
+      "sha256": "8f066dca612dc84b1989fb4d6978c80085b951ba8d649ac1be438dc6bc201a45"
+    },
+    "baseline-comparison-red.log": {
+      "bytes": 2422,
+      "sha256": "10997b46766c43820b16608cbfa400f25598b8d68b00e04bf6d1a33e1ccd85b3"
+    },
+    "evidence.json": {
+      "bytes": 766,
+      "sha256": "f915620883dcd4eac3708bc15d4260df9142f151d7a7a62270e966886a7d31d6"
+    },
+    "candidateFactory.ts": {
+      "bytes": 8517,
+      "sha256": "3d03a3dabfdd4a12bb345c23b030a14b08f5fe4b2370cfd8074404f5776a80b9"
+    },
+    "ordering-results.json": {
+      "bytes": 16506,
+      "sha256": "2498d47fb9237e418db72934e23de20ef1db394683f3bf8c95cfdb02ca15e0d7"
+    },
+    "verify-inputs.mjs": {
+      "bytes": 932,
+      "sha256": "815b6d2713160059d11f9565920d5a7dcef206a172ac65bef608ac53c03fa235"
+    },
+    "source-equivalence.json": {
+      "bytes": 580,
+      "sha256": "ade40b3609949149e4e2db2781e27039b10bc988f43ddd5bac363e50abc0b74c"
+    },
+    "preservation.log": {
+      "bytes": 67,
+      "sha256": "3f623273cc7af5cc19f2e06eac3074f4d6b0163dacd23ed7d6a130f8a0f23ab0"
+    },
+    "onset-results.json": {
+      "bytes": 184,
+      "sha256": "7a794b7ec481d1ab707b19cb831e12efafdcd569b26a9bcd688782ff46a0fa8b"
+    },
+    "lethal-pose.test.ts": {
+      "bytes": 14472,
+      "sha256": "4a454727475b1fa5d10c4f8051e00c0a7bfdc9cae95c84c7c911cda84b2e81e6"
+    },
+    "protected-inputs.json": {
+      "bytes": 9749,
+      "sha256": "c6837f4be302299403805433e935a1c7bdb5cce66771cc27c2b887b7b837321e"
+    },
+    "clips.json": {
+      "bytes": 188556,
+      "sha256": "6c160e8a0a3eed3d5bfcc27755254c29e4cef3f24384df05b34db8b03f417cfe"
+    },
+    "candidate-test.log": {
+      "bytes": 969,
+      "sha256": "3b57a8c1896a4fe30f5bc75f4c9220183ddb80879327aad92a8778d6bb61287e"
+    },
+    "living-metrics.json": {
+      "bytes": 45506,
+      "sha256": "21efbb838edcd669ebc9b0fffed27755f1c7f52a2d593133f0c43f8cfdb85149"
+    },
+    "behaviour/tide-root-colossus.as": {
+      "bytes": 3514,
+      "sha256": "9dd24b8a26ca8bc0ca7cb65f7dd044f24886025dfcf5d11e061468078f4f79b3"
+    }
+  }
+}

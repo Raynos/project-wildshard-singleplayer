@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-conch/complete-character-refinement/conch-character-refinement.glb",
+      "sha256": "6a2740b1059be2ba7c20eb6e1b34ec2c5fff126202eb4a2aa16248da2ba8dbbd"
+    },
+    {
+      "path": "tmp/conch-complete-character-refinement/conch-study.glb",
+      "sha256": "13ec84acd3cade9a4ef1720724be8d560215896c3fb57e803029dc1d19e00109"
+    }
+  ],
+  "jsonIdentical": true,
+  "positionNormalMaterialAttributesIdentical": true,
+  "orientedTriangleMultisetsIdentical": true,
+  "indexOrderingDifferences": [
+    {
+      "accessor": 96,
+      "difference": "Same oriented triangles in different emission order"
+    }
+  ],
+  "note": "BMesh detail extrusion/triangulation can change emission order. Neither GLB altered. Generated blend files also contain session-dependent bytes; source Python is the authoritative editable source."
+}

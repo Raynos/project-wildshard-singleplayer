@@ -1,0 +1,344 @@
+{
+  "options": {
+    "asLineCeiling": 300
+  },
+  "registries": {
+    "actors": [
+      [
+        "driftwood.colossus",
+        2
+      ]
+    ],
+    "moves": [
+      [
+        "bellback.approach",
+        1
+      ],
+      [
+        "colossus.face",
+        2
+      ]
+    ],
+    "strikes": [
+      [
+        "strike.bellback.pulse",
+        1
+      ],
+      [
+        "strike.bellback.echo",
+        2
+      ],
+      [
+        "strike.bellback.stomp",
+        3
+      ],
+      [
+        "strike.colossus.left",
+        4
+      ],
+      [
+        "strike.colossus.right",
+        5
+      ],
+      [
+        "strike.colossus.slam",
+        6
+      ]
+    ],
+    "fields": [
+      [
+        "tg-state",
+        110
+      ],
+      [
+        "tg-clock",
+        111
+      ],
+      [
+        "tg-awake",
+        112
+      ],
+      [
+        "tg-phase",
+        113
+      ],
+      [
+        "tg-exposed",
+        114
+      ],
+      [
+        "tg-death-step",
+        115
+      ],
+      [
+        "tg-death-clock",
+        116
+      ],
+      [
+        "tg-death-valid",
+        117
+      ]
+    ]
+  },
+  "decisions": [
+    {
+      "abi": "1.0",
+      "side": "sim",
+      "module": "blobs/wasm/0000000000000000000000000000000000000000000000000000000000000000.wasm",
+      "binding": {
+        "shard": true
+      },
+      "pages": 1,
+      "onFail": "hold",
+      "tick": 10,
+      "on": [
+        "start",
+        "tick",
+        "hit",
+        "strike.done",
+        "death",
+        "stop"
+      ],
+      "reads": [
+        "nearestPlayer",
+        "distance",
+        "hpShare",
+        "strikeState",
+        "stunned",
+        "alive",
+        "field"
+      ],
+      "commands": [
+        "move",
+        "stop",
+        "strike",
+        "field"
+      ],
+      "fields": {
+        "pose": "tg-state",
+        "clock": "tg-clock",
+        "awake": "tg-awake",
+        "phase": "tg-phase",
+        "exposed": "tg-exposed",
+        "deathStep": "tg-death-step",
+        "deathClock": "tg-death-clock",
+        "deathValid": "tg-death-valid"
+      },
+      "params": {},
+      "timers": [],
+      "stateVersion": 1,
+      "state": [
+        {
+          "name": "step",
+          "type": "i32",
+          "default": 0,
+          "min": 0,
+          "max": 6,
+          "scope": "binding"
+        },
+        {
+          "name": "elapsed",
+          "type": "f64",
+          "default": 0,
+          "min": 0,
+          "max": 600,
+          "scope": "binding"
+        },
+        {
+          "name": "cooldown",
+          "type": "f64",
+          "default": 0.8,
+          "min": 0,
+          "max": 10,
+          "scope": "binding"
+        },
+        {
+          "name": "sequence",
+          "type": "i32",
+          "default": 0,
+          "min": 0,
+          "max": 4,
+          "scope": "binding"
+        },
+        {
+          "name": "side",
+          "type": "i32",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "scope": "binding"
+        },
+        {
+          "name": "poise",
+          "type": "f64",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "scope": "binding"
+        },
+        {
+          "name": "poseCaptured",
+          "type": "i32",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "scope": "binding"
+        }
+      ],
+      "id": "driftwood.colossus.decision",
+      "source": "behaviour/tide-root-colossus.as",
+      "actors": {
+        "self": "driftwood.colossus"
+      },
+      "moves": {
+        "face": "colossus.face"
+      },
+      "strikes": {
+        "left": "strike.colossus.left",
+        "right": "strike.colossus.right",
+        "slam": "strike.colossus.slam"
+      }
+    }
+  ],
+  "generated": {
+    "behaviour/generated/driftwoodColossusDecision.ts": "// Generated from the admitted decision row. Never edit.\nimport * as core from '../../sdk/as/ws';\nexport namespace Actor {\n  export const self:i32=2;\n}\nexport namespace Move {\n  export const face:i32=2;\n}\nexport namespace Strike {\n  export const left:i32=4;\n  export const right:i32=5;\n  export const slam:i32=6;\n}\nexport namespace Cue {\n}\nexport namespace Field {\n  export const awake:i32=112;\n  export const clock:i32=111;\n  export const deathClock:i32=116;\n  export const deathStep:i32=115;\n  export const deathValid:i32=117;\n  export const exposed:i32=114;\n  export const phase:i32=113;\n  export const pose:i32=110;\n}\nexport namespace Flag {\n}\nexport namespace Zone {\n}\nexport namespace Spot {\n}\nexport namespace Target {\n}\nexport namespace Spawn {\n}\nexport namespace Signal {\n}\nexport namespace Fact {\n}\nexport namespace Reward {\n}\nexport namespace Channel {\n}\nexport namespace Impulse {\n}\nexport namespace Weather {\n}\nexport namespace Timer {\n}\nexport class State {\n  @inline static get step():i32{return i32(core.state(0));}\n  @inline static set step(value:i32){assert(value>=0&&value<=6);core.setState(0,f64(value));}\n  @inline static get elapsed():f64{return f64(core.state(1));}\n  @inline static set elapsed(value:f64){assert(value>=0&&value<=600);core.setState(1,f64(value));}\n  @inline static get cooldown():f64{return f64(core.state(2));}\n  @inline static set cooldown(value:f64){assert(value>=0&&value<=10);core.setState(2,f64(value));}\n  @inline static get sequence():i32{return i32(core.state(3));}\n  @inline static set sequence(value:i32){assert(value>=0&&value<=4);core.setState(3,f64(value));}\n  @inline static get side():i32{return i32(core.state(4));}\n  @inline static set side(value:i32){assert(value>=0&&value<=1);core.setState(4,f64(value));}\n  @inline static get poise():f64{return f64(core.state(5));}\n  @inline static set poise(value:f64){assert(value>=0&&value<=10000);core.setState(5,f64(value));}\n  @inline static get poseCaptured():i32{return i32(core.state(6));}\n  @inline static set poseCaptured(value:i32){assert(value>=0&&value<=1);core.setState(6,f64(value));}\n}\nexport class Params {\n}\nexport class Clock {\n  @inline static get tick():i32{return i32(core.header(0));}\n  @inline static get dt():f64{return core.header(1);}\n  @inline static get binding():i32{return i32(core.header(2));}\n  @inline static get self():i32{return i32(core.header(3));}\n}\nexport class Event {\n  @inline static get kind():f64{return core.event(0);}\n  @inline static get subject():f64{return core.event(1);}\n  @inline static get a():f64{return core.event(2);}\n  @inline static get b():f64{return core.event(3);}\n  @inline static get c():f64{return core.event(4);}\n  @inline static get d():f64{return core.event(5);}\n}\nexport class Read {\n  @inline static nearestPlayer(actor:i32):i32{return i32(core.read(9,f64(actor)));}\n  @inline static distance(actor:i32,target:i32):f64{return core.read(8,f64(actor),f64(target));}\n  @inline static hpShare(actor:i32):f64{return core.read(5,f64(actor));}\n  @inline static strikeState(actor:i32):i32{return i32(core.read(16,f64(actor)));}\n  @inline static stunned(actor:i32):bool{return core.read(20,f64(actor))!=0;}\n  @inline static alive(actor:i32):bool{return core.read(6,f64(actor))!=0;}\n  @inline static field(actor:i32,field:i32):f64{return core.read(7,f64(actor),f64(field));}\n}\nexport class Do {\n  @inline static move(actor:i32,move:i32,target:i32=0):void{core.command(1,actor,f64(move),f64(target));}\n  @inline static stop(actor:i32):void{core.command(3,actor);}\n  @inline static strike(actor:i32,strike:i32,target:i32=0):void{core.command(2,actor,f64(strike),f64(target));}\n  @inline static field(actor:i32,field:i32,value:f64):void{core.command(4,actor,f64(field),value);}\n}\nexport class __ws {\n  @inline static init():void{core.init(7,0);}\n  @inline static io():i32{return core.io();}\n  @inline static begin():void{core.begin();}\n  @inline static end():i32{return core.finish();}\n  @inline static count():i32{return core.events();}\n  @inline static select(index:i32):void{core.selectEvent(index);}\n  @inline static value(field:i32):f64{return core.event(field);}\n}",
+    "behaviour/generated/driftwoodColossusDecision.glue.ts": "import {onStart,onTick,onHit,onStrikeDone,onDeath,onStop} from './behaviour/tide-root-colossus';\nimport {__ws,Clock} from './behaviour/generated/driftwoodColossusDecision';\nexport function ws_abi():i32{return 1;}\nexport function ws_init(lo:i32,hi:i32):void{__ws.init();}\nexport function ws_io():i32{return __ws.io();}\nexport function ws_handle():i32{__ws.begin();for(let index:i32=0;index<__ws.count();index++){__ws.select(index);switch(i32(__ws.value(0))){\ncase 1:onStart();break;\ncase 2:onTick(Clock.dt);break;\ncase 7:onHit(i32(__ws.value(2)),__ws.value(3),__ws.value(4));break;\ncase 11:onStrikeDone(i32(__ws.value(2)),__ws.value(3)==1);break;\ncase 9:onDeath(i32(__ws.value(2)));break;\ncase 18:onStop();break;\ndefault:unreachable();}}return __ws.end();}",
+    "sdk/as/ws.ts": "\n@external(\"env\", \"ws_read\") declare function scalar(op:i32,a:f64,b:f64):f64;\n@external(\"env\", \"ws_list\") declare function query(op:i32,a:f64,b:f64,out:usize,cap:i32):i32;\nconst IO:usize=memory.data(2496,8), LIST:usize=memory.data(768,8);\nlet states:i32=0,params:i32=0,commands:i32=0,current:i32=0,listCount:i32=0;\n@inline export function init(s:i32,p:i32):void {\n  assert(s>=0&&s<=16&&p>=0&&p<=32);states=s;params=p;\n  store<f64>(IO+40,0);store<f64>(IO+48,0);store<f64>(IO+56,0);\n}\n@inline export function io():i32{return i32(IO);}\n@inline export function begin():void{commands=0;current=0;listCount=0;}\n@inline export function finish():i32{return commands;}\n@inline export function header(index:i32):f64{assert(index>=0&&index<5);return load<f64>(IO+usize(index)*8);}\n@inline export function state(index:i32):f64{assert(index>=0&&index<states);return load<f64>(IO+64+usize(index)*8);}\n@inline export function setState(index:i32,value:f64):void{assert(index>=0&&index<states);store<f64>(IO+64+usize(index)*8,value);}\n@inline export function parameter(index:i32):f64{assert(index>=0&&index<params);return load<f64>(IO+usize(8+states+index)*8);}\n@inline export function events():i32{const n=i32(header(4));assert(n>=0&&n<=16);return n;}\n@inline export function selectEvent(index:i32):void{assert(index>=0&&index<events());current=index;}\n@inline export function event(field:i32):f64{assert(field>=0&&field<6);return load<f64>(IO+usize(8+states+params+current*6+field)*8);}\n@inline export function command(op:i32,target:i32,a:f64=0,b:f64=0,c:f64=0):void{\n  assert(commands<32);const out=IO+usize(8+states+params+96+commands*5)*8;\n  store<f64>(out,f64(op));store<f64>(out+8,f64(target));store<f64>(out+16,a);store<f64>(out+24,b);store<f64>(out+32,c);commands++;\n}\n@inline export function read(op:i32,a:f64=0,b:f64=0):f64{return scalar(op,a,b);}\n@inline export function list(op:i32,a:f64=0,b:f64=0):i32{listCount=query(op,a,b,LIST,96);assert(listCount>=0&&listCount<=96);return listCount;}\n@inline export function listAt(index:i32):f64{assert(index>=0&&index<listCount);return load<f64>(LIST+usize(index)*8);}\n"
+  },
+  "lines": 55,
+  "ceiling": 300,
+  "moduleSha256": "9106cc1b0816ccf15446a81f5bfa9466457e915da0a4e0db98247b95a21400c8",
+  "moduleBytes": 15375,
+  "rows": [
+    {
+      "id": "driftwood.colossus.decision",
+      "abi": "1.0",
+      "side": "sim",
+      "module": "blobs/wasm/9106cc1b0816ccf15446a81f5bfa9466457e915da0a4e0db98247b95a21400c8.wasm",
+      "source": "behaviour/tide-root-colossus.as",
+      "binding": {
+        "shard": true
+      },
+      "pages": 1,
+      "onFail": "hold",
+      "on": [
+        "start",
+        "tick",
+        "hit",
+        "strike.done",
+        "death",
+        "stop"
+      ],
+      "tick": 10,
+      "reads": [
+        "nearestPlayer",
+        "distance",
+        "hpShare",
+        "strikeState",
+        "stunned",
+        "alive",
+        "field"
+      ],
+      "commands": [
+        "move",
+        "stop",
+        "strike",
+        "field"
+      ],
+      "actors": {
+        "self": "driftwood.colossus"
+      },
+      "moves": {
+        "face": "colossus.face"
+      },
+      "strikes": {
+        "left": "strike.colossus.left",
+        "right": "strike.colossus.right",
+        "slam": "strike.colossus.slam"
+      },
+      "cues": {},
+      "fields": {
+        "pose": "tg-state",
+        "clock": "tg-clock",
+        "awake": "tg-awake",
+        "phase": "tg-phase",
+        "exposed": "tg-exposed",
+        "deathStep": "tg-death-step",
+        "deathClock": "tg-death-clock",
+        "deathValid": "tg-death-valid"
+      },
+      "flags": {},
+      "zones": {},
+      "spots": {},
+      "targets": {},
+      "spawns": {},
+      "signals": {},
+      "facts": {},
+      "rewards": {},
+      "channels": {},
+      "impulses": {},
+      "weather": {},
+      "timers": [],
+      "stateVersion": 1,
+      "state": [
+        {
+          "name": "step",
+          "type": "i32",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 6
+        },
+        {
+          "name": "elapsed",
+          "type": "f64",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 600
+        },
+        {
+          "name": "cooldown",
+          "type": "f64",
+          "default": 0.8,
+          "scope": "binding",
+          "min": 0,
+          "max": 10
+        },
+        {
+          "name": "sequence",
+          "type": "i32",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 4
+        },
+        {
+          "name": "side",
+          "type": "i32",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 1
+        },
+        {
+          "name": "poise",
+          "type": "f64",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 10000
+        },
+        {
+          "name": "poseCaptured",
+          "type": "i32",
+          "default": 0,
+          "scope": "binding",
+          "min": 0,
+          "max": 1
+        }
+      ],
+      "params": {}
+    }
+  ]
+}

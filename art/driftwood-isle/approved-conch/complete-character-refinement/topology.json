@@ -1,0 +1,384 @@
+{
+  "file": "conch-study.glb",
+  "bytes": 216544,
+  "triangles": 2210,
+  "meshes": [
+    {
+      "mesh": "Unified angular whorls lip and recessed throat",
+      "triangles": 466,
+      "weldedVertices": 235,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Compact thorax core",
+      "triangles": 76,
+      "weldedVertices": 40,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Raised breast carapace -1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Raised breast carapace 1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Continuous tucked abdomen",
+      "triangles": 68,
+      "weldedVertices": 36,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Hooked coral cranium and keel",
+      "triangles": 76,
+      "weldedVertices": 40,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Sculpted cheek -1",
+      "triangles": 36,
+      "weldedVertices": 20,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Angular brow root -1",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Inset nostril -1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Sculpted cheek 1",
+      "triangles": 36,
+      "weldedVertices": 20,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Angular brow root 1",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Inset nostril 1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eyestalk -1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens -1",
+      "triangles": 58,
+      "weldedVertices": 31,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Black pointed slit -1",
+      "triangles": 12,
+      "weldedVertices": 8,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eye glint -1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eyestalk 1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Closed sculpted eye and amber lens 1",
+      "triangles": 58,
+      "weldedVertices": 31,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Black pointed slit 1",
+      "triangles": 12,
+      "weldedVertices": 8,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Eye glint 1",
+      "triangles": 8,
+      "weldedVertices": 6,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Leg hinge -1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent armored thigh -1",
+      "triangles": 60,
+      "weldedVertices": 32,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Armored shin -1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Planted foot -1",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (-1, -1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (-1, 1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Leg hinge 1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent armored thigh 1",
+      "triangles": 60,
+      "weldedVertices": 32,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Armored shin 1",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Planted foot 1",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (1, -1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Toe blade (1, 1)",
+      "triangles": 26,
+      "weldedVertices": 15,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shoulder hinge -1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Swept shoulder armor -1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent upper arm -1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Elbow joint -1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shoulder hinge 1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Swept shoulder armor 1",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Bent upper arm 1",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Elbow joint 1",
+      "triangles": 24,
+      "weldedVertices": 14,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shield supporting forearm",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Broad convex jagged shield claw",
+      "triangles": 48,
+      "weldedVertices": 26,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Shield opposed articulated thumb",
+      "triangles": 52,
+      "weldedVertices": 28,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Rapier forearm cuff",
+      "triangles": 44,
+      "weldedVertices": 24,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Coral rapier knuckle",
+      "triangles": 32,
+      "weldedVertices": 18,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Long ivory conch rapier",
+      "triangles": 56,
+      "weldedVertices": 30,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    },
+    {
+      "mesh": "Rapier gripping thumb",
+      "triangles": 38,
+      "weldedVertices": 21,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "degenerateTriangles": 0
+    }
+  ],
+  "note": "Per named mesh coordinate-welded topology; layered eye surfaces intentionally have component boundaries. No rig or runtime motion is implied."
+}

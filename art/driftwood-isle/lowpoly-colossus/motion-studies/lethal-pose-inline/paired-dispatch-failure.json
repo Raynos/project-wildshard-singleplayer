@@ -1,0 +1,413 @@
+[
+  {
+    "isCandidate": false,
+    "metrics": [
+      {
+        "binding": 1,
+        "calls": 3,
+        "fuel": 882303,
+        "maxFuel": 414736,
+        "commands": 8,
+        "refusals": 1,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "calls": [
+      {
+        "kind": "call",
+        "tick": 6,
+        "binding": 1,
+        "ok": true,
+        "fuel": 260097,
+        "reason": null,
+        "before": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 0.8,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "after": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "commands": [
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            110,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            111,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            114,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            111,
+            0.1,
+            0
+          ],
+          [
+            4,
+            2,
+            113,
+            1,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            99,
+            0
+          ]
+        ]
+      },
+      {
+        "kind": "call",
+        "tick": 12,
+        "binding": 1,
+        "ok": false,
+        "fuel": 414736,
+        "reason": "Decision fuel exhausted",
+        "before": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "after": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "commands": []
+      },
+      {
+        "kind": "call",
+        "tick": 18,
+        "binding": 1,
+        "ok": true,
+        "fuel": 207470,
+        "reason": null,
+        "before": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "after": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0
+        },
+        "commands": [
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ]
+        ]
+      }
+    ],
+    "memory": {
+      "tg-state": 3,
+      "tg-clock": 0.88,
+      "tg-awake": 1,
+      "tg-phase": 1,
+      "tg-exposed": 0,
+      "tg-death-step": 0,
+      "tg-death-clock": 0,
+      "tg-death-valid": 0
+    }
+  },
+  {
+    "isCandidate": true,
+    "metrics": [
+      {
+        "binding": 1,
+        "calls": 3,
+        "fuel": 935791,
+        "maxFuel": 351202,
+        "commands": 20,
+        "refusals": 0,
+        "carried": 0,
+        "disabled": false
+      }
+    ],
+    "calls": [
+      {
+        "kind": "call",
+        "tick": 6,
+        "binding": 1,
+        "ok": true,
+        "fuel": 351202,
+        "reason": null,
+        "before": {
+          "step": 0,
+          "elapsed": 0,
+          "cooldown": 0.8,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "after": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "commands": [
+          [
+            4,
+            2,
+            115,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            116,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            117,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            110,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            111,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            114,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            111,
+            0.1,
+            0
+          ],
+          [
+            4,
+            2,
+            113,
+            1,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            99,
+            0
+          ]
+        ]
+      },
+      {
+        "kind": "call",
+        "tick": 12,
+        "binding": 1,
+        "ok": true,
+        "fuel": 350927,
+        "reason": null,
+        "before": {
+          "step": 0,
+          "elapsed": 0.1,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 0
+        },
+        "after": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "commands": [
+          [
+            4,
+            2,
+            115,
+            3,
+            0
+          ],
+          [
+            4,
+            2,
+            116,
+            0.88,
+            0
+          ],
+          [
+            4,
+            2,
+            117,
+            1,
+            0
+          ],
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            110,
+            6,
+            0
+          ],
+          [
+            4,
+            2,
+            111,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            114,
+            0,
+            0
+          ],
+          [
+            4,
+            2,
+            112,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "kind": "call",
+        "tick": 18,
+        "binding": 1,
+        "ok": true,
+        "fuel": 233662,
+        "reason": null,
+        "before": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "after": {
+          "step": 6,
+          "elapsed": 0,
+          "cooldown": 0.9,
+          "sequence": 0,
+          "side": 0,
+          "poise": 0,
+          "poseCaptured": 1
+        },
+        "commands": [
+          [
+            3,
+            2,
+            0,
+            0,
+            0
+          ]
+        ]
+      }
+    ],
+    "memory": {
+      "tg-state": 6,
+      "tg-clock": 0,
+      "tg-awake": 0,
+      "tg-phase": 1,
+      "tg-exposed": 0,
+      "tg-death-step": 3,
+      "tg-death-clock": 0.88,
+      "tg-death-valid": 1
+    }
+  }
+]

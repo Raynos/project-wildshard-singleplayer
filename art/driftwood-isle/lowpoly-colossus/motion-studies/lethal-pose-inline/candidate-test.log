@@ -1,0 +1,14 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../../vitest.config" without a file extension (art/driftwood-isle/lowpoly-colossus/motion-studies/lethal-pose-inline/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 .
+
+
+ Test Files  2 passed (2)
+      Tests  145 passed | 1 skipped (146)
+   Start at  11:38:11
+   Duration  41.31s (tests 61%, transform 23%, setup 10%, import 5%)
