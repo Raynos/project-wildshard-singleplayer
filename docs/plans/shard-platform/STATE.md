@@ -12,8 +12,6 @@
 
 **G508 (Jake):** the next lane to finish builds a data map painter (map/top.webp from terrain + ground types + scene rows, in the normal build, no browser, exactly accurate); data shards switch first, Pine/DW after C1; then bake windows, seals and freezes go. **G507 mega-build (Jake):** lanes only cut and land code; no lane-to-lane messages, receipts, boards, captures or soaks; lanes message the coordinator only for blockers. **Pace:** W3 ~55 lines per lane-hour. From each lane's next task: largest uncut batch first, no sub-200 cuts while big ones remain (G468); G506 (Jake): a batch lands on types + lint + focused tests + the push gate, nothing else; heavy proofs once per W3 milestone or grid deploy (lanes/common.md); a red gate gets sp-x7's fast revert (G493).
 
-**Perf:** drive fix e2141156c default-off until a device reading; PF1 closed.
-
 **Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d; G478 keys c9cb5d2b8, c208e4ce4, d27df7e1f (portal ride), 15485dd84 (audio), 5d021eabb (stealth).
 
 Rows: [open-x-queue](open-x-queue.md). Paused: SF22 SF57 SF67.
