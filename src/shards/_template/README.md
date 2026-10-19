@@ -7,7 +7,8 @@ identity via the documented `shard.config.ts` entry (follow its import to
 `generators/product.ts`), then run `wildshard build <folder>` and
 `wildshard validate out/_template`. The prepared copy includes its immutable assets. Cheap CPU outputs are
 regenerated from retained authoring sources through SHA256-pinned cache jobs;
-curated skins and the frozen map raster remain author inputs.
+curated skins remain author inputs. The map is generated from the declared terrain
+and props by `generators/bake-map.mjs`, using the style in `data/map.json`.
 
 `data/` declares terrain, props, exported creature skins, brains, encounters, items,
 water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
@@ -31,17 +32,26 @@ one player, physics world, fixed-step driver and HUD. There is no custom runtime
 removes it, together with the generated discovery module. Runtime code never
 imports `data/card.ts`. Keep bridge metadata synchronized until that switch.
 
-The KT2 reference in `behaviour/boss.as` binds `template.boss` through the
-`sim/scripts` section. It approaches, alternates timed strikes and moves,
+The T2 reference in `behaviour/boss.as` binds the `combat/encounters` row
+`template.boss` through the single `sim/scripts` row in `generators/output.ts`.
+`data/bossDecision.ts` declares its capabilities, actor, move, strike, timers and
+durable state. The SDK compiler generates the typed bindings; no handwritten
+transport or runtime module is needed. It approaches, alternates timed strikes and moves,
 accelerates at the second-phase threshold, wins on death and resets on stop.
 The fixed-step engine owns the declared `actors/moves` and strike mechanics.
 `template-boss-decision` compiles one fixed Wasm page; the scenario at
 `test/scripts/_template-boss.test.ts` runs those built bytes through the real
 DecisionHost, including a logical save restored into a fresh host. The
-Template stays runtime-free. Its explicit reference registries and temporary
-`generators/bossGlue.ts` transport are shared by the compiler and scenario;
-KA3 replaces the handwritten glue, and KA6 wires the page events/commands.
+Template stays runtime-free. Event-only decisions run on the 60 Hz host's sixth
+tick, at most 10 Hz; timers use simulation time. The scenario also checks that
+every call respects that cadence, including calls after a save is restored.
 The scenario does not compile AS or invent a second motion implementation.
+From the repository root, run
+`pnpm exec vitest run test/scripts/_template-boss.test.ts`; its setup prepares
+only the Template product. For another shard, copy the scenario and replace
+the product folder, script id, player fixture and expected commands with that
+shard's declarations. `scenario()` reads the built `out/<folder>/` product;
+it never imports authoring modules or recompiles the script inside the scenario.
 
 A copied author project does not need a custom runtime. If one is necessary,
 use `runtime/index.ts`, `runtime/sections.ts` for custom-section schemas and
@@ -56,9 +66,9 @@ tile driving, cached/offline revisit and scoped unload.
 
 The complete author-only producer is `generators/build-product.mjs`. It
 uses the same declaration, admission and immutable writer as the normal
-SDK build. `assets/map.webp` and `data/productMap.json` freeze the authored
-map raster and its official stamp; refresh them together after an official
-map bake. The live stale-map gate still checks `data/productMap.json` and
-the public raster. The generation catalogue pins every complete product byte for restoration.
+SDK build. `assets/map.webp` and `data/productMap.json` are generated together
+with the public raster by the `template-data-map` job during `pnpm gen`.
+The live stale-map gate checks the generated stamp against its data inputs.
+The generation catalogue pins every complete product byte for restoration.
 Output removal still requires a fresh complete-product clean room, preserving
 every admission refusal and the official stale-map gate.

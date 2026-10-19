@@ -30,8 +30,8 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | H1 | G456 host audit (`9160141e3`): move shard-named one-user modules into their shards: ambientLife#createAmbientLife 583 + engine/world/waterSurface.ts 303 → Pine, engine/world/painterly.ts 218 → Nalati, game/systems/viewmodel/armRig.ts 205 → Nine | S | Jake water steer; next free Codex others | water: needs Jake (steer), 2026-10-18. G498 sealed legacy → primary Pine redirects fail both layer and graph guards; B dropped, guards unchanged. Evidence: `.git/proofs/20261018T040530-sp-x5-water-B-land-64889.log`. Options: (a) exact source+target+sealed-hash legacy-edge authorization consumed by both guards; (b) revise G498, e.g. retain the engine body until legacy retirement. ambientLife, painterly and armRig open |
 | H2 | Ruler stops counting src/sdk/bake/** and src/sdk/project.ts as one shard's code (G456) | S | sp-x7 | open |
 | H3 | 7 borderline host groups (homeKeeper callbacks, ProjectilePresentation, createReadingRoster save shapes, head-focus/lift flags, MountedBody, GrappleSim, armRig): fixed in the W3 rows that adopt them, or lose credit at W3 end. armRig has Nine runtime plus Driftwood's real build-only `blender/fp-arms/bake.mjs` user; retain in game and grill at wave close (H1 owner review) | — | W3 rows | open |
-| T2 | Template reference Wasm encounter: section + AS script + headless scenario (G456) | M | W1 spike | open |
-| T1 | Template on the new source layout; `wildshard new` writes it | S | Codex | open |
+| T2 | Template reference Wasm encounter: section + AS script + headless scenario (G456) | M | Codex | done (2026-10-19): one ABI-v1 encounter binding, generated typed transport, published-Wasm scenario with phase/timer/stop/save continuation and ≤ 10 Hz call assertions; reference instructions corrected |
+| T1 | Template on the new source layout; `wildshard new` writes it | S | Codex | done (2026-10-19): data/generators source layout, runtime-free template, map painted from terrain/prop data; CLI writes product + output sidecars and validates an authored platform row end to end |
 | W2a / W2b | Pine / Driftwood rewire from data/ + play folders into runtime/ wholesale (counted) + assets into blobs | L / L | 2 Codex lanes each, after P1–P3 | open |
 | W2c | Pine cabinLook/keyedSkyRows, DW groundLook/coverLook emit graph JSON at build | M | sp-o260 (Pine), sp-o261 (DW) | in flight |
 | W3a / W3b | Nalati / Nine play folders into runtime/ | L / L | Codex (W3) | open |
@@ -72,7 +72,7 @@ them early. The ids carry a `K` so they don't collide with the shardfile rows ab
 | KS6 | Signal sim out of TS: drop the `world/build.ts` flag writes, lash cracks through strike targets, bucket `restoreFrom` | S | sp-x8 | done: native replay and lash targets `08a97d93a`; this closing bucket commit deletes `data/bucketMotion.ts`, restores oil at its native mover endpoint and preserves old native saves |
 | KR1 | Ruler and report: AS column beside custom %, net lines, script metrics row | S | Codex | open |
 | KP1 | Milestone proof: both shards' sim from the built shardfile alone (`prove`), then the soak and frame floor | S | Opus | open |
-| KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | sp-x8 | reference built: critical named ABI-v1 Wasm, `sim/scripts` + `actors/moves`, real DecisionHost scenario (under 2 s), logical fresh-host save continuation. KA3 replaces Template-only `generators/bossGlue.ts`; KA6 supplies page/SDK worker event wiring |
+| KT2 | = T2 above (Template reference Wasm encounter), built on KA1–KA4 | M | Codex | done with T2: critical named ABI-v1 Wasm, `sim/scripts` + `actors/moves`, generated typed bindings, real DecisionHost scenario (under 2 s), logical fresh-host save continuation and ≤ 10 Hz cadence |
 
 ## Part A: open engineering, assigned
 

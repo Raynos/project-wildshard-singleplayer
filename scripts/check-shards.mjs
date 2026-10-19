@@ -84,7 +84,7 @@ function hasFiles(folder) {
 }
 
 // Only the registered, flat content-addressed product transport is generated
-// storage, beside the SDK writer's informational validation receipt. Unknown
+// storage (pinned or wholly regenerated), beside the SDK writer's receipt. Unknown
 // files, source modules, symlinks and other hidden folders still
 // belong to the source layout check. Staged paths retain the pure layout policy.
 function generatedProduct(root, slug) {
@@ -115,10 +115,18 @@ function generatedProduct(root, slug) {
     if (job.shard !== slug || typeof job.entry !== 'string' ||
         !job.entry.startsWith(`src/shards/${slug}/generators/`) || !existsSync(resolve(root, job.entry)) ||
         !Array.isArray(job.command) || !job.command.includes(job.entry) || !Array.isArray(job.outputs)) continue;
-    for (const file of job.buildTimeOutputs ?? []) if (file.startsWith(prefix) && job.outputs.includes(file)) outputs.add(file);
     const pins = job.buildOutputs ?? job.comparisonOutputs ?? {};
     for (const [file, hash] of Object.entries(pins)) if (file.startsWith(prefix) &&
         job.outputs.includes(file) && typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash)) outputs.add(file);
+    // Cheap complete products deliberately retain no hash-pin table: the
+    // catalogue declares every byte as a build-time output instead.
+    const cheap = job.buildTimeOutputs;
+    if (Array.isArray(cheap) && cheap.length === job.outputs.length && (job.seedOutputs?.length ?? 0) === 0 &&
+        Object.keys(job.buildOutputs ?? {}).length === 0 && Object.keys(job.comparisonOutputs ?? {}).length === 0 &&
+        !job.capture && !job.browser && !job.recordedInputs && job.platform !== 'darwin' &&
+        cheap.every(file => typeof file === 'string' && job.outputs.includes(file))) {
+      for (const file of cheap) if (file.startsWith(prefix)) outputs.add(file);
+    }
   }
   return files.every(file => file.name === 'validation.json' || outputs.has(prefix + file.name));
 }

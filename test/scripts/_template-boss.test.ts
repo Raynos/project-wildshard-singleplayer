@@ -11,7 +11,7 @@ import { scenarioHostHash, scriptScenarioReceipt } from '../../scripts/script-sc
 beforeAll(() => {
   const built = env['WS_TEST_PRODUCTS_SHA'];
   if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=_template'], { stdio: 'inherit' });
   }
 }, 120_000);
 
@@ -52,6 +52,19 @@ test('Template boss runs published Wasm decisions and resumes a logical save', a
   expect(resumed.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });
   expect(resumed.maxFuel()).toBeGreaterThan(0);
   expect(resumed.maxFuel()).toBeLessThan(400_000);
+  // Decisions run only on the engine's sixth fixed tick, even when events
+  // arrive between beats. Timers and phase changes share that one clock.
+  for (const owner of [scenario, resumed]) {
+    const calls = owner.trace().filter(entry => entry.kind === 'call');
+    expect(calls.length).toBeGreaterThan(0);
+    let previous: number | undefined;
+    for (const call of calls) {
+      expect(call.tick % 6).toBe(0);
+      expect(call.ok).toBe(true);
+      if (previous !== undefined) expect(call.tick - previous).toBeGreaterThanOrEqual(6);
+      previous = call.tick;
+    }
+  }
   const receiptPath=env['WS_SCRIPT_SCENARIO_RECEIPT'];
   if(receiptPath!==undefined) {
     const hostHash=scenarioHostHash('.');
