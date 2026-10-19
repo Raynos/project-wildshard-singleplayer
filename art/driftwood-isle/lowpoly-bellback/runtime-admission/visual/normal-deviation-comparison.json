@@ -1,0 +1,17 @@
+{
+  "original": {
+    "opposedTriangles": 14,
+    "trianglesWithNormalCosineBelow0995": 617,
+    "minimumNormalCosine": -0.9999687160839631
+  },
+  "frame1": {
+    "opposedTriangles": 1,
+    "trianglesWithNormalCosineBelow0995": 604,
+    "minimumNormalCosine": -0.09632578923128454
+  },
+  "frame2": {
+    "opposedTriangles": 0,
+    "trianglesWithNormalCosineBelow0995": 596,
+    "minimumNormalCosine": 0.37698462105728947
+  }
+}

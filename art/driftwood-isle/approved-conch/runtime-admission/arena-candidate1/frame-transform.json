@@ -1,0 +1,59 @@
+{
+  "schema": "wildshard.conch.canonical-frame.v1",
+  "matrixRowMajor": [
+    -1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0.05,
+    0,
+    0,
+    0,
+    1
+  ],
+  "determinant": 1,
+  "nativeForward": [
+    0,
+    0,
+    -1
+  ],
+  "canonicalForward": [
+    0,
+    0,
+    1
+  ],
+  "originalFiles": {
+    "metadata.json": "1f371d5f2e54934e59b08e9dcfeeda08345e31b4db48f7516a6dbc51b0828575",
+    "payload.bin": "33cf3233f6a95727729023921add326e9a4eaf3efe468a76ac5233ef07fc43e5",
+    "conch-character-pass-native.json": "2613acca174917dc71ab77a5d31cf23cc14828c6b28db8ddbfc74614c3ec69a3"
+  },
+  "changes": [
+    "positions",
+    "absolute bind pivots",
+    "diagnostic feet",
+    "diagnostic bodyHalfLen",
+    "content-addressed payload path"
+  ],
+  "unchanged": [
+    "triangle order",
+    "linear colors",
+    "skin indices",
+    "skin weights",
+    "fur length",
+    "bone names and parents",
+    "scale",
+    "all original files"
+  ],
+  "dimensionsStatus": "Conservative rest diagnostics only; not gameplay tuning",
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false
+}

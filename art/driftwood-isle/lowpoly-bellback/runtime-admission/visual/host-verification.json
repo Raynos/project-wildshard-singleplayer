@@ -1,0 +1,9 @@
+{
+  "schema": "wildshard.bellback.diagnostic-host-verification.v1",
+  "verifiedAt": "2026-10-19T04:25:15Z",
+  "host": "Unchanged V70 neutral-gray-v2 tested clean-preview host",
+  "inventorySha256": "ad7f27374600070e9dfc1223c17c6fa53fc039bb7ebe4fb4609ec3070ce08b69",
+  "filesChecked": 137,
+  "mismatches": [],
+  "scope": "Post-capture exact inventory verification; no host files changed by this lane"
+}

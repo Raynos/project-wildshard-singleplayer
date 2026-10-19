@@ -1,0 +1,41 @@
+{
+  "schema": "wildshard.mantis.capture-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:22:29.971451+00:00",
+  "productSourceHash": "394bfa7bb56d0e0ed9cc66d1cd3ed0e7cd152c52586b8e3979f46bd2900ab951",
+  "nativePayloadSha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+  "files": {
+    "public/review-evidence/mantis-v7-candidate1/entry.jpg": {
+      "sha256": "bcf4526884393b7817a7990be57d3cac0a9b00263636b6b020e4853f3d6bc7ea",
+      "bytes": 67620
+    },
+    "public/review-evidence/mantis-v7-candidate1/sword-death-reward.mp4": {
+      "sha256": "61151530df5bf8f1305962f3972030e4c95da213e56e60f71bdd52c1b926ccad",
+      "bytes": 701579
+    },
+    "public/review-evidence/mantis-v7-candidate1/entry-and-attacks.mp4": {
+      "sha256": "eae7b39f0b7a9c2d018f7750713bed42f9600e82618d02c03d73a0b0ccd3febe",
+      "bytes": 726111
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/combat-observation.json": {
+      "sha256": "dcc4756600b9d980e58455e4c758f2f68e10196a67f2103fc61a62e190cc346b",
+      "bytes": 1460157
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate1/motion-envelope.json": {
+      "sha256": "bb9605eda155120c2f103c98f6abd97e08842ff81fc75ba5ad381b6f5b815955",
+      "bytes": 495
+    },
+    "scripts/qa-mantis-native-preview.mjs": {
+      "sha256": "724439f487074f3b857b7064b16f7b98efa4b6ac37faa6fce0e97a12c5d2af95",
+      "bytes": 8157
+    },
+    "test/mantis-native-envelope.test.ts": {
+      "sha256": "5ca2c66a7a4d69f60e792aa2ea89c12a9f05925fc8f5db4b712013b110491d27",
+      "bytes": 4054
+    }
+  },
+  "verdict": "Rejected candidate: no actual player damage; penetrating authored corpse; unaccepted native shading. Real sword/death/local reward/Retry/persistence checks observed.",
+  "runnerLintCorrection": {
+    "capturedRunnerSha256": "2130b59d5bb666f189e8c463fc3058a8cac8b21d5484ed2c3bf63448bc0212fc",
+    "note": "Original observations and videos used the preceding runner hash; later lint-only rename of shadowed placement arguments and Promise executor callbacks. App and captured observations unchanged."
+  }
+}

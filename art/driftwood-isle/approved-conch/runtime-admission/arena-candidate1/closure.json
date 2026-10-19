@@ -1,0 +1,52 @@
+{
+  "schema": "wildshard.conch.canonical-preparation-closure.v1",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1/README.md": {
+      "sha256": "3bf4b51594ae9730441ef05dc25996b8d47e8dc00794b1569aa72c2ab40f15a4",
+      "bytes": 4706
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1/frame-transform.json": {
+      "sha256": "0bc5f8091d3426c7fa2142921d43ee03ba12f55d289e5c532fca3dc7f869078f",
+      "bytes": 1170
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1/metadata.json": {
+      "sha256": "c6e7f3853181da1101ea771acd5f99e32c53dacbcbb842e5e2bdb93d41b85e9d",
+      "bytes": 5285
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-candidate1/payload.bin": {
+      "sha256": "a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610",
+      "bytes": 25392
+    },
+    "scripts/conch-native-frame.mjs": {
+      "sha256": "3b4232bd91858f4a0692be940acb93dfc2c1e1d35782a6fe16232d58fd51d533",
+      "bytes": 4535
+    },
+    "scripts/conch-native-frame.test.mjs": {
+      "sha256": "6eba95d14880d6ae3531ba1726539e5bfbafb4f266db41a49fba463b435bea16",
+      "bytes": 2289
+    },
+    "src/shards/driftwood-isle/generators/conchNativeClips.ts": {
+      "sha256": "be371881c450b57bea5391b7a6a62fefe5d9787868a23b6af86c935608b71b8e",
+      "bytes": 5725
+    },
+    "test/conch-native-clips.test.ts": {
+      "sha256": "c9fef33e4bd6f8b2f545f9233584ca81badf2bbc8e6991651b9b7c62716a01a7",
+      "bytes": 7297
+    }
+  },
+  "originalClosure": {
+    "sha256": "265175cbcf2c173e5aa41ad8e332eb07a01e05841635dcdb6c1daf717d8a4f16",
+    "bytes": 1568
+  },
+  "sourceInputsUnchanged": true,
+  "checks": {
+    "nodeTests": 3,
+    "vitestTests": 6,
+    "targetedOxlint": "passed"
+  },
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "phonePerformanceAcceptance": false
+}
