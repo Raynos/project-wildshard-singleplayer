@@ -1,0 +1,65 @@
+{
+  "id": "nalati.ghost-volley",
+  "entity": 9180,
+  "module": "3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1",
+  "inputs": [
+    {
+      "key": "phase",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "key": "remaining",
+      "min": -1,
+      "max": 10000
+    },
+    {
+      "key": "quiet",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "distance",
+      "min": 0,
+      "max": 10000
+    },
+    {
+      "key": "engaged",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "roll",
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "parameters": [],
+  "events": [
+    {
+      "id": 9181,
+      "key": "ghost.clock",
+      "direction": "output",
+      "type": "number",
+      "min": -1,
+      "max": 0
+    },
+    {
+      "id": 9182,
+      "key": "ghost.shoot",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9183,
+      "key": "ghost.retry",
+      "direction": "output",
+      "type": "number",
+      "min": 3,
+      "max": 4.8
+    }
+  ],
+  "subscriptions": []
+}

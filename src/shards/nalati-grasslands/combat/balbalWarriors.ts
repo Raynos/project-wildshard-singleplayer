@@ -1,6 +1,6 @@
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import type { NightRows } from './nightTypes';
 import { GroundTell, type GroundTellWedgeStyle } from '@wildshard/game/Elite';
+import { nightSpawner } from './spawns';
+import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -42,19 +42,35 @@ export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null
 interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
 interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: GroundTell }
 
-
+const RING = 9;
 const SOIL: readonly [number, number, number] = [0.26, 0.19, 0.12], TURF: readonly [number, number, number] = [0.3, 0.36, 0.14];
 const STONE: readonly [number, number, number] = [0.55, 0.53, 0.49], DUST: readonly [number, number, number] = [0.5, 0.44, 0.34];
 const AMBER: readonly [number, number, number] = [2.4, 1.1, 0.25];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
 /** Nalati's amber fill/rim shader; GroundTell owns sector geometry and terrain draping. */
-function wedgeStyle(nightRows: NightRows): GroundTellWedgeStyle {
+function wedgeStyle(): GroundTellWedgeStyle {
   const fill = { value: 0 }, alpha = { value: 0 };
-  const mat = new THREE.ShaderMaterial({ vertexShader: nightRows.wedge.vertexShader, fragmentShader: nightRows.wedge.fragmentShader,
-    uniforms: { uFill: fill, uAlpha: alpha, uColor: { value: new THREE.Color(2.2, .95, .2) } },
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
-    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uFill: fill, uAlpha: alpha, uColor: { value: new THREE.Color(2.2, 0.95, 0.2) } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      // the rim + the edges always; the body fills from the balbal's feet toward the tip as the wind-up runs; a crackle of noise
+      fragmentShader: `varying vec2 vUv; uniform float uFill; uniform float uAlpha; uniform vec3 uColor;
+        float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        void main(){
+          float r = vUv.y, e = min(vUv.x, 1.0 - vUv.x);
+          float rim = smoothstep(0.93, 1.0, r) + smoothstep(0.035, 0.0, e) * 0.8;
+          float fill = smoothstep(uFill + 0.02, uFill - 0.04, r) * (0.22 + 0.25 * r);
+          float front = smoothstep(0.05, 0.0, abs(r - uFill)) * 0.7;
+          float n = h(floor(vUv * vec2(26.0, 14.0)));
+          float a = (rim * 0.75 + fill * (0.7 + 0.3 * n) + front) * uAlpha * smoothstep(0.0, 0.12, r);
+          if (a < 0.004) discard;
+          gl_FragColor = vec4(uColor * a, a);
+        }`,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+    });
+  mat.name = 'balbal-telegraph';
   return { cone: BALBAL_SLAM.cone, material: mat, fill, alpha };
 }
 
@@ -66,17 +82,15 @@ export class BalbalWarriors {
   private animals: AnimalManager | null = null;
   private kit: KitLike | null = null;
   private readonly wedges: GroundTell[] = [];
+  private spawner: Spawner<Animal> | null = null;
   private night = 0;
   private soilAcc = 0;
-  private elapsed = 0;
-  private readonly author: ReturnProgram;
 
-  constructor(private readonly ctx: BalbalWarriorsCtx, nightRows: NightRows) {
-    this.author = ReturnProgram.page(nightRows.programs.roster, ctx.scope);
+  constructor(private readonly ctx: BalbalWarriorsCtx) {
     balbalCombat.isPiercing = request => request === undefined || request.sourceTags.includes('dmg.legacy') ? undefined
       : request.sourceTags.includes('weapon.spear') || request.sourceTags.includes('weapon.javelin');
     this.debris = new NightParticles(ctx.scene, 'debris');
-    for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle(nightRows)));
+    for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle()));
     ctx.clock.onDusk(() => { this.wake(); });
     ctx.clock.onDawn(() => { this.dawn(); });
     ctx.clock.onDay(() => { this.dawn(); });
@@ -85,6 +99,7 @@ export class BalbalWarriors {
 
   attach(animals: AnimalManager): void {
     this.animals = animals;
+    this.spawner = nightSpawner('spawn.nalati.balbals', this.ctx.scope, animals);
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
     const ph = this.ctx.clock.dayPhase;
     if (ph === 'dusk' || ph === 'night') this.wake();
@@ -94,12 +109,12 @@ export class BalbalWarriors {
 
   /** statues that wake tonight: four of the ring (rotating each night) and one crown */
   private tonight(): number[] {
-    const count = this.ctx.balbals?.statues.length ?? 0, indices = new Set<number>();
-    for (let slot = 0; slot < 5; slot++) {
-      const index = this.author.project('tonight', { count, night: this.night, slot })['index'];
-      if (index !== undefined) indices.add(index);
-    }
-    return [...indices];
+    const n = this.ctx.balbals?.statues.length ?? 0;
+    const count = 4;
+    const out: number[] = [];
+    for (let k = 0; k < count; k++) out.push((this.night * 2 + k * 2 + (k >= 3 ? 1 : 0)) % Math.min(RING, n));
+    if (n > RING) out.push(RING + (this.night % (n - RING)));
+    return [...new Set(out)];
   }
 
   /** dusk: tear the chosen statues out of the ground */
@@ -115,7 +130,8 @@ export class BalbalWarriors {
       // the statue faces −z at yaw 0; an animal faces +z at yaw 0
       const yaw = s.yaw + Math.PI;
       const variant = s.variant === 1 ? 'capped' : 'warrior';
-      const a = animals.spawn(BALBAL, s.x, s.z, yaw, variant);
+      const a = this.spawner?.spawn({ tags: [this.ctx.clock.dayPhase, 'force', variant] }, { x: s.x, z: s.z, yaw }, () => app.rng.stream('ai').next())[0];
+      if (a === undefined) continue;
       a.herd = -1;
       const m = a.mem;
       m['field'] = 1; m['homeX'] = s.x; m['homeZ'] = s.z; m['homeYaw'] = yaw; m['rise'] = 0;
@@ -143,9 +159,6 @@ export class BalbalWarriors {
       const id = equipment !== null && equipment.visible && !equipment.stowed ? equipment.current.row.id : undefined;
       balbalCombat.melee = id === 'weapon.sabre' || id === 'weapon.naizagai' ? 'sabre' : id === 'weapon.spear' ? 'spear' : 'other';
     }
-    this.elapsed += dt;
-    const decisionDt = this.elapsed >= .1 ? this.elapsed : 0;
-    if (decisionDt > 0) this.elapsed = 0;
     this.debris.light = Math.max(0.25, light);
     this.soilAcc += dt;
     const soilTick = this.soilAcc > 0.05; if (soilTick) this.soilAcc = 0;
@@ -162,23 +175,21 @@ export class BalbalWarriors {
         if (crack || w.a.hp < w.lastHp - 40) this.debris.burst(_v, 12, 3, 2.5, 0.5, 0.05, AMBER, 0.2, FLAG_GRAVITY, 0.3);
         w.lastHp = a.hp;
       }
-      const state = decisionDt > 0 ? this.author.project('warrior', { dt: decisionDt, t: w.deadT,
-        alive: Number(a.alive), gone: m['gone'] ?? 0 }) : {};
       // ── dead: rubble as it crumbles, then gone (the statue returns at dawn) ──
       if (!a.alive) {
         w.wedge.hide();
-        if (state['broken'] === 1) {
+        if (w.deadT === 0) {
           _v.set(a.position.x, a.position.y + sc, a.position.z);
           this.debris.burst(_v, 46, 3.2, 3, 1.8, 0.12, STONE, 0.25, FLAG_GRAVITY | FLAG_BOUNCE, 0.6);
           this.debris.burst(_v, 14, 1.5, 0.6, 2.4, 1.0, DUST, 0.15, FLAG_GROW, 0.7);
           this.onBroken?.(a);
         }
-        w.deadT = state['t'] ?? w.deadT;
-        if (state['retire'] === 1) { this.retire(a); this.awake.splice(i, 1); }
+        w.deadT += dt;
+        if (w.deadT > 3.2) { this.retire(a); this.awake.splice(i, 1); }
         continue;
       }
       // ── home again at dawn and under the ground: the statue stands ──
-      if (state['statue'] === 1) { this.retire(a); b?.setAwake(w.statue, false); this.awake.splice(i, 1); continue; }
+      if (m['gone'] === 1) { this.retire(a); b?.setAwake(w.statue, false); this.awake.splice(i, 1); continue; }
       const rise = m['rise'] ?? 1;
       const moving = rise > 0 && rise < 1;
       // ── soil: pouring off it while it moves through the ground, a few clods from the body as it walks ──
@@ -222,6 +233,6 @@ export class BalbalWarriors {
 
   /** out of the world: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   private retire(a: Animal): void {
-    this.animals?.retire(a);
+    this.spawner?.retire(a);
   }
 }

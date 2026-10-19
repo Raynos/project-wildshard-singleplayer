@@ -41,16 +41,5 @@ export function onSignal(signal:i32,value:f64,source:i32):void {
  }else if(signal==Signal.hit){
   const d=Math.hypot(f(Field.x)-f(Field.px),f(Field.z)-f(Field.pz));put(Channel.distance,d);put(Channel.bearing,Math.atan2(f(Field.z)-f(Field.pz),f(Field.x)-f(Field.px)));
   put(Channel.damage,f(Field.sheltered)==0&&d<=4&&Math.abs(f(Field.y)-f(Field.py))<6?60:0);
- }else if(signal==Signal.wind){
-  const hold=f(Field.titanHeld)>0&&f(Field.storm)>0&&f(Field.phaseLen)-f(Field.phaseT)<30;
-  put(Channel.phaseT,hold?f(Field.phaseLen)-30:f(Field.phaseT));
-  const speed=f(Field.windSpeed),asking=speed>=0;
-  put(Channel.asked,asking?speed:-1);
-  if(asking||f(Field.asked)>=0){
-   put(Channel.speed,asking?speed:f(Field.calmSpeed));
-   put(Channel.dir,asking&&f(Field.building)==0&&f(Field.after)==0?Math.PI/4:f(Field.calmDir));
-   put(Channel.gustiness,asking?f(Field.windGustiness):f(Field.calmGust));
-   put(Channel.seconds,asking?(f(Field.gust)>0?6:10):30);
-  }
  }
 }
