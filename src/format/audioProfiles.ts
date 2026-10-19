@@ -166,6 +166,7 @@ const phraseValue = v.strictObject({kind:v.literal('value'),when:v.exactOptional
 const phraseEnvelope = v.strictObject({kind:v.literal('envelope'),out:id,t:mixExpr,ramps:v.pipe(v.array(v.variant('kind',[v.strictObject({kind:v.literal('linear'),value:mixExpr,t:mixExpr}),v.strictObject({kind:v.literal('target'),value:mixExpr,t:mixExpr,tau:mixExpr})])),v.maxLength(16))});
 const phraseBody = v.variant('kind',[phraseValue,phraseTone,phraseBurst]);
 export const AudioPhraseProgramSchema = v.pipe(v.strictObject({tap:v.exactOptional(id),steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,phraseEnvelope,
+  v.strictObject({kind:v.literal('gainLfo'),out:id,t:mixExpr,duration:mixExpr,rate:mixExpr,depth:mixExpr}),
   v.strictObject({kind:v.literal('bus'),id,out:id,gain:mixExpr,pan:mixExpr,alwaysPan:v.exactOptional(v.boolean()),filter:v.exactOptional(v.strictObject({type:v.picklist(['lowpass','highpass','bandpass']),frequency:mixExpr,q:v.exactOptional(mixExpr)}))}),
   v.strictObject({kind:v.literal('repeat'),eachTest:v.exactOptional(v.boolean()),index:v.exactOptional(id),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),body:v.pipe(v.array(phraseBody),v.maxLength(64))})])),v.maxLength(64))}),
   v.check(program=>program.steps.reduce((sum,step)=>sum+(step.kind==='repeat'?step.max*step.body.length:1),0)<=1024,'bounded phrase work'));

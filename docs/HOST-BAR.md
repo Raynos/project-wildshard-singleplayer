@@ -89,3 +89,5 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G475 held weapons: `game/weapons/heldPolearm`, `game/weapons/mountedBlade`, `game/weapons/arcPower` and `game/weapons/heldDecision` consume `format/heldMelee` schemas for admitted model, pose, contact and ABI-v1 guest rows. Native presentation is client-only; `heldDecision` is renderer-free. An unrelated orchard weapon fixture drives the same projection runner in `test/held-weapon-laws.test.ts`.
 
 - G478 walk-in portal rides: `game/shardfile/walkInPortalRide` consumes portal links, trigger/fade rows and feet observations, returning hold/transfer commands and a veil amount. Renderer-free; a made-up orchard shard drives the same host in `test/nine-traversal-data.test.ts`.
+- G478 audio patches: `game/audio/voicePatches` consumes voice, bed, scheduler and layer rows; client-only presentation, with an unrelated cavern fixture in `test/audio-voice-patches.test.ts`.
+- G478 audio scenes: `game/audio/sceneDirector` consumes zone probes, surface maps, event cues, bed controls and score observations; client-only presentation.

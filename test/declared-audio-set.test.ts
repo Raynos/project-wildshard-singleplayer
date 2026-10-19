@@ -9,12 +9,14 @@ import * as settings from '@wildshard/engine/ui/Settings';
 import {parseAudioData} from '@wildshard/format/audio';
 import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
 import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
-import {NALATI_AUDIO} from '../src/shards/nalati-grasslands/generators/audio';
+import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
 import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
 import {createNalatiAudio} from '../src/shards/nalati-grasslands-legacy/runtime/audio/files';
 import {createNdAudio,ndPick} from '../src/shards/nine-dragon-stack-legacy/runtime/audio/files';
 import {steppePick,createSteppeScore} from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore';
 import type {CombatCueOpts} from '@wildshard/engine/combat/cues';
+
+const NALATI_AUDIO=parseAudioData(audioDeclaration.audio);
 
 // The frozen shards are independent executable oracles. They are never modified.
 afterEach(()=>{vi.restoreAllMocks();});
@@ -76,15 +78,15 @@ it('preserves every Nalati scene fallback and Nine Dragon combat/Well precedence
 });
 it('routes Nalati voices with the original power, impact normalization and synchronous thrust port',()=>{
  const calls:object[]=[];
- const voices=Object.fromEntries(['bowTwang','bowDraw','bowFullDraw','bowLetDown','javelinThrow','sabreSwing','arrowImpact','javelinImpact','sabreHit'].map(method=>[method,(...args:unknown[])=>{calls.push({method,args});}]));
+ const voices={play:(method:string,values:object,surface:string)=>{calls.push({method,values,surface});}};
  const thrust={start:()=>{calls.push({method:'thrustPending',args:[]});}};
  const route=createCueRouter(NALATI_AUDIO.routing,{voices:new Map(),bindings:NALATI_AUDIO.voiceBindings,owners:new Map<string,object>([['voices',voices],['thrust',thrust]])});
  for(const [id,method] of [['cue.arrow.hit','arrowImpact'],['cue.javelin.hit','javelinImpact'],['cue.sabre.hit','sabreHit']])for(const surface of [undefined,'wood','flesh','ground','metal']){
   calls.length=0;const opts:CombatCueOpts=surface===undefined?{}:{surface,pan:0.2,gain:0.4};
-  expect(route(id??'',opts)).toBe(true);expect(calls).toEqual([{method,args:[surface==='wood'||surface==='flesh'?surface:'ground',surface===undefined?0:0.2,surface===undefined?1:0.4]}]);
+  expect(route(id??'',opts)).toBe(true);expect(calls).toEqual([{method,values:{power:1,pan:surface===undefined?0:0.2,gain:surface===undefined?1:0.4},surface:surface==='wood'||surface==='flesh'?surface:'ground'}]);
  }
  calls.length=0;expect(route('cue.bow.loose',{})).toBe(true);expect(calls).toEqual([]);
- expect(route('cue.bow.loose.power',{})).toBe(true);expect(calls).toEqual([{method:'bowTwang',args:[1]}]);
+ expect(route('cue.bow.loose.power',{})).toBe(true);expect(calls).toEqual([{method:'bowTwang',values:{power:1,pan:0,gain:1},surface:'ground'}]);
  calls.length=0;expect(route('cue.spear.thrust',{})).toBe(true);expect(calls).toEqual([{method:'thrustPending',args:[]}]);
  expect(route('unknown',{})).toBe(false);
 });

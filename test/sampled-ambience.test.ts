@@ -10,11 +10,14 @@ import { app } from '@wildshard/engine/app/runtime';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { CueOpts } from '@wildshard/engine/audio/Cues';
 import { Thrown } from '@wildshard/engine/combat/Thrown';
-import { NALATI_AUDIO } from '../src/shards/nalati-grasslands/generators/audio';
+import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
+import {parseAudioData} from '@wildshard/format/audio';
 import { ND_AUDIO } from '../src/shards/nine-dragon-stack/generators/audio';
 import { SteppeAmbience } from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeAmbience';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+
+const NALATI_AUDIO=parseAudioData(audioDeclaration.audio);
 
 class Recorder extends Audio {
   readonly recordedCalls: { kind: string; point: number[]; listener: number[]; yaw: number }[] = [];

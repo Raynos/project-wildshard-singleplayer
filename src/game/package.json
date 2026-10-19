@@ -232,7 +232,9 @@
     "./weapons/mountedBlade": "./weapons/mountedBlade.ts",
     "./weapons/arcPower": "./weapons/arcPower.ts",
     "./weapons/heldDecision": "./weapons/heldDecision.ts",
-    "./shardfile/walkInPortalRide": "./shardfile/walkInPortalRide.ts"
+    "./shardfile/walkInPortalRide": "./shardfile/walkInPortalRide.ts",
+    "./audio/voicePatches": "./audio/voicePatches.ts",
+    "./audio/sceneDirector": "./audio/sceneDirector.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

@@ -1,6 +1,6 @@
 import { DecisionModule } from '@wildshard/engine/script/decisionModule';
 import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
-import { parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
+import { parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -61,7 +61,10 @@ export class ReturnProgram {
     const row = v.parse(Program, input), script = parseDecisionScripts([row.script])[0];
     if (script === undefined) throw new Error('Missing return script');
     const { sourceHash: _sourceHash, ...executable } = script;
-    const declaration = JSON.stringify({ script: executable, bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
+    // Alias identity follows sorted names; wire object property order is immaterial.
+    const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
+      [key, Object.fromEntries(Object.entries(script[key]).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
+    const declaration = JSON.stringify({ script: { ...executable, ...named }, bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
     const previous = modules.get(script.module);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');

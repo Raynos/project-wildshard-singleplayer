@@ -95,3 +95,13 @@ it('shares one module across all weapon signals and isolates their channels',asy
  expect(sabre.update(.1,{...blade,mounted:1,attack:1})?.['side']).toBe(1);
  expect(sabre.update(.1,blade)?.['start']).toBeUndefined();scope.dispose();
 });
+
+it('shares reordered wire aliases while refusing a changed declaration',async()=>{
+ const {Scope}=await import('../src/engine/app/scope'),scope=new Scope('wire-alias-fixture');
+ const first=new HeldDecision(rows.programs.polearm,scope),source=rows.programs.blade;
+ const reverse=(input:Record<string,string>)=>Object.fromEntries(Object.entries(input).reverse());
+ const reordered={...source,script:{...source.script,fields:reverse(source.script.fields),channels:reverse(source.script.channels),signals:reverse(source.script.signals)}};
+ expect(new HeldDecision(reordered,scope).program).toBe(first.program);
+ expect(()=>new HeldDecision({...reordered,script:{...reordered.script,fields:{...reordered.script.fields,mode:'changed'}}},scope)).toThrow('Shared return declaration changed');
+ scope.dispose();
+});
