@@ -12,23 +12,26 @@
  */
 import type { Object3D } from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { type PlacedSign, type SignModelLook, registerSignCopies, signParts } from "../runtime/signs/signModel";
+import { place } from '@wildshard/engine/models/place';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
+import type { BakedSigns } from '../world/casts';
 import signRows, { type SignParams } from '../data/signView.json' with { type: 'json' };
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/signs.ts';
 
-/** the fragment's calligraphy and sign atlas, as the sign model draws with them */
-function signLook(ctx: ModelContext): SignModelLook {
-  const look = ndLook(ctx);
-  return { calligraphy: look.calligraphy, atlas: () => need(look.neon, 'the sign atlas') };
-}
-
 export const sign = defineModel<SignParams>({
   id: 'nine-dragon-stack/sign', name: 'Sign (neon, lightbox, plaque, paper strip, banner)', category: 'props', pipeline: 'code', file: FILE,
   defaults: signRows.defaults,
   variants: signRows.variants,
-  build: (ctx, p) => signParts(ctx, p, signLook(ctx), signRows.model),
+  build: (ctx, p) => {
+    const atlas = need(ndLook(ctx).neon, 'the sign atlas').atlas;
+    const key = `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
+    const name = need(atlas.keys[key], `prepared sign ${key}`);
+    return signRows.model.calligraphyStyles.some(style => style === p.style)
+      ? [{ geometry: atlas.geometry(`${name}-boards`), material: lentLook('nine-neon-board') }, { geometry: atlas.geometry(`${name}-tubes`), material: lentLook('nine-neon-tube'), renderOrder: 5 }]
+      : [{ geometry: atlas.geometry(name), material: lentLook('nine-neon') }];
+  },
   specimenYaw: Math.PI, // (the Explorer's camera looks down +z: turned, the sign's face (+z) faces it)
 });
 
@@ -36,6 +39,6 @@ export const sign = defineModel<SignParams>({
  * Register the fragment's signs where they are drawn: the atlas ones on the `signs` mesh, the neon calligraphy on the
  * neon boards (one `place` each; the copies are counted on the one card)
  */
-export function registerSigns(ctx: ModelContext, placed: readonly PlacedSign<SignParams['style']>[], meshes: { readonly atlas: Object3D; readonly neon: Object3D }): void {
-  registerSignCopies(sign, ctx, placed, meshes, signRows.model);
+export function registerSigns(ctx: ModelContext, atlas: BakedSigns, meshes: { readonly atlas: Object3D; readonly neon: Object3D }): void {
+  for (const row of atlas.copies) if (row.poses.length > 0) place(sign, row.poses, { ctx, draw: 'merged', drawnInto: { object: row.neon ? meshes.neon : meshes.atlas, boxes: Float32Array.from(row.boxes) }, piece: { id: row.neon ? signRows.model.pieces.neon : signRows.model.pieces.atlas } });
 }

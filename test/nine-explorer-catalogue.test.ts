@@ -27,7 +27,7 @@ function fixture(resident: boolean, owner: Scope) {
   }
   const panel = shape('resident-panel'); geometry.push(panel);
   const look: NdLook = { owner, mat, facade: { mat: facade, small }, lantern: null, neon: null, canLod: false,
-    geo: new Map(resident ? [['set:balustrade-panel', panel]] : []), hookMat: null, canopy: null, calligraphy: null, specimens, explorer: new Map() };
+    geo: new Map(resident ? [['set:balustrade-panel', panel]] : []), hookMat: null, canopy: null, specimens, explorer: new Map() };
   ctx.once('nine-dragon-stack:look', () => look);
   return { ctx, look, dispose: () => { for (const source of geometry) source.dispose(); for (const material of materials) material.dispose(); } };
 }

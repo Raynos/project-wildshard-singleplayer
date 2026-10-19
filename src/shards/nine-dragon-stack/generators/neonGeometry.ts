@@ -1,56 +1,7 @@
-import {
-  BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, DataUtils, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType, Float16BufferAttribute, Float32BufferAttribute, type Material, Mesh,
-  Uint32BufferAttribute, Vector3,
-} from 'three';
-import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
-import * as val from 'valibot';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import type { Emitter as SignLight } from '../looks/emitterCards';
+import { BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
-
-const GlyphRows = val.strictObject({
-  words: val.array(val.string()),
-  size: val.picklist([1024, 2048]), parts: val.picklist([1, 4]),
-  layout: val.strictObject({ cell: val.number(), fontPx: val.number(), spread: val.number(), skeletonSpread: val.number() }),
-  rects: val.record(val.string(), val.strictObject({ u0: val.number(), v0: val.number(), u1: val.number(), v1: val.number() })),
-});
-type GlyphRect = val.InferOutput<typeof GlyphRows>['rects'][string];
-interface GlyphField { readonly words: readonly string[]; readonly chars: string; readonly layout: val.InferOutput<typeof GlyphRows>['layout']; readonly texture: DataTexture; readonly rect: (ch: string) => GlyphRect }
-
-/** Read the admitted, losslessly packed RG8 atlas; font rasterization and SDF transforms run only in generators. */
-export async function loadGlyphField(tier: 'phone' | 'desktop', files?: { readonly file: (name: string) => Promise<Uint8Array> }): Promise<GlyphField> {
-  const product = files ?? await loadFirstPartyProduct('nine-dragon-stack');
-  const json = await product.file(`signs/glyphs-${tier}.json`);
-  const row = val.parse(GlyphRows, JSON.parse(new TextDecoder().decode(json)));
-  if (row.parts * 2_097_152 !== row.size * row.size * 2) throw new Error('Nine glyph atlas byte count differs');
-  const data = new Uint8Array(row.size * row.size * 2);
-  await Promise.all(Array.from({ length: row.parts }, async (_value, index) => {
-    const packed = await product.file(`signs/glyphs-${tier}-${index}.rg8`);
-    const bytes = new Uint8Array(await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
-    if (bytes.length !== 2_097_152) throw new Error('Nine glyph chunk byte count differs');
-    data.set(bytes, index * 2_097_152);
-  }));
-  const texture = new DataTexture(data, row.size, row.size, RGFormat, UnsignedByteType);
-  texture.wrapS = texture.wrapT = ClampToEdgeWrapping;
-  texture.minFilter = LinearMipmapLinearFilter; texture.magFilter = LinearFilter;
-  texture.generateMipmaps = true; texture.anisotropy = 4; texture.needsUpdate = true;
-  return { words: row.words, chars: Object.keys(row.rects).join(''), layout: row.layout, texture, rect: ch => {
-    const rect = row.rects[ch]; if (rect === undefined) throw new Error(`glyph atlas has no ${ch}`);
-    return rect;
-  } };
-}
-
-/**
- * Neon calligraphy signs (SHARD-PLATFORM M3, the sign system): an SDF brush fill with a darker glass rim and a short
- * in-quad halo (from a `GlyphField`), on dark plank boards framed by a procedural neon tube. Two draws for every sign:
- *   boards: opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,
- *           four rivets; board sides;
- *   tubes:  additive: one quad per character sampling the glyph field's distance fields.
- * The look is data/lookGraphs.json's 'nine-neon-board' and 'nine-neon-tube' graphs (both fogged by the silk,
- * 'nine-silk-fog'); this lends the tubes the glyph field and its spreads.
- * `emitters` feeds a shard's reflection cards and baked spill.
- */
-
+interface SignLight { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
+interface GlyphField { readonly layout: { cell: number; fontPx: number }; readonly rect: (ch: string) => { u0: number; v0: number; u1: number; v1: number } }
 export interface NeonTextDef {
   text: string;
   /** neon hue, sRGB hex */
@@ -133,15 +84,10 @@ export class NeonText {
   private readonly tubes = new Batch();
   readonly emitters: SignLight[] = [];
   /** the boards' look ('nine-neon-board') and the tubes' ('nine-neon-tube', additive) */
-  readonly boardMat: Material = lentLook('nine-neon-board');
-  readonly tubeMat: Material = lentLook('nine-neon-tube');
+
 
   /** `fullGain`: the look's full glow gain */
-  constructor(private readonly fullGain: number, private readonly atlas: GlyphField) {
-    setLentTexture('nine-neon-tube', 'sdf', atlas.texture);
-    const { fontPx, spread, skeletonSpread } = atlas.layout;
-    setLentParam('nine-neon-tube', 'spread', [spread / fontPx, skeletonSpread / fontPx]);
-  }
+  constructor(private readonly fullGain: number, private readonly atlas: GlyphField) {}
 
   /** the board's outer size for a sign (so callers can hang brackets) */
   static size(text: string, em: number, vertical: boolean): { w: number; h: number } {
@@ -198,10 +144,7 @@ export class NeonText {
     return { w, h, at, f, tint, gain };
   }
 
-  build(): { boards: Mesh; tubes: Mesh } {
-    const boards = new Mesh(this.boards.geometry(['aUv', 'aSize']), this.boardMat);
-    const tubes = new Mesh(this.tubes.geometry(['aAtlas', 'aQ']), this.tubeMat);
-    tubes.renderOrder = 5;
-    return { boards, tubes };
+  build(): { boards: BufferGeometry; tubes: BufferGeometry } {
+    return { boards: this.boards.geometry(['aUv', 'aSize']), tubes: this.tubes.geometry(['aAtlas', 'aQ']) };
   }
 }

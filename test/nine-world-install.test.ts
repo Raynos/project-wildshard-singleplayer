@@ -84,3 +84,29 @@ test('lantern sway seed follows the instance pose through native LOD packing', (
   expect(Object.values(lookGraphs['nine-lantern'].nodes).some(node => 'name' in node && node.name === 'aSeed')).toBe(false);
   compiled.material.dispose();
 });
+
+test('baked facade windows restore bounded native instance rows', async () => {
+  const [{ facadeWindowBlobs }, { BufferGeometryLoader, InstancedBufferAttribute }, { createClientScene }, v] = await Promise.all([
+    import('../src/shards/nine-dragon-stack/generators/facadeWindows'), import('three'), import('../src/game/plugin/ui'), import('valibot'),
+  ]);
+  const geometryLoader = new BufferGeometryLoader(), material = new MeshBasicMaterial();
+  let windows = 0;
+  for (const blob of facadeWindowBlobs()) {
+    const row = v.parse(v.object({ geometry: v.object({ uuid: v.string(), type: v.string(), data: v.object({
+      attributes: v.record(v.string(), v.object({ itemSize: v.number(), type: v.string(), array: v.array(v.number()), normalized: v.boolean(), isInstancedBufferAttribute: v.optional(v.boolean()) })),
+      index: v.optional(v.object({ type: v.string(), array: v.array(v.number()) })),
+    }) }), scene: v.unknown() }), JSON.parse(new TextDecoder().decode(blob.bytes)));
+    const geometry = geometryLoader.parse(row.geometry), light = geometry.getAttribute('aWindowLight');
+    expect(light).toBeInstanceOf(InstancedBufferAttribute);
+    const made = createClientScene(row.scene, { geometry: new Map([['quad', geometry]]), materials: new Map([['window', material]]) });
+    if (!(made.root instanceof InstancedMesh)) throw new Error('Window recipe lost instancing');
+    const count = made.root.count; windows += count;
+    expect(count).toBeLessThanOrEqual(4096);
+    expect(geometry.getAttribute('aWin').count).toBe(count);
+    expect(geometry.getAttribute('aWall').count).toBe(count);
+    expect(light.count).toBe(count);
+    expect(made.root.instanceMatrix.array.every(Number.isFinite)).toBe(true);
+    geometry.dispose(); made.dispose();
+  }
+  expect(windows).toBe(9912); material.dispose();
+});

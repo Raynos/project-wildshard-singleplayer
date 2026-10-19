@@ -12,7 +12,7 @@ import { placeSet } from '@wildshard/engine/models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/catalogue';
-import { nameDraws } from './facade/batch';
+import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import type { NdLook } from './modelLook';
 
 

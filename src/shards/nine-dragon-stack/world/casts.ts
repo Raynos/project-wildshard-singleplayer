@@ -1,9 +1,10 @@
-import { type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import { BufferGeometryLoader, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometryJSON, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import type { GeometryBoot } from '../runtime/productSections.generated';
+import { createClientScene } from '@wildshard/game/plugin/ui';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { PlacedSign } from '../runtime/signs/signModel';
 import type { Emitter } from '../runtime/looks/emitterCards';
 import { createModelLibrary, type ModelGeometryPool } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -86,18 +87,21 @@ export async function loadFixedRows(): Promise<v.InferOutput<typeof FixedRows>> 
 
 const N = v.number();
 const SignRows = v.strictObject({
-  cells: v.record(v.string(), v.strictObject({ u0: N, v0: N, u1: N, v1: N, mono: v.boolean() })),
+  glyphLayout: v.strictObject({ cell: N, fontPx: N, spread: N, skeletonSpread: N }),
   keys: v.record(v.string(), v.string()),
   pools: v.array(v.strictObject({ name: v.string(), parts: v.array(v.string()) })),
-  channels: v.array(v.strictObject({ name: v.string(), source: v.string(), width: N })),
-  placed: v.array(v.strictObject({ p: Place, w: N, h: N, neon: v.boolean() })),
+  channels: v.array(v.strictObject({ name: v.string(), source: v.string(), width: N, parts: v.exactOptional(v.array(v.string())) })),
   lights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
+  neonLights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
+  copies: v.array(v.strictObject({ neon: v.boolean(), boxes: v.array(N), poses: v.array(v.strictObject({ x: N, y: N, z: N, yaw: N, variant: v.string(), params: v.record(v.string(), v.unknown()) })) })),
 });
 export interface BakedSigns {
   readonly keys: Readonly<Record<string, string>>;
-  readonly placed: readonly PlacedSign<v.InferOutput<typeof Place>['spec']['style']>[];
   readonly lights: readonly Emitter[];
-  readonly textures: { readonly mono: Texture; readonly colour: Texture };
+  readonly neonLights: readonly Emitter[];
+  readonly copies: v.InferOutput<typeof SignRows>['copies'];
+  readonly glyphLayout: v.InferOutput<typeof SignRows>['glyphLayout'];
+  readonly textures: { readonly mono: Texture; readonly colour: Texture; readonly sdf: Texture };
   readonly geometry: (name: string) => BufferGeometry;
 }
 
@@ -114,20 +118,21 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', renderer: Rendere
     } finally { URL.revokeObjectURL(url); }
   }));
   const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
-  const read = async (name: 'mono' | 'colour'): Promise<Texture> => {
-    const bytes = await product.file(`signs/atlas-${tier}-${name}.ktx2`);
+  const read = async (name: 'mono' | 'colour' | 'sdf'): Promise<Texture> => {
+    const bytes = await product.file(name === 'sdf' ? `signs/glyphs-${tier}.ktx2` : `signs/atlas-${tier}-${name}.ktx2`);
     const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
     texture.flipY = false; texture.generateMipmaps = true; texture.mipmaps = [];
-    texture.minFilter = LinearMipmapLinearFilter; texture.magFilter = LinearFilter; texture.anisotropy = 8;
+    texture.minFilter = LinearMipmapLinearFilter; texture.magFilter = LinearFilter; texture.anisotropy = name === 'sdf' ? 4 : 8;
     texture.needsUpdate = true;
     gpuOnlyTexture(texture, 'Nine Dragon baked sign atlas (GPU only)');
     return texture;
   };
-  let mono: Texture, colour: Texture;
-  try { [mono, colour] = await Promise.all([read('mono'), read('colour')]); }
+  let mono: Texture, colour: Texture, sdf: Texture;
+  try { [mono, colour, sdf] = await Promise.all([read('mono'), read('colour'), read('sdf')]); }
   finally { loader.dispose(); }
-  return { keys: rows.keys, textures: { mono, colour },
-    placed: rows.placed.map(({ p, ...rest }) => ({ ...rest, p: { ...p, at: new Vector3(...p.at), normal: new Vector3(...p.normal) } })),
+  return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures: { mono, colour, sdf },
+    copies: rows.copies,
+    neonLights: rows.neonLights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),
     lights: rows.lights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),
     geometry: name => {
       const index = rows.pools.findIndex(pool => pool.parts.includes(name));
@@ -155,4 +160,18 @@ export function castLod(base: BufferGeometry, prepared: BufferGeometry, middle: 
     prepared.boundingBox = null;
   }
   return prepared;
+}
+
+/** Native scene/geometry readers restore the offline window bases and channels. */
+export async function loadFacadeWindows(material: Material): Promise<Object3D[]> {
+  const product = await loadFirstPartyProduct('nine-dragon-stack');
+  const { rows } = await product.json<GeometryBoot>('geometry/layout.json');
+  return Promise.all(Array.from({ length: Math.ceil(rows.counts.windows / 4096) }, async (_, index) => {
+    const row = await product.json<{ readonly geometry: BufferGeometryJSON; readonly scene: unknown }>(`geometry/facade-windows-${index}.json`);
+    const quad = new BufferGeometryLoader().parse(row.geometry), light = quad.getAttribute('aWindowLight');
+    const made = createClientScene(row.scene, { geometry: new Map([['quad', quad]]), materials: new Map([['window', material]]) }).root;
+    if (!(made instanceof InstancedMesh) || !(light instanceof InstancedBufferAttribute)) throw new Error('Nine window instance channels differ');
+    made.instanceColor = light; quad.deleteAttribute('aWindowLight'); made.computeBoundingSphere(); made.computeBoundingBox();
+    return made;
+  }));
 }

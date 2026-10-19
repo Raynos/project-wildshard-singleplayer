@@ -13,18 +13,16 @@ import {
 } from 'three';
 import type { InKit, Piece } from './ctx';
 import { inkFigure } from '../models/inKit';
-import { brassDragonHook, drumStool, mahjongTableModel, parkedScooter, paifang, hawkerStallModel, noodleStallModel, lotusFinial, laundryLineModel, landingPlanterModel, wellBalustrade, lampPostModel, lotusPostModel, airConBox, galleryPlant } from '../models/catalogue';
+import { FACADE_BAKED, FACADE_MODELS, brassDragonHook, drumStool, mahjongTableModel, parkedScooter, paifang, hawkerStallModel, noodleStallModel, lotusFinial, laundryLineModel, landingPlanterModel, wellBalustrade, lampPostModel, lotusPostModel, airConBox, galleryPlant } from '../models/catalogue';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { registerSigns } from '../models/signs';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { type InKitPlaced, registerInKit } from './inKit';
 import type { Emitter } from '../runtime/looks/emitterCards';
-import { NeonText, loadGlyphField } from '../runtime/signs/neonText';
 import { Lanterns } from '../look/lanterns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
-import { buildFacade, nameDraws } from './facade/batch';
-import { facadeUniforms } from '../look/facadeMaterial';
-import { STAIR, WELL, Y0 } from '../layout';
+import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
+import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms } from '../look/facadeMaterial';
 import stairPlan from './stairPlan.generated.json' with { type: 'json' };
 import { loadPaint } from '../look/paint';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
@@ -32,16 +30,16 @@ import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
 import metadata from '../boot/metadata.generated.json' with { type: 'json' };
+import { STAIR, WELL, Y0 } from '../layout';
 import type { LookRows } from '../boot/lookTypes.generated';
 import { placeSquareProps } from './squareProps';
-import signRows from '../data/signView.json' with { type: 'json' };
 import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
-import { type Placed, placeSliced } from '@wildshard/engine/models/place';
+import { type Placed, place, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext, loadSpecimens, takeSpecimen } from './modelLook';
@@ -52,7 +50,7 @@ import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, restoreLayout } from './layoutBake';
-import { loadCast, loadFixedRows, loadSignAtlas, loadSpill } from './casts';
+import { loadCast, loadFixedRows, loadSignAtlas, loadSpill, loadFacadeWindows } from './casts';
 import declarations from '../data/declarations.generated.json' with { type: 'json' };
 import { type RunningMover, placeMovers } from '../runtime/props/moverCopies';
 
@@ -123,29 +121,25 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
-  const fontsStart = performance.now();
-  const fontsReady = loadGlyphField(tier).then(glyphs => { phaseDone('fonts', fontsStart); return glyphs; });
-  const [paint, glyphs] = await Promise.all([paintReady, fontsReady]);
+  const paint = await paintReady;
   shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
+  const fontsStart = performance.now();
   const atlas = await loadSignAtlas(tier, renderer);
+  phaseDone('fonts', fontsStart);
   const signs = atlas;
   // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
-  const neonSigns = new NeonText(signRows.model.tubeGain, glyphs);
-  for (const { p, neon } of signs.placed) {
-    if (!neon) continue;
-    neonSigns.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
-      twoSided: p.blade === true, gain: ((p.gain ?? signRows.model.calligraphyGain) / signRows.model.calligraphyGain) * neonSigns.gain, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
-  }
+  setLentTexture('nine-neon-tube', 'sdf', atlas.textures.sdf);
+  const { fontPx, spread, skeletonSpread } = atlas.glyphLayout;
+  setLentParam('nine-neon-tube', 'spread', [spread / fontPx, skeletonSpread / fontPx]);
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer, opts.scope);
-  nd.look.calligraphy = neonSigns;
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
@@ -178,7 +172,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
-  const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
+  const emitters: Emitter[] = [...signs.neonLights, ...signs.lights, ...paper.emitters, ...ctx.emitters];
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos = [...ctx.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]);
@@ -236,14 +230,31 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
-  const facade = await buildFacade(ctx.fd, worldRows.facade, worldData, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look }, { clutterFar: [55, 85], pause: opts.pause });
-  phaseDone('facade', phaseStart);
-  const isMesh = (o: Object3D | undefined): o is Mesh => o instanceof Mesh;
-  const shell = facade.group.getObjectByName('facade-shell');
-  if (isMesh(shell)) gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
-  root.add(named(facade.group, 'facade'));
+  const facade = new Group(); facade.name = 'facade';
+  const uniforms = facadeUniforms(shared), facadeMat = facadeMaterial(uniforms);
+  nd.look.facade = { mat: facadeMat, small: facadeMaterial(uniforms, { shrink: [55, 85] }) };
+  const poses = (offset: number, count: number): Placement<Record<string, unknown>>[] => Array.from({ length: count }, (_, index) => {
+    const offsetAt = offset + index * 19, matrix = new Matrix4().fromArray(worldData, offsetAt);
+    return { ...at<Record<string, unknown>>(matrix), color: new Color().fromArray(worldData, offsetAt + 16) };
+  });
+  const shell = ctx.fd.shell === null ? null : new Mesh(ctx.fd.shell, facadeMat);
+  if (shell !== null) {
+    shell.name = 'facade-shell'; facade.add(shell); ctx.fd.shell = null;
+    for (const row of worldRows.facade.baked) {
+      const model = FACADE_BAKED[row.id]; if (model === undefined) throw new Error(`Missing facade model ${row.id}`);
+      place(model, poses(row.poses, row.count), { ctx: nd.ctx, draw: 'merged', drawnInto: { object: shell, boxes: Float32Array.from(worldData.subarray(row.boxes, row.boxes + row.count * 6)) }, piece: { id: `nds-facade-${row.id}`, name: model.name } });
+    }
+    gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
+  }
+  for (const row of worldRows.facade.drawn) {
+    const model = FACADE_MODELS[row.id]; if (model === undefined) throw new Error(`Missing facade model ${row.id}`);
+    nameDraws(await placeSliced(model, poses(row.poses, row.count), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(row.small ? { far: 85 } : {}) }, parent: facade, piece: { id: `nds-facade-${row.id}`, name: model.name } }, slice.due), `facade-${row.id}`);
+  }
+  facade.add(...await loadFacadeWindows(windowMaterial(uniforms)));
+  root.add(facade); phaseDone('facade', phaseStart);
   await slice();
-  const neonMeshes = neonSigns.build();
+  const neonMeshes = { boards: new Mesh(signs.geometry('neon-world-boards'), lentLook('nine-neon-board')), tubes: new Mesh(signs.geometry('neon-world-tubes'), lentLook('nine-neon-tube')) };
+  neonMeshes.tubes.renderOrder = 5;
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));
   await slice();
   progress(0.6, 'streaks + dressing');
@@ -304,7 +315,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const signsMesh = named(new Mesh(signs.geometry('world'), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
-  registerSigns(nd.ctx, signs.placed, { atlas: signsMesh, neon: neonMeshes.boards });
+  registerSigns(nd.ctx, signs, { atlas: signsMesh, neon: neonMeshes.boards });
   await slice();
 
   // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
@@ -362,7 +373,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const light = installLight({
     caps: entryCaps,
     u: shared.u, pipe: { glow: glowUniforms(), grade: gradeUniforms() }, lanterns: paper.emitters, ctxEmitters: ctx.emitters,
-    signs: [...neonSigns.emitters, ...signs.lights],
+    signs: [...signs.neonLights, ...signs.lights],
   });
   await light.ready;
   progress(0.95, 'culling');

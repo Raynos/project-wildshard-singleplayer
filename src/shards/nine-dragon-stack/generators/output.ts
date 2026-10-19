@@ -11,6 +11,7 @@ import * as v from 'valibot';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
 import bursts from '../data/burstFields.json' with { type: 'json' };
+import { facadeWindowBlobs } from './facadeWindows';
 import { layoutBlobs } from './layoutBlobs';
 import { MeshStandardMaterial } from 'three';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
@@ -40,10 +41,9 @@ const material = new MeshStandardMaterial({ flatShading: true, vertexColors: tru
 material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
-const glyphBlobs = Object.entries(glyphs).flatMap(([tier, row]) => [
-    nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS, parts: row.packed.length })),
-  ].concat(row.packed.map((part, index) => nameBlob(`signs/glyphs-${tier}-${index}.rg8`, 'bin', Uint8Array.from(atob(part), byte => byte.codePointAt(0) ?? 0), { decoded: 2_097_152, gpu: Math.ceil(2_097_152 * 4 / 3) }))));
-const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
+const glyphBlobs = Object.entries(glyphs).map(([tier, row]) =>
+  nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS })));
+const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),

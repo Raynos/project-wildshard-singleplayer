@@ -11,7 +11,6 @@ import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { BakedSigns } from './casts';
-import type { NeonText as NeonTextView } from '../runtime/signs/neonText';
 import { createOwnedGeometryBatch, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -59,8 +58,6 @@ export interface NdLook {
   /** the banyan's painted canopy programs (world/canopy.ts `buildCanopy`: its core, its cards, the cards' depth pass;
    *  null while unbuilt, or when the leaf atlas failed and the tree stands bare) */
   canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
-  /** the neon calligraphy (runtime/signs/neonText: its glyph field and its board / tube looks), the neon sign's specimen */
-  calligraphy: NeonTextView | null;
   /** G285: the code-built models' baked geometry (world/modelLook.ts): what the page builds at load, loaded with the layout */
   specimens: SpecimenBake | null;
   /** …and what only the Explorer's specimens draw, fetched the first time one asks (`withSpecimens`) */
@@ -71,7 +68,7 @@ const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
 export function ndModelContext(renderer: Renderer | null, owner: Scope): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { owner, mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null, specimens: null, explorer: null };
+  const look: NdLook = { owner, mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, specimens: null, explorer: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };
