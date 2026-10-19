@@ -3,7 +3,18 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
 // Synchronous admission/restore events and bounded 10 Hz sheepdog decisions.
 // The native owner retains bodies, clocks and both original random streams.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.spot) {
+  if(signal==Signal.speed) {
+    const dt=get(Field.dt),dx=get(Field.x)-get(Field.px),dz=get(Field.z)-get(Field.pz),old=get(Field.speed);
+    const instant=dt>0?Math.min(Math.sqrt(dx*dx+dz*dz)/dt,14):old;
+    Do.channel(Channel.speed,old+(instant-old)*Math.min(1,dt*6));
+  } else if(signal==Signal.whistle) {
+    const dx=get(Field.x)-get(Field.px),dz=get(Field.z)-get(Field.pz);
+    Do.channel(Channel.accept,dx*dx+dz*dz<900?1:0);
+    Do.channel(Channel.awareness,Math.min(1,get(Field.awareness)+.3));
+  } else if(signal==Signal.scare) {
+    const dx=get(Field.x)-get(Field.px),dz=get(Field.z)-get(Field.pz),r=get(Field.radius);
+    Do.channel(Channel.accept,dx*dx+dz*dz<r*r?1:0);
+  } else if(signal==Signal.spot) {
     const angle=(Math.PI*2)*Read.random(),radius=Math.sqrt(Read.random())*get(Field.radius);
     if(Read.radial(angle,radius)!=2)unreachable();
     Do.channel(Channel.x,get(Field.x)+List.at(1));Do.channel(Channel.z,get(Field.z)+List.at(0));
