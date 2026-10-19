@@ -802,7 +802,8 @@
       "platform": "portable",
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
-        "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6"
+        "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
+        "src/shards/nalati-grasslands/boot/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc"
       },
       "seedOutputs": []
     },
