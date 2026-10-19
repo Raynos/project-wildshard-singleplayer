@@ -1,0 +1,140 @@
+{
+  "recipeTree": "661647c747d62a3b3308dd1b4ca0fd2f3cd835bc",
+  "rows": [
+    {
+      "step": 1,
+      "clock": 0.96,
+      "tick": 1,
+      "deathT": 0.020833333333333332,
+      "bellRotationDelta": -0.13982024016203706,
+      "clapperRotationDelta": -0.6991012008101851,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 1,
+      "clock": 0.96,
+      "tick": 6,
+      "deathT": 0.12499999999999999,
+      "bellRotationDelta": -0.13398437500000007,
+      "clapperRotationDelta": -0.669921875,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 1,
+      "clock": 0.96,
+      "tick": 12,
+      "deathT": 0.25,
+      "bellRotationDelta": -0.11812500000000002,
+      "clapperRotationDelta": -0.5906250000000002,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 1,
+      "clock": 0.96,
+      "tick": 24,
+      "deathT": 0.4999999999999998,
+      "bellRotationDelta": -0.07000000000000002,
+      "clapperRotationDelta": -0.35000000000000026,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 1,
+      "clock": 0.96,
+      "tick": 48,
+      "deathT": 1,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 2,
+      "clock": 0.68,
+      "tick": 1,
+      "deathT": 0.020833333333333332,
+      "bellRotationDelta": 0.1198459201388889,
+      "clapperRotationDelta": 0.5992296006944444,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 2,
+      "clock": 0.68,
+      "tick": 6,
+      "deathT": 0.12499999999999999,
+      "bellRotationDelta": 0.11484375000000005,
+      "clapperRotationDelta": 0.57421875,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 2,
+      "clock": 0.68,
+      "tick": 12,
+      "deathT": 0.25,
+      "bellRotationDelta": 0.10124999999999997,
+      "clapperRotationDelta": 0.5062499999999999,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 2,
+      "clock": 0.68,
+      "tick": 24,
+      "deathT": 0.4999999999999998,
+      "bellRotationDelta": 0.06000000000000014,
+      "clapperRotationDelta": 0.30000000000000027,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 2,
+      "clock": 0.68,
+      "tick": 48,
+      "deathT": 1,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 3,
+      "clock": 0.68,
+      "tick": 1,
+      "deathT": 0.020833333333333332,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0.2130619421580855
+    },
+    {
+      "step": 3,
+      "clock": 0.68,
+      "tick": 6,
+      "deathT": 0.12499999999999999,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0.06661834716796877
+    },
+    {
+      "step": 3,
+      "clock": 0.68,
+      "tick": 12,
+      "deathT": 0.25,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 3,
+      "clock": 0.68,
+      "tick": 24,
+      "deathT": 0.4999999999999998,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0
+    },
+    {
+      "step": 3,
+      "clock": 0.68,
+      "tick": 48,
+      "deathT": 1,
+      "bellRotationDelta": 0,
+      "clapperRotationDelta": 0,
+      "foreLegYDelta": 0
+    }
+  ]
+}

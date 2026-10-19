@@ -1,0 +1,25 @@
+{
+  "reviewedTree": "661647c747d62a3b3308dd1b4ca0fd2f3cd835bc",
+  "files": [
+    {
+      "path": "docs/reviews/rigid-corpse-contract-audit/REVIEW.md",
+      "sha256": "0df31651919ea028722573233e117f24c2d61dce6d47e2b681e37c20c0ae26c3",
+      "bytes": 11444
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-contract-audit/reproduce-stale-death-input.mjs",
+      "sha256": "11bedf28070d55ab3618aa77e3a9cc63116a34ad8fe3163fd939479800364690",
+      "bytes": 2380
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-contract-audit/source-hashes.json",
+      "sha256": "95f3601242993409774b9fc2cf876b8deac43636817bd694bb9f9f76b49e02de",
+      "bytes": 3215
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-contract-audit/stale-death-input-results.json",
+      "sha256": "c55de77adbe612c483c802fe8fd5c407acb20d799a04f620a05a557a70f3f656",
+      "bytes": 3193
+    }
+  ]
+}

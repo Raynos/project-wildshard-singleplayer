@@ -1,0 +1,88 @@
+{
+  "reviewedTree": "661647c747d62a3b3308dd1b4ca0fd2f3cd835bc",
+  "manifestBase": "d6a2af7cb71c139b443133c28fcdb68d97029aa6",
+  "initialImplementation": "7a450187a6fd717efdc7f970ab5d4a7ea01e12e1",
+  "dateUTC": "2026-10-19",
+  "files": [
+    {
+      "path": "docs/ENGINE.md",
+      "sha256": "a6eb5f0e50049666473526e50e21a0e183da593643cc6106da5d8625610300bb"
+    },
+    {
+      "path": "src/engine/entities/AnimalFactory.ts",
+      "sha256": "3150a92ee756e5afb7035751d48cf2d1b63de806e919d16f5f23176df3119f8c"
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9"
+    },
+    {
+      "path": "src/engine/physics/rigidCorpse.ts",
+      "sha256": "73c2e2cab5493babd35191521547fa43b47a610c7aee1d9a35a93ec19347a21a"
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d"
+    },
+    {
+      "path": "test/rigid-corpse-clock.test.ts",
+      "sha256": "77af7101b325f8b6958265e1c346728d968252f1e418a48c67e63defe086975a"
+    },
+    {
+      "path": "test/rigid-corpse-physics.test.ts",
+      "sha256": "1077e0c0c45969e34d9927e1072300629ddc0aa0e1b2c2ccc99d04e9971ef67b"
+    },
+    {
+      "path": "test/rigid-corpse-schema.test.ts",
+      "sha256": "ce2ea5be91e32208c30c06c99fef7515538c8098d5aabcd421b6882513b3917c"
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "a0cf3d74341b955074354c84d09276d74f720b89ae80c7d0b9eed3ca7ace7347"
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "sha256": "894946106808f7c802570960618a6e92be7b5adc5f4da1c75ea9ce56559e3f38"
+    },
+    {
+      "path": "src/engine/entities/AnimalSim.ts",
+      "sha256": "13a7e23fe566753d97879100addd4493357c2617b251fd82148a305c9b871ae7"
+    },
+    {
+      "path": "src/game/practice/PracticeCreature.ts",
+      "sha256": "ee97d17f4e90e7a74454055baefa167006122cd2299b5e614d8ce63603906dec"
+    },
+    {
+      "path": "src/game/shardfile/decisions.ts",
+      "sha256": "b52feed31f45c3865dddec78949f470207a3bab0ce529bf3da5d429f0e4a2cde"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d"
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/bellback.as",
+      "sha256": "69c546e693e372b29332c0b0b6376ba234d08181eb7596ee3febd9050c680e2a"
+    },
+    {
+      "path": "src/engine/core/Game.ts",
+      "sha256": "4d0fb78994cdcc6260b07a79033f431fcea8955ee659413e4331c336e564fe59"
+    },
+    {
+      "path": "src/engine/core/bootstrap.ts",
+      "sha256": "18fc3a9bc4c86ccd48c1739f9b245125d69d97fcbed656f125f1af34762799fd"
+    },
+    {
+      "path": "src/game/practiceDemo/startPracticeDemo.ts",
+      "sha256": "5d49997057a3b834453c058f1c5ee8464caa724dc4bbc2fa40d8755ef5a63184"
+    },
+    {
+      "path": "src/game/shardfile/borrowedDecisions.ts",
+      "sha256": "bfe383dcc8c27950e10e84fbe22a91b6bfd54555252357dbb00b8f316bc5f693"
+    },
+    {
+      "path": "src/shards/driftwood-isle/runtime/index.ts",
+      "sha256": "627df3c92be8b45e313588c219790221b137dc38d7f4ecde3b6b9404babdbc45"
+    }
+  ]
+}
