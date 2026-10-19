@@ -1,0 +1,10 @@
+{
+  "status": "source-only repair; actual root raycasts still require preflight",
+  "changes": [
+    "Rear-band quad diagonals match front-band diagonals in the same XZ domain.",
+    "Two lower cheek corner stations move from absX .21675,Y .735,Z .730 to absX .208,Y .845,Z .690 to enclose unchanged gape corners."
+  ],
+  "envelope": "Overall width decreases17.5mm; local lower-side contour extends8mm beyond old lip-only width but remains within old arch overall width. Upper arch, gape, eyes and body remain unchanged.",
+  "lightIntersectionResult": "Zero nonadjacent crossings using captured root depths with updated corner XZ. This is not an actual containment pass.",
+  "priorFailurePreserved": true
+}

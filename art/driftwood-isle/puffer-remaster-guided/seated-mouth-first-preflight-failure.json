@@ -1,0 +1,9 @@
+{
+  "status": "failed before export/render",
+  "exitCode": 1,
+  "session": 86855,
+  "terminalUtc": "2026-10-19T02:29:47Z",
+  "failure": "Mouth unit has crossing nonadjacent triangles",
+  "builderSha256": "3390fab1ea13622d8538604425e035b93454e8dcb716501b2bb9a26a01688fa7",
+  "helperSha256": "4d709a6825b3275baf3cc91fa70e58ec63841e6a5910f7ea00ab3e4640058d11"
+}

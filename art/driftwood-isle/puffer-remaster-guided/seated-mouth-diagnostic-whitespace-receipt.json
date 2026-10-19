@@ -1,0 +1,8 @@
+{
+  "executedSourceSha256": "19e37c10c3d77e28980c21f513c5e1fa3737b015d5635f7f9b74590a82572368",
+  "normalizedSourceSha256": "4742a9509177e47f6d859f594d309a655bc1903599963125d0da75f3796cf909",
+  "change": "Trailing whitespace removed only after diagnostic terminal; no logic changes.",
+  "session": 44438,
+  "exitCode": 1,
+  "terminalUtc": "2026-10-19T02:32:07Z"
+}
