@@ -1,0 +1,35 @@
+{
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "files": {
+    "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/prepare.py": {
+      "bytes": 2956,
+      "sha256": "d594d246a2136d9d7776af66849cd30772c0bc42b350627ba9cfd565eec1152c"
+    },
+    "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/metadata.json": {
+      "bytes": 78444,
+      "sha256": "a1badfcd0a4039ca031356b4d5963450e1f3e472ae1ff427f95276da828cfdfa"
+    },
+    "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/audit.json": {
+      "bytes": 2744,
+      "sha256": "1feb4ae2825e5fcbc5c6890a54eebd51b2758ed41712af058ffba28d51fa59cc"
+    },
+    "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/README.md": {
+      "bytes": 2553,
+      "sha256": "fd39d3e730ca954c34a9408e3be5b1a7fe27a4a0c67c736365ef134edea01fad"
+    },
+    "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/physics.json": {
+      "bytes": 1387276,
+      "sha256": "a714c9baf57575800964a91cd79cfffe15b565d0e5ff013e3e476e2e17a7d1ea"
+    },
+    "test/brine-pitcher-core-runtime.test.ts": {
+      "bytes": 3061,
+      "sha256": "d335e85cf5c8164fd36c9bfec0127608f85995ed1e3b30ff75f3993c05c93c36"
+    },
+    "test/brine-pitcher-core-corpse.test.ts": {
+      "bytes": 5385,
+      "sha256": "8082e0fb7b4e2a34d02ce936176898107aa0bbc21b9bc81907b125c71585d364"
+    }
+  },
+  "note": "Two final lint-only edits in measurement test replace nested function declaration and string concatenation. Measurement values/inputs unchanged; completed original physics report retained."
+}

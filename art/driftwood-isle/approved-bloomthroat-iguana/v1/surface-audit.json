@@ -1,0 +1,1012 @@
+{
+  "proof": "independent actual GLB mesh topology and single-sided culling; not likeness",
+  "singleSidedMaterials": true,
+  "closedOutwardComponents": 124,
+  "triangles": 4474,
+  "viewFrontFacingTriangles": {
+    "front": 2326,
+    "left": 2163,
+    "right": 2029,
+    "back": 2050,
+    "top": 2196,
+    "elevated-front": 2234,
+    "elevated-left": 2194,
+    "elevated-right": 2309,
+    "elevated-back": 2124
+  },
+  "components": [
+    {
+      "mesh": "Amber alert eye -1",
+      "triangles": 100,
+      "signedVolume": 0.0008079216421224765,
+      "minimumArea": 0.00021247110042008308,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Amber alert eye 1",
+      "triangles": 100,
+      "signedVolume": 0.0008079216421224571,
+      "minimumArea": 0.00021247110042008308,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Angular iguana skull",
+      "triangles": 120,
+      "signedVolume": 0.15991703230962465,
+      "minimumArea": 0.008101654898858675,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad blunt muzzle",
+      "triangles": 80,
+      "signedVolume": 0.03978400924039591,
+      "minimumArea": 0.005835656150520416,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Broad golden iguana trunk",
+      "triangles": 196,
+      "signedVolume": 0.9221090797737055,
+      "minimumArea": 0.0131681559205737,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Continuous curled two-tone tail",
+      "triangles": 156,
+      "signedVolume": 0.484896809775764,
+      "minimumArea": 0.0005500452226738888,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dark closed mouth seam -1",
+      "triangles": 48,
+      "signedVolume": 0.0007060817577967559,
+      "minimumArea": 0.0009301243181705352,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dark closed mouth seam 1",
+      "triangles": 48,
+      "signedVolume": 0.0007060817577966606,
+      "minimumArea": 0.0009301243181705348,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 00",
+      "triangles": 4,
+      "signedVolume": 0.0006486666666666672,
+      "minimumArea": 0.012043255373859672,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 01",
+      "triangles": 4,
+      "signedVolume": 0.0007764918000000027,
+      "minimumArea": 0.013499720923963591,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 02",
+      "triangles": 4,
+      "signedVolume": 0.0009477706000000008,
+      "minimumArea": 0.015542522317822167,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 03",
+      "triangles": 4,
+      "signedVolume": 0.0008781626000000002,
+      "minimumArea": 0.014702779045476401,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 04",
+      "triangles": 4,
+      "signedVolume": 0.0006832294000000023,
+      "minimumArea": 0.012429795216177136,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 05",
+      "triangles": 4,
+      "signedVolume": 0.0006865660666666639,
+      "minimumArea": 0.012467420285532214,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 06",
+      "triangles": 4,
+      "signedVolume": 0.0008826388666666679,
+      "minimumArea": 0.014756485681926435,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 07",
+      "triangles": 4,
+      "signedVolume": 0.0009459534000000012,
+      "minimumArea": 0.015521946472272737,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 08",
+      "triangles": 4,
+      "signedVolume": 0.0007714046666666644,
+      "minimumArea": 0.013440453552242946,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 09",
+      "triangles": 4,
+      "signedVolume": 0.0006487539333333283,
+      "minimumArea": 0.01204422373655107,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 10",
+      "triangles": 4,
+      "signedVolume": 0.0007816097333333358,
+      "minimumArea": 0.013559443844774753,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 11",
+      "triangles": 4,
+      "signedVolume": 0.0009494235333333302,
+      "minimumArea": 0.015542522317822162,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Dorsal triangular scute 12",
+      "triangles": 4,
+      "signedVolume": 0.0008736093333333228,
+      "minimumArea": 0.014648207493068909,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye catchlight -1",
+      "triangles": 36,
+      "signedVolume": 3.6912677343215098e-06,
+      "minimumArea": 2.151987608442199e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye catchlight 1",
+      "triangles": 36,
+      "signedVolume": 3.6912677342926615e-06,
+      "minimumArea": 2.151987608442204e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye recessed socket -1",
+      "triangles": 100,
+      "signedVolume": 0.004581066839276786,
+      "minimumArea": 0.0007369795043942559,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Eye recessed socket 1",
+      "triangles": 100,
+      "signedVolume": 0.004581066839276823,
+      "minimumArea": 0.0007369795043942559,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Heavy upper brow -1",
+      "triangles": 48,
+      "signedVolume": 0.0026480205914021426,
+      "minimumArea": 0.0012884420613270902,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Heavy upper brow 1",
+      "triangles": 48,
+      "signedVolume": 0.0026480205914021764,
+      "minimumArea": 0.001288442061327091,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL continuous articulated limb",
+      "triangles": 68,
+      "signedVolume": 0.09180836206502478,
+      "minimumArea": 0.0021654879083399803,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL dark claw 0",
+      "triangles": 16,
+      "signedVolume": 0.0002585223004292836,
+      "minimumArea": 1.6427430969675657e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL dark claw 1",
+      "triangles": 16,
+      "signedVolume": 0.00025199859932751185,
+      "minimumArea": 1.642671071071715e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL dark claw 2",
+      "triangles": 16,
+      "signedVolume": 0.0002497878796649215,
+      "minimumArea": 1.6427915464201614e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL dark claw 3",
+      "triangles": 16,
+      "signedVolume": 0.00025199786769064823,
+      "minimumArea": 1.642671071071715e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL dark claw 4",
+      "triangles": 16,
+      "signedVolume": 0.00025852289454315755,
+      "minimumArea": 1.6426652574672846e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL finger 0",
+      "triangles": 26,
+      "signedVolume": 0.001007064476033403,
+      "minimumArea": 0.0002129265448268478,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL finger 1",
+      "triangles": 26,
+      "signedVolume": 0.0009838667009194131,
+      "minimumArea": 0.0002129215928234108,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL finger 2",
+      "triangles": 26,
+      "signedVolume": 0.0009760294479916319,
+      "minimumArea": 0.00021291829680625848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL finger 3",
+      "triangles": 26,
+      "signedVolume": 0.0009839319261812705,
+      "minimumArea": 0.00021292269385338717,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL finger 4",
+      "triangles": 26,
+      "signedVolume": 0.0010071927686646736,
+      "minimumArea": 0.00021292065754060024,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL planted palm",
+      "triangles": 48,
+      "signedVolume": 0.01624017972505143,
+      "minimumArea": 0.0048618756582749474,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL turquoise wrist scute 0",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113567,
+      "minimumArea": 0.0008393556132404296,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL turquoise wrist scute 1",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113736,
+      "minimumArea": 0.0008393556132404283,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBL turquoise wrist scute 2",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113495,
+      "minimumArea": 0.0008393556132404296,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR continuous articulated limb",
+      "triangles": 68,
+      "signedVolume": 0.09177153509334184,
+      "minimumArea": 0.002165529905149147,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR dark claw 0",
+      "triangles": 16,
+      "signedVolume": 0.0002585237935094073,
+      "minimumArea": 1.6427430969675657e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR dark claw 1",
+      "triangles": 16,
+      "signedVolume": 0.0002519985993275119,
+      "minimumArea": 1.642671071071715e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR dark claw 2",
+      "triangles": 16,
+      "signedVolume": 0.00024978787966492067,
+      "minimumArea": 1.6427915464201614e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR dark claw 3",
+      "triangles": 16,
+      "signedVolume": 0.00025199786769064883,
+      "minimumArea": 1.6426710710717672e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR dark claw 4",
+      "triangles": 16,
+      "signedVolume": 0.0002585215763900286,
+      "minimumArea": 1.6426652574672846e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR finger 0",
+      "triangles": 26,
+      "signedVolume": 0.0010070644760334006,
+      "minimumArea": 0.00021292654482684594,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR finger 1",
+      "triangles": 26,
+      "signedVolume": 0.00098386670091941,
+      "minimumArea": 0.0002129215928234096,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR finger 2",
+      "triangles": 26,
+      "signedVolume": 0.0009760294479916353,
+      "minimumArea": 0.00021291829680625848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR finger 3",
+      "triangles": 26,
+      "signedVolume": 0.000983931926181268,
+      "minimumArea": 0.00021292269385338622,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR finger 4",
+      "triangles": 26,
+      "signedVolume": 0.0010071927686646732,
+      "minimumArea": 0.00021292065754060024,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR planted palm",
+      "triangles": 48,
+      "signedVolume": 0.01624017972505143,
+      "minimumArea": 0.0048618756582749474,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR turquoise wrist scute 0",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113684,
+      "minimumArea": 0.0008393556132404296,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR turquoise wrist scute 1",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113569,
+      "minimumArea": 0.0008393556132404289,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legBR turquoise wrist scute 2",
+      "triangles": 36,
+      "signedVolume": 0.000922820717711383,
+      "minimumArea": 0.0008393556132404296,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL continuous articulated limb",
+      "triangles": 68,
+      "signedVolume": 0.08831886208837504,
+      "minimumArea": 0.0021654825687359622,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL dark claw 0",
+      "triangles": 16,
+      "signedVolume": 0.0002585223004292795,
+      "minimumArea": 1.6427430969675596e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL dark claw 1",
+      "triangles": 16,
+      "signedVolume": 0.0002519985993275187,
+      "minimumArea": 1.6426710710717113e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL dark claw 2",
+      "triangles": 16,
+      "signedVolume": 0.0002497878796649179,
+      "minimumArea": 1.6427915464201567e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL dark claw 3",
+      "triangles": 16,
+      "signedVolume": 0.0002519983361479472,
+      "minimumArea": 1.6426596607780013e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL dark claw 4",
+      "triangles": 16,
+      "signedVolume": 0.00025852289454315625,
+      "minimumArea": 1.642665257467274e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL finger 0",
+      "triangles": 26,
+      "signedVolume": 0.0010070644760333993,
+      "minimumArea": 0.00021292654482684735,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL finger 1",
+      "triangles": 26,
+      "signedVolume": 0.0009838667009194047,
+      "minimumArea": 0.00021292159282341083,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL finger 2",
+      "triangles": 26,
+      "signedVolume": 0.0009760298421625539,
+      "minimumArea": 0.00021291604112608431,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL finger 3",
+      "triangles": 26,
+      "signedVolume": 0.0009839306754453369,
+      "minimumArea": 0.00021292269385338717,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL finger 4",
+      "triangles": 26,
+      "signedVolume": 0.0010071927686646754,
+      "minimumArea": 0.00021292065754059976,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL planted palm",
+      "triangles": 48,
+      "signedVolume": 0.01624017972505145,
+      "minimumArea": 0.0048618756582749474,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL turquoise wrist scute 0",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113657,
+      "minimumArea": 0.0008393556132404304,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL turquoise wrist scute 1",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113426,
+      "minimumArea": 0.0008393556132404289,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFL turquoise wrist scute 2",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113732,
+      "minimumArea": 0.0008393556132404304,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR continuous articulated limb",
+      "triangles": 68,
+      "signedVolume": 0.0883850389477022,
+      "minimumArea": 0.0021655110507803918,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR dark claw 0",
+      "triangles": 16,
+      "signedVolume": 0.00025852379350940497,
+      "minimumArea": 1.6427430969675596e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR dark claw 1",
+      "triangles": 16,
+      "signedVolume": 0.0002519985993275106,
+      "minimumArea": 1.6426710710717113e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR dark claw 2",
+      "triangles": 16,
+      "signedVolume": 0.0002497878796649201,
+      "minimumArea": 1.6427915464201567e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR dark claw 3",
+      "triangles": 16,
+      "signedVolume": 0.00025199833614793845,
+      "minimumArea": 1.6426596607780535e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR dark claw 4",
+      "triangles": 16,
+      "signedVolume": 0.00025852157639002875,
+      "minimumArea": 1.642665257467274e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR finger 0",
+      "triangles": 26,
+      "signedVolume": 0.0010070644760334006,
+      "minimumArea": 0.0002129265448268455,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR finger 1",
+      "triangles": 26,
+      "signedVolume": 0.0009838667009194032,
+      "minimumArea": 0.00021292159282340961,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR finger 2",
+      "triangles": 26,
+      "signedVolume": 0.0009760298421625415,
+      "minimumArea": 0.00021291604112608431,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR finger 3",
+      "triangles": 26,
+      "signedVolume": 0.0009839306754453336,
+      "minimumArea": 0.00021292269385338622,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR finger 4",
+      "triangles": 26,
+      "signedVolume": 0.0010071927686646782,
+      "minimumArea": 0.00021292065754059976,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR planted palm",
+      "triangles": 48,
+      "signedVolume": 0.01624017972505144,
+      "minimumArea": 0.0048618756582749474,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR turquoise wrist scute 0",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113831,
+      "minimumArea": 0.0008393556132404304,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR turquoise wrist scute 1",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113689,
+      "minimumArea": 0.0008393556132404304,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "legFR turquoise wrist scute 2",
+      "triangles": 36,
+      "signedVolume": 0.0009228207177113275,
+      "minimumArea": 0.0008393556132404304,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Nostril -1",
+      "triangles": 36,
+      "signedVolume": 3.199103110119656e-05,
+      "minimumArea": 9.80587445724735e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Nostril 1",
+      "triangles": 36,
+      "signedVolume": 3.199103110126873e-05,
+      "minimumArea": 9.805874457247368e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 0 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194363,
+      "minimumArea": 0.0007040878339765848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 0 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194358,
+      "minimumArea": 0.0007040878339765848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 0 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194863,
+      "minimumArea": 0.0007040878339765848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 1 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190626,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 1 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190203,
+      "minimumArea": 0.000704069159391125,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 1 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999189654,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 2 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190715,
+      "minimumArea": 0.0007040691593911244,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 2 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190198,
+      "minimumArea": 0.0007040691593911241,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 2 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190388,
+      "minimumArea": 0.0007040691593911244,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 3 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190164,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 3 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190476,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale -1 3 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999189984,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 0 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194695,
+      "minimumArea": 0.0007040878339765848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 0 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194997,
+      "minimumArea": 0.0007040878339765845,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 0 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994966585194689,
+      "minimumArea": 0.0007040878339765848,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 1 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999189844,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 1 1",
+      "triangles": 36,
+      "signedVolume": 0.000499494799919063,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 1 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190894,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 2 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190538,
+      "minimumArea": 0.0007040691593911244,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 2 1",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999189704,
+      "minimumArea": 0.0007040691593911244,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 2 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190201,
+      "minimumArea": 0.0007040691593911244,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 3 0",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190488,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 3 1",
+      "triangles": 36,
+      "signedVolume": 0.000499494799919024,
+      "minimumArea": 0.000704069159391125,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Overlapping turquoise cheek scale 1 3 2",
+      "triangles": 36,
+      "signedVolume": 0.0004994947999190442,
+      "minimumArea": 0.0007040691593911254,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Rising tapered cervical chest",
+      "triangles": 144,
+      "signedVolume": 0.45340747510865786,
+      "minimumArea": 0.00961890463328528,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Separated lower jaw",
+      "triangles": 80,
+      "signedVolume": 0.033339878965562515,
+      "minimumArea": 0.005724737613223583,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 0",
+      "triangles": 26,
+      "signedVolume": 0.010633233333333342,
+      "minimumArea": 0.001994508476417183,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 1",
+      "triangles": 26,
+      "signedVolume": 0.013905013133333302,
+      "minimumArea": 0.002253028864107157,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 2",
+      "triangles": 26,
+      "signedVolume": 0.015521328399999992,
+      "minimumArea": 0.002253028864107158,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 3",
+      "triangles": 26,
+      "signedVolume": 0.01716097499999998,
+      "minimumArea": 0.0022530288641071563,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 4",
+      "triangles": 26,
+      "signedVolume": 0.015305771599999985,
+      "minimumArea": 0.002253028864107158,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 5",
+      "triangles": 26,
+      "signedVolume": 0.013427236866666706,
+      "minimumArea": 0.002253028864107157,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Throat bloom thick petal 6",
+      "triangles": 26,
+      "signedVolume": 0.009846566666666718,
+      "minimumArea": 0.001994508476417183,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Vertical dark pupil -1",
+      "triangles": 64,
+      "signedVolume": 4.8851907855384826e-05,
+      "minimumArea": 4.454600747316313e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    },
+    {
+      "mesh": "Vertical dark pupil 1",
+      "triangles": 64,
+      "signedVolume": 4.885190785544727e-05,
+      "minimumArea": 4.454600747316273e-05,
+      "closedManifold": true,
+      "oppositeDirectedEdges": true
+    }
+  ],
+  "runtimeAcceptance": false
+}

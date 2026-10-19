@@ -1,0 +1,28 @@
+{
+  "status": "frozen rejected first complete source; no acceptance",
+  "files": {
+    "art/driftwood-isle/approved-bloomthroat-iguana/build_iguana.py": "825ecdfd4488071762461b567580b885ce6c9de2a7d4b8bb91c238a4985c7dea",
+    "art/driftwood-isle/approved-bloomthroat-iguana/build.log": "fcbce79cafe5bb0b7ac9d2b1822c1104a48a113048a163fca5dfbe680afed827",
+    "art/driftwood-isle/approved-bloomthroat-iguana/build-run.log": "0b39568974aa4dda5bdc0a9e09b2fb28ad757d9d792a07525fa70e8635e6c9e8",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/paired-hero-board.webp": "de900df631ae7c0cbb3075f76f9a9c63f436cdc66f28ac87a0cec097c0a71eb4",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/left.webp": "40e761707a1daa67adf821b45bbf7672aea2ced2aa471a1b8341446af270614a",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/glb-equivalence.json": "d683c5729287b6a97cf97cc670c8b590e0d53e374364e67f419ce8dcc50c2b73",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/elevated-left.webp": "91b532d19c80a2e6f72c3f04400adcee88d386a8e884d0d4fefd9305f76d822c",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/weighted-pose-contact.json": "56e36213432aa0a62aa4e3af0a87fbf4452f9ba196e2896e79344d4ac9c7b7ed",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/bloomthroat-iguana-v1.glb": "84b9b6f33401c0194508dc7bf681b2d45e780ec9b22dc809ffcbeb4862dcac9d",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/elevated-back.webp": "92168abb8374ec7aa10ef080e87691a3ce0ed33ebbb25667c0fa9e49ae79ed8a",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/elevated-front.webp": "6f35b7862b07f6df10d376dac192e78100d872651a1b680daa9f761a4ba0b085",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/hero.webp": "a63e7073ba866e6bf8437a5dfce86c348e40e3c83bb1ea37ac438261f83f0cf3",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/surface-audit.json": "c72d2e8db278a47cb39a9c79590ad0b25b4808a5d5c9640e5c8314c470a8e8f1",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/top.webp": "fe263a6cf36cc410e4f24939445315199037dfff2c4b8df99a029b4b6dbd7bc9",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/front.webp": "316e8c1369418f64d239919a741ca771ce521e8dd00ba69d714c905072052cfa",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/metadata.json": "146313d611a949dc3897ef80b0fae077cc9ed0a8fd8633dff38b7d970da335fc",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/cameras.json": "5ccf727a7babd68e5f5fd5695cc699c87ef2d575c4e17be06d66352b274aaa21",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/elevated-right.webp": "b555df19f87b1a780b832bcbc1f1203406e6603cf35076cf9ca368016857d1ec",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/right.webp": "5c46b563d8faf618a74e70ddb467234a49ba622704c473dbf43a0eadd4b80ab8",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/native-source.json": "909f7abfa9c12c2d147914df5ba7c269cf4fb5e8621b459405b3bad82734af63",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/construction.json": "5ca5daac1a082d6888b87b58051a1a15d522bddc4c167d2b6d3f6aa627e024e9",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/back.webp": "66e4150b2c02216573f397aef9954193b5ffde58cdce3067c653a3b641ce6f85",
+    "art/driftwood-isle/approved-bloomthroat-iguana/v1/payload.bin": "2e712d459d17a8666fb1ac06c7e4ae20baab1507e0be47dcd0a7e49dc798dc3b"
+  }
+}

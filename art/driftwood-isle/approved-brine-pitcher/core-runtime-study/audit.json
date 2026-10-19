@@ -1,0 +1,83 @@
+{
+  "schema": "wildshard.brine-pitcher.core-runtime-study.v1",
+  "productBuilt": false,
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "visualAcceptance": false,
+  "geometryChanged": false,
+  "rootLift": 0,
+  "livingHitPolicy": "Torso and primary central pitcher only. Side mouths are attack emitters, not additional damage hitboxes; roots, canopy and leaves are decorative. Must review visible hit feedback in actual gameplay before acceptance.",
+  "liveBodyCapsule": {
+    "axis": "z",
+    "bindY": 0.7,
+    "halfLength": 0.35,
+    "radius": 0.6,
+    "restBottom": 0.1
+  },
+  "livePrimaryHeadRadius": 0.75,
+  "corpsePolicy": "Existing single rigid root with seven following convex part shapes; unchanged numeric death animation. No additional bodies, joints, engine callbacks or admission exemptions. World contact still requires actual simulation and complete-cycle recording.",
+  "parts": [
+    {
+      "bone": "body",
+      "sourceVertices": 4254,
+      "uniqueVertices": 843,
+      "hullVertices": 68,
+      "volume": 10.325039747722567,
+      "maximumSourceOutsideHull": 1.3322676295501878e-15
+    },
+    {
+      "bone": "head",
+      "sourceVertices": 1794,
+      "uniqueVertices": 335,
+      "hullVertices": 105,
+      "volume": 1.281246303957852,
+      "maximumSourceOutsideHull": 4.440892098500626e-16
+    },
+    {
+      "bone": "leftHead",
+      "sourceVertices": 1794,
+      "uniqueVertices": 335,
+      "hullVertices": 105,
+      "volume": 0.5105036242764266,
+      "maximumSourceOutsideHull": 2.220446049250313e-16
+    },
+    {
+      "bone": "rightHead",
+      "sourceVertices": 1794,
+      "uniqueVertices": 335,
+      "hullVertices": 105,
+      "volume": 0.4184885717707502,
+      "maximumSourceOutsideHull": 2.220446049250313e-16
+    },
+    {
+      "bone": "headLid",
+      "sourceVertices": 306,
+      "uniqueVertices": 59,
+      "hullVertices": 24,
+      "volume": 0.46087624934890625,
+      "maximumSourceOutsideHull": 2.220446049250313e-16
+    },
+    {
+      "bone": "leftHeadLid",
+      "sourceVertices": 306,
+      "uniqueVertices": 59,
+      "hullVertices": 24,
+      "volume": 0.1610018449108769,
+      "maximumSourceOutsideHull": 1.1102230246251565e-16
+    },
+    {
+      "bone": "rightHeadLid",
+      "sourceVertices": 306,
+      "uniqueVertices": 59,
+      "hullVertices": 24,
+      "volume": 0.13030133220936235,
+      "maximumSourceOutsideHull": 5.551115123125783e-17
+    }
+  ],
+  "totalHullPoints": 455,
+  "sourcePins": {
+    "metadata.json": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+    "native-source.json": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+    "payload.bin": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e"
+  }
+}
