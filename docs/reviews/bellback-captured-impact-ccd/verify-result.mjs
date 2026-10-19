@@ -1,0 +1,16 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+const base='docs/reviews/bellback-captured-impact-ccd';
+const read=p=>JSON.parse(readFileSync(p));
+const pins=read(`${base}/source-pins.json`);
+for(const p of pins.files)assert.equal(createHash('sha256').update(readFileSync(p.path)).digest('hex'),p.sha256,p.path);
+const a=read(`${base}/run1/baseline.json`),b=read(`${base}/run1/ccd-true.json`);
+const withoutCcd=value=>Array.isArray(value)?value.map(withoutCcd):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).filter(([key])=>key!=='ccd').map(([key,v])=>[key,withoutCcd(v)])):value;
+assert.deepEqual(withoutCcd(a),withoutCcd(b),'Every observed value identical except CCD boolean');
+assert.equal(a.rows.length,57);assert.equal(a.renderRows.length,285);
+assert.equal(a.maxBodyDelta,0);assert.equal(a.maxBoneDelta,0);
+const metrics=r=>({fixedCount:r.rows.length,renderCount:r.renderRows.length,minimumOriginalVertex:r.minimum,minimumNativeHull:Math.min(...r.rows.map(row=>row.hullMinimum)),maximumOriginalHullSupportGap:r.maxSupportGap,minimumManifold:Math.min(...r.rows.flatMap(row=>row.contacts.flatMap(m=>m.points.map(p=>p.distance)))),fixedStepsBelow5mm:r.rows.filter(row=>row.minimum<-.005).map(row=>row.step),renderSamplesBelow5mm:r.renderRows.filter(row=>row.minimum<-.005).map(row=>({step:row.step,alpha:row.alpha,minimum:row.minimum})),firstThree:r.rows.slice(0,3).map(row=>({step:row.step,minimum:row.minimum,hullMinimum:row.hullMinimum,minimumManifold:Math.min(...row.contacts.flatMap(m=>m.points.map(p=>p.distance)))}))});
+const result={verified:true,exactComparisonExceptCcd:true,baseline:metrics(a),ccdTrue:metrics(b),conclusion:'No observed effect from body-local CCD in this exact initial-impact window. Stop; no more knobs.',originalWholeLifecycleRefusalPreserved:true,acceptance:false};
+writeFileSync(`${base}/verification.json`,JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify(result,null,2));

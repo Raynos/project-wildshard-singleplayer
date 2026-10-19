@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "scope": "Initial state and steps 0 through 56 only",
+  "exactFields": "Every captured body field before and after, held local bones, pose context and memory, local/world collider physical fields, complete contact manifolds, result state. Collider allocation handles mapped to physical shapes; browser timestamps/frame counters are provenance, not dynamics.",
+  "wholeLifecycleBaselineStillRefused": true
+}

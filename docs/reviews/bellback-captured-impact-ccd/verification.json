@@ -1,0 +1,217 @@
+{
+  "verified": true,
+  "exactComparisonExceptCcd": true,
+  "baseline": {
+    "fixedCount": 57,
+    "renderCount": 285,
+    "minimumOriginalVertex": -0.010302153087764054,
+    "minimumNativeHull": -0.010302153087764054,
+    "maximumOriginalHullSupportGap": 0,
+    "minimumManifold": -0.010302066802978516,
+    "fixedStepsBelow5mm": [
+      0,
+      1,
+      2
+    ],
+    "renderSamplesBelow5mm": [
+      {
+        "step": 0,
+        "alpha": 0.5,
+        "minimum": -0.005144399223127039
+      },
+      {
+        "step": 0,
+        "alpha": 0.75,
+        "minimum": -0.007728064570983406
+      },
+      {
+        "step": 0,
+        "alpha": 1,
+        "minimum": -0.010316856081885817
+      },
+      {
+        "step": 1,
+        "alpha": 0,
+        "minimum": -0.010316856081885817
+      },
+      {
+        "step": 1,
+        "alpha": 0.25,
+        "minimum": -0.009619868278491595
+      },
+      {
+        "step": 1,
+        "alpha": 0.5,
+        "minimum": -0.008927269933451498
+      },
+      {
+        "step": 1,
+        "alpha": 0.75,
+        "minimum": -0.00823806908226743
+      },
+      {
+        "step": 1,
+        "alpha": 1,
+        "minimum": -0.007551273227704769
+      },
+      {
+        "step": 2,
+        "alpha": 0,
+        "minimum": -0.007551273227704769
+      },
+      {
+        "step": 2,
+        "alpha": 0.25,
+        "minimum": -0.006989309837194924
+      },
+      {
+        "step": 2,
+        "alpha": 0.5,
+        "minimum": -0.006429224493103902
+      },
+      {
+        "step": 2,
+        "alpha": 0.75,
+        "minimum": -0.005870100404422374
+      },
+      {
+        "step": 2,
+        "alpha": 1,
+        "minimum": -0.00531102063587241
+      },
+      {
+        "step": 3,
+        "alpha": 0,
+        "minimum": -0.00531102063587241
+      }
+    ],
+    "firstThree": [
+      {
+        "step": 0,
+        "minimum": -0.010302153087764054,
+        "hullMinimum": -0.010302153087764054,
+        "minimumManifold": 0.00002193450927734375
+      },
+      {
+        "step": 1,
+        "minimum": -0.007558561298083077,
+        "hullMinimum": -0.007558561298083077,
+        "minimumManifold": -0.010302066802978516
+      },
+      {
+        "step": 2,
+        "minimum": -0.005338263190310499,
+        "hullMinimum": -0.005338263190310499,
+        "minimumManifold": -0.0075588226318359375
+      }
+    ]
+  },
+  "ccdTrue": {
+    "fixedCount": 57,
+    "renderCount": 285,
+    "minimumOriginalVertex": -0.010302153087764054,
+    "minimumNativeHull": -0.010302153087764054,
+    "maximumOriginalHullSupportGap": 0,
+    "minimumManifold": -0.010302066802978516,
+    "fixedStepsBelow5mm": [
+      0,
+      1,
+      2
+    ],
+    "renderSamplesBelow5mm": [
+      {
+        "step": 0,
+        "alpha": 0.5,
+        "minimum": -0.005144399223127039
+      },
+      {
+        "step": 0,
+        "alpha": 0.75,
+        "minimum": -0.007728064570983406
+      },
+      {
+        "step": 0,
+        "alpha": 1,
+        "minimum": -0.010316856081885817
+      },
+      {
+        "step": 1,
+        "alpha": 0,
+        "minimum": -0.010316856081885817
+      },
+      {
+        "step": 1,
+        "alpha": 0.25,
+        "minimum": -0.009619868278491595
+      },
+      {
+        "step": 1,
+        "alpha": 0.5,
+        "minimum": -0.008927269933451498
+      },
+      {
+        "step": 1,
+        "alpha": 0.75,
+        "minimum": -0.00823806908226743
+      },
+      {
+        "step": 1,
+        "alpha": 1,
+        "minimum": -0.007551273227704769
+      },
+      {
+        "step": 2,
+        "alpha": 0,
+        "minimum": -0.007551273227704769
+      },
+      {
+        "step": 2,
+        "alpha": 0.25,
+        "minimum": -0.006989309837194924
+      },
+      {
+        "step": 2,
+        "alpha": 0.5,
+        "minimum": -0.006429224493103902
+      },
+      {
+        "step": 2,
+        "alpha": 0.75,
+        "minimum": -0.005870100404422374
+      },
+      {
+        "step": 2,
+        "alpha": 1,
+        "minimum": -0.00531102063587241
+      },
+      {
+        "step": 3,
+        "alpha": 0,
+        "minimum": -0.00531102063587241
+      }
+    ],
+    "firstThree": [
+      {
+        "step": 0,
+        "minimum": -0.010302153087764054,
+        "hullMinimum": -0.010302153087764054,
+        "minimumManifold": 0.00002193450927734375
+      },
+      {
+        "step": 1,
+        "minimum": -0.007558561298083077,
+        "hullMinimum": -0.007558561298083077,
+        "minimumManifold": -0.010302066802978516
+      },
+      {
+        "step": 2,
+        "minimum": -0.005338263190310499,
+        "hullMinimum": -0.005338263190310499,
+        "minimumManifold": -0.0075588226318359375
+      }
+    ]
+  },
+  "conclusion": "No observed effect from body-local CCD in this exact initial-impact window. Stop; no more knobs.",
+  "originalWholeLifecycleRefusalPreserved": true,
+  "acceptance": false
+}

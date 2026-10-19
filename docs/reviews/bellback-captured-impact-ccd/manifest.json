@@ -1,0 +1,69 @@
+{
+  "schema": "wildshard.bellback.captured-impact-ccd.v1",
+  "comparisonRun": true,
+  "window": [
+    0,
+    56
+  ],
+  "baselineExactInWindow": true,
+  "wholeLifecycleBaselineStillRefused": true,
+  "acceptance": false,
+  "noImprovement": true,
+  "files": [
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/README.md",
+      "sha256": "e94195614a3a21224af93d61f302da383e63960bdfd674fb98911e9a097a239a",
+      "bytes": 4309
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/replay-impact-ccd.mjs",
+      "sha256": "bfe84f04680133e862336700fd36cdd62b194bed84504ac6df06373c62ff3e54",
+      "bytes": 13476
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/run1/baseline-gate.json",
+      "sha256": "4a30f0c91cca78149c34ba47bb15c8bccb506c0ee61cf53d24569f24b8512b1b",
+      "bytes": 429
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/run1/baseline.json",
+      "sha256": "6efd4d347e8fa51b66fe294ca6c06c48701fa2fcf02c2b2627a1ec04b6bf34ee",
+      "bytes": 1209918
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/run1/ccd-true.json",
+      "sha256": "78f4a1cd2cbdff8a23be6e60b27680edff64dd5eaab916c7a7c6f296eaf772f3",
+      "bytes": 1209746
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/run1/summary.json",
+      "sha256": "f2999dffd046de5a72e9a291f2329b99fa32eb8fdc650d358657fb11799f81df",
+      "bytes": 1171
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/run1.log",
+      "sha256": "9bbfa9ba39bb9de94aeb91db81a72ba8aed5c5561141135fe305d34a3c483713",
+      "bytes": 1345
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/source-pins.json",
+      "sha256": "687ab4d62063d00729f5784fa50ae05762f1a4cc224da870405b2a48304a3e85",
+      "bytes": 35101
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/verification.json",
+      "sha256": "50b670e5a52c7d43c715bd730cd811074a30c242832530ecfc50742fe05c56a4",
+      "bytes": 4793
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/verification.log",
+      "sha256": "50b670e5a52c7d43c715bd730cd811074a30c242832530ecfc50742fe05c56a4",
+      "bytes": 4793
+    },
+    {
+      "path": "docs/reviews/bellback-captured-impact-ccd/verify-result.mjs",
+      "sha256": "ef3a00f94909a15cfcff1638931222e4764150de0347a07ed619f33deee07831",
+      "bytes": 2038
+    }
+  ]
+}

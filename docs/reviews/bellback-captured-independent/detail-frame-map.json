@@ -1,0 +1,26 @@
+{
+  "encodedFrames": [
+    290,
+    315,
+    350,
+    430,
+    448,
+    800,
+    988,
+    1138,
+    1668,
+    1674,
+    1690,
+    1710,
+    1740,
+    1800,
+    2480,
+    2503,
+    2524,
+    2600,
+    3369,
+    3478
+  ],
+  "method": "Twenty source-native 402x874 PNGs decoded with FFmpeg select by exact zero-based encoded index; board crops each to x0-402/y195-555 and labels encoded index. No image synthesis or pose retouching.",
+  "localDirectory": "tmp/bellback-captured-independent-details"
+}

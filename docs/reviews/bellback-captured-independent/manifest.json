@@ -1,0 +1,117 @@
+{
+  "schema": "wildshard.bellback.captured-independent-review.v1",
+  "product": "22a5dec83554617cfc56fc587dde955e75d08a24f49d67b6cdf22d10f03f414f",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "recommendation": "Reject promotion; preserve failed labelled diagnostic WIP only",
+  "encodedFrames": 3637,
+  "inspectedFrameRange": [
+    0,
+    3636
+  ],
+  "contactSheets": 57,
+  "exactConsecutivePixelDuplicates": 12,
+  "sourceFilesVerified": 1600,
+  "builtFilesVerified": 186,
+  "capturePinMismatches": [],
+  "evidence": [
+    {
+      "path": "docs/reviews/bellback-captured-independent/REVIEW.md",
+      "bytes": 11874,
+      "sha256": "d017c112541b2ad07b7794d00d2fc161b16e2065a5fed7a9b33412dda52e2678"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/analyze-traces.py",
+      "bytes": 2208,
+      "sha256": "9e589daf513594a094eb024b3efca50290374e3cddfad0a285eb938fe52417a0"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/coverage.json",
+      "bytes": 35464,
+      "sha256": "2f2159e5e263d1f414e394ea38549633aabdbab363add36ae7270630acd98dc0"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/detail-board.jpg",
+      "bytes": 439362,
+      "sha256": "8e92ae835075f77ddd4fdd867f441bb5004c268807a931348ae575c87fec35d7"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/detail-frame-map.json",
+      "bytes": 498,
+      "sha256": "6a236f2f72d39202f6e584edd987ff84ab16d0572d2fd07ca33e6bb40b98151a"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/encoded-frame-map.json",
+      "bytes": 230432,
+      "sha256": "6bc53840c86a8e7805cf712dc00167a89f3996c2525091a2c29512b5bd5681b0"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/fixed-contact.json",
+      "bytes": 128776,
+      "sha256": "73e15bf31b44a798b35fe9b131b717c17393e01af53e2169afb9593f8e7fca91"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/fixed-shapes.py",
+      "bytes": 2592,
+      "sha256": "1cb047d625f85a98c6feb7a2894bd3ae224eb580e8d03081267ed0f6dcf9f355"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/make-sheets.py",
+      "bytes": 1730,
+      "sha256": "e20c8dbdd9e4c8e523f5f608309a36ec3fb290b7382a08f66bc0673efd5953b0"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/native-contact.json",
+      "bytes": 65982,
+      "sha256": "6ba16cec292153eeb0ccc42a6e7ea41bc3b72ef6f91603e884ea60899196b741"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/native-contact.py",
+      "bytes": 3785,
+      "sha256": "b65290d9d1658c9a8ed98a4103626f6344c3a3bfc8cc06363fd379d0cf4ba4e7"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/pin-verification.json",
+      "bytes": 313,
+      "sha256": "3c4d4b76d64206f3ae60c3e90c2efa3d5cc3d37d9d11d328bbf5b01595e017df"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/recompute.py",
+      "bytes": 4030,
+      "sha256": "897da845889ea8ef9d060ccb78ee87b9de54a56c7ce290ab217d8d6b04be421a"
+    },
+    {
+      "path": "docs/reviews/bellback-captured-independent/weighted-contact.json",
+      "bytes": 500730,
+      "sha256": "ad522b1ee6dcb4d9162b8c916461180e7ef12972288cf7bc826cd6489e606e01"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/capture-manifest.json",
+      "bytes": 6304,
+      "sha256": "5087986a0f7b5c92117e5f52066d58f5f67b1aa0fb36d2a3826826ed3adf3280"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/build1/source-closure.json",
+      "bytes": 263656,
+      "sha256": "8bbe5985f6fb2d3d658ae246179b1fe24ee43a58ab8ed87bda81f271395a66b6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/build1/build-files.json",
+      "bytes": 38237,
+      "sha256": "4a403570569f6b8600f6709c423890b12cfc50a18b096c5af48e2d8e89a484fa"
+    }
+  ],
+  "video": [
+    {
+      "path": "tmp/bellback-captured-full-combat1/video/page@c06c59c2a8bd2f774903e95ee9193c40.webm",
+      "sha256": "3660550bc0b1750fe00d2bd7c29a21de63fe51d386da977cc972d4203bd2e4c6",
+      "bytes": 13023553
+    }
+  ],
+  "temporaryVisualEvidence": [
+    "tmp/bellback-captured-independent-sheets",
+    "tmp/bellback-captured-independent-details"
+  ]
+}

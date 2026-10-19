@@ -1,0 +1,42 @@
+(node:6) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "studyOnly": true,
+  "acceptance": false,
+  "wholeLifecycleAcceptance": false,
+  "scope": "Candidate5 case0 initial impact: initial state and zero-based steps 0–56 (0–0.95 seconds). Exactly one body-local enableCcd(true) comparison. No final settle/freeze/lifecycle/terrain/gameplay inference.",
+  "baseline": {
+    "ccd": false,
+    "scenario": "enemy-defeat",
+    "steps": 57,
+    "capturedSteps": 88,
+    "state": "live",
+    "initialDifference": 0,
+    "maxBodyDelta": 0,
+    "maxBoneDelta": 0,
+    "maxSupportGap": 0,
+    "minimum": -0.010302153087764054,
+    "framesBelow5mm": 3,
+    "renderMinimum": -0.010316856081885817,
+    "renderBelow5mm": 14
+  },
+  "ccdTrue": {
+    "ccd": true,
+    "scenario": "enemy-defeat",
+    "steps": 57,
+    "capturedSteps": 88,
+    "state": "live",
+    "initialDifference": 0,
+    "maxBodyDelta": 0,
+    "maxBoneDelta": 0,
+    "maxSupportGap": 0,
+    "minimum": -0.010302153087764054,
+    "framesBelow5mm": 3,
+    "renderMinimum": -0.010316856081885817,
+    "renderBelow5mm": 14
+  },
+  "fixedMinimumImprovement": 0,
+  "renderMinimumImprovement": 0,
+  "strict5mmAtAllSampledEndpoints": false,
+  "continuousTimeProof": false
+}

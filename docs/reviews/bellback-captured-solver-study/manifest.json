@@ -1,0 +1,67 @@
+{
+  "schema": "wildshard.bellback.captured-ccd-study.v1",
+  "comparisonRun": false,
+  "baselineAccepted": false,
+  "solver024Run": false,
+  "contactAcceptance": false,
+  "reason": "Exact native baseline only matches first57 steps; whole-life gate refuses before CCD=true. No further settings run.",
+  "files": [
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/README.md",
+      "sha256": "60961b978a25c141ffd29f5af576a0acf896ccba48b8510b7bd78fe616302ef9",
+      "bytes": 3333
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1/baseline-refusal.json",
+      "sha256": "fc1df1c897d8e9f4b3ec51e783b65ddd05d4ddb5b3b7fdaf1e6dfeaf27cd0e62",
+      "bytes": 935
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1/case0-ccd-false.json",
+      "sha256": "cbe11116bd0d21de72a4304ed63b03a573cb360eea0cfa12f848eb5f8597a6b9",
+      "bytes": 155861
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1-bake.log",
+      "sha256": "0c30e7789bc8d51a50328de88585375c372f7c780b3b6c9034e69a1fe53f8266",
+      "bytes": 744
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1.log",
+      "sha256": "12e6d9c79e9133f8c0c63659e24075948ee41c473c5c82b60255466628d6b01c",
+      "bytes": 1047
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/classify-impact.py",
+      "sha256": "0ddfdb0a7175e7a913d11c29d64397fe94b4a8ebad9deadf80bcb0d11dbe740c",
+      "bytes": 2856
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/impact-classification.json",
+      "sha256": "fbab316ee1cbb09b720b65f8e767476abc09216959a855e84f7226ae5318b3e6",
+      "bytes": 5626
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/replay-ccd-study.mjs",
+      "sha256": "85e52d281dc7810f94d45a20b514b867fecda96c429eb2391f3f6324bbf2bd27",
+      "bytes": 9422
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/replay-solver-study.mjs",
+      "sha256": "100b2fa150b2886f10cbd9ddde9fd2fd2b10f50a3514edd52cc46db28101108c",
+      "bytes": 9456
+    }
+  ],
+  "inputs": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-0.json",
+      "sha256": "4a9a581c63282d71eb1df30fba5ce1984b843dd440ee45e04fa36a0e8d7c52da",
+      "bytes": 1115192
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-1.json",
+      "sha256": "e0342903b06f4049f38a2433b8dcd46e8c45ff6a654a1668341ab66b1fa51c04",
+      "bytes": 1077900
+    }
+  ]
+}

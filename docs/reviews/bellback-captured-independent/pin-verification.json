@@ -1,0 +1,12 @@
+{
+  "source-closure": {
+    "count": 1600,
+    "mismatches": [],
+    "manifestSha256": "8bbe5985f6fb2d3d658ae246179b1fe24ee43a58ab8ed87bda81f271395a66b6"
+  },
+  "build-files": {
+    "count": 186,
+    "mismatches": [],
+    "manifestSha256": "4a403570569f6b8600f6709c423890b12cfc50a18b096c5af48e2d8e89a484fa"
+  }
+}

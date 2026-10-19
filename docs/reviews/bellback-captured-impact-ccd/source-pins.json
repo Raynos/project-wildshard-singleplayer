@@ -1,0 +1,970 @@
+{
+  "captureSha256": "4a9a581c63282d71eb1df30fba5ce1984b843dd440ee45e04fa36a0e8d7c52da",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/admission.json",
+      "sha256": "936809d26f06109fdc32006ab12965f3101183086c316acfd44a7e2a94facd3a",
+      "bytes": 3507
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/metadata.json",
+      "sha256": "7102c5ba2084311c55bfeeee832ca7e6868410c6962cd3e443f9e2505aa82475",
+      "bytes": 10104
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/admission.json",
+      "sha256": "1879adbef7ef3e4f28a88e4740f58aee995c62098ec92cf23256a99f398763da",
+      "bytes": 2638
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/canonical-proof.json",
+      "sha256": "700b3d9a90302021bf2274dd08999cdd61554b4715c39c60bf5e48f31cfedb40",
+      "bytes": 3402
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/metadata.json",
+      "sha256": "bb6c8304f93430701e67f8d3944d08b619aae476fb028bc84650c07d931be082",
+      "bytes": 77060
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/admission.json",
+      "sha256": "2ab60f590128398389da325463f3059856bc2bd77faddc0266eb46c87606336f",
+      "bytes": 4294
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate5/metadata.json",
+      "sha256": "7279947529a1c4147782a1171d54597e735136e9bd99c7a4f87f402a64806de6",
+      "bytes": 77096
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json",
+      "sha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+      "bytes": 1785369
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/payload.bin",
+      "sha256": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+      "bytes": 38768
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/README.md",
+      "sha256": "60961b978a25c141ffd29f5af576a0acf896ccba48b8510b7bd78fe616302ef9",
+      "bytes": 3333
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1/baseline-refusal.json",
+      "sha256": "fc1df1c897d8e9f4b3ec51e783b65ddd05d4ddb5b3b7fdaf1e6dfeaf27cd0e62",
+      "bytes": 935
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/ccd-run1/case0-ccd-false.json",
+      "sha256": "cbe11116bd0d21de72a4304ed63b03a573cb360eea0cfa12f848eb5f8597a6b9",
+      "bytes": 155861
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/classify-impact.py",
+      "sha256": "0ddfdb0a7175e7a913d11c29d64397fe94b4a8ebad9deadf80bcb0d11dbe740c",
+      "bytes": 2856
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/impact-classification.json",
+      "sha256": "fbab316ee1cbb09b720b65f8e767476abc09216959a855e84f7226ae5318b3e6",
+      "bytes": 5626
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/manifest.json",
+      "sha256": "48a563cc2bbbbaae7d1006ec0b9d2442aef84c14090abe78dda5c9c3e2d0adb9",
+      "bytes": 2536
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/replay-ccd-study.mjs",
+      "sha256": "85e52d281dc7810f94d45a20b514b867fecda96c429eb2391f3f6324bbf2bd27",
+      "bytes": 9422
+    },
+    {
+      "path": "docs/reviews/bellback-captured-solver-study/replay-solver-study.mjs",
+      "sha256": "100b2fa150b2886f10cbd9ddde9fd2fd2b10f50a3514edd52cc46db28101108c",
+      "bytes": 9456
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/posed-parts-proposal.json",
+      "sha256": "8cb4df8dd29ab33c06e15f905a1e9b1901f23b6c3e7a2c79376411eed119640b",
+      "bytes": 26767
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/manifest.json",
+      "sha256": "72af1a5a8da116404585f068cc783bf846d72fcf2d4101247f38060710ba751b",
+      "bytes": 3965
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/source-review.md",
+      "sha256": "d520fad4f3a87ebaaf99c26d585e42226e8f23d9b366e56c98f9f2fed670ba18",
+      "bytes": 3345
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/verify-canonical.py",
+      "sha256": "cd0f87269fb9c3f47a3b998e436df279310191df9da245dcfc41ac92ef1deccc",
+      "bytes": 3998
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/README.md",
+      "sha256": "0c5d30790fbe00c4c6bff5eea8fae6a1a89d9ce763af0bbb987b4563b2067a56",
+      "bytes": 4894
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/arena-walk-report.json",
+      "sha256": "e5035630e8707693848db25fc44c952f743c4a73af8ddeff64eff72a2cd889df",
+      "bytes": 140818
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/capture-manifest.json",
+      "sha256": "5087986a0f7b5c92117e5f52066d58f5f67b1aa0fb36d2a3826826ed3adf3280",
+      "bytes": 6304
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/contact-analysis.json",
+      "sha256": "4723082ea06a7630ce3079f7f753df1408b08654743bfb05a259e903e1ba2004",
+      "bytes": 561127
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/fixed-trace.json",
+      "sha256": "ed9b1348b7d5e62eef14a454c1288ec59377e01b2a83f860d96bfea1577d98fa",
+      "bytes": 1756231
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/log-whitespace-normalization.json",
+      "sha256": "ece4790204ff71097455514b1b792ad814a019ca12a2bf9c7058ff5520b676d9",
+      "bytes": 1046
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-0.json",
+      "sha256": "4a9a581c63282d71eb1df30fba5ce1984b843dd440ee45e04fa36a0e8d7c52da",
+      "bytes": 1115192
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/native-case-1.json",
+      "sha256": "e0342903b06f4049f38a2433b8dcd46e8c45ff6a654a1668341ab66b1fa51c04",
+      "bytes": 1077900
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/render-trace.json",
+      "sha256": "ba1e110e01d599c30a0b3cfcc02db6506482bfef1ec882142ba0005a192d6907",
+      "bytes": 1874729
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/report.json",
+      "sha256": "0b42db43d2c7c3c959aef07d435feac38f02615e5396db89532707e49e2c501a",
+      "bytes": 776596
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/result.json",
+      "sha256": "2d1329835ddeb4557fe83d98aaddee7b2c1b076c82c3993ec95a7938cecf63a9",
+      "bytes": 1786
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-actual/scenario-ranges.json",
+      "sha256": "84a854c45ba0090339bfcb7919b6ee92b30605c4d2d80af3101c6aa1d4b66df2",
+      "bytes": 2142
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-source/source-review.md",
+      "sha256": "4a6c67979bb503b6e6f3c44fbf1a3c65b43c0fe1be11ee2490d3e26081948c00",
+      "bytes": 4796
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate5-source/verify-source.mjs",
+      "sha256": "7dba4859439cb4ae966fe48d64fd6e966408dd8f3d88b78a52f2c778ba0c731e",
+      "bytes": 1291
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/coarena.js",
+      "sha256": "07d16a12c325f0588e0a042f882f289de80ed6436859e2452471c795904996cb",
+      "bytes": 1749
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/character_controller.js",
+      "sha256": "2ae430c49b503a2b146240a4bd95578f94c392da3706a4d2d3030f1ca225f532",
+      "bytes": 11288
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/index.js",
+      "sha256": "8072e00bea89bd336225fa212f65c664eb47fc3fffe345861196de6386721a00",
+      "bytes": 176
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/pid_controller.js",
+      "sha256": "32a258f08c8b1b97322b2269e5ee236d4e001c102d4e437deaa2dc18f8b06046",
+      "bytes": 3645
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/control/ray_cast_vehicle_controller.js",
+      "sha256": "e29e52f5842e31edee117bc882188b865fa1afa4543e9d2e1d0f712028fb0b92",
+      "bytes": 13996
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/ccd_solver.js",
+      "sha256": "647fedfd6dc573e7307f70d3279f7496bb43570a050a01e394366d804ebdc605",
+      "bytes": 577
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/coefficient_combine_rule.js",
+      "sha256": "7eecac639b0bd5bb272857f5ae0394c01d0e895bfd836855476d16edebedd433",
+      "bytes": 680
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/impulse_joint.js",
+      "sha256": "f496562643b6df51987f236fd9713654caa5cd11be48c67c5b3ba71e9cf39b9e",
+      "bytes": 23715
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/impulse_joint_set.js",
+      "sha256": "8a61360befb9d86fad90e3ca9999ff1f36060729ad0e531e3a5b99c849b8f81d",
+      "bytes": 4081
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/index.js",
+      "sha256": "a2a7f5e4aca595236734fa8f4382f63e23b2c72e98d9d523561146a01d35a57c",
+      "bytes": 453
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/integration_parameters.js",
+      "sha256": "7e12c900ceec653525c79b4139fe81b58b6d8255abab9ca7eac2c3e51e6aa78a",
+      "bytes": 5749
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/island_manager.js",
+      "sha256": "2616c281f6ed60aa29acac4e86e85df4db2cd4b424f7da8bc5e7c5ba91ccc15a",
+      "bytes": 936
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/multibody_joint.js",
+      "sha256": "1f1eea034b50584920535b6f036267823622f7aa1d8f503da7bf6c58ae2735d9",
+      "bytes": 3953
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/multibody_joint_set.js",
+      "sha256": "351def7c43b21b86b163c3008f83c8825bdaa5cf60708ac9acb17afa2a8bde26",
+      "bytes": 3856
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/rigid_body.js",
+      "sha256": "60121daf3af12bcb5e34082e4b236d0c8e12a92b3597a360c88b13730c10c390",
+      "bytes": 46378
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/rigid_body_set.js",
+      "sha256": "a08895c8bea9542a024744720aee96a6168e3a12745337170d75cb4c1234c436",
+      "bytes": 6470
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/soft_body.js",
+      "sha256": "8f780ee0818e45edd10807d67df1927c83e2d9d760ae9f324d66c777d623b468",
+      "bytes": 55465
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/dynamics/soft_body_set.js",
+      "sha256": "1be81e4fb4d650c4e568e3fd9a7c6cae84d7806f71d76cf27139a03d8cd0f5b4",
+      "bytes": 7163
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/exports.js",
+      "sha256": "e0be7a31a1d96cb83b6a60ca4477d1e860e946ac3df19a5ad88061b6729715ef",
+      "bytes": 961
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/broad_phase.js",
+      "sha256": "9f0fe25bc00602bbf2b7d7d3f2a4f74f588e79bd8c652308fd48dbcc77980583",
+      "bytes": 14763
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider.js",
+      "sha256": "dbbced207e26bfac67fb358183f45bb29ce974cf5f63447bae47a2eed807f76b",
+      "bytes": 58214
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/collider_set.js",
+      "sha256": "ddbd3d561412ffae4b61935ce88e70efa3cc71293ee82e03f6e16cb6bbe27704",
+      "bytes": 8332
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/contact.js",
+      "sha256": "d650d0fbf96804ceeafaf973a68c2ba9348f9244662b1eced919626fd87660ff",
+      "bytes": 1559
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/feature.js",
+      "sha256": "259656eb4c1b19b13b1d21a4f26bf204fd1ef0c58ab1d43d2a3c339a9811fb62",
+      "bytes": 360
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/index.js",
+      "sha256": "d8cd76cef8a6011e8d5e364aaaf2e8cf116d4b25ef34b397d9f2a5db91cea56b",
+      "bytes": 344
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/interaction_groups.js",
+      "sha256": "5f594c59df55870c2504034ba824056ba7ecae4bde72c60a1c969baaed844f07",
+      "bytes": 57
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/narrow_phase.js",
+      "sha256": "cb3528bd9d7451fb386d586f6eb26f36a8d820aab08680199d485bc1047c8ba5",
+      "bytes": 8091
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/point.js",
+      "sha256": "b4a6b6b41f36d8fe125844c0ad191e890691021f5f4bfad51ee82a5a5ddf58a0",
+      "bytes": 2539
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/ray.js",
+      "sha256": "94640c2a4987a7675921f98bb5cd4f5a839ee59d7d17c642e445b9d2aa666af0",
+      "bytes": 4170
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/shape.js",
+      "sha256": "b9423bc55a58d29e01918fea5478e0df3008b3f84b9d4629f65303c3ea67dce2",
+      "bytes": 42894
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/geometry/toi.js",
+      "sha256": "995176a802936f05ef5a4b86483aaff875bc20ba5e2475b90db2416ae9638c42",
+      "bytes": 3510
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/init.js",
+      "sha256": "d72d4bf9bc50bb506715f1c29ca09c135b88c5b0f2bcd16e80203e8ab474a282",
+      "bytes": 43
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/math.js",
+      "sha256": "366545bb2a08eec473648d89e56927cfb1a5fcade9ab1fc87e3e228f972a1538",
+      "bytes": 3988
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/package.json",
+      "sha256": "c1a78d0da5a39c88dd340f13ed20a6df2ea2bbd493e953bb2530220ce72cfe9c",
+      "bytes": 654
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/debug_render_pipeline.js",
+      "sha256": "87e3b45fc30b36607380c5f16b23dfc9d43dd46369c790fcd26b510590e123ce",
+      "bytes": 1333
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/event_queue.js",
+      "sha256": "ad656b9f5f687491dd96355e1c009901d47ba8fb2e9625bd0bdce3a94b2ceec4",
+      "bytes": 5213
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/index.js",
+      "sha256": "7cc0f1dd9d9caa9130b2cee04ff864e4841fdcea7c2e9a089a40f9825099ed85",
+      "bytes": 275
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_hooks.js",
+      "sha256": "b4979bd9eb19e242326c1daa6e0660091df0fc8a0863947ce1706d4c39478081",
+      "bytes": 643
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/physics_pipeline.js",
+      "sha256": "fd02780420153e26aae2c43b3a5ee460467f0d4df4267988d419e244ca9fe73c",
+      "bytes": 1191
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/query_pipeline.js",
+      "sha256": "db4cfe8cc97bd243ea473c8945b6a0f0d7807b6e567a6f6fc5bfaad0f25674c8",
+      "bytes": 1744
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/serialization_pipeline.js",
+      "sha256": "465a16033d2e23d8c282b6775a7b63c496f205d2c58023d580cbe56d94479e53",
+      "bytes": 2100
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/pipeline/world.js",
+      "sha256": "cb51d40656a72609d84350cde16dce6f0263cc3c12b7f2341a8155c0a8fe533b",
+      "bytes": 44250
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier.js",
+      "sha256": "3241a12b57667f4a3a5c4c212f109e5546daca3e17f16af5a0ccb3c2ebce53f4",
+      "bytes": 121
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d.js",
+      "sha256": "8fd5fe653c96bd7c5c55c32da3e92c94cc2b13c05ae593df7c32646d197e3d78",
+      "bytes": 1269
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.js",
+      "sha256": "62bd436077d116fe65dcf4710d3d993b64d19d0879b3ae23b58930347d1b1fff",
+      "bytes": 338178
+    },
+    {
+      "path": "node_modules/@dimforge/rapier3d-simd/raw.js",
+      "sha256": "bad6d4f21e5d94b0a83cdba6474a0c1d7268fb2703958f567280ca2d0261043b",
+      "bytes": 64
+    },
+    {
+      "path": "node_modules/three/build/three.core.js",
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+      "bytes": 1458113
+    },
+    {
+      "path": "node_modules/three/build/three.module.js",
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+      "bytes": 662772
+    },
+    {
+      "path": "node_modules/three/build/three.tsl.js",
+      "sha256": "6e6b92d8ce467818944f73815a96abadc6392fb34de577d479a23810b6aeeed0",
+      "bytes": 36854
+    },
+    {
+      "path": "node_modules/three/build/three.webgpu.js",
+      "sha256": "a78400fa1d359e81fcc12b84ed0a89a7fbecb4b8373e28ae8f9d2b11f6ea13bc",
+      "bytes": 2284823
+    },
+    {
+      "path": "node_modules/three/build/three.webgpu.nodes.js",
+      "sha256": "a6a3a3b59fff0496783cd77162f1733141af31d4b596a5a77004b4f1790d53f6",
+      "bytes": 2276182
+    },
+    {
+      "path": "node_modules/three/package.json",
+      "sha256": "ab4ff6950aab522dfe6980f19914a5eb2cadb689a36c6c44f4d3869c5e46dc89",
+      "bytes": 3672
+    },
+    {
+      "path": "package.json",
+      "sha256": "271d57c47ea7c9771dc3f7c317848a9b0865ff973e57a89638d1858024ba553a",
+      "bytes": 3843
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "1495ce479562f459d0af5e19d976df79c957d5b54dbc031fd803475c264e96ea",
+      "bytes": 141275
+    },
+    {
+      "path": "public/assets/physics/rapier.wasm",
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+      "bytes": 3292228
+    },
+    {
+      "path": "scripts/bake-loader.mjs",
+      "sha256": "95f47f094c3bf56dd801ea8e943537cd9123131e383dbdae90a9daa6f220d00f",
+      "bytes": 6743
+    },
+    {
+      "path": "scripts/bellback-captured-admission.mjs",
+      "sha256": "85c0772aca2f09d93030cf63c607a94563485f5fb246876708521a5e16b7f571",
+      "bytes": 6329
+    },
+    {
+      "path": "scripts/bellback-captured-admission.test.mjs",
+      "sha256": "437ae1e3f4833319f4e388507c1df98468ef6b258ea0ec8268db14e2f7a568dc",
+      "bytes": 5083
+    },
+    {
+      "path": "scripts/bellback-following-admission.mjs",
+      "sha256": "e0bea69ce243ecbb933c6af5f68d5d4284cd875c2bbb7045a0ae631ce1d8eb5f",
+      "bytes": 4198
+    },
+    {
+      "path": "scripts/bellback-following-admission.test.mjs",
+      "sha256": "4199fff61ba4093100b3bda4a429b2982252f52b7f7d785bfe7ffd1f5eea741a",
+      "bytes": 2573
+    },
+    {
+      "path": "scripts/build-bellback-captured-preview.mjs",
+      "sha256": "c932735c1430e72a96f59e6b0414727e54b9ba2f5ff92d4dde318f189b3c1322",
+      "bytes": 5303
+    },
+    {
+      "path": "scripts/build-bellback-following-preview.mjs",
+      "sha256": "bc1e08902a39ec37bd707246e730930e26f8f028b215b90ab5f982e9a80cbf66",
+      "bytes": 5265
+    },
+    {
+      "path": "src/engine/entities/AnimalFactory.ts",
+      "sha256": "3150a92ee756e5afb7035751d48cf2d1b63de806e919d16f5f23176df3119f8c",
+      "bytes": 41499
+    },
+    {
+      "path": "src/engine/entities/AnimalManager.ts",
+      "sha256": "a5389ee291ac382678433d2f35d5237eef84842487aa4011b903b782d1ec4a8f",
+      "bytes": 56471
+    },
+    {
+      "path": "src/engine/entities/AnimalSim.ts",
+      "sha256": "13a7e23fe566753d97879100addd4493357c2617b251fd82148a305c9b871ae7",
+      "bytes": 24229
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "sha256": "36f47df937bb2ff48aac743f7b307b0f16fafcc48795107f9121fecf106e6f28",
+      "bytes": 32382
+    },
+    {
+      "path": "src/engine/entities/animalMatrices.ts",
+      "sha256": "03a05a9538259ced9bf1c4e30442075c28534cf0b1d399ac39a018aef5e01869",
+      "bytes": 9374
+    },
+    {
+      "path": "src/engine/entities/animalPose.ts",
+      "sha256": "3bdbc2f4c1085445e7998597e608758365857aaa45248c45cc31bceb3f56b9f3",
+      "bytes": 23868
+    },
+    {
+      "path": "src/engine/entities/animalRig.ts",
+      "sha256": "489476be6cd84a182251f4c159a04b996197e174d70d87aa315f825479807687",
+      "bytes": 5143
+    },
+    {
+      "path": "src/engine/entities/animalShadow.ts",
+      "sha256": "aa84d963bdf1b02ed05c37bcc2ec884204d1afd80eac0d544577fb5e99887f7b",
+      "bytes": 3006
+    },
+    {
+      "path": "src/engine/entities/bodyClear.ts",
+      "sha256": "6406b345128f270db3ae5883cad8c3fe741def17ce1551ee8440d0bdebc993a1",
+      "bytes": 2729
+    },
+    {
+      "path": "src/engine/entities/creatureFloor.ts",
+      "sha256": "b9c6abe0e28d0d86cc87678fc2112ca26553733349e9233dd00a70904af79e07",
+      "bytes": 837
+    },
+    {
+      "path": "src/engine/entities/creatureRigBake.ts",
+      "sha256": "cc91a554fdb6be9a991c3941038429a95ba26d1f17e879c393456b9c95e39ba5",
+      "bytes": 46638
+    },
+    {
+      "path": "src/engine/entities/eliteBrain.ts",
+      "sha256": "34a2760a15ac91623c5ccc7f39fd9eb1f9c3848dbfd405ed0e0a666f27ed03b0",
+      "bytes": 1533
+    },
+    {
+      "path": "src/engine/entities/farHerd.ts",
+      "sha256": "91d996c726db1a3bed17020f8ba8ffcbecbfdb32ee3ca9dad2991972e7571413",
+      "bytes": 19675
+    },
+    {
+      "path": "src/engine/entities/fightRules.ts",
+      "sha256": "bb22448492bee77915c06afb1c9ada743015ec776bef592753096e080c27a319",
+      "bytes": 4228
+    },
+    {
+      "path": "src/engine/entities/humanoidRigBake.ts",
+      "sha256": "dc8f6a5b916c23dd41e8bf46f545cae9394aed72c0246554880688f8945feb21",
+      "bytes": 15203
+    },
+    {
+      "path": "src/engine/entities/ids.ts",
+      "sha256": "7a8d303d3c3f539bf33b44c988e24c5286fc832a525d181ed408fa477052d3b7",
+      "bytes": 1018
+    },
+    {
+      "path": "src/engine/entities/killHeight.ts",
+      "sha256": "a0df0a7812ee2af6575684c0b600bf9045f2c81fe158d909e711c9fdf338b336",
+      "bytes": 1189
+    },
+    {
+      "path": "src/engine/entities/lowpoly.ts",
+      "sha256": "7a0ab5527c4b4f4623bdfa391000eb6aae3984e94b74a4510471627c04015c8b",
+      "bytes": 7933
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "c8e6957432df0ad3f6cdc673c655ec720e58656e74b99938e38e155dd99cb5b6",
+      "bytes": 5372
+    },
+    {
+      "path": "src/engine/entities/species/loft.ts",
+      "sha256": "91040f5869637331d41040c37a3ec494eb2148c4d77d67bc48d14b4630c47263",
+      "bytes": 14608
+    },
+    {
+      "path": "src/engine/entities/species/look.ts",
+      "sha256": "e03b5bc6bf15a4a74cb6e9d8a1e9a551d6ca869e1f97b5adab5634770ff0b901",
+      "bytes": 6958
+    },
+    {
+      "path": "src/engine/entities/species/registry.ts",
+      "sha256": "4a101e555d4372d5b37233acdbed7675ffb924403ba1f864c39e24b63c8cc0af",
+      "bytes": 22462
+    },
+    {
+      "path": "src/engine/entities/species/rigs.ts",
+      "sha256": "5ba1f89acfb1ae662b0fa89c1277e4175f26f21db666a892bf34c9927cb268f1",
+      "bytes": 3022
+    },
+    {
+      "path": "src/engine/physics/CharacterMotor.ts",
+      "sha256": "cc6f500cd40cf117c94c11ee6ad7334b6ff00ec76842bb47e91277bfba72fe90",
+      "bytes": 22391
+    },
+    {
+      "path": "src/engine/physics/Physics.ts",
+      "sha256": "6a45536093316ae57848fba28d6b77c5a9159da1aeeb2bc7be2228bd7bd18739",
+      "bytes": 7881
+    },
+    {
+      "path": "src/engine/physics/active.ts",
+      "sha256": "2712628dc2d8803d81e187c054bed58d655749348000b10ec90a3be683d7c698",
+      "bytes": 816
+    },
+    {
+      "path": "src/engine/physics/bodies.ts",
+      "sha256": "9d0235a412b4be59127363ccc8b05bb3fb5f45383ee3e6af929020a881e544af",
+      "bytes": 34127
+    },
+    {
+      "path": "src/engine/physics/box.ts",
+      "sha256": "3aad4ef9bec382e89724276df05bd049a328c7ef95db1fff89f1e4817001d853",
+      "bytes": 2855
+    },
+    {
+      "path": "src/engine/physics/calibration.ts",
+      "sha256": "e7b6ed4fdd9a1f3f3f182cdd2ddcf2c1b985fd3fa61493a22d8ef46251b4eaf9",
+      "bytes": 1099
+    },
+    {
+      "path": "src/engine/physics/creatures.ts",
+      "sha256": "92cd35503864ef4368a262eaa08bb797daabb1ffcd86a784d46146f27be28150",
+      "bytes": 8874
+    },
+    {
+      "path": "src/engine/physics/debug.ts",
+      "sha256": "1c6969dfc3f5f224b6a406058e937f053916d2ca0d1bf0cf20b6747ca0e69722",
+      "bytes": 3360
+    },
+    {
+      "path": "src/engine/physics/declaredProps.ts",
+      "sha256": "9348227abde91ca1d30bc8f35738ae1b43817ddbecd01155a36957b4876d7d97",
+      "bytes": 2815
+    },
+    {
+      "path": "src/engine/physics/edgeEntries.ts",
+      "sha256": "029ad80241a4537474f87b79e7130fa2813d5968f5417cc187142e3b5dfbbe9b",
+      "bytes": 2808
+    },
+    {
+      "path": "src/engine/physics/entrySockets.ts",
+      "sha256": "ab94e8896b34e5c4201744eef86accffc7e00432962163a2467216df14ecc40e",
+      "bytes": 2786
+    },
+    {
+      "path": "src/engine/physics/frame.ts",
+      "sha256": "6b9ac1c5b8675a3e4f15ee23a64c517f652ab5e7159775a81bc8a5c37189d2a5",
+      "bytes": 2626
+    },
+    {
+      "path": "src/engine/physics/gridBorders.ts",
+      "sha256": "20d6a594b0f11a58d8a404a4b3d7efdd1a1e06d4180c881c59a5daa7dec8d7ab",
+      "bytes": 3418
+    },
+    {
+      "path": "src/engine/physics/groups.ts",
+      "sha256": "0ac3ea5f7c711ceb636b0256138c8ad2c1517bd52fa3d0a4716f1f862e5b095c",
+      "bytes": 2102
+    },
+    {
+      "path": "src/engine/physics/heightPatch.ts",
+      "sha256": "84a05425b1699ac1ea89157d0f2eeb1e194438e5ec2ee1c88b2f85acc139d53b",
+      "bytes": 2244
+    },
+    {
+      "path": "src/engine/physics/meshCollision.ts",
+      "sha256": "1cfd84ec2dd1fa9f1bf4da82c7cde1f7f7bc8717d3b9e3f8dc2c9f9ac10b708f",
+      "bytes": 6354
+    },
+    {
+      "path": "src/engine/physics/mover.ts",
+      "sha256": "594a4ad8a13a408a10fd8076ef0c28e1beb129b955d18142d4680cba4eebb5c5",
+      "bytes": 5461
+    },
+    {
+      "path": "src/engine/physics/navmesh.ts",
+      "sha256": "7d16ce77f193815b7a74a840d1977b6fd872b9042651a4f39917fe3c941c16a9",
+      "bytes": 10588
+    },
+    {
+      "path": "src/engine/physics/navmeshLoad.ts",
+      "sha256": "119791695c63d4debf154175109f87b79603974bdf1107f7deccaaf297ee4586",
+      "bytes": 5060
+    },
+    {
+      "path": "src/engine/physics/navmeshUrl.ts",
+      "sha256": "765f9488d48a82e93026420e6decf67259312ce1618a08cc350fbd109ff59b71",
+      "bytes": 458
+    },
+    {
+      "path": "src/engine/physics/overlap.ts",
+      "sha256": "a744efa77831730add3575d46ed148b98d781b4b721d4d3c69b6a5b53b7f150f",
+      "bytes": 1264
+    },
+    {
+      "path": "src/engine/physics/paths.ts",
+      "sha256": "78f33e6013bd1e6d90e5232f1afe8d915fbfa014af2fb2034cd76870e6d586cd",
+      "bytes": 8298
+    },
+    {
+      "path": "src/engine/physics/pieces.ts",
+      "sha256": "3542c7f773ad5b7de7f41b0b28188244861fd01fbfd8bb355433717ebf1f29dc",
+      "bytes": 5812
+    },
+    {
+      "path": "src/engine/physics/query.ts",
+      "sha256": "b1a3de663966e1c68954307f6ea208b78c438f8348341c4bef613205e221ed8a",
+      "bytes": 7800
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "4f54ab8d7159634c6f7cea5e88e91182693c351821be03f195d3ef3a5cb7484c",
+      "bytes": 30374
+    },
+    {
+      "path": "src/engine/physics/rapier-bg.d.ts",
+      "sha256": "ce3407fda4caa50384fadc4d8fbb22ca46048778d1e0f1409dee0759550a6ad1",
+      "bytes": 361
+    },
+    {
+      "path": "src/engine/physics/rapier.ts",
+      "sha256": "752785d73e4aa1b89a72e466c7ac9dc4a4dae079dfa3db90b0e9e7ab7d03aeef",
+      "bytes": 1907
+    },
+    {
+      "path": "src/engine/physics/rapierBindings.ts",
+      "sha256": "9aaf3e3daf71d1879c266f69f2c004c73482a0a9a512a40f952be57930b98c72",
+      "bytes": 525
+    },
+    {
+      "path": "src/engine/physics/readinessWalls.ts",
+      "sha256": "f6199caec70f97628395cf94ce91c271f39cb5d0b4a28b14360eba553997519e",
+      "bytes": 2690
+    },
+    {
+      "path": "src/engine/physics/regionalState.ts",
+      "sha256": "3f50f123e39cfd67ae23d8a8bae3a6e66f6ece022977a9c1934b11d33464e1e3",
+      "bytes": 1569
+    },
+    {
+      "path": "src/engine/physics/rigidCorpse.ts",
+      "sha256": "fddc4e6ae605d79405782b36314e052668cc2b59b6307dc5879e41a9c2be3a8a",
+      "bytes": 6690
+    },
+    {
+      "path": "src/engine/physics/ropeChain.ts",
+      "sha256": "130fb81ed5d709f62917e87b678ee019d52ec1450939ee8621e2acc2bddfbe85",
+      "bytes": 7041
+    },
+    {
+      "path": "src/engine/physics/stripColliders.ts",
+      "sha256": "8bd7878baab84fa19d46a16d858e2fc0593a08907443304fb98a10b20f71bf5b",
+      "bytes": 1095
+    },
+    {
+      "path": "src/engine/physics/surface.ts",
+      "sha256": "04d9b565a9fed002bcdc6e72e318abf8fb2081baf624059c97fb6c50fd1c2fbb",
+      "bytes": 1579
+    },
+    {
+      "path": "src/engine/physics/terrain.ts",
+      "sha256": "9e4680fc284546d69d0b82c87413e3773700c2ce6d9908f9b458b422c6679a20",
+      "bytes": 6779
+    },
+    {
+      "path": "src/engine/physics/terrainTiles.ts",
+      "sha256": "3a347793026af37c4efe8b8350109a47c61aa5672965446b18756fd4b183d115",
+      "bytes": 1315
+    },
+    {
+      "path": "src/engine/physics/trainingTargets.ts",
+      "sha256": "77a33eccb79033c27f0b92796b07b3c49e7969b7d0549b2e624e7c63a65b38d2",
+      "bytes": 3091
+    },
+    {
+      "path": "src/engine/physics/transferWalls.ts",
+      "sha256": "61a379ca3e0d5bd2330783726f7020c88efcebad1be52e3356e1449f8c7f9fd1",
+      "bytes": 5574
+    },
+    {
+      "path": "src/engine/physics/wasmUrl.ts",
+      "sha256": "86a6da0d89441a4ffeff67cc754ee39af624db5c0990166ec8f7f17418d18591",
+      "bytes": 264
+    },
+    {
+      "path": "src/game/plugin/animation.ts",
+      "sha256": "d8acce2705308496eb5057bb4d6052478e3059901d1b886ce76dd0864f536984",
+      "bytes": 50449
+    },
+    {
+      "path": "src/game/plugin/audio.ts",
+      "sha256": "3770d648c317460aa1d216078dba1fbdc70422ee61daa4500889a8175310dc20",
+      "bytes": 18272
+    },
+    {
+      "path": "src/game/plugin/borrowed.ts",
+      "sha256": "d8c3238620815bf2bfccb575587e757ebbef2b5d3b68b9299cc87b9796d9a743",
+      "bytes": 2803
+    },
+    {
+      "path": "src/game/plugin/bossPhase.ts",
+      "sha256": "6ed2271777de1ae32607a9e9909e409da59660746a9709c5e8b546d7ab72221c",
+      "bytes": 63185
+    },
+    {
+      "path": "src/game/plugin/bossStorm.ts",
+      "sha256": "9c0c304f8637d271e2c9c1cafb858689bda2e5c637f062f68ecada663b42f815",
+      "bytes": 3144
+    },
+    {
+      "path": "src/game/plugin/brain.ts",
+      "sha256": "a9a798c611d3b24778dd85273124277fa69de62aedeaa52c5c5d53f12720a4be",
+      "bytes": 103526
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "sha256": "9a345126cbc74cac7a07eda3286dfe4957891f21b6d1a47ff75dab9f8dc6fc2d",
+      "bytes": 10384
+    },
+    {
+      "path": "src/game/plugin/channels.ts",
+      "sha256": "462853661692628f0d61c1686a717e065814d6467463e21fedae28a41292209d",
+      "bytes": 12377
+    },
+    {
+      "path": "src/game/plugin/context.ts",
+      "sha256": "3e4909a1f828efa30938d0375098821184eabaa89a6ff14039b1c9d2d59e4b89",
+      "bytes": 19343
+    },
+    {
+      "path": "src/game/plugin/director.ts",
+      "sha256": "868a9c79c7ec63b7b4cd4e2fed1218467a13e588f2ba571db355da2686d14b98",
+      "bytes": 33681
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "sha256": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd",
+      "bytes": 137286
+    },
+    {
+      "path": "src/game/plugin/headless.ts",
+      "sha256": "659af7491f7bfec26d8dea07e0ea701df2aaf23771d6fe25f66500e9b3d5a69a",
+      "bytes": 82993
+    },
+    {
+      "path": "src/game/plugin/heldEquipment.ts",
+      "sha256": "a278928afa5b99cff4e3c5313c4ef3559cd213edbb623f092956e8f7c24b6196",
+      "bytes": 16947
+    },
+    {
+      "path": "src/game/plugin/heldFirearm.ts",
+      "sha256": "efdaa366ee0d5a581a813c1ce20f5cdb1347ec28eefd4ebbb1639080d1729bb3",
+      "bytes": 28264
+    },
+    {
+      "path": "src/game/plugin/heldLauncher.ts",
+      "sha256": "55e1ca0b847e5c8f33e7c7d3b21a35c9798427967ac362fbc368a98cc1d6683f",
+      "bytes": 40435
+    },
+    {
+      "path": "src/game/plugin/heldRecipe.ts",
+      "sha256": "080af1ed918f186100d231bac6d521f84fdd0efd440f816f9fad0b64afe1bab9",
+      "bytes": 3651
+    },
+    {
+      "path": "src/game/plugin/heldTool.ts",
+      "sha256": "20fc57fd0d6b702553082181f8b470b578b987c9ce1822db93e63a6cea4f705e",
+      "bytes": 9689
+    },
+    {
+      "path": "src/game/plugin/mover.ts",
+      "sha256": "47ef52b01f5e08758514a318363aadca0c0446da25f54c9641b2fb13835b72ef",
+      "bytes": 105269
+    },
+    {
+      "path": "src/game/plugin/nativeItems.ts",
+      "sha256": "5f9b3b9922a163a5138073f3d2040132d2147bf08fac915d059e9e370eafd9e7",
+      "bytes": 28083
+    },
+    {
+      "path": "src/game/plugin/quests.ts",
+      "sha256": "8356035c67c1a8d21a8a1359f0637bc073ecdf06479a53bb6033a281fbdef30a",
+      "bytes": 26622
+    },
+    {
+      "path": "src/game/plugin/shaderFamily.ts",
+      "sha256": "21d51dd9e78cc9a077b8d0591e7d4c2b85a80d7c8adb48b3a50c066e0c870795",
+      "bytes": 16492
+    },
+    {
+      "path": "src/game/plugin/simulation.ts",
+      "sha256": "090f920f3977f7216373fbc4ff07fd26e04d97ac2729582beac3c683b071a827",
+      "bytes": 113050
+    },
+    {
+      "path": "src/game/plugin/ui.ts",
+      "sha256": "d3fc66ed5150315679043c48b7f3a4ff2df3eea398f4be5a43b707fe8d6312a5",
+      "bytes": 161570
+    },
+    {
+      "path": "src/game/plugin/weaponFamily.ts",
+      "sha256": "b706da19d960afb763e392cee186bbe864ece4778cad33cad805715025f76a02",
+      "bytes": 48504
+    },
+    {
+      "path": "src/game/plugin/weather.ts",
+      "sha256": "2173ebae57ec637d6e65e80c0a47cc81788d5d0477e69d1a7f187e8e4a21bc19",
+      "bytes": 1929
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/bellback.as",
+      "sha256": "69c546e693e372b29332c0b0b6376ba234d08181eb7596ee3febd9050c680e2a",
+      "bytes": 2634
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackCapturedPreview.ts",
+      "sha256": "106ddd095b106a94298c3fce08946451e307382ee6f4bc7e65e273e1c9f0c5a3",
+      "bytes": 7503
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackFollowingPreview.ts",
+      "sha256": "6dde48831ce5519d5e039cfc33824eac92e1b53135d44bf34d66c8288df80a7f",
+      "bytes": 7514
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d",
+      "bytes": 6877
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts",
+      "sha256": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+      "bytes": 5832
+    },
+    {
+      "path": "test/bellback-captured-preview.test.ts",
+      "sha256": "9771a866868b2ae1c7a257b7aa239a61d6ebb51b6eb5f31cb7033c5a54bdaca5",
+      "bytes": 3509
+    },
+    {
+      "path": "test/bellback-following-preview.test.ts",
+      "sha256": "a6cff73c402a9c0181d6d9420969abf8257987c6a785bb33c26d7cb021e8c5c9",
+      "bytes": 3186
+    },
+    {
+      "path": "vite/bellback-captured-preview.config.ts",
+      "sha256": "05e217a76e045819c69a0b190d73a937520f7e9d2d0828df634e34c6da0e927d",
+      "bytes": 7973
+    },
+    {
+      "path": "vite/bellback-following-preview.config.ts",
+      "sha256": "f132573908e3c42cb86ad747159fe3afbaba756f80d3e96c2a67f7002aab6b8c",
+      "bytes": 7909
+    }
+  ]
+}

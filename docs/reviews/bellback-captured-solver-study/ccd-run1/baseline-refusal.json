@@ -1,0 +1,33 @@
+[
+  {
+    "case": 0,
+    "inputSha256": "4a9a581c63282d71eb1df30fba5ce1984b843dd440ee45e04fa36a0e8d7c52da",
+    "settings": {
+      "dt": 0.01666666753590107,
+      "lengthUnit": 1,
+      "normalizedAllowedLinearError": 0.004999999888241291,
+      "normalizedPredictionDistance": 0.019999999552965164,
+      "numSolverIterations": 4,
+      "numInternalPgsIterations": 1,
+      "maxCcdSubsteps": 1,
+      "contact_erp": 0.135755255818367
+    },
+    "reproducible": false,
+    "baseline": {
+      "ccd": false,
+      "scenario": "enemy-defeat",
+      "steps": 88,
+      "capturedSteps": 88,
+      "state": "frozen",
+      "initialDifference": 0,
+      "maxBodyDelta": 0.08565665781497955,
+      "maxBoneDelta": 0,
+      "maxSupportGap": 0,
+      "minimum": -0.010302153087764054,
+      "framesBelow5mm": 3,
+      "finalMinimum": -0.0005701220688933972,
+      "renderMinimum": -0.010316856081885817,
+      "renderBelow5mm": 14
+    }
+  }
+]

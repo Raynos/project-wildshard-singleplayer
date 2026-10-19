@@ -1,0 +1,17 @@
+file://[workspace]/scripts/sim-node-loader.mjs:19
+          if (rendererDependency(url.href)) throw new Error(`Renderer dependency in Node simulation: ${url.href}`);
+                                                  ^
+
+Error: Renderer dependency in Node simulation: file://[workspace]/src/engine/render/tiers.ts
+    at resolve (file://[workspace]/scripts/sim-node-loader.mjs:19:51)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:417:10)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:747:16)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17)
+    at new ModuleJob (node:internal/modules/esm/module_job:232:26)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:572:11)
+
+Node.js v24.19.0
