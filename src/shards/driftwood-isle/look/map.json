@@ -1,54 +1,16 @@
 {
   "inputs": [
-    "shard.config.ts",
-    "layout.ts",
-    "world",
-    "generators",
-    "models",
-    "../../sdk/movers.ts",
-    "data/groundCover.json",
-    "data/layout.json",
-    "data/seabedLook.json",
-    "data/poolLook.json",
-    "data/islandCoverFiles.json",
-    "data/islandPlanFiles.json",
-    "data/islandClipRows.json",
-    "data/terrainBindings.json",
-    "data/speciesActions.json",
-    "data/strikes.json",
-    "data/entryRows.json",
-    "generators/pierRows.json",
-    "data/bridgeRows.json",
-    "data/shrineSites.json",
-    "data/skyPalette.json",
-    "data/skyDay.json",
-    "data/siteCatalogue.json",
-    "data/wreckScene.json",
-    "data/trailScene.json",
-    "data/coconutSlots.json",
-    "data/castawayFigure.json",
-    "data/traderFigure.json",
-    "data/buildingLife.json",
-    "data/rockScenes.generated.json",
-    "data/shoreBoulders.generated.json",
-    "data/foliageScenes.generated.json",
-    "data/pierScenes.generated.json",
-    "data/coverComposition.json",
-    "data/placeSets.json",
-    "data/coveComposition.json",
-    "data/coveFamilies.json",
-    "data/islandAssets.json",
-    "behaviour/returns.as",
-    "data/cargoScenes.generated.json",
-    "data/cargoBlobs.generated.json",
-    "data/fixedBlobs.generated.json",
-    "manifest.json"
+    "data/mapAssembly.generated.json",
+    "data/mapAssembly.generated.bin",
+    "../../../scripts/map-scenes.mjs",
+    "../../../scripts/map-painter.mjs",
+    "../../../scripts/bake-data-maps.mjs"
   ],
   "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",
   "style": {
     "kind": "isle",
     "waterBelow": 0.15,
-    "deepBelow": -2,
+    "deepBelow": -2.0,
     "pathAbove": 2.2,
     "sea": "#2f7fb8",
     "shallow": "#58a9d6",
@@ -74,5 +36,37 @@
     "deck": "#c9a46c",
     "deckEdge": "#4a3220",
     "coast": "#3a2e1e"
+  },
+  "painter": {
+    "version": 1,
+    "job": "driftwood-data-map",
+    "prerequisites": [
+      "driftwood-map-assembly"
+    ],
+    "scenes": {
+      "packs": [
+        {
+          "file": "data/mapAssembly.generated.bin",
+          "rows": {
+            "file": "data/mapAssembly.generated.json",
+            "path": [
+              "pack"
+            ]
+          },
+          "names": [
+            "names"
+          ],
+          "deflated": true
+        }
+      ],
+      "recipes": [
+        {
+          "file": "data/mapAssembly.generated.json",
+          "path": [
+            "scene"
+          ]
+        }
+      ]
+    }
   }
 }

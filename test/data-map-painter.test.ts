@@ -19,6 +19,8 @@ import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
 import nalatiPlacesJson from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
 import { nineMapAssembly } from '../src/shards/nine-dragon-stack/generators/mapAssembly.mjs';
+import { Matrix4, Quaternion, Vector3 } from 'three';
+import { driftwoodMapAssembly } from '../src/shards/driftwood-isle/generators/mapAssembly.mjs';
 import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembly.mjs';
 import pinePhysics from '../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 import nineWorld from '../src/shards/nine-dragon-stack/data/worldRows.generated.json' with { type: 'json' };
@@ -183,3 +185,35 @@ test('Pine rest assembly preserves every floor and native forest placement', asy
   expect(assembly.nodes.every(row => row.matrices.every(Number.isFinite))).toBe(true);
   for (const shape of assembly.shapes) shape.geometry.dispose();
 });
+
+test('Driftwood rest assembly retains every native island copy and bridge plank', async () => {
+  const { assembly, bridge, plan, byProto, cover, entryDecks } = await driftwoodMapAssembly();
+  const metadata = schema.parse(schema.object({ protos: schema.array(schema.object({ name: schema.string() })) }), JSON.parse(readFileSync('public/assets/models/driftwood-blender/island.json', 'utf8')));
+  const placements = new Float32Array(Uint8Array.from(readFileSync('public/assets/models/driftwood-blender/placements.bin')).buffer);
+  const sea = schema.parse(schema.object({ WORLD_DROP: schema.number() }), JSON.parse(readFileSync('src/shards/driftwood-isle/boot/sea.generated.json', 'utf8')));
+  const expected = new Map<string, number[]>();
+  for (const family of plan.families) for (const index of family.indices) {
+    const at = index * 10, proto = placements[at], scale = placements[at + 8];
+    if (proto === undefined || scale === undefined) throw new Error('Missing island copy');
+    const name = metadata.protos[proto]?.name;
+    if (name === undefined) throw new Error('Missing island prototype');
+    const matrix = new Matrix4().compose(new Vector3(placements[at + 1], (placements[at + 2] ?? 0) - sea.WORLD_DROP, placements[at + 3]),
+      new Quaternion(placements[at + 4], placements[at + 5], placements[at + 6], placements[at + 7]), new Vector3(scale, scale, scale));
+    expected.set(name, [...expected.get(name) ?? [], ...Array.from(Float32Array.from(matrix.elements), value => value === 0 ? 0 : value)]);
+  }
+  for (const [name, matrices] of expected) {
+    expect(byProto.has(name)).toBe(true);
+    const node = assembly.nodes.find(row => row.name === `island-copy:${name}`);
+    expect(node?.matrices.map(value => value === 0 ? 0 : value)).toEqual(matrices);
+  }
+  expect(assembly.inventory['bridge:planks']).toBe(bridge.planks.length);
+  expect(assembly.inventory['bridge:ropes']).toBeGreaterThan(bridge.segments.length * 4);
+  expect(entryDecks).toHaveLength(4);
+  for (const row of entryDecks) expect(assembly.inventory[`entry:${row.edge}`]).toBe(1);
+  expect(cover).toHaveLength(8);
+  expect(cover.every(count => count > 0)).toBe(true);
+  expect(assembly.nodes.some(row => row.name === 'place:sites.hut:kit')).toBe(true);
+  expect(assembly.nodes.some(row => row.name === 'place:sites.shrine:kit')).toBe(true);
+  expect(assembly.nodes.every(row => row.matrices.every(Number.isFinite))).toBe(true);
+  for (const shape of assembly.shapes) shape.geometry.dispose();
+}, 30_000);

@@ -145,6 +145,24 @@ export function stylizeMap(raster, style) {
       if (border) fill = hex(style.rim);
     } else if (style.kind === 'isle') {
       fill = hex(h < style.deepBelow ? style.sea : h < style.waterBelow ? style.shallow : style.grass[style.grassBands.filter(b => h >= b).length]);
+      // Keep the island's authored sand, paths, timber and crowns readable from
+      // source vertex colours. Classification never changes occupied coverage.
+      if (style.sand !== undefined && h >= style.waterBelow) {
+        const [r, g, b] = rgb.map(value => value / 255), saturation = (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b, .001);
+        const green = g > r * 1.05 && g > b * 1.1, sand = r > .55 && g > .45 && b < g * .85 && !green;
+        const wood = r > g * 1.12 && r > .25 && r < .75 && saturation > .3 && !green;
+        const heights = neighbours.filter(valid).map(other => height[other] / 65536), slope = Math.max(0, ...heights.map(value => Math.abs(h - value))) * size / 500;
+        let low = h;
+        for (const dz of [-7, 0, 7]) for (const dx of [-7, 0, 7]) {
+          const px = x + dx, py = y + dz, other = py * size + px;
+          if (px >= 0 && px < size && py >= 0 && py < size && valid(other)) low = Math.min(low, height[other] / 65536);
+        }
+        const raised = h - low;
+        if (sand) fill = hex(h > style.pathAbove ? style.path : style.sand);
+        else if (!green && (saturation < .28 || slope > 1.4)) fill = hex(style.rock);
+        if (green && raised > 1.5) fill = hex(style.crown);
+        if (wood || !green && low < -.5 && raised > .4) fill = hex(style.deck);
+      }
     } else {
       const row = nearest(rgb, style.classes); fill = hex(row.fill);
       if (style.water !== undefined && h < style.water.below) {

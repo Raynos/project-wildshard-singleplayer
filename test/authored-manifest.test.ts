@@ -130,3 +130,24 @@ test('linked entry modules finish before the next namespace can observe their co
     expect(await Reflect.apply(loader, undefined, [])).toEqual({ runtime: Runtime, native: runtimePath === authored.bindings.entry.legacy ? Runtime : Native });
   }
 });
+
+test('geometry discovery defers only its declared generated map image', () => {
+  mkdirSync(resolve(root, 'tmp'), { recursive: true });
+  const scratch = mkdtempSync(resolve(root, 'tmp/manifest-data-map-'));
+  const dir = resolve(scratch, 'src/shards/map-fixture');
+  mkdirSync(resolve(dir, 'look'), { recursive: true });
+  writeFileSync(resolve(dir, 'budget.json'), '{}');
+  const row = { slug: 'map-fixture', card: {}, sky: {}, minimap: { image: '/assets/map-fixture/map/top.webp' }, explore: {}, horizonStrips: [], bindings: { accent: 'moss', budgets: { module: './budget.json', export: 'default' } } };
+  const manifest = resolve(dir, 'manifest.json');
+  writeFileSync(manifest, JSON.stringify(row));
+  writeFileSync(resolve(dir, 'look/map.json'), JSON.stringify({ painter: { version: 1 } }));
+  try {
+    expect(() => authoredManifestSource(scratch, 'map-fixture')).toThrow(/missing public image/u);
+    expect(authoredManifestSource(scratch, 'map-fixture', { generation: true })).toContain('defineAuthoredShard');
+    writeFileSync(manifest, JSON.stringify({ ...row, minimap: { image: '/assets/map-fixture/missing.webp' } }));
+    expect(() => authoredManifestSource(scratch, 'map-fixture', { generation: true })).toThrow(/missing public image/u);
+    writeFileSync(manifest, JSON.stringify(row));
+    writeFileSync(resolve(dir, 'look/map.json'), '{}');
+    expect(() => authoredManifestSource(scratch, 'map-fixture', { generation: true })).toThrow(/missing public image/u);
+  } finally { rmSync(scratch, { recursive: true }); }
+});

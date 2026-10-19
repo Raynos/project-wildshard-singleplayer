@@ -2125,3 +2125,8 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 src/shards/pine-hollow/data/mapAssembly.generated.*
 src/shards/pine-hollow/look/map.baked.json
 public/assets/pine-hollow/map/top.webp
+
+# G508: Driftwood map assembly and painter outputs are generated.
+src/shards/driftwood-isle/data/mapAssembly.generated.*
+src/shards/driftwood-isle/look/map.baked.json
+public/assets/driftwood-isle/map/top.webp

@@ -6,17 +6,22 @@ export function shardManifestPath(root, slug) {
   return `src/shards/${slug}/${existsSync(resolve(root, `src/shards/${slug}/manifest.json`)) ? 'discovery.generated.ts' : 'manifest.ts'}`;
 }
 /** Literal imports keep authored image strings inside the bundler's asset graph. */
-export function authoredManifestSource(root, slug) {
+export function authoredManifestSource(root, slug, { generation = false } = {}) {
   const file = `src/shards/${slug}/manifest.json`;
   if (existsSync(resolve(root, `src/shards/${slug}/manifest.ts`))) throw new Error(`${file}: duplicate authored manifest authority`);
   const data = JSON.parse(readFileSync(resolve(root, file), 'utf8'));
   if (data.slug !== slug) throw new Error(`${file}: identity differs from its folder`);
+  const mapPath = resolve(root, `src/shards/${slug}/look/map.json`);
+  // Geometry producers run before the map they feed. Only their discovery
+  // compilation may defer this one declared output; final discovery checks it.
+  const generatedMap = generation && existsSync(mapPath) && JSON.parse(readFileSync(mapPath, 'utf8')).painter?.version === 1
+    ? `/assets/${slug}/map/top.webp` : undefined;
   const images = new Set();
   const visit = value => {
     if (typeof value === 'string' && value.startsWith('/src/')) {
       if (!value.startsWith(`/src/shards/${slug}/`) || !/^\/src\/shards\/[a-z0-9_-]+\/[a-zA-Z0-9_./-]+\.(?:jpe?g|png|webp|svg|hdr)$/u.test(value) || value.includes('..') || !existsSync(resolve(root, value.slice(1)))) throw new Error(`${file}: missing or invalid source image ${value}`);
       images.add(value);
-    } else if (typeof value === 'string' && value.startsWith('/assets/') && !existsSync(resolve(root, 'public', value.slice(1).split('?')[0]))) throw new Error(`${file}: missing public image ${value}`);
+    } else if (typeof value === 'string' && value.startsWith('/assets/') && value !== generatedMap && !existsSync(resolve(root, 'public', value.slice(1).split('?')[0]))) throw new Error(`${file}: missing public image ${value}`);
     else if (Array.isArray(value)) value.forEach(visit);
     else if (value && typeof value === 'object') Object.values(value).forEach(visit);
   };
