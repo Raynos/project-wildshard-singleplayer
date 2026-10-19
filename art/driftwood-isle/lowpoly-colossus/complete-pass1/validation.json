@@ -1,0 +1,2712 @@
+{
+  "status": "static export audit; not a likeness, rig, intersection or performance gate",
+  "sha256": "0a99d4bd244f29e9a9f37b841fabce0a87059ffffa0856046d3eea66b2b73a90",
+  "bytes": 905796,
+  "finiteAttributes": true,
+  "indexBoundsValid": true,
+  "externalDependencies": 0,
+  "meshes": 299,
+  "materialPrimitives": 951,
+  "triangles": 6360,
+  "animations": 0,
+  "skins": 0,
+  "weldTolerance": 1e-06,
+  "boundaryEdges": 0,
+  "nonmanifoldEdges": 0,
+  "windingConflicts": 0,
+  "zeroAreaTriangles": 0,
+  "nonpositiveMeshVolumes": 0,
+  "meshResults": [
+    {
+      "name": "Crooked pelvic trunk",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.23692184919885498
+    },
+    {
+      "name": "Left chest load root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.724182036369518
+    },
+    {
+      "name": "Right chest load root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.6078055973255998
+    },
+    {
+      "name": "Left clavicle cascade",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.3609959467246332
+    },
+    {
+      "name": "Right clavicle cascade",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2766836468606415
+    },
+    {
+      "name": "Left lower cradle",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1413751073169351
+    },
+    {
+      "name": "Right diagonal cradle",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1597022675226018
+    },
+    {
+      "name": "Left upper inward rib",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0848023186275907
+    },
+    {
+      "name": "Right upper inward rib",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07955731052277508
+    },
+    {
+      "name": "Waist front spur",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0682954152634935
+    },
+    {
+      "name": "Rear diagonal trunk",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.6560399678019588
+    },
+    {
+      "name": "Left scapular arch",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4815229348253512
+    },
+    {
+      "name": "Right scapular arch",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4736680611443943
+    },
+    {
+      "name": "Crossback lower root",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.28188043045532163
+    },
+    {
+      "name": "Outer shoulder root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.6295360667362322
+    },
+    {
+      "name": "Arm descending trunk -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5005500866537282
+    },
+    {
+      "name": "Upper arm crossing bark -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1188236395046176
+    },
+    {
+      "name": "Elbow outer hook -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11583617427914432
+    },
+    {
+      "name": "Forearm main to outer claw -1",
+      "triangles": 80,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4313462924979844
+    },
+    {
+      "name": "Forearm inner braid -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.23869839427152872
+    },
+    {
+      "name": "Front forearm blade -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.051596515561513116
+    },
+    {
+      "name": "Middle root digit -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06438459378611398
+    },
+    {
+      "name": "Inner root digit -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04123736197227252
+    },
+    {
+      "name": "Opposed root thumb -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07931762323248145
+    },
+    {
+      "name": "Thigh load root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.26382195318681784
+    },
+    {
+      "name": "Thigh oblique bark -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08524870444667293
+    },
+    {
+      "name": "Embedded knee rock -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07355945561148486
+    },
+    {
+      "name": "Calf rear load -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2576891623492123
+    },
+    {
+      "name": "Calf crossing root -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.15615253610912633
+    },
+    {
+      "name": "Front ankle anchoring root -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09990979893388607
+    },
+    {
+      "name": "Outer embedded foot stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08447980993746418
+    },
+    {
+      "name": "Inner grounded stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.050372925953919595
+    },
+    {
+      "name": "Rear heel stone -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04499268890017992
+    },
+    {
+      "name": "Hip fork -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05284610096060409
+    },
+    {
+      "name": "Arm winding bark ridge -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10816837251269971
+    },
+    {
+      "name": "Forearm diagonal living root -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0890862074023541
+    },
+    {
+      "name": "Lower leg lateral root -1",
+      "triangles": 68,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10382814232400164
+    },
+    {
+      "name": "Inner toe clasp -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05603059202156344
+    },
+    {
+      "name": "Upper heart clasp -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04806050616108261
+    },
+    {
+      "name": "Lower heart claw -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0509601719382614
+    },
+    {
+      "name": "Outer shoulder growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.23898828778574827
+    },
+    {
+      "name": "Outer shoulder growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2843002497777223
+    },
+    {
+      "name": "Outer shoulder growth -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1294914168125909
+    },
+    {
+      "name": "Outer shoulder growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.012829910828759283
+    },
+    {
+      "name": "Outer shoulder growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.019976685679282485
+    },
+    {
+      "name": "Outer shoulder growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.020184988074028035
+    },
+    {
+      "name": "Outer shoulder growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.010569450709277554
+    },
+    {
+      "name": "Outer shoulder growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00879851890628279
+    },
+    {
+      "name": "Collar growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11708494347165874
+    },
+    {
+      "name": "Collar growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12571542621746423
+    },
+    {
+      "name": "Collar growth -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.055829233492889416
+    },
+    {
+      "name": "Collar growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.007196342811393287
+    },
+    {
+      "name": "Collar growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01038332750271144
+    },
+    {
+      "name": "Collar growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00915490692011197
+    },
+    {
+      "name": "Collar growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004603178014326116
+    },
+    {
+      "name": "Collar growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004259602366623504
+    },
+    {
+      "name": "Elbow growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06259655220416555
+    },
+    {
+      "name": "Elbow growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0694440735016027
+    },
+    {
+      "name": "Elbow growth -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.031410805145827614
+    },
+    {
+      "name": "Elbow growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0035835727095806028
+    },
+    {
+      "name": "Elbow growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005192261963097626
+    },
+    {
+      "name": "Elbow growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004681247239891849
+    },
+    {
+      "name": "Elbow growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0025473555083231
+    },
+    {
+      "name": "Elbow growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0022479822630902084
+    },
+    {
+      "name": "Forearm side growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011321848490959269
+    },
+    {
+      "name": "Forearm side growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011234921256501468
+    },
+    {
+      "name": "Forearm side growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007046759386381126
+    },
+    {
+      "name": "Forearm side growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010135316825790105
+    },
+    {
+      "name": "Forearm side growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008828471027006162
+    },
+    {
+      "name": "Forearm side growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004526667585727916
+    },
+    {
+      "name": "Forearm side growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00040923650442239957
+    },
+    {
+      "name": "Hip growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.026660245991336734
+    },
+    {
+      "name": "Hip growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02877585172463582
+    },
+    {
+      "name": "Hip growth -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.012258005059078413
+    },
+    {
+      "name": "Hip growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016204269965266593
+    },
+    {
+      "name": "Hip growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002327074286510451
+    },
+    {
+      "name": "Hip growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018629760402873365
+    },
+    {
+      "name": "Hip growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010358773785640795
+    },
+    {
+      "name": "Hip growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0009429097214606046
+    },
+    {
+      "name": "Shin growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03473508036122845
+    },
+    {
+      "name": "Shin growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.037434191237806634
+    },
+    {
+      "name": "Shin growth -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0165521216767365
+    },
+    {
+      "name": "Shin growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002145930801121276
+    },
+    {
+      "name": "Shin growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0030738650961421345
+    },
+    {
+      "name": "Shin growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0026515906831162082
+    },
+    {
+      "name": "Shin growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0013629321415256073
+    },
+    {
+      "name": "Shin growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0012475979697997256
+    },
+    {
+      "name": "Outer shoulder root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.687305867292213
+    },
+    {
+      "name": "Arm descending trunk 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.5142212607943056
+    },
+    {
+      "name": "Upper arm crossing bark 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11961264346846485
+    },
+    {
+      "name": "Elbow outer hook 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12219980722204533
+    },
+    {
+      "name": "Forearm main to outer claw 1",
+      "triangles": 80,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.42975580460191626
+    },
+    {
+      "name": "Forearm inner braid 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.22758718156141503
+    },
+    {
+      "name": "Front forearm blade 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.053818819554311934
+    },
+    {
+      "name": "Middle root digit 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06740858089952806
+    },
+    {
+      "name": "Inner root digit 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04171168871765237
+    },
+    {
+      "name": "Opposed root thumb 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07173838335938303
+    },
+    {
+      "name": "Thigh load root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2628522171733894
+    },
+    {
+      "name": "Thigh oblique bark 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08427767308568451
+    },
+    {
+      "name": "Embedded knee rock 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07371447500317987
+    },
+    {
+      "name": "Calf rear load 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.26109654413142863
+    },
+    {
+      "name": "Calf crossing root 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1550459172094013
+    },
+    {
+      "name": "Front ankle anchoring root 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10331304550110956
+    },
+    {
+      "name": "Outer embedded foot stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08440022203210547
+    },
+    {
+      "name": "Inner grounded stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.050350510598992475
+    },
+    {
+      "name": "Rear heel stone 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04495907872514158
+    },
+    {
+      "name": "Hip fork 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.052709274169766715
+    },
+    {
+      "name": "Arm winding bark ridge 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11914162003032391
+    },
+    {
+      "name": "Forearm diagonal living root 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09928189430269174
+    },
+    {
+      "name": "Lower leg lateral root 1",
+      "triangles": 68,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10443794111915299
+    },
+    {
+      "name": "Inner toe clasp 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.052774328963590564
+    },
+    {
+      "name": "Upper heart clasp 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04828665171578346
+    },
+    {
+      "name": "Lower heart claw 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0533101491347899
+    },
+    {
+      "name": "Outer shoulder growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2605928362021598
+    },
+    {
+      "name": "Outer shoulder growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2551814464959351
+    },
+    {
+      "name": "Outer shoulder growth 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10748937869214287
+    },
+    {
+      "name": "Outer shoulder growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01635076600493511
+    },
+    {
+      "name": "Outer shoulder growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02214908231633724
+    },
+    {
+      "name": "Outer shoulder growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.016857681471742908
+    },
+    {
+      "name": "Outer shoulder growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00848375700929789
+    },
+    {
+      "name": "Outer shoulder growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.009586042178661488
+    },
+    {
+      "name": "Collar growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.1191059869541421
+    },
+    {
+      "name": "Collar growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12837376893335126
+    },
+    {
+      "name": "Collar growth 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05682782378548694
+    },
+    {
+      "name": "Collar growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0073526259494406734
+    },
+    {
+      "name": "Collar growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.010511587812646467
+    },
+    {
+      "name": "Collar growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008986598880324494
+    },
+    {
+      "name": "Collar growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004683353403487044
+    },
+    {
+      "name": "Collar growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004201392400351733
+    },
+    {
+      "name": "Elbow growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06409584210350364
+    },
+    {
+      "name": "Elbow growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06523112453789937
+    },
+    {
+      "name": "Elbow growth 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02875238600639529
+    },
+    {
+      "name": "Elbow growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003976133130408635
+    },
+    {
+      "name": "Elbow growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005386942634238952
+    },
+    {
+      "name": "Elbow growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004481444981409309
+    },
+    {
+      "name": "Elbow growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0023565789370475487
+    },
+    {
+      "name": "Elbow growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0024014625718065266
+    },
+    {
+      "name": "Forearm side growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01147811099277544
+    },
+    {
+      "name": "Forearm side growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013407691513794782
+    },
+    {
+      "name": "Forearm side growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007041041980289514
+    },
+    {
+      "name": "Forearm side growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010133237887147185
+    },
+    {
+      "name": "Forearm side growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008837936938477248
+    },
+    {
+      "name": "Forearm side growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00045302735596076406
+    },
+    {
+      "name": "Forearm side growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004088445665904497
+    },
+    {
+      "name": "Hip growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02708214681372543
+    },
+    {
+      "name": "Hip growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.029336511807356323
+    },
+    {
+      "name": "Hip growth 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011603996618796677
+    },
+    {
+      "name": "Hip growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001580973665654798
+    },
+    {
+      "name": "Hip growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0022865793305585948
+    },
+    {
+      "name": "Hip growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0020195158671150043
+    },
+    {
+      "name": "Hip growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010439153214883996
+    },
+    {
+      "name": "Hip growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.000940339317222475
+    },
+    {
+      "name": "Shin growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03528663222939946
+    },
+    {
+      "name": "Shin growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.03794997107698994
+    },
+    {
+      "name": "Shin growth 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.016729361249409064
+    },
+    {
+      "name": "Shin growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0021573456589112023
+    },
+    {
+      "name": "Shin growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003091326649800089
+    },
+    {
+      "name": "Shin growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0026553228698734197
+    },
+    {
+      "name": "Shin growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0013579013654587717
+    },
+    {
+      "name": "Shin growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0012469227427401623
+    },
+    {
+      "name": "Left upper back mantle moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.242747101648624
+    },
+    {
+      "name": "Left upper back mantle moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2630612206169638
+    },
+    {
+      "name": "Left upper back mantle moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11364765053952622
+    },
+    {
+      "name": "Left upper back mantle trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.014457435339965404
+    },
+    {
+      "name": "Left upper back mantle trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.020916204573799543
+    },
+    {
+      "name": "Left upper back mantle trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.018090386291367264
+    },
+    {
+      "name": "Left upper back mantle trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.009068168724606744
+    },
+    {
+      "name": "Left upper back mantle trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008412564292340621
+    },
+    {
+      "name": "Right lower back mantle moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.19533937537394552
+    },
+    {
+      "name": "Right lower back mantle moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.2120325703527019
+    },
+    {
+      "name": "Right lower back mantle moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0900197028324563
+    },
+    {
+      "name": "Right lower back mantle trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011424196275436421
+    },
+    {
+      "name": "Right lower back mantle trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.016338456725914288
+    },
+    {
+      "name": "Right lower back mantle trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.014159788916329873
+    },
+    {
+      "name": "Right lower back mantle trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00719022369359759
+    },
+    {
+      "name": "Right lower back mantle trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0066287188733858415
+    },
+    {
+      "name": "Spinal growth moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09289487653760728
+    },
+    {
+      "name": "Spinal growth moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10091504869469667
+    },
+    {
+      "name": "Spinal growth moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04321127461226254
+    },
+    {
+      "name": "Spinal growth trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005626337672430641
+    },
+    {
+      "name": "Spinal growth trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.008099904023474283
+    },
+    {
+      "name": "Spinal growth trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.006990191607818531
+    },
+    {
+      "name": "Spinal growth trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0035591497596336834
+    },
+    {
+      "name": "Spinal growth trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003276621525919716
+    },
+    {
+      "name": "Low rear hip growth moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.018918400482193308
+    },
+    {
+      "name": "Low rear hip growth moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.020513482344329082
+    },
+    {
+      "name": "Low rear hip growth trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0009443132211347217
+    },
+    {
+      "name": "Low rear hip growth trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014198958030062362
+    },
+    {
+      "name": "Low rear hip growth trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014270755888926064
+    },
+    {
+      "name": "Low rear hip growth trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007957583001857961
+    },
+    {
+      "name": "Low rear hip growth trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0006847091299206831
+    },
+    {
+      "name": "Left forward rib growth moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.024752494839134002
+    },
+    {
+      "name": "Left forward rib growth moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02683965908489123
+    },
+    {
+      "name": "Left forward rib growth trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014933924760588309
+    },
+    {
+      "name": "Left forward rib growth trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0021480801696839476
+    },
+    {
+      "name": "Left forward rib growth trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018593938497180997
+    },
+    {
+      "name": "Left forward rib growth trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0009496312225938386
+    },
+    {
+      "name": "Left forward rib growth trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0008685808484403205
+    },
+    {
+      "name": "Exposed turquoise heart",
+      "triangles": 16,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.15489358131950692
+    },
+    {
+      "name": "Neck rear root",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.23863149810288733
+    },
+    {
+      "name": "Long tapered bark mask",
+      "triangles": 24,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.26084566918971047
+    },
+    {
+      "name": "Recessed eye socket -1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0015200784567296938
+    },
+    {
+      "name": "Narrow cyan eye -1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00039147774807587186
+    },
+    {
+      "name": "Crown cheek flow -1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12375624282139974
+    },
+    {
+      "name": "Brow descending ridge -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.027027817124923685
+    },
+    {
+      "name": "Recessed eye socket 1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001520078456729693
+    },
+    {
+      "name": "Narrow cyan eye 1",
+      "triangles": 12,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00039147774807587197
+    },
+    {
+      "name": "Crown cheek flow 1",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12073025041652741
+    },
+    {
+      "name": "Brow descending ridge 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.025762209800475812
+    },
+    {
+      "name": "Crown left main",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.18685494344190573
+    },
+    {
+      "name": "Crown left outer",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07446913219313628
+    },
+    {
+      "name": "Crown left terminal fork",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013064707760791947
+    },
+    {
+      "name": "Crown right main",
+      "triangles": 56,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.15062728151382365
+    },
+    {
+      "name": "Crown right outer",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0638822294212958
+    },
+    {
+      "name": "Crown right short tine",
+      "triangles": 32,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013662113751550289
+    },
+    {
+      "name": "Rear nape leaves moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05041629938902248
+    },
+    {
+      "name": "Rear nape leaves moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05424460393158294
+    },
+    {
+      "name": "Rear nape leaves moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.024123645731214897
+    },
+    {
+      "name": "Rear nape leaves trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0031540058208172628
+    },
+    {
+      "name": "Rear nape leaves trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004518648461705282
+    },
+    {
+      "name": "Rear nape leaves trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003921304719861934
+    },
+    {
+      "name": "Rear nape leaves trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0020246972541766092
+    },
+    {
+      "name": "Rear nape leaves trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0018471089248122685
+    },
+    {
+      "name": "Upper arm embedded slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09304752694008314
+    },
+    {
+      "name": "Forearm split slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04954344215453575
+    },
+    {
+      "name": "Outer thigh embedded slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06485170653586833
+    },
+    {
+      "name": "Shin rising slate -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08038462407850726
+    },
+    {
+      "name": "Separate forward toe -1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.02782040870446946
+    },
+    {
+      "name": "Splayed living toe -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07984338157354376
+    },
+    {
+      "name": "Flank bowed trunk -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4313824152334407
+    },
+    {
+      "name": "Forearm root split -1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12885269172964908
+    },
+    {
+      "name": "Arm lateral drape -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.04513391039559142
+    },
+    {
+      "name": "Arm lateral drape -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.049204369686555595
+    },
+    {
+      "name": "Arm lateral drape -1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.021693003068903823
+    },
+    {
+      "name": "Arm lateral drape -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002675955594081538
+    },
+    {
+      "name": "Arm lateral drape -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0038101280561406436
+    },
+    {
+      "name": "Arm lateral drape -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003297711394604167
+    },
+    {
+      "name": "Arm lateral drape -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016588702943037938
+    },
+    {
+      "name": "Arm lateral drape -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016780515040544283
+    },
+    {
+      "name": "Thigh lateral growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.018709974304884688
+    },
+    {
+      "name": "Thigh lateral growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.020125510163742193
+    },
+    {
+      "name": "Thigh lateral growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0011316683058985267
+    },
+    {
+      "name": "Thigh lateral growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.001626064793072441
+    },
+    {
+      "name": "Thigh lateral growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014114564105177484
+    },
+    {
+      "name": "Thigh lateral growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007237884899740897
+    },
+    {
+      "name": "Thigh lateral growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0006568974035874656
+    },
+    {
+      "name": "Inner calf growth -1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011993943055500932
+    },
+    {
+      "name": "Inner calf growth -1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.012886626362301909
+    },
+    {
+      "name": "Inner calf growth -1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007495231284891219
+    },
+    {
+      "name": "Inner calf growth -1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010767895628247173
+    },
+    {
+      "name": "Inner calf growth -1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0009380486639905466
+    },
+    {
+      "name": "Inner calf growth -1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00048243189249012235
+    },
+    {
+      "name": "Inner calf growth -1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004367405196430067
+    },
+    {
+      "name": "Upper arm embedded slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.09266849295430016
+    },
+    {
+      "name": "Forearm split slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.050908233965788155
+    },
+    {
+      "name": "Outer thigh embedded slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06505734245813169
+    },
+    {
+      "name": "Shin rising slate 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.08059227327055833
+    },
+    {
+      "name": "Separate forward toe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.027808552888452045
+    },
+    {
+      "name": "Splayed living toe 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.07949373002984848
+    },
+    {
+      "name": "Flank bowed trunk 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.4298042323697599
+    },
+    {
+      "name": "Forearm root split 1",
+      "triangles": 44,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.12686955305319167
+    },
+    {
+      "name": "Arm lateral drape 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.044805898336556294
+    },
+    {
+      "name": "Arm lateral drape 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.047070859851433965
+    },
+    {
+      "name": "Arm lateral drape 1 moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0207581206589528
+    },
+    {
+      "name": "Arm lateral drape 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.002805676960067227
+    },
+    {
+      "name": "Arm lateral drape 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.003941931122701067
+    },
+    {
+      "name": "Arm lateral drape 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0032423562305248163
+    },
+    {
+      "name": "Arm lateral drape 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016980155805200112
+    },
+    {
+      "name": "Arm lateral drape 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016478274870144636
+    },
+    {
+      "name": "Thigh lateral growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01803450062019036
+    },
+    {
+      "name": "Thigh lateral growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.019398665790235983
+    },
+    {
+      "name": "Thigh lateral growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0011315907820912043
+    },
+    {
+      "name": "Thigh lateral growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0016261218484854133
+    },
+    {
+      "name": "Thigh lateral growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0014112111476596283
+    },
+    {
+      "name": "Thigh lateral growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0007237561860035692
+    },
+    {
+      "name": "Thigh lateral growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0006568107847803841
+    },
+    {
+      "name": "Inner calf growth 1 moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.012216367743325995
+    },
+    {
+      "name": "Inner calf growth 1 moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.013174549714830846
+    },
+    {
+      "name": "Inner calf growth 1 trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.000752901913778942
+    },
+    {
+      "name": "Inner calf growth 1 trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0010842530716896701
+    },
+    {
+      "name": "Inner calf growth 1 trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.000943351616473792
+    },
+    {
+      "name": "Inner calf growth 1 trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004814682965460816
+    },
+    {
+      "name": "Inner calf growth 1 trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0004349891586526564
+    },
+    {
+      "name": "Left flank cascading moss moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.10895580265805856
+    },
+    {
+      "name": "Left flank cascading moss moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.11840209644626679
+    },
+    {
+      "name": "Left flank cascading moss moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.05030924130678073
+    },
+    {
+      "name": "Left flank cascading moss trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0063736650768895925
+    },
+    {
+      "name": "Left flank cascading moss trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.00917203668909685
+    },
+    {
+      "name": "Left flank cascading moss trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.007909416192172895
+    },
+    {
+      "name": "Left flank cascading moss trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004025308977950729
+    },
+    {
+      "name": "Left flank cascading moss trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.0037121474456850642
+    },
+    {
+      "name": "Right rear shoulder bridge moss lobe 0",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.13110850776675564
+    },
+    {
+      "name": "Right rear shoulder bridge moss lobe 1",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.14389526755774873
+    },
+    {
+      "name": "Right rear shoulder bridge moss lobe 2",
+      "triangles": 18,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.06269332303598252
+    },
+    {
+      "name": "Right rear shoulder bridge trailing blade 0",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.007646814801446397
+    },
+    {
+      "name": "Right rear shoulder bridge trailing blade 1",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.011640872628183738
+    },
+    {
+      "name": "Right rear shoulder bridge trailing blade 2",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.01001864154931316
+    },
+    {
+      "name": "Right rear shoulder bridge trailing blade 3",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.005059995753634957
+    },
+    {
+      "name": "Right rear shoulder bridge trailing blade 4",
+      "triangles": 8,
+      "weldedBoundaryEdges": 0,
+      "weldedNonmanifoldEdges": 0,
+      "windingConflicts": 0,
+      "zeroAreaTriangles": 0,
+      "signedVolume": 0.004643859973387024
+    }
+  ]
+}

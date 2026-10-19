@@ -1,0 +1,24 @@
+{
+  "frozen_at_utc": "2026-10-19T13:04:26.101254+00:00",
+  "comparison_stage": "Original concept plus complete-pass1 actual hero and all nine individual full frames; before V4 images, prior scores or design justifications",
+  "scores_0_to_5": {
+    "silhouette_proportions": 3.9,
+    "face_expression": 3.7,
+    "defining_details": 3.6,
+    "facet_style": 3.8
+  },
+  "weights": {
+    "silhouette_proportions": 0.35,
+    "face_expression": 0.3,
+    "defining_details": 0.2,
+    "facet_style": 0.15
+  },
+  "exact_weighted_score": "3.765 / 5",
+  "verdict": "Recognizable and coherent static interpretation, with substantial concept drift in foliage grammar, face mass and arm/hand proportions. Not a close-match final approval.",
+  "observations": [
+    "Broad guardian stance, antlers, cyan eyes/core and wood-stone feet carry identity.",
+    "Face is a broad continuous pointed shield/beak rather than the narrower layered split mask in the original.",
+    "Long articulated fingers and repeated dome-and-triangle foliage read more manufactured than the original irregular root-claw and moss masses.",
+    "Side and rear silhouettes are coherent but carry an oversized repeated leaf mantle; hidden-angle fidelity is approximate."
+  ]
+}

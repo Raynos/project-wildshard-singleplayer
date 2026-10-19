@@ -1,0 +1,131 @@
+{
+  "status": "Unaccepted static study; no score or runtime admission",
+  "predecessorMismatches": [],
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/01-front.webp",
+      "bytes": 47276,
+      "sha256": "8451c2e8a477b5ddc60d20c4ef98075edfadd64bc5187b57370b12f93e595172"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/02-left.webp",
+      "bytes": 27228,
+      "sha256": "fed8a29cec051faaa9582483a0c207c4d8d285ce44bb537d0a46635f28a7eb62"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/03-right.webp",
+      "bytes": 27454,
+      "sha256": "fa45d7b03a65a447eca6511ee94e04544097c17eff743807989b9e025d3c399c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/04-back.webp",
+      "bytes": 50432,
+      "sha256": "c400c374855f1aaa8c771258dfc514595efe42dd345e3ff8cdf07a87003df30f"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/05-top.webp",
+      "bytes": 63276,
+      "sha256": "abfd0d8b017955c415677f0208f567180c20a48bceeebbf10f8a3f9a44f850e4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/06-diag-front.webp",
+      "bytes": 68770,
+      "sha256": "9896858f7768bdc4c2ab2662e4d99ebaa2b6943cc7886ec929662d02af76bd80"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/07-diag-left.webp",
+      "bytes": 60190,
+      "sha256": "2797120b264c363b4d928cd9c24a2bb7c8671f3fd2534d183612acf6bd1b0a16"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/08-diag-right.webp",
+      "bytes": 61362,
+      "sha256": "410c3f0f218fcdacbeb6a74b3d0ecaae3022cda73db4e22ac9d8c2aacf0213b4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/09-diag-back.webp",
+      "bytes": 61164,
+      "sha256": "d8fd938a956a6f9fdf690c2bf3cd5083490b24cfe7dc11179e6cfe795427d397"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/build_colossus_complete.py",
+      "bytes": 23659,
+      "sha256": "f7aff0e673e566e3cd6be4376d92b64109e596fb7124b904d0dab471381230b0"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/cameras-complete-pass1.json",
+      "bytes": 2899,
+      "sha256": "16eee52e54065a07bdc69b7d6a3ddd3cc464c5d14cb4d2b1318b9914cfe3597a"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/capture-receipt.json",
+      "bytes": 2871,
+      "sha256": "d6ef3504a5f4134631e7a735771e34ea277a080ceb1e3d6200712733956bdbed"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/evidence-notes.md",
+      "bytes": 1953,
+      "sha256": "f98a0a775aeb20d22ed7e473578c49c4cc613a7ae36bc0444422217e1aa03882"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/hero.webp",
+      "bytes": 109448,
+      "sha256": "86ac116add6661ae7ccf17ebe7f3969fadbe4a14f8960623d54788df1ea58b81"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/metrics-complete-pass1.json",
+      "bytes": 463,
+      "sha256": "3c77bb47bb3688c671d64df89329b9ec9b76b568471ad61f0b3b785f483076a6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/named-parts-audit.json",
+      "bytes": 15103,
+      "sha256": "4afcce3c19b1f3ce5c6558cb4c7b159c5c8a62a10e0226802e02b27d9e833826"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/nine-board.webp",
+      "bytes": 296450,
+      "sha256": "131f13d8d98401610af6f1a2c4df7b186da485757d068d6a28273a07140e4aeb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/package_evidence.py",
+      "bytes": 3174,
+      "sha256": "d0d849bf312bac83fde76cef52d93d96b9939cd9ea58dffe04729c79e5384087"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/predecessor-preservation.json",
+      "bytes": 43141,
+      "sha256": "1bb7e53b8f7b91a7651e51613d3e4933863adb58d5c13f72566a7ff2084ad062"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/render_nine.py",
+      "bytes": 2777,
+      "sha256": "487d3a70f319922052c75cfc1b881ea56197ac255846e2dc93397da392f91006"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/source-closure.json",
+      "bytes": 1107,
+      "sha256": "8c32ac9aa17306a90ad1cc39d950c5bd848245a08edfe95b7a9e7046976ad065"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/tide-root-colossus-complete-pass1.glb",
+      "bytes": 905796,
+      "sha256": "0a99d4bd244f29e9a9f37b841fabce0a87059ffffa0856046d3eea66b2b73a90"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/validate_glb.py",
+      "bytes": 4008,
+      "sha256": "5a64375e837b9ab91a2f9b49271c863d057b2a3787bd910841d7a5fc4a06ffea"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/validation.json",
+      "bytes": 75894,
+      "sha256": "c50f51f19739d523bd92af9565f195e5e38174c4325e3f34fd44ef0bb6b3db5e"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass1-construction.md",
+      "bytes": 2801,
+      "sha256": "38e55b62b7adb6d45d18aba59b84a5a049d4b5b03e5bf965d2880e1fa472f24a"
+    }
+  ]
+}

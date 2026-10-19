@@ -1,0 +1,68 @@
+{
+  "status": "Actual static construction audit; not likeness or runtime admission",
+  "prior_sources": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v3.py",
+      "sha256": "696820dd53e65a558e6521f8ee7f7ee5595c479a254021509601fd2f919ab99c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v4.py",
+      "sha256": "fb8c1764b634fa4d035f8e765fc4a2f351f12a49fc906e05e59b560d2b918227"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v5.py",
+      "sha256": "c798497883c47c76b1eb90828cd78a4c775cbab901c2ea4da75a05a0e7ef28bb"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v6.py",
+      "sha256": "952a8ddca0991a5aaaf1044d3a0498626567d6805881b77e43450c65f1e90a1d"
+    }
+  ],
+  "source_sha256": "5cb28ba4a823291a749498c63be5b2a07a16e2915245bd4f7483e6cc2aefe464",
+  "bounds": {
+    "min": [
+      -1.6799999475479126,
+      -2.0910000801086426,
+      0.0
+    ],
+    "max": [
+      1.6532623767852783,
+      1.590221881866455,
+      3.4890940189361572
+    ]
+  },
+  "component_count": 88,
+  "nonmanifold_edges": 0,
+  "zero_area_faces": 0,
+  "ground_minimum_z": 0.0,
+  "hero_eye_diagnostics": [
+    {
+      "eye": "Inset amber eye",
+      "visible_samples": 3,
+      "samples": 4,
+      "blockers": [
+        null,
+        null,
+        "Recessed eye shadow",
+        null
+      ]
+    },
+    {
+      "eye": "Inset amber eye.001",
+      "visible_samples": 3,
+      "samples": 4,
+      "blockers": [
+        null,
+        null,
+        "Recessed eye shadow.001",
+        null
+      ]
+    }
+  ],
+  "runtime_changed": false,
+  "physics_changed": false,
+  "independent_visual_review": "pending",
+  "nine_views": 9,
+  "all_projection_bounds_pass": true,
+  "hero_nine_glbs_identical": true
+}

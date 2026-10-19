@@ -1,0 +1,20 @@
+{
+  "frozen_before_v6_review": true,
+  "prior_scores_or_design_notes_read": false,
+  "viewed": "Original concept plus actual complete-pass1 hero and nine individual PNGs",
+  "components": {
+    "silhouette_proportions": 3.8,
+    "face_expression": 3.3,
+    "defining_details": 4.1,
+    "facet_style": 4.2
+  },
+  "weights": [
+    0.35,
+    0.3,
+    0.2,
+    0.15
+  ],
+  "weighted_score_exact": "3.77",
+  "percent_exact": "75.4",
+  "verdict": "Recognizable Bellback; not concept-equivalent. Face is elongated and tooth-cluttered; carriage is squared scaffold; stance regular quadruped."
+}

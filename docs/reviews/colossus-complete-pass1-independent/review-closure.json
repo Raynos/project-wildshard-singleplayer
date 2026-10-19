@@ -1,0 +1,170 @@
+{
+  "created_utc": "2026-10-19T13:06:53.040546+00:00",
+  "scope": "Independent STATIC likeness review only",
+  "candidate_score_exact": "3.765",
+  "comparison_score_exact": "3.685",
+  "recommended_actual_candidate": "complete-pass1",
+  "visually_inspected_full_frames": [
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/tide-root-colossus-lowpoly.webp",
+      "bytes": 207866,
+      "sha256": "157fe0ad0db0705fd0ca4604b0bbf6d24893a935079f7529b29b010a25bb80d3"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1/three-quarter.png",
+      "bytes": 1837172,
+      "sha256": "2e730a966f9a1937d214fd3d659a992eb53ca380233e2f4008dbde58afa117c7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-front.png",
+      "bytes": 502967,
+      "sha256": "6ca693f35834b51a70754b66de12e4e1fc5c6e72d2864a3ab44ffa5b30c62638"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-left.png",
+      "bytes": 369355,
+      "sha256": "bad9ad307da14068b392397efafe0caf5bae467ba1edcb956ba2f741938fbdfd"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-right.png",
+      "bytes": 371181,
+      "sha256": "212a25c74e240f0f0a86ce975caa36515020c07ad389ce6cbe23477b4c8ade82"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-back.png",
+      "bytes": 501594,
+      "sha256": "9de73cf56b1e79b7550d1de811e9e02af7167a0eac5410cbcbb81087bfdaa0a8"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-top.png",
+      "bytes": 679956,
+      "sha256": "98ff9d78bd8f4ccdf381c7e81d7b48244ca6158b09a2a23261001928e612d86e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-front.png",
+      "bytes": 728946,
+      "sha256": "1a8c9566b8021ea7f91f50bebf0eebda6ea7579ee660cbe9210e0739592556a0"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-left.png",
+      "bytes": 703281,
+      "sha256": "78dba1e37adf8b06b66082ff36282de200393f1e04470ecdb27b18b32e2b3061"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-right.png",
+      "bytes": 712563,
+      "sha256": "e003a5189df61f38a1d1f0e917dd4f1825fd95a24a248013bbee2026ddd4e0a2"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-back.png",
+      "bytes": 701304,
+      "sha256": "a0bc76aed6b0952d9f8acd721dd6781ced30cec41dd65b99ab76cc65d15ed02c"
+    },
+    {
+      "path": "tmp/colossus-v4/three-quarter.png",
+      "bytes": 1765749,
+      "sha256": "a104ebe062154062ed3f6c109670553ba0f24d0dc169db316f10e0a0548a99c0"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-front.png",
+      "bytes": 475433,
+      "sha256": "19aab19267f59d3532798f567aca2a55fda887e58e0acdb21e4c99929f7be246"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-left.png",
+      "bytes": 333827,
+      "sha256": "9944c6fc74300e426662a2bb22a9207e90808ceb1653b566ac1ad8112fce953b"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-right.png",
+      "bytes": 338044,
+      "sha256": "2096c8fa1f1277e21a7094df647a9d6b0bf00c7753bd9558cf862cd7feba53ae"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-back.png",
+      "bytes": 477087,
+      "sha256": "e86a068107362ec1678549007f5df1bd6ca6ae787c7f2056cd6982f38eee519e"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-top.png",
+      "bytes": 659739,
+      "sha256": "ed5486d1aca4fea4cdd343c6b6c76a50b359e43411b494bfbead3ce2238b6d7b"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-front.png",
+      "bytes": 708828,
+      "sha256": "86fe1e43bd4d604f43b997af673223766a18d18d717b19b69bd1f307b7249bfd"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-left.png",
+      "bytes": 682012,
+      "sha256": "94debbf1c05f9a1b9ccbf303316f1b4642da34008bbaf5bc2c1be47ff71d083d"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-right.png",
+      "bytes": 694969,
+      "sha256": "d1ba1da3740b686c56a29716b96d1005c323006c80bb9ff388c675696e00c375"
+    },
+    {
+      "path": "tmp/colossus-v4-nine/color-v4-diag-back.png",
+      "bytes": 677400,
+      "sha256": "d16253bf7cdb8fb6aaf4053e41b83d99ab8c8ead1889252b5e06bb1547984231"
+    }
+  ],
+  "receipt_checks": [
+    {
+      "manifest": {
+        "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/source-closure.json",
+        "bytes": 1107,
+        "sha256": "8c32ac9aa17306a90ad1cc39d950c5bd848245a08edfe95b7a9e7046976ad065"
+      },
+      "entries_checked": 5,
+      "mismatches": []
+    },
+    {
+      "manifest": {
+        "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/capture-receipt.json",
+        "bytes": 2871,
+        "sha256": "d6ef3504a5f4134631e7a735771e34ea277a080ceb1e3d6200712733956bdbed"
+      },
+      "entries_checked": 14,
+      "mismatches": []
+    },
+    {
+      "manifest": {
+        "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/final-closure.json",
+        "bytes": 5232,
+        "sha256": "c9bfbd93e3653a70730f0abe8541a067f5d3281aa0e94bc15459dfb00d291658"
+      },
+      "entries_checked": 25,
+      "mismatches": []
+    },
+    {
+      "manifest": {
+        "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/predecessor-preservation.json",
+        "bytes": 43141,
+        "sha256": "1bb7e53b8f7b91a7651e51613d3e4933863adb58d5c13f72566a7ff2084ad062"
+      },
+      "entries_checked": 199,
+      "mismatches": []
+    }
+  ],
+  "review_artifacts": [
+    {
+      "path": "docs/reviews/colossus-complete-pass1-independent/initial-assessment.json",
+      "bytes": 1235,
+      "sha256": "522a6396f5a189828bc6f5568004f09ad520aff5a451e93abb457bf664329631"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass1-independent/REVIEW.md",
+      "bytes": 6679,
+      "sha256": "2d504b99ad3ba716dfdad7d7f0a0fa7cae6524e00111c0521a43c8dfa3fc0022"
+    }
+  ],
+  "source_glb": {
+    "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/tide-root-colossus-complete-pass1.glb",
+    "bytes": 905796,
+    "sha256": "0a99d4bd244f29e9a9f37b841fabce0a87059ffffa0856046d3eea66b2b73a90"
+  },
+  "no_runtime_or_animation_acceptance": true
+}

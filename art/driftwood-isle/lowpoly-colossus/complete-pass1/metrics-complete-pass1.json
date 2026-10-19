@@ -1,0 +1,21 @@
+{
+  "status": "unaccepted complete pass 1 integrated growth study",
+  "objects": 299,
+  "triangles": 6360,
+  "bounds": {
+    "min": [
+      -2.5780141353607178,
+      -1.4267574548721313,
+      0.01899999938905239
+    ],
+    "max": [
+      2.57515549659729,
+      1.4491046667099,
+      5.8114824295043945
+    ]
+  },
+  "front": "-Y",
+  "glbBytes": 905796,
+  "sourceSHA256": "f7aff0e673e566e3cd6be4376d92b64109e596fb7124b904d0dab471381230b0",
+  "rendered": true
+}

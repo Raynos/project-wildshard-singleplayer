@@ -1,0 +1,79 @@
+{
+  "status": "Actual hero and nine; independent review pending",
+  "heroExit": 0,
+  "nineExit": 0,
+  "geometryAuditExit": 0,
+  "heroAndNineGLBIdentical": true,
+  "files": [
+    {
+      "path": "tmp/colossus-complete-pass1/three-quarter.png",
+      "bytes": 1837172,
+      "sha256": "2e730a966f9a1937d214fd3d659a992eb53ca380233e2f4008dbde58afa117c7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-front.png",
+      "bytes": 502967,
+      "sha256": "6ca693f35834b51a70754b66de12e4e1fc5c6e72d2864a3ab44ffa5b30c62638"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-left.png",
+      "bytes": 369355,
+      "sha256": "bad9ad307da14068b392397efafe0caf5bae467ba1edcb956ba2f741938fbdfd"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-right.png",
+      "bytes": 371181,
+      "sha256": "212a25c74e240f0f0a86ce975caa36515020c07ad389ce6cbe23477b4c8ade82"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-back.png",
+      "bytes": 501594,
+      "sha256": "9de73cf56b1e79b7550d1de811e9e02af7167a0eac5410cbcbb81087bfdaa0a8"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-top.png",
+      "bytes": 679956,
+      "sha256": "98ff9d78bd8f4ccdf381c7e81d7b48244ca6158b09a2a23261001928e612d86e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-front.png",
+      "bytes": 728946,
+      "sha256": "1a8c9566b8021ea7f91f50bebf0eebda6ea7579ee660cbe9210e0739592556a0"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-left.png",
+      "bytes": 703281,
+      "sha256": "78dba1e37adf8b06b66082ff36282de200393f1e04470ecdb27b18b32e2b3061"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-right.png",
+      "bytes": 712563,
+      "sha256": "e003a5189df61f38a1d1f0e917dd4f1825fd95a24a248013bbee2026ddd4e0a2"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/color-complete-pass1-diag-back.png",
+      "bytes": 701304,
+      "sha256": "a0bc76aed6b0952d9f8acd721dd6781ced30cec41dd65b99ab76cc65d15ed02c"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1/render.log",
+      "bytes": 81572,
+      "sha256": "248c557da04295b72f00d628bf81911d4810937407c39da901453d7529a7df82"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/render.log",
+      "bytes": 467238,
+      "sha256": "9a8f0345bbda8128c16aff7024aa35d09dc0b7c1787b104761bce4bcb00662fa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass1-nine/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  ]
+}

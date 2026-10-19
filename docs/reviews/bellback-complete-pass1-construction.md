@@ -75,3 +75,24 @@ The builder's hero inspection flags two risks for the independent reviewer:
 the straighter bell covers more of the supporting roof arch, and separate
 teeth appear thinner than the approved image's chunky broken bite. The original
 V6 remains the accepted historical fallback; no promotion is implied.
+
+## Full nine-view closure, 13:01 UTC
+
+Both shared-lane render jobs exited 0. The hero and fixed-nine rebuilds produced
+byte-identical GLBs, SHA256
+`c9c14123e24b7a2f6dca3c26c81154d82c889aaf25b6a1302f681ba6de396b09`.
+The builder inspected each of the nine original PNGs individually. Complete
+geometry projection bounds passed every view; topology checks remain clean.
+Actual original PNGs and logs remain under `tmp/bellback-complete-pass1/`.
+
+The source folder now contains the editable GLB, hero and nine individual
+labeled WebPs, portrait comparison and nine-view boards, both source-pinned
+capture receipts, validation, structural audit and a SHA256/bytes closure.
+`package_evidence.py` verifies each original PNG against its render receipt
+before adding labels and compressing review copies; it does not alter geometry.
+
+The sides confirm that the muzzle is longer but still planar and the rear
+barrel end remains visibly exposed beneath the new braces. These are explicit
+review risks, not defects declared solved by the construction changes. All
+images and sources are frozen for a fresh independent original-reference
+review. The pass has not been promoted, integrated or assigned a builder score.
