@@ -6,7 +6,7 @@ import * as schema from '../src/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputIndex';
-import { loadShardProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
+import { loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource } from '../src/game/shardfile/productCost';
@@ -24,6 +24,26 @@ const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
 const own = (): Scope => { const scope = new Scope('loader-test'); scopes.push(scope); return scope; };
 const bytes = (input: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(input));
+
+test('read-only runtime lookups defer descriptor classification until release', async () => {
+  const source = emptyShardfile({ slug: 'runtime-readonly', name: 'Reader', author: 'Test', revision: 1, seed: 1 });
+  let classifications = 0;
+  Object.defineProperty(source, 'runtime', { get: () => { classifications++; return null; } });
+  const priorLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { href: 'https://test.example/' } });
+  try {
+    const first = runtimeProduct(source), second = runtimeProduct(source);
+    expect(first.source).toBe(source); expect(second.source).toBe(source);
+    expect(classifications).toBe(0);
+    await first.releaseTransport([]); expect(classifications).toBe(1);
+    await first.releaseTransport([]); expect(classifications).toBe(1);
+    await second.releaseTransport([]); expect(classifications).toBe(2);
+  } finally {
+    if (priorLocation === undefined) Reflect.deleteProperty(globalThis, 'location');
+    else Object.defineProperty(globalThis, 'location', priorLocation);
+  }
+});
+
 function fixture(platformRef = false, extra?: (source: schema.Shardfile) => ReadonlyMap<string, unknown>, logicalNames?: ReadonlyMap<string, string>) {
   const source = emptyShardfile({ slug: 'runtime-loader', name: 'Loader', author: 'Test', revision: 1, seed: 1 });
   const blob = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(blob);

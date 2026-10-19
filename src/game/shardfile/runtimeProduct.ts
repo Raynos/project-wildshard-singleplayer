@@ -37,9 +37,12 @@ export interface RuntimeProduct {
 }
 
 function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: AdmittedProduct['releaseTransport']): RuntimeProduct {
-  const bound = runtimeBoundWorldFiles(source);
+  // Read-only graph/terrain lookups never release transport. Classifying the
+  // entire descriptor belongs to release, rather than every live lookup.
+  let bound: ReadonlySet<string> | undefined;
   return { source, assets, releaseTransport: async refs => {
-    const requested = [...refs].filter(ref => bound.has(ref));
+    const files = bound ??= runtimeBoundWorldFiles(source);
+    const requested = [...refs].filter(ref => files.has(ref));
     // Old/caller-owned admissions have no release authority: preserve their supplied maps and mirrors.
     const released = release === undefined ? [] : await release(requested);
     assets.releaseTransport(released);
