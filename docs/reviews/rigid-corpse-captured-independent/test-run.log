@@ -1,0 +1,220 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (docs/reviews/rigid-corpse-captured-independent/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=30 Hz 608ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=60 Hz 202ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=120 Hz 205ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=30 Hz 106ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=60 Hz 156ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=120 Hz 243ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=30 Hz 158ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=60 Hz 185ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=120 Hz 292ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=30 Hz 131ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=60 Hz 138ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=120 Hz 218ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=30 Hz 164ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=60 Hz 149ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=120 Hz 210ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=30 Hz 122ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=60 Hz 124ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=120 Hz 194ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=30 Hz 473ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=60 Hz 510ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=120 Hz 779ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=30 Hz 234ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=60 Hz 295ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=120 Hz 421ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=30 Hz 289ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=60 Hz 460ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=120 Hz 546ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=30 Hz 210ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=60 Hz 253ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=120 Hz 391ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=30 Hz 192ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=60 Hz 203ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=120 Hz 448ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=30 Hz 165ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=60 Hz 245ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=120 Hz 345ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: rigid lite=false 51ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: upright lite=false 87ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: quadruped lite=false 45ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: quadruped lite=true 77ms
+ ✓ test/rigid-corpse-default-parity.test.ts > legacy render-clock quiet freeze retains exact threshold 30ms
+ ✓ test/rigid-corpse-default-parity.test.ts > legacy render-clock timeout freeze retains exact threshold 109ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: rigid lite=false damage=0 22ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: rigid lite=false damage=1000 22ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: upright lite=false damage=0 41ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: upright lite=false damage=1000 41ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=false damage=0 35ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=false damage=1000 35ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=true damage=0 48ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=true damage=1000 28ms
+ ✓ test/rigid-corpse-default-parity.test.ts > tier-sized cap 2 releases exactly one slot on live disposal 98ms
+ ✓ test/rigid-corpse-default-parity.test.ts > tier-sized cap 6 releases exactly one slot on live disposal 184ms
+ ✓ test/rigid-corpse-input-order.test.ts > actual Bellback strike 1 stops leaking after later death input 54ms
+ ✓ test/rigid-corpse-input-order.test.ts > actual Bellback strike 2 stops leaking after later death input 38ms
+ ✓ test/rigid-corpse-input-order.test.ts > actual Bellback strike 3 stops leaking after later death input 28ms
+ ✓ test/rigid-corpse-input-order.test.ts > actual numeric invalid memory refuses atomically and retries with the corrected snapshot 7ms
+ ✓ test/rigid-corpse-input-order.test.ts > fresh immutable observations retain structural bind inputs and commit clocks only on success 4ms
+ ✓ test/rigid-corpse-input-order.test.ts > real borrowed Bellback death input reaches corpse boundary in practice-update order 343ms
+ ✓ test/rigid-corpse-input-order.test.ts > real borrowed Bellback death input reaches corpse boundary in retained-fixed-post order 153ms
+ ✓ test/rigid-corpse-input-order.test.ts > repeated bout retirement creates fresh corpse inputs without touching retired owners 232ms
+ ✓ test/rigid-corpse-input-order.test.ts > captured lethal pose survives actual practice-update death, pause, catch-up and repeated retirement 240ms
+ ✓ test/rigid-corpse-input-order.test.ts > captured lethal pose survives actual retained-fixed-post death, pause, catch-up and repeated retirement 223ms
+ ✓ test/rigid-corpse-physics.test.ts > prepares once-scaled convex vertices and center at scale 0.5 5ms
+ ✓ test/rigid-corpse-physics.test.ts > prepares once-scaled convex vertices and center at scale 1 1ms
+ ✓ test/rigid-corpse-physics.test.ts > prepares once-scaled convex vertices and center at scale 2 1ms
+ ✓ test/rigid-corpse-physics.test.ts > rejects unsupported rig/bones/scales and degenerate hulls without native allocation 3ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=false 85ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=true 4ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=false 5ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=true 3ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=false 5ms
+ ✓ test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=true 3ms
+ ✓ test/rigid-corpse-physics.test.ts > preparation and collider allocation failure are transactional and do not consume cap 2ms
+ ✓ test/rigid-corpse-physics.test.ts > fixed collapse blocks sleep freeze, captures every catch-up root endpoint and freezes together 6ms
+ ✓ test/rigid-corpse-physics.test.ts > whole-world teardown before corpse retirement never dereferences freed handles 1ms
+ ✓ test/rigid-corpse-physics.test.ts > native 8-part/435-point fixture preserves geometry under pose policy undefined on one body 163ms
+ ✓ test/rigid-corpse-physics.test.ts > native 8-part/435-point fixture preserves geometry under pose policy captured on one body 132ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 0, captured=false releases the entire root and permits retry 2ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 0, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 1, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 1, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 2, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 2, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 3, captured=false releases the entire root and permits retry 2ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 3, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 4, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 4, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 5, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 5, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 6, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 6, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 7, captured=false releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > part allocation failure at 7, captured=true releases the entire root and permits retry 1ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 0 allocates nothing 1ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 1 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 2 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 3 allocates nothing 1ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 4 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 5 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 6 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > invalid preparation part 7 allocates nothing 0ms
+ ✓ test/rigid-corpse-physics.test.ts > synthetic convex corpse settles on native plane inclination 0 without changing world-only masks 19ms
+ ✓ test/rigid-corpse-physics.test.ts > synthetic convex corpse settles on native plane inclination 0.24 without changing world-only masks 11ms
+ ✓ test/rigid-corpse-physics.test.ts > synthetic convex corpse settles on native plane inclination -0.24 without changing world-only masks 10ms
+ ✓ test/rigid-corpse-physics.test.ts > scope retirement removes active compound ownership before the next fixed publication 2ms
+ ✓ test/rigid-corpse-physics.test.ts > MAX_T freezes incomplete pose endpoints together and releases the cap exactly once 7ms
+ ✓ test/rigid-corpse-physics.test.ts > opt-in refuses parent translation before allocation while default admission remains unchanged 1ms
+ ✓ test/rigid-corpse-physics.test.ts > opt-in refuses parent rotation before allocation while default admission remains unchanged 1ms
+ ✓ test/rigid-corpse-physics.test.ts > opt-in refuses parent scale before allocation while default admission remains unchanged 0ms
+ ✓ test/rigid-corpse-physics.test.ts > recipe/publication policy mismatch false refuses before native allocation 1ms
+ ✓ test/rigid-corpse-physics.test.ts > recipe/publication policy mismatch true refuses before native allocation 0ms
+ ✓ test/rigid-corpse-clock.test.ts > fixed endpoint clock is independent of 30 Hz render cadence and near/far observation 17ms
+ ✓ test/rigid-corpse-clock.test.ts > fixed endpoint clock is independent of 60 Hz render cadence and near/far observation 6ms
+ ✓ test/rigid-corpse-clock.test.ts > fixed endpoint clock is independent of 120 Hz render cadence and near/far observation 6ms
+ ✓ test/rigid-corpse-clock.test.ts > fixed endpoint clock is independent of 6 Hz render cadence and near/far observation 6ms
+ ✓ test/rigid-corpse-clock.test.ts > each fixed step copies current inputs; paused render and hit-stop do not advance clocks 1ms
+ ✓ test/rigid-corpse-clock.test.ts > rejects arbitrary callbacks and rolls back unsafe scale writes 1ms
+ ✓ test/rigid-corpse-clock.test.ts > numeric compiler marks only rigid-transform programs eligible for fixed corpse ownership 16ms
+ ✓ test/rigid-corpse-clock.test.ts > captured endpoints at 30 Hz never read live inputs, call animation or advance clocks 6ms
+ ✓ test/rigid-corpse-clock.test.ts > captured endpoints at 60 Hz never read live inputs, call animation or advance clocks 4ms
+ ✓ test/rigid-corpse-clock.test.ts > captured endpoints at 120 Hz never read live inputs, call animation or advance clocks 7ms
+ ✓ test/rigid-corpse-clock.test.ts > captured endpoints at 6 Hz never read live inputs, call animation or advance clocks 1ms
+ ✓ test/rigid-corpse-clock.test.ts > captured policy still refuses unadmitted animation and validates every bone, including non-collider descendants 1ms
+ ✓ test/rigid-corpse-schema.test.ts > strict corpse recipe owns copies and preserves declared values 5ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 0 2ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 1 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 2 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 3 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 4 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 5 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 6 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 7 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 8 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 9 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 10 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 11 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 12 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 13 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 14 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 15 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 16 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 17 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 18 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 19 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 20 1ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 21 0ms
+ ✓ test/rigid-corpse-schema.test.ts > rejects malformed/over-budget recipe 22 3ms
+ ✓ test/rigid-corpse-schema.test.ts > present undefined is rejected at optional boundary while absence is exact 1ms
+ ✓ test/rigid-corpse-schema.test.ts > native body recipe round-trips inertly and preserves exact absence bytes 1ms
+ ✓ test/rigid-corpse-schema.test.ts > packed metadata deep-copies hulls and rejects unknown bones or upright recipes 3ms
+ ✓ test/rigid-corpse-schema.test.ts > pure data admission rejects non-volumetric hull 0 before native preparation 0ms
+ ✓ test/rigid-corpse-schema.test.ts > pure data admission rejects non-volumetric hull 1 before native preparation 0ms
+ ✓ test/rigid-corpse-schema.test.ts > pure data admission rejects non-volumetric hull 2 before native preparation 0ms
+ ✓ test/rigid-corpse-schema.test.ts > optional corpse policy undefined leaves living simulation, attack clocks, memory and analytic hit volumes byte-identical 24ms
+ ✓ test/rigid-corpse-schema.test.ts > optional corpse policy captured leaves living simulation, attack clocks, memory and analytic hit volumes byte-identical 20ms
+ ✓ test/rigid-corpse-schema.test.ts > native world retains inert corpse geometry without accepting extra fields 2ms
+ ✓ test/rigid-corpse-schema.test.ts > captured policy survives detached schema copies and does not materialize absent policy 0ms
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5 1074ms
+   → expected 0.00006334421228309255 to be less than 0.000002
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1 971ms
+   → expected 0.0001266884245661851 to be less than 0.000002
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2 861ms
+   → expected 0.0002533768491323702 to be less than 0.000002
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5
+AssertionError: expected 0.00006334421228309255 to be less than 0.000002
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:54:109
+     52|     }
+     53|   }
+     54|   expect(largestSupportDifference).toBeLessThan(2e-6); expect(vertices…
+       |                                                                                                             ^
+     55|   const rootBefore = [...root.position, ...root.quaternion, ...root.sc…
+     56|   for (let i=0; i<100; i++) { pose.step(1/60); pose.render(i/99); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1
+AssertionError: expected 0.0001266884245661851 to be less than 0.000002
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:54:109
+     52|     }
+     53|   }
+     54|   expect(largestSupportDifference).toBeLessThan(2e-6); expect(vertices…
+       |                                                                                                             ^
+     55|   const rootBefore = [...root.position, ...root.quaternion, ...root.sc…
+     56|   for (let i=0; i<100; i++) { pose.step(1/60); pose.render(i/99); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2
+AssertionError: expected 0.0002533768491323702 to be less than 0.000002
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:54:109
+     52|     }
+     53|   }
+     54|   expect(largestSupportDifference).toBeLessThan(2e-6); expect(vertices…
+       |                                                                                                             ^
+     55|   const rootBefore = [...root.position, ...root.quaternion, ...root.sc…
+     56|   for (let i=0; i<100; i++) { pose.step(1/60); pose.render(i/99); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  3 failed | 157 passed (160)
+   Start at  04:03:38
+   Duration  37.98s (tests 44%, transform 27%, setup 26%, import 3%)
+
+  Transform  transforming modules took 10.02s · 27% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

@@ -1,0 +1,52 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (docs/reviews/rigid-corpse-captured-independent/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5 130ms
+   → Cannot read properties of null (reading 'length')
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1 50ms
+   → Cannot read properties of null (reading 'length')
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2 58ms
+   → Cannot read properties of null (reading 'length')
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5
+TypeError: Cannot read properties of null (reading 'length')
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:52:45
+     50|     for (let i = 0; i < shape.vertices.length; i += 3) center.add(new …
+     51|     center.divideScalar(shape.vertices.length / 3);
+     52|     for (let face = 0; face < shape.indices.length; face += 3) {
+       |                                             ^
+     53|       const ai = shape.indices[face], bi = shape.indices[face+1], ci =…
+     54|       if (ai === undefined || bi === undefined || ci === undefined) th…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2
+TypeError: Cannot read properties of null (reading 'length')
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:52:45
+     50|     for (let i = 0; i < shape.vertices.length; i += 3) center.add(new …
+     51|     center.divideScalar(shape.vertices.length / 3);
+     52|     for (let face = 0; face < shape.indices.length; face += 3) {
+       |                                             ^
+     53|       const ai = shape.indices[face], bi = shape.indices[face+1], ci =…
+     54|       if (ai === undefined || bi === undefined || ci === undefined) th…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  04:04:54
+   Duration  10.22s (transform 73%, setup 23%, tests 2%, import 1%)
+
+  Transform  transforming modules took 7.28s · 73% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

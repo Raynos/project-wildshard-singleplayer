@@ -1,0 +1,30 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (docs/reviews/rigid-corpse-captured-independent/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+stdout | docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5
+{"scale":0.5,"vertices":13374,"hulls":8,"largestOutside":0.00006334421228309255,"largestPlaneOutside":1.8873997997131964e-7,"largestSupportDifference":2.4054492619995926e-8}
+
+ ✓ docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5 1220ms
+stdout | docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1
+{"scale":1,"vertices":13374,"hulls":8,"largestOutside":0.0001266884245661851,"largestPlaneOutside":3.774799599426393e-7,"largestSupportDifference":4.810898523999185e-8}
+
+ ✓ docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1 1236ms
+stdout | docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2
+{"scale":2,"vertices":13374,"hulls":8,"largestOutside":0.0002533768491323702,"largestPlaneOutside":7.549599198852786e-7,"largestSupportDifference":9.62179704799837e-8}
+
+ ✓ docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2 1570ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  04:05:57
+   Duration  16.46s (transform 56%, tests 25%, setup 18%, import 1%)
+
+  Transform  transforming modules took 9.05s · 56% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

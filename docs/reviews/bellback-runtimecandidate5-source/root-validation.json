@@ -1,0 +1,10 @@
+{
+  "testedSourceManifest": "eed05d4799c9e6b8936712de9d937d0a48770b9970d03a4cb88e634381cfb321",
+  "tests": 3,
+  "passed": 3,
+  "rootRunUTC": "2026-10-19T08:07:30Z",
+  "rawLogSha256": "8a726d1c00f4cacf48ab39acdc966c4f7340bde0d9ff8dfb40911c20ef86b54f",
+  "publishedLogSha256": "e5a512b1105d2ef53599ae1c2fe1119ed0cf818652d610daf50466dde50cbfe2",
+  "normalization": "Private checkout path placeholder and whitespace only; test outcomes unchanged.",
+  "runtimeAcceptance": false
+}

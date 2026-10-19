@@ -1,0 +1,3 @@
+import { mergeConfig } from 'vitest/config';
+import base from '../../../vitest.config';
+export default mergeConfig(base, {test: {include: ['docs/reviews/rigid-corpse-captured-independent/independent.test.ts', 'test/rigid-corpse-*.test.ts']}});

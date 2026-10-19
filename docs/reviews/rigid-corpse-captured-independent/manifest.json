@@ -1,0 +1,45 @@
+{
+  "status": "Independent source GO for isolated candidate validation only; no product acceptance",
+  "files": [
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/README.md",
+      "bytes": 6503,
+      "sha256": "ef135b7ec7d2d6e6bf1c389ae1936e306b0b43b43a7cea374a4e29a4654ec16f"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/cached-shape-probe.log",
+      "bytes": 3480,
+      "sha256": "b6be68cabf0370463931c43b4072afecd2843a0b4f3f7e95a5676203162b6049"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/descriptor-indices-probe.log",
+      "bytes": 3684,
+      "sha256": "552aa4cbcb0f074deb4b4ca08042086cf37e80dd5ef67a686cacce9b6ee0c6a0"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/independent.test.ts.txt",
+      "bytes": 7189,
+      "sha256": "d6a908d5e38ea28cc3da813444621ca057d078485d76aed7b441cc80014f4ce0"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/native-probe.log",
+      "bytes": 2659,
+      "sha256": "d6de1518e6b9f7c3bd8bad15d70d9c7cc5e3b9abe82afb2949484902627850df"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/source-freeze.json",
+      "bytes": 2803,
+      "sha256": "cc23207a312dac282437619d4c1b56f7c2ffc22cb48f46e4df2370338977c1c8"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/test-run.log",
+      "bytes": 22703,
+      "sha256": "1eb0562271dd3383998fe03ec1943a59b8c12b6031d203e97adf3c2f1494290c"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-independent/vitest.config.ts.txt",
+      "bytes": 244,
+      "sha256": "19947bfe2794a0b2c93ff3928bf690b0e350e8f7aabc164f320a074e1055187a"
+    }
+  ]
+}

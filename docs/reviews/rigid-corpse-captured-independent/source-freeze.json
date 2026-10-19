@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "path": "src/format/rigidCorpse.ts",
+      "sha256": "d9340faf8fee23c5456a0cd4d0d0cd46a825c70ba473f0f390aa41284b4e5a2e",
+      "matchesProducer": true
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "sha256": "36f47df937bb2ff48aac743f7b307b0f16fafcc48795107f9121fecf106e6f28",
+      "matchesProducer": true
+    },
+    {
+      "path": "src/engine/entities/rigidCorpsePose.ts",
+      "sha256": "c8e6957432df0ad3f6cdc673c655ec720e58656e74b99938e38e155dd99cb5b6",
+      "matchesProducer": true
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "4f54ab8d7159634c6f7cea5e88e91182693c351821be03f195d3ef3a5cb7484c",
+      "matchesProducer": true
+    },
+    {
+      "path": "src/engine/physics/rigidCorpse.ts",
+      "sha256": "fddc4e6ae605d79405782b36314e052668cc2b59b6307dc5879e41a9c2be3a8a",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/ENGINE.md",
+      "sha256": "b451dfadee755728297ad7832481b458d2e37034e0bc81a7bdacfcf6578e63ba",
+      "matchesProducer": true
+    },
+    {
+      "path": "test/rigid-corpse-clock.test.ts",
+      "sha256": "75c167a7473475b3ce5258460847672df27043c1b6f9b94acbee9bc3e3012d0f",
+      "matchesProducer": true
+    },
+    {
+      "path": "test/rigid-corpse-schema.test.ts",
+      "sha256": "c1f4c2dc10cb4536745e1e1b199cf549481b47971c9dd8174df369fc7594e824",
+      "matchesProducer": true
+    },
+    {
+      "path": "test/rigid-corpse-physics.test.ts",
+      "sha256": "0abc83097676dc064c68162cdd9d03251b86e969c5eec2ff0835bebea9559478",
+      "matchesProducer": true
+    },
+    {
+      "path": "test/rigid-corpse-input-order.test.ts",
+      "sha256": "b6dabd7c22662807bbe6a2982baa6740953a386fb2299128de4fc26f55adf136",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-pose/REVIEW.md",
+      "sha256": "e6c626e989905487237d8be056dc53470930de6dea6cfbe22c97590611ad8cdb",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-pose/first-lint-attempt.txt",
+      "sha256": "a3d9466b2366522e82132be201597325fd3c931518a2a43dbe47632ab3bf58ce",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-pose/second-test-attempt.txt",
+      "sha256": "87839c6c6c8c0b36ce7a37cb926f793509a815f7e12da188a2e9a80450215e42",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-pose/tests-final.txt",
+      "sha256": "de9a17da23bb220c8c606a2680da1e5ad630b321f5d09da41973ebeddc5f9ddc",
+      "matchesProducer": true
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-captured-pose/log-whitespace-normalization.json",
+      "sha256": "fc9930e9271c3d1efa97fdf402cc2b6e1e179ccdd8dbb7dee72a0524bb13b4d7",
+      "matchesProducer": true
+    }
+  ]
+}

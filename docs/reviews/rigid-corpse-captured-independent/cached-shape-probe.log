@@ -1,0 +1,52 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (docs/reviews/rigid-corpse-captured-independent/vitest.config.ts:2:18). Add the file extension
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <project-root>
+
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5 184ms
+   → native indexed hull
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1 92ms
+   → native indexed hull
+ × docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2 66ms
+   → native indexed hull
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 0.5
+Error: native indexed hull
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:52:81
+     50|     }
+     51|     const shape = world.createCollider(hull.desc).shape, center = new …
+     52|     if (!(shape instanceof R.ConvexPolyhedron) || shape.indices === nu…
+       |                                                                                 ^
+     53|     for (let i = 0; i < shape.vertices.length; i += 3) center.add(new …
+     54|     center.divideScalar(shape.vertices.length / 3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 1
+ FAIL  docs/reviews/rigid-corpse-captured-independent/independent.test.ts > independent actual 13374 vertices stay inside unchanged native captured hulls at scale 2
+Error: native indexed hull
+ ❯ docs/reviews/rigid-corpse-captured-independent/independent.test.ts:52:81
+     50|     }
+     51|     const shape = world.createCollider(hull.desc).shape, center = new …
+     52|     if (!(shape instanceof R.ConvexPolyhedron) || shape.indices === nu…
+       |                                                                                 ^
+     53|     for (let i = 0; i < shape.vertices.length; i += 3) center.add(new …
+     54|     center.divideScalar(shape.vertices.length / 3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  04:05:29
+   Duration  11.85s (transform 74%, setup 22%, tests 3%, import 1%)
+
+  Transform  transforming modules took 8.56s · 74% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

@@ -1,0 +1,79 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Independent native fixture reads committed source data.
+import { readFileSync } from 'node:fs';
+import { test, expect } from 'vitest';
+import { Bone, Group, Vector3 } from 'three';
+import * as v from 'valibot';
+import { loadRapier } from '../../../src/engine/physics/rapier';
+import { prepareRigidCorpse } from '../../../src/engine/physics/rigidCorpse';
+import { rigidCorpseSchema } from '../../../src/format/rigidCorpse';
+import { RigidCorpsePose } from '../../../src/engine/entities/rigidCorpsePose';
+import { numericCreaturePose } from '../../../src/game/plugin/channelPrograms';
+import { bellbackTuckedClips } from '../../../src/shards/driftwood-isle/generators/bellbackTuckedClips';
+import type { AnimalRigContext } from '../../../src/engine/entities/animalRig';
+
+test.each([.5, 1, 2])('independent actual 13374 vertices stay inside unchanged native captured hulls at scale %s', async scale => {
+  const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const native = v.parse(v.object({ bones: v.array(v.object({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(), v.number(), v.number()]) })), parts: v.array(v.object({name: v.string(), positions: v.array(v.number())})) }), JSON.parse(readFileSync('art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json','utf8')));
+  const recipe = v.parse(v.object({rigidCorpse: rigidCorpseSchema}), JSON.parse(readFileSync('docs/reviews/bellback-corpse-shape-study/posed-parts-proposal.json','utf8'))).rigidCorpse;
+  const root = new Group(), bones: Record<string, Bone> = {};
+  root.scale.setScalar(scale); root.position.set(3, 5, -2); root.rotation.y = .73;
+  for (const row of native.bones) {
+    const bone = new Bone(); bone.position.fromArray(row.pos);
+    if (row.parent === null) root.add(bone);
+    else { const parent = bones[row.parent], rest = native.bones.find(b => b.name === row.parent); if (parent === undefined || rest === undefined) throw Error('parent'); bone.position.sub(new Vector3(...rest.pos)); parent.add(bone); }
+    bones[row.name] = bone;
+  }
+  const position = new Vector3(), mem = {'tg-state': 3, 'tg-clock': .68};
+  const context: AnimalRigContext & {bones: Record<string, Bone>} = {bones, dims: {bodyY: 1.2000000476837158, bodyHalfLen: 1, bodyRadius: .5, headRadius: .3, halfWidth: .5, legLen: 0, feet: []}, dt: 0, t: .7, seed: .7, scale, speed: 0, strafe: 0, phase: .2, state: 'stalk', alive: true, deathT: 0, flinch: .3, brace: 0, attack: -1, lookTarget: new Vector3(), lookWeight: 0, position, yaw: .73, mem, animal: {mem, position, yOffset: 0}};
+  const animate = numericCreaturePose(bellbackTuckedClips()); animate(context); context.alive = false;
+  const inputs = {get mem(): never {throw Error('read memory');}, get phase(): never {throw Error('read phase');}, get state(): never {throw Error('read state');}, get yaw(): never {throw Error('read yaw');}};
+  const pose = new RigidCorpsePose(context, animate, inputs, 'captured');
+  const expected = Object.values(bones).map(b => [...b.position, ...b.quaternion, ...b.scale]);
+  const prepared = prepareRigidCorpse(R, {...recipe, posePolicy: 'captured'}, root, bones, scale, 'rigid');
+  expect(prepared.length).toBe(8);
+  const baseline = prepareRigidCorpse(R, recipe, root, bones, scale, 'rigid');
+  expect(prepared.map(p => p.desc.shape)).toEqual(baseline.map(p => p.desc.shape));
+  const world = new R.World({x:0,y:0,z:0});
+  try {
+  let vertices = 0, largestOutside = 0, largestSupportDifference = 0, largestPlaneOutside = 0;
+  for (const part of native.parts) {
+    const bone = bones[part.name], rest = native.bones.find(b => b.name === part.name), hull = prepared.find(p => p.bone === bone);
+    if (bone === undefined || rest === undefined || hull === undefined) throw Error('part');
+    if (!(hull.desc.shape instanceof R.ConvexPolyhedron)) throw Error('native convex shape');
+    for (let sample = 0; sample < 64; sample++) {
+      const y = 1 - 2 * (sample + .5) / 64, angle = sample * Math.PI * (3 - Math.sqrt(5));
+      const direction = new Vector3(Math.sqrt(1 - y*y) * Math.cos(angle), y, Math.sqrt(1 - y*y) * Math.sin(angle));
+      let meshSupport = -Infinity, hullSupport = -Infinity;
+      for (let i = 0; i < part.positions.length; i += 3) meshSupport = Math.max(meshSupport, new Vector3().fromArray(part.positions, i).sub(new Vector3(...rest.pos)).multiplyScalar(scale).dot(direction));
+      for (let i = 0; i < hull.desc.shape.vertices.length; i += 3) hullSupport = Math.max(hullSupport, new Vector3().fromArray(hull.desc.shape.vertices, i).dot(direction));
+      largestSupportDifference = Math.max(largestSupportDifference, Math.abs(meshSupport - hullSupport));
+    }
+    const collider = world.createCollider(hull.desc), indices = collider.indices();
+    if (indices === undefined) throw Error('native indexed hull');
+    const shape = {vertices: collider.vertices(), indices}, center = new Vector3();
+    for (let i = 0; i < shape.vertices.length; i += 3) center.add(new Vector3().fromArray(shape.vertices, i));
+    center.divideScalar(shape.vertices.length / 3);
+    for (let face = 0; face < shape.indices.length; face += 3) {
+      const ai = shape.indices[face], bi = shape.indices[face+1], ci = shape.indices[face+2];
+      if (ai === undefined || bi === undefined || ci === undefined) throw Error('triangle');
+      const a = new Vector3().fromArray(shape.vertices, ai*3), b = new Vector3().fromArray(shape.vertices, bi*3), c = new Vector3().fromArray(shape.vertices, ci*3);
+      const normal = b.sub(a).cross(c.sub(a)).normalize();
+      if (normal.dot(center.clone().sub(a)) > 0) normal.negate();
+      for (let i = 0; i < part.positions.length; i += 3) largestPlaneOutside = Math.max(largestPlaneOutside, new Vector3().fromArray(part.positions, i).sub(new Vector3(...rest.pos)).multiplyScalar(scale).sub(a).dot(normal));
+    }
+    // Shape-space test uses each actual Rapier convex polyhedron, independent of root/world matrices.
+    for (let i = 0; i < part.positions.length; i += 3) {
+      const p = new Vector3().fromArray(part.positions, i).sub(new Vector3(...rest.pos)).multiplyScalar(scale);
+      const projection = hull.desc.shape.projectPoint({x:0,y:0,z:0}, {x:0,y:0,z:0,w:1}, p, true);
+      largestOutside = Math.max(largestOutside, p.distanceTo(new Vector3(projection.point.x, projection.point.y, projection.point.z))); vertices++;
+    }
+  }
+  expect(largestSupportDifference).toBeLessThan(2e-6); expect(vertices).toBe(13374); expect(largestPlaneOutside).toBeLessThan(2e-6);
+  const rootBefore = [...root.position, ...root.quaternion, ...root.scale];
+  for (let i=0; i<100; i++) { pose.step(1/60); pose.render(i/99); }
+  expect(Object.values(bones).map(b => [...b.position, ...b.quaternion, ...b.scale])).toEqual(expected);
+  expect([...root.position, ...root.quaternion, ...root.scale]).toEqual(rootBefore);
+  expect(pose.deathT).toBe(0); expect(pose.flinch).toBe(.3);
+  console.log(JSON.stringify({scale, vertices, hulls: prepared.length, largestOutside, largestPlaneOutside, largestSupportDifference}));
+  } finally { world.free(); }
+});
