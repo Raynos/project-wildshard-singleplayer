@@ -1,4 +1,5 @@
 import type { GeometryBoot } from '../runtime/productSections.generated';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
 // The Nine Dragon Stack fragment's world (P0-5c), built for the engine: Lantern Square at +125 m, the Well's rim and its
 // upper galleries, the stair-street stub and the towers round them — what the clean room built in its page
@@ -9,7 +10,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, ClampToEdgeWrapping, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3, Vector4,
+  Box3, ClampToEdgeWrapping, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion, SphereGeometry, Vector3,
 } from 'three';
 import type { InKit, Piece } from './ctx';
 import { inkFigure } from '../models/inKit';
@@ -18,25 +19,21 @@ import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { registerSigns } from '../models/signs';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { type InKitPlaced, registerInKit } from './inKit';
-import type { Emitter } from '../runtime/looks/emitterCards';
 import { Lanterns } from '../look/lanterns';
-import { buildStreaks, stairStreaks } from '../look/streaks';
+import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
+import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import { jiehuaMaterial as facadeMaterial, windowMaterial, facadeUniforms } from '../look/facadeMaterial';
-import stairPlan from './stairPlan.generated.json' with { type: 'json' };
 import { loadPaint } from '../look/paint';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
-import { installLight } from '../look/light/install';
-import { glowUniforms } from '../look/light/glow';
-import { gradeUniforms } from '../look/light/grade';
-import metadata, { STAIR, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
+import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 import { placeSquareProps } from './squareProps';
 import { Shared, jiehuaMaterial, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
-import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
+import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
 import { type Placed, place, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -101,7 +98,7 @@ export interface NineDragonWorld {
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
-  const { world: worldRows } = await product.json<GeometryBoot>('geometry/layout.json');
+  const { world: worldRows, presentation: cardRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
   const worldData = new Float64Array(Uint8Array.from(await product.file('geometry/world-f64.bin')).buffer);
   if (worldData.length !== worldRows.records) throw new Error('Nine world record inventory differs');
   const { shaft: SHAFT } = worldRows;
@@ -171,7 +168,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
-  const emitters: Emitter[] = [...signs.neonLights, ...signs.lights, ...paper.emitters, ...ctx.emitters];
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos = [...ctx.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]);
@@ -259,25 +255,17 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.6, 'streaks + dressing');
   phaseStart = performance.now();
 
-  // the wet-ground streaks: the emitters over the square and its street, and the lit windows facing them
-  const onSquare = emitters.filter((e) => e.at.y > Y0 + 0.3 && e.at.y < Y0 + 45 && e.at.x > WELL.x0 - 2 && e.at.x < 40 && e.at.z > -170 && e.at.z < 30);
-  const wu = new Vector3(), wn = new Vector3(), wc = new Vector3(), wp = new Vector3();
-  const WHITE = new Color(1, 1, 1);
-  for (const w of ctx.fd.windows) {
-    if (w.win.y <= 0) continue;
-    w.m.extractBasis(wu, wc, wn);
-    wp.setFromMatrixPosition(w.m).addScaledVector(wc, 0.5);
-    if (wp.y < Y0 + 0.5 || wp.y > Y0 + 28 || wp.x < WELL.x1 - 1 || wp.x > 40 || wp.z < -170 || wp.z > 30) continue;
-    const axis = new Vector3(6.5, wp.y, Math.min(Math.max(wp.z, -170), 10));
-    if (wn.normalize().dot(axis.sub(wp)) <= 0) continue;
-    onSquare.push({ at: wp.clone(), color: w.light.clone().lerp(WHITE, 0.3).multiplyScalar(w.win.y), w: wu.length(), h: wc.length(), power: 0.07, spill: 0 });
-  }
-  root.add(named(buildStreaks(shared, onSquare, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)), 'streaks'));
+  const presentation = cardRows[entryCaps ? 'capped' : 'open'];
+  const streakMaterial = lentLook('nine-streaks'); Object.assign(streakMaterial, { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
+  const streaks = createSceneBuffers(presentation.streaks, streakMaterial, opts.scope);
+  for (const mesh of streaks.children) mesh.renderOrder = 4;
+  root.add(streaks);
+  const haloMaterial = lentLook('nine-halo'); haloMaterial.setValues((metadata.looks.light as LookRows['light']).haloState);
+  const halos = createSceneBuffers(presentation.halos, haloMaterial, opts.scope);
+  halos.visible = tier === 'phone';
+  for (const mesh of halos.children) mesh.renderOrder = 5;
+  root.add(halos);
   await slice();
-  // the stair-street's: its treads and landings under the emitters over it (the render agent's)
-  const { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } = stairPlan;
-  const onStair = emitters.filter((e) => e.at.x > STAIR.x0 - 4 && e.at.x < FAR_X && e.at.z > FACE_N - 6 && e.at.z < FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < TOP_Y + 40);
-  for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
   const wellKit: Placed[] = [];
@@ -369,12 +357,21 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
   progress(0.9, 'light volume');
-  const light = installLight({
-    caps: entryCaps,
-    u: shared.u, pipe: { glow: glowUniforms(), grade: gradeUniforms() }, lanterns: paper.emitters, ctxEmitters: ctx.emitters,
-    signs: [...signs.neonLights, ...signs.lights],
-  });
-  await light.ready;
+  for (const suffix of ['A', 'B'] as const) {
+    const row = volumes[`${tier}-${entryCaps ? 'capped' : 'open'}-${suffix === 'A' ? 0 : 1}`];
+    if (row === undefined) throw new Error('Missing irradiance volume row');
+    const bytes = await fetchDeflatedBytes(product.url(row.file));
+    if (bytes.length !== row.size[0] * row.size[1] * row.size[2] * 4) throw new Error('Irradiance volume size differs');
+    const texture = opts.scope.own(new Data3DTexture(bytes, ...row.size)); texture.needsUpdate = true;
+    texture.minFilter = texture.magFilter = LinearFilter; texture.unpackAlignment = 1;
+    gpuOnlyTexture(texture, 'Nine Dragon light volumes (GPU only)');
+    shared.u[`uLpVol${suffix}`].value = texture;
+    shared.u[`uLpMin${suffix}`].value.fromArray(row.min); shared.u[`uLpInv${suffix}`].value.fromArray(row.inv);
+    shared.u.uLpMax.value = row.maximum;
+  }
+  const defaults = metadata.looks.light.defaults;
+  shared.u.uLpGain.value.set(defaults.poolGain, defaults.sheen, shared.u.uLpGain.value.z, defaults.pools);
+  shared.u.uLpSky.value = defaults.wetSky; shared.u.uLpAmb.value = defaults.ambient;
   progress(0.95, 'culling');
 
   // Model placement owns per-copy LOD and frustum culling in the registry's frame.

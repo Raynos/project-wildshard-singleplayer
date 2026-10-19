@@ -97,27 +97,31 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean): { lante
 }
 
 /** Exact RGBA8 irradiance bytes; compression only changes transfer size. No page bake remains. */
-export function lightVolumeBlobs(): NamedBlob[] {
-  const blobs: NamedBlob[] = [];
+interface VolumeRow { readonly file: string; readonly size: readonly [number, number, number]; readonly min: readonly number[]; readonly inv: readonly number[]; readonly maximum: number }
+let cached: { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } | undefined;
+function volumeData(): { blobs: NamedBlob[]; rows: Record<string, VolumeRow> } {
+  if (cached !== undefined) return cached;
+  const blobs: NamedBlob[] = [], rows: Record<string, VolumeRow> = {};
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
     const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps), v.parse(LightPoolProfilesSchema, pools))).volume();
     const key = `looks/volumes-${tier}-${caps ? 'capped' : 'open'}`;
     const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
       { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
     boxes.forEach((box, index) => {
-      const min = new Vector3(), inv = new Vector3(), { tex, stats } = bakeLightVolume(lights, box, pools.maximum, min, inv);
+      const min = new Vector3(), inv = new Vector3(), { tex } = bakeLightVolume(lights, box, pools.maximum, min, inv);
       const data = tex.image.data;
       if (!(data instanceof Uint8Array)) throw new Error('Nine volume bake has no byte payload');
-      const header = new Uint8Array(108), view = new DataView(header.buffer);
-      view.setUint32(0, 0x56534c57, true); // WLSV: versioned voxel payload, never JSON/code
-      view.setUint8(4, 1); view.setUint8(5, tier === 'phone' ? 0 : 1); view.setUint8(6, caps ? 1 : 0); view.setUint8(7, index);
-      [tex.image.width, tex.image.height, tex.image.depth].forEach((n, i) => view.setUint32(8 + i * 4, n, true));
-      [...min, ...inv, stats.lights, stats.cells, stats.maxE, lights.length, pools.maximum].forEach((n, i) => view.setFloat64(20 + i * 8, n, true));
-      const compressed = zlibSync(data, { level: 9 }), bytes = new Uint8Array(header.length + compressed.length);
-      bytes.set(header); bytes.set(compressed, header.length);
-      blobs.push(nameBlob(`${key}-${index}.bin`, 'bin', bytes, { decoded: data.length, gpu: data.length }));
+      const file = `${key}-${index}`;
+      const volume = nameBlob(`${file}.bin`, 'bin', zlibSync(data, { level: 9 }), { decoded: data.length, gpu: data.length });
+      const existing = blobs.find(blob => blob.file.hash === volume.file.hash);
+      if (existing === undefined) blobs.push(volume);
+      const name = existing?.file.name ?? volume.file.name;
+      if (name === undefined) throw new Error('Irradiance payload needs its logical name');
+      rows[`${tier}-${caps ? 'capped' : 'open'}-${index}`] = { file: name, size: [tex.image.width, tex.image.height, tex.image.depth], min: min.toArray(), inv: inv.toArray(), maximum: pools.maximum };
       tex.dispose();
     });
   }
-  return [...new Map(blobs.map(blob => [blob.file.hash, blob])).values()];
+  cached = { blobs, rows }; return cached;
 }
+export function lightVolumeBlobs(): NamedBlob[] { return volumeData().blobs; }
+export function lightVolumeRows(): Readonly<Record<string, VolumeRow>> { return volumeData().rows; }

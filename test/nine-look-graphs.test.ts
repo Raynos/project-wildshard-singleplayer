@@ -12,11 +12,25 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { streakGraph } from '../src/shards/nine-dragon-stack/generators/streakGraph';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { buildStreaks, stairStreaks } from '../src/shards/nine-dragon-stack/look/streaks';
-import type { Shared } from '../src/shards/nine-dragon-stack/look/style';
+import { buildStreaks, stairStreaks } from '../src/shards/nine-dragon-stack/generators/receiverCards';
+import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentation';
+import { createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
+import { Scope } from '../src/engine/app/scope';
+import { lightVolumeBlobs, lightVolumeRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
+
+test('every admitted volume variant resolves its shared lossless voxel payload', () => {
+  const blobs = lightVolumeBlobs(), names = new Map(blobs.map(blob => [blob.file.name, blob]));
+  expect(new Set(blobs.map(blob => blob.file.hash)).size).toBe(blobs.length);
+  const rows = Object.values(lightVolumeRows());
+  expect(rows).toHaveLength(8);
+  for (const row of rows) {
+    const payload = names.get(row.file); if (payload === undefined) throw new Error('Missing volume payload');
+    expect(unzlibSync(payload.bytes).length).toBe(row.size.reduce((product: number, value: number) => product * value, 4));
+  }
+});
 
 test('wet receivers compile within both caps and retain their plane channels', () => {
   const graph = streakGraph();
@@ -25,10 +39,11 @@ test('wet receivers compile within both caps and retain their plane channels', (
   const compiled = compileGraph(graph, { trustedBudget: true }), cleanups: (() => void)[] = [];
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-streaks', compiled.material]]), setParam: (_id, name, value) => { compiled.setParam(name, value); }, setTexture: (_id, name, texture) => { compiled.setTexture(name, texture); },
     bindMeshMap: () => compiled.material });
-  const shared = { u: { uGroundY: { value: 124 } } } as Shared;
   const emitter = { at: new THREE.Vector3(1, 130, 2), color: new THREE.Color(1, 0.5, 0.2), w: 1, h: 2, power: 2, spill: 1 };
-  const hole = new THREE.Vector4(-5, -5, 5, 5), square = buildStreaks(shared, [emitter], hole);
-  const stairs = stairStreaks(shared, [emitter], { flights: [{ x0: 2, x1: 8, y0: 124 }], landings: [{ x0: 8, x1: 10, y: 128 }], rise: 0.2, run: 0.3, z0: -2, z1: 2 });
+  const hole = new THREE.Vector4(-5, -5, 5, 5), square = buildStreaks(124, [emitter], hole);
+  const stairs = stairStreaks([emitter], { flights: [{ x0: 2, x1: 8, y0: 124 }], landings: [{ x0: 8, x1: 10, y: 128 }], rise: 0.2, run: 0.3, z0: -2, z1: 2 });
+  Object.assign(compiled.material, { blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor });
+  square.material = compiled.material;
   expect(stairs).toHaveLength(2);
   expect(square.geometry.getAttribute('aHole').getX(0)).toBe(-5);
   expect(stairs[0]?.geometry.getAttribute('aPlaneN').getX(0)).toBeLessThan(0);
@@ -92,13 +107,15 @@ test('halo discs compile with additive alpha preservation inside the existing ca
   const cleanups: (() => void)[] = [];
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-halo', compiled.material]]),
     setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => compiled.material });
-  const { buildHalos } = await import('../src/shards/nine-dragon-stack/look/light/halos');
-  const shared = { u: { uHalo: { value: new THREE.Vector4(2, 1.2, 5, 0.12) } } } as Shared;
-  const halos = buildHalos(shared, { lanterns: [], shops: [], signs: [] });
-  expect(halos.mesh.material.depthWrite).toBe(false);
-  expect(halos.mesh.material.blendSrcAlpha).toBe(THREE.ZeroFactor);
-  expect(halos.mesh.material.blendDstAlpha).toBe(THREE.OneFactor);
-  halos.mesh.geometry.dispose(); for (const cleanup of cleanups) cleanup();
+  const { buildHalos } = await import('../src/shards/nine-dragon-stack/generators/haloCards');
+  const source = buildHalos({ lanterns: [{ at: new THREE.Vector3(1, 130, 2), color: new THREE.Color(1, 0.5, 0.2), w: 0.5, h: 0.5, power: 1, spill: 1 }], shops: [], signs: [] });
+  const owner = new Scope('halo-test');
+  const halos = createSceneBuffers(cardScene([source], 'halos'), compiled.material, owner);
+  const mesh = halos.children[0];
+  if (!(mesh instanceof THREE.Mesh) || !(mesh.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Halo draw missing');
+  expect(mesh.geometry.getAttribute('aAt').getX(0)).toBe(1);
+  expect(mesh.geometry.instanceCount).toBe(1);
+  owner.dispose(); for (const cleanup of cleanups) cleanup();
   expect(graph.params?.['uHalo']?.value).toEqual([2, 1.2, 5, 0.12]);
   expect(Object.values(graph.nodes).filter(node => node.op === 'attribute').map(node => node.name).sort((a, b) => (a ?? '').localeCompare(b ?? ''))).toEqual(['aAt', 'aCol', 'aCorner', 'aR']);
   expect(Object.values(graph.nodes).some(node => node.op === 'viewDepth')).toBe(true);

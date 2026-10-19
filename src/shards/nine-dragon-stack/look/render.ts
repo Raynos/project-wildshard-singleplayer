@@ -4,8 +4,8 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Color, Fog, Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Vector2, Vector4 } from 'three';
-import { Pass } from 'postprocessing';
+import { Color, Fog, Matrix4, Mesh, type Object3D, PerspectiveCamera, ShaderMaterial, type Texture, Uniform, type Vector2, Vector4 } from 'three';
+import { Pass, Effect, BlendFunction, EffectAttribute } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -13,13 +13,10 @@ import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime/state';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
-import { lightSources } from './light/install';
-import metadata, { PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
-import type { LookRows } from '../boot/lookTypes.generated';
-import { type Halos, buildHalos } from './light/halos';
-import { STREAK_PERF, setStreakOn } from './streaks';
+import metadata, { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
+import type { LookRows, CompositeRows } from '../boot/lookTypes.generated';
 import { clearLanterns } from './lanterns';
-import { JiehuaEffect } from './render/jiehua';
+import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -29,6 +26,9 @@ import { meshesWithUniform } from '../runtime/looks/uniformScan';
 import type { Shared } from './style';
 import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { syncArchitecture, setDeclaredGraphParam } from './facadeMaterial';
+
+const STREAK_PERF = new Vector4(2.5, 0.3, 0, 0);
+const setStreakOn = (value: number): void => { setLentParam('nine-streaks', 'cardOn', value); };
 
 const light = metadata.looks.light as LookRows['light'];
 
@@ -95,7 +95,6 @@ export interface NdRenderHandle {
   /** the streak cards' meshes (the square's, the stair flights' and landings') */
   streaks: Object3D[];
   /** (E281) the phone's light halos (light/halos.ts; null where the bleed pyramid glows instead) */
-  halos: Halos | null;
   /** (E283) the streak cards' perf knobs (streaks.ts STREAK_PERF, shared by every card set) */
   streakPerf: Vector4;
 }
@@ -109,6 +108,29 @@ const PHONE_CARD_GAIN = 1;
 /** (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth
  *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
 const SKY_ORDER = 900;
+
+/** Only live texture/camera bindings remain; static shader and tuning rows are author outputs. */
+function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>) {
+  const s = shared.u;
+  const u = { ...uniformsFrom((composite as CompositeRows).uniforms), ...s, ...glow, ...grade, uInk: s.uInk0,
+    uInvProj: { value: view.projectionMatrixInverse }, uCamWorld: { value: view.matrixWorld },
+    tTight: { value: null as Texture | null }, tWide: { value: null as Texture | null }, tHaze: { value: null as Texture | null }, tRefl: { value: null as Texture | null } };
+  const bindings = Object.entries(u).map(([name, row]) => ({ name, row, uniform: new Uniform<unknown>(row.value) }));
+  const effect = Object.assign(new Effect('NdJiehuaEffect', composite.source, { blendFunction: BlendFunction.SRC, attributes: EffectAttribute.DEPTH, uniforms: new Map(bindings.map(({ name, uniform }) => [name, uniform])) }),
+    { u, source: null as RowRenderPass | null, haze: null as RowRenderPass | null, refl: null as RowRenderPass | null, rainHaze: 6, sharpen: 0.35, pose: null as (() => void) | null });
+  effect.update = (renderer, input): void => {
+    effect.pose?.();
+    u.tTight.value = effect.source?.output('tight') ?? null; u.tWide.value = effect.source?.output('wide') ?? null;
+    u.uHasBleed.value = u.tTight.value === null || u.tWide.value === null ? 0 : 1;
+    u.tHaze.value = effect.haze?.enabled === true ? effect.haze.output('haze') : null; u.uRainHaze.value = u.tHaze.value === null ? 0 : effect.rainHaze;
+    u.tRefl.value = effect.refl?.output('reflection') ?? null; u.uReflK.value = u.tRefl.value === null ? 0 : effect.refl?.debugGain ?? 1;
+    u.uTexel.value.set(1 / input.width, 1 / input.height); u.uNF.value.set(view.near, view.far);
+    u.uRain.value.w = renderer.getPixelRatio(); u.uSharp.value = renderer.getPixelRatio() < 2.5 ? effect.sharpen : 0;
+    for (const binding of bindings) binding.uniform.value = binding.row.value;
+  };
+  return effect;
+}
+type JiehuaEffect = ReturnType<typeof jiehuaEffect>;
 
 /** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone). */
 interface Composite { reflect: RowRenderPass | null; haze: RowRenderPass | null; bleed: RowRenderPass | null; jiehua: JiehuaEffect; pose: (() => void) | null }
@@ -168,7 +190,7 @@ function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<
     haze = new RowRenderPass(post.haze, { renderer, camera: view, params, links: { ...s, uGroundY: { value: Y0 } } });
     bleed = new RowRenderPass(post.bleed, { renderer, camera: view, links: glow });
   }
-  const jiehua = new JiehuaEffect(view, world.shared, glow, grade);
+  const jiehua = jiehuaEffect(view, world.shared, glow, grade);
   jiehua.source = bleed;
   jiehua.haze = haze;
   jiehua.refl = reflect;
@@ -236,12 +258,6 @@ export function shardRender(): LookStrategy {
         for (const u of cardOns) u.value = reflect === null ? 1 : CARD_ON;
         setStreakOn(reflect === null ? 1 : CARD_ON);
         if (reflect === null) phoneCardGain(streaks);
-        const world = ndRuntime().world, src = lightSources();
-        const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
-        if (halos !== null) {
-          world.root.add(halos.mesh);
-          c.scope.onDispose(() => { halos.mesh.removeFromParent(); halos.mesh.geometry.dispose(); halos.mesh.material.dispose(); });
-        }
         return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [...(pose === null ? [] : [new PoseView(pose)]), reflect, haze, bleed] };
       },
     },
@@ -266,12 +282,9 @@ export function shardRender(): LookStrategy {
       setCardOn(reflect === null ? 1 : CARD_ON);
       if (reflect === null) phoneCardGain(streaks);
       // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
-      const src = lightSources();
-      const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
-      if (halos !== null) world.root.add(halos.mesh);
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
-      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF };
+      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, streakPerf: STREAK_PERF };
       installRenderEvents(c, handle);
       c.debug.expose('nd.render', handle);
       return { beforeChain, chain: [jiehua] };
@@ -301,7 +314,6 @@ export function shardRender(): LookStrategy {
       // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
     },
     dispose(): void {
-      if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
       handle = null;
       clearLanterns();
     },
