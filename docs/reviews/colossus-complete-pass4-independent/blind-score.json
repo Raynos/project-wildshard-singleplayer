@@ -1,0 +1,16 @@
+{
+  "phase": "frozen before predecessor images, author prose, closure or historical scores",
+  "reviewed": "Approved original plus candidate hero and all nine raw views, each opened individually",
+  "scope": "Static visual likeness only; no structural-test credit, gameplay or animation acceptance",
+  "scores": {"silhouette":77,"face":76,"details":75,"facets":83},
+  "weights": {"silhouette":0.35,"face":0.30,"details":0.20,"facets":0.15},
+  "weightedScore":77.1,
+  "observations": [
+    "Recognizable antlered wood guardian: broad leafy shoulder mantle, cyan eyes/core, hanging arms, bent legs and stony toes.",
+    "Reference has heavier root-loop hands and more integrated twisted wood mass; candidate fingers are thin separated hooks and torso is a tidy rib cage.",
+    "Face keeps narrow cyan eyes and pointed mask, but is a long smooth planar beak, missing the reference's split layered cheek/jaw structure.",
+    "Antlers read clearly but are more balanced lateral deer-like branches than the reference's uneven upright broken tree forks.",
+    "Large bright green shoulder chunks read as a canopy, but are chunky geometric caps rather than the reference's overlapping leafy cascades; sides/back remain visibly coherent.",
+    "Low-poly planar language is convincing; core has too few very large planes and wooden limbs repeat clean extruded shapes compared with the concept's irregular facet rhythm."
+  ]
+}

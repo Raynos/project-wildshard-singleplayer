@@ -1,0 +1,17 @@
+{
+  "schema": "wildshard.conch.public4-tent.budget.v1",
+  "buildAllowed": false,
+  "scope": "One isolated exact-public4 host; source/tests only until separate root-reviewed pin",
+  "pin": "tmp/conch-public4-tent-attempt1/reviewed-build-pin.json",
+  "dist": "tmp/conch-public4-tent-dist-attempt1",
+  "capture": "tmp/conch-public4-tent-attempt1/capture",
+  "maxBuilds": 1,
+  "maxNewProducts": 0,
+  "maxConcurrentBrowsers": 1,
+  "maxBrowserSeconds": 600,
+  "maxMovieSeconds": 600,
+  "maxRawPortraitFrames": 24,
+  "maxOutputBytes": 201326592,
+  "requirements": ["root review then fresh pin", "new destinations only", "existing heavy build lease", "browser-lane.sh for one muted iPhone 16 Pro browser", "normal wall/engine/fixed-step clocks", "preserve any failed output", "no retries or silent pin refresh", "independent complete-cycle review before promotion"],
+  "acceptance": false
+}
