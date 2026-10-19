@@ -1,0 +1,300 @@
+/** Actual Conch-only arena. Run through browser-lane.sh against a built candidate, never a dev server.
+ * Diagnostic PLAYER placement is logged; health, enemy state, clocks, damage and RNG are never injected. */
+import { chromium, devices } from 'playwright';
+import { installConchMotion5Observation } from './qa-conch-motion5-observation.mjs';
+import { verifyMotion5CaptureIdentity, newCaptureDirectory } from './qa-conch-motion5-identity.mjs';
+import { analyzeMotion5Coverage } from './qa-conch-motion5-coverage.mjs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { writeFileSync, readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { resolve as resolvePath, extname, sep } from 'node:path';
+
+if (process.env.CHROME_PATH !== resolvePath('tmp/dot-audit/tools/chrome-headless-shell-linux64/chrome-headless-shell')) throw new Error('Only the installed approved Chrome shell may be used');
+if (process.env.CONCH_QA_URL || process.env.CONCH_QA_DIST) throw new Error('Motion5 capture uses only its exact isolated host');
+const admitted = verifyMotion5CaptureIdentity();
+const out = newCaptureDirectory(process.env.CONCH_QA_OUT ?? 'tmp/conch-motion5-qa/actual-run1');
+const report = { schema: 'wildshard.conch.motion5.fullbody-motion-observation.v1', startedAt: new Date().toISOString(),
+  source: process.env.CAPTURE_SOURCE, identityBefore: admitted, errors: [], samples: [], placements: [], checks: {},
+  caveat: 'Cloud browser diagnostic; no physical phone performance, fun or visual acceptance claim.' };
+const writeJson = (path, value) => { const text = JSON.stringify(value); if (Buffer.byteLength(text) > 5000000) throw new Error(`Whole JSON exceeds 5 MB: ${path}`); writeFileSync(path, text); };
+const save = () => writeJson(`${out}/report.json`, report);
+const preserve = async page => {
+  const data = await page.evaluate(() => ({ 'render-trace': window.__conchRenderTrace ?? [], events: window.__conchEvents ?? [], 'runtime-geometry': window.__conchRuntimeGeometry ?? [] }));
+  // Preserve complete unfragmented streams in native Site sources. Repository receives only receipts/summaries.
+  report.evidence = {};
+  for (const [kind, rows] of Object.entries(data)) {
+    const text = JSON.stringify(rows), path = `${out}/${kind}.json`;
+    writeFileSync(path, text);
+    report.evidence[kind] = { count: rows.length, file: `${kind}.json`, bytes: Buffer.byteLength(text),
+      sha256: createHash('sha256').update(text).digest('hex'), wholeStream: true, repositoryEligible: Buffer.byteLength(text) <= 5000000 };
+  }
+  report.coverage = analyzeMotion5Coverage(data['render-trace'], data.events);
+  report.checks.requiredMotionCoverage = report.coverage.targets.every(row=>row.status==='observed-at-real-collision') && report.coverage.ordinaryWholeCycles>=2 && report.coverage.counterWholeCycles>=1 && report.coverage.clockZeroStun.length>0 && report.coverage.repeatedHitsWhileFlinching.length>0 && report.coverage.deathTransitions.length>0;
+  return data['render-trace'];
+};
+// A bounded static server for already built bytes, never a Vite development server.
+const built = resolvePath(process.env.CONCH_QA_DIST ?? 'tmp/conch-motion5-preview-dist');
+report.executedPreview = JSON.parse(readFileSync(`${built}/conch-preview.json`, 'utf8'));
+report.executedPreviewSha256 = createHash('sha256').update(readFileSync(`${built}/conch-preview.json`)).digest('hex');
+const server = createServer((request, response) => {
+  const url = new URL(request.url ?? '/', 'http://localhost');
+  const path = resolvePath(built, url.pathname === '/' ? 'index.html' : `.${url.pathname}`);
+  if (!path.startsWith(`${built}${sep}`)) { response.writeHead(403).end(); return; }
+  try {
+    response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm', '.css': 'text/css' })[extname(path)] ?? 'application/octet-stream');
+    response.end(readFileSync(path));
+  } catch { response.writeHead(404).end(); }
+});
+await new Promise(resolve => { server.listen(4468, '127.0.0.1', resolve); });
+let browser = null, observedPage = null, observedVideo = null;
+try {
+  browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, headless: true,
+  args: ['--no-sandbox', '--mute-audio', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 }, deviceScaleFactor: 1,
+    recordVideo: { dir: `${out}/video`, size: { width: 402, height: 874 } } });
+  report.videoContextCreatedAt = new Date().toISOString();
+  const page = await context.newPage();
+  report.videoPageCreatedAt = new Date().toISOString(); observedPage = page; observedVideo=page.video(); page.setDefaultTimeout(120000);
+  page.on('pageerror', error => { report.errors.push(error.message); save(); });
+  await page.goto(process.env.CONCH_QA_URL ?? 'http://127.0.0.1:4468/', { waitUntil: 'domcontentloaded' });
+  const storage = () => page.evaluate(() => ({ local: Object.fromEntries(Object.keys(localStorage).map(key => [key, localStorage.getItem(key)])),
+    session: Object.fromEntries(Object.keys(sessionStorage).map(key => [key, sessionStorage.getItem(key)])) }));
+  report.storageBefore = await storage();
+  await page.locator('#practice-start').tap();
+  await page.waitForFunction(() => window.__practiceDemo?.arena.entered === true || !document.querySelector('#practice-start')?.disabled);
+  if (!await page.evaluate(() => window.__practiceDemo?.arena.entered === true)) throw new Error(await page.locator('#practice-status').textContent() ?? 'Boot failed');
+  const stateStore = () => page.evaluate(() => {
+    const saves = window.__practiceDemo.game.app.saves;
+    return { docs: JSON.parse(saves.exportAll()).docs,
+      shard: saves.inspectShard({ id: 'driftwood-isle' }),
+      generation: saves.inspectShardGeneration({ id: 'driftwood-isle' }) };
+  });
+  report.stateBeforeCombat = await stateStore();
+  const sample = () => page.evaluate(() => {
+    const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+    return { time: d.game.frameTime, state: d.game.app.state, targets: d.arena.activeTargets.length,
+      enemy: { kind: a?.kind, hp: a?.hp, maxHp: a?.maxHp, alive: a?.alive, state: a?.state, strike: a ? JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike : null,
+        mem: { ...a?.mem }, position: a?.position.toArray(), yaw: a?.yaw,
+        bones: Object.fromEntries(Object.entries(a?.bones ?? {}).map(([name, bone]) => [name, { position: bone.position.toArray(), rotation: bone.rotation.toArray().slice(0, 3) }])) },
+      player: { health: d.arena.playerVitals, position: d.player.position.toArray(), carried: d.player.carried },
+      loot: d.arena.opponent?.loot?.receipt, status: document.querySelector('#practice-status')?.textContent };
+  });
+  const place = async (placementDistance, placementAngle = 0, placementPitch = .08) => {
+    report.placements.push(await page.evaluate(({ distance, angle, pitch }) => {
+      const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+      d.player.spawn(a.position.x + Math.sin(angle) * distance, a.position.z + Math.cos(angle) * distance, angle, a.position.y);
+      d.player.pitch = pitch;
+      return { wallTime: performance.now(), gameTime: d.game.frameTime, boutTime: d.arena.opponent.elapsed, phase: window.__conchPhase, reason: 'Diagnostic player/camera placement; aim also follows the enemy during defense; no enemy/health/time edits', distance, angle, pitch, position: d.player.position.toArray() };
+    }, { distance: placementDistance, angle: placementAngle, pitch: placementPitch }));
+  };
+  const aim = () => page.evaluate(() => {
+    const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+    const dx = d.player.position.x - a.position.x, dz = d.player.position.z - a.position.z;
+    d.player.yaw = Math.atan2(dx, dz); d.player.pitch = Math.atan2(.4, Math.hypot(dx, dz));
+  });
+  const capture = async name => {
+    const envelope = await page.evaluate(() => { const a = window.__practiceDemo.arena.activeTargets[0]; if (!a) return null; const point = a.position.clone(); let minY = Infinity, maxY = -Infinity, count = 0; a.mesh.updateMatrixWorld(true); a.mesh.traverse(mesh => { if (!mesh.isSkinnedMesh) return; mesh.skeleton.update(); const positions = mesh.geometry.getAttribute('position'); for (let i = 0; i < positions.count; i++) { mesh.getVertexPosition(i, point); mesh.localToWorld(point); minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y); count++; } }); return { minY, maxY, count, root: a.mesh.position.toArray(), body: a.bones.body.getWorldPosition(a.position.clone()).toArray(), alive: a.alive, deathT: a.deathT, scale: a.scale, floor: 900 }; });
+    report.samples.push({ phase: 'world-envelope', capture: name, envelope }); save();
+    await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 85, scale: 'css' }); };
+  report.observerCamera = await page.evaluate(installConchMotion5Observation);
+  const phase = name => page.evaluate(value => { window.__conchPhase = value; }, name);
+  await phase('idle'); await place(14); await page.waitForTimeout(3500);
+  await phase('approach'); await place(5); await page.waitForTimeout(3500);
+  await phase('stop'); await place(14); await page.waitForTimeout(2500);
+  await phase('resume'); await place(5); await page.waitForTimeout(2500);
+  report.entry = await sample(); save(); await capture('entry');
+  report.checks.onlyConch = report.entry.enemy.kind === 'conch-duelist' && report.entry.targets === 1;
+  // Observe unchanged decision and both actual attack stages before player attacks.
+  await phase('thrust-defense'); await place(2.1);
+  const stages = new Set(), end = Date.now() + 100000;
+  while (Date.now() < end) {
+    await aim(); await page.waitForTimeout(500); const row = await sample(); report.samples.push({ phase: 'defense', ...row });
+    stages.add(row.enemy.mem['conch-st']); save();
+    if (stages.has(1) && row.player.health?.health < 100) break;
+    if (row.player.health?.health === 0) break;
+  }
+  // Keep the full first recovery/rest rather than retrying on the active damage frame.
+  await page.waitForFunction(() => window.__practiceDemo.arena.activeTargets[0]?.mem['conch-st'] === 2, null, { timeout: 15000 });
+  await page.waitForTimeout(6500);
+  report.defense = await sample(); await capture('both-strikes-observation');
+  report.checks.thrust = stages.has(1);
+  report.checks.actualPlayerDamage = report.defense.player.health?.health < 100;
+  report.storageAfterDefense = await storage();
+  report.stateAfterDefense = await stateStore();
+  await page.locator('#practice-retry').tap(); await page.waitForTimeout(600);
+  report.retryAfterDefense = await sample();
+  // Genuine guarded sword collision triggers the queued counter, no state injection.
+  await phase('guard-counter');
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await page.locator('#practice-retry').tap(); await page.waitForTimeout(300);
+    await place(2.1); await aim();
+    await page.waitForFunction(() => {
+      const a = window.__practiceDemo.arena.activeTargets[0];
+      return a?.mem['conch-st'] === 1 && a?.mem['regular-clock'] < .25;
+    }, null, { timeout: 30000 });
+    report.samples.push({ phase: 'before-guard-hit', ...await sample() });
+    await page.locator('.ws-touch-attack').tap(); await page.waitForTimeout(4500);
+    report.samples.push({ phase: 'after-guard-hit', ...await sample() }); save();
+    if (await page.evaluate(() => window.__conchRenderTrace.some(row => row.stage === 3))) break;
+  }
+  await capture('guard-counter');
+  // The target enters the committed lane after its active phase starts. No enemy yaw/state injection.
+  await phase('late-lane-entry'); await page.locator('#practice-retry').tap(); await page.waitForTimeout(300);
+  await place(2.1); await aim();
+  await page.waitForFunction(() => { const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+    return JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike.phase === 'windup'; });
+  await place(3.5, Math.PI / 2);
+  await page.waitForFunction(() => { const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+    return JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike.phase === 'active'; });
+  report.placements.push(await page.evaluate(() => { const d = window.__practiceDemo, a = d.arena.activeTargets[0];
+    const strike = JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike;
+    d.player.spawn(strike.x0 + Math.sin(strike.yaw) * 1.8, strike.z0 + Math.cos(strike.yaw) * 1.8, strike.yaw, a.position.y);
+    return { reason: 'Diagnostic target enters actual locked lane after active starts', strike, wallTime: performance.now(),
+      gameTime: d.game.frameTime, boutTime: d.arena.opponent.elapsed, position: d.player.position.toArray() }; }));
+  await page.waitForTimeout(2200);
+  // Each press is a real native input. Collision-time clock, not requested press clock, qualifies coverage.
+  report.targetTrials = [];
+  for (const trial of [
+    { name:'guarded-.10', stage:1, target:.10 }, { name:'guarded-.20', stage:1, target:.20 },
+    { name:'late-windup', stage:1, target:.45 }, { name:'active', stage:1, target:.65 },
+    { name:'recovery', stage:2, target:.12 }, { name:'counter-.215', stage:3, target:.215 },
+    { name:'repeated-clock-zero', stage:1, target:.10, repeated:true },
+  ]) {
+    // Bounded lead sweep captures misses too; no assumption about browser/input latency.
+    for (const lead of [0, .08, .16]) {
+      await page.locator('#practice-retry').tap(); await page.waitForTimeout(350);
+      await phase(`interruption-${trial.name}-lead-${lead}`); await place(2.1); await aim();
+      const attempt = { ...trial, lead, status:'attempted' }; report.targetTrials.push(attempt); save();
+      try {
+        if (trial.stage === 3) {
+          await page.waitForFunction(() => { const a=window.__practiceDemo.arena.activeTargets[0];
+            return a?.mem['conch-st']===1 && a.mem['regular-clock']<.2; }, null, {timeout:15000});
+          await page.locator('.ws-touch-attack').tap();
+        }
+        await page.waitForFunction(({stage,target,lead:pressLead}) => { const a=window.__practiceDemo.arena.activeTargets[0];
+          return a?.mem['conch-st']===stage && a.mem['regular-clock']>=Math.max(0,target-pressLead); },
+          { ...trial, lead }, {timeout:15000});
+        attempt.before = await sample();
+        await page.locator('.ws-touch-attack').tap();
+        if (trial.repeated) for (let repeat=0;repeat<4;repeat++) {
+          await page.waitForTimeout(180); await page.locator('.ws-touch-attack').tap();
+        }
+        await page.waitForTimeout(7000); // Keep subsequent whole cycles, not only the interruption frame.
+        attempt.after = await sample(); attempt.status='attempt-complete-qualification-pending';
+      } catch (error) { attempt.status='not-reached-in-this-attempt'; attempt.error=error.message; }
+      save();
+    }
+  }
+  await page.locator('#practice-retry').tap(); await page.waitForTimeout(600);
+  await phase('sword-death');
+  // Normal sword inputs; repositioning stays explicit and does not bypass collision or damage admission.
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const current = await sample(); if (!current.enemy.alive || current.player.health?.health === 0) break;
+    await place(2.2, 0, .03);
+    if (current.enemy.hp <= 12) {
+      await phase('lethal-active-attempt');
+      try { await page.waitForFunction(() => { const a=window.__practiceDemo.arena.activeTargets[0];
+        return a?.mem['conch-st']===1 && a.mem['regular-clock']>=.53; }, null, {timeout:15000}); }
+      catch(error) { report.samples.push({phase:'lethal-active-not-reached',error:error.message}); }
+    }
+    await page.locator('.ws-touch-attack').tap();
+    for (let beat = 0; beat < 10; beat++) { await page.waitForTimeout(100); const row = await sample(); report.samples.push({ phase: 'sword', ...row }); stages.add(row.enemy.mem['conch-st']); save(); }
+  }
+  report.checks.counter = stages.has(3);
+  report.checks.guardObserved = report.samples.some(row => row.enemy?.mem?.['conch-guard'] === 1);
+  report.afterSword = await sample(); await capture('sword-result');
+  report.checks.actualEnemyDamage = report.afterSword.enemy.hp < 60;
+  report.checks.enemyDefeated = report.afterSword.enemy.alive === false;
+  if (report.checks.enemyDefeated) {
+    await place(1.4);
+    const endDeath = Date.now() + 30000;
+    while (Date.now() < endDeath) {
+      await page.waitForTimeout(1000); const row = await sample(); report.samples.push({ phase: 'corpse-reward', ...row }); save();
+      if (row.loot?.complete === true) break;
+    }
+    await phase('corpse-settle'); await page.waitForTimeout(8000);
+    report.corpse = await sample(); await capture('corpse-reward');
+    report.checks.retainedOwnDeathDelivered = report.corpse.enemy.mem['conch-st'] === 5 && report.corpse.enemy.mem['conch-guard'] === 0 && report.corpse.enemy.strike.phase === 'idle';
+    report.checks.boutLocalReward = report.corpse.loot?.scope === 'practice' && report.corpse.loot?.coins === 3 && report.corpse.loot?.complete === true;
+  }
+  report.storageAfterReward = await storage();
+  report.stateAfterReward = await stateStore();
+  await page.locator('#practice-retry').tap(); await page.waitForTimeout(600); report.retry = await sample();
+  report.checks.retry = report.retry.enemy.hp === 60 && report.retry.enemy.alive === true && report.retry.player.health?.health === 100
+    && report.retry.loot?.coins === 0 && report.retry.loot?.complete === false;
+  report.storageAfterRetry = await storage();
+  report.stateAfterRetry = await stateStore();
+  // A second fresh bout observes real enemy-caused player defeat, with no health or damage injection.
+  await phase('player-defeat');
+  const defeatDeadline = Date.now() + 180000;
+  while (Date.now() < defeatDeadline) {
+    const row = await sample(); if (row.player.health?.health === 0) break;
+    await place(.85, 0, .15); await aim(); await page.waitForTimeout(1600);
+    report.samples.push({ phase: 'player-defeat', ...await sample() }); save();
+  }
+  report.playerDefeat = await sample(); report.checks.playerDefeated = report.playerDefeat.player.health?.health === 0;
+  await capture('player-defeat');
+  if (report.checks.playerDefeated) {
+    await page.waitForTimeout(2000);
+    await page.locator('.ws-touch-attack').tap(); await page.waitForTimeout(600);
+    report.afterDefeatedAttack = await sample();
+    report.checks.defeatedAttackBlocked = report.afterDefeatedAttack.enemy.hp === report.playerDefeat.enemy.hp;
+  }
+  await page.locator('#practice-retry').tap(); await page.waitForTimeout(600); report.finalRetry = await sample();
+  report.checks.finalRetry = report.finalRetry.enemy.hp === 60 && report.finalRetry.player.health?.health === 100;
+  report.storageAfterDefeatRetry = await storage();
+  report.stateAfterDefeatRetry = await stateStore();
+  report.checks.emptyStorage = [report.storageBefore, report.storageAfterDefense, report.storageAfterReward, report.storageAfterRetry, report.storageAfterDefeatRetry]
+    .every(row => Object.keys(row.local).length === 0 && Object.keys(row.session).length === 0);
+  const states = [report.stateBeforeCombat, report.stateAfterDefense, report.stateAfterReward, report.stateAfterRetry, report.stateAfterDefeatRetry];
+  report.checks.emptyUnchangedStateStore = states.every(row => JSON.stringify(row) === JSON.stringify(states[0])
+    && Object.keys(row.shard).length === 0 && row.generation === 0
+    && Object.values(row.docs).every(doc => Object.keys(doc.keys).length === 0));
+  const trace = await preserve(page);
+  report.checks.actualDamageClocks = await page.evaluate(() => window.__conchEvents.some(row => row.kind === 'hurt-request-before' && row.strike.phase === 'active' && row.strike.elapsed > 0 && row.poseInput !== null));
+  report.checks.stopResumeObserved = trace.some(row => row.phase === 'stop' && row.speed < .05) && trace.some(row => row.phase === 'resume' && row.speed > .1);
+  report.checks.counter = trace.some(row => row.stage === 3);
+  report.checks.counterPending = trace.some(row => row.stage === 4);
+  report.checks.guardObserved = trace.some(row => row.guard === 1);
+  const deadRows = trace.filter(row => !row.alive), settledRows = deadRows.filter(row => row.deathT >= 1);
+  report.checks.noPostDeathStrike = deadRows.length > 0 && deadRows.every(row => row.strike.phase === 'idle') && deadRows.every((row,i) => i === 0 || row.playerHp >= deadRows[i-1].playerHp);
+  report.checks.settledOwnDeathDelivered = settledRows.length > 0 && settledRows.every(row => row.stage === 5 && row.guard === 0);
+  const playerDeadRows = trace.filter(row => row.playerHp === 0);
+  report.checks.playerDeathDoesNotKillEnemy = playerDeadRows.length > 0 && playerDeadRows.every(row => row.alive && row.hp === 60 && row.stage !== 5 && row.deathT < 0);
+  report.checks.renderedPoseInputRecorded = trace.some(row => row.poseInput !== null) && trace.filter(row => row.poseInput !== null).every(row => Number.isFinite(row.poseInput.t) && Number.isFinite(row.poseInput.flinch) && Number.isFinite(row.poseInput.attack));
+  report.checks.all15Bones = trace.every(row => Object.keys(row.bones).length === 15);
+  await page.reload({ waitUntil: 'domcontentloaded' }); await page.locator('#practice-start').tap();
+  await page.waitForFunction(() => window.__practiceDemo?.arena.entered === true);
+  report.reentry = await sample(); report.storageAfterReentry = await storage(); report.stateAfterReentry = await stateStore();
+  report.checks.reentry = report.reentry.enemy.kind === 'conch-duelist' && report.reentry.enemy.hp === 60 && report.reentry.player.health?.health === 100;
+  report.checks.reentryPersistence = JSON.stringify(report.stateAfterReentry) === JSON.stringify(report.stateBeforeCombat) && JSON.stringify(report.storageAfterReentry) === JSON.stringify(report.storageBefore);
+  report.checks.errors = report.errors.length === 0;
+  if (Object.values(report.checks).some(value => value !== true)) process.exitCode = 1;
+  report.videoStopRequestedAt = new Date().toISOString();
+  const video = page.video(); await context.close();
+  report.videoPath = await video.path();
+  report.videoClosedAt = new Date().toISOString();
+  report.videoSha256 = createHash('sha256').update(readFileSync(report.videoPath)).digest('hex');
+  try { report.videoProbe = JSON.parse(execFileSync('ffprobe', ['-v','error','-show_streams','-show_format','-of','json',report.videoPath], {encoding:'utf8'}));
+    const frames = execFileSync('ffprobe', ['-v','error','-select_streams','v:0','-show_frames','-show_entries','frame=best_effort_timestamp_time,pkt_duration_time','-of','json',report.videoPath], {encoding:'utf8',maxBuffer:64*1024*1024});
+    writeFileSync(`${out}/encoded-frames.json`, frames); report.encodedFramesSha256=createHash('sha256').update(frames).digest('hex'); report.checks.encodedCadenceRecorded=true; }
+  catch(error) { report.videoProbeError = error.message; report.checks.encodedCadenceRecorded=false; process.exitCode=1; }
+
+} catch (error) {
+  report.fatal = error.message; process.exitCode = 1;
+  if (observedPage !== null && !observedPage.isClosed()) {
+    try {
+      await preserve(observedPage);
+    } catch (captureError) { report.partialCaptureError = captureError.message; }
+  }
+}
+finally {
+  await browser?.close();
+  if (!report.videoPath && observedVideo) {
+    try { report.videoPath=await observedVideo.path(); report.videoSha256=createHash('sha256').update(readFileSync(report.videoPath)).digest('hex'); report.videoPartial=true; }
+    catch(error) { report.partialVideoError=error.message; }
+  }
+  try { report.identityAfter = verifyMotion5CaptureIdentity(); report.checks.exactIdentityUnchanged = JSON.stringify(report.identityAfter) === JSON.stringify(report.identityBefore); }
+  catch (identityError) { report.identityFailure = identityError.message; report.checks.exactIdentityUnchanged = false; process.exitCode=1; }
+  await new Promise(resolve => { server.close(resolve); }); report.endedAt = new Date().toISOString(); if(Object.values(report.checks).some(value=>value!==true)) process.exitCode=1; save(); }

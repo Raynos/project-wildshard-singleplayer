@@ -1,0 +1,849 @@
+{
+  "status": "PASS",
+  "checks": {
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/files": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/rawHashes": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/files": true,
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/failed-root-gap/rawHashes": true,
+    "preserved-inputs": true,
+    "all-20-frame-hashes-and-dimensions": true,
+    "failed-exact-executed-source-hash": true,
+    "failed-normalized-source-hash": true,
+    "failed-normalization-is-only-trailing-whitespace": true,
+    "failed-independent-AST-equivalence": true,
+    "final-source-hash": true,
+    "only-root-correction-in-final-source": true,
+    "mantis-mesh-complete-pass2.json-raw-vs-art-parsed-equality": true,
+    "metrics-complete-pass2.json-raw-vs-art-parsed-equality": true,
+    "candidate-glb-exact": true,
+    "camera-raw-art-parsed-equality": true,
+    "failed-final-cameras-equal": true,
+    "historic-rebuilt-glb-NOT-byte-equal": true,
+    "historic-rebuilt-only-material-mesh-name-suffix-difference": true,
+    "baseline-mantis-mesh-complete-pass1.json-byte-equal": true,
+    "baseline-metrics-complete-pass1.json-byte-equal": true,
+    "baseline-front-inside-frame": true,
+    "baseline-left-inside-frame": true,
+    "baseline-right-inside-frame": true,
+    "baseline-back-inside-frame": true,
+    "baseline-top-inside-frame": true,
+    "baseline-diag-front-inside-frame": true,
+    "baseline-diag-left-inside-frame": true,
+    "baseline-diag-right-inside-frame": true,
+    "baseline-diag-back-inside-frame": true,
+    "baseline-hero-inside-frame": true,
+    "candidate-front-inside-frame": true,
+    "candidate-left-inside-frame": true,
+    "candidate-right-inside-frame": true,
+    "candidate-back-inside-frame": true,
+    "candidate-top-inside-frame": true,
+    "candidate-diag-front-inside-frame": true,
+    "candidate-diag-left-inside-frame": true,
+    "candidate-diag-right-inside-frame": true,
+    "candidate-diag-back-inside-frame": true,
+    "candidate-hero-inside-frame": true,
+    "common-nine-view-scale": true
+  },
+  "failures": [],
+  "frames": [
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/hero.png",
+      "sha256": "47325e99e7225ad4a053dc535329540b701a33c1d3809b309d3418ec828aed01",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/front.png",
+      "sha256": "e6cf63dbb1f9175c5590e8617a17c1ea528783f8adb95f055974840553c34096",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/left.png",
+      "sha256": "9b8c57d7c7b70f4861c9aaef39f20bd8002ae3234e3031e7b0a00a4de5888f51",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/right.png",
+      "sha256": "03587c144b714e0cd02afe24e86d2fb0936f63d873e3b285ac11c09592b4a739",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/back.png",
+      "sha256": "ed872299d6acc8060e4e069ac55df686e578bba6a94a1dcbf2f26fe25d6cd1d4",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/top.png",
+      "sha256": "dfaba937c330f779a28bdababf3788922fb8792408c7874e9a9fd0942d49e476",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-front.png",
+      "sha256": "7b564116e5721cf190f0898cc93895a39d8296626cee32ac1155e2c4f020362a",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-left.png",
+      "sha256": "0a927bbbc81059125ece9d45272f20effef7dbd87adec3e9a0570ca55df0c0a8",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-right.png",
+      "sha256": "db2b77fcdf061b6cbc341b97335da80ca3a63185ec0b9d036b5742f1a5948f0e",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/baseline/diag-back.png",
+      "sha256": "bc6ecfe6f951ba8064f0fb1eaf23fe6fd6713641a0fdf80db58d4d5440af42cf",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/hero.png",
+      "sha256": "5af73da02b504c921e32b653d1cd4d7bdbb72ba7ef6159e745cf31c7c5230488",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/front.png",
+      "sha256": "14a1da82a4ea282b9ce76d395aa33005861ce6b9e250654095fc42f540f0fefb",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/left.png",
+      "sha256": "ea5e4feaa3a5176b041ec4055e515503edbbc6494043a228cff6211cca203b0f",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/right.png",
+      "sha256": "58e35fe8cc5bf4962712e1574c388fde2a70c4fe22b902f3a731948574747e5c",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/back.png",
+      "sha256": "90c5e3d08f22b0db80cfd0875c96c924c9462ff84a5670e9c6d6effb52ab8f88",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/top.png",
+      "sha256": "8326ab403d4442d7d1ee7530748878e9f1df0ac04aa88490b12248126c5ad70c",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-front.png",
+      "sha256": "c003ed9497dad80f213ebad57de433f63f315cb21cf2521cf86d1e31bdd669a9",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-left.png",
+      "sha256": "81de13645503793f57875960b4b97c2638df667febdc535d11d4f42527d0c109",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-right.png",
+      "sha256": "8581f8d3976c982ca150642595001d0ff1e28d0613b3b9ff70b8251ab515b044",
+      "size": [
+        638,
+        900
+      ]
+    },
+    {
+      "path": "tmp/mantis-complete-pass2/candidate/diag-back.png",
+      "sha256": "837492924411d65372a52550429fd76ac144e8d0564f9670fd25a43fe2cc7eed",
+      "size": [
+        638,
+        900
+      ]
+    }
+  ],
+  "historicGlbSha256": "fdb5872d81e9b6e59c3a08bf4d23c064e87de1ea45e3c88d3a994fb356c29989",
+  "rebuiltGlbSha256": "0adddeb15f637766e68cfb237d4dd37509bac03e3bb1f0fe7fd9e8eb1eb5fb8b",
+  "baselineNameDifferences": [
+    {
+      "section": "materials",
+      "index": 0,
+      "historic": "Honey driftwood.001",
+      "rebuilt": "Honey driftwood"
+    },
+    {
+      "section": "materials",
+      "index": 1,
+      "historic": "Warm broad wood plane.001",
+      "rebuilt": "Warm broad wood plane"
+    },
+    {
+      "section": "materials",
+      "index": 2,
+      "historic": "Cut wood plane.001",
+      "rebuilt": "Cut wood plane"
+    },
+    {
+      "section": "materials",
+      "index": 3,
+      "historic": "Pale hooked cutting edge.001",
+      "rebuilt": "Pale hooked cutting edge"
+    },
+    {
+      "section": "materials",
+      "index": 4,
+      "historic": "Vivid green compound eyes.001",
+      "rebuilt": "Vivid green compound eyes"
+    },
+    {
+      "section": "materials",
+      "index": 5,
+      "historic": "Eye upper facet.001",
+      "rebuilt": "Eye upper facet"
+    },
+    {
+      "section": "materials",
+      "index": 6,
+      "historic": "Leaf folded plane.001",
+      "rebuilt": "Leaf folded plane"
+    },
+    {
+      "section": "materials",
+      "index": 7,
+      "historic": "Recessed wood hinge.001",
+      "rebuilt": "Recessed wood hinge"
+    },
+    {
+      "section": "materials",
+      "index": 8,
+      "historic": "Leaf green.001",
+      "rebuilt": "Leaf green"
+    },
+    {
+      "section": "materials",
+      "index": 9,
+      "historic": "Sunward leaf plane.001",
+      "rebuilt": "Sunward leaf plane"
+    },
+    {
+      "section": "meshes",
+      "index": 0,
+      "historic": "Abdomen core.001",
+      "rebuilt": "Abdomen core"
+    },
+    {
+      "section": "meshes",
+      "index": 1,
+      "historic": "Abdominal tergite 0.001",
+      "rebuilt": "Abdominal tergite 0"
+    },
+    {
+      "section": "meshes",
+      "index": 2,
+      "historic": "Abdominal tergite 1.001",
+      "rebuilt": "Abdominal tergite 1"
+    },
+    {
+      "section": "meshes",
+      "index": 3,
+      "historic": "Abdominal tergite 2.001",
+      "rebuilt": "Abdominal tergite 2"
+    },
+    {
+      "section": "meshes",
+      "index": 4,
+      "historic": "Rising prothorax.001",
+      "rebuilt": "Rising prothorax"
+    },
+    {
+      "section": "meshes",
+      "index": 6,
+      "historic": "Imbricated thorax bark (-1, 0).001",
+      "rebuilt": "Imbricated thorax bark (-1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 7,
+      "historic": "Imbricated thorax bark (-1, 1).001",
+      "rebuilt": "Imbricated thorax bark (-1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 8,
+      "historic": "Imbricated thorax bark (-1, 2).001",
+      "rebuilt": "Imbricated thorax bark (-1, 2)"
+    },
+    {
+      "section": "meshes",
+      "index": 9,
+      "historic": "Imbricated thorax bark (-1, 3).001",
+      "rebuilt": "Imbricated thorax bark (-1, 3)"
+    },
+    {
+      "section": "meshes",
+      "index": 10,
+      "historic": "Imbricated thorax bark (-1, 4).001",
+      "rebuilt": "Imbricated thorax bark (-1, 4)"
+    },
+    {
+      "section": "meshes",
+      "index": 11,
+      "historic": "Rear neck collar -1.001",
+      "rebuilt": "Rear neck collar -1"
+    },
+    {
+      "section": "meshes",
+      "index": 12,
+      "historic": "Imbricated thorax bark (1, 0).001",
+      "rebuilt": "Imbricated thorax bark (1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 13,
+      "historic": "Imbricated thorax bark (1, 1).001",
+      "rebuilt": "Imbricated thorax bark (1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 14,
+      "historic": "Imbricated thorax bark (1, 2).001",
+      "rebuilt": "Imbricated thorax bark (1, 2)"
+    },
+    {
+      "section": "meshes",
+      "index": 15,
+      "historic": "Imbricated thorax bark (1, 3).001",
+      "rebuilt": "Imbricated thorax bark (1, 3)"
+    },
+    {
+      "section": "meshes",
+      "index": 16,
+      "historic": "Imbricated thorax bark (1, 4).001",
+      "rebuilt": "Imbricated thorax bark (1, 4)"
+    },
+    {
+      "section": "meshes",
+      "index": 17,
+      "historic": "Rear neck collar 1.001",
+      "rebuilt": "Rear neck collar 1"
+    },
+    {
+      "section": "meshes",
+      "index": 18,
+      "historic": "Overlapping dorsal neck shell 0.001",
+      "rebuilt": "Overlapping dorsal neck shell 0"
+    },
+    {
+      "section": "meshes",
+      "index": 19,
+      "historic": "Overlapping dorsal neck shell 1.001",
+      "rebuilt": "Overlapping dorsal neck shell 1"
+    },
+    {
+      "section": "meshes",
+      "index": 20,
+      "historic": "Overlapping dorsal neck shell 2.001",
+      "rebuilt": "Overlapping dorsal neck shell 2"
+    },
+    {
+      "section": "meshes",
+      "index": 21,
+      "historic": "Overlapping dorsal neck shell 3.001",
+      "rebuilt": "Overlapping dorsal neck shell 3"
+    },
+    {
+      "section": "meshes",
+      "index": 22,
+      "historic": "Volumetric pointed insect skull.001",
+      "rebuilt": "Volumetric pointed insect skull"
+    },
+    {
+      "section": "meshes",
+      "index": 23,
+      "historic": "Inset green compound eye -1.001",
+      "rebuilt": "Inset green compound eye -1"
+    },
+    {
+      "section": "meshes",
+      "index": 24,
+      "historic": "Angled socket brow -1.001",
+      "rebuilt": "Angled socket brow -1"
+    },
+    {
+      "section": "meshes",
+      "index": 25,
+      "historic": "Tapered cheek splinter -1.001",
+      "rebuilt": "Tapered cheek splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 26,
+      "historic": "Swept crown splinter -1.001",
+      "rebuilt": "Swept crown splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 27,
+      "historic": "Compact mandible -1.001",
+      "rebuilt": "Compact mandible -1"
+    },
+    {
+      "section": "meshes",
+      "index": 28,
+      "historic": "Twig antenna -1.001",
+      "rebuilt": "Twig antenna -1"
+    },
+    {
+      "section": "meshes",
+      "index": 29,
+      "historic": "Antenna leaf -1.001",
+      "rebuilt": "Antenna leaf -1"
+    },
+    {
+      "section": "meshes",
+      "index": 30,
+      "historic": "Leaf wing wing-1_0.001",
+      "rebuilt": "Leaf wing wing-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 31,
+      "historic": "Seated folded wing midrib wing-1_0.001",
+      "rebuilt": "Seated folded wing midrib wing-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 32,
+      "historic": "Leaf wing wing-1_1.001",
+      "rebuilt": "Leaf wing wing-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 33,
+      "historic": "Seated folded wing midrib wing-1_1.001",
+      "rebuilt": "Seated folded wing midrib wing-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 34,
+      "historic": "Walking femur leg-1_0.001",
+      "rebuilt": "Walking femur leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 35,
+      "historic": "Walking tibia leg-1_0.001",
+      "rebuilt": "Walking tibia leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 36,
+      "historic": "Ground tarsus leg-1_0.001",
+      "rebuilt": "Ground tarsus leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 40,
+      "historic": "Femur leaf plate leg-1_0.001",
+      "rebuilt": "Femur leaf plate leg-1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 41,
+      "historic": "Walking femur leg-1_1.001",
+      "rebuilt": "Walking femur leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 42,
+      "historic": "Walking tibia leg-1_1.001",
+      "rebuilt": "Walking tibia leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 43,
+      "historic": "Ground tarsus leg-1_1.001",
+      "rebuilt": "Ground tarsus leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 47,
+      "historic": "Femur leaf plate leg-1_1.001",
+      "rebuilt": "Femur leaf plate leg-1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 48,
+      "historic": "Raptorial upper arm -1.001",
+      "rebuilt": "Raptorial upper arm -1"
+    },
+    {
+      "section": "meshes",
+      "index": 49,
+      "historic": "Raised raptorial forearm -1.001",
+      "rebuilt": "Raised raptorial forearm -1"
+    },
+    {
+      "section": "meshes",
+      "index": 50,
+      "historic": "Swept bevelled wood sickle -1.001",
+      "rebuilt": "Swept bevelled wood sickle -1"
+    },
+    {
+      "section": "meshes",
+      "index": 51,
+      "historic": "Bevelled continuous ivory teeth -1.001",
+      "rebuilt": "Bevelled continuous ivory teeth -1"
+    },
+    {
+      "section": "meshes",
+      "index": 52,
+      "historic": "Inset green compound eye 1.001",
+      "rebuilt": "Inset green compound eye 1"
+    },
+    {
+      "section": "meshes",
+      "index": 53,
+      "historic": "Angled socket brow 1.001",
+      "rebuilt": "Angled socket brow 1"
+    },
+    {
+      "section": "meshes",
+      "index": 54,
+      "historic": "Tapered cheek splinter 1.001",
+      "rebuilt": "Tapered cheek splinter 1"
+    },
+    {
+      "section": "meshes",
+      "index": 55,
+      "historic": "Swept crown splinter 1.001",
+      "rebuilt": "Swept crown splinter 1"
+    },
+    {
+      "section": "meshes",
+      "index": 56,
+      "historic": "Compact mandible 1.001",
+      "rebuilt": "Compact mandible 1"
+    },
+    {
+      "section": "meshes",
+      "index": 57,
+      "historic": "Twig antenna 1.001",
+      "rebuilt": "Twig antenna 1"
+    },
+    {
+      "section": "meshes",
+      "index": 58,
+      "historic": "Antenna leaf 1.001",
+      "rebuilt": "Antenna leaf 1"
+    },
+    {
+      "section": "meshes",
+      "index": 59,
+      "historic": "Leaf wing wing1_0.001",
+      "rebuilt": "Leaf wing wing1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 60,
+      "historic": "Seated folded wing midrib wing1_0.001",
+      "rebuilt": "Seated folded wing midrib wing1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 61,
+      "historic": "Leaf wing wing1_1.001",
+      "rebuilt": "Leaf wing wing1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 62,
+      "historic": "Seated folded wing midrib wing1_1.001",
+      "rebuilt": "Seated folded wing midrib wing1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 63,
+      "historic": "Walking femur leg1_0.001",
+      "rebuilt": "Walking femur leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 64,
+      "historic": "Walking tibia leg1_0.001",
+      "rebuilt": "Walking tibia leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 65,
+      "historic": "Ground tarsus leg1_0.001",
+      "rebuilt": "Ground tarsus leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 69,
+      "historic": "Femur leaf plate leg1_0.001",
+      "rebuilt": "Femur leaf plate leg1_0"
+    },
+    {
+      "section": "meshes",
+      "index": 70,
+      "historic": "Walking femur leg1_1.001",
+      "rebuilt": "Walking femur leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 71,
+      "historic": "Walking tibia leg1_1.001",
+      "rebuilt": "Walking tibia leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 72,
+      "historic": "Ground tarsus leg1_1.001",
+      "rebuilt": "Ground tarsus leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 76,
+      "historic": "Femur leaf plate leg1_1.001",
+      "rebuilt": "Femur leaf plate leg1_1"
+    },
+    {
+      "section": "meshes",
+      "index": 77,
+      "historic": "Raptorial upper arm 1.001",
+      "rebuilt": "Raptorial upper arm 1"
+    },
+    {
+      "section": "meshes",
+      "index": 78,
+      "historic": "Raised raptorial forearm 1.001",
+      "rebuilt": "Raised raptorial forearm 1"
+    },
+    {
+      "section": "meshes",
+      "index": 79,
+      "historic": "Swept bevelled wood sickle 1.001",
+      "rebuilt": "Swept bevelled wood sickle 1"
+    },
+    {
+      "section": "meshes",
+      "index": 80,
+      "historic": "Bevelled continuous ivory teeth 1.001",
+      "rebuilt": "Bevelled continuous ivory teeth 1"
+    },
+    {
+      "section": "meshes",
+      "index": 81,
+      "historic": "Coxal bark shield (-1, 0).001",
+      "rebuilt": "Coxal bark shield (-1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 82,
+      "historic": "Coxal bark shield (-1, 1).001",
+      "rebuilt": "Coxal bark shield (-1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 83,
+      "historic": "Lateral tail splinter -1.001",
+      "rebuilt": "Lateral tail splinter -1"
+    },
+    {
+      "section": "meshes",
+      "index": 84,
+      "historic": "Coxal bark shield (1, 0).001",
+      "rebuilt": "Coxal bark shield (1, 0)"
+    },
+    {
+      "section": "meshes",
+      "index": 85,
+      "historic": "Coxal bark shield (1, 1).001",
+      "rebuilt": "Coxal bark shield (1, 1)"
+    },
+    {
+      "section": "meshes",
+      "index": 86,
+      "historic": "Lateral tail splinter 1.001",
+      "rebuilt": "Lateral tail splinter 1"
+    }
+  ],
+  "projectionFits": [
+    {
+      "role": "baseline",
+      "view": "front",
+      "maxX": 0.7625607854276554,
+      "maxY": 0.7587911346128574
+    },
+    {
+      "role": "baseline",
+      "view": "left",
+      "maxX": 0.8931113024401783,
+      "maxY": 0.7587906808340046
+    },
+    {
+      "role": "baseline",
+      "view": "right",
+      "maxX": 0.8931113749607389,
+      "maxY": 0.7587906885859313
+    },
+    {
+      "role": "baseline",
+      "view": "back",
+      "maxX": 0.7625607708595338,
+      "maxY": 0.7587909651616646
+    },
+    {
+      "role": "baseline",
+      "view": "top",
+      "maxX": 0.7625607854276554,
+      "maxY": 0.6331164871426973
+    },
+    {
+      "role": "baseline",
+      "view": "diag-front",
+      "maxX": 0.7625607854276554,
+      "maxY": 0.7704051430144548
+    },
+    {
+      "role": "baseline",
+      "view": "diag-left",
+      "maxX": 0.8931117091493826,
+      "maxY": 0.8464107694902887
+    },
+    {
+      "role": "baseline",
+      "view": "diag-right",
+      "maxX": 0.8931115853134102,
+      "maxY": 0.846391277253306
+    },
+    {
+      "role": "baseline",
+      "view": "diag-back",
+      "maxX": 0.7625613845880136,
+      "maxY": 0.8830634829577619
+    },
+    {
+      "role": "baseline",
+      "view": "hero",
+      "maxX": 0.8931115998462723,
+      "maxY": 0.6364949335386206
+    },
+    {
+      "role": "candidate",
+      "view": "front",
+      "maxX": 0.75869380506889,
+      "maxY": 0.7587911346128574
+    },
+    {
+      "role": "candidate",
+      "view": "left",
+      "maxX": 0.8931108104930723,
+      "maxY": 0.7587906808340046
+    },
+    {
+      "role": "candidate",
+      "view": "right",
+      "maxX": 0.893110679702213,
+      "maxY": 0.7587906885859313
+    },
+    {
+      "role": "candidate",
+      "view": "back",
+      "maxX": 0.7586936437552266,
+      "maxY": 0.7587909651616646
+    },
+    {
+      "role": "candidate",
+      "view": "top",
+      "maxX": 0.75869380506889,
+      "maxY": 0.6331164871426973
+    },
+    {
+      "role": "candidate",
+      "view": "diag-front",
+      "maxX": 0.75869380506889,
+      "maxY": 0.7704051430144548
+    },
+    {
+      "role": "candidate",
+      "view": "diag-left",
+      "maxX": 0.8931104648764022,
+      "maxY": 0.8464107694902887
+    },
+    {
+      "role": "candidate",
+      "view": "diag-right",
+      "maxX": 0.893110530442076,
+      "maxY": 0.846391277253306
+    },
+    {
+      "role": "candidate",
+      "view": "diag-back",
+      "maxX": 0.7586941634115842,
+      "maxY": 0.8830634829577619
+    },
+    {
+      "role": "candidate",
+      "view": "hero",
+      "maxX": 0.8733231670747996,
+      "maxY": 0.6364949335386206
+    }
+  ],
+  "sourceSha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+  "candidateGlbSha256": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604",
+  "frozenInitialSha256": "3b40de79a394625ad4d3e99fd8e6a6a0a70b4defad7dce0448ad285371b9ea51",
+  "limits": [
+    "Static read-only verification, no build or render replay.",
+    "Final executed-source identity is consistent with preserved provenance and source correction, not independently observed execution.",
+    "Historical GLB is not byte-identical: only material/mesh datablock .001 suffix differences; all remaining JSON and all non-JSON chunks exactly equal.",
+    "No animation, runtime, intersection-free motion or native admission established."
+  ]
+}
