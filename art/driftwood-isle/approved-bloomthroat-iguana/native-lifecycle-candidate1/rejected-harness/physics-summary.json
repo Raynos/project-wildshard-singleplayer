@@ -1,0 +1,65 @@
+{
+  "schema": "wildshard.iguana.default-corpse-study.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "visualAcceptance": false,
+  "rawEvidence": "tmp/iguana-native-lifecycle-candidate1/physics.json",
+  "trials": [
+    {
+      "initial": {
+        "attack": -1,
+        "clock": 0,
+        "dx": 1,
+        "dz": 0
+      },
+      "fixedMinY": -1.4614399836409402,
+      "renderMinY": -1.461737357215456,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.25,
+        "clock": 0.25,
+        "dx": 0,
+        "dz": 1
+      },
+      "fixedMinY": -1.1830947148992785,
+      "renderMinY": -1.1832554218010238,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.42,
+        "clock": 0.42,
+        "dx": -1,
+        "dz": 0
+      },
+      "fixedMinY": -1.0451719078040032,
+      "renderMinY": -1.0448665372415666,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.85,
+        "clock": 0.85,
+        "dx": 0,
+        "dz": -1
+      },
+      "fixedMinY": -1.5682797154961428,
+      "renderMinY": -1.5661549270649666,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "status": "frozen unadmitted complete source; failed contact",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/README.md",
+      "bytes": 6564,
+      "sha256": "7ad6eb278066debaf4c88785832f88f75f89a70cc539745cd48d7823eea7f0f2"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/default-corpse.test.ts",
+      "bytes": 6676,
+      "sha256": "c5c3a8df5087fe4dd7c2cc473f113c7090210a1448b0d2dc0c12d614b1d8256b"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/live-coverage.json",
+      "bytes": 5195,
+      "sha256": "dc567c06c6d58a3c92b9cd2cd52e0eb64389678b5c9845d0dc78413ac8444c2d"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/measure-live.py",
+      "bytes": 2088,
+      "sha256": "915e1226095f07122c9eb08b7d1c6e6d2445f0674e18d6a9102212101b212cee"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/motion.test.ts",
+      "bytes": 1428,
+      "sha256": "4beb22eceb3d08cf501d91598b121604786898a3cffa0b0808d32894552b98b9"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/physics-summary.json",
+      "bytes": 1652,
+      "sha256": "c49cb8d04d1f9349e88a48d1f8ea3434bbc310a38f811bda370088eec69b93d1"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/rejected-harness/default-corpse.test.ts",
+      "bytes": 6241,
+      "sha256": "fde928bc4f98b612ce6d1f70282766c0d00c2bcd97ef99237bf75c0800286dd0"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/rejected-harness/physics-summary.json",
+      "bytes": 1538,
+      "sha256": "92d67ebd3ce1f6959caa6cc5953df341c3922333724141e598c993b5a55abe18"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/skin-parity.test.ts",
+      "bytes": 3105,
+      "sha256": "62ada6a1f9008226953ca34928f05a1578b128b9bfb835cef86a92bc6f9ac4f2"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/source.test.ts",
+      "bytes": 4814,
+      "sha256": "c0579dcbf2bfbb6c59bb25843ff32e9218245923749af4f1745cb4f2d1bbc6fd"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/vitest.config.ts",
+      "bytes": 263,
+      "sha256": "94bde73407e5046eb3ca90f08befbe49e0713c50921487bde07ec0b64690a952"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bloomthroatIguanaNativePreview.ts",
+      "bytes": 7275,
+      "sha256": "fc0a10b84cb94cdb04d85aa1c3c50d92853e8323732de3ee6d9149842e02f66a"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bloomthroatIguanaNativeClips.ts",
+      "bytes": 3830,
+      "sha256": "ad3a0bf3f90b17255af119c0b42373402f1aa5b88483967b047360a295335ee4"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/bloomthroatIguanaCombat.ts",
+      "bytes": 3030,
+      "sha256": "13ced4874b6968b493d496211e543830ba0a8cc473ae68a5fa59dbb8e73a0dfc"
+    },
+    {
+      "path": "src/shards/driftwood-isle/behaviour/bloomthroat-iguana.as",
+      "bytes": 1540,
+      "sha256": "939fd2238a2dc0f7808258a366777488c9178c345ba1bd58da210d5e28cfb90d"
+    },
+    {
+      "path": "scripts/bloomthroat-iguana-native-admission.test.mjs",
+      "bytes": 834,
+      "sha256": "50841303c363a6aac91000f121ef24542d7040c7e347f2297bdfb1e64ccffd28"
+    },
+    {
+      "path": "scripts/build-bloomthroat-iguana-native-preview.mjs",
+      "bytes": 4990,
+      "sha256": "b4b3eb856560617893477ad42f7611d593495f7f4216ffacfbe2225ca4a6e470"
+    },
+    {
+      "path": "scripts/bloomthroat-iguana-native-admission.mjs",
+      "bytes": 2333,
+      "sha256": "c21bbbfc4cd134efe3c47a74aba6fe2371fcf18e8bbe9cb84bf7c3d6fcfc3f04"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/rejected-hook/bloomthroat-iguana-native-admission.test.mjs",
+      "bytes": 821,
+      "sha256": "d55fcdbf40101bc15ae3d532fa3afa577f8fe6bdc597a09ad6f6d5eac5f48e20"
+    },
+    {
+      "path": "art/driftwood-isle/approved-bloomthroat-iguana/native-lifecycle-candidate1/rejected-hook/build-bloomthroat-iguana-native-preview.mjs",
+      "bytes": 4918,
+      "sha256": "63d3e0dcbc4de0f7bfd9e5c1e92f7ecd1d10d490cc7357b7ea49d769e5e63bbd"
+    }
+  ],
+  "rawEvidencePins": [
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/default-corpse-test.log",
+      "bytes": 1210,
+      "sha256": "416e427e941251a3186fa15e53f6b9a487098cf5807e0c7b2576e205ae1676e1"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/default-death-physics.json",
+      "bytes": 1380782,
+      "sha256": "8fece96419498d2be87c43682407ec07e4ed1d557f167fa1786c6d8a5b438b06"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/default-death-test.log",
+      "bytes": 1210,
+      "sha256": "4e16a44661c108b5e0ac995617652ecd3b9666c8321ff60a1a31f88b557bec5a"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/lint.log",
+      "bytes": 949,
+      "sha256": "587b72a2afb66147fbaf15f1a9513f8da60e9ecad0339039c64607707a18fd89"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/lint2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/physics.json",
+      "bytes": 1376943,
+      "sha256": "e496e8cd26cb6debde73ea68d5fe295723a0f4c6a1f607f388d2416a0b8a2ecd"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/skin-parity.log",
+      "bytes": 1198,
+      "sha256": "e6606344ed6514975235acc16065f625505e24ea522d3dbd01f0d251090793b4"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/source-test.log",
+      "bytes": 2446,
+      "sha256": "5a6fe1a3ede3e3309f63cebde27d0fa966a355cc2a199a3a9239c8ca87ecd961"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/source-test2.log",
+      "bytes": 1965,
+      "sha256": "05b571e1f9422d64771e6d17f496407fd36e1cc258abe469074c0adc54a825af"
+    },
+    {
+      "path": "tmp/iguana-native-lifecycle-candidate1/source-test3.log",
+      "bytes": 1210,
+      "sha256": "3421f222dac0bc914dc54e6151823322ecca0c829219bd26573b94073d190818"
+    }
+  ],
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "productBuilt": false,
+  "appBuilt": false,
+  "rootHookCorrection": "2026-10-19 23:29 UTC: await Node tests, import spacing and separate always-throwing admission call from inspection. Admission still throws before inspection/build. Original two scripts retained in rejected-hook. Prior freeze a32748333fc29ccc6a063ba3c25d63eab21b66915d85a9454dda6e3945075638 was independently reviewed before these lint-only corrections."
+}

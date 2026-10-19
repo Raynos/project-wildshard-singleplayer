@@ -1,0 +1,66 @@
+{
+  "schema": "wildshard.iguana.default-corpse-study.v2",
+  "poseOwnership": "AnimalView render-owned default custom death, dt/.8; no RigidCorpsePose opt-in",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "visualAcceptance": false,
+  "rawEvidence": "tmp/iguana-native-lifecycle-candidate1/default-death-physics.json",
+  "trials": [
+    {
+      "initial": {
+        "attack": -1,
+        "clock": 0,
+        "dx": 1,
+        "dz": 0
+      },
+      "fixedMinY": -1.4516375610869032,
+      "renderMinY": -1.4517913413017116,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.25,
+        "clock": 0.25,
+        "dx": 0,
+        "dz": 1
+      },
+      "fixedMinY": -1.1292560192515286,
+      "renderMinY": -1.128910500499913,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.42,
+        "clock": 0.42,
+        "dx": -1,
+        "dz": 0
+      },
+      "fixedMinY": -1.0456995545799024,
+      "renderMinY": -1.0451866011503648,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    },
+    {
+      "initial": {
+        "attack": 0.85,
+        "clock": 0.85,
+        "dx": 0,
+        "dz": -1
+      },
+      "fixedMinY": -1.588589635482442,
+      "renderMinY": -1.5865755562820616,
+      "contactThreshold": 0.005,
+      "passesSampledFlatContact": false,
+      "frames": 480,
+      "finalState": "frozen"
+    }
+  ]
+}
