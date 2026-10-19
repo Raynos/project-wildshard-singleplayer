@@ -1,0 +1,14 @@
+{
+  "status": "failed before export/render",
+  "session": 55263,
+  "exitCode": 1,
+  "terminalUtc": "2026-10-19T02:34:55Z",
+  "failure": "Outer attachment midpoint outside retained body by7.692781mm",
+  "point": [
+    -0.195375,
+    0.7687511277198791,
+    0.7875
+  ],
+  "sourceBuilderSha256": "212c6fecb4af2712f17882d761af0a3a679966087b76c62f5bd8cd0a0869b84d",
+  "helperSha256": "a4e3b055642530841076622f34d20f208f8b2e9fceb1e664604936ee25ae3984"
+}

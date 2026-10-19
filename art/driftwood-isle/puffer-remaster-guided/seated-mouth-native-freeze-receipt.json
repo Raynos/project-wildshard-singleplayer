@@ -1,0 +1,38 @@
+{
+  "status": "unaccepted seated-mouth geometry freeze; diagnostic transferred colors, not final paint",
+  "sourceNativeSha256": "e3f5f018bd11c6e58cdbafb5af69440336d257192360d7e46339162a61701338",
+  "sceneSha256": "e1eb7dfbd8d7df3c78541c5993f6e400561e15fe0552795cf4a286aaca0ce980",
+  "parts": [
+    {
+      "name": "Continuous mantle cheek and pouch",
+      "exactOriginalTriangles": 894,
+      "newTriangles": 248
+    },
+    {
+      "name": "Dark recessed palate",
+      "exactOriginalTriangles": 1005,
+      "newTriangles": 64
+    },
+    {
+      "name": "Tail root",
+      "exactOriginalPayload": true
+    },
+    {
+      "name": "Volumetric connected finL",
+      "exactOriginalPayload": true
+    },
+    {
+      "name": "Volumetric connected finR",
+      "exactOriginalPayload": true
+    },
+    {
+      "name": "Volumetric connected rearL",
+      "exactOriginalPayload": true
+    },
+    {
+      "name": "Volumetric connected rearR",
+      "exactOriginalPayload": true
+    }
+  ],
+  "outputNativeSha256": "030dbb8c40bf2507429b6017ad4c8d36a15eb5f5ca839c630e14189c51c8424b"
+}

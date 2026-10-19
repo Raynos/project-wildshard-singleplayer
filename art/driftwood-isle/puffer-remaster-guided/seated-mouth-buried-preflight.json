@@ -1,0 +1,1034 @@
+{
+  "status": "unaccepted closed seated mouth unit",
+  "innerGape": [
+    [
+      -0.2,
+      0.845,
+      0.705
+    ],
+    [
+      -0.135,
+      0.875,
+      0.83
+    ],
+    [
+      0,
+      0.895,
+      0.925
+    ],
+    [
+      0.135,
+      0.875,
+      0.83
+    ],
+    [
+      0.2,
+      0.845,
+      0.705
+    ],
+    [
+      0.1,
+      0.862,
+      0.691
+    ],
+    [
+      0,
+      0.866,
+      0.688
+    ],
+    [
+      -0.1,
+      0.862,
+      0.691
+    ]
+  ],
+  "outerVisibleRing": [
+    [
+      -0.208,
+      0.845,
+      0.69
+    ],
+    [
+      -0.18275,
+      0.765,
+      0.885
+    ],
+    [
+      0,
+      0.85,
+      0.975
+    ],
+    [
+      0.18275,
+      0.765,
+      0.885
+    ],
+    [
+      0.208,
+      0.845,
+      0.69
+    ],
+    [
+      0.105,
+      0.851,
+      0.662
+    ],
+    [
+      0,
+      0.855,
+      0.654
+    ],
+    [
+      -0.105,
+      0.851,
+      0.662
+    ]
+  ],
+  "buriedOuterRing": [
+    [
+      -0.208,
+      0.48,
+      0.69
+    ],
+    [
+      -0.18275,
+      0.48,
+      0.885
+    ],
+    [
+      0,
+      0.48,
+      0.975
+    ],
+    [
+      0.18275,
+      0.48,
+      0.885
+    ],
+    [
+      0.208,
+      0.48,
+      0.69
+    ],
+    [
+      0.105,
+      0.48,
+      0.662
+    ],
+    [
+      0,
+      0.48,
+      0.654
+    ],
+    [
+      -0.105,
+      0.48,
+      0.662
+    ]
+  ],
+  "attachmentSamples": [
+    {
+      "sample": 0,
+      "point": [
+        -0.208,
+        0.48,
+        0.69
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.000000000000001,
+        "signedEuclideanDistance": -0.03638681024312973,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 1,
+      "point": [
+        -0.20484375,
+        0.48,
+        0.714375
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.032323192805051804,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 2,
+      "point": [
+        -0.2016875,
+        0.48,
+        0.73875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999981,
+        "signedEuclideanDistance": -0.03034565970301628,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 3,
+      "point": [
+        -0.19853125,
+        0.48,
+        0.763125
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000018,
+        "signedEuclideanDistance": -0.030235806480050087,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 4,
+      "point": [
+        -0.195375,
+        0.48,
+        0.7875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.034032173454761505,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 5,
+      "point": [
+        -0.19221875,
+        0.48,
+        0.8118749999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999986,
+        "signedEuclideanDistance": -0.04128829017281532,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 6,
+      "point": [
+        -0.1890625,
+        0.48,
+        0.83625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.05053522065281868,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 7,
+      "point": [
+        -0.18590625,
+        0.48,
+        0.860625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000013,
+        "signedEuclideanDistance": -0.06087236851453781,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 8,
+      "point": [
+        -0.18275,
+        0.48,
+        0.885
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.07214612513780594,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 9,
+      "point": [
+        -0.15990625,
+        0.48,
+        0.89625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.06786221265792847,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 10,
+      "point": [
+        -0.1370625,
+        0.48,
+        0.9075000000000001
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999996,
+        "signedEuclideanDistance": -0.06549452245235443,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 11,
+      "point": [
+        -0.11421875,
+        0.48,
+        0.91875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.06314931809902191,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 12,
+      "point": [
+        -0.091375,
+        0.48,
+        0.9299999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.06082937493920326,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 13,
+      "point": [
+        -0.06853125,
+        0.48,
+        0.94125
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.05853752791881561,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 14,
+      "point": [
+        -0.0456875,
+        0.48,
+        0.9524999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000013,
+        "signedEuclideanDistance": -0.056277208030223846,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 15,
+      "point": [
+        -0.02284375,
+        0.48,
+        0.96375
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999979,
+        "signedEuclideanDistance": -0.05406850576400757,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 16,
+      "point": [
+        0.0,
+        0.48,
+        0.975
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.05830958113074303,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 17,
+      "point": [
+        0.02284375,
+        0.48,
+        0.96375
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.05406850576400757,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 18,
+      "point": [
+        0.0456875,
+        0.48,
+        0.9524999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.056277208030223846,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 19,
+      "point": [
+        0.06853125,
+        0.48,
+        0.94125
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.05853752791881561,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 20,
+      "point": [
+        0.091375,
+        0.48,
+        0.9299999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.06082937493920326,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 21,
+      "point": [
+        0.11421875,
+        0.48,
+        0.91875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000004,
+        "signedEuclideanDistance": -0.06314931809902191,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 22,
+      "point": [
+        0.1370625,
+        0.48,
+        0.9075000000000001
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.06549452245235443,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 23,
+      "point": [
+        0.15990625,
+        0.48,
+        0.89625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999996,
+        "signedEuclideanDistance": -0.06786221265792847,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 24,
+      "point": [
+        0.18275,
+        0.48,
+        0.885
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.07214612513780594,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 25,
+      "point": [
+        0.18590625,
+        0.48,
+        0.860625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.06087236851453781,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 26,
+      "point": [
+        0.1890625,
+        0.48,
+        0.83625
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999997,
+        "signedEuclideanDistance": -0.05053522065281868,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 27,
+      "point": [
+        0.19221875,
+        0.48,
+        0.8118749999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999986,
+        "signedEuclideanDistance": -0.04128829017281532,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 28,
+      "point": [
+        0.195375,
+        0.48,
+        0.7875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999993,
+        "signedEuclideanDistance": -0.034032173454761505,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 29,
+      "point": [
+        0.19853125,
+        0.48,
+        0.763125
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.030235806480050087,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 30,
+      "point": [
+        0.2016875,
+        0.48,
+        0.73875
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.03034565970301628,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 31,
+      "point": [
+        0.20484375,
+        0.48,
+        0.714375
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000004,
+        "signedEuclideanDistance": -0.032323192805051804,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 32,
+      "point": [
+        0.208,
+        0.48,
+        0.69
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.03638681024312973,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 33,
+      "point": [
+        0.195125,
+        0.48,
+        0.6865
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.03329436853528023,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 34,
+      "point": [
+        0.18225,
+        0.48,
+        0.6829999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.03390493243932724,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 35,
+      "point": [
+        0.169375,
+        0.48,
+        0.6795
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.03474387899041176,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 36,
+      "point": [
+        0.1565,
+        0.48,
+        0.6759999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.03564690053462982,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 37,
+      "point": [
+        0.143625,
+        0.48,
+        0.6725
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.03660932555794716,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 38,
+      "point": [
+        0.13075,
+        0.48,
+        0.669
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.03762652724981308,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 39,
+      "point": [
+        0.117875,
+        0.48,
+        0.6655
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999986,
+        "signedEuclideanDistance": -0.03869425505399704,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 40,
+      "point": [
+        0.105,
+        0.48,
+        0.662
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.03980837017297745,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 41,
+      "point": [
+        0.091875,
+        0.48,
+        0.661
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0,
+        "signedEuclideanDistance": -0.03929843381047249,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 42,
+      "point": [
+        0.07875,
+        0.48,
+        0.66
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999996,
+        "signedEuclideanDistance": -0.03905123472213745,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 43,
+      "point": [
+        0.065625,
+        0.48,
+        0.659
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.03969888389110565,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 44,
+      "point": [
+        0.0525,
+        0.48,
+        0.658
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.04036087915301323,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 45,
+      "point": [
+        0.039375,
+        0.48,
+        0.657
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.04103656858205795,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 46,
+      "point": [
+        0.02625,
+        0.48,
+        0.656
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999997,
+        "signedEuclideanDistance": -0.0417252816259861,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 47,
+      "point": [
+        0.013125,
+        0.48,
+        0.655
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.04242642968893051,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 48,
+      "point": [
+        0.0,
+        0.48,
+        0.654
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000009,
+        "signedEuclideanDistance": -0.043139323592185974,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 49,
+      "point": [
+        -0.013125,
+        0.48,
+        0.655
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999984,
+        "signedEuclideanDistance": -0.04242642968893051,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 50,
+      "point": [
+        -0.02625,
+        0.48,
+        0.656
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.0417252816259861,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 51,
+      "point": [
+        -0.039375,
+        0.48,
+        0.657
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999994,
+        "signedEuclideanDistance": -0.04103656858205795,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 52,
+      "point": [
+        -0.0525,
+        0.48,
+        0.658
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000004,
+        "signedEuclideanDistance": -0.04036087915301323,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 53,
+      "point": [
+        -0.065625,
+        0.48,
+        0.659
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999999,
+        "signedEuclideanDistance": -0.03969888389110565,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 54,
+      "point": [
+        -0.07875,
+        0.48,
+        0.66
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.000000000000001,
+        "signedEuclideanDistance": -0.03905123472213745,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 55,
+      "point": [
+        -0.091875,
+        0.48,
+        0.661
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999988,
+        "signedEuclideanDistance": -0.03929843381047249,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 56,
+      "point": [
+        -0.105,
+        0.48,
+        0.662
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999989,
+        "signedEuclideanDistance": -0.03980837017297745,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 57,
+      "point": [
+        -0.117875,
+        0.48,
+        0.6655
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999994,
+        "signedEuclideanDistance": -0.03869425505399704,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 58,
+      "point": [
+        -0.13075,
+        0.48,
+        0.669
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000002,
+        "signedEuclideanDistance": -0.03762652724981308,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 59,
+      "point": [
+        -0.143625,
+        0.48,
+        0.6725
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.9999999999999994,
+        "signedEuclideanDistance": -0.03660932555794716,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 60,
+      "point": [
+        -0.1565,
+        0.48,
+        0.6759999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 0.999999999999999,
+        "signedEuclideanDistance": -0.03564690425992012,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 61,
+      "point": [
+        -0.169375,
+        0.48,
+        0.6795
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000007,
+        "signedEuclideanDistance": -0.03474387899041176,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 62,
+      "point": [
+        -0.18225,
+        0.48,
+        0.6829999999999999
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.000000000000001,
+        "signedEuclideanDistance": -0.03390493243932724,
+        "boundaryTolerance": 1e-06
+      }
+    },
+    {
+      "sample": 63,
+      "point": [
+        -0.195125,
+        0.48,
+        0.6865
+      ],
+      "clearance": {
+        "classification": "inside",
+        "winding": 1.0000000000000004,
+        "signedEuclideanDistance": -0.03329436853528023,
+        "boundaryTolerance": 1e-06
+      }
+    }
+  ],
+  "volume": 0.008332315308507535,
+  "minimumTriangleArea": 0.00025530579619673706,
+  "bodyGeometryUnchanged": true,
+  "construction": "paired rings; rear attachment behind existing cavity back plane .510 at Y<=.480",
+  "maximumRootPlaneY": 0.48,
+  "removedOldHeadMouthTriangles": 96,
+  "eyeTongueNostrilsUnchanged": true
+}

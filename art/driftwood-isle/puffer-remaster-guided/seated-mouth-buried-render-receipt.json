@@ -1,0 +1,35 @@
+{
+  "status": "unaccepted seated mouth; visual review pending",
+  "session": 71137,
+  "exitCode": 0,
+  "terminalUtc": "2026-10-19T02:36:30Z",
+  "source": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/build_integrated_face_seated_mouth_buried.py",
+    "bytes": 18651,
+    "sha256": "3152a198f1fa4d656f2c8eacb36c8980489546a07563026e131de665433ae3dc"
+  },
+  "helper": {
+    "path": "art/driftwood-isle/puffer-remaster-guided/seated_mouth_unit_buried.py",
+    "bytes": 3356,
+    "sha256": "2f192f3584b34576f922215e0ff30fc88b132a7a53df5412bebaeee9e4d64495"
+  },
+  "minimumSampledBurial": 0.030235806480050087,
+  "attachmentSampleCount": 64,
+  "images": [
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-seated-mouth-buried-clay/clay-hero.png",
+      "bytes": 389675,
+      "sha256": "3d389282f54f9669226bd48134f1bbf4a12d6903a0ee35dc2ac26f2e9f7f10f6"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-seated-mouth-buried-clay/clay-front.png",
+      "bytes": 356514,
+      "sha256": "fe1723f11009ecbf532a5cb80d521b1aaeffdd82971ccfb85b0fb9cf60f4f05e"
+    },
+    {
+      "path": "tmp/puffer-remaster-guided/integrated-seated-mouth-buried-clay/clay-side.png",
+      "bytes": 357395,
+      "sha256": "8c19536c5cb2fc3b87ca965505b7e09002dfaef85e1d0fac886ffc4863eb2efc"
+    }
+  ]
+}
