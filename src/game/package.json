@@ -225,7 +225,8 @@
     "./grapple/course": "./grapple/course.ts",
     "./grapple/headless": "./grapple/headless.ts",
     "./grapple/sim": "./grapple/sim.ts",
-    "./practice/hookCourse": "./practice/hookCourse.ts"
+    "./practice/hookCourse": "./practice/hookCourse.ts",
+    "./shardfile/sceneBuffers": "./shardfile/sceneBuffers.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

@@ -40,7 +40,7 @@ import layoutRows from '../../boot/layout.generated.json' with { type: 'json' };
 import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
 import audioDeclaration from '../../data/audio.generated.json' with { type: 'json' };
 
-import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/terrain';
+import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/geography';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 const { MELT_STREAM: BROOK } = layoutRows;

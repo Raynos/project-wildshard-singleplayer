@@ -20,7 +20,7 @@ import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import chapterStory from '../data/chapterStory.json' with { type: 'json' };
 import { chapterPresentation } from './chapterBindings';
-import { tamingPoses } from './bodies';
+import tamingPoses from '../data/tamingPoses.generated.json' with { type: 'json' };
 import spear from '../data/spear.generated.json' with { type: 'json' };
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import headlessBoot from '../data/headlessBoot.json' with { type: 'json' };

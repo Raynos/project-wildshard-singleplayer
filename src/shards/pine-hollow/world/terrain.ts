@@ -2,7 +2,6 @@ import { currentPageMode } from '@wildshard/game/grid/pageMode';
 import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterReflect } from './water';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
-import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import geography from '../data/geography.generated.json' with { type: 'json' };
@@ -55,9 +54,10 @@ function creekWaterAt(x: number, z: number): number | null {
 const TRAILS: Vec2[][] = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_ROAD, ...Object.values(LAYOUT.SPURS)];
 
 /** Required original renderer lattice; trail/water/forest metadata keep their live laws. */
-export const TERRAIN = createBakedTerrainField(PINE_TERRAIN, buildTerrainMetadata(PINE_TERRAIN.seed, {
-  trails: TRAILS, cabinSites: LAYOUT.CABIN_SITES, pond: { x: LAYOUT.POND.x, z: LAYOUT.POND.z, r: LAYOUT.POND.r }, streamAt: creekWaterAt,
-}, () => LAYOUT.POND.level));
+export const TERRAIN = createBakedTerrainField(PINE_TERRAIN, {
+  water: LAYOUT.POND.level, trails: TRAILS, cabinSites: LAYOUT.CABIN_SITES, pond: { x: LAYOUT.POND.x, z: LAYOUT.POND.z, r: LAYOUT.POND.r },
+});
+TERRAIN.streamAt = creekWaterAt;
 
 /** the creek: water wherever `creekWaterAt` answers, at the surface it answers */
 function creekBody(): WaterBody {

@@ -6,7 +6,7 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, type NalatiBake, type NalatiBakedActor, type NalatiBootBody, type NalatiBootHerd, type NalatiBootRows } from './baked';
 import type { EliteBindings } from '@wildshard/game/shardfile/eliteEncounters';
 import type { RngState } from '@wildshard/engine/core/rng';
-import { SEED, TERRAIN, RIVER } from '../world/terrain';
+import { SEED, TERRAIN, RIVER } from '../world/geography';
 import type { NalatiGrassView } from './groups';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
 import { TrampleField, type TrampleState } from '@wildshard/game/systems/looks/trample';

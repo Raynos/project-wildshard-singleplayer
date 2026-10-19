@@ -26,7 +26,7 @@ import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
 import { parseFlock } from '@wildshard/format/crowds';
 import { SHEEPDOG_SPECIES, setDogFlock, thinkSheepdog } from '../species/sheepdog';
 import { argymaqDefinition } from '../combat/eliteRoster';
-import { SEED, TERRAIN } from '../world/terrain';
+import { SEED, TERRAIN } from '../world/geography';
 import { nalatiWetAt } from '../wet';
 import { pushWildMovers } from '../look/trampleMovers';
 import { KNOCKDOWN_TIME, knockdownDash } from '../creatures/knockdown';

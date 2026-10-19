@@ -1,9 +1,19 @@
-import type { TerrainField } from '../level/data';
+import type { TerrainField, CabinSite, Vec2 } from '../level/data';
+import { buildTerrainMetadata } from './terrainField';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 
 /** A required manifest ground: `key` names it to the session's required-ground loader; the selected level supplies the same seed. */
 export interface BakedTerrainSource { readonly key: string; readonly seed: number }
 /** Authored metadata and native water/trail laws, independent of the height lattice. */
 export type BakedTerrainMetadata = Omit<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>;
+/** Data-only terrain metadata. Optional pond samples use the same native lattice law as height queries. */
+export interface BakedTerrainRows {
+  readonly water: number;
+  readonly trails: Vec2[][];
+  readonly cabinSites: CabinSite[];
+  readonly pond?: { x: number; z: number; r: number };
+  readonly mask?: { readonly res: number; readonly size: number; readonly values: Float32Array };
+}
 /** The unshifted samples a required-ground loader admits for one declaration, and the seed they were authored under. */
 export interface RequiredGround extends Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'> { readonly seed: number }
 /**
@@ -22,7 +32,16 @@ let loader: RequiredGroundLoader | null = null;
  * Trail, water and datum metadata remain the caller's existing laws.
  * Construction neither loads nor selects a level or installs a service.
  */
-export function createBakedTerrainField(source: BakedTerrainSource, metadata: BakedTerrainMetadata): TerrainField {
+export function createBakedTerrainField(source: BakedTerrainSource, input: BakedTerrainMetadata | BakedTerrainRows): TerrainField {
+  if ('water' in input && !Number.isFinite(input.water)) throw new Error('Invalid terrain water level');
+  const metadata: BakedTerrainMetadata = 'water' in input
+    ? buildTerrainMetadata(source.seed, input, () => input.water) : input;
+  if ('water' in input && input.mask !== undefined) {
+    const { res, size, values } = input.mask;
+    if (!Number.isInteger(res) || res < 2 || res > 2048 || !Number.isFinite(size) || size <= 0 || values.length !== res * res
+      || !values.every(value => Number.isFinite(value) && value >= 0 && value <= 1)) throw new Error('Invalid terrain mask lattice');
+    metadata.pondMask = bakedSamplers({ res, size, heights: values, seed: source.seed, landscapeHash: 0, splat: new Uint8Array(0), undergrowth: null }).heightAt;
+  }
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(source.key)
     || !Number.isSafeInteger(source.seed) || source.seed < 0 || source.seed > 0xffffffff
     || !Number.isFinite(metadata.datum ?? 0)) throw new Error('Invalid baked terrain declaration');

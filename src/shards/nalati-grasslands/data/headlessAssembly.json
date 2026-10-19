@@ -46,7 +46,7 @@
     "src/shards/nalati-grasslands/runtime/headlessMounted": [
       "installNalatiMountedPlayer"
     ],
-    "src/shards/nalati-grasslands/world/terrain": [
+    "src/shards/nalati-grasslands/world/geography": [
       "TERRAIN"
     ],
     "@wildshard/engine/core/noise": [
@@ -1324,7 +1324,7 @@
             },
             "waterLevel": {
               "$ref": [
-                "src/shards/nalati-grasslands/world/terrain",
+                "src/shards/nalati-grasslands/world/geography",
                 "TERRAIN",
                 "waterLevel"
               ]

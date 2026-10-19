@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
-import { TERRAIN } from '../src/shards/nalati-grasslands/world/terrain';
+import { TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 import { hashImmutableBytes } from '../src/sdk/immutable';

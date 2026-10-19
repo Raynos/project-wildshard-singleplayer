@@ -1,3 +1,4 @@
+import { painterlyMaterial } from '../src/engine/world/painterly';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { BufferGeometry } from 'three';
@@ -13,6 +14,9 @@ test('both bows bind borrowed parts and retain their distinct loose and riding p
   const nalati = v.parse(v.object(HeldBowDefinitionSchema.entries), recurve);
   expect(nalati.base).toEqual(v.parse(HeldBowDefinitionSchema, { ...nalati, base: recurveBase() }).base);
   for (const definition of [pine, nalati]) {
+    for (const material of Object.values(definition.bow.materials)) if ('painterly' in material) {
+      const built = painterlyMaterial(null, material.painterly); built.dispose();
+    }
     const geometry = new Map(Object.values(definition.bow.parts).map(id => [id, new BufferGeometry()]));
     const bow = bindHeldBow(definition, { geometry: id => geometry.get(id) ?? null });
     for (const [id, part] of geometry) expect(bow.model.geometry?.get(id)).toBe(part);

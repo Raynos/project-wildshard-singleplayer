@@ -6,7 +6,7 @@ import herdChannels from '../data/herdChannels.generated.json' with { type: 'jso
 import type { ModelPlacement } from './modelTypes';
 import modelMetrics from '../boot/modelMetrics.generated.json' with { type: 'json' };
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
-import { inPoiClearing } from './terrain';
+import { inPoiClearing } from './geography';
 import rows from '../boot/decorative.generated.json' with { type: 'json' };
 import type { PoiCtx, PoiPiece } from './types';
 import { kokparPost, kokparGoal, saddledHorse, kokparRider, herdHorse, snowLotus } from '../models/catalogue';

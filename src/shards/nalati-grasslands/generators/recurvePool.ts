@@ -307,7 +307,7 @@ export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { 
     widths: stave.ringU.flatMap(u => limbSection(u)),
     ridges: stave.ringU.flatMap((u, r) => Array.from({ length: RADIAL + 1 }, (_, k) => gripRidge(u, (k / RADIAL) * Math.PI * 2, stave.ringSign[r] ?? 1))),
   };
-  const vm = { rim: 0.55, bands: 0.7, shade: 2.4 };
+  const vm = { rim: 0.55, bands: 0.7, shade: 1 };
   const { gravity, drag, windCoupling } = BOW_PROFILE.flight;
   const bow = {
     bake: { look: JSON.stringify(LOOK), arrow: JSON.stringify({ length: ARROW_LEN }), ringU: stave.ringU, ringSign: stave.ringSign, limbVerts: stave.limbVerts, dynVerts: stave.dynVerts,

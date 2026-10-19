@@ -6,7 +6,7 @@ import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk
 import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
 import { buildPainterlyGeometry } from './terrainPainter';
-import { TERRAIN, SEED, groundColor, surfaceAt } from '../world/terrain';
+import { TERRAIN, SEED, groundColor, surfaceAt } from './terrainRecipe';
 
 export const TERRAIN_PAINT_SOURCE = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt };
 

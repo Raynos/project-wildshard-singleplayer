@@ -10,7 +10,7 @@ import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
 const source = () => {
   const { bytes, ...row } = bakeSheepBody();
-  const metadata = new TextEncoder().encode(JSON.stringify(row));
+  const metadata = new TextEncoder().encode(JSON.stringify({ species: {}, ...row }));
   return { bytes, file: (name: string): Promise<Uint8Array> => {
     if (name === 'actors/sheep.bin') return Promise.resolve(bytes);
     if (name === 'actors/sheep.json') return Promise.resolve(metadata);

@@ -16,7 +16,7 @@ try {
   await prepareNativeTerrain(NALATI_GRASSLANDS, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
   const [{ bakeWaterStrips }, { MELT_STREAM }, { RIVER }, { terrainHeight }, { CHUNK_HALF }] = await Promise.all([
     import(pathToFileURL(resolve(root, recipe)).href), import('../../src/shards/nalati-grasslands/generators/layout.ts'),
-    import('../../src/shards/nalati-grasslands/world/terrain.ts'), import('@wildshard/engine/world/terrainHeight'), import('@wildshard/engine/core/config'),
+    import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts'), import('@wildshard/engine/world/terrainHeight'), import('@wildshard/engine/core/config'),
   ]);
   const strips = bakeWaterStrips({ heightAt: terrainHeight, river: RIVER, brook: MELT_STREAM, chunkHalf: CHUNK_HALF });
   const writer = byteWriter(process.argv.includes('--check'), 'nalati-water');

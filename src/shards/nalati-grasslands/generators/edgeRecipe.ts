@@ -23,7 +23,7 @@
  */
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep, clamp } from '@wildshard/engine/core/noise';
-import layout from './boot/layout.generated.json' with { type: 'json' };
+import layout from '../data/layout.generated.json' with { type: 'json' };
 
 const { CAMP, PASTURE } = layout;
 

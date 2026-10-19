@@ -13,7 +13,7 @@ import { parseFlock } from '@wildshard/format/crowds';
 /** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
 export async function readFlockBody(product: Pick<ShardProduct, 'file'>): Promise<FlockBody> {
   const number = v.pipe(v.number(), v.finite()), whole = v.pipe(number, v.integer(), v.minValue(0));
-  const value = v.parse(v.strictObject({ row: v.strictObject({
+  const value = v.parse(v.strictObject({ species: v.optional(v.unknown()), row: v.strictObject({
     attrs: v.array(v.tuple([v.string(), v.literal('f32'), whole, v.boolean()])), count: whole,
     index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean() }),
     pivots: v.pipe(v.array(v.tuple([number, number, number])), v.length(7)),

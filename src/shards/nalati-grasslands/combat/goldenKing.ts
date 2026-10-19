@@ -297,7 +297,6 @@ export class KurganBoss {
       this.enter(true, 13.2);
       if (ph > 1) this.boss.devStartAt(ph - 1);
     }
-    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.boss', this));
   }
 
   /** a death: in the fight → back at the checkpoint (true); else not ours */

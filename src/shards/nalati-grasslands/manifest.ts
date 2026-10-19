@@ -3,9 +3,7 @@ import { basinBody } from '@wildshard/engine/world/water/body';
 import { DECLARATION } from './boot/declaration.generated';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { nalatiWetAt } from './wet';
-import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt, inSpruceClearing } from './world/terrain';
-import { edgeSpruceMask } from './edge';
-import { NALATI_MINIMAP } from './look/minimap';
+import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, forestMask, NALATI_MINIMAP } from './world/geography';
 import discovery from './data/discovery.json' with { type: 'json' };
 
 /** Fixed metadata and asset identities are compiled by the boot producer. */
@@ -33,7 +31,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   ground: { terrain: TERRAIN, paths: 'plugin', water: [basinBody('river', TERRAIN)] },
   navmesh: { excludeGroundAt: (x, z, y) => y <= TERRAIN.waterLevel() + 0.25 || (nalatiWetAt(x, z) && TERRAIN.trailDistance(x, z) > 3.5) },
   trees: { ...DECLARATION.trees, factory: () => import('./world/spruceView').then(m => m.spruceFactory) },
-  forest: { ...DECLARATION.forest, mask: (x, z) => inSpruceClearing(x, z) ? 0 : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z))) },
+  forest: { ...DECLARATION.forest, mask: forestMask },
 };
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
 export default NALATI_GRASSLANDS;

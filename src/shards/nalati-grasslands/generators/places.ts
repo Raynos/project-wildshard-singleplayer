@@ -32,7 +32,7 @@ import { writeGeometry, join } from './geometryWriter';
 import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE, HORSE_PLAINS, SUMMER_YURTS, RIM_N as RIM_Z, MELT_STREAM as BROOK } from './layout';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
-import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt } from '../world/terrain';
+import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt } from './terrainRecipe';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';

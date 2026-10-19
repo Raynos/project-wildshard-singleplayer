@@ -77,7 +77,7 @@ export function buildReinsRibbon(): { mesh: THREE.Mesh; pos: Float32Array; attr:
   g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setIndex(idx);
-  return { mesh: new THREE.Mesh(g, painterlyMaterial(null, { rim: 0.3, bands: 0.7, shade: 1.6, side: THREE.DoubleSide })), pos, attr };
+  return { mesh: new THREE.Mesh(g, painterlyMaterial(null, { rim: 0.3, bands: 0.7, shade: 1, side: THREE.DoubleSide })), pos, attr };
 }
 
 /**

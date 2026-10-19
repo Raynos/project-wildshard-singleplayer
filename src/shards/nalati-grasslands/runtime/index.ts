@@ -21,7 +21,7 @@ import { FirearmWeaponProfileSchema, parseHeldFirearmRows, parseHeldFirearmView 
 import { parse } from 'valibot';
 import rifleRows from '../data/rifle.generated.json' with { type: 'json' };
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
-import { RIVER } from '../world/terrain';
+import { RIVER } from '../world/geography';
 import { prepareGrassV2 } from '../look/grass';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';

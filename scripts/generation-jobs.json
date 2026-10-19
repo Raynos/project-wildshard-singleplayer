@@ -3,6 +3,165 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nalati-geography",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-geography.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-geography.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-geography.mjs",
+        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
+        "src/shards/nalati-grasslands/generators/wetRecipe.ts",
+        "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/generators/clearings.ts",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
+        "src/engine/core",
+        "src/engine/world/terrainField.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/generators/poiLayout.ts",
+        "src/shards/nalati-grasslands/data/geographyTypes.d.ts",
+        "scripts/bake-loader.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/geography.generated.json",
+        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/geography.generated.json": "452039c1355d6c4dc38fb3ec088781a227845265f755ae050116629833c259f3",
+        "src/shards/nalati-grasslands/boot/geography.generated.d.json.ts": "a9e5650097097c587bc67d02a23d570147419e22332a7dba02313ffeee699b4d"
+      }
+    },
+    {
+      "id": "nalati-grass",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-grass.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-grass.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-geography.mjs",
+        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
+        "src/shards/nalati-grasslands/generators/wetRecipe.ts",
+        "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/generators/clearings.ts",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
+        "src/engine/core",
+        "src/engine/world/terrainField.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/generators/poiLayout.ts",
+        "src/shards/nalati-grasslands/generators/bake-grass.mjs",
+        "src/shards/nalati-grasslands/generators/grassRows.ts",
+        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "src/game/systems/looks/grassField.ts",
+        "src/sdk/looks/tileField.ts",
+        "src/sdk/bake/terrain.ts",
+        "src/format/bakedTerrainSampling.ts",
+        "scripts/bake-loader.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/boot/grass.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/boot/grass.generated.json": "a4eb0b922b43aaa27174bac559d606bab10134cf69798aecc012bf40dc5eace0"
+      }
+    },
+    {
+      "id": "nalati-taming-poses",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/combat/eliteRoster.ts",
+        "src/shards/nalati-grasslands/combat/strikes.ts",
+        "src/shards/nalati-grasslands/creatures/env.ts",
+        "src/shards/nalati-grasslands/data/bodies.json",
+        "src/shards/nalati-grasslands/data/brains.json",
+        "src/shards/nalati-grasslands/data/ecology.generated.json",
+        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
+        "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
+        "src/shards/nalati-grasslands/generators/balbalBody.ts",
+        "src/shards/nalati-grasslands/generators/bodies.ts",
+        "src/shards/nalati-grasslands/generators/canidBody.ts",
+        "src/shards/nalati-grasslands/generators/eagleBody.ts",
+        "src/shards/nalati-grasslands/generators/goldenKingBody.ts",
+        "src/shards/nalati-grasslands/generators/horseBody.ts",
+        "src/shards/nalati-grasslands/generators/leopardBody.ts",
+        "src/shards/nalati-grasslands/generators/shape.ts",
+        "src/shards/nalati-grasslands/look/creatureMaterial.ts",
+        "src/shards/nalati-grasslands/runtime/eliteBrain.ts",
+        "src/shards/nalati-grasslands/runtime/groupDeclared.ts",
+        "src/shards/nalati-grasslands/runtime/groupDispatch.ts",
+        "src/shards/nalati-grasslands/runtime/groupPorts.ts",
+        "src/shards/nalati-grasslands/runtime/groupRegistry.ts",
+        "src/shards/nalati-grasslands/species/bodyKey.ts",
+        "src/shards/nalati-grasslands/species/eagle.ts",
+        "src/shards/nalati-grasslands/species/ghostRider.ts",
+        "src/shards/nalati-grasslands/species/horse.ts",
+        "src/shards/nalati-grasslands/species/kokbori.ts",
+        "src/shards/nalati-grasslands/species/leopard.ts",
+        "src/shards/nalati-grasslands/species/presentation.ts",
+        "src/shards/nalati-grasslands/species/rows.ts",
+        "src/shards/nalati-grasslands/species/sheepdog.ts",
+        "src/shards/nalati-grasslands/species/wolf.ts",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-loader.mjs",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/tamingPoses.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/data/tamingPoses.generated.json": "44aa3290d263ba0b05ca743b2cc5ce89164c03074e6c8c642033436fffc4d7fe"
+      }
+    },
+    {
       "id": "nalati-species",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-species.mjs",
@@ -20243,8 +20402,8 @@
         "src/shards/nalati-grasslands/generators/terrainPainter.ts",
         "src/shards/nalati-grasslands/generators/zones.ts",
         "src/shards/nalati-grasslands/generators/nalatiGroundSource.ts",
-        "src/shards/nalati-grasslands/world/terrain.ts",
-        "src/shards/nalati-grasslands/edge.ts",
+        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
+        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
         "src/shards/nalati-grasslands/boot/layout.generated.json",
         "src/shards/nalati-grasslands/boot/clearings.generated.json",
         "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
@@ -20252,7 +20411,12 @@
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "scripts/bake-loader.mjs",
         "src/game",
-        "src/commons"
+        "src/commons",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
+        "src/shards/nalati-grasslands/generators/clearings.ts",
+        "src/shards/nalati-grasslands/generators/layout.ts",
+        "src/shards/nalati-grasslands/generators/poiLayout.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",

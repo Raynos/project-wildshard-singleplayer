@@ -2068,3 +2068,10 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/nine-dragon-stack/data/canopy.d.json.ts
 /src/shards/nine-dragon-stack/data/filament.d.json.ts
 /src/shards/nine-dragon-stack/boot/lookTypes.generated.d.ts
+
+/src/shards/nalati-grasslands/boot/geography.generated.json
+
+/src/shards/nalati-grasslands/boot/grass.generated.json
+
+/src/shards/nalati-grasslands/boot/geography.generated.d.json.ts
+/src/shards/nalati-grasslands/data/tamingPoses.generated.json
