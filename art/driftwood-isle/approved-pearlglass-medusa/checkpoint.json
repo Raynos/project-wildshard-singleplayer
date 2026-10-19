@@ -1,0 +1,109 @@
+{
+  "status": "source frozen for coordinator review, no runtime admission",
+  "files": {
+    "art/driftwood-isle/approved-pearlglass-medusa/build_medusa.py": {
+      "bytes": 12843,
+      "sha256": "ab1a640c33150bb818e749bde64b4c2167820b6e05dbf528357de1379dad7147"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/medusaClips.ts": {
+      "bytes": 2799,
+      "sha256": "c770bafb4f66243df98679f669460abb0372c56757d70e65b9f5c7230c758e2e"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/medusaBehavior.ts": {
+      "bytes": 1177,
+      "sha256": "450e61381438b8de9314a35f01cb4bd9c12e1c178b725cefd7086e2089578643"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/native.test.ts": {
+      "bytes": 8006,
+      "sha256": "91675e8788196ca167b8154835dc01e1f7e6e5795d84d3041e8cc80f9c496170"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/audit_medusa.py": {
+      "bytes": 3651,
+      "sha256": "cb4539aceba4eae3c326b085f61e58ca1f9eaa20ccb7f45c80b45fefa30e52cb"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/left.webp": {
+      "bytes": 45978,
+      "sha256": "47390fe5c12551bbd8267c6e6de8c681b98c421f56dfaede6cc287743725dcdc"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/live-pose-bounds.json": {
+      "bytes": 246,
+      "sha256": "df00bedf6050910e036a99e00d914a3e08ea2352cb8c4ccee26d10058638546d"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-left.webp": {
+      "bytes": 34472,
+      "sha256": "e66dc19452a5a3be3720f5d81053f356d90feaa879a1c07ac5e14b8fbc059e5a"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-back.webp": {
+      "bytes": 34926,
+      "sha256": "4007a2ed2420890cecf5d59b5a63ba1f14dde6db5b6f198c80093b4c99ffa6e5"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/nine-view-board.webp": {
+      "bytes": 105398,
+      "sha256": "93ab521dd2a292efb89056d7d510da084a3a3d367787b84dcd3e38894c02f344"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/pearlglass-medusa-v2.glb": {
+      "bytes": 817620,
+      "sha256": "2ffa22ff00de5eb71b05a1b5e4fc7a216a5d756666fa4d2192795f85dc64a113"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/capture-provenance.json": {
+      "bytes": 2262,
+      "sha256": "bb03a7adf2f6e0fed6d32227620ff22a40f4ae02d49598b4aab753e6a916bfa8"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-front.webp": {
+      "bytes": 35570,
+      "sha256": "a057280a73b1d0fb31e42855fad39a1325c953fbf481c614c1b2c9a5e663d13b"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/hero.webp": {
+      "bytes": 46280,
+      "sha256": "43e0b32f1f445b3a2155a0c128039fc4de499e62c37044189ee67892de467cf3"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/top.webp": {
+      "bytes": 23472,
+      "sha256": "568f7cc25274961f721f51e36cfba5de5cb230dcbaa15faed046f1ee87faa514"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/front.webp": {
+      "bytes": 43918,
+      "sha256": "a8905cf50252f31773de79cdf68f103f9948408f89bc5eb8fa578c970eb6e301"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/metadata.json": {
+      "bytes": 15656,
+      "sha256": "1fb41e995198d3968469be0cf248aa8db4bbac32ba696125d1cd39cfcb2d1668"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/cameras.json": {
+      "bytes": 1121,
+      "sha256": "ad96906405df3ffecde07ca98b22f54b8710b6ec6a2541cbd5b06384282d6bf6"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/rejected-flight-death.json": {
+      "bytes": 283,
+      "sha256": "8c8d70b7fdb7cbaa576efa76b4db28d62043f8ff20196771a98f6a519e87ed02"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/audit.json": {
+      "bytes": 21853,
+      "sha256": "88850389ab121472360c28cf215b000e0918ab7b9e7ac919adc1e6077f534b79"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/elevated-right.webp": {
+      "bytes": 38654,
+      "sha256": "49bbddcd4ae0b92ed30b950c2a82d8130879848832f93f39f272dbd5c7f95af1"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/right.webp": {
+      "bytes": 46296,
+      "sha256": "72f45b6302f3169176dea740004360b46887a59dc935c328d2a4c5d21e5def07"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/native-source.json": {
+      "bytes": 1896210,
+      "sha256": "8ce441a4b0e3fda4d8f2ce0f16bb31f9152324d2ee8c32cfc498c1360289665e"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/construction.json": {
+      "bytes": 10731,
+      "sha256": "9525921f5e0f81165fe76debffab4e7210eb8d0c09959fb88d13221ec3f77dd8"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/back.webp": {
+      "bytes": 43862,
+      "sha256": "30a0af72d730131eed16b4e18c7b4d1f1380b04e8ac295a59f3f95421723fd24"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/payload.bin": {
+      "bytes": 43442,
+      "sha256": "3ff82524190ed2e79e993060cf2caef01041d65452a7bbcd04963533ed05fae3"
+    }
+  }
+}

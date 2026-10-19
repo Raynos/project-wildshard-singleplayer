@@ -1,0 +1,505 @@
+{
+  "vertices": 13932,
+  "triangles": 4644,
+  "bones": 27,
+  "parts": 10,
+  "components": [
+    {
+      "name": "Continuous scalloped hollow pearlglass bell",
+      "triangles": 700,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 00",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 01",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 02",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 03",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 04",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 05",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 06",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 07",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 08",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 09",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 10",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 11",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 12",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 13",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 14",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Ivory radial bell rib 15",
+      "triangles": 46,
+      "part": "bell"
+    },
+    {
+      "name": "Visible inner amber core",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 00",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 01",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 02",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 03",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 04",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 05",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 06",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 07",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 08",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 09",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 10",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 11",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 12",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Amber crown nodule 13",
+      "triangles": 28,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 00",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 01",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 02",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 03",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 04",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 05",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 06",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 07",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 08",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Fine amber inner frond 09",
+      "triangles": 26,
+      "part": "head"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 00",
+      "triangles": 100,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 0",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 1",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 2",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 0",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 1",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 2",
+      "triangles": 36,
+      "part": "ribbon0"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 01",
+      "triangles": 100,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 0",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 1",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 2",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 0",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 1",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 2",
+      "triangles": 36,
+      "part": "ribbon1"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 02",
+      "triangles": 100,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 0",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 1",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 2",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 0",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 1",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 2",
+      "triangles": 36,
+      "part": "ribbon2"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 03",
+      "triangles": 100,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 0",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 1",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 2",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 0",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 1",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 2",
+      "triangles": 36,
+      "part": "ribbon3"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 04",
+      "triangles": 100,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 0",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 1",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 2",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 0",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 1",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 2",
+      "triangles": 36,
+      "part": "ribbon4"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 05",
+      "triangles": 100,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 0",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 1",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 2",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 0",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 1",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 2",
+      "triangles": 36,
+      "part": "ribbon5"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 06",
+      "triangles": 100,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 0",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 1",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 2",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 0",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 1",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 2",
+      "triangles": 36,
+      "part": "ribbon6"
+    },
+    {
+      "name": "Flowing thick pearl ribbon 07",
+      "triangles": 100,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 0",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 1",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 2",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 0",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 1",
+      "triangles": 36,
+      "part": "ribbon7"
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 2",
+      "triangles": 36,
+      "part": "ribbon7"
+    }
+  ],
+  "nativeBytes": 1878513,
+  "packedBytes": 42204,
+  "glbBytes": 816864,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "sourceSha256": "5338a3505413edf3220c863c1019180208ffe2b7b0753e9673b4f5720901df10"
+}

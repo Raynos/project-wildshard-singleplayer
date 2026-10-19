@@ -1,0 +1,793 @@
+{
+  "topology": [
+    {
+      "name": "Continuous scalloped hollow pearlglass bell",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 3.1932488921819417
+    },
+    {
+      "name": "Ivory radial bell rib 00",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.017850973130211733
+    },
+    {
+      "name": "Ivory radial bell rib 01",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01763501564991214
+    },
+    {
+      "name": "Ivory radial bell rib 02",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01705226218350268
+    },
+    {
+      "name": "Ivory radial bell rib 03",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016429503296705623
+    },
+    {
+      "name": "Ivory radial bell rib 04",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016168708797963
+    },
+    {
+      "name": "Ivory radial bell rib 05",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01645265927734034
+    },
+    {
+      "name": "Ivory radial bell rib 06",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.017094973706194016
+    },
+    {
+      "name": "Ivory radial bell rib 07",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01768839492035622
+    },
+    {
+      "name": "Ivory radial bell rib 08",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.017850978534270014
+    },
+    {
+      "name": "Ivory radial bell rib 09",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01748214522963306
+    },
+    {
+      "name": "Ivory radial bell rib 10",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016765539562138842
+    },
+    {
+      "name": "Ivory radial bell rib 11",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016037434067540792
+    },
+    {
+      "name": "Ivory radial bell rib 12",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01573200551490686
+    },
+    {
+      "name": "Ivory radial bell rib 13",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016051461148100993
+    },
+    {
+      "name": "Ivory radial bell rib 14",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.016797677350868522
+    },
+    {
+      "name": "Ivory radial bell rib 15",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.017536252750507065
+    },
+    {
+      "name": "Visible inner amber core",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.18346877998242525
+    },
+    {
+      "name": "Amber crown nodule 00",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.007866223007914648
+    },
+    {
+      "name": "Amber crown nodule 01",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.015363716280541234
+    },
+    {
+      "name": "Amber crown nodule 02",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.026548506771127342
+    },
+    {
+      "name": "Amber crown nodule 03",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.00786622420728235
+    },
+    {
+      "name": "Amber crown nodule 04",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.015363716128781678
+    },
+    {
+      "name": "Amber crown nodule 05",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.026548509255720137
+    },
+    {
+      "name": "Amber crown nodule 06",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.007866223905312776
+    },
+    {
+      "name": "Amber crown nodule 07",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.015363719996641195
+    },
+    {
+      "name": "Amber crown nodule 08",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.02654850311069209
+    },
+    {
+      "name": "Amber crown nodule 09",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.00786622300791465
+    },
+    {
+      "name": "Amber crown nodule 10",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.01536372024017494
+    },
+    {
+      "name": "Amber crown nodule 11",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.026548506771127335
+    },
+    {
+      "name": "Amber crown nodule 12",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.007866223007914648
+    },
+    {
+      "name": "Amber crown nodule 13",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.015363718459905315
+    },
+    {
+      "name": "Fine amber inner frond 00",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.002827100773830001
+    },
+    {
+      "name": "Fine amber inner frond 01",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.002842340660725455
+    },
+    {
+      "name": "Fine amber inner frond 02",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028328749346395485
+    },
+    {
+      "name": "Fine amber inner frond 03",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.002811621450874899
+    },
+    {
+      "name": "Fine amber inner frond 04",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.002802832225113939
+    },
+    {
+      "name": "Fine amber inner frond 05",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028271026449263274
+    },
+    {
+      "name": "Fine amber inner frond 06",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028423439445199625
+    },
+    {
+      "name": "Fine amber inner frond 07",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028328733033321893
+    },
+    {
+      "name": "Fine amber inner frond 08",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028116201653672354
+    },
+    {
+      "name": "Fine amber inner frond 09",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0028028319057297447
+    },
+    {
+      "name": "Flowing thick pearl ribbon 00",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.06595370523479857
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0022947632814251835
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004550642574851745
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0022947632814251796
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0009236269270375323
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.002025232457684449
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 0 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0009236269270375898
+    },
+    {
+      "name": "Flowing thick pearl ribbon 01",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.0736930596249925
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004220592095757222
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.00809769925402795
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004220592095757207
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004861570535810221
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.009278289263915227
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 1 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004861570535809134
+    },
+    {
+      "name": "Flowing thick pearl ribbon 02",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.06454148611073392
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004726987357702353
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.009030396098354522
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.004726987357702297
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.006311021232860318
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.011947936382468057
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 2 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0063110212328603
+    },
+    {
+      "name": "Flowing thick pearl ribbon 03",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.07109556399983744
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.003777382320572297
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.007281379691515561
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.003777382320572445
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.00384775142886395
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.00741099813499865
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 3 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0038477514288639885
+    },
+    {
+      "name": "Flowing thick pearl ribbon 04",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.06621202211857309
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0008652551435524816
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.001917720169847442
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": 0.0008652551435524928
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.00019130443562708055
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -2.8289043158604836e-05
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 4 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.00019130443562708038
+    },
+    {
+      "name": "Flowing thick pearl ribbon 05",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.07076834011745438
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.002965985912219591
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0051388016551094816
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.00296598591221976
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.002949643827905448
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.005108702194227259
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 5 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0029496438279052396
+    },
+    {
+      "name": "Flowing thick pearl ribbon 06",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.07052139982048432
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.004443636027408303
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.007860384946760815
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.004443636027408304
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0033750654315560184
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.005892259583310472
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 6 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.00337506543155583
+    },
+    {
+      "name": "Flowing thick pearl ribbon 07",
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "closedExpected": true,
+      "signedVolume": 0.07015032378751587
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0018999673287434747
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.003175371932457529
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 4 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0018999673287434435
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 0",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0013422956873447248
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 1",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0021482256404657145
+    },
+    {
+      "name": "Hollow ivory ribbon barnacle 7 8 2",
+      "boundaryEdges": 12,
+      "nonmanifoldEdges": 0,
+      "closedExpected": false,
+      "signedVolume": -0.0013422956873447333
+    }
+  ],
+  "checks": "finite geometry, nondegenerate triangles, normalized skin, exact typed pack bytes, GLB scene with actual skin/joints",
+  "degenerateTriangles": 0,
+  "blendedVertices": 1152,
+  "maxInfluences": 2,
+  "boundsNativeYUp": [
+    [
+      -2.00385,
+      -3.1040236711502076,
+      -1.763388
+    ],
+    [
+      2.00385,
+      1.1525136612021858,
+      1.8387893438339233
+    ]
+  ],
+  "boneCount": 27,
+  "glbSkinCount": 1,
+  "glbMeshCount": 98,
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "left.webp": {
+      "bytes": 45978,
+      "sha256": "47390fe5c12551bbd8267c6e6de8c681b98c421f56dfaede6cc287743725dcdc"
+    },
+    "live-pose-bounds.json": {
+      "bytes": 246,
+      "sha256": "df00bedf6050910e036a99e00d914a3e08ea2352cb8c4ccee26d10058638546d"
+    },
+    "elevated-left.webp": {
+      "bytes": 34472,
+      "sha256": "e66dc19452a5a3be3720f5d81053f356d90feaa879a1c07ac5e14b8fbc059e5a"
+    },
+    "elevated-back.webp": {
+      "bytes": 34926,
+      "sha256": "4007a2ed2420890cecf5d59b5a63ba1f14dde6db5b6f198c80093b4c99ffa6e5"
+    },
+    "nine-view-board.webp": {
+      "bytes": 105398,
+      "sha256": "93ab521dd2a292efb89056d7d510da084a3a3d367787b84dcd3e38894c02f344"
+    },
+    "pearlglass-medusa-v2.glb": {
+      "bytes": 817620,
+      "sha256": "2ffa22ff00de5eb71b05a1b5e4fc7a216a5d756666fa4d2192795f85dc64a113"
+    },
+    "capture-provenance.json": {
+      "bytes": 2262,
+      "sha256": "bb03a7adf2f6e0fed6d32227620ff22a40f4ae02d49598b4aab753e6a916bfa8"
+    },
+    "elevated-front.webp": {
+      "bytes": 35570,
+      "sha256": "a057280a73b1d0fb31e42855fad39a1325c953fbf481c614c1b2c9a5e663d13b"
+    },
+    "hero.webp": {
+      "bytes": 46280,
+      "sha256": "43e0b32f1f445b3a2155a0c128039fc4de499e62c37044189ee67892de467cf3"
+    },
+    "top.webp": {
+      "bytes": 23472,
+      "sha256": "568f7cc25274961f721f51e36cfba5de5cb230dcbaa15faed046f1ee87faa514"
+    },
+    "front.webp": {
+      "bytes": 43918,
+      "sha256": "a8905cf50252f31773de79cdf68f103f9948408f89bc5eb8fa578c970eb6e301"
+    },
+    "metadata.json": {
+      "bytes": 15656,
+      "sha256": "1fb41e995198d3968469be0cf248aa8db4bbac32ba696125d1cd39cfcb2d1668"
+    },
+    "cameras.json": {
+      "bytes": 1121,
+      "sha256": "ad96906405df3ffecde07ca98b22f54b8710b6ec6a2541cbd5b06384282d6bf6"
+    },
+    "rejected-flight-death.json": {
+      "bytes": 283,
+      "sha256": "8c8d70b7fdb7cbaa576efa76b4db28d62043f8ff20196771a98f6a519e87ed02"
+    },
+    "elevated-right.webp": {
+      "bytes": 38654,
+      "sha256": "49bbddcd4ae0b92ed30b950c2a82d8130879848832f93f39f272dbd5c7f95af1"
+    },
+    "right.webp": {
+      "bytes": 46296,
+      "sha256": "72f45b6302f3169176dea740004360b46887a59dc935c328d2a4c5d21e5def07"
+    },
+    "native-source.json": {
+      "bytes": 1896210,
+      "sha256": "8ce441a4b0e3fda4d8f2ce0f16bb31f9152324d2ee8c32cfc498c1360289665e"
+    },
+    "construction.json": {
+      "bytes": 10731,
+      "sha256": "9525921f5e0f81165fe76debffab4e7210eb8d0c09959fb88d13221ec3f77dd8"
+    },
+    "back.webp": {
+      "bytes": 43862,
+      "sha256": "30a0af72d730131eed16b4e18c7b4d1f1380b04e8ac295a59f3f95421723fd24"
+    },
+    "payload.bin": {
+      "bytes": 43442,
+      "sha256": "3ff82524190ed2e79e993060cf2caef01041d65452a7bbcd04963533ed05fae3"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "view": "hero",
+    "rawSha256": "aaae6ad35beba6a8d01a7019d7ae501b5ac65807f904e0379643788e091f6262",
+    "previewSha256": "43e0b32f1f445b3a2155a0c128039fc4de499e62c37044189ee67892de467cf3",
+    "bytes": 46280
+  },
+  {
+    "view": "front",
+    "rawSha256": "60b7ce17ffe518fd4ff170560c9c942a8995b67384df0f2f9d89ab810c1ab8f8",
+    "previewSha256": "a8905cf50252f31773de79cdf68f103f9948408f89bc5eb8fa578c970eb6e301",
+    "bytes": 43918
+  },
+  {
+    "view": "left",
+    "rawSha256": "f5ed76fdff25c263e1e570dec17a64f4157ab2467668410fbcef6108d17ba2d2",
+    "previewSha256": "47390fe5c12551bbd8267c6e6de8c681b98c421f56dfaede6cc287743725dcdc",
+    "bytes": 45978
+  },
+  {
+    "view": "right",
+    "rawSha256": "adcf97526da2b6fc1fc9a976703c4bbfbbc7c0ca93ece34c5bf2ded104089a43",
+    "previewSha256": "72f45b6302f3169176dea740004360b46887a59dc935c328d2a4c5d21e5def07",
+    "bytes": 46296
+  },
+  {
+    "view": "back",
+    "rawSha256": "9de8564c39f79330ae7a7d5934a7cab5f86b463e1457825742d0fbdfe46c9c3a",
+    "previewSha256": "30a0af72d730131eed16b4e18c7b4d1f1380b04e8ac295a59f3f95421723fd24",
+    "bytes": 43862
+  },
+  {
+    "view": "top",
+    "rawSha256": "62c6715f6be2d4f16702abf99b30435fb62fb9b62c4e4a7a0fd372c40854a87a",
+    "previewSha256": "568f7cc25274961f721f51e36cfba5de5cb230dcbaa15faed046f1ee87faa514",
+    "bytes": 23472
+  },
+  {
+    "view": "elevated-front",
+    "rawSha256": "5f2123ccfe1196cc68deb06082071bb1bc6a73e6d91528171f75258b63016066",
+    "previewSha256": "a057280a73b1d0fb31e42855fad39a1325c953fbf481c614c1b2c9a5e663d13b",
+    "bytes": 35570
+  },
+  {
+    "view": "elevated-left",
+    "rawSha256": "83dd3486ac9bbec33e20fc3fc74315127eb893de9c6af233c2146a3fbc3433ce",
+    "previewSha256": "e66dc19452a5a3be3720f5d81053f356d90feaa879a1c07ac5e14b8fbc059e5a",
+    "bytes": 34472
+  },
+  {
+    "view": "elevated-right",
+    "rawSha256": "09067872fba1d1e0ce777602a6b2ef8be431e24fd92cc53206d59bdb0c26f713",
+    "previewSha256": "49bbddcd4ae0b92ed30b950c2a82d8130879848832f93f39f272dbd5c7f95af1",
+    "bytes": 38654
+  },
+  {
+    "view": "elevated-back",
+    "rawSha256": "18f3cfd1c88188fb77c3086ee5bfbcc5e8f04643127aacd6f58a4e484605e95a",
+    "previewSha256": "4007a2ed2420890cecf5d59b5a63ba1f14dde6db5b6f198c80093b4c99ffa6e5",
+    "bytes": 34926
+  }
+]

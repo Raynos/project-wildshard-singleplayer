@@ -1,0 +1,7 @@
+{
+  "proof": "actual FlightMotion plus weighted THREE death pose replay, 121 fixed steps",
+  "minimumVertexY": -1.1920032153359559,
+  "finalRootY": 0,
+  "status": "REJECTED: standard flyer death penetrates; existing physical corpse admission required",
+  "runtimeAcceptance": false
+}
