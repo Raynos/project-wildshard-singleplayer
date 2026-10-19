@@ -1,0 +1,33 @@
+{
+  "acceptance": false,
+  "files": {
+    "docs/reviews/mantis-early-knee-independent/supplement1/REVIEW.md": {
+      "sha256": "3a82763ed6b4f7700d26e1bf92963f16e8d2a8ea02ce00485f71bb4ce683cfe4",
+      "bytes": 3495
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/capture-verification.json": {
+      "sha256": "6488edfbd6f8eae9c3802e7e4c4ff541110e2b99b74d47315d0e3535020b08f0",
+      "bytes": 310
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/check_contact.py": {
+      "sha256": "0c133cdd4af2750277a6bc5302c7767e6cfdfde3ed67248d692c4a49de8bfd1a",
+      "bytes": 3972
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/inspect_video.py": {
+      "sha256": "c2006efe107a6bbed69fbaeb834a9d7be5a3014ed648c6690a22a64c195ca2f8",
+      "bytes": 2748
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/video-index.json": {
+      "sha256": "854393166020569fffe10adbcbfa3ce401f2c64e356426fca728ee384bb1076c",
+      "bytes": 468327
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/visual-coverage.json": {
+      "sha256": "57f69da8daad366f24f3ee49adf7cc71b1e9a49e8d423ad57b49399c8d7bfa5b",
+      "bytes": 886
+    },
+    "docs/reviews/mantis-early-knee-independent/supplement1/world-contact-independent.json": {
+      "sha256": "a51321094e3ed70d0f7a391d31cf6524e40aaaa7f5e7646f6de5a13b783f0274",
+      "bytes": 396347
+    }
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "evidence-closure",
+    "sha256": "8da6ad484c5fe15e31e922695990fe4bf975d379693a330755c02ba69cb82910",
+    "count": 29,
+    "mismatches": []
+  },
+  {
+    "name": "input-freeze",
+    "sha256": "9671eb37627174f3daac4edae234a890f0015cc1acb61f34b903a57bba8e3cc2",
+    "count": 1608,
+    "mismatches": []
+  },
+  {
+    "name": "built-freeze",
+    "sha256": "f91b04673daa242c0e18c57ba531f40e491258958b16c4764a87a50675240210",
+    "count": 194,
+    "mismatches": []
+  }
+]
