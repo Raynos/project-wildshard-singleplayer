@@ -173,3 +173,31 @@ not a selector over separate engine builds. Consolidation is in progress
 using exact admitted products in one engine, canvas and practice world.
 Keep existing tested hosts until the replacement passes actual testing.
 Bellback remains unavailable and its architecture approval remains pending.
+
+## 2026-10-19 19:12–19:15 UTC — Current catalog and new implementations
+
+Owner authorizes implementing all four newly approved identities in game.
+Build complete editable models, native poses, AI and combat through strict
+admission and isolated lifecycle testing before adding tested candidates to
+one shared Arena runtime. Mockup approval does not establish playability.
+
+Approved and In-Game are current overviews of all nine identities. Approved
+shows each main hero followed by both full World and Model Explorer 3×3
+sheets in the main scroll; individual views remain inside Details. In-Game
+has one concise current card per identity with genuine preview, tested
+Play/status and latest result. The sixth tab, Devlog, holds chronological
+experiments and failures. Preserve historical anchors and evidence. Keep
+mobile navigation in two rows and the active Arena controls compact at the
+top-right, with usable selector, Back and Retry.
+
+## 2026-10-19 23:17 UTC — Rotation after preserved negative studies
+
+Puffer full-cycle functional evidence is preserved, but independently
+measured settled fin penetration rejects promotion. Both subsequent bounded
+rigid-support constructions failed source prerequisites; do not continue
+parameter studies or call vertex-only containment full surface support.
+Retain public Puffer70 and all failed sources. Rotate to the complete Iguana
+native candidate, first auditing existing clips, exact model pins and strict
+admission. Independently audit remaining reference-direction gaps while
+preserving all current approved originals. Neither task authorizes a new
+engine exemption or the still-pending Bellback five-body architecture.
