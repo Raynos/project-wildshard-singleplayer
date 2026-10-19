@@ -1,0 +1,10 @@
+{
+  "scope": "Checkout prefix and terminal whitespace in diagnostic logs only; source and assets unchanged. Original logs retained locally.",
+  "changes": [
+    {
+      "path": "consumer-focused-test.log",
+      "originalSha256": "f3eb1c5bb2dce71ef8079fd6ebcc312532dc61345d566d56f95b662bb7ba989b",
+      "sha256": "71742539c173935f6faaca529ecf0f60372879fd8e8b6cdb2ba0b554712a0861"
+    }
+  ]
+}

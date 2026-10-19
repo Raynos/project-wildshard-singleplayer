@@ -1,0 +1,151 @@
+{
+  "status": "STRUCTURAL_ONLY",
+  "tests": {
+    "python": "7/7 PASS",
+    "consumer": "4/4 PASS",
+    "independent": "PASS",
+    "geometry": "PASS_LOCAL_REPAIR",
+    "frame": "5/5 PASS",
+    "strictAdmission": "PASS"
+  },
+  "files": {
+    "native-consumer.test.ts": {
+      "bytes": 10637,
+      "sha256": "6f38ea81d78365ed1b38c9433f7c4ed9be0e329add0ee502222a920a116630ea"
+    },
+    "closure.json": {
+      "bytes": 3269,
+      "sha256": "5cb41312c601e0fb0e5b02e23a78bdb71fa05aaeadcf460bd3bbfc92c103c44d"
+    },
+    "consumer-focused-test.log": {
+      "bytes": 1118,
+      "sha256": "71742539c173935f6faaca529ecf0f60372879fd8e8b6cdb2ba0b554712a0861"
+    },
+    "admission-test.log": {
+      "bytes": 438,
+      "sha256": "23b6ed8418ab262e2b1461d67e5f58af8bbd5eea705bd811bd856c97c4f6b143"
+    },
+    "export_native.py": {
+      "bytes": 12575,
+      "sha256": "6f5b99da84f8e3588e7d20460cd60203d90c68949a29fd61d3b43a447dc77fb7"
+    },
+    "triangulation-delta.json": {
+      "bytes": 1995,
+      "sha256": "82e117f2a59b4dbe90052dedb88d31d3ae054c3cb0babd56b96e306aa73d7696"
+    },
+    "geometry-audit.json": {
+      "bytes": 7189,
+      "sha256": "dab10db37b68dfebf66600c8eedc51d25978616f13f4ef53d4fd279ffef39029"
+    },
+    "test_frame_blender.py": {
+      "bytes": 1148,
+      "sha256": "2cf155f9203565077a6f368175312af45374d69e23f71131cd08a0cd53518324"
+    },
+    "admit_native.py": {
+      "bytes": 3015,
+      "sha256": "99cbdf349ba118c190a7e1945cf12d46d184a39a34b73812b66b175c414cc462"
+    },
+    "vitest.config.ts": {
+      "bytes": 238,
+      "sha256": "6fa6a899aead6e076b952c307cd2859defeb62019e76348fd05cee61ec32f4d0"
+    },
+    "independent-test.log": {
+      "bytes": 251,
+      "sha256": "9c4d1171841b62ab2a5909a6ee53ce1f9a2d802bc00de88628d296e4e80996e6"
+    },
+    "mantis-study-cervical-frame-repair.glb": {
+      "bytes": 329764,
+      "sha256": "f2c8a05301e00f0cb2c41dc0efe67c1ed162f606ee8aecf7f1446a317165fd67"
+    },
+    "normal-audit.json": {
+      "bytes": 90053,
+      "sha256": "780199118253f710537396d584715e9d3b7a90a128433aa55a94241a0e09f8ba"
+    },
+    "export-test.log": {
+      "bytes": 747,
+      "sha256": "206edc0d92b729d2fbbcb017eda275fda9fa6fa4387375f2cf58429df6c54854"
+    },
+    "independent-correspondence.json": {
+      "bytes": 251,
+      "sha256": "9c4d1171841b62ab2a5909a6ee53ce1f9a2d802bc00de88628d296e4e80996e6"
+    },
+    "admission.json": {
+      "bytes": 385,
+      "sha256": "983f37b0d1a23910adb79fae1d08799dd4834203209d482b4fb8f060d733160e"
+    },
+    "frame-test.log": {
+      "bytes": 237,
+      "sha256": "58f99a818fa5727cd94a15b343e6461296b5b3b1afeb8817b59c2f1c814a79f4"
+    },
+    "metrics-cervical-frame-repair.json": {
+      "bytes": 2339,
+      "sha256": "92d0d657e21a4a05f4172d6b47db407747b1f9a4f442f05ae3d35e97d778b974"
+    },
+    "check_independent_correspondence.py": {
+      "bytes": 5938,
+      "sha256": "bb1ef7e5cc30fec380b7778d659c35e3e33bbd1597781ede2e2d0d88322ab141"
+    },
+    "metadata.json": {
+      "bytes": 8990,
+      "sha256": "5c4bcdc79e9d7f80695e9d626365508d6a5940a2de2e975d2f0a05eb6667fc27"
+    },
+    "diagnostic-dimensions.json": {
+      "bytes": 371,
+      "sha256": "2b6ce670547ba9126dfed26f049fbc9243c101e7ba049a4920bc8ddcf5ba041f"
+    },
+    "python-test.log": {
+      "bytes": 1008,
+      "sha256": "87742e54ed2e458d3ef1452efd4177630f5a577d56e3e140e2937d58917c9281"
+    },
+    "blender-export.log": {
+      "bytes": 9690,
+      "sha256": "5ca228e46d9340360b5c34c6821be3e3bd35d36da031298d4f55be20815c8c88"
+    },
+    "mantis-mesh-cervical-frame-repair.json": {
+      "bytes": 154428,
+      "sha256": "2147371259a966d1ac5dac8085eae1db878abd1d6709bedaf54e076acb0128b3"
+    },
+    "build_mantis_complete.py": {
+      "bytes": 21060,
+      "sha256": "1b9cef26207dbf1acbf09f258fd625d50ae97b52b3ff63bc4db6520aa81f1025"
+    },
+    "mesh-map.json": {
+      "bytes": 35653,
+      "sha256": "1af11ffb2de0a51ba3031c73cd7fa0567157de219a57f3ecdfcf2155d2aaa514"
+    },
+    "test_export_native.py": {
+      "bytes": 4858,
+      "sha256": "e66c02f3bdd348949264d4b66024ccf09b4d348ddc9b136efcffa594745f5d20"
+    },
+    "authored-mapping.json": {
+      "bytes": 21824,
+      "sha256": "9abb1c69fa58e94105dea9f385fe7fb5c514795a3e0a986c98bbef2da2a60415"
+    },
+    "mantis-native.json": {
+      "bytes": 1789467,
+      "sha256": "f2a539960d71a3b81c465cb6e9deec894c8792703fc694a5476609d64eae4c70"
+    },
+    "check_geometry.py": {
+      "bytes": 7471,
+      "sha256": "154c375d76835b4a2a93ea9594410497b8bc0653289fdceb608c654328e88ad2"
+    },
+    "input-pins.json": {
+      "bytes": 1973,
+      "sha256": "c61bbf9146cc4b6880cf79a3d5740bb6a6bb1be587336e9b95bce9dd90cd70c7"
+    },
+    "geometry-test.log": {
+      "bytes": 1014,
+      "sha256": "1a5145b074798910ffa58e5a6b05d0d32db16e4c4d3d592ee772ffd62d64a98a"
+    },
+    "payload.bin": {
+      "bytes": 58652,
+      "sha256": "73e8d8fff3c2c120f42df7fc00023e901f8d9f6b6a23ab20994828bf60f85bb5"
+    }
+  },
+  "historicalStaticScore": 3.935,
+  "visualAcceptance": false,
+  "animationAcceptance": false,
+  "worldContactAcceptance": false,
+  "runtimeAcceptance": false,
+  "promotion": false
+}

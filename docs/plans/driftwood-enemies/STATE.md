@@ -1,21 +1,21 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 14:20 UTC. No quality-complete enemy.
+Updated 2026-10-19 15:03 UTC. No quality-complete enemy.
 
-OWNER 12:32: Loop all five until at least 4/5 likeness and separately 4/5 animation/combat readability. Puffer resumed; prior four-enemy >3.5 and V100 gates superseded. No rounding, cross-axis averages, inflated scores or manufactured versions. Rotate consequential complete passes. Twenty extras parked. Plan: docs/reviews/five-enemy-four-star-loop.md.
+OWNER 12:32: Loop all five until at least 4/5 likeness and separately 4/5 animation/combat readability. Puffer resumed; former four-enemy >3.5 and V100 gates superseded. No rounding or cross-axis averages. Rotate complete consequential passes. Twenty extras parked. Plan: docs/reviews/five-enemy-four-star-loop.md.
 
-LIVE: Site66 succeeded 13:55:57 UTC, source ff10592406d0b74f51df59c3ecb99fc01bb7a94b. Latest five static studies published. Pinned Arena selector has four real WIP engines: Mantis7, Conch4, Colossus2, Puffer70. Bellback disabled. All 548 engine files unchanged. Portrait QA passes at 320/402px; no physical-phone claim. Site67 saved 80 further original frames, unchanged public payload; no identical redeploy.
+LIVE: Site66, source ff10592406d0b74f51df59c3ecb99fc01bb7a94b, retains pinned unified Arena with Mantis7, Conch4, Colossus2 and Puffer70. Bellback unavailable. All548 engine files unchanged; portrait QA at320/402px. Site67 saved80 original frames with unchanged public payload. Next source push failed on oversized Conch movie; failed local commit preserved without rewriting. Original movie independently verified in owned Library; diagnostics preserved separately. Public Site66 remains live. Storage headroom is limited; cache cleanup approval pending, no deletion inferred.
 
-SELECTED STATIC WORK:
-- Mantis pass2: 3.935, below4. Original-first review of all20 matched frames;42 closure checks. Historic baseline GLB differs only84 datablock-name suffixes, not byte-identical. Failed arm-root attempt preserved.
-- Puffer bodypass2: 3.80 vs matched V71 3.7375. Pass3 remesh and one pouch correction FAILED: recessed pouch/hidden spikes. Both complete sources and40 captures preserved; pass2 retained.
-- Conch pass2: 3.865 vs matched pass1 3.815; historical pass1 3.625 separate.
-- Bellback pass2: 3.74 vs matched V6 3.635. Complete pass3 captured; fresh review active.
-- Colossus pass2 rejected at3.855; reviewer retains pass1 at3.895, prior pass1 3.765 separate. Pass3 source preparation active.
-Reports: docs/reviews/*complete*-independent/. Every historical disagreement remains; rescoring unchanged geometry is not progress. Static/structural checks do not admit runtime or animation.
+STATIC:
+- Mantis pass2 selected3.935, below4. Failed arm-root attempt retained. Native pack faithfully exposed four folded cervical facets. Independent diagnosis identified transverse-frame reversal; separate continuous-frame repair changes only seven terminal points (max0.25), passes strict normals and source/native checks. New collar/throat overlaps disclosed. No fresh visual or runtime acceptance;3.935 belongs to original geometry.
+- Puffer bodypass2 selected3.80. Pass3 and bounded pouch correction failed recessed-pouch/hidden-spike construction; both preserved.
+- Conch pass2 selected3.865; matched predecessor3.815, older3.625 separate.
+- Bellback pass3 selected3.895; all20 matched captures reviewed. Below4.
+- Colossus pass3 rejected3.52; same-review pass1 retained3.675. Historical pass1 scores3.895/3.765 remain separate. No gain from rescoring unchanged art.
+Reports: docs/reviews/*complete*-independent/.
 
-MOTION: Mantis7 remains2/5; periodic gait fit failed reach/blend/step limits despite closed seams. No parameter retries. Conch motion5 source and independent checks permit unaccepted build/capture only. Product/app built, actual-run1 capture active. Product sourceHash be09cb6bd1c376099bf4d38edc9fd8f38873c999168f72902cf06279320eab38. Dense max jump .51996rad hides guarded-hit regression .36631 versus .16759 and living/death yaw jump .8rad. Public motion4 retained. See conch-motion5 study, independent/source and host/capture preparation reviews. Stream every-frame sheets to limit disk; never infer world contact from local poses.
+MOTION: Mantis7 remains2/5; periodic gait fit failed. Conch motion5 actual-run1 retained:13012 encoded frames reviewed in chronological reduced-resolution overview plus21 full-resolution details. Animation/readability2/5; promotion rejected. Missing guarded/counter hit timing, stop and active-lethal coverage; first-dead-pose jump remains. Fresh weighted proximity passes1654 observations, not collider/planting acceptance. Mounted unified flow passes37/39 checks; counter trials fail. Public motion4 retained. See conch-motion5-independent/capture1 and mounted-navigation reviews. Cloud cadence is not phone performance.
 
-BELLBACK DECISION pending since08:38: isolated five-body/four-joint Ragdolls prototype. No implementation without specific approval; no repeated question. Static work independent.
+BELLBACK: Five-body/four-joint prototype awaits specific owner approval since08:38; no expansion or repeated question. Static work independent.
 
-Root alone owns connector gamedev-dot checkpoints and native Sites. Source through5c79980d0fe271881773c30348848261a6518350. Preserve unrelated/sparse work. Six-shard Explorer coverage open.
+Root owns connector gamedev-dot checkpoints and native Sites. Sources through26094ccfcd524a10ef14c489ebbf331d2065bb2a. Preserve unrelated/sparse work. Six-shard Explorer remains open.

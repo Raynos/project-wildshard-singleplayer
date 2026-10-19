@@ -1,0 +1,361 @@
+{
+  "status": "PASS_LOCAL_REPAIR",
+  "changedVertices": [
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 42,
+      "before": [
+        0.125,
+        -0.8899999856948853,
+        2.549999952316284
+      ],
+      "after": [
+        -0.125,
+        -0.8899999856948853,
+        2.549999952316284
+      ],
+      "displacement": 0.25
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 43,
+      "before": [
+        0.07793622463941574,
+        -0.8984472155570984,
+        2.6316564083099365
+      ],
+      "after": [
+        -0.07793622463941574,
+        -0.8815527558326721,
+        2.468343496322632
+      ],
+      "displacement": 0.22639070306736378
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 44,
+      "before": [
+        -0.027815116569399834,
+        -0.9005334973335266,
+        2.6518239974975586
+      ],
+      "after": [
+        0.027815116569399834,
+        -0.8794664740562439,
+        2.4481759071350098
+      ],
+      "displacement": 0.21215816509659868
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 45,
+      "before": [
+        -0.11262110620737076,
+        -0.894687831401825,
+        2.595315933227539
+      ],
+      "after": [
+        0.11262110620737076,
+        -0.8853121399879456,
+        2.5046839714050293
+      ],
+      "displacement": 0.2429734766322709
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 46,
+      "before": [
+        -0.11262110620737076,
+        -0.8853121399879456,
+        2.5046839714050293
+      ],
+      "after": [
+        0.11262110620737076,
+        -0.894687831401825,
+        2.595315933227539
+      ],
+      "displacement": 0.2429734766322709
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 47,
+      "before": [
+        -0.027815116569399834,
+        -0.8794664740562439,
+        2.4481759071350098
+      ],
+      "after": [
+        0.027815116569399834,
+        -0.9005334973335266,
+        2.6518239974975586
+      ],
+      "displacement": 0.21215816509659868
+    },
+    {
+      "object": "Rising prothorax curved cervical arch",
+      "vertex": 48,
+      "before": [
+        0.07793622463941574,
+        -0.8815527558326721,
+        2.468343496322632
+      ],
+      "after": [
+        -0.07793622463941574,
+        -0.8984472155570984,
+        2.6316564083099365
+      ],
+      "displacement": 0.22639070306736378
+    }
+  ],
+  "maxDisplacement": 0.25,
+  "affectedPolygons": [
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    64
+  ],
+  "frames": [
+    {
+      "station": 0,
+      "t": [
+        0.0,
+        -0.4613527366419894,
+        0.8872168012345951
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.8872168012345952,
+        -0.46135273664198945
+      ],
+      "center": [
+        0,
+        0.36,
+        1.4
+      ],
+      "width": 0.265,
+      "depth": 0.22
+    },
+    {
+      "station": 1,
+      "t": [
+        0.0,
+        -0.36244626115494843,
+        0.9320046715412961
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.9320046715412961,
+        -0.36244626115494843
+      ],
+      "center": [
+        0,
+        0.23,
+        1.65
+      ],
+      "width": 0.205,
+      "depth": 0.175
+    },
+    {
+      "station": 2,
+      "t": [
+        0.0,
+        -0.38235179272629966,
+        0.9240168324218908
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.9240168324218909,
+        -0.3823517927262997
+      ],
+      "center": [
+        0,
+        0.15,
+        1.94
+      ],
+      "width": 0.155,
+      "depth": 0.13
+    },
+    {
+      "station": 3,
+      "t": [
+        0.0,
+        -0.6415552004911059,
+        0.7670768701524098
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.7670768701524098,
+        -0.6415552004911059
+      ],
+      "center": [
+        0,
+        -0.01,
+        2.23
+      ],
+      "width": 0.135,
+      "depth": 0.115
+    },
+    {
+      "station": 4,
+      "t": [
+        0.0,
+        -0.8600546538736993,
+        0.5102019133149065
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.5102019133149065,
+        -0.8600546538736993
+      ],
+      "center": [
+        0,
+        -0.31,
+        2.49
+      ],
+      "width": 0.14,
+      "depth": 0.12
+    },
+    {
+      "station": 5,
+      "t": [
+        0.0,
+        -0.9946917938265513,
+        0.10289915108550463
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.10289915108550464,
+        -0.9946917938265514
+      ],
+      "center": [
+        0,
+        -0.6,
+        2.58
+      ],
+      "width": 0.145,
+      "depth": 0.12
+    },
+    {
+      "station": 6,
+      "t": [
+        0.0,
+        -0.9946917938265512,
+        -0.10289915108550612
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        -0.0
+      ],
+      "v": [
+        0.0,
+        0.10289915108550614,
+        -0.9946917938265513
+      ],
+      "center": [
+        0,
+        -0.89,
+        2.55
+      ],
+      "width": 0.125,
+      "depth": 0.105
+    }
+  ],
+  "minimumTriangleArea": 1.383121101376865e-06,
+  "neckTriangleCount": 94,
+  "neckSignedVolume": 0.11758533255871143,
+  "minimumNeckOutwardCosine": 0.9145706462710528,
+  "nonAdjacentNeckSelfIntersections": [],
+  "terminalQuadBothDiagonals": [
+    {
+      "polygon": 53,
+      "minimumCosine": 0.9999955879990647,
+      "mutualCosine": 0.9999832751993809
+    },
+    {
+      "polygon": 53,
+      "minimumCosine": 0.9999955961633394,
+      "mutualCosine": 0.9999852119451808
+    },
+    {
+      "polygon": 56,
+      "minimumCosine": 0.9999798665699959,
+      "mutualCosine": 0.9999322617310112
+    },
+    {
+      "polygon": 56,
+      "minimumCosine": 0.999979685815269,
+      "mutualCosine": 0.9999255859556848
+    },
+    {
+      "polygon": 59,
+      "minimumCosine": 0.9999239447633518,
+      "mutualCosine": 0.9997436355524364
+    },
+    {
+      "polygon": 59,
+      "minimumCosine": 0.9999260218357018,
+      "mutualCosine": 0.9997314143227993
+    },
+    {
+      "polygon": 62,
+      "minimumCosine": 0.9998990411826676,
+      "mutualCosine": 0.9996209569056178
+    },
+    {
+      "polygon": 62,
+      "minimumCosine": 0.9998961636035764,
+      "mutualCosine": 0.9996513988811999
+    }
+  ],
+  "minimumCrossSectionSupportThickness": 0.18920346225950802,
+  "crossObjectIncidentTriangleIntersections": {
+    "before": {
+      "Volumetric pointed insect skull": 33
+    },
+    "after": {
+      "Volumetric pointed insect skull": 24,
+      "Rear neck collar 1": 10,
+      "Rear neck collar -1": 12,
+      "Integrated pale throat": 8
+    }
+  },
+  "limits": "Cross-object layered anatomical overlap is reported, not accepted as contact/articulation. No visual or motion approval. Shared-vertex triangle pairs excluded from self-intersection scan; exact frame/radius and both-diagonal tests cover terminal adjacent panels."
+}

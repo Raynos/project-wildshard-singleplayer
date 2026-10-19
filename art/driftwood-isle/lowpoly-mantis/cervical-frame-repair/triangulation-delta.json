@@ -1,0 +1,117 @@
+{
+  "note": "Unmodified Blender tessellator changes four repaired quad diagonals as geometry changes; all source polygon boundaries and face rules unchanged, and both diagonals independently pass.",
+  "changes": [
+    {
+      "orderedTriangle": 187,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        35,
+        36,
+        42
+      ],
+      "after": [
+        35,
+        36,
+        43
+      ]
+    },
+    {
+      "orderedTriangle": 188,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        36,
+        43,
+        42
+      ],
+      "after": [
+        35,
+        43,
+        42
+      ]
+    },
+    {
+      "orderedTriangle": 190,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        39,
+        40,
+        46
+      ],
+      "after": [
+        39,
+        40,
+        47
+      ]
+    },
+    {
+      "orderedTriangle": 191,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        40,
+        47,
+        46
+      ],
+      "after": [
+        39,
+        47,
+        46
+      ]
+    },
+    {
+      "orderedTriangle": 193,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        41,
+        35,
+        48
+      ],
+      "after": [
+        41,
+        35,
+        42
+      ]
+    },
+    {
+      "orderedTriangle": 194,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        35,
+        42,
+        48
+      ],
+      "after": [
+        41,
+        42,
+        48
+      ]
+    },
+    {
+      "orderedTriangle": 232,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        37,
+        38,
+        44
+      ],
+      "after": [
+        37,
+        38,
+        45
+      ]
+    },
+    {
+      "orderedTriangle": 233,
+      "object": "Rising prothorax curved cervical arch",
+      "before": [
+        38,
+        45,
+        44
+      ],
+      "after": [
+        37,
+        45,
+        44
+      ]
+    }
+  ]
+}

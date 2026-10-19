@@ -1,0 +1,35 @@
+{
+  "status": "PASS_LOCAL_REPAIR",
+  "maxDisplacement": 0.25,
+  "affectedPolygons": [
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    64
+  ],
+  "minimumTriangleArea": 1.383121101376865e-06,
+  "neckTriangleCount": 94,
+  "neckSignedVolume": 0.11758533255871143,
+  "minimumNeckOutwardCosine": 0.9145706462710528,
+  "nonAdjacentNeckSelfIntersections": [],
+  "minimumCrossSectionSupportThickness": 0.18920346225950802,
+  "crossObjectIncidentTriangleIntersections": {
+    "before": {
+      "Volumetric pointed insect skull": 33
+    },
+    "after": {
+      "Volumetric pointed insect skull": 24,
+      "Rear neck collar 1": 10,
+      "Rear neck collar -1": 12,
+      "Integrated pale throat": 8
+    }
+  },
+  "limits": "Cross-object layered anatomical overlap is reported, not accepted as contact/articulation. No visual or motion approval. Shared-vertex triangle pairs excluded from self-intersection scan; exact frame/radius and both-diagonal tests cover terminal adjacent panels."
+}
