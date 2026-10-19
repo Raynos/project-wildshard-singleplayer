@@ -12193,52 +12193,6 @@
       }
     },
     {
-      "id": "nalati-weapon-hooks",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/format/weaponHooks.ts",
-        "src/format/weaponProfiles.ts",
-        "src/format/wireLimits.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
-        "src/shards/nalati-grasslands/behaviour/weapons.as",
-        "src/shards/nalati-grasslands/generators/sabreHook.ts",
-        "src/shards/nalati-grasslands/data/items.json",
-        "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs",
-        "src/shards/nalati-grasslands/generators/weaponHooks.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
-        "src/shards/nalati-grasslands/behaviour/weapons.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
-        "src/shards/nalati-grasslands/behaviour/weapons.json"
-      ]
-    },
-    {
       "id": "nalati-recurve-pool",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
@@ -21485,6 +21439,37 @@
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/stealth.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
+      "id": "nalati-held-weapons",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-held-weapons.mjs",
+        "src/shards/nalati-grasslands/data/weaponPowers.json",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/shards/nalati-grasslands/behaviour/heldPolearm.as",
+        "src/shards/nalati-grasslands/behaviour/heldBlade.as",
+        "src/shards/nalati-grasslands/behaviour/heldPower.as"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/heldWeapons.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/heldWeapons.generated.json"
       ],
       "platform": "portable"
     }

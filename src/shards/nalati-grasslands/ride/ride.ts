@@ -13,8 +13,8 @@ import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/
 import { Mount as RidingMount } from '@wildshard/game/riding/mount';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
-import { Sabre } from '../runtime/weapons/mountedSword';
-import { Spear } from '../runtime/weapons/javelinSpear';
+import { Sabre, Spear } from '../weapons/nativeMelee';
+
 import { Bow } from '@wildshard/game/weapons/Bow';
 import { Taming } from './Taming';
 import { RideHUD } from '@wildshard/game/riding/hud';

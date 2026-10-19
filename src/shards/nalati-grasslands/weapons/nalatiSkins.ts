@@ -5,7 +5,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { weaponEffects } from '../boot/weaponEffects.generated';
 import * as THREE from 'three';
 import type { Bow } from '@wildshard/game/weapons/Bow';
-import type { SabreWeapon } from '../runtime/weapons/mountedSword';
+import type { SabreWeapon } from '../weapons/nativeMelee';
 import { horseBones } from '../species/horse';
 
 import { nalatiSkinsSave as savedSlot } from './saves';

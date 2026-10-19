@@ -213,7 +213,8 @@
     "./grapple": "./grapple.ts",
     "./voicePatches": "./voicePatches.ts",
     "./audioScene": "./audioScene.ts",
-    "./stealth": "./stealth.ts"
+    "./stealth": "./stealth.ts",
+    "./heldMelee": "./heldMelee.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -25,7 +25,7 @@ import type { Wildlife } from '../creatures/wildlife';
 
 
 
-import type { SabreWeapon as Sabre } from '../runtime/weapons/mountedSword';
+import { type SabreWeapon as Sabre, NaizagaiPower, type NaizagaiPowerHandle } from '../weapons/nativeMelee';
 import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
@@ -39,7 +39,8 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { wildEnv } from '../creatures/env';
 
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
-import { LightningStrip, NaizagaiPower } from '../runtime/weapons/Naizagai';
+import { LightningStrip } from '@wildshard/game/weapons/arcPower';
+
 import { ArenaFireView } from '@wildshard/game/boss/arenaFire';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { smoothstep } from '@wildshard/engine/core/noise';
@@ -896,7 +897,7 @@ export interface TitanPlay {
   ride: Ride | null;
   riders?: GhostRiders | null;
   sabre: Sabre | null;
-  upgradeSabre?: (power: NaizagaiPower) => void;
+  upgradeSabre?: (power: NaizagaiPowerHandle) => void;
   setWeaponsEnabled: (on: boolean) => void;
   refill: () => void;
   /** main's damage path (health, flash; a toast unless `why` is empty) */
@@ -919,7 +920,7 @@ export class StormTitan {
   readonly spareLight = new THREE.PointLight(0xc8dcff, 0, 1, 2);
   ui: BossBar | null = null;
   boss: Boss | null = null;
-  naizagai: NaizagaiPower | null = null;
+  naizagai: NaizagaiPowerHandle | null = null;
   /** B11's ghost riders (the storm riders ride their rig) — handed in by src/shards/nalati-grasslands/index.ts */
   riders: GhostRiders | null = null;
   private play: TitanPlay | null = null;
@@ -961,8 +962,7 @@ export class StormTitan {
     if (god) { const hurt = play.hurt; play.hurt = (d, why) => { if (!this.engaged) hurt(d, why); }; }
     this.naizagai = new NaizagaiPower({
       scene: game.scene, player, camera: game.camera, animals: play.animals,
-      storm: () => this.ctx.weather.weather.stormActive,
-      bolt: (x, y, z) => { this.ctx.weather.fx.bolt({ x, y, z, kind: 'ground' }); this.ctx.weather.weather.flash = 1; },
+      weather:this.ctx.weather.weather,scope:game.levelScope,
     });
     const encounter = installBossEncounter({ definition: this.data.TITAN_ENCOUNTER, reward: this.data.TITAN_REWARD }, () => this.fight, {
       game, player, spareLight: this.spareLight, scope: game.levelScope, chunkId: 'nalati-grasslands', interactables: play.interactables,

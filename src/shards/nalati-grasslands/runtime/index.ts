@@ -1,7 +1,7 @@
 import { prepareNalatiSpecies } from '../species/presentation';
 import { prepareStormTitan } from '../combat/stormTitan';
-import { prepareSabre } from './weapons/mountedSword';
-import { prepareSpear } from './weapons/javelinSpear';
+import { prepareSabre, prepareSpear } from '../weapons/nativeMelee';
+
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS, prepareGoldenKing } from '../species/rows';
 import NALATI_FEATS from '../data/feats.json' with { type: 'json' };
@@ -30,7 +30,6 @@ import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { buildNalatiLoadoutSliced, type NalatiLoadout } from '../weapons/loadout';
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment } from '@wildshard/game/plugin/headless';
-import { installNalatiWeaponHooks } from '../weapons/hooks';
 import { installNalatiQuestView } from '../quest/kokpar';
 import { nalatiFinds, skinRows } from '../bag';
 import { horsePlayground } from '../playground/registration';
@@ -134,7 +133,6 @@ export class NalatiPlugin extends ShardPlugin {
         const item = ctx.product.shardfile.items.rows.find(row => row.id === weapon.row.id);
         return { id: weapon.row.id, weapon, profile: item?.kind === 'weapon' ? item.profile : undefined };
       }));
-      installNalatiWeaponHooks(ctx, kit).catch((e: unknown) => { console.warn('[nalati] weapon hooks failed: the sabre keeps its row rule', e); });
       return { primary: kit.base, rifle, secondary: null, extras: kit.extras, order: ['bow', 'sabre', 'spear'], install: (weapons) => { kit.install(weapons); } };
     };
   }

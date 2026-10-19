@@ -2,7 +2,7 @@ import type { GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import { Bow } from '@wildshard/game/weapons/Bow';
 import type { BowProfile } from '@wildshard/game/weapons/starterBowProfile';
 import { loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
-import type { NaizagaiPower } from '../runtime/weapons/Naizagai';
+import { type NaizagaiPowerHandle as NaizagaiPower, Sabre, type MountState, type SabreWeapon, sabreProfile, Spear, type SpearWeapon } from '../weapons/nativeMelee';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Targets } from '@wildshard/engine/combat/types';
@@ -11,8 +11,8 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { Sabre, type MountState, type SabreWeapon, sabreProfile } from '../runtime/weapons/mountedSword';
-import { Spear, type SpearWeapon } from '../runtime/weapons/javelinSpear';
+
+
 import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
 import gear from '../boot/gear.generated.json' with { type: 'json' };
 import { Rng } from '@wildshard/engine/core/rng';

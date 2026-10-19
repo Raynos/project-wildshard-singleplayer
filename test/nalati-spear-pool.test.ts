@@ -1,3 +1,4 @@
+import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the production GLB with retained source geometry.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
@@ -8,7 +9,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { gloveFist, riderArm } from '../src/engine/player/nalatiArms';
 import { installPortableMath } from './fake/portableMath';
 import { merge } from '../src/shards/nalati-grasslands/generators/meleeGeo';
-import { buildSpear, buildJavelin, prepareSpear, spearGeometry, spearProfile } from '../src/shards/nalati-grasslands/runtime/weapons/javelinSpear';
+import { buildSpear, buildJavelin, prepareSpear, spearGeometry, spearProfile } from '../src/shards/nalati-grasslands/weapons/nativeMelee';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
@@ -23,7 +24,7 @@ test('baked spear retains all geometry channels, poses, coefficients and indepen
   const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   try {
-    await prepareSpear({ shardfile: { ...emptyShardfile({ slug: 'spear-test', name: 'Spear', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(rows))) });
+    await prepareSpear({ shardfile: { ...emptyShardfile({ slug: 'spear-test', name: 'Spear', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.polearm,presentation:heldWeapons.polearm}))) });
     expect(spearProfile()).toEqual(SPEAR_PROFILE);
     const spear = authorSpear(), javelin = authorJavelin(), { hands, leftHandY } = SPEAR_VIEW;
     const fist = (direction: readonly [number, number, number], mirror: boolean) => {

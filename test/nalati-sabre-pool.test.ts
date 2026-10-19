@@ -1,3 +1,4 @@
+import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the emitted GLB against its original authoring geometry.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -6,11 +7,13 @@ import { PackedSpecimenSchema } from '../src/format/specimenCatalogue';
 import { MeshBasicMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildSabre as authorSabre, SABRE_PROFILE as authorProfile, PASS_LEFT, PASS_RIGHT } from '../src/shards/nalati-grasslands/generators/sabre';
-import { buildSabre, prepareSabre, sabreProfile } from '../src/shards/nalati-grasslands/runtime/weapons/mountedSword';
+import { buildSabre, prepareSabre, sabreProfile } from '../src/shards/nalati-grasslands/weapons/nativeMelee';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' with { type: 'json' };
+
+const {polearm:_polearm,blade:_blade,programs:_programs,...weaponPower}=heldWeapons;
 
 test('baked sabre preserves every move, contact, mounted coefficient and mutable geometry channel', async () => {
   const key = (row: typeof PASS_LEFT.keys[number]) => ({ t: row.t, pos: row.pos.toArray(), q: row.q.toArray() });
@@ -21,7 +24,7 @@ test('baked sabre preserves every move, contact, mounted coefficient and mutable
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   const material = new MeshBasicMaterial();
   try {
-    await prepareSabre({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(rows))) });
+    await prepareSabre({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade}))) });
     expect(sabreProfile()).toEqual(authorProfile);
     const before = authorSabre(material, material), after = buildSabre(material, material), second = buildSabre(material, material);
     expect({ tipY: after.tipY, baseY: after.baseY, tipX: after.tipX }).toEqual({ tipY: before.tipY, baseY: before.baseY, tipX: before.tipX });
