@@ -1,0 +1,6 @@
+OPPOSED [{'name': 'Seated folded wing midrib wing1_1', 'polygon': 25, 'minimumCosine': -0.02806820173145461}]
+Traceback (most recent call last):
+  File "./art/driftwood-isle/lowpoly-mantis/complete-proportion-study/check_geometry.py", line 46, in <module>
+    assert not candidate['opposedTriangles']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

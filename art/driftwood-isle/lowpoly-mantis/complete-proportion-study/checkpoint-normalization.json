@@ -1,0 +1,10 @@
+{
+  "scope": "Diagnostic prefixes and terminal whitespace only; original logs retained locally. Source/assets unchanged.",
+  "changes": [
+    {
+      "path": "failed-midrib-fold/geometry-test.log",
+      "originalSha256": "c4f85b3f3e9bdf323d88500deee0755ec7636d1b1a5608a89369bc2aca9985e9",
+      "sha256": "7dc892f5e81e690d2476c2a80538471a6ac56bf2315062fc2330c6adc8a5acfd"
+    }
+  ]
+}
