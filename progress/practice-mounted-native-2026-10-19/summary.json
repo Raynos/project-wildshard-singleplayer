@@ -1,0 +1,159 @@
+{
+  "schema": "wildshard.mounted-native-summary.v1",
+  "result": "pass",
+  "servedRoot": "wildshard-review-site/dist",
+  "device": "iPhone 16 Pro emulated, muted Chromium",
+  "scope": "Actual Start/Attack/Retry; diagnostic player placement only. No health/enemy state/time/RNG injection. Sword-only isolated loadout; spear unavailable. No physical iOS/performance/visual acceptance claim.",
+  "apps": {
+    "colossus": {
+      "url": "http://127.0.0.1:4478/colossus-engine/index.html",
+      "startedAt": "2026-10-19T06:24:21.173Z",
+      "endedAt": "2026-10-19T06:27:24.281Z",
+      "checks": {
+        "exactOriginalBytes": true,
+        "wipLabel": true,
+        "correctSingleEnemy": true,
+        "nativeModel": true,
+        "swordDamage": true,
+        "enemyDefeated": true,
+        "noPostDeathStrike": true,
+        "localReward": true,
+        "retryAfterReward": true,
+        "enemyAttacks": true,
+        "playerDefeated": true,
+        "playerDeathDoesNotKillEnemy": true,
+        "defeatedAttackBlocked": true,
+        "retryAfterDefeat": true,
+        "reloadFresh": true,
+        "reloadAssets": true,
+        "mountedAssetBase": true,
+        "emptyBrowserStorage": true,
+        "emptyWorldShardPersistence": true,
+        "noRuntimeErrors": true,
+        "allFourAppsUnchanged": true
+      },
+      "requests": 202,
+      "errors": [],
+      "requestsFailed": [],
+      "enemyBones": 22,
+      "corpseSamples": [
+        {
+          "time": 34.96590000000619,
+          "hp": 100,
+          "strikePhase": "idle"
+        },
+        {
+          "time": 39.005299999997284,
+          "hp": 100,
+          "strikePhase": "idle"
+        }
+      ],
+      "corpseAdjacentSamplesNondecreasing": true,
+      "report": "colossus/report.json"
+    },
+    "conch": {
+      "url": "http://127.0.0.1:4478/conch-engine/index.html",
+      "startedAt": "2026-10-19T06:29:19.085Z",
+      "endedAt": "2026-10-19T06:30:38.591Z",
+      "checks": {
+        "exactOriginalBytes": true,
+        "wipLabel": true,
+        "correctSingleEnemy": true,
+        "nativeModel": true,
+        "swordDamage": true,
+        "enemyDefeated": true,
+        "noPostDeathStrike": true,
+        "localReward": true,
+        "retryAfterReward": true,
+        "enemyAttacks": true,
+        "playerDefeated": true,
+        "playerDeathDoesNotKillEnemy": true,
+        "defeatedAttackBlocked": true,
+        "retryAfterDefeat": true,
+        "reloadFresh": true,
+        "reloadAssets": true,
+        "mountedAssetBase": true,
+        "emptyBrowserStorage": true,
+        "emptyWorldShardPersistence": true,
+        "noRuntimeErrors": true,
+        "allFourAppsUnchanged": true
+      },
+      "requests": 202,
+      "errors": [],
+      "requestsFailed": [],
+      "enemyBones": 15,
+      "corpseSamples": [
+        {
+          "time": 7.1419999999999915,
+          "hp": 84,
+          "strikePhase": "idle"
+        },
+        {
+          "time": 9.338099999986575,
+          "hp": 87.7143999999762,
+          "strikePhase": "idle"
+        },
+        {
+          "time": 10.73809999998657,
+          "hp": 93.31439999997627,
+          "strikePhase": "idle"
+        }
+      ],
+      "corpseAdjacentSamplesNondecreasing": true,
+      "report": "conch/report.json"
+    }
+  },
+  "preservation": {
+    "colossus": {
+      "colossus-engine": {
+        "files": 137,
+        "bytes": 9419754,
+        "exactAfter": true
+      },
+      "conch-engine": {
+        "files": 137,
+        "bytes": 9349794,
+        "exactAfter": true
+      },
+      "puffer-engine": {
+        "files": 137,
+        "bytes": 9148333,
+        "exactAfter": true
+      },
+      "mantis-engine": {
+        "files": 137,
+        "bytes": 9385335,
+        "exactAfter": true
+      }
+    },
+    "conch": {
+      "colossus-engine": {
+        "files": 137,
+        "bytes": 9419754,
+        "exactAfter": true
+      },
+      "conch-engine": {
+        "files": 137,
+        "bytes": 9349794,
+        "exactAfter": true
+      },
+      "puffer-engine": {
+        "files": 137,
+        "bytes": 9148333,
+        "exactAfter": true
+      },
+      "mantis-engine": {
+        "files": 137,
+        "bytes": 9385335,
+        "exactAfter": true
+      }
+    }
+  },
+  "correction": {
+    "initialReport": "provenance/conch-initial-regen-assertion-report.json",
+    "initialHarness": "provenance/harness-run1.mjs",
+    "issue": "Initial noPostDeathStrike check incorrectly required equal player HP. Real health regeneration increased HP after enemy death; all other 20 checks passed. Retained exact raw failed report. Corrected full Conch run passed; no runtime/app edits.",
+    "limitation": "Corpse HP/strike is sampled, not per-frame or damage-event coverage. Nondecreasing sampled HP can miss inter-sample damage plus regeneration; no stronger claim is made."
+  },
+  "allSixInventoriesIdentical": true
+}

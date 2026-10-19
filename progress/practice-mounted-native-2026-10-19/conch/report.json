@@ -1,0 +1,4744 @@
+{
+  "schema": "wildshard.mounted-native-functional.v1",
+  "kind": "conch",
+  "startedAt": "2026-10-19T06:29:19.085Z",
+  "url": "http://127.0.0.1:4478/conch-engine/index.html",
+  "checks": {
+    "exactOriginalBytes": true,
+    "wipLabel": true,
+    "correctSingleEnemy": true,
+    "nativeModel": true,
+    "swordDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "localReward": true,
+    "retryAfterReward": true,
+    "enemyAttacks": true,
+    "playerDefeated": true,
+    "playerDeathDoesNotKillEnemy": true,
+    "defeatedAttackBlocked": true,
+    "retryAfterDefeat": true,
+    "reloadFresh": true,
+    "reloadAssets": true,
+    "mountedAssetBase": true,
+    "emptyBrowserStorage": true,
+    "emptyWorldShardPersistence": true,
+    "noRuntimeErrors": true,
+    "allFourAppsUnchanged": true
+  },
+  "errors": [],
+  "failedRequests": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practice-DY5adlOR.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Stems-BfgQjzTZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-DDJq1K7u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioFiles-CzmqQ-A-.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/geometryBounds-BYQ4ZAtL.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Settings-CbCS3hr_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtime-dJ8HEGxf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/declaredBank-BDYgCU8w.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Cues-BpaGKVwo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/registry-DD4IMEEc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/SetScore-B6vb5SaH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/toon-DYKI4CCE.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/graphBackend-D-UfPjw3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/time-Cyc1fHs4.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dataLook-WmHAIXkp.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/presets-DPPGXXBd.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowChunks-BOgkD-i_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/precompile-B7E1hrq1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lastEnd-JHip5K43.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lentLooks-D63Nwgo5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practiceBoot-BYB4AEZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtimeProduct-JqjboBHG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-DL40vob0.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-CouZ5bWk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/compile-CeS-UGuK.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/593c1a6132db5e33ddf94bd0237369b3a4fd5a757615689d9f5232e23bb1e11d.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practice-DY5adlOR.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Settings-CbCS3hr_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Stems-BfgQjzTZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-DDJq1K7u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioFiles-CzmqQ-A-.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtime-dJ8HEGxf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/geometryBounds-BYQ4ZAtL.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/registry-DD4IMEEc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/toon-DYKI4CCE.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/SetScore-B6vb5SaH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Cues-BpaGKVwo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/declaredBank-BDYgCU8w.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practiceBoot-BYB4AEZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/graphBackend-D-UfPjw3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/presets-DPPGXXBd.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/time-Cyc1fHs4.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dataLook-WmHAIXkp.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowChunks-BOgkD-i_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/precompile-B7E1hrq1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lastEnd-JHip5K43.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lentLooks-D63Nwgo5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtimeProduct-JqjboBHG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-DL40vob0.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-CouZ5bWk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/compile-CeS-UGuK.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/593c1a6132db5e33ddf94bd0237369b3a4fd5a757615689d9f5232e23bb1e11d.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm",
+      "status": 200
+    }
+  ],
+  "placements": [
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 0.8204999999999999,
+      "position": [
+        3.715992262379522e-9,
+        900,
+        -4.202914999518543
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 1.925300000004471,
+      "position": [
+        -0.3178966185462043,
+        900,
+        -4.711778192501515
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 2.7158000000044717,
+      "position": [
+        -0.6230772203218505,
+        900,
+        -5.200286953430623
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 3.8158000000044727,
+      "position": [
+        -0.9544412792112992,
+        900,
+        -5.729034366738051
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 4.901100000001489,
+      "position": [
+        -1.2723375058651283,
+        900,
+        -6.237897799070924
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 6.001100000001485,
+      "position": [
+        -1.5902333141222909,
+        900,
+        -6.74676151080057
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 1.4,
+      "pitch": 0.03,
+      "time": 8.746099999986576,
+      "position": [
+        -1.6514520645141602,
+        900,
+        -7.6079813003540036
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 12.855699999988055,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 13.908199999988051,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 15.091399999991028,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 15.989199999988045,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 16.89709999999402,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 17.936999999999994,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 18.637000000000004,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 19.534799999997034,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 20.535000000000025,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 21.44910000000153,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 22.25580000000452,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 23.03780000000453,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 24.125600000001565,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 25.21729999999711,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 26.264899999998615,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 27.25020000000309,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 28.0502000000031,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 29.037600000001625,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 30.03760000000164,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 31.137600000001655,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 32.15000000000763,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 33.056500000000185,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 34.11370000000318,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 34.9861000000017,
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -5.9375343197956685
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "phase": "sword",
+      "time": 1.925300000004471,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 57,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 3,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -0.3178966185462043,
+          900,
+          -6.911778192501515
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.counter",
+          "hit": false,
+          "elapsed": 0.016666666666666666,
+          "speedMul": 1,
+          "clock": 1.9166666666666647,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          0.000005674941667406378,
+          900.0035438125415,
+          -4.826590663583133
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 2.7158000000044717,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 45,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -0.6230772203218505,
+          900,
+          -7.400286953430623
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.6999999999999953,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.31855686487893486,
+          900.0199820004273,
+          -4.485835087317784
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 3.8158000000044727,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 33,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -0.9544412792112992,
+          900,
+          -7.929034366738051
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 3.7999999999999914,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.6267993612836431,
+          900.003153298283,
+          -5.845119731962543
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 4.901100000001489,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 21,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.1
+        },
+        "position": [
+          -1.2723375058651283,
+          900,
+          -8.437897799070925
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 4.899999999999988,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.954435926599646,
+          900.0036008019597,
+          -6.352647389317342
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 6.001100000001485,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 9,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -1.5902333141222909,
+          900,
+          -8.94676151080057
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 5.999999999999984,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.2723920048619466,
+          900.0020484190609,
+          -6.860846933673687
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 7.1419999999999915,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 0,
+        "maxHp": 60,
+        "alive": false,
+        "state": "idle",
+        "mem": {
+          "conch-st": 5,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -1.6514520645141602,
+          900,
+          -9.007981300354004
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 7.133333333333313,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 84,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.5903354011198134,
+          900.0034086173328,
+          -7.370409762288584
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 1,
+        "complete": false
+      },
+      "status": "Collected 1 local practice coins."
+    },
+    {
+      "phase": "corpse",
+      "time": 9.338099999986575,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 0,
+        "maxHp": 60,
+        "alive": false,
+        "state": "idle",
+        "mem": {
+          "conch-st": 5,
+          "conch-guard": 0,
+          "regular-clock": 0
+        },
+        "position": [
+          -1.6514520645141602,
+          900,
+          -9.007981300354004
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 9.333333333333377,
+          "deadlines": [],
+          "scores": [],
+          "x0": -0.3178966185462043,
+          "z0": -6.911778192501515,
+          "x1": 0.04382156157946476,
+          "z1": -4.539193113275362,
+          "yaw": 0.15129241348380937,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 87.7143999999762,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.6514580769216423,
+          900.0020998404652,
+          -7.607980853872581
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 3,
+        "complete": true
+      },
+      "status": "Collected 3 local practice coins."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 13.908199999988051,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 0.9999999999999999
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.3,
+          "speedMul": 1,
+          "clock": 1.4166666666666665,
+          "deadlines": [],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000023931331972387922,
+          "z1": -4.387534319915019,
+          "yaw": -0.00000997293923493083,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0010269080626029098,
+          900.0200706512078,
+          -5.35524552747817
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 15.091399999991028,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.5
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.5999999999999956,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 2.0166666666666644
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000023931331972387922,
+          "z1": -4.387534319915019,
+          "yaw": -0.00000997293923493083,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001720827924900966,
+          900.003706519783,
+          -5.93523929946927
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 15.989199999988045,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 1.4000000000000001
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 3.4999999999999925,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 2.0166666666666644
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000023931331972387922,
+          "z1": -4.387534319915019,
+          "yaw": -0.00000997293923493083,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001638225208722751,
+          900.0027065228351,
+          -5.93594029091981
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 16.89709999999402,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 0.7
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.08333333333333333,
+          "speedMul": 1,
+          "clock": 4.39999999999999,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 2.0166666666666644
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004574579045014104,
+          "z1": -4.387534320231714,
+          "yaw": -0.000019062296934983757,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 72,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000021756865712491656,
+          900.0457398568396,
+          -5.646681189177308
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 17.936999999999994,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.2
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 5.433333333333319,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 5.2166666666666535
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004574579045014104,
+          "z1": -4.387534320231714,
+          "yaw": -0.000019062296934983757,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 72,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0009135176224741087,
+          900.0088927344987,
+          -5.646991673055478
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 18.637000000000004,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.8999999999999999
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 6.133333333333317,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 5.2166666666666535
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004574579045014104,
+          "z1": -4.387534320231714,
+          "yaw": -0.000019062296934983757,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 72,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000016098406212423054,
+          900.0021065235196,
+          -5.936040651146548
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 19.534799999997034,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0.2
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": false,
+          "elapsed": 0.2333333333333333,
+          "speedMul": 1,
+          "clock": 7.033333333333314,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 5.2166666666666535
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000045637172377492024,
+          "z1": -4.387534320229646,
+          "yaw": -0.000019017039404705133,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 72,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001670983136648537,
+          900.0030065216051,
+          -5.935640289908754
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 20.535000000000025,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 1.2
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.5166666666666666,
+          "speedMul": 1,
+          "clock": 8.033333333333312,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 5.2166666666666535
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000045637172377492024,
+          "z1": -4.387534320229646,
+          "yaw": -0.000019017039404705133,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 58,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00021946223694058794,
+          900.0200645550794,
+          -5.355941165808517
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 21.349100000001528,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.4
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 8.85000000000002,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 8.416666666666664
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000045637172377492024,
+          "z1": -4.387534320229646,
+          "yaw": -0.000019017039404705133,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 58,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000016239545934554865,
+          900.0024065229227,
+          -5.935940451560292
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 22.25580000000452,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 1.3
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 9.766666666666731,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 8.416666666666664
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000045637172377492024,
+          "z1": -4.387534320229646,
+          "yaw": -0.000019017039404705133,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 58,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001633622126363029,
+          900.002606522874,
+          -5.935940355363357
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 23.03780000000453,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0.5
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": false,
+          "elapsed": 0.55,
+          "speedMul": 1,
+          "clock": 10.550000000000104,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 8.416666666666664
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044672958131990856,
+          "z1": -4.387534320211502,
+          "yaw": -0.000018615283469008524,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 58,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000016239545934554865,
+          900.0024065229227,
+          -5.935940451560292
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 24.125600000001565,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 1.6000000000000003
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 11.633333333333491,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 11.616666666666823
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044672958131990856,
+          "z1": -4.387534320211502,
+          "yaw": -0.000018615283469008524,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 44,
+          "maxHealth": 100
+        },
+        "position": [
+          0.000018093823291703316,
+          900.0201142569604,
+          -5.356194055057587
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 25.21729999999711,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 1.0999999999999999
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 12.716666666666878,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 11.616666666666823
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044672958131990856,
+          "z1": -4.387534320211502,
+          "yaw": -0.000018615283469008524,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 44,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001668383048326113,
+          900.0033065207317,
+          -5.935440229771459
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 26.264899999998615,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0.5
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": false,
+          "elapsed": 0.5666666666666668,
+          "speedMul": 1,
+          "clock": 13.76666666666693,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 11.616666666666823
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044612661311512284,
+          "z1": -4.387534320210381,
+          "yaw": -0.000018590159793804768,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 44,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000016743448962303585,
+          900.0032065207706,
+          -5.935440289389938
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 27.25020000000309,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 1.5000000000000002
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.8333333333333343,
+          "speedMul": 1,
+          "clock": 14.750000000000313,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 11.616666666666823
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044612661311512284,
+          "z1": -4.387534320210381,
+          "yaw": -0.000018590159793804768,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 30,
+          "maxHealth": 100
+        },
+        "position": [
+          0.000018093823291703316,
+          900.0200602276927,
+          -5.356194055057587
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 28.0502000000031,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.7
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 15.550000000000352,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 14.816666666666983
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000044612661311512284,
+          "z1": -4.387534320210381,
+          "yaw": -0.000018590159793804768,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 30,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000016239545934554865,
+          900.0024065229227,
+          -5.935940451560292
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 29.037600000001625,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0.1
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": false,
+          "elapsed": 0.15,
+          "speedMul": 1,
+          "clock": 16.55000000000034,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 14.816666666666983
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000046175956067729506,
+          "z1": -4.3875343202399515,
+          "yaw": -0.00001924153260901182,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 30,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001670983136648537,
+          900.0030065216051,
+          -5.935640289908754
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 30.03760000000164,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 1.0999999999999999
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.4333333333333333,
+          "speedMul": 1,
+          "clock": 17.550000000000285,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 14.816666666666983
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000046175956067729506,
+          "z1": -4.3875343202399515,
+          "yaw": -0.00001924153260901182,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          0.00019566797905767267,
+          900.0201113062576,
+          -5.3560789679349625
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 31.137600000001655,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.6
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 18.650000000000222,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 18.016666666666925
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.000046175956067729506,
+          "z1": -4.3875343202399515,
+          "yaw": -0.00001924153260901182,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001668383048326113,
+          900.0033065207317,
+          -5.935440229771459
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 32.15000000000763,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 1,
+          "regular-clock": 0
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": false,
+          "elapsed": 0.05,
+          "speedMul": 1,
+          "clock": 19.650000000000166,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 18.016666666666925
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004708256685793962,
+          "z1": -4.387534320257568,
+          "yaw": -0.000019619287105004016,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 16,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001670983136648537,
+          900.0030065216051,
+          -5.935640289908754
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 33.056500000000185,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 0.8999999999999999
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.24999999999999997,
+          "speedMul": 1,
+          "clock": 20.56666666666678,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 18.016666666666925
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004708256685793962,
+          "z1": -4.387534320257568,
+          "yaw": -0.000019619287105004016,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00005544958895498716,
+          900.0201349492854,
+          -5.355581441441728
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 34.11370000000318,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 0.4
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 21.61666666666672,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 21.216666666666743
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004708256685793962,
+          "z1": -4.387534320257568,
+          "yaw": -0.000019619287105004016,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001668383048326113,
+          900.0033065207317,
+          -5.935440229771459
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 34.9861000000017,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "alert",
+        "mem": {
+          "conch-st": 2,
+          "conch-guard": 0,
+          "regular-clock": 1.2
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 22.483333333333338,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 21.216666666666743
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004708256685793962,
+          "z1": -4.387534320257568,
+          "yaw": -0.000019619287105004016,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001638225208722751,
+          900.0027065228351,
+          -5.93594029091981
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 35.918299999997245,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "conch-duelist",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "conch-st": 1,
+          "conch-guard": 0,
+          "regular-clock": 0.6
+        },
+        "position": [
+          3.7221910493059895e-9,
+          900,
+          -6.787534319795668
+        ],
+        "bones": [
+          "body",
+          "shell",
+          "head",
+          "eyestalkLeft",
+          "eyestalkRight",
+          "shieldArm",
+          "shieldForearm",
+          "rapierArm",
+          "rapierForearm",
+          "legLeft",
+          "legLeftKnee",
+          "legLeftAnkle",
+          "legRight",
+          "legRightKnee",
+          "legRightAnkle"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "active",
+          "currentId": "strike.conch-duelist.thrust",
+          "hit": true,
+          "elapsed": 0.016666666666666666,
+          "speedMul": 1,
+          "clock": 23.416666666666618,
+          "deadlines": [
+            {
+              "id": "strike.conch-duelist.thrust",
+              "at": 21.216666666666743
+            }
+          ],
+          "scores": [],
+          "x0": 3.7221910493059895e-9,
+          "z0": -6.787534319795668,
+          "x1": -0.00004460005847572538,
+          "z1": -4.387534320210147,
+          "yaw": -0.000018584908612225986,
+          "length": 2.4
+        }
+      },
+      "player": {
+        "health": {
+          "health": 0,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00001670983136648537,
+          900.0030065216051,
+          -5.935640289908754
+        ],
+        "carried": true
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Defeated. Retry starts a fresh local bout."
+    }
+  ],
+  "persistence": [
+    {
+      "phase": "entry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "retry-after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "after-player-defeat",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "retry-after-defeat",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "reentry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    }
+  ],
+  "caveat": "Muted iPhone 16 Pro emulation in dot cloud Chromium. No physical-device, Safari, performance, visual acceptance, or fun claim. Diagnostic player placement/aim only. Sword-only supplied loadout; spear is unavailable and not injected.",
+  "phase": "complete",
+  "beforeStart": {
+    "storage": {
+      "local": {},
+      "session": {}
+    },
+    "title": "Conch character-native15 · UNACCEPTED WIP",
+    "text": "motion3 · actual-engine arena · collider tuning unaccepted\nConch character-native15 · UNACCEPTED WIP\n\nOne unaccepted native Conch candidate. Diagnostic pose and collider dimensions are experimental. Health and coins stay in this page.\n\nStart practice\nTouch controls or keyboard and mouse."
+  },
+  "entry": {
+    "time": 0.20039999999850988,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.1
+      },
+      "position": [
+        -7.152275733474101e-13,
+        900,
+        -6.929999999701977
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.19999999999999998,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        1.7745994913354393e-10,
+        900.0003999999826,
+        -0.3123291204211061
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "swordResult": {
+    "time": 7.1419999999999915,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 0,
+      "maxHp": 60,
+      "alive": false,
+      "state": "idle",
+      "mem": {
+        "conch-st": 5,
+        "conch-guard": 0,
+        "regular-clock": 0
+      },
+      "position": [
+        -1.6514520645141602,
+        900,
+        -9.007981300354004
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 7.133333333333313,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178966185462043,
+        "z0": -6.911778192501515,
+        "x1": 0.04382156157946476,
+        "z1": -4.539193113275362,
+        "yaw": 0.15129241348380937,
+        "length": 2.4
+      }
+    },
+    "player": {
+      "health": {
+        "health": 84,
+        "maxHealth": 100
+      },
+      "position": [
+        -1.5903354011198134,
+        900.0034086173328,
+        -7.370409762288584
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 1,
+      "complete": false
+    },
+    "status": "Collected 1 local practice coins."
+  },
+  "corpseReward": {
+    "time": 10.73809999998657,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 0,
+      "maxHp": 60,
+      "alive": false,
+      "state": "idle",
+      "mem": {
+        "conch-st": 5,
+        "conch-guard": 0,
+        "regular-clock": 0
+      },
+      "position": [
+        -1.6514520645141602,
+        900,
+        -9.007981300354004
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 10.733333333333446,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.3178966185462043,
+        "z0": -6.911778192501515,
+        "x1": 0.04382156157946476,
+        "z1": -4.539193113275362,
+        "yaw": 0.15129241348380937,
+        "length": 2.4
+      }
+    },
+    "player": {
+      "health": {
+        "health": 93.31439999997627,
+        "maxHealth": 100
+      },
+      "position": [
+        -1.6514583427592875,
+        900.0062998390204,
+        -7.607982360036046
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 3,
+      "complete": true
+    },
+    "status": "Collected 3 local practice coins."
+  },
+  "retryAfterReward": {
+    "time": 12.755699999988055,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0.2
+      },
+      "position": [
+        1.8601418677946513e-9,
+        900,
+        -6.872534320689738
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.26666666666666666,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        1.355931209880343e-7,
+        900.000899999919,
+        -0.31232915515378046
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "playerDefeat": {
+    "time": 35.918299999997245,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "attack",
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      },
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -6.787534319795668
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.conch-duelist.thrust",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 23.416666666666618,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 21.216666666666743
+          }
+        ],
+        "scores": [],
+        "x0": 3.7221910493059895e-9,
+        "z0": -6.787534319795668,
+        "x1": -0.00004460005847572538,
+        "z1": -4.387534320210147,
+        "yaw": -0.000018584908612225986,
+        "length": 2.4
+      }
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.00001670983136648537,
+        900.0030065216051,
+        -5.935640289908754
+      ],
+      "carried": true
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "defeatedAttack": {
+    "time": 40.078499999985375,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "attack",
+      "mem": {
+        "conch-st": 1,
+        "conch-guard": 0,
+        "regular-clock": 0.6
+      },
+      "position": [
+        3.7221910493059895e-9,
+        900,
+        -6.787534319795668
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 27.583333333333048,
+        "deadlines": [
+          {
+            "id": "strike.conch-duelist.thrust",
+            "at": 21.216666666666743
+          }
+        ],
+        "scores": [],
+        "x0": 3.7221910493059895e-9,
+        "z0": -6.787534319795668,
+        "x1": -0.00004460005847572538,
+        "z1": -4.387534320210147,
+        "yaw": -0.000018584908612225986,
+        "length": 2.4
+      }
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.00001670983136648537,
+        900.0030065216051,
+        -5.935640289908754
+      ],
+      "carried": true
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "retryAfterDefeat": {
+    "time": 40.52549999998538,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.000004157278937100273,
+        900.000320878833,
+        -0.02307137774829826
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "reentry": {
+    "time": 0.00010000000149011611,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "conch-duelist",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "state": "idle",
+      "mem": {
+        "conch-st": 0,
+        "conch-guard": 0,
+        "regular-clock": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "shell",
+        "head",
+        "eyestalkLeft",
+        "eyestalkRight",
+        "shieldArm",
+        "shieldForearm",
+        "rapierArm",
+        "rapierForearm",
+        "legLeft",
+        "legLeftKnee",
+        "legLeftAnkle",
+        "legRight",
+        "legRightKnee",
+        "legRightAnkle"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        0,
+        900,
+        -0.31232912021284065
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "reloadResponses": [
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practice-DY5adlOR.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Settings-CbCS3hr_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Stems-BfgQjzTZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/preload-DDJq1K7u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioFiles-CzmqQ-A-.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtime-dJ8HEGxf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/geometryBounds-BYQ4ZAtL.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/registry-DD4IMEEc.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/toon-DYKI4CCE.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/SetScore-B6vb5SaH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Cues-BpaGKVwo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/declaredBank-BDYgCU8w.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/practiceBoot-BYB4AEZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/graphBackend-D-UfPjw3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/presets-DPPGXXBd.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/time-Cyc1fHs4.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dataLook-WmHAIXkp.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/shadowChunks-BOgkD-i_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/precompile-B7E1hrq1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lastEnd-JHip5K43.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/lentLooks-D63Nwgo5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/runtimeProduct-JqjboBHG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/b7e14cdb83814eefa02227a7aac22fce01f2c58392f6a0b2d66e4a6443295235.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-DL40vob0.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/engineNodesHandler-CouZ5bWk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/compile-CeS-UGuK.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/9cbdeb364506d8d045534931cc1a16b4f5e8c46b6f0e24702210f06b4c9b3d40.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/json/593c1a6132db5e33ddf94bd0237369b3a4fd5a757615689d9f5232e23bb1e11d.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/conch-engine/practice-product/blobs/wasm/2393ffa90be5023cc70b69978b4328579091e171481b06b2ad25c5e63affae02.wasm",
+      "status": 200
+    }
+  ],
+  "endedAt": "2026-10-19T06:30:38.591Z",
+  "pass": true
+}

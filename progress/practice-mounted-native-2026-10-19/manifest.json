@@ -1,0 +1,94 @@
+{
+  "README.md": {
+    "bytes": 2451,
+    "sha256": "a3b81174b1e10991de5d8791002a78ddb80f78bdb5604bae84a9b6c8e1b06d96"
+  },
+  "colossus/corpseReward.jpg": {
+    "bytes": 45714,
+    "sha256": "3011cda18f30a1db35bbd5be73f5259c0932ab36accde12d83e17d06fd27375e"
+  },
+  "colossus/entry.jpg": {
+    "bytes": 66091,
+    "sha256": "c2ee62c050f31699234188176e57e535b57c92b0c6412b4b23adc2adb9c59268"
+  },
+  "colossus/inventory-after.json": {
+    "bytes": 93535,
+    "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+  },
+  "colossus/inventory-before.json": {
+    "bytes": 93535,
+    "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+  },
+  "colossus/playerDefeat.jpg": {
+    "bytes": 58526,
+    "sha256": "f6e3a1fb1ee933c5314a162ebe25aa2da12d2767a44904081b9932e58ae1332b"
+  },
+  "colossus/report.json": {
+    "bytes": 185688,
+    "sha256": "d3816396242ae783076dacf39a0d1d2b29fb9d724d450683025767f94f14a632"
+  },
+  "colossus/source-inventory.json": {
+    "bytes": 21994,
+    "sha256": "2ce55e8879faa92f4713abe4641185d599c62473d8b9929410e77e818fc08a62"
+  },
+  "conch/corpseReward.jpg": {
+    "bytes": 58173,
+    "sha256": "386e5e9e02d316165f7127ad050bd3e6121f48df756d9754d2e2e2867473013a"
+  },
+  "conch/entry.jpg": {
+    "bytes": 58781,
+    "sha256": "3048a00a440f9233fb61d9a971a5c7ba39c4e0748fcf4171714d0f71edc9fb6b"
+  },
+  "conch/inventory-after.json": {
+    "bytes": 93535,
+    "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+  },
+  "conch/inventory-before.json": {
+    "bytes": 93535,
+    "sha256": "bd6990728d9da8ba0208d055948133bfc6c09f09b3f13bb0b90c3bf5adbdf98e"
+  },
+  "conch/playerDefeat.jpg": {
+    "bytes": 47375,
+    "sha256": "48b2fab6b2f9c5951d85deabd824a7598f4f150ac0e92535b506443b07748a8a"
+  },
+  "conch/report.json": {
+    "bytes": 119988,
+    "sha256": "fa93b755aa082f36f78ba7195ac9a1aea25bd5e5ee6afc72b414e9c88bc3b43a"
+  },
+  "conch/source-inventory.json": {
+    "bytes": 21990,
+    "sha256": "8b0be127388df193e8d55a6eaf0ace5a2320c3d42f858563b8e7b380e1db5d6a"
+  },
+  "harness-final.mjs": {
+    "bytes": 11073,
+    "sha256": "36113dc45544ad8debd958d7690074a77d5442fc86a3cca09d12844ea96c0a7e"
+  },
+  "provenance/conch-initial-regen-assertion-report.json": {
+    "bytes": 131206,
+    "sha256": "dc02d439fbd636984b5ea934ef40384e6f780dabc4f7499e680b873eb2848c2e"
+  },
+  "provenance/harness-run1.mjs": {
+    "bytes": 10570,
+    "sha256": "a6663879aee26e341e00843bdd7635a5b2cd056f7994f57b2f4d265d2957f332"
+  },
+  "summary.json": {
+    "bytes": 4835,
+    "sha256": "e66f1a3e6aae76aaa7216eff3241dd9dac3c5aae7e7832adaa6a0a3dcc2cb1c9"
+  },
+  "source-lint-revision.json": {
+    "bytes": 927,
+    "sha256": "a66f8255ec29374d60614d4dc9fc58a3013c2a01bc07f7e5717155c22a923695"
+  },
+  "site-layout/1440.jpg": {
+    "bytes": 95057,
+    "sha256": "4b1817ad636004d1e9d64d7b1e52b9afea26ffd534f8623cb46738533b6054a6"
+  },
+  "site-layout/402.jpg": {
+    "bytes": 63028,
+    "sha256": "7313d49453aecde9bb5f4655895ae2d336a555048b6ce054ced95a705024401e"
+  },
+  "site-layout/report.json": {
+    "bytes": 4638,
+    "sha256": "8f57b51ab7ebbac336c95a0f20e94c61f6272b53096992ec8dfa1d45101ba64b"
+  }
+}

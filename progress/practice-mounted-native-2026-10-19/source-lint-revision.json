@@ -1,0 +1,17 @@
+{
+  "method": "Mechanical strict-lint cleanup after successful capture. Explicit storage entries replace instance spread; screenshot DOMRects use toJSON; body textContent read preserves WIP label purpose. Original captured harness retained in native Site v50 evidence. All raw measurements/reports unchanged. These revised harnesses were not used for prior captures.",
+  "files": [
+    {
+      "path": "scripts/qa-mounted-native-enemies.mjs",
+      "capturedSha256": "3c7ab501faf8a629bbcb6053f2d6d0e1157e567452b6bc1df9741f6db5cc96a8",
+      "currentSha256": "36113dc45544ad8debd958d7690074a77d5442fc86a3cca09d12844ea96c0a7e",
+      "bytes": 11073
+    },
+    {
+      "path": "scripts/qa-enemy-review-layout.mjs",
+      "capturedSha256": "2458836d8b2dc2c9ddca6e5e678e3b3454bb62bda8d777fd0a1c32918e85c14f",
+      "currentSha256": "03bf1761bf118ae49e902c8e8a425e251594f151311f2b8799c2701a493e1b7a",
+      "bytes": 2143
+    }
+  ]
+}

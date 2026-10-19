@@ -1,0 +1,7956 @@
+{
+  "schema": "wildshard.mounted-native-functional.v1",
+  "kind": "colossus",
+  "startedAt": "2026-10-19T06:24:21.173Z",
+  "url": "http://127.0.0.1:4478/colossus-engine/index.html",
+  "checks": {
+    "exactOriginalBytes": true,
+    "wipLabel": true,
+    "correctSingleEnemy": true,
+    "nativeModel": true,
+    "swordDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "localReward": true,
+    "retryAfterReward": true,
+    "enemyAttacks": true,
+    "playerDefeated": true,
+    "playerDeathDoesNotKillEnemy": true,
+    "defeatedAttackBlocked": true,
+    "retryAfterDefeat": true,
+    "reloadFresh": true,
+    "reloadAssets": true,
+    "mountedAssetBase": true,
+    "emptyBrowserStorage": true,
+    "emptyWorldShardPersistence": true,
+    "noRuntimeErrors": true,
+    "allFourAppsUnchanged": true
+  },
+  "errors": [],
+  "failedRequests": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practice-NzXdcS6N.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Settings-DUyRaPg1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioFiles-CCXZ77w6.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-D2peSgAT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Stems-BDGsE0tY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/geometryBounds-8RSTaXKZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/SetScore-DKDIZZ-2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtime-BglBlB9I.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/time-jYemHzws.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/presets-CzuizQUW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/declaredBank-BJT0pB29.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Cues-Cbum1KEG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/graphBackend-Dsuk5QzS.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dataLook-B5fALJUH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/registry-JHdmYLOt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/toon-B3l6SkDH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowChunks-hPFvMBdx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/precompile-2uRxBSqm.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lastEnd-B_-i4eWH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lentLooks-BGmed4e8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practiceBoot-KhR3-R0b.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtimeProduct-B9ibf6g9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-ZArSP92D.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-CZTcFZaW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/compile-BCuXvFIT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practice-NzXdcS6N.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-D2peSgAT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioFiles-CCXZ77w6.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Settings-DUyRaPg1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Stems-BDGsE0tY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtime-BglBlB9I.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/SetScore-DKDIZZ-2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/geometryBounds-8RSTaXKZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/toon-B3l6SkDH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/declaredBank-BJT0pB29.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/registry-JHdmYLOt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Cues-Cbum1KEG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practiceBoot-KhR3-R0b.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/graphBackend-Dsuk5QzS.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/presets-CzuizQUW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/time-jYemHzws.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dataLook-B5fALJUH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/precompile-2uRxBSqm.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowChunks-hPFvMBdx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lastEnd-B_-i4eWH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lentLooks-BGmed4e8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtimeProduct-B9ibf6g9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-ZArSP92D.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-CZTcFZaW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/compile-BCuXvFIT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "status": 200
+    }
+  ],
+  "placements": [
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 0.9485999999940397,
+      "position": [
+        0,
+        900,
+        -4.8
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 1.7696999999955303,
+      "position": [
+        -0.3178964592516422,
+        900,
+        -5.308863292634487
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 2.2270000000000008,
+      "position": [
+        -0.3178964592516422,
+        900,
+        -5.308863292634487
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 2.8270000000000013,
+      "position": [
+        -0.635792919434607,
+        900,
+        -5.817726585268974
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 3.727000000000002,
+      "position": [
+        -0.5638731122016907,
+        900,
+        -7.114067173749208
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 4.627,
+      "position": [
+        -0.8817695723846555,
+        900,
+        -7.622930466383695
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 5.426999999999997,
+      "position": [
+        -1.1869501741603017,
+        900,
+        -8.111439227312804
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 6.158700000002975,
+      "position": [
+        -1.5048466343432665,
+        900,
+        -8.620302519947291
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 6.958700000002972,
+      "position": [
+        -1.8227430945262313,
+        900,
+        -9.129165812581778
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 7.485300000004461,
+      "position": [
+        -1.8354589529335499,
+        900,
+        -9.149520344287158
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 8.090300000011911,
+      "position": [
+        -1.8206820548512042,
+        900,
+        -10.1435932463035
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 8.890300000011909,
+      "position": [
+        -2.1258626566268504,
+        900,
+        -10.632102007232607
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 9.852600000008925,
+      "position": [
+        -2.456474974285811,
+        900,
+        -11.161319818533958
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 10.752500000007432,
+      "position": [
+        -2.774371434468776,
+        900,
+        -11.670183111168445
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 11.41770000000296,
+      "position": [
+        -3.079552036244422,
+        900,
+        -12.158691872097553
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 12.197900000005937,
+      "position": [
+        -3.2957216291688383,
+        900,
+        -12.504718911089004
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 12.997900000005934,
+      "position": [
+        -3.1049837530590594,
+        900,
+        -13.176418457366527
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 14.020000000007421,
+      "position": [
+        -3.4101643348112702,
+        900,
+        -13.705636284966022
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 14.869200000010398,
+      "position": [
+        -3.728060794994235,
+        900,
+        -14.21449957760051
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 15.861900000013376,
+      "position": [
+        -4.045957253314555,
+        900,
+        -14.723362872097642
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 16.778300000011896,
+      "position": [
+        -4.363853712566197,
+        900,
+        -15.232226163800807
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 17.87830000001191,
+      "position": [
+        -4.681750172749162,
+        900,
+        -15.741089456435294
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 18.978300000011927,
+      "position": [
+        -4.9996466329321265,
+        900,
+        -16.24995274906978
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 19.93310000000896,
+      "position": [
+        -5.317543081007898,
+        900,
+        -16.758816041704268
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 20.553100000008968,
+      "position": [
+        -5.520996815524995,
+        900,
+        -17.08448854899034
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 21.332000000007486,
+      "position": [
+        -5.3302589394152164,
+        900,
+        -17.756188095267863
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 22.601300000004525,
+      "position": [
+        -5.63543952684995,
+        900,
+        -18.285405922765495
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 23.501300000004537,
+      "position": [
+        -5.953335987032915,
+        900,
+        -18.794269215399982
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 24.398000000000078,
+      "position": [
+        -6.271232442559267,
+        900,
+        -19.30313251175976
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 25.29800000000009,
+      "position": [
+        -6.589128902742232,
+        900,
+        -19.811995804394247
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 26.381200000003084,
+      "position": [
+        -6.907025361993874,
+        900,
+        -20.320859097028734
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 27.181200000003095,
+      "position": [
+        -7.21220596376952,
+        900,
+        -20.80936785795784
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 28.081200000003108,
+      "position": [
+        -7.542818282359804,
+        900,
+        -21.33858568229771
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 29.02270000000312,
+      "position": [
+        -7.860714742542768,
+        900,
+        -21.847448974932195
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 29.937000000000154,
+      "position": [
+        -8.178611198534782,
+        900,
+        -22.356312268498005
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 30.851000000000166,
+      "position": [
+        -8.496507657320763,
+        900,
+        -22.865175558338525
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 31.573300000004647,
+      "position": [
+        -8.808898599447275,
+        900,
+        -23.365226080725552
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 32.41310000000168,
+      "position": [
+        -9.132300568373466,
+        900,
+        -23.882902152920725
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 33.25130000000467,
+      "position": [
+        -9.450197028556431,
+        900,
+        -24.39176544555521
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 2.2,
+      "pitch": 0.03,
+      "time": 33.96590000000617,
+      "position": [
+        -9.755377630332077,
+        900,
+        -24.88027420648432
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 1.4,
+      "pitch": 0.03,
+      "time": 36.73780000000472,
+      "position": [
+        -10.030893325805664,
+        901.5654907226562,
+        -25.74288902282715
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 41.60520000000327,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 42.70520000000329,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 43.70630000000479,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 44.49440000000629,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 45.513700000003325,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 46.40920000000334,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 47.30920000000335,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 48.46700000000782,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 49.725800000012306,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 50.425800000012316,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 51.125800000012326,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 52.23470000001831,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 52.734700000018314,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 53.13470000001832,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 54.05590000002131,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 55.01670000001089,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 56.05450000001538,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 56.454500000015386,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 57.054500000015395,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    },
+    {
+      "reason": "Diagnostic player placement and aim only",
+      "distance": 0.85,
+      "pitch": 0.15,
+      "time": 57.835700000018385,
+      "position": [
+        0,
+        900,
+        -6.15
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "phase": "sword",
+      "time": 1.6696999999955302,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 468,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.3136482946574688,
+          900,
+          -7.502063169144094
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 1.6666666666666656,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          1.8143337634189682e-7,
+          900.0022999947396,
+          -4.80000135857525
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 2.2270000000000008,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 468,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.30000000000000004,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.3178964592516422,
+          900,
+          -7.508863292634487
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.2166666666666637,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.3178964452775738,
+          900.0014999981067,
+          -5.308862901327069
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 2.8270000000000013,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 444,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.635792919434607,
+          900,
+          -8.017726585268974
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 2.8166666666666615,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.3178964450702605,
+          900.0017999980264,
+          -5.308863015502603
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 3.727000000000002,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 428,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.5638731122016907,
+          900,
+          -9.314067173749208
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 3.7166666666666583,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.6357925032642642,
+          900.0026999874099,
+          -5.817727450177375
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 4.527,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 416,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -0.8690537139773369,
+          900,
+          -9.802575934678316
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 4.516666666666656,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.5638667944080211,
+          900.0023996765522,
+          -7.114070241182797
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 5.426999999999997,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 404,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.1869501741603017,
+          900,
+          -10.311439227312803
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 5.416666666666653,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.8817705815320149,
+          900.0023997259923,
+          -7.622935609958758
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 6.158700000002975,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 392,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.5048466343432665,
+          900,
+          -10.82030251994729
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 6.1499999999999835,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.1869364297628593,
+          900.0022990361467,
+          -8.111445400004122
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 6.958700000002972,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 380,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.8227430945262313,
+          900,
+          -11.329165812581778
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 6.949999999999981,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.504840556850258,
+          900.0023993709619,
+          -8.620290768409845
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 7.358700000002971,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 380,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.1,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.8354589529335499,
+          900,
+          -11.349520344287157
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 7.349999999999979,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.8227390759312527,
+          900.0011995628593,
+          -9.12917457077889
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 8.090300000011911,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 356,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -1.8206820548512042,
+          900,
+          -12.343593246303499
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 8.083333333333314,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.8354611806588004,
+          900.0026996857414,
+          -9.149529674736488
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 8.890300000011909,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 344,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -2.1258626566268504,
+          900,
+          -12.832102007232606
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 8.883333333333354,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -1.8206854893245996,
+          899.9991306435622,
+          -10.143586661349524
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 9.852600000008925,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 332,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -2.456474974285811,
+          900,
+          -13.361319818533957
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 9.850000000000069,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -2.12586964256597,
+          900.0029998433383,
+          -10.632105955817648
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 10.752500000007432,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 320,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -2.774371434468776,
+          900,
+          -13.870183111168444
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 10.750000000000114,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -2.456471856263132,
+          900.0026997495806,
+          -11.161315613935251
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 11.41770000000296,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 308,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -3.079552036244422,
+          900,
+          -14.358691872097552
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 11.416666666666814,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -2.774372784688426,
+          900.0020998071195,
+          -11.670179539937696
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 12.197900000005937,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 296,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -3.2957216291688383,
+          900,
+          -14.704718911089003
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 12.183333333333518,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -3.0795469230105894,
+          900.0023998806282,
+          -12.158693236763714
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 12.997900000005934,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 284,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -3.1049837530590594,
+          900,
+          -15.376418457366526
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 12.983333333333558,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -3.2957142364068837,
+          900.0023989298861,
+          -12.504731577485932
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 14.020000000007421,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 272,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          -3.4101643348112702,
+          900,
+          -15.905636284966022
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 14.016666666666943,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -3.1049773961612015,
+          900.0031989696727,
+          -13.176432812565885
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 14.869200000010398,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 260,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -3.728060794994235,
+          900,
+          -16.41449957760051
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 14.866666666666985,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -3.4101584659902713,
+          900.0026996467859,
+          -13.7056412329665
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 15.861900000013376,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 248,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -4.045957253314555,
+          900,
+          -16.92336287209764
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 15.850000000000367,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -3.7280520638323686,
+          900.0031993712328,
+          -14.214495745818876
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 16.778300000011896,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 236,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -4.363853712566197,
+          900,
+          -17.432226163800806
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 16.766666666666996,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -4.0459589774302565,
+          900.0027998358491,
+          -14.723369859747265
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 17.77830000001191,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 224,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -4.681750172749162,
+          900,
+          -17.941089456435293
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 17.76666666666694,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -4.36385300348444,
+          900.0029999395556,
+          -15.232222155104719
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 18.978300000011927,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 212,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -4.9996466329321265,
+          900,
+          -18.44995274906978
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 18.96666666666687,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -4.681755428693041,
+          900.003299672695,
+          -15.741091063398393
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 19.93310000000896,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 200,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -5.317543081007898,
+          900,
+          -18.958816041704267
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 19.916666666666817,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -4.999642881750386,
+          900.0029998413956,
+          -16.249948733889944
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 20.453100000008966,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 188,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.4,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -5.317543081007898,
+          900,
+          -18.958816041704267
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 20.45000000000012,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -5.317547175876825,
+          900.0016997931743,
+          -16.758814615025504
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 21.332000000007486,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 176,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -5.3302589394152164,
+          900,
+          -19.956188095267862
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 21.316666666666737,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -5.521000143266175,
+          900.0023996374293,
+          -17.084492124247085
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 22.501300000004523,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 164,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -5.63543952684995,
+          900,
+          -20.485405922765494
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 22.500000000000004,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -5.330259357882959,
+          900.0037999210472,
+          -17.75618375905863
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 23.501300000004537,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 152,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -5.953335987032915,
+          900,
+          -20.99426921539998
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 23.499999999999947,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -5.6354380250374305,
+          900.002699919758,
+          -18.28540556072844
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 24.398000000000078,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 140,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -6.271232442559267,
+          900,
+          -21.50313251175976
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 24.38333333333323,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -5.9533451103929735,
+          900.0026996673478,
+          -18.79427288662349
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 25.29800000000009,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 128,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 2,
+          "tg-exposed": 0
+        },
+        "position": [
+          -6.589128902742232,
+          900,
+          -22.011995804394246
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 25.28333333333318,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -6.271233812803789,
+          900.0026998526882,
+          -19.30313697352769
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 26.381200000003084,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 116,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.1,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -6.907025361993874,
+          900,
+          -22.520859097028733
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 26.36666666666645,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -6.5891254066501705,
+          900.0032997659146,
+          -19.811999821890925
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 27.181200000003095,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 104,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -7.21220596376952,
+          900,
+          -23.00936785795784
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 27.166666666666405,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -6.90702147028945,
+          900.0023997013122,
+          -20.320851852381868
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 28.081200000003108,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 92,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -7.542818282359804,
+          900,
+          -23.538585682297708
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 28.066666666666354,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -7.2122089613563,
+          900.0026999136317,
+          -20.80936793496446
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 29.02270000000312,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 80,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -7.860714742542768,
+          900,
+          -24.047448974932195
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 29.0166666666663,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -7.542824103888275,
+          900.0029994502765,
+          -21.338594408020295
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 29.937000000000154,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 68,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -8.178611198534782,
+          900,
+          -24.556312268498004
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 29.933333333332914,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -7.860717095456522,
+          900.0027999186714,
+          -21.84745047978373
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 30.851000000000166,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 56,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -8.496507657320763,
+          900,
+          -25.065175558338524
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 30.84999999999953,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -8.178604107245288,
+          900.0026996819797,
+          -22.356315378421368
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 31.573300000004647,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 44,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -8.808898599447275,
+          900,
+          -25.56522608072555
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 31.566666666666155,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -8.496506944450381,
+          900.002299882457,
+          -22.86516831861104
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 32.41310000000168,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 32,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -9.132300568373466,
+          900,
+          -26.082902152920724
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 32.399999999999444,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -8.808898436801407,
+          900.0025999218415,
+          -23.36522993389196
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 33.25130000000467,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 20,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -9.450197028556431,
+          900,
+          -26.59176544555521
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 33.249999999999396,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -9.132300247955651,
+          900.0026999088732,
+          -23.88290506033001
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 33.96590000000617,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 8,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0,
+          "tg-awake": 1,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -9.755377630332077,
+          900,
+          -27.08027420648432
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 33.949999999999356,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -9.45019899288635,
+          900.0020999299013,
+          -24.391762039618257
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Practice bout. Health and rewards stay in this page."
+    },
+    {
+      "phase": "sword",
+      "time": 34.96590000000619,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 0,
+        "maxHp": 480,
+        "alive": false,
+        "state": "idle",
+        "mem": {
+          "tg-state": 6,
+          "tg-clock": 0,
+          "tg-awake": 0,
+          "tg-phase": 3,
+          "tg-exposed": 0
+        },
+        "position": [
+          -9.679933547973633,
+          900.7584838867188,
+          -26.994714736938477
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": false,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 34.9499999999993,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -5.384721115980779e-11,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -9.755371519499818,
+          900.0029995037839,
+          -24.880267477135376
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Opponent defeated. Collect the practice coins."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 42.70520000000329,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 1,
+          "tg-clock": 0.4,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.colossus.left",
+          "hit": false,
+          "elapsed": 0.44999999999999996,
+          "speedMul": 1,
+          "clock": 1.5499999999999994,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007510772425851801,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006493720725593566,
+          900.0032998275128,
+          -6.149999553991651
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 43.70630000000479,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 1,
+          "tg-clock": 1.4000000000000001,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.left",
+          "hit": true,
+          "elapsed": 0.2833333333333333,
+          "speedMul": 1,
+          "clock": 2.549999999999996,
+          "deadlines": [],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007510772425851801,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 82,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0000016072778859024806,
+          900.0199388100737,
+          -5.52032378684538
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 44.49440000000629,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.7,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 3.349999999999993,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007510772425851801,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 82,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006563190698478938,
+          900.0023998277829,
+          -6.149999721929162
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 45.513700000003325,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 0.8999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.colossus.slam",
+          "hit": false,
+          "elapsed": 0.966666666666668,
+          "speedMul": 1,
+          "clock": 4.3666666666666565,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000048843939377205505,
+          "z1": -0.8000000001923979,
+          "yaw": -0.000007878054738340444,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 82,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006493720725593566,
+          900.0032998275128,
+          -6.149999553991651
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 46.40920000000334,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 1.8000000000000005,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.slam",
+          "hit": true,
+          "elapsed": 0.5666666666666668,
+          "speedMul": 1,
+          "clock": 5.249999999999987,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000048843939377205505,
+          "z1": -0.8000000001923979,
+          "yaw": -0.000007878054738340444,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 60,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0003722053653287885,
+          900.0200829243404,
+          -5.470836718206518
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 47.20920000000335,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 2.600000000000001,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.slam",
+          "hit": true,
+          "elapsed": 1.3666666666666667,
+          "speedMul": 1,
+          "clock": 6.049999999999984,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000048843939377205505,
+          "z1": -0.8000000001923979,
+          "yaw": -0.000007878054738340444,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 60,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006563190698478938,
+          900.0023998277829,
+          -6.149999721929162
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 48.46700000000782,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 1.0999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 7.316666666666646,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000048843939377205505,
+          "z1": -0.8000000001923979,
+          "yaw": -0.000007878054738340444,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 60,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006509890749135938,
+          900.0042998272547,
+          -6.149999724650171
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 49.725800000012306,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 2,
+          "tg-clock": 1.0999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.right",
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 8.566666666666672,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007878054738340444,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 42,
+          "maxHealth": 100
+        },
+        "position": [
+          0.0001447678608208422,
+          900.0212662884878,
+          -5.629692082131771
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 50.425800000012316,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.30000000000000004,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 9.266666666666707,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007878054738340444,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 42,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00025519176151169993,
+          900.0012249514402,
+          -6.040576812408539
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 51.125800000012326,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 0.2,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.colossus.slam",
+          "hit": false,
+          "elapsed": 0.26666666666666666,
+          "speedMul": 1,
+          "clock": 9.966666666666741,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.00005159363574350859,
+          "z1": -0.800000000214669,
+          "yaw": -0.000008321554152274846,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 42,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006384157064338869,
+          900.0020998280015,
+          -6.149999933130075
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 52.23470000001831,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 1.3,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.slam",
+          "hit": true,
+          "elapsed": 0.09999999999999999,
+          "speedMul": 1,
+          "clock": 11.083333333333464,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.00005159363574350859,
+          "z1": -0.800000000214669,
+          "yaw": -0.000008321554152274846,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 20,
+          "maxHealth": 100
+        },
+        "position": [
+          0.00005594344961500769,
+          900.0200674731677,
+          -5.540003503466237
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 52.734700000018314,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 1.8000000000000005,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.slam",
+          "hit": true,
+          "elapsed": 0.6000000000000002,
+          "speedMul": 1,
+          "clock": 11.583333333333488,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.00005159363574350859,
+          "z1": -0.800000000214669,
+          "yaw": -0.000008321554152274846,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 20,
+          "maxHealth": 100
+        },
+        "position": [
+          0.010982252097969478,
+          900.0008016468491,
+          -6.094788157601143
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 53.13470000001832,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 2.2000000000000006,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 1
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "recover",
+          "currentId": "strike.colossus.slam",
+          "hit": true,
+          "elapsed": 1.0000000000000013,
+          "speedMul": 1,
+          "clock": 11.983333333333508,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 6.199999999999983
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.00005159363574350859,
+          "z1": -0.800000000214669,
+          "yaw": -0.000008321554152274846,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 20,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00000666042845943321,
+          900.0011998298432,
+          -6.150000230384264
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 54.05590000002131,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.30000000000000004,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 12.90000000000022,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.00005159363574350859,
+          "z1": -0.800000000214669,
+          "yaw": -0.000008321554152274846,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 20,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006423024453645898,
+          900.002999827564,
+          -6.149999446029056
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 55.01670000001089,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 1,
+          "tg-clock": 0.1,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.colossus.left",
+          "hit": false,
+          "elapsed": 0.16666666666666666,
+          "speedMul": 1,
+          "clock": 13.866666666666935,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007556495018234727,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 20,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006423024453645898,
+          900.002999827564,
+          -6.149999446029056
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 55.95450000001538,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 1,
+          "tg-clock": 0.9999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "active",
+          "currentId": "strike.colossus.left",
+          "hit": true,
+          "elapsed": 0.19999999999999998,
+          "speedMul": 1,
+          "clock": 14.800000000000315,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 2.6166666666666623
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007556495018234727,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000008793524964197108,
+          900.0461331615006,
+          -5.836295811039768
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 56.454500000015386,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 1,
+          "tg-clock": 1.5000000000000002,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 15.30000000000034,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 15.216666666667003
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007556495018234727,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.00025488041276609526,
+          900.0003249543734,
+          -6.040576802563146
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 57.054500000015395,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "idle",
+        "mem": {
+          "tg-state": 0,
+          "tg-clock": 0.6,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 15.90000000000037,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 15.216666666667003
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": 0,
+          "z1": -7,
+          "yaw": -0.000007556495018234727,
+          "length": 0
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0000063593006611809,
+          900.0017998280891,
+          -6.150000057411503
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 57.835700000018385,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 0.6,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "windup",
+          "currentId": "strike.colossus.slam",
+          "hit": false,
+          "elapsed": 0.6833333333333338,
+          "speedMul": 1,
+          "clock": 16.683333333333668,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 15.216666666667003
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000047786806440628,
+          "z1": -0.8000000001841592,
+          "yaw": -0.000007707549425984056,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 2,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.000006404612054929093,
+          900.0024998276276,
+          -6.14999964263984
+        ],
+        "carried": false
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Fresh practice bout."
+    },
+    {
+      "phase": "player-defeat",
+      "time": 58.85900000001542,
+      "state": "practice",
+      "targets": 1,
+      "enemy": {
+        "kind": "tideRootColossus",
+        "hp": 480,
+        "maxHp": 480,
+        "alive": true,
+        "state": "attack",
+        "mem": {
+          "tg-state": 3,
+          "tg-clock": 1.0999999999999999,
+          "tg-awake": 1,
+          "tg-phase": 1,
+          "tg-exposed": 0
+        },
+        "position": [
+          0,
+          900,
+          -7
+        ],
+        "bones": [
+          "body",
+          "head",
+          "arm-1",
+          "forearm-1",
+          "hand-1",
+          "outer-1",
+          "middle-1",
+          "inner-1",
+          "thumb-1",
+          "leg-1",
+          "shin-1",
+          "foot-1",
+          "arm1",
+          "forearm1",
+          "hand1",
+          "outer1",
+          "middle1",
+          "inner1",
+          "thumb1",
+          "leg1",
+          "shin1",
+          "foot1"
+        ],
+        "strike": {
+          "version": 1,
+          "phase": "idle",
+          "currentId": null,
+          "hit": true,
+          "elapsed": 0,
+          "speedMul": 1,
+          "clock": 17.700000000000276,
+          "deadlines": [
+            {
+              "id": "strike.colossus.left",
+              "at": 15.216666666667003
+            },
+            {
+              "id": "strike.colossus.slam",
+              "at": 12.5000000000002
+            },
+            {
+              "id": "strike.colossus.right",
+              "at": 8.91666666666669
+            }
+          ],
+          "scores": [],
+          "x0": 0,
+          "z0": -7,
+          "x1": -0.000047786806440628,
+          "z1": -0.8000000001841592,
+          "yaw": -0.000007707549425984056,
+          "length": 6.2
+        }
+      },
+      "player": {
+        "health": {
+          "health": 0,
+          "maxHealth": 100
+        },
+        "position": [
+          -0.0000068063706830726045,
+          900.0013998295981,
+          -6.150000069406217
+        ],
+        "carried": true
+      },
+      "loot": {
+        "scope": "practice",
+        "coins": 0,
+        "complete": false
+      },
+      "status": "Defeated. Retry starts a fresh local bout."
+    }
+  ],
+  "persistence": [
+    {
+      "phase": "entry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "retry-after-reward",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "after-player-defeat",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "retry-after-defeat",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "phase": "reentry",
+      "browser": {
+        "local": {},
+        "session": {}
+      },
+      "state": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    }
+  ],
+  "caveat": "Muted iPhone 16 Pro emulation in dot cloud Chromium. No physical-device, Safari, performance, visual acceptance, or fun claim. Diagnostic player placement/aim only. Sword-only supplied loadout; spear is unavailable and not injected.",
+  "phase": "complete",
+  "beforeStart": {
+    "storage": {
+      "local": {},
+      "session": {}
+    },
+    "title": "Colossus V4-skin1-native22 · UNACCEPTED WIP",
+    "text": "motion2 · actual-engine arena · collider tuning unaccepted\nColossus V4-skin1-native22 · UNACCEPTED WIP\n\nOne unaccepted native Colossus candidate. Diagnostic pose and collider dimensions are experimental. Health and coins stay in this page.\n\nStart practice\nTouch controls or keyboard and mouse."
+  },
+  "entry": {
+    "time": 0.10119999999552966,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "idle",
+      "mem": {
+        "tg-state": 0,
+        "tg-clock": 0,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -2.3841383511510883e-13,
+        900.0000999999902,
+        -0.31232912021379433
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "swordResult": {
+    "time": 34.96590000000619,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 0,
+      "maxHp": 480,
+      "alive": false,
+      "state": "idle",
+      "mem": {
+        "tg-state": 6,
+        "tg-clock": 0,
+        "tg-awake": 0,
+        "tg-phase": 3,
+        "tg-exposed": 0
+      },
+      "position": [
+        -9.679933547973633,
+        900.7584838867188,
+        -26.994714736938477
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 34.9499999999993,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 0,
+        "z1": -7,
+        "yaw": -5.384721115980779e-11,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -9.755371519499818,
+        900.0029995037839,
+        -24.880267477135376
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Opponent defeated. Collect the practice coins."
+  },
+  "corpseReward": {
+    "time": 39.005299999997284,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 0,
+      "maxHp": 480,
+      "alive": false,
+      "state": "idle",
+      "mem": {
+        "tg-state": 6,
+        "tg-clock": 0,
+        "tg-awake": 0,
+        "tg-phase": 3,
+        "tg-exposed": 0
+      },
+      "position": [
+        -9.91993522644043,
+        899.77197265625,
+        -26.48849868774414
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 38.99999999999907,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": 0,
+        "z1": -7,
+        "yaw": -5.384721115980779e-11,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -10.030893130791071,
+        900.0198378558925,
+        -25.742896837908127
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 35,
+      "complete": true
+    },
+    "status": "Collected 35 local practice coins."
+  },
+  "retryAfterReward": {
+    "time": 41.50520000000327,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "idle",
+      "mem": {
+        "tg-state": 0,
+        "tg-clock": 0.30000000000000004,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.35,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        5.178470555160175e-8,
+        900.0012999996325,
+        -0.312328938323577
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "playerDefeat": {
+    "time": 58.85900000001542,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "attack",
+      "mem": {
+        "tg-state": 3,
+        "tg-clock": 1.0999999999999999,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 17.700000000000276,
+        "deadlines": [
+          {
+            "id": "strike.colossus.left",
+            "at": 15.216666666667003
+          },
+          {
+            "id": "strike.colossus.slam",
+            "at": 12.5000000000002
+          },
+          {
+            "id": "strike.colossus.right",
+            "at": 8.91666666666669
+          }
+        ],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": -0.000047786806440628,
+        "z1": -0.8000000001841592,
+        "yaw": -0.000007707549425984056,
+        "length": 6.2
+      }
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.0000068063706830726045,
+        900.0013998295981,
+        -6.150000069406217
+      ],
+      "carried": true
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "defeatedAttack": {
+    "time": 63.034499999993116,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "attack",
+      "mem": {
+        "tg-state": 3,
+        "tg-clock": 1.0999999999999999,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 21.883333333333372,
+        "deadlines": [
+          {
+            "id": "strike.colossus.left",
+            "at": 15.216666666667003
+          },
+          {
+            "id": "strike.colossus.slam",
+            "at": 12.5000000000002
+          },
+          {
+            "id": "strike.colossus.right",
+            "at": 8.91666666666669
+          }
+        ],
+        "scores": [],
+        "x0": 0,
+        "z0": -7,
+        "x1": -0.000047786806440628,
+        "z1": -0.8000000001841592,
+        "yaw": -0.000007707549425984056,
+        "length": 6.2
+      }
+    },
+    "player": {
+      "health": {
+        "health": 0,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.0000068063706830726045,
+        900.0013998295981,
+        -6.150000069406217
+      ],
+      "carried": true
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Defeated. Retry starts a fresh local bout."
+  },
+  "retryAfterDefeat": {
+    "time": 63.57919999998866,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "idle",
+      "mem": {
+        "tg-state": 0,
+        "tg-clock": 0.1,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.19999999999999998,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -0.000004880675760432496,
+        900.000700002769,
+        0.29736223143930474
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Fresh practice bout."
+  },
+  "reentry": {
+    "time": 0.10029999999701977,
+    "state": "practice",
+    "targets": 1,
+    "enemy": {
+      "kind": "tideRootColossus",
+      "hp": 480,
+      "maxHp": 480,
+      "alive": true,
+      "state": "idle",
+      "mem": {
+        "tg-state": 0,
+        "tg-clock": 0,
+        "tg-awake": 1,
+        "tg-phase": 1,
+        "tg-exposed": 0
+      },
+      "position": [
+        0,
+        900,
+        -7
+      ],
+      "bones": [
+        "body",
+        "head",
+        "arm-1",
+        "forearm-1",
+        "hand-1",
+        "outer-1",
+        "middle-1",
+        "inner-1",
+        "thumb-1",
+        "leg-1",
+        "shin-1",
+        "foot-1",
+        "arm1",
+        "forearm1",
+        "hand1",
+        "outer1",
+        "middle1",
+        "inner1",
+        "thumb1",
+        "leg1",
+        "shin1",
+        "foot1"
+      ],
+      "strike": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      }
+    },
+    "player": {
+      "health": {
+        "health": 100,
+        "maxHealth": 100
+      },
+      "position": [
+        -2.3841383511510883e-13,
+        900.0000999999902,
+        -0.31232912021379433
+      ],
+      "carried": false
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "reloadResponses": [
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/index.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/style-3STfMJLR.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/tables-BovtVlAx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/scope-CDMJThrF.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-helper-uBIymjUX.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practice-NzXdcS6N.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/rolldown-runtime-DK3Fl9T5.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryAttribution-DlUGm6mv.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/GLTFLoader-DnZ_kjM2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/preload-D2peSgAT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioFiles-CCXZ77w6.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/memoryResources-ConTL0Oo.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shaderPatches-CWlvy5Ya.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/three.core-BNyAOcZ3.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/meshopt_decoder.module-DDLmvpjg.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Settings-DUyRaPg1.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/clock-B53qIMMf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/json-Dr12Y27u.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Stems-BDGsE0tY.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtime-BglBlB9I.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/SetScore-DKDIZZ-2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/geometryBounds-8RSTaXKZ.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/toon-B3l6SkDH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/audioLog-DDd08KrP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/declaredBank-BJT0pB29.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/registry-JHdmYLOt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Cues-Cbum1KEG.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/practiceBoot-KhR3-R0b.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/graphBackend-Dsuk5QzS.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/materialGraph-CteREh-_.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/presets-CzuizQUW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/time-jYemHzws.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/build-CehzHm6x.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dataLook-B5fALJUH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/dayCycle-e1TDlXAt.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Weapon-CNKF6Yh8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeLayerFrame-PqqyriBq.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowVariants-kzUh2vEP.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/precompile-2uRxBSqm.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowDepthVariants-BoIU_3-F.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/shadowChunks-hPFvMBdx.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/postPreparation-BM0ovkLk.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lastEnd-B_-i4eWH.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/emptyLook-D2dy-xuz.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/Tool-jTOctduU.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/lentLooks-BGmed4e8.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/wind-CDg_obA2.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/runtimeProduct-B9ibf6g9.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/shard.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/creatures.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/crowds.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/moves.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/spawns.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/species-programs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/audio/audio.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/actors/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/loot.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/held/arms.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/encounters.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/items.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/combat/strikes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/economy/ledger.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/look.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/look/materials.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/quests/quests.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/client-scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/hooks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/plumbing.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/scripts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/sim/sim.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/migrations.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/state/state.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/card.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/compendium.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/ui/ui.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/collision.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/days.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/edge.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/movers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/navigation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/props.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/spawn.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/terrain.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/tiles.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/traversal.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/water.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/sections/world/weather.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/physics/rapier.wasm",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/4af9592d957cf1880cc1e09b0c2565f334310541fa2c20c68155fbdc08925c76.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-ZArSP92D.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/nodeCoarseMask-BL9dSruf.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/engineNodesHandler-CZTcFZaW.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/compile-BCuXvFIT.js",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/939819e62c2e7df9157f6c756f3313f02784f24de76a67bcb5fabe029b9a76a6.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/driftwood-isle/colossus-native-bfb9cd8333fb8ba2b17209a51126e26cc5c1e56a521627fc68910af86b506e46.bin",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/json/dee09b58bd61c1a30594b2223f90242667c77c04b034f7a788adc3dbf248a01f.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/assets/models/driftwood-fp/fp-arms.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4478/colossus-engine/practice-product/blobs/wasm/26e57978fd223a77f3a9e5056239672b38f23cc2fa6616dfb15e8a9ee072c699.wasm",
+      "status": 200
+    }
+  ],
+  "endedAt": "2026-10-19T06:27:24.281Z",
+  "pass": true
+}
