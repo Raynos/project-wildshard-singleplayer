@@ -2,6 +2,7 @@
 import { Color, Texture, Vector2, Vector3, Vector4, type Material, type IUniform } from 'three';
 import { lentLook, hasLentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { MaterialEntry } from '@wildshard/format/materials';
 import type { Shared } from './style';
 
@@ -48,3 +49,10 @@ export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [numbe
   return lentLook(id);
 }
 export function windowMaterial(shared: Uniforms): Material { syncArchitecture(shared); return lentLook('nine-windows'); }
+
+/** Transmission-only graphs omit inscatter params; write only the admitted graph's declarations. */
+export function setDeclaredGraphParam(id: string, name: string, value: GraphLiteral, catalogue: Readonly<Record<string, MaterialEntry>> | undefined = slugRuntimeProduct('nine-dragon-stack')?.source.look.materials): void {
+  const entry = catalogue?.[id];
+  if (entry?.family !== 'graph' || !('graph' in entry)) throw new Error(`Missing Nine graph ${id}`);
+  if (Object.hasOwn(entry.graph.params ?? {}, name)) setLentParam(id, name, value);
+}

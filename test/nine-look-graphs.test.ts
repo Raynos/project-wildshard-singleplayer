@@ -1,3 +1,4 @@
+import type { MaterialEntry } from '../src/format/materials';
 import { unzlibSync } from 'fflate';
 import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
@@ -165,4 +166,30 @@ test('filament graph binds the simulated rope and preserves target alpha', async
   expect(graph.budget?.nodes).toBeLessThanOrEqual(4096);
   expect(new TextEncoder().encode(JSON.stringify(graph)).length).toBeLessThanOrEqual(64000);
   line.mesh.geometry.dispose(); compiled.material.dispose(); for (const cleanup of cleanups) cleanup();
+});
+
+
+test('fog writes follow each admitted graph declaration while unknown params remain strict', async () => {
+  const { setDeclaredGraphParam } = await import('../src/shards/nine-dragon-stack/look/facadeMaterial');
+  const { haloGraph } = await import('../src/shards/nine-dragon-stack/generators/haloGraph');
+  const { default: authored } = await import('../src/shards/nine-dragon-stack/data/lookGraphs.json');
+  const { validateGraph } = await import('../src/format/materialGraph');
+  const fog = validateGraph(authored['nine-silk-fog'], { trustedBudget: true });
+  if (!fog.ok) throw new Error(fog.errors.join('\n'));
+  const catalogue = { 'nine-silk-fog': { family: 'graph', graph: fog.graph },
+    'nine-streaks': { family: 'graph', graph: streakGraph() }, 'nine-halo': { family: 'graph', graph: haloGraph() } } satisfies Record<string, MaterialEntry>;
+  const graphs = new Map(Object.entries(catalogue).map(([id, row]) => [id, compileGraph(row.graph, { trustedBudget: true })]));
+  const writes: string[] = [], cleanups: (() => void)[] = [];
+  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([...graphs].map(([id, graph]) => [id, graph.material])),
+    setParam: (id, name, value) => { graphs.get(id)?.setParam(name, value); writes.push(`${id}:${name}`); }, setTexture: () => undefined, bindMeshMap: () => new THREE.MeshBasicMaterial() });
+  try {
+    for (const id of Object.keys(catalogue)) for (const [name, param] of Object.entries(fog.graph.params ?? {})) {
+      if (typeof param.value === 'string') throw new Error('Unexpected fog texture');
+      setDeclaredGraphParam(id, name, param.value, catalogue);
+    }
+    expect(writes.filter(name => name.endsWith(':fogBaseCol'))).toEqual(['nine-silk-fog:fogBaseCol']);
+    expect(writes).toContain('nine-streaks:rootAt');
+    expect(writes).toContain('nine-halo:rootAt');
+    expect(() => graphs.get('nine-streaks')?.setParam('fogBaseCol', [0, 0, 0])).toThrow('no param');
+  } finally { for (const cleanup of cleanups) cleanup(); for (const graph of graphs.values()) graph.material.dispose(); }
 });

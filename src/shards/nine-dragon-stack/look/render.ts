@@ -29,7 +29,7 @@ import { meshesWithUniform } from '../runtime/looks/uniformScan';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 import { hasLentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
-import { syncArchitecture } from './facadeMaterial';
+import { syncArchitecture, setDeclaredGraphParam } from './facadeMaterial';
 
 const light = metadata.looks.light as LookRows['light'];
 
@@ -58,26 +58,26 @@ function syncSilkFog(shared: Shared): void {
   setLentParam('nine-scroll', 'linePx', u.uLinePx.value);
   for (const id of SILK_MATERIALS) {
     if (!hasLentLook(id)) continue;
-    setLentParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
+    setDeclaredGraphParam(id, 'rootAt', u.uRootAt.value.toArray(o.v3));
     if (id.startsWith('nine-architecture') || id.startsWith('nine-facade') || id === 'nine-windows') continue;
-    setLentParam(id, 'datum', Y0);
-    setLentParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / shared.baseBandDepth);
-    setLentParam(id, 'fogBase', u.uFogBase.value);
-    setLentParam(id, 'fogStart', u.uFogStart.value);
-    setLentParam(id, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
-    setLentParam(id, 'shaft', u.uShaft.value.toArray(o.shaft));
-    setLentParam(id, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
-    setLentParam(id, 'shaftLit', u.uShaftLit.value);
-    setLentParam(id, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
-    setLentParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
-    setLentParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
-    setLentParam(id, 'puff', u.uPuff.value.toArray(o.puff));
+    setDeclaredGraphParam(id, 'datum', Y0);
+    setDeclaredGraphParam(id, 'bandDepth', (u.uBands.value[0]?.z ?? 0) / shared.baseBandDepth);
+    setDeclaredGraphParam(id, 'fogBase', u.uFogBase.value);
+    setDeclaredGraphParam(id, 'fogStart', u.uFogStart.value);
+    setDeclaredGraphParam(id, 'fogBaseCol', u.uFogBaseCol.value.toArray(o.col));
+    setDeclaredGraphParam(id, 'shaft', u.uShaft.value.toArray(o.shaft));
+    setDeclaredGraphParam(id, 'shaftK', u.uShaftK.value.toArray(o.shaftK));
+    setDeclaredGraphParam(id, 'shaftLit', u.uShaftLit.value);
+    setDeclaredGraphParam(id, 'fogDeep', u.uFogDeep.value.toArray(o.deep));
+    setDeclaredGraphParam(id, 'deepAir', u.uDeepAir.value.toArray(o.deepAir));
+    setDeclaredGraphParam(id, 'deepAir2', u.uDeepAir2.value.toArray(o.deepAir2));
+    setDeclaredGraphParam(id, 'puff', u.uPuff.value.toArray(o.puff));
     if (id !== 'nine-canopy-cards' && id !== 'nine-canopy-inner') continue;
-    setLentParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
-    setLentParam(id, 'ink0', u.uInk0.value.toArray(o.col));
-    setLentParam(id, 'ink1', u.uInk1.value.toArray(o.col));
-    setLentParam(id, 'inkMid', u.uInkMid.value);
-    setLentParam(id, 'lineFade', u.uLineFade.value.toArray(o.pair));
+    setDeclaredGraphParam(id, 'lightDir', u.uLightDir.value.toArray(o.v3));
+    setDeclaredGraphParam(id, 'ink0', u.uInk0.value.toArray(o.col));
+    setDeclaredGraphParam(id, 'ink1', u.uInk1.value.toArray(o.col));
+    setDeclaredGraphParam(id, 'inkMid', u.uInkMid.value);
+    setDeclaredGraphParam(id, 'lineFade', u.uLineFade.value.toArray(o.pair));
   }
 }
 
