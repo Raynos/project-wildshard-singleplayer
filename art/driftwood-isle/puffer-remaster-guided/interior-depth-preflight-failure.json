@@ -1,0 +1,12 @@
+{
+  "status": "failed-preflight-no-export-no-render",
+  "source": "build_guided_surface_interior.py",
+  "sourceSha256": "8023a5349f63a39b5d138cf67949b75d4d979f50d11af73ada628d4781181b07",
+  "session": 92502,
+  "exitCode": 1,
+  "failedGuard": "maximum original interior depth drift <= 0.02 m",
+  "actualDriftMeters": 0.04467407378338906,
+  "boundaryGuard": "passed",
+  "geometryThresholdsUnchanged": true,
+  "nextStep": "Read-only localization of worst samples; no guard relaxation."
+}
