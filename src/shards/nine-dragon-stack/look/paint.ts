@@ -1,8 +1,7 @@
-// Painted ratios arrive predecoded; the graph retains its nine authored layers.
-import { DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping } from 'three';
+// Keep the original compressed image path while predecoded payloads exceed admission.
+import { DataArrayTexture } from 'three';
+import { loadPaintArray } from '../runtime/looks/paintArray';
 import { uniformsFrom, type UniformsOf } from '@wildshard/sdk/looks/shaderFamily';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Tier } from '@wildshard/engine/core/tier';
 import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
@@ -16,22 +15,11 @@ export function paintPlaceholder(): DataArrayTexture {
   paint.layers.forEach((layer, i) => { const v = Math.round(255 / layer.scale); data.set([v, v, v, 128], i * 4); });
   const texture = new DataArrayTexture(data, 1, 1, paint.layers.length); texture.needsUpdate = true; return texture;
 }
-/** Restore bounded lossless chunks without canvas readback or image allocations. */
-export async function loadPaint(_base: string, anisotropy: number, tier: Tier, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
-  const product = await loadFirstPartyProduct('nine-dragon-stack');
-  const size = paint.sizes[tier], layers = paint.layers.length, layerBytes = size * size * 4;
-  const data = new Uint8Array(layerBytes * layers); let bytes = 0, done = 0;
-  for (let layer = 0; layer < layers; layer++) for (let offset = 0; offset < layerBytes; offset += paint.chunkBytes) {
-    const packed = await product.file(`looks/paint/${tier}/${layer}-${offset}.bin`); bytes += packed.length;
-    const decoded = await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
-    if (decoded.byteLength !== Math.min(paint.chunkBytes, layerBytes - offset)) throw new Error('Paint chunk size differs');
-    data.set(new Uint8Array(decoded), layer * layerBytes + offset); done++; onLayer(done / (Math.ceil(layerBytes / paint.chunkBytes) * layers));
-  }
-  const tex = new DataArrayTexture(data, size, size, layers);
-  tex.wrapS = tex.wrapT = RepeatWrapping; tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter;
-  tex.generateMipmaps = true; tex.anisotropy = anisotropy; tex.needsUpdate = true;
-  gpuOnlyTexture(tex, 'Nine Dragon paint array (GPU only)'); return { tex, bytes };
+/** Decode the original compressed layers at the unchanged per-tier size. */
+export function loadPaint(base: string, anisotropy: number, tier: Tier, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
+  return loadPaintArray(base, paint.layers, paint.sizes[tier], anisotropy, 'Nine Dragon paint array (GPU only)', onLayer);
 }
+
 export function paintUniforms(): { uPaint: { value: DataArrayTexture } } & UniformsOf<typeof paint.uniforms> {
   return { uPaint: { value: paintPlaceholder() }, ...uniformsFrom(paint.uniforms) };
 }

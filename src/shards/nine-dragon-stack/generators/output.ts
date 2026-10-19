@@ -5,7 +5,6 @@ import viewmodelUniforms from '../data/viewmodelUniforms.json' with { type: 'jso
 import filamentRows from '../data/filament.json' with { type: 'json' };
 import lightRows from '../data/light.json' with { type: 'json' };
 import { filamentGeometry } from './filamentGeometry';
-import paintArray from '../data/paintArray.generated.json' with { type: 'json' };
 import { grappleCourseScene } from './courseScene';
 import course from '../data/grappleCourse.json' with { type: 'json' };
 import * as v from 'valibot';
@@ -44,9 +43,7 @@ const viewmodel = buildViewmodelParts();
 const glyphBlobs = Object.entries(glyphs).flatMap(([tier, row]) => [
     nameBlob(`signs/glyphs-${tier}.json`, 'json', json({ size: row.size, layout: row.layout, rects: row.rects, words: WORDS, parts: row.packed.length })),
   ].concat(row.packed.map((part, index) => nameBlob(`signs/glyphs-${tier}-${index}.rg8`, 'bin', Uint8Array.from(atob(part), byte => byte.codePointAt(0) ?? 0), { decoded: 2_097_152, gpu: Math.ceil(2_097_152 * 4 / 3) }))));
-const paintBlobs = Object.entries(paintArray).flatMap(([tier, row]) => row.parts.map(part =>
-  nameBlob(`looks/paint/${tier}/${part.layer}-${part.offset}.bin`, 'bin', Uint8Array.from(atob(part.packed), byte => byte.codePointAt(0) ?? 0))));
-const emitted = emitNamedBlobs(glyphBlobs.concat(paintBlobs, signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
+const emitted = emitNamedBlobs(glyphBlobs.concat( signAtlasBlobs(), lightVolumeBlobs(), spillBlobs(), layoutBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
