@@ -1,0 +1,22 @@
+{
+  "encodedFrames": 3886,
+  "exactConsecutivePixelDuplicates": 17,
+  "visualReview": "All61 chronological full-frame sheets visually inspected; reduced-size thumbnails, supplemented by native-resolution16-frame detail board. Every encoded frame represented; duplicates mapped, no time selection.",
+  "renderFrames": 1223,
+  "wallDuration": 146.6151000000015,
+  "observedHz": 8.334748603656701,
+  "intervalMs": {
+    "min": 3.5,
+    "median": 103.15000000223517,
+    "p95": 251.0249999955298,
+    "max": 680.0
+  },
+  "videoDuration": 155.44,
+  "encodedFPS": 25,
+  "viewport": [
+    402,
+    874
+  ],
+  "deviceScaleFactor": 1,
+  "limits": "Cloud Chromium SwiftShader plus overlapping root hooks; not physical-phone, Safari, throttle or smoothness benchmark."
+}

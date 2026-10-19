@@ -1,0 +1,85 @@
+{
+  "schema": "wildshard.bellback.following-independent-review.v1",
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "product": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
+  "evidence": [
+    {
+      "path": "docs/reviews/bellback-following-independent/REVIEW.md",
+      "bytes": 10098,
+      "sha256": "533b7cb965c2c3f308a6c29002234917b076df854d3cfbd7c9a8e7904a33255a"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/coverage.json",
+      "bytes": 760,
+      "sha256": "5efe14c0f95f557d7b1ac47e124d9533f3f1444e37dcfca6c0eafa4d8cbb878f"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/fixed-contact.json",
+      "bytes": 162088,
+      "sha256": "d905352e8764aa4a9caf432a4628f91f39254f2100a04472a6c4d14819051fd6"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/recompute.py",
+      "bytes": 4075,
+      "sha256": "829e11c1aecf0e069e58cc148f6f31b97c91103358be840a947ed7c0637361c2"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/weighted-contact.json",
+      "bytes": 704542,
+      "sha256": "b61d91974ef6cc2d893af0568405ea4b5cf22731c861f76686a82b20a4168456"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/detail-board.jpg",
+      "bytes": 365691,
+      "sha256": "344cb023b4a807f072b7221da4282bd1353cfd74cf278f87ea1d75dfe385fd5c"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/fixed-shapes.py",
+      "bytes": 2527,
+      "sha256": "d9e983553545a5615be66d249e3653011b2fa9b340e5fe959922b57d96fbe3c7"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/make-sheets.py",
+      "bytes": 1730,
+      "sha256": "e20c8dbdd9e4c8e523f5f608309a36ec3fb290b7382a08f66bc0673efd5953b0"
+    },
+    {
+      "path": "docs/reviews/bellback-following-independent/encoded-frame-map.json",
+      "bytes": 246323,
+      "sha256": "e796ea88a770d99cee3a8370457628b7030bcd5451b84ad9e10d11828d6c5be6"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tmp/bellback-following-full-combat2/report.json",
+      "bytes": 776632,
+      "sha256": "cc1f7877a6a286b1fd4bbcd8f88b392ab69a3078a7fc29c274c696aa45c0f091"
+    },
+    {
+      "path": "tmp/bellback-following-full-combat2/render-trace.json",
+      "bytes": 1933607,
+      "sha256": "78771787a75aa0fcfb3bdb288cc4310806c11d5258924452ba3adf4682830dd5"
+    },
+    {
+      "path": "tmp/bellback-following-full-combat2/fixed-trace.json",
+      "bytes": 1608044,
+      "sha256": "82d953d38338edf090848471ee1ce1cd9825e8e6b078d5d619572e882caf83a4"
+    },
+    {
+      "path": "tmp/bellback-following-full-combat2/video/page@05cddc3a3fa5b5a1fe9e33cb2a63b97a.webm",
+      "bytes": 13096967,
+      "sha256": "8966b12aa36eb0556303b1229ee8b661c76caa549d8c607fe371c6bd187f17f8"
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/manifest.json",
+      "bytes": 3965,
+      "sha256": "72af1a5a8da116404585f068cc783bf846d72fcf2d4101247f38060710ba751b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/manifest.json",
+      "bytes": 5401,
+      "sha256": "e2db5999f55ff36c47907d35c875bcf95abcb63b1dd65b8e8cf8bf402e63f9fa"
+    }
+  ]
+}

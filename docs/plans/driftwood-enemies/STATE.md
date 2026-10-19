@@ -1,18 +1,19 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 07:15 UTC. All four resumed models meet the new static likeness milestone; zero newly completed arena-ready enemies.
+Updated 2026-10-19 07:35 UTC. All four static milestones passed; runtime work remains WIP.
 
-OWNER at 02:54 UTC: diminishing returns on Puffer; get the OTHER FOUR above 3.5/5. Supersedes Puffer-first 4/5-or-V100. Park Puffer polishing, preserve its work/tested playable. Require honest independent likeness strictly above 3.5 EACH; no rounding, averages or gameplay-completion claim. Twenty extras parked. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md. Rubric silhouette35/face30/details20/facet-style15 unchanged; approved originals authoritative, hidden anatomy approximate.
+OWNER at 02:54 UTC: park Puffer polishing because of diminishing returns; get EACH of the other four strictly above 3.5/5. This supersedes Puffer-first 4/5-or-V100. Preserve Puffer sources and best tested playable. Twenty extra concepts stay parked. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md. Rubric: silhouette 35%, face 30%, details 20%, facets/style 15%. Approved originals control; hidden-angle references are approximate. No rounding, cross-enemy averages or art-score chasing.
 
-VISUAL PASSES (fresh independent full-nine):
-- Bellback V6: 3.5625. Face/carrier weaknesses explicit.
-- Mantis V7: 3.6025. Long mask, blocky shoulders and flat leaf fan remain.
-- Colossus V4: 3.65. Thin side depth/regular limbs/sparse foliage remain.
+Fresh independent full-nine static passes:
+- Bellback V6: 3.5625. Face/carrier weaknesses remain.
+- Mantis V7: 3.6025. Long mask, blocky shoulders, flat leaf fan remain.
+- Colossus V4: 3.65. Thin side depth, regular limbs and sparse foliage remain.
+- Conch character pass: 3.57. Shell shelves, face and shield weaknesses remain.
 
-Conch character pass: fresh full-nine3.57, visual gate passed. Shell shelves/face/shield weaknesses remain. Preserve failed V10 crossings and V11 alias. Static milestone complete. Next: actual native motion/combat; no art-score chasing.
+PUBLIC: Site v50 has Conch motion3, Colossus motion2, Mantis4 and Puffer70 WIP Play buttons. Exact mounted Conch/Colossus passed 21 checks each; complete-frame reviews cover 2357/3570/1383 encoded frames respectively. Conch sliding/weak telegraphs and Colossus upright death (1.5/5) remain. Sword tested; spear unavailable. Keep exact published hosts until replacements pass current-host testing. Zero quality-complete enemies or physical-phone/human-fun acceptance.
 
-NATIVE: Site50 now has Conch3, Colossus2, Mantis4 and retained Puffer70 as labeled WIP playables; zero quality-complete. Independent reviews inspected all2357/3570/1383encodedframes respectively; exactmountedConch/Colossus21checks each pass swordcombat,defeat,blockedattack,Retry/reload/emptystores. Spear unavailable. Conch3 groundgaps repaired in833samples; sliding/weaktelegraphs remain. Colossus2 corpseclearance repaired in1080samples, uprightdeath performance1.5/5 remains. Preserve source clocks and sampled/frameproof distinction. Bellback first narrowcontactpass superseded in fullfight scope by rolled core/carrier−.856m penetration; pulse/echo/stomp/defeat/Retry pass, clean movementresume/frozen settle open. Static swept hulls cannot fix temporal contactgap; bounded opt-in bone-following hull/fixedpose contract is unfinished. Stale predeath memory fixed with copied currentfixed inputs. Independent128tests/typedlint and zeroBell differential pass;52native defaultparity cases matchexactoldtrace. Candidate4 sourcepreparation authorized for bounded isolatedactualpreview; no publicoptin, contact/completecycles/walk stillpending. Strict admission/isolated persistence mandatory.
+BELLBACK: Candidate3 narrow contact pass remains preserved alongside full-fight rolled carrier penetration of 85.6 cm. Fixed swept shapes were rejected. Candidate4 uses unchanged Frame2 geometry, Tucked clips, living dimensions and combat, with eight bone-following convex parts on one body. Current fixed inputs repair the stale pre-death memory bug; independent 128 tests pass, including 52 exact default-parity cases.
 
-Puffer parked: V71 full-nine3.60; latest remaster parts never assembled/admitted. Best tested playable remains V70 gait5/authored recoil/neutral-gray-v2, actual combat/retry/empty persistence verified. Corpse contact, fin stippling and animation quality WIP; no physical-phone performance claim.
+Candidate4 product 72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef: actual full combat passes 27 checks, two deaths, 12 local coins, clean stop/resume, defeat/Retry/reload and empty stores. All 3886 encoded frames inspected; report being finalized. 1223 render observations include 13 penetrations over 5 mm, worst 22.03 mm; fixed-post worst 24.27 mm. Both frozen settles within 0.14 mm. Not accepted/promoted. Independent arena walk passes 15 checks, including live-corpse crossing; flat floor only, no authored sensors or Explorer gate. Next: diagnostic initial velocities/manifolds and bounded body-local solver 0/2/4 replay; no product/global settings changes yet.
 
-Site v50 live06:42:31, sourcea8a65cb8a03ee5776941e51234bf7766759fcc0d. Four high namedPlay buttons; olderPuffer/Mantis274files unchanged. Originalmedia retained; losslessimages/same-framevideo verified. Source55625ac80684edfc88e282702c967a3c17210c3d exact14paths verified; earlierWIP/reviews protected. Rootconnector gamedev-dot only. Preserve unrelated/sparsework.
+Puffer V70 remains tested; V71 static 3.60 and unfinished remaster parked. Broader six-shard coverage stays open. Source37a6aeda6748ea4207642229bb536e13b13a12a9 verified; raw Bellback movie protected in native Site source358c5100849f9c46cc61dc7b2363da779633f4e4, unchanged public bundle. Root connector gamedev-dot only; preserve unrelated/sparse work.

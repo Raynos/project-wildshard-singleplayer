@@ -1,0 +1,47 @@
+{
+  "schema": "wildshard.bellback.runtimecandidate4.rejected-provenance.v1",
+  "acceptance": false,
+  "screening": "No credentials found. Absolute project/runtime/temporary-directory strings replaced by role labels; original bytes retained at pinned ignored paths.",
+  "failedEscalation": "Second launch failed before command execution in shell environment setup because a protected runtime directory was read-only. No gameplay or restricted-directory access occurred. Tool result has no local report file.",
+  "reports": [
+    {
+      "original": {
+        "path": "tmp/bellback-following-full-combat1/report.json",
+        "sha256": "9cbcdb0808a7e062bebb6f531fb5ad35d3071e16a0e5d4513e6df06ca4a8f4d4",
+        "bytes": 34835
+      },
+      "published": {
+        "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/rejected-runs/launch1.json",
+        "sha256": "48ec4155f1dd5ad81b102844045002ea6d1b344bce38cdd7d79b012d95bc52c9",
+        "bytes": 34870
+      },
+      "change": "Path-only string redaction; all diagnostic values, checks and full samples retained."
+    },
+    {
+      "original": {
+        "path": "tmp/bellback-following-full-combat1-run3/report.json",
+        "sha256": "0afc5e14ee5a6f1573ee2c549853e9e2e77088e519be93f6b85548342ccfd40b",
+        "bytes": 30710
+      },
+      "published": {
+        "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/rejected-runs/launch3-missing-ffmpeg.json",
+        "sha256": "bbdc341f437e4a4400796b8d1b4646b6162de66a69393e6474c4f65ee406b7e4",
+        "bytes": 31158
+      },
+      "change": "Path-only string redaction; all diagnostic values, checks and full samples retained."
+    },
+    {
+      "original": {
+        "path": "tmp/bellback-following-full-combat1-run4/report.json",
+        "sha256": "4852a2121900348b8babf63d3781209f8a71f14eb49a2149e8a34a2f8b59acc9",
+        "bytes": 166016
+      },
+      "published": {
+        "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/rejected-runs/capture4-overlay-block.json",
+        "sha256": "23a5c63d904a75c6fe3dafd73eabcc752de08cf83dd71ecd735cb9b86abfad20",
+        "bytes": 166021
+      },
+      "change": "Path-only string redaction; all diagnostic values, checks and full samples retained."
+    }
+  ]
+}

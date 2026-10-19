@@ -3,7 +3,7 @@
   "runtimeAcceptance": false,
   "contactAcceptance": false,
   "productSourceHash": "72899786be0fa353ed1d6197d1ea7586db46f12983f4607936a0ac34a0866bef",
-  "checksPassed": 28,
+  "checksPassed": 27,
   "checksFailed": 0,
   "renderFrames": 1223,
   "fixedObservations": 438,
@@ -119,5 +119,11 @@
       "sha256": "4852a2121900348b8babf63d3781209f8a71f14eb49a2149e8a34a2f8b59acc9",
       "bytes": 166016
     }
-  ]
+  ],
+  "metadataCorrection": {
+    "reason": "Correct arithmetic count28\u219227; all27 boolean report checks are true. No captured evidence changed. This supersedes historical28-check summary text.",
+    "originalSha256": "e2db5999f55ff36c47907d35c875bcf95abcb63b1dd65b8e8cf8bf402e63f9fa",
+    "originalBytes": 5401,
+    "originalManifestPath": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/manifest-before-check-count-correction.json"
+  }
 }

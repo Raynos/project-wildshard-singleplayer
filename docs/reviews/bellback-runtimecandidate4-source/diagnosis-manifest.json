@@ -1,0 +1,30 @@
+{
+  "acceptance": false,
+  "files": [
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/contact-diagnosis.md",
+      "sha256": "66d33a3d54850375b2bbdab3ee2676360218ad3e02e12165aad4445e5d8e0bcf",
+      "bytes": 5168
+    },
+    {
+      "path": "docs/reviews/bellback-runtimecandidate4-source/diagnose-fixed-contact.py",
+      "sha256": "7cdbf75e3ed742dbc9eacb6aba917f1f305875d52699e6e755050987a4ddf3c2",
+      "bytes": 3948
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/fixed-diagnosis.json",
+      "sha256": "c2e24a6f3d03b74d017119c4e2e3ac52046fbb7b8253ebdf4ed8b26a0c40b029",
+      "bytes": 155368
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/full-combat2/manifest.json",
+      "sha256": "e2db5999f55ff36c47907d35c875bcf95abcb63b1dd65b8e8cf8bf402e63f9fa",
+      "bytes": 5401
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate4/rejected-runs/manifest.json",
+      "sha256": "8f96a6109457c6d45e983a2c408efecaf04f2e7d296a183b4f32281265b8ae6f",
+      "bytes": 2302
+    }
+  ]
+}
