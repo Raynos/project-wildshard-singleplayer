@@ -4,7 +4,7 @@ import { BufferGeometryLoader, type BufferGeometry } from 'three';
 import { expect, it } from 'vitest';
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
-import { titanGeometry } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
+import { titanGeometry, titanBodyRows, titanPoseRows, titanArenaRows, titanFightPoseRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import * as authored from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import baseline from './fixtures/nalati-storm-titan.json' with { type: 'json' };
 
@@ -24,7 +24,7 @@ it('retains every encounter, phase, reward and attack number', () => {
 });
 
 it('rebuilds the same numeric JSON without serialization UUIDs', () => {
-  expect(numericHash(titanGeometry())).toBe(numericHash(geometry));
+  expect(numericHash({ ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(fight.TITAN_PLACE.arenaRadius,fight.TITAN_TUNING.cell,fight.TITAN_ARENA.grid) })).toBe(numericHash(geometry));
 });
 
 for (const tier of ['phone', 'desktop'] as const) it(`${tier}: preserves the original puff and mesh buffers`, () => {

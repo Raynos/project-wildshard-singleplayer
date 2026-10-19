@@ -70,7 +70,7 @@ export class Wildlife {
   private rng: Rng;
   private readonly placement: ReturnProgram;
   readonly pastureAuthor: ReturnProgram;
-  private prev = new THREE.Vector3(); private speed = 0; private init = false;
+  private prev = new THREE.Vector3(); private speed = 0; private init = false; private senseElapsed = 0;
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
   private sheepHit: SheepHit | null = null;
@@ -115,8 +115,14 @@ export class Wildlife {
       // a whistle warns anything within 30 m (awareness +0.3)
       m.onWhistle = (x, z) => {
         this._v.set(x, heightAt(x, z), z); this.onSound?.('marmot_whistle', this._v);
-        for (const h of this.herds) for (const a of h.members) if (Math.hypot(a.position.x - x, a.position.z - z) < 30) a.mem['aw'] = Math.min(1, (a.mem['aw'] ?? 0) + 0.3);
-        for (const p of this.packs) for (const w of p.members) if (w.alive && Math.hypot(w.position.x - x, w.position.z - z) < 30) { p.awareness = Math.min(1, p.awareness + 0.3); break; }
+        for (const h of this.herds) for (const a of h.members) {
+          const row = this.placement.project('whistle', { x, z, px: a.position.x, pz: a.position.z, awareness: a.mem['aw'] ?? 0 });
+          if (row['accept'] === 1) a.mem['aw'] = row['awareness'] ?? 0;
+        }
+        for (const p of this.packs) for (const w of p.members) if (w.alive) {
+          const row = this.placement.project('whistle', { x, z, px: w.position.x, pz: w.position.z, awareness: p.awareness });
+          if (row['accept'] === 1) { p.awareness = row['awareness'] ?? 0; break; }
+        }
       };
       this.marmots = m;
     }
@@ -222,9 +228,11 @@ export class Wildlife {
     advanceFlock: (flock: Flock, index: number, playerSpeed: number) => void): void {
     const p = player.position;
     if (!this.init) { this.prev.copy(p); this.init = true; }
-    const moved = Math.hypot(p.x - this.prev.x, p.z - this.prev.z);
-    this.prev.copy(p);
-    if (dt > 0) this.speed += (Math.min(moved / dt, 14) - this.speed) * Math.min(1, dt * 6);
+    this.senseElapsed += dt;
+    if (this.senseElapsed + 1e-9 >= .1) {
+      this.speed = this.placement.project('speed', { dt: this.senseElapsed, x: p.x, z: p.z, px: this.prev.x, pz: this.prev.z, speed: this.speed })['speed'] ?? this.speed;
+      this.prev.copy(p); this.senseElapsed = 0;
+    }
     const fl = Math.hypot(player.forward.x, player.forward.z);
     if (fl > 1e-4) { wildEnv.playerFwdX = player.forward.x / fl; wildEnv.playerFwdZ = player.forward.z / fl; }
     wildEnv.playerCrouched = player.crouching;
@@ -245,14 +253,14 @@ export class Wildlife {
   /** an arrow / javelin landed at (x, z) */
   disturb(x: number, z: number): void {
     for (const h of this.herds) h.disturb(x, z);
-    for (const f of this.flocks) if (Math.hypot(f.cx - x, f.cz - z) < 25) f.scare(x, z, 4);
+    for (const f of this.flocks) if (this.placement.project('scare', { x, z, px: f.cx, pz: f.cz, radius: 25 })['accept'] === 1) f.scare(x, z, 4);
   }
 
   /** lightning / anything terrifying at (x, z): packs within 20 m break, herds within r stampede, the flock bolts */
   scare(x: number, z: number, r = 60): void {
     for (const p of this.packs) p.scare(x, z, 20);
-    for (const h of this.herds) if (Math.hypot(h.cx - x, h.cz - z) < r) h.stampede(x, z);
-    for (const f of this.flocks) if (Math.hypot(f.cx - x, f.cz - z) < r) f.scare(x, z, 6);
+    for (const h of this.herds) if (this.placement.project('scare', { x, z, px: h.cx, pz: h.cz, radius: r })['accept'] === 1) h.stampede(x, z);
+    for (const f of this.flocks) if (this.placement.project('scare', { x, z, px: f.cx, pz: f.cz, radius: r })['accept'] === 1) f.scare(x, z, 6);
     wildEnv.onEvent?.('scare', x, z);   // B1: the horse under the rider panics (src/shards/nalati-grasslands/ride/ride.ts)
   }
 

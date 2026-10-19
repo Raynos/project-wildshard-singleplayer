@@ -1352,6 +1352,12 @@
                 "boot",
                 "roads"
               ]
+            },
+            "programs": {
+              "$ref": [
+                "boot",
+                "riding"
+              ]
             }
           }
         ]
@@ -1406,7 +1412,8 @@
             },
             "poses": {
               "$ref": [
-                "tamingPoses"
+                "tamingPoses",
+                "poses"
               ]
             },
             "animate": {
@@ -1429,9 +1436,21 @@
                       "env",
                       "wind"
                     ]
+                  },
+                  {
+                    "$ref": [
+                      "tamingPoses",
+                      "horse"
+                    ]
                   }
                 ]
               }
+            },
+            "programs": {
+              "$ref": [
+                "boot",
+                "riding"
+              ]
             }
           }
         ]

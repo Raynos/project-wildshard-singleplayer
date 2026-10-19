@@ -1,3 +1,4 @@
+import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
 import heldWeapons from '../data/heldWeapons.generated.json' with {type:'json'};
 import stealth from '../data/stealth.generated.json' with {type:'json'};
 import { compactChannels } from './channelRows';
@@ -43,7 +44,7 @@ const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grassland
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
 const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
-const programs = [...Object.values(heldWeapons.programs),stealth.program,speciesData.program,weatherDecision,kokpar.program, admission, pasture, titanProgram, charge];
+const programs = [...Object.values(heldWeapons.programs),stealth.program,speciesData.program,weatherDecision,kokpar.program, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
 const programBytes = programs.reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.

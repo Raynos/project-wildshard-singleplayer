@@ -1,10 +1,9 @@
 import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitan';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
-// All retained state is explicit input/output. The page schedules requests at
-// 10 Hz; the shared BossBrain still owns phase checkpoints and the boss record.
+// Event projections; retained state belongs to the native binding at <= 10 Hz.
 export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.spear){
+if(signal==Signal.spear){
     const dt=f(Field.dt),phase=f(Field.phase);let mode=f(Field.mode),t=f(Field.t)+dt,cd=f(Field.cd),x=f(Field.x),z=f(Field.z),strike=0.0,stuck=0.0;
     if(mode==0){cd-=dt;if(cd<=0&&f(Field.chain)==0){mode=1;t=0;x=f(Field.px);z=f(Field.pz);}}
     else if(mode==1){
@@ -33,10 +32,9 @@ export function onSignal(signal:i32,value:f64,source:i32):void {
     const dt=f(Field.dt);let cd=f(Field.cd)-dt,left=f(Field.chain),step=f(Field.t),strike=0.0;
     if(left==0&&cd<=0&&f(Field.mode)>0){left=7;step=0;}
     if(left>0){step-=dt;if(step<=0){step=.42;left--;strike=1;if(left==0)cd=5+Read.random()*2;}}
-    put(Channel.cd,cd);put(Channel.left,left);put(Channel.t,step);put(Channel.strike,strike);
-  }else if(signal==Signal.chainLand){
+    put(Channel.cd,cd);put(Channel.left,left);put(Channel.t,step);put(Channel.strike,strike);put(Channel.index,Math.max(0,f(Field.count)-5));
+  } else if(signal==Signal.chainLand){
     const t=f(Field.t)+f(Field.dt),land=t>=f(Field.land);
     put(Channel.t,t);put(Channel.strike,land?1:0);put(Channel.hurt,land&&Math.hypot(f(Field.px)-f(Field.x),f(Field.pz)-f(Field.z))<f(Field.radius)?1:0);
   }
-
 }

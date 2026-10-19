@@ -1,6 +1,6 @@
 // Frozen shipping Taming.ts at c7c6ddd9b; only rendering/service ports are substituted.
 import * as THREE from 'three';
-import type { TamingHorse, TamingHerd, TamingObservation, NalatiTamingPorts } from '../../../src/shards/nalati-grasslands/runtime/tamingLaw';
+import type { TamingHorse, TamingHerd, TamingObservation, NalatiTamingPorts } from '../../../src/shards/nalati-grasslands/runtime/tamingBindings';
 interface Move { kind: 'buck' | 'spin' | 'rear'; dir: number; at: number; power: number }
 
 const RANGE = 40, ROUNDS = 5, ROUND_T = 3.5, TELEGRAPH = 0.3;
@@ -37,7 +37,7 @@ export class ShippingTamingOracle<A extends TamingHorse, H extends TamingHerd<A>
   private spinF = 0; private spinT = 0;
   input: { readonly held: (action: 'ride.offer' | 'lean.right' | 'lean.left') => boolean } | null = null;
 
-  constructor(private readonly opts: NalatiTamingPorts<A, H>) {
+  constructor(private readonly opts: Omit<NalatiTamingPorts<A, H>, 'programs'>) {
     let saved: string | null = null;
     try { saved = opts.bond.read(); } catch { /* no storage: not remembered */ }
     if (saved === '1' || saved === ARGYMAQ_KIND) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z), saved === ARGYMAQ_KIND);

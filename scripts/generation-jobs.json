@@ -151,7 +151,12 @@
         "src/engine",
         "src/game",
         "src/sdk",
-        "src/format"
+        "src/format",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/generators/speciesPoses.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/tamingPoses.generated.json"
@@ -619,6 +624,7 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/stormTitanFight.ts",
+        "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/generators/stormTitanGeometry.ts",
         "src/shards/nalati-grasslands/behaviour",
         "src/sdk",
@@ -7673,7 +7679,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -7870,7 +7880,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -18400,7 +18414,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
@@ -18440,7 +18458,11 @@
         "public/assets/nalati/models",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/painted-models/horse-saddled.glb",
@@ -18624,7 +18646,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
@@ -18735,7 +18761,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/water.generated.json"
@@ -19254,7 +19284,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/crags.bin",
@@ -19394,7 +19428,11 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/nalati-grasslands/species/horse.json",
+        "src/shards/nalati-grasslands/species/horse.d.json.ts",
+        "src/shards/nalati-grasslands/species/speciesRows.json",
+        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/poiPaint.json"
@@ -21472,6 +21510,37 @@
         "src/shards/nalati-grasslands/data/heldWeapons.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "nalati-riding",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-riding.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-riding.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-riding.mjs",
+        "src/shards/nalati-grasslands/behaviour",
+        "src/shards/nalati-grasslands/data/ridingRules.json",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/riding.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/riding.generated.json"
+      ]
     }
   ]
 }

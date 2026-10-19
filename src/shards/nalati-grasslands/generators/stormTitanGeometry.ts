@@ -1,3 +1,5 @@
+import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
@@ -115,4 +117,94 @@ export function titanGeometry(): { phone: { puffs: PuffRow[]; flames: Omit<THREE
   const eyes = geometryRow(mergeTwo(eg, eg2)); eg.dispose(); eg2.dispose();
   return { phone: { puffs: titanPuffs(true), flames: geometryRow(flameClusterGeometry(true)) },
     desktop: { puffs: titanPuffs(false), flames: geometryRow(flameClusterGeometry(false)) }, eyes };
+}
+
+/** Private transforms and construction rows; the native view only lends bones and materials. */
+export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>> } {
+  const nodes = [
+    { kind: 'group', id: 'view', children: ['root', 'ring'] },
+    { kind: 'group', id: 'root', children: ['chest'] },
+    { kind: 'group', id: 'chest', position: [0,3,0], children: ['head','upperR','upperL','heart'] },
+    { kind: 'group', id: 'head', position: [0,27,1.5], children: ['eyes'] },
+    ...(['R','L'] as const).flatMap(side => [
+      { kind: 'group', id: `upper${side}`, position: [side === 'R' ? -11.5 : 11.5,21,0], children: [`fore${side}`] },
+      { kind: 'group', id: `fore${side}`, position: [0,-14,0], children: [`hand${side}`] },
+      { kind: 'group', id: `hand${side}`, position: [0,-13,0], children: [] },
+    ]),
+    { kind: 'mesh', id: 'heart', position: [0,17,5.2], geometry: 'heart', material: 'heart', missing: 'empty', children: ['glow','dome'] },
+    { kind: 'mesh', id: 'glow', geometry: 'glow', material: 'glow', missing: 'empty' },
+    { kind: 'mesh', id: 'dome', geometry: 'dome', material: 'dome', missing: 'empty', visible: false },
+    { kind: 'mesh', id: 'eyes', geometry: 'eyes', material: 'eyes', missing: 'empty' },
+    { kind: 'mesh', id: 'ring', geometry: 'ring', material: 'ring', missing: 'empty', visible: false },
+  ];
+  return { scene: parsePrivateScene({ version: 1, root: 'view', nodes, materials: ['heart','glow','ring','dome','eyes'].map(id => ({ kind: 'port', id, source: id })) }),
+    geometry: { heart: geometryRow(new THREE.IcosahedronGeometry(2.2,2)), glow: geometryRow(new THREE.SphereGeometry(4.4,24,16)),
+      dome: geometryRow(new THREE.SphereGeometry(5.2,32,16)), ring: geometryRow(new THREE.TorusGeometry(7.5,.5,6,56)) } };
+}
+
+/** The bone and heart draw law becomes bounded numeric channels, never an AS frame tick. */
+export function titanPoseRows(): ClientChannelProgram[] {
+  const outputs: NumericChannelOutput[] = [];
+  const pose = (target: string, path: [string,string], expr: NumericChannelOutput['expr']) => outputs.push({ target, path, expr });
+  const root = (axis: string, expr: NumericChannelOutput['expr']) => pose('root',['position',axis],expr);
+  const turn = (target: string, axis: string, expr: NumericChannelOutput['expr']) => pose(target,['rotation',axis],expr);
+  root('x',(b,r) => b.binary('add',r('place',['x']),b.binary('mul',b.binary('mul',b.unary('sin',b.binary('mul',b.clock('time'),b.constant(.11))),b.constant(42)),r('pose',['stride']))));
+  root('y',(b,r) => b.binary('sub',b.binary('sub',b.binary('sub',b.binary('add',r('place',['ground']),b.constant(4)),b.binary('mul',b.constant(80),b.binary('sub',b.constant(1),r('pose',['rise'])))),b.binary('mul',b.constant(20),r('pose',['kneel']))),b.binary('mul',b.constant(8),r('pose',['bend']))));
+  root('z',(b,r) => b.binary('add',b.binary('add',r('place',['z']),b.binary('mul',b.constant(18),r('pose',['bend']))),b.binary('mul',b.constant(10),r('pose',['kneel']))));
+  turn('root','y',(b,r) => b.binary('add',b.binary('mul',b.unary('sin',b.binary('mul',b.clock('time'),b.constant(.21))),b.constant(.06)),b.binary('mul',b.binary('mul',b.unary('cos',b.binary('mul',b.clock('time'),b.constant(.11))),b.constant(.18)),r('pose',['stride']))));
+  turn('chest','x',(b,r) => b.binary('add',b.binary('add',b.binary('mul',b.constant(.62),r('pose',['bend'])),b.binary('mul',b.constant(.22),r('pose',['kneel']))),b.binary('mul',b.unary('sin',b.binary('mul',b.clock('time'),b.constant(.7))),b.constant(.02))));
+  turn('chest','z',b => b.binary('mul',b.unary('sin',b.binary('mul',b.clock('time'),b.constant(.33))),b.constant(.03)));
+  turn('head','x',(b,r) => b.binary('add',b.binary('mul',b.constant(-.35),r('pose',['bend'])),b.constant(.12)));
+  turn('upperR','x',(b,r) => b.unary('neg',b.binary('add',b.constant(.35),b.binary('mul',b.constant(2.35),r('pose',['raise'])))));
+  turn('upperR','z',(b,r) => b.binary('add',b.constant(-.35),b.binary('mul',b.constant(.2),r('pose',['raise']))));
+  turn('foreR','x',(b,r) => b.unary('neg',b.binary('add',b.constant(.4),b.binary('mul',b.constant(.5),b.binary('sub',b.constant(1),r('pose',['raise']))))));
+  turn('upperL','x',(b,r) => b.unary('neg',b.binary('add',b.constant(.5),b.binary('mul',b.constant(1.4),r('pose',['castL'])))));
+  turn('upperL','z',(b,r) => b.binary('sub',b.constant(.4),b.binary('mul',b.constant(.2),r('pose',['castL']))));
+  turn('foreL','x',(b,r) => b.unary('neg',b.binary('sub',b.constant(.8),b.binary('mul',b.constant(.5),r('pose',['castL'])))));
+  for (const axis of ['x','y','z']) pose('heart',['scale',axis],(b,r) => b.binary('add',b.binary('add',b.constant(1),b.binary('mul',b.constant(.08),b.unary('sin',b.binary('mul',b.clock('time'),b.constant(7))))),b.binary('mul',b.constant(.25),r('pose',['heartOpen']))));
+  return outputs.flatMap((output,i) => numericChannelPrograms(`titan.pose.${i}`,'titan.pose',[output]));
+}
+
+/** All arena draw resources are owned by the admitted scene; no live geometry constructors. */
+export function titanArenaRows(radius: number, cell: number, grid: number): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>>; scorch: number[] } {
+  const origin = new THREE.Vector3();
+  const scorch = new THREE.PlaneGeometry(cell * 1.25, cell * 1.25); scorch.rotateX(-Math.PI / 2);
+  const funnel = new THREE.LatheGeometry([[.9,0],[1.5,3],[2.6,7],[4.4,11],[6.4,14.5]].map(([x,y]) => new THREE.Vector2(x,y)),28);
+  const geometry = { wall0: geometryRow(new THREE.CylinderGeometry(radius,radius,46,72,1,true)),
+    wall1: geometryRow(new THREE.CylinderGeometry(radius+3,radius+3,46,72,1,true)), funnel: geometryRow(funnel),
+    debris: geometryRow(new THREE.TetrahedronGeometry(.28)), scorch: geometryRow(scorch) };
+  const nodes = [
+    { kind: 'group', id: 'arena', children: ['wall0','wall1','funnel0','funnel1','funnel2','debris','scorch'] },
+    ...[0,1].map(i => ({ kind: 'mesh', id: `wall${i}`, name: 'titan-storm-wall', geometry: `wall${i}`, material: `wall${i}`, missing: 'empty', visible: false, renderOrder: 12 })),
+    ...[0,1,2].map(i => ({ kind: 'mesh', id: `funnel${i}`, name: 'titan-whirlwind', geometry: 'funnel', material: 'funnel', missing: 'empty', visible: false, renderOrder: 11 })),
+    { kind: 'mesh', id: 'debris', name: 'titan-debris', geometry: 'debris', material: 'debris', missing: 'empty', instances: 120, frustumCulled: false },
+    { kind: 'mesh', id: 'scorch', name: 'titan-scorch', geometry: 'scorch', material: 'scorch', missing: 'empty', instances: grid * grid, frustumCulled: false, renderOrder: 2 },
+  ];
+  const pixels = new Uint8Array(64*64*4);
+  for (let y=0;y<64;y++) for(let x=0;x<64;x++) {
+    const distance = origin.set(x+.5-32,y+.5-32,0).length(), u = Math.max(0,Math.min(1,(distance-6)/26));
+    const alpha = u<.7 ? 1-u/.7*.15 : .85*(1-(u-.7)/.3), at=(y*64+x)*4;
+    pixels[at]=255; pixels[at+1]=255; pixels[at+2]=255; pixels[at+3]=Math.round(alpha*255);
+  }
+  return { scene: parsePrivateScene({ version: 1, root: 'arena', nodes, materials: ['wall0','wall1','funnel','debris','scorch'].map(id => ({ kind: 'port', id, source: id })) }), geometry, scorch: [...pixels] };
+}
+
+/** Interpolation stays on the client; the script publishes only coarse fight observations. */
+export function titanFightPoseRows(): ClientChannelProgram[] {
+  const output: NumericChannelOutput[] = [];
+  const add = (target: string, key: string, expr: NumericChannelOutput['expr']) => output.push({ target, path: [key], expr });
+  const active = (b: ClientChannels, r: Parameters<NumericChannelOutput['expr']>[1]) => b.binary('mul',b.binary('gt',r('fight',['fighting']),b.constant(0)),b.binary('gt',b.constant(0),r('fight',['victoryT'])));
+  const smooth = (b: ClientChannels, before: number, want: number, rate: number) => b.binary('add',before,b.binary('mul',b.binary('sub',want,before),b.binary('min',b.constant(1),b.binary('mul',b.clock('delta'),b.constant(rate)))));
+  add('pose','kneel',(b,r) => b.select(active(b,r),smooth(b,r('pose',['kneel']),b.binary('gt',b.constant(.1),b.unary('abs',b.binary('sub',r('fight',['phase']),b.constant(1)))),1.5),r('pose',['kneel'])));
+  add('pose','stride',(b,r) => b.select(active(b,r),smooth(b,r('pose',['stride']),b.binary('gt',r('fight',['phase']),b.constant(1)),.5),r('pose',['stride'])));
+  add('pose','rise',(b,r) => b.select(b.binary('gt',r('fight',['victoryT']),b.constant(-.1)),b.binary('max',b.constant(0),b.binary('sub',b.constant(1),b.binary('div',r('fight',['victoryT']),b.constant(6)))),r('pose',['rise'])));
+  add('alpha','value',(b,r) => {
+    const phase2=b.binary('gt',b.constant(.1),b.unary('abs',b.binary('sub',r('fight',['phase']),b.constant(1))));
+    const want=b.select(phase2,b.select(r('fight',['domeBroken']),b.constant(.8),b.constant(.55)),b.constant(1));
+    const live=b.select(active(b,r),smooth(b,r('alpha',['value']),want,2),r('alpha',['value']));
+    return b.select(b.binary('gt',r('fight',['victoryT']),b.constant(-.1)),b.binary('max',b.constant(0),b.binary('sub',b.constant(1),b.binary('div',r('fight',['victoryT']),b.constant(3.5)))),live);
+  });
+  add('pose','heartOpen',(b,r) => smooth(b,r('pose',['heartOpen']),r('fight',['open']),6));
+  add('flash','value',(b,r) => b.binary('max',b.binary('max',b.constant(0),b.binary('sub',r('flash',['value']),b.binary('mul',b.clock('delta'),b.constant(3)))),r('fight',['flash'])));
+  return output.flatMap((row,i) => numericChannelPrograms(`titan.fight.${i}`,'titan.fight',[row]));
 }

@@ -1,3 +1,4 @@
+import { CAIRN } from './layout';
 /**
  * Jel Ata, the Storm Titan's fight rows (plan row B14; design docs/design/nalati/elites-and-bosses.md "The Storm Titan
  * fight, step by step"), read by combat/stormTitan.ts: the encounter card, the reward's card, the feed / toast lines, the
@@ -63,3 +64,16 @@ export const TITAN_TUNING = {
   chainDamage: 18, chainRadius: 3, chainLand: 0.6,
   fullDraw: 43, fullDrawMul: 2.5,
 };
+
+/** Native grid topology; the guest owns propagation and lifetime decisions. */
+export const FIRE_NEIGHBOURS: [number, number][] = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+
+export const TITAN_ARENA = { center: { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.centreZ }, titan: { x: CAIRN.x, z: CAIRN.z + TITAN_PLACE.titanZ }, grid: Math.ceil(TITAN_PLACE.arenaRadius * 2 / TITAN_TUNING.cell) };
+
+/** Phase entry is a native effect row; BossBrain owns the checkpoint threshold. */
+export const TITAN_PHASE_ACTIONS = [
+  { spearCooldown: 2, whirls: [true,true,true], riders: false, fire: false, feed: '' },
+  { spearCooldown: 2, whirls: [true,true,false], riders: true, fire: false, feed: TITAN_LINES.kneels },
+  { spearCooldown: 3, whirls: [false,false,false], riders: false, fire: true, feed: TITAN_LINES.grassFire },
+];
+export const TITAN_FIRE_SEEDS = [0,1,2].map(i => ({ x: Math.cos(i*2.1+.5)*26, z: Math.sin(i*2.1+.5)*26 }));

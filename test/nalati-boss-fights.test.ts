@@ -7,9 +7,9 @@ import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { StormTitanFight, prepareStormTitan } from '../src/shards/nalati-grasslands/combat/stormTitan';
-import { goldenKingFight } from '../src/shards/nalati-grasslands/combat/goldenKing';
+import { goldenKingFight, prepareKurganRows } from '../src/shards/nalati-grasslands/combat/goldenKing';
 import { bossArena } from './fake/bossArena';
-import type { GhostRiders } from '../src/shards/nalati-grasslands/combat/ghostRiders';
+import type { TitanRiders } from '../src/shards/nalati-grasslands/combat/bossBindings';
 import type { NalatiWeather } from '../src/shards/nalati-grasslands/world/installWeather';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
@@ -20,6 +20,7 @@ import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' w
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { manager } from './fake/manager';
 import { legacyDouble } from './fake/FakeGame';
+import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import { mockCanvas } from './fake/weaponParity';
 
 function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, position: Vector3) {
@@ -36,11 +37,12 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
   } };
 }
 
-test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
+test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', async () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const f = manager(), dungeon = bossArena().build(true);
   Reflect.set(f.player, 'dash', () => undefined);
   f.player.position.set(layout.DUNGEON.x, layout.DUNGEON.y, layout.DUNGEON.z + 5);
+  await prepareKurganRows({ json: <T>() => Promise.resolve(structuredClone<unknown>({ king, programs }) as T) });
   const fight = goldenKingFight(dungeon, { player: f.player, animals: f.manager, hurt: () => undefined, feed: () => undefined });
   const e = encounter(king.encounter, fight.script, f.player.position), direction = new Vector3(0, 0, -1);
   try {
@@ -63,8 +65,8 @@ test('Storm Titan runs the three mounted phases, exposes the heart and reaches v
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
   const f = manager(), riders: Animal[] = [], materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id => [id, new MeshBasicMaterial()]));
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); } });
-  const gr = legacyDouble<GhostRiders>({ spawnRider: ({ x, z }: { x: number; z: number }) => { const a = f.manager.spawn('ghost-rider', x, z, 0, 'rider'); riders.push(a); return a; }, dissolve: (a: Animal) => { a.hidden = true; } });
-  await prepareStormTitan({ file: name => Promise.resolve(new TextEncoder().encode(JSON.stringify(name.endsWith('titan-fight.json') ? { ...titan, arenaFire: fireView } : geometry))) });
+  const gr = legacyDouble<TitanRiders>({ spawnRider: ({ x, z }: { x: number; z: number }) => { const a = f.manager.spawn('ghost-rider', x, z, 0, 'rider'); riders.push(a); return a; }, dissolve: (a: Animal) => { a.hidden = true; } });
+  await prepareStormTitan({ json: <T>(name: string) => Promise.resolve(structuredClone<unknown>(name.endsWith('titan-fight.json') ? { ...titan, arenaFire: fireView, programs } : geometry) as T) });
   const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0 }), fx: legacyDouble<NalatiWeather['fx']>({ bolt: () => undefined }) });
   const game = Object.assign(f.game.asGame(), { levelScope: scope });
   const fight = new StormTitanFight({ game, player: f.player, weather, tieSpot: null }, {

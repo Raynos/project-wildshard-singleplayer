@@ -108,7 +108,7 @@ for (const side of ['L', 'R'] as const) {
 // Resolve ordered scratch assignments at build time, then emit only the DAG
 // each joint actually needs. No scratch interpreter or executable code ships.
 type IR = { op: 'n'; value: number } | { op: 'read'; key: string } | { op: 'sin' | 'abs'; a: IR }
-  | { op: 'add' | 'sub' | 'mul' | 'div' | 'min' | 'max' | 'gt'; a: IR; b: IR } | { op: 'select'; test: IR; yes: IR; no: IR };
+  | { op: 'add' | 'sub' | 'mul' | 'div' | 'min' | 'max' | 'gt' | 'mod'; a: IR; b: IR } | { op: 'select'; test: IR; yes: IR; no: IR };
 const vars = new Map<string, IR>();
 const lit = (value: number): IR => ({ op: 'n', value });
 const binary = (op: Extract<IR, { b: IR }>['op'], a: IR, b: IR): IR => ({ op, a, b });
@@ -154,7 +154,10 @@ function compile(b: ClientChannels, read: Parameters<NumericChannelOutput['expr'
   const key = JSON.stringify(ir), old = cache.get(key); if (old !== undefined) return old;
   const at = (() => {
     if (ir.op === 'n') return b.constant(ir.value);
-    if (ir.op === 'read') { return read('frame', ['attack', 'phase', 't'].includes(ir.key) ? [ir.key] : ['mem', ir.key.replaceAll('.', '')]); }
+    if (ir.op === 'read') {
+      if (ir.key === 'lookYaw' || ir.key === 'lookPitch') return read('look',[ir.key === 'lookYaw' ? 'yaw' : 'pitch']);
+      return read('frame',ir.key === 'bodyY' ? ['dims','bodyY'] : ['attack','phase','t','seed','speed','flinch','deathT'].includes(ir.key) ? [ir.key] : ['mem',ir.key.replaceAll('.', '')]);
+    }
     if (ir.op === 'select') return b.select(compile(b, read, ir.test, cache), compile(b, read, ir.yes, cache), compile(b, read, ir.no, cache));
     const a = compile(b, read, ir.a, cache);
     return 'b' in ir ? b.binary(ir.op, a, compile(b, read, ir.b, cache)) : b.unary(ir.op, a);
@@ -170,4 +173,38 @@ const programs = final.flatMap((row, i) => {
     return compile(b, read, row.ir, memo);
   } })));
 });
-export const GOLDEN_KING_POSE = { group: 'creature.pose', programs };
+// Detached view facts are numeric rows too; no draw-rate shard program runs.
+const readIR=(key:string):IR=>({op:'read',key});
+const addIR=(...values:IR[]):IR=>values.reduce((a,b)=>binary('add',a,b));
+const mulIR=(...values:IR[]):IR=>values.reduce((a,b)=>binary('mul',a,b));
+const subIR=(a:IR,b:IR):IR=>binary('sub',a,b);
+const capIR=(a:IR):IR=>binary('max',lit(0),binary('min',lit(1),a));
+const stepIR=(a:IR,lo=0,hi=1):IR=>{const t=capIR(binary('div',subIR(a,lit(lo)),lit(hi-lo)));return mulIR(t,t,subIR(lit(3),mulIR(lit(2),t)));};
+const sinIR=(a:IR):IR=>({op:'sin',a});
+const bumpIR=(a:IR):IR=>sinIR(mulIR(lit(Math.PI),capIR(a)));
+const gtIR=(a:IR,b:IR):IR=>binary('gt',a,b);
+const selectIR=(test:IR,yes:IR,no:IR):IR=>({op:'select',test,yes,no});
+const equalIR=(a:IR,value:number):IR=>gtIR(lit(.1),{op:'abs',a:subIR(a,lit(value))});
+const actIR=readIR('act'),attackIR=readIR('attack'),strikeIR=readIR('strike'),timeIR=readIR('t'),seedIR=readIR('seed');
+const liveAttack=gtIR(attackIR,lit(-1e-12)),cutIR=mulIR(equalIR(actIR,1),liveAttack),wideIR=gtIR(strikeIR,lit(1.5));
+const riseIR=selectIR(equalIR(readIR('pose'),0),readIR('rise'),lit(1)),upIR=stepIR(riseIR),standIR=stepIR(upIR,.45,1);
+const deathIR=binary('max',lit(0),readIR('deathT'));
+const inputs:Record<string,IR>={
+ riseInput:riseIR,deathInput:deathIR,speed:readIR('speed'),bodyYInput:readIR('bodyY'),flinch:readIR('flinch'),
+ breathe:sinIR(addIR(mulIR(timeIR,lit(1.3)),mulIR(seedIR,lit(5)))),capeWave:sinIR(addIR(mulIR(timeIR,lit(1.1)),mulIR(readIR('phase'),lit(Math.PI*2)))),
+ cut:cutIR,backCut:mulIR(cutIR,equalIR(binary('mod',strikeIR,lit(2)),1)),wideRz:selectIR(wideIR,lit(.9),lit(.35)),wideSpine:selectIR(wideIR,lit(-.8),lit(-.45)),
+ burst:mulIR(equalIR(actIR,2),liveAttack),hold:gtIR(lit(.72),attackIR),roar:mulIR(binary('max',equalIR(actIR,3),equalIR(actIR,4)),liveAttack),bump:bumpIR(attackIR),
+ roarRx:selectIR(equalIR(actIR,4),lit(-2.2),lit(-.6)),roarLx:selectIR(equalIR(actIR,4),lit(-1.2),lit(-.6)),
+ sitting:binary('max',gtIR(subIR(lit(1),stepIR(upIR,0,.55)),lit(.02)),gtIR(lit(.98),standIR)),rising:bumpIR(standIR),
+ lookYaw:readIR('lookYaw'),lookPitch:readIR('lookPitch'),up:upIR,sit:stepIR(upIR,0,.55),stand:standIR,kneel:stepIR(readIR('kneelS')),raise:stepIR(readIR('raiseS')),dead:stepIR(deathIR),
+ wind:stepIR(attackIR,0,.55),cutProgress:stepIR(attackIR,.55,.75),recover:stepIR(attackIR,.82,1),keep:subIR(lit(1),stepIR(attackIR,.82,1)),
+ lift:stepIR(attackIR,0,.3),slam:stepIR(attackIR,.72,.82),burstRec:stepIR(attackIR,.88,1),burstKeep:subIR(lit(1),stepIR(attackIR,.88,1)),
+};
+const observationCache=new WeakMap<ClientChannels,Map<string,number>>();
+const observationOutputs:NumericChannelOutput[]=Object.entries(inputs).map(([key,ir])=>({target:'mem',path:[`king${key}`],expr:(b,read)=>{
+ let memo=observationCache.get(b);if(memo===undefined){memo=new Map();observationCache.set(b,memo);}return compile(b,read,ir,memo);
+}}));
+const observationPrograms=numericChannelPrograms('king.observe','king.observe',observationOutputs);
+
+export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...programs,...observationPrograms] };
+

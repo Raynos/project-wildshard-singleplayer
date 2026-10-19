@@ -1,0 +1,633 @@
+{
+  "palette": {
+    "coat": [
+      0.5,
+      0.27,
+      0.14
+    ],
+    "belly": [
+      0.6,
+      0.38,
+      0.22
+    ],
+    "points": [
+      0.07,
+      0.055,
+      0.05
+    ],
+    "mane": [
+      0.07,
+      0.055,
+      0.05
+    ],
+    "muzzle": [
+      0.22,
+      0.15,
+      0.12
+    ],
+    "sock": [
+      0.92,
+      0.9,
+      0.85
+    ],
+    "hoof": [
+      0.2,
+      0.17,
+      0.15
+    ],
+    "eye": [
+      0.04,
+      0.03,
+      0.025
+    ],
+    "earIn": [
+      0.3,
+      0.2,
+      0.16
+    ],
+    "dorsal": [
+      0.07,
+      0.055,
+      0.05
+    ]
+  },
+  "definition": {
+    "aggressive": false,
+    "chargeSpeed": 12,
+    "chargeDamage": 25,
+    "sounds": {
+      "call": "horse_neigh",
+      "hurt": "horse_squeal",
+      "callEvery": [
+        40,
+        120
+      ]
+    },
+    "tuning": {
+      "hp": 150,
+      "sightRange": 45,
+      "sightRangeGraze": 20,
+      "sightCone": 1.2217304763960306,
+      "hearStill": 4,
+      "hearCrouch": 8,
+      "hearWalk": 15,
+      "hearSprint": 30,
+      "noticeRate": 0.4,
+      "forgetRate": 0.2,
+      "alertAt": 0.45,
+      "boltAt": 1,
+      "freezeMin": 2,
+      "freezeMax": 4,
+      "relaxAfter": 4,
+      "panicDist": 10,
+      "runSpeed": 12.5,
+      "trotSpeed": 4.5,
+      "fleeMinTime": 3,
+      "fleeUntil": 80,
+      "fleeUntilMax": 120,
+      "fleeMaxTime": 14,
+      "lookBack": 3,
+      "waryTime": 20,
+      "waryBoost": 1.3,
+      "herdAlertRadius": 20,
+      "herdBoltDelayMin": 0.2,
+      "herdBoltDelayMax": 0.8,
+      "impactSpook": 15,
+      "impactAlert": 40
+    },
+    "tick": "ai",
+    "trampleRadius": 0.8,
+    "walkSpeed": 1.8,
+    "rigContract": {
+      "skeleton": "horse.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "kind": "horse",
+    "label": "Wild horse",
+    "pose": {
+      "grazeNeck": 0,
+      "gallopTail": 0.55
+    },
+    "gait": {
+      "trot": 3,
+      "gallop": 6.4
+    },
+    "variants": [
+      {
+        "id": "bay",
+        "label": "Bay mare",
+        "weight": 34,
+        "rarity": "common",
+        "scale": [
+          0.96,
+          1.03
+        ]
+      },
+      {
+        "id": "chestnut",
+        "label": "Chestnut mare",
+        "weight": 24,
+        "rarity": "common",
+        "scale": [
+          0.95,
+          1.02
+        ],
+        "tint": {
+          "coat": [
+            0.62,
+            0.32,
+            0.14
+          ],
+          "belly": [
+            0.7,
+            0.42,
+            0.22
+          ],
+          "points": [
+            0.58,
+            0.3,
+            0.13
+          ],
+          "mane": [
+            0.78,
+            0.52,
+            0.28
+          ],
+          "muzzle": [
+            0.4,
+            0.24,
+            0.15
+          ],
+          "dorsal": [
+            0.62,
+            0.32,
+            0.14
+          ]
+        },
+        "traits": {
+          "blaze": 1,
+          "socks": 1
+        }
+      },
+      {
+        "id": "dun",
+        "label": "Dun mare",
+        "weight": 14,
+        "rarity": "common",
+        "scale": [
+          0.95,
+          1.02
+        ],
+        "tint": {
+          "coat": [
+            0.76,
+            0.62,
+            0.42
+          ],
+          "belly": [
+            0.84,
+            0.74,
+            0.56
+          ],
+          "points": [
+            0.1,
+            0.08,
+            0.07
+          ],
+          "mane": [
+            0.1,
+            0.08,
+            0.07
+          ],
+          "muzzle": [
+            0.3,
+            0.24,
+            0.2
+          ],
+          "dorsal": [
+            0.24,
+            0.17,
+            0.12
+          ]
+        }
+      },
+      {
+        "id": "grey",
+        "label": "Grey mare",
+        "weight": 10,
+        "rarity": "uncommon",
+        "scale": [
+          0.96,
+          1.03
+        ],
+        "tint": {
+          "coat": [
+            0.8,
+            0.8,
+            0.78
+          ],
+          "belly": [
+            0.88,
+            0.88,
+            0.86
+          ],
+          "points": [
+            0.36,
+            0.35,
+            0.35
+          ],
+          "mane": [
+            0.55,
+            0.54,
+            0.53
+          ],
+          "muzzle": [
+            0.24,
+            0.22,
+            0.22
+          ],
+          "earIn": [
+            0.45,
+            0.4,
+            0.4
+          ],
+          "dorsal": [
+            0.8,
+            0.8,
+            0.78
+          ]
+        },
+        "traits": {
+          "dapple": 1
+        }
+      },
+      {
+        "id": "black",
+        "label": "Black mare",
+        "weight": 8,
+        "rarity": "uncommon",
+        "scale": [
+          0.96,
+          1.03
+        ],
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        }
+      },
+      {
+        "id": "foal-bay",
+        "label": "Foal",
+        "weight": 0,
+        "rarity": "common",
+        "scale": [
+          0.6,
+          0.64
+        ],
+        "hp": 70,
+        "tint": {
+          "coat": [
+            0.66,
+            0.45,
+            0.3
+          ],
+          "belly": [
+            0.76,
+            0.6,
+            0.44
+          ],
+          "points": [
+            0.72,
+            0.58,
+            0.44
+          ],
+          "mane": [
+            0.3,
+            0.22,
+            0.16
+          ],
+          "muzzle": [
+            0.42,
+            0.33,
+            0.28
+          ],
+          "dorsal": [
+            0.66,
+            0.45,
+            0.3
+          ]
+        },
+        "traits": {
+          "foal": 1,
+          "mane": 0.6
+        }
+      },
+      {
+        "id": "foal-chestnut",
+        "label": "Foal",
+        "weight": 0,
+        "rarity": "common",
+        "scale": [
+          0.6,
+          0.64
+        ],
+        "hp": 70,
+        "tint": {
+          "coat": [
+            0.74,
+            0.46,
+            0.26
+          ],
+          "belly": [
+            0.84,
+            0.64,
+            0.46
+          ],
+          "points": [
+            0.8,
+            0.6,
+            0.42
+          ],
+          "mane": [
+            0.84,
+            0.62,
+            0.4
+          ],
+          "muzzle": [
+            0.5,
+            0.36,
+            0.28
+          ],
+          "dorsal": [
+            0.74,
+            0.46,
+            0.26
+          ]
+        },
+        "traits": {
+          "foal": 1,
+          "mane": 0.6
+        }
+      },
+      {
+        "id": "camp-bay",
+        "label": "Camp horse",
+        "weight": 0,
+        "rarity": "common",
+        "scale": [
+          1,
+          1
+        ],
+        "traits": {
+          "tack": 1
+        }
+      },
+      {
+        "id": "tulpar",
+        "label": "Tulpar",
+        "weight": 0,
+        "rarity": "rare",
+        "scale": [
+          1.08,
+          1.08
+        ],
+        "hp": 150,
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "tack": 1,
+          "mane": 1.7,
+          "stallion": 1
+        }
+      },
+      {
+        "id": "camp-black",
+        "label": "Camp horse",
+        "weight": 0,
+        "rarity": "common",
+        "scale": [
+          1.02,
+          1.02
+        ],
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "tack": 1,
+          "blaze": 1,
+          "mane": 1.3
+        }
+      },
+      {
+        "id": "stallion",
+        "label": "Black stallion",
+        "weight": 0,
+        "rarity": "rare",
+        "scale": [
+          1.08,
+          1.08
+        ],
+        "hp": 150,
+        "tint": {
+          "coat": [
+            0.16,
+            0.15,
+            0.155
+          ],
+          "belly": [
+            0.18,
+            0.165,
+            0.16
+          ],
+          "points": [
+            0.07,
+            0.065,
+            0.068
+          ],
+          "mane": [
+            0.05,
+            0.045,
+            0.05
+          ],
+          "muzzle": [
+            0.14,
+            0.12,
+            0.12
+          ],
+          "earIn": [
+            0.1,
+            0.08,
+            0.08
+          ],
+          "dorsal": [
+            0.13,
+            0.12,
+            0.125
+          ]
+        },
+        "traits": {
+          "mane": 1.7,
+          "stallion": 1
+        },
+        "mods": {
+          "chargeDamage": 25
+        }
+      }
+    ]
+  },
+  "overlay": {
+    "smooth": [
+      [
+        "rear",
+        3.5,
+        0,
+        1
+      ],
+      [
+        "buck",
+        5,
+        0,
+        1
+      ],
+      [
+        "headUp",
+        3,
+        0,
+        1
+      ],
+      [
+        "pin",
+        6,
+        0,
+        1
+      ],
+      [
+        "turnLead",
+        3.2,
+        -1,
+        1
+      ]
+    ],
+    "decay": [
+      [
+        "kick",
+        1.8
+      ],
+      [
+        "stamp",
+        2.5
+      ],
+      [
+        "toss",
+        2
+      ]
+    ],
+    "grazeRate": 2.2
+  }
+}

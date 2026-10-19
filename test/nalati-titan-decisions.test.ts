@@ -16,8 +16,8 @@ function originalSpear(s: Record<string, number>, random: Rng): Record<string, n
 }
 
 test('v1 Titan spear retains the frozen 10 Hz trace, lock point, strike window and borrowed RNG', () => {
-  const author = ReturnProgram.page(program), random = new Rng(496), oracle = new Rng(496);
-  expect(program.script.abi).toBe('1.0'); expect(program.script.tick).toBeNull();
+  const author = ReturnProgram.page(program.attack), random = new Rng(496), oracle = new Rng(496);
+  expect(program.attack.script.abi).toBe('1.0'); expect(program.attack.script.tick).toBeNull();
   for (const phase of [0, 2]) {
     const state: Record<string, number> = { dt: .1, phase, mode: 0, t: 0, cd: 2.5, x: 0, z: 0, chain: 0, aim: 1.5, lock: .5, stuck: 3, px: 0, pz: 0 };
     let strikes = 0;
@@ -34,7 +34,7 @@ test('v1 Titan spear retains the frozen 10 Hz trace, lock point, strike window a
 });
 
 test('storm riders complete circle, committed charge and open flank without a second state owner', () => {
-  const author = ReturnProgram.page(program);
+  const author = ReturnProgram.page(program.attack);
   const base = { dt: .1, px: 0, pz: 0, ax: -10, az: 0, mode: 0, t: 0, theta: 0, hit: 0,
     x0: -10, z0: 0, x1: 22, z1: 0, lane: 1.2, flank: 2 };
   const circle = author.project('rider', base); expect(circle['mode']).toBe(0); expect(circle['speed']).toBe(12);
@@ -46,10 +46,10 @@ test('storm riders complete circle, committed charge and open flank without a se
 });
 
 test('chain storms schedule seven tells and land only inside their contact radius', () => {
-  const author = ReturnProgram.page(program), random = new Rng(503);
+  const author = ReturnProgram.page(program.attack), random = new Rng(503);
   let cd = 0, left = 0, t = 0, strikes = 0;
   for (let tick = 0; tick < 40; tick++) {
-    const result = author.project('chain', { dt: .1, cd, chain: left, t, mode: 1 }, random);
+    const result = author.project('chain', { dt: .1, cd, chain: left, t, mode: 1, count: 12 }, random);
     cd = result['cd'] ?? cd; left = result['left'] ?? left; t = result['t'] ?? t;
     strikes += result['strike'] ?? 0;
   }
@@ -58,4 +58,40 @@ test('chain storms schedule seven tells and land only inside their contact radiu
   expect(author.project('chainLand', tell)).toMatchObject({ strike: 0, hurt: 0 });
   expect(author.project('chainLand', { ...tell, t: .6 })).toMatchObject({ strike: 1, hurt: 1 });
   expect(author.project('chainLand', { ...tell, t: .6, px: 8 })).toMatchObject({ strike: 1, hurt: 0 });
+});
+
+
+test('fire decisions expire cells, preserve burnt neighbours and stay within the v1 fuel budget', () => {
+  const fire = ReturnProgram.page(program.fire), rng = new Rng(506);
+  const neighbours = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]].map(([x,z]) => ({ x: x ?? 0, z: z ?? 0, mode: 2 }));
+  expect(fire.project('fire', { dt: .1, burn: 2, spread: 1, count: 8, wx: 1, wz: 0 }, rng, neighbours)).toEqual({ burn: 1.9, mask: 0 });
+  expect(fire.project('fire', { dt: .1, burn: .05, spread: 1, count: 8, wx: 1, wz: 0 }, rng, neighbours)).toEqual({ burn: -.05, mask: 0 });
+  expect(fire.project('fireContact', { dt: .1, cd: 0, hit: 1, open: 1, amount: 8 })).toEqual({ cd: .5, hurt: 4, speed: -1 });
+  expect(fire.project('fireContact', { dt: .1, cd: .5, hit: 1, open: 0, amount: 8 })).toEqual({ cd: .4, hurt: 0, speed: 0 });
+  const grass = neighbours.map(row => ({ x: row.x, z: row.z, mode: 0 }));
+  const result = fire.project('fire', { dt: .1, burn: 2, spread: 1, count: 8, wx: 1, wz: 0 }, rng, grass);
+  expect(result['mask']).toBeGreaterThanOrEqual(0); expect(result['mask']).toBeLessThan(256);
+  expect(fire.project('ignite', { burn: 7 }, rng)['burn']).toBeGreaterThanOrEqual(5.6);
+});
+
+test('rider coupling removes dead slots once and commits a single live charge', () => {
+  const rules = ReturnProgram.page(program.rules), rng = new Rng(503);
+  expect(rules.project('riderDamage',{ x: 0, z: 0, px: 1, pz: 0, radius: 1.6, open: 1 })['alpha']).toBe(3);
+  expect(rules.project('riderDamage',{ x: 0, z: 0, px: 20, pz: 0, radius: 1.6, open: 1 })['alpha']).toBe(.5);
+  const base = { dt: .1, px: 10, pz: 20, count: 3, hp: 1560, cd: 0, invuln: 0, chip: 208 };
+  const slots = [{ hit: 0, mode: 0, x: 0, z: 0 }, { hit: 1, mode: 0, x: 2, z: 0 }, { hit: 1, mode: 0, x: 3, z: 0 }];
+  expect(rules.project('couple', base, rng, slots)).toMatchObject({ mask: 1, hp: 1352, left: 2, index: 1, broke: 0, x0: 2, z0: 0 });
+  expect(rules.project('couple', { ...base, invuln: 1 }, rng, slots)).toMatchObject({ hp: 1560 });
+  expect(rules.project('couple', base, rng, slots.map(row => ({ x: row.x, z: row.z, mode: row.mode, hit: 0 })))).toMatchObject({ mask: 7, index: -1, broke: 1 });
+  expect(rules.project('couple', base, rng, slots.map(row => ({ x: row.x, z: row.z, hit: 1, mode: 2 })))).toMatchObject({ index: -1 });
+});
+
+test('the native world receives bounded wind positions and doorway decisions', () => {
+  const wind = ReturnProgram.page(program.wind), rules = ReturnProgram.page(program.rules);
+  const w = wind.project('whirl', { dt: .1, t: 2, index: 0, x: 100, z: 0, vx: 0, vz: 0, cx: 0, cz: 0, radius: 68, wx: 1, wz: 0, cd: 0, hit: 1, px: 0, pz: 0, flank: 3.2, open: 1 });
+  expect(Math.hypot(w['x'] ?? 0,w['z'] ?? 0)).toBeCloseTo(60);
+  const door = { px: 0, pz: 2, y: 0, ex: 0, ey: 0, ez: 0, facing: 0, volume: 1, inside: 0, corridor: 0, land: 22.5, engaged: 0, sand: 0, floor: 140, cy: 140 };
+  expect(rules.project('kingDoor',door)).toEqual({ enter: 1, exit: 0, slow: 0 });
+  expect(rules.project('kingDoor',{ ...door, inside: 1, volume: 0 })).toMatchObject({ exit: 1 });
+  expect(rules.project('kingDoor',{ ...door, inside: 1, sand: 1, floor: 141 })).toMatchObject({ slow: 1 });
 });

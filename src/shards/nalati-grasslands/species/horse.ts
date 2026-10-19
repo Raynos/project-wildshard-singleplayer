@@ -1,10 +1,10 @@
+import horseRows from './horse.json' with { type: 'json' };
+import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { RGB } from '@wildshard/engine/entities/species/loft';
-import type { SpeciesDef, AnimalSpecies, VariantDef } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR, clamp } from '@wildshard/engine/entities/species/rigs';
 
 import * as THREE from 'three';
 
@@ -13,7 +13,7 @@ import * as THREE from 'three';
 
 import { thinkHorse, actHorse, horseDamageMul } from '../runtime/groupDispatch';
 
-import { nalatiBody } from './presentation';
+import { nalatiBody, poseNalatiCreature } from './presentation';
 import { wildEnv } from '../creatures/env';
 
 /**
@@ -47,118 +47,18 @@ import { wildEnv } from '../creatures/env';
 
 export const HORSE_SPEED = ecology.modes.ride[0].gaits;
 
-export const HORSE = {   // exported: glbCreatures.ts recolours the rigged hull per variant from it
-  coat: [0.50, 0.27, 0.14], belly: [0.60, 0.38, 0.22], points: [0.07, 0.055, 0.05], mane: [0.07, 0.055, 0.05],
-  muzzle: [0.22, 0.15, 0.12], sock: [0.92, 0.90, 0.85], hoof: [0.20, 0.17, 0.15], eye: [0.04, 0.03, 0.025],
-  earIn: [0.30, 0.20, 0.16], dorsal: [0.07, 0.055, 0.05],
-} satisfies Record<string, RGB>;
-
-const CHESTNUT: Record<string, RGB> = { coat: [0.62, 0.32, 0.14], belly: [0.70, 0.42, 0.22], points: [0.58, 0.30, 0.13], mane: [0.78, 0.52, 0.28], muzzle: [0.40, 0.24, 0.15], dorsal: [0.62, 0.32, 0.14] };
-const BLACK: Record<string, RGB> = { coat: [0.16, 0.15, 0.155], belly: [0.18, 0.165, 0.16], points: [0.07, 0.065, 0.068], mane: [0.05, 0.045, 0.05], muzzle: [0.14, 0.12, 0.12], earIn: [0.10, 0.08, 0.08], dorsal: [0.13, 0.12, 0.125] };
-const DUN: Record<string, RGB> = { coat: [0.76, 0.62, 0.42], belly: [0.84, 0.74, 0.56], points: [0.10, 0.08, 0.07], mane: [0.10, 0.08, 0.07], muzzle: [0.30, 0.24, 0.20], dorsal: [0.24, 0.17, 0.12] };
-const GREY: Record<string, RGB> = { coat: [0.80, 0.80, 0.78], belly: [0.88, 0.88, 0.86], points: [0.36, 0.35, 0.35], mane: [0.55, 0.54, 0.53], muzzle: [0.24, 0.22, 0.22], earIn: [0.45, 0.40, 0.40], dorsal: [0.80, 0.80, 0.78] };
-const FOAL_BAY: Record<string, RGB> = { coat: [0.66, 0.45, 0.30], belly: [0.76, 0.60, 0.44], points: [0.72, 0.58, 0.44], mane: [0.30, 0.22, 0.16], muzzle: [0.42, 0.33, 0.28], dorsal: [0.66, 0.45, 0.30] };
-const FOAL_CHESTNUT: Record<string, RGB> = { coat: [0.74, 0.46, 0.26], belly: [0.84, 0.64, 0.46], points: [0.80, 0.60, 0.42], mane: [0.84, 0.62, 0.40], muzzle: [0.50, 0.36, 0.28], dorsal: [0.74, 0.46, 0.26] };
-
-/** the horse's body: its variant's baked lofts (`generators/horseBody.ts` -> `species/bodies.ts`) */
-const buildHorse = (v: VariantDef): AnimalSpecies => nalatiBody('horse', v);
-
-// ── the horse's own motion (SpeciesDef.postPose) ───────────────────────────────────────────────────────────────────
-
-const decayKnob = (m: Record<string, number>, k: string, dt: number, rate: number): number => {
-  const v = m[k] ?? 0;
-  if (v > 0) m[k] = Math.max(0, v - dt * rate);
-  return v;
-};
-
-/** Shipping mane, rear and head overlays on either real view bones or owned native joints. */
-export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }): void {
-  const b = c.bones, m = c.mem;
-  const body = b['body'], n1 = b['neck1'], n2 = b['neck2'], head = b['head'], m1 = b['mane1'], m2 = b['mane2'];
-  const t1 = b['tail'], t2 = b['tail2'], t3 = b['tail3'];
-  if (body === undefined || n1 === undefined || n2 === undefined || head === undefined || m1 === undefined || m2 === undefined || t1 === undefined || t2 === undefined || t3 === undefined) return;
-  const dt = c.dt;
-  // eased knobs
-  const ez = (k: string, target: number, rate: number): number => { const cur = m[`_${k}`] ?? 0; const v = cur + (target - cur) * Math.min(1, dt * rate); m[`_${k}`] = v; return v; };
-  const alive = c.alive;
-  const rear = smooth01(ez('rear', alive ? clamp(m['rear'] ?? 0, 0, 1) : 0, 3.5));
-  const buck = ez('buck', alive ? clamp(m['buck'] ?? 0, 0, 1) : 0, 5);
-  const kick = alive ? bump(1 - clamp(decayKnob(m, 'kick', dt, 1.8), 0, 1), 0, 1) * ((m['kick'] ?? 0) > 0 ? 1 : 0) : 0;
-  const stamp = alive ? bump(1 - clamp(decayKnob(m, 'stamp', dt, 2.5), 0, 1), 0, 1) * ((m['stamp'] ?? 0) > 0 ? 1 : 0) : 0;
-  const toss = alive ? bump(1 - clamp(decayKnob(m, 'toss', dt, 2), 0, 1), 0, 1) * ((m['toss'] ?? 0) > 0 ? 1 : 0) : 0;
-  const headUp = ez('headUp', alive ? clamp(m['headUp'] ?? 0, 0, 1) : 0, 3);
-  const pin = ez('pin', alive ? clamp(m['pin'] ?? 0, 0, 1) : 0, 6);
-  const speed = c.speed;
-  const run = clamp((speed - 3) / 9, 0, 1);
-  // Animal.ts rewrites the body bone's y every frame but never its z: keep the bind z and set z absolutely
-  const bz = (m['_bz'] ??= body.position.z);
-  body.position.z = bz;
-
-  // rearing: pivot on the hind feet (raise the body bone so the hips stay put), forelegs fold, neck up
-  if (rear > 0.001) {
-    const th = rear * 0.78;
-    body.rotation.x -= th;
-    body.position.y += 0.6 * Math.sin(th);
-    body.position.z = bz - 0.31 * (1 - Math.cos(th));
-    n1.rotation.x -= 0.35 * rear; head.rotation.x += 0.25 * rear;
-    for (const s of ['L', 'R'] as const) {
-      const sh = b[`F${s}_shoulder`], ca = b[`F${s}_carpus`], fe = b[`F${s}_fetlock`], hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`];
-      const paw = s === 'L' ? Math.sin(c.t * 7) : Math.sin(c.t * 7 + 2);   // the forelegs paw the air
-      if (sh !== undefined) sh.rotation.x -= (0.5 + 0.25 * paw) * rear;
-      if (ca !== undefined) ca.rotation.x += 1.5 * rear;
-      if (fe !== undefined) fe.rotation.x += 0.4 * rear;
-      if (hp !== undefined) hp.rotation.x += th * 0.85;
-      if (stf !== undefined) stf.rotation.x += 0.25 * rear;
-    }
-  }
-  // bucking: the hind end thrown up, head down, a side twist
-  if (buck > 0.001) {
-    const ph = Math.sin(c.t * 6.5);
-    const up = Math.max(0, ph) * buck;
-    body.rotation.x += 0.4 * up - 0.1 * Math.max(0, -ph) * buck;
-    body.rotation.z += 0.15 * (m['buckDir'] ?? 1) * up;
-    body.position.y += 0.12 * Math.abs(ph) * buck;
-    n1.rotation.x += 0.45 * up;
-    for (const s of ['L', 'R'] as const) { const hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`]; if (hp !== undefined) hp.rotation.x += 0.9 * up; if (stf !== undefined) stf.rotation.x -= 0.5 * up; }
-  }
-  // the hind kick: weight forward, both hind legs lash back
-  if (kick > 0.001) {
-    body.rotation.x += 0.3 * kick;
-    n1.rotation.x += 0.4 * kick;
-    for (const s of ['L', 'R'] as const) { const hp = b[`B${s}_hip`], hk = b[`B${s}_hock`]; if (hp !== undefined) hp.rotation.x += 1.2 * kick; if (hk !== undefined) hk.rotation.x -= 0.5 * kick; }
-  }
-  if (stamp > 0.001) { const sh = b['FR_shoulder'], ca = b['FR_carpus']; if (sh !== undefined) sh.rotation.x -= 0.5 * stamp; if (ca !== undefined) ca.rotation.x += stamp; }
-  // grazing: the generic graze (pose.grazeNeck 0) only nods the head; a horse drops the whole neck from the withers and
-  // tucks the head back toward vertical so the muzzle reaches the grass (solved offline for this rig: neck1 1.7, neck2 0.1,
-  // head −1.2 in total)
-  const graze = ez('graze', alive && c.state === 'graze' && c.speed < 0.3 ? 1 : 0, 2.2);
-  if (graze > 0.001) { n1.rotation.x += 1.35 * graze; n2.rotation.x -= 0.1 * graze; head.rotation.x -= 1.55 * graze; }
-  // ridden (Mount.ts `turnLead` −1..1, + = left): the neck bends into the rein before the body turns — eased here (~0.3 s),
-  // so a turn reads as the head leading and the body following, never a snap; the head sits a little over the neck's bend
-  const lead = ez('turnLead', alive ? clamp(m['turnLead'] ?? 0, -1, 1) : 0, 3.2);
-  if (Math.abs(lead) > 0.001) { n1.rotation.y += 0.2 * lead; n2.rotation.y += 0.2 * lead; head.rotation.y += 0.16 * lead; head.rotation.z -= 0.06 * lead; }
-  // head high + ears forward (watching); ears pinned (warning); a toss
-  n1.rotation.x -= 0.28 * headUp + 0.35 * toss;
-  n2.rotation.x -= 0.1 * headUp;
-  head.rotation.x += 0.15 * headUp + 0.3 * toss;
-  const eL = b['earL'], eR = b['earR'];
-  if (eL !== undefined) eL.rotation.x += 1.2 * pin - 0.3 * headUp;
-  if (eR !== undefined) eR.rotation.x += 1.2 * pin - 0.3 * headUp;
-  // mane: falls to one side, swings with the stride, streams back at speed
-  // (the locks fall to the right in the model; the bones lift them back and out at speed and swing them with the stride)
-  // the steppe wind lifts the mane and the tail even standing (wildEnv.wind: the gusts' strength, which side it comes from)
-  const w = wind, ws = w.strength * (1 - run);
-  const across = w.x * Math.cos(c.yaw) - w.z * Math.sin(c.yaw);   // + = the wind blows toward the horse's left
-  const gust = 0.6 + 0.4 * Math.sin(c.t * 0.9 + c.seed * 5) + 0.25 * Math.sin(c.t * 3.7 + c.seed);
-  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed)
-    + ws * gust * (0.25 * across + 0.06 * Math.sin(c.t * 5.3 + c.seed * 2));
-  m1.rotation.set(-0.35 * run - 0.1 * rear, 0, 0.25 * run + swing * 0.7);
-  m2.rotation.set(-0.45 * run - 0.1 * rear, 0, 0.3 * run + swing);
-  // tail: the dock lifts when running (Animal.ts' gallopTail), the hair lags and streams
-  const lag = Math.sin(c.phase * Math.PI * 2 - 2.0);
-  t2.rotation.set(-0.2 * run + 0.06 * lag * run + 0.3 * buck - 0.12 * ws * gust, 0, 0.1 * Math.sin(c.t * 1.1 + c.seed * 4) * (1 - run) + 0.08 * lag * run + 0.3 * ws * gust * across);
-  t3.rotation.set(-0.35 * run + 0.08 * lag * run - 0.15 * ws * gust, 0, 0.14 * Math.sin(c.t * 1.1 - 0.8 + c.seed * 4) * (1 - run) + 0.1 * lag * run + 0.35 * ws * gust * across);
-  void t1;
+export const HORSE = horseRows.palette;
+const nativeClips = new WeakMap<object, ReturnType<typeof numericCreaturePose>>();
+/** Data channels draw the overlay; this binding observes wind and advances presentation envelopes. */
+export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }, input?: object): void {
+  const m = c.mem; m['horsealive'] = Number(c.alive);
+  for (const [key, rate, lo, hi] of horseRows.overlay.smooth) { const at = `horse${key}`, target = c.alive ? clamp(m[key] ?? 0, lo, hi) : 0; m[at] = (m[at] ?? 0) + (target - (m[at] ?? 0)) * Math.min(1, c.dt * rate); }
+  for (const [key, rate] of horseRows.overlay.decay) { const value = m[key] ?? 0; m[`pose${key}`] = value; if (value > 0) m[key] = Math.max(0, value - c.dt * rate); }
+  const graze = c.alive && c.state === 'graze' && c.speed < .3 ? 1 : 0;
+  m['horsegraze'] = (m['horsegraze'] ?? 0) + (graze - (m['horsegraze'] ?? 0)) * Math.min(1, c.dt * horseRows.overlay.grazeRate);
+  m['horsebaseZ'] ??= c.bones['body']?.position.z ?? 0; m['horseWindX'] = wind.x; m['horseWindZ'] = wind.z; m['horseWindStrength'] = wind.strength;
+  if (input === undefined) { poseNalatiCreature('horse', c); return; }
+  let pose = nativeClips.get(input); if (pose === undefined) { pose = numericCreaturePose(input); nativeClips.set(input, pose); } pose(c);
 }
 
 // ── rig API for riding (B7) ────────────────────────────────────────────────────────────────────────────────────────
@@ -188,44 +88,14 @@ export function horseBones(a: Animal): HorseBones {
 }
 
 const SADDLE_LOCAL = new THREE.Vector3(0, 0.36, 0.28);   // on the spine, behind the withers (body-bone space, scale 1)
-const EYE_LOCAL = new THREE.Vector3(0, 0.16, 0.0);       // between the ears (head-bone space)
 
 /** the rider's seat, world space (follows the gait's bob and pitch; valid after the horse's update this frame) */
 export function horseSaddle(a: Animal, out: THREE.Vector3): THREE.Vector3 {
   return out.copy(SADDLE_LOCAL).applyMatrix4(horseBones(a).body.matrixWorld);
 }
-/** a point between the ears, world space */
-export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
-  return out.copy(EYE_LOCAL).applyMatrix4(horseBones(a).head.matrixWorld);
-}
-
 export const HORSE_SPECIES: SpeciesDef = {
-  ...ecology.gameplay.horse,
-  rigContract: { skeleton: 'horse.v1', clips: [], sockets: ['body', 'head'] },
-  kind: 'horse',
-  label: 'Wild horse',
-  fur: NO_FUR,
-  pose: { grazeNeck: 0, gallopTail: 0.55 },
-  gait: { trot: 3.0, gallop: 6.4 },
-  variants: [
-    { id: 'bay', label: engineString('s_d8506748df32'), weight: 34, rarity: 'common', scale: [0.96, 1.03] },
-    { id: 'chestnut', label: engineString('s_ebae143256f0'), weight: 24, rarity: 'common', scale: [0.95, 1.02], tint: CHESTNUT, traits: { blaze: 1, socks: 1 } },
-    { id: 'dun', label: engineString('s_f774e4371404'), weight: 14, rarity: 'common', scale: [0.95, 1.02], tint: DUN },
-    { id: 'grey', label: engineString('s_b98ca6c03d96'), weight: 10, rarity: 'uncommon', scale: [0.96, 1.03], tint: GREY, traits: { dapple: 1 } },
-    { id: 'black', label: engineString('s_fafd70f6c9c0'), weight: 8, rarity: 'uncommon', scale: [0.96, 1.03], tint: BLACK },
-    { id: 'foal-bay', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_BAY, traits: { foal: 1, mane: 0.6 } },
-    { id: 'foal-chestnut', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_CHESTNUT, traits: { foal: 1, mane: 0.6 } },
-    {
-      id: 'camp-bay', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
-    },
-    { id: 'tulpar', label: engineString('s_58a74ea825dc'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK, traits: { tack: 1, mane: 1.7, stallion: 1 } },
-    { id: 'camp-black', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
-    {
-      id: 'stallion', label: engineString('s_1f0c0753155f'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,
-      traits: { mane: 1.7, stallion: 1 }, mods: { chargeDamage: 25 },
-    },
-  ],
-  build: buildHorse,
+  ...horseRows.definition, fur: NO_FUR,
+  build: variant => nalatiBody('horse', variant),
   postPose: c => { poseNalatiHorse(c, wildEnv.wind); },
   act: actHorse,
   think: thinkHorse,

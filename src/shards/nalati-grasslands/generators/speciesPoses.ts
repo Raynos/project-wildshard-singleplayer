@@ -12,6 +12,7 @@ const max = (...v: E[]): E => v.reduce((a, b) => op('max', a, b));
 const min = (a: E, b: E): E => op('min', a, b);
 const cap = (a: E): E => max(0, min(1, a));
 const sin = (a: E): E => ({ unary: 'sin', a });
+const cos = (a: E): E => ({ unary: 'cos', a });
 const abs = (a: E): E => ({ unary: 'abs', a });
 const choose = (test: E, yes: E, no: E): E => ({ test, yes, no });
 const gt = (a: E, b: E): E => op('gt', a, b);
@@ -47,6 +48,37 @@ function pose(id: string, build: (set: (bone: string, channel: string, e: E, add
   return { group: 'creature.pose', programs, scalars, ...options };
 }
 export const SPECIES_POSES = {
+  horse: pose('horse', (set, m) => {
+    const rear=step(m('horserear')),buck=m('horsebuck'),headUp=m('horseheadUp'),pin=m('horsepin'),lead=m('horseturnLead'),graze=m('horsegraze');
+    const impulse=(key:string) => choose(mul(m('horsealive'),gt(m(key),0)),bump(sub(1,cap(m(`pose${key}`))),0,1),0);
+    const kick=impulse('kick'),stamp=impulse('stamp'),toss=impulse('toss'),run=cap(div(sub(speed,3),9));
+    const ph=wave(6.5),up=mul(max(0,ph),buck),th=mul(rear,.78);
+    set('body','rotation.x',add(mul(-1,th),mul(.4,up),mul(-.1,max(0,mul(-1,ph)),buck),mul(.3,kick)),true);
+    set('body','position.y',add(mul(.6,sin(th)),mul(.12,abs(ph),buck)),true);
+    set('body','position.z',sub(m('horsebaseZ'),mul(.31,sub(1,cos(th)))));
+    set('body','rotation.z',mul(.15,m('buckDir',1),up),true);
+    set('neck1','rotation.x',add(mul(-.35,rear),mul(.45,up),mul(.4,kick),mul(1.35,graze),mul(-.28,headUp),mul(-.35,toss)),true);
+    set('neck2','rotation.x',add(mul(-.1,graze),mul(-.1,headUp)),true);
+    set('head','rotation.x',add(mul(.25,rear),mul(-1.55,graze),mul(.15,headUp),mul(.3,toss)),true);
+    set('neck1','rotation.y',mul(.2,lead),true);set('neck2','rotation.y',mul(.2,lead),true);set('head','rotation.y',mul(.16,lead),true);set('head','rotation.z',mul(-.06,lead),true);
+    for(const [s,offset] of [['L',0],['R',2]] as const){
+      set(`F${s}_shoulder`,'rotation.x',add(mul(-1,add(.5,mul(.25,wave(7,offset))),rear),s==='R'?mul(-.5,stamp):0),true);
+      set(`F${s}_carpus`,'rotation.x',add(mul(1.5,rear),s==='R'?stamp:0),true);set(`F${s}_fetlock`,'rotation.x',mul(.4,rear),true);
+      set(`B${s}_hip`,'rotation.x',add(mul(th,.85),mul(.9,up),mul(1.2,kick)),true);set(`B${s}_stifle`,'rotation.x',add(mul(.25,rear),mul(-.5,up)),true);set(`B${s}_hock`,'rotation.x',mul(-.5,kick),true);
+    }
+    for(const ear of ['earL','earR'])set(ear,'rotation.x',sub(mul(1.2,pin),mul(.3,headUp)),true);
+    const ws=mul(m('horseWindStrength'),sub(1,run)),across=sub(mul(m('horseWindX'),cos(r('frame','yaw'))),mul(m('horseWindZ'),sin(r('frame','yaw'))));
+    const gust=add(.6,mul(.4,wave(.9,mul(seed,5))),mul(.25,wave(3.7,seed)));
+    const swing=add(mul(sin(sub(phase,1.2)),add(.1,mul(.22,run))),mul(.05,wave(1.7,mul(seed,3))),mul(.03,wave(4.1,seed)),mul(ws,gust,add(mul(.25,across),mul(.06,wave(5.3,mul(seed,2))))));
+    set('mane1','rotation.x',add(mul(-.35,run),mul(-.1,rear)));set('mane1','rotation.y',0);set('mane1','rotation.z',add(mul(.25,run),mul(.7,swing)));
+    set('mane2','rotation.x',add(mul(-.45,run),mul(-.1,rear)));set('mane2','rotation.y',0);set('mane2','rotation.z',add(mul(.3,run),swing));
+    const lag=sin(sub(phase,2));
+    set('tail2','rotation.x',add(mul(-.2,run),mul(.06,lag,run),mul(.3,buck),mul(-.12,ws,gust)));set('tail2','rotation.y',0);
+    set('tail2','rotation.z',add(mul(.1,wave(1.1,mul(seed,4)),sub(1,run)),mul(.08,lag,run),mul(.3,ws,gust,across)));
+    set('tail3','rotation.x',add(mul(-.35,run),mul(.08,lag,run),mul(-.15,ws,gust)));set('tail3','rotation.y',0);
+    set('tail3','rotation.z',add(mul(.14,wave(1.1,add(-.8,mul(seed,4))),sub(1,run)),mul(.1,lag,run),mul(.35,ws,gust,across)));
+  }),
+
   balbal: pose('balbal', (set, m) => {
     const rise = m('rise', 1), grind = mul(m('field'), min(1, mul(sub(1, rise), 3)), gt(rise, .02));
     const emerge = sub(1, m('emerge', 1)), kneel = step(dead, 0, .5), topple = step(dead, .45, 1);

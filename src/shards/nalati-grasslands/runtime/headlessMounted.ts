@@ -1,3 +1,5 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import type { RidingPrograms } from './tamingBindings';
 import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame, type RoadXZ } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -20,7 +22,7 @@ const MotorState = v.strictObject({ version: v.literal(1), colliderHandle: v.pip
   climbAngle: num, slideAngle: num, result: v.strictObject({ grounded: v.boolean(), groundNormalY: num,
     downhillX: num, downhillZ: num, horizontalFreedom: num, groundColliderHandle: handle }) });
 const Saved = v.strictObject({ version: v.literal(1), horse: v.nullable(v.string()), body: v.unknown(), motor: v.nullable(MotorState),
-  rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }),
+  decisionClock: num, walkingSpeed: num, rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }),
   poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)) });
 
 /** Trusted physical rider, not a presentation/taming stand-in. Mountable identities come from the page's actual camp roster. */
@@ -41,7 +43,7 @@ export function nalatiMountedOf(host: SimHost): NalatiMountedPlayer | undefined 
 /** The page's native reins/body and gait phase under the host's single physics authority. The ordinary player driver
  * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. */
 export function installNalatiMountedPlayer(host: SimHost, ports: {
-  readonly groups: NalatiGroups; readonly mountable: readonly string[];
+  readonly programs: RidingPrograms; readonly groups: NalatiGroups; readonly mountable: readonly string[];
   readonly heightAt: (x: number, z: number) => number; readonly waterLevel: () => number;
   readonly surfaceAt: (x: number, z: number) => number | null;
   readonly wetAt: (x: number, z: number) => boolean;
@@ -50,8 +52,10 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
 }): NalatiMountedPlayer {
   if (installed.has(host)) throw new Error('Nalati mounted player already installed');
   registerHeadlessMode(host, { id: 'ride', hud: 'ride' }, host.scope);
+  const rules = ReturnProgram.native(host, ports.programs.riding);
   const body = new MountedBody(HORSE_SPEED), rider: MountedRider = { position: host.player.position, velocity: new Vector3(),
     onGround: true, sprinting: false, crouching: false, speedFactor: 1 };
+  let decisionClock = 0;
   const walking = { speed: host.level.player.speed, crouching: false }, previousFoot = new Vector3();
   let horse: AnimalSim | null = null, savedMotor: v.InferOutput<typeof MotorState> | null = null;
   const poses = new Map<string, AnimalPoseLaw>();
@@ -84,9 +88,9 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
     a.position.copy(body.feet); a.yaw = body.heading; a.driven = false; a.levelGround = false;
     a.yOffset = Math.max(0, body.feet.y - ports.heightAt(body.feet.x, body.feet.z));
     body.motor?.dispose(); body.motor = null;
-    const side = thrown ? 2.2 : 1.15;
-    let x = a.position.x + Math.cos(a.yaw) * side, z = a.position.z - Math.sin(a.yaw) * side;
-    if (!ports.inBounds(x, z, 3)) { x = a.position.x - Math.cos(a.yaw) * side; z = a.position.z + Math.sin(a.yaw) * side; }
+    const site = rules.project('dismount', { x: a.position.x, z: a.position.z, yaw: a.yaw, thrown: Number(thrown) });
+    let x = site['x'] ?? a.position.x, z = site['z'] ?? a.position.z;
+    if (!ports.inBounds(x, z, 3)) { x = site['altX'] ?? x; z = site['altZ'] ?? z; }
     rider.position.set(x, Math.max(ports.heightAt(x, z), body.onDeck ? body.feet.y : -Infinity), z);
     rider.velocity.set(0, 0, 0); rider.onGround = true; rider.speedFactor = 1;
     host.player.motor.setEnabled(true); host.playerFall.grounded = true; host.playerFall.vy = 0;
@@ -124,11 +128,14 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
       const surface = ports.surfaceAt(rider.position.x, rider.position.z);
       const depth = surface === null ? 0 : Math.max(0, surface - rider.position.y);
       const forward = command === undefined ? 0 : -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ;
-      rider.crouching = versioned && !board && !host.playerSwim.on && command.crouch === true;
-      rider.sprinting = versioned && !board && !host.playerSwim.on && depth < 0.6 && !rider.crouching && command.sprint === true && forward > 0;
-      const wade = !board && !host.playerSwim.on && host.playerFall.grounded ? Math.min(1, depth / 1.1) : 0;
-      walking.speed = versioned ? walkingSpeed(rider.crouching, rider.sprinting, wade, 1, 1) : host.level.player.speed;
-      walking.crouching = rider.crouching; ports.groups.env.playerCrouched = rider.crouching;
+      decisionClock += dt;
+      if (decisionClock + 1e-9 >= .1) {
+        decisionClock = 0;
+        const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(host.playerSwim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(host.playerFall.grounded) });
+        rider.crouching = row['crouched'] === 1; rider.sprinting = row['sprinting'] === 1;
+        walking.speed = versioned ? walkingSpeed(rider.crouching, rider.sprinting, row['wade'] ?? 0, 1, 1) : host.level.player.speed;
+        walking.crouching = rider.crouching; ports.groups.env.playerCrouched = rider.crouching;
+      }
       return false;
     }
     if (command !== undefined && (command.commandVersion !== 1 || command.steer === undefined)) throw new Error('Mounted reins require versioned raw local controls');
@@ -148,7 +155,8 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
   host.usePlayerDriver(driver);
   const mount = (id: string, breaking = false): boolean => {
     const a = host.entities.get(id);
-    if (horse !== null || a === undefined || !a.alive || a.driven || (!available.has(id) && !(breaking && ports.groups.herds.some(h => h.stallion === a)))) return false;
+    const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id)), breaking: Number(breaking), stallion: Number(ports.groups.herds.some(h => h.stallion === a)) });
+    if (allowed['accept'] !== 1 || a === undefined) return false;
     host.setBoard(false); horse = a;
     const h = herd(a); if (h !== null) h.setRidden(a); else a.mem['ridden'] = 1;
     a.setMotion(a.yaw, 0, 2); body.heading = a.yaw; body.speed = 0; body.wUp = 0; body.yawRate = 0;
@@ -185,7 +193,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
   }, {
     snapshot: (): SimValue => {
       const state = body.snapshotBody(), motor = body.motor?.snapshot();
-      return { version: 1, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
+      return { version: 1, decisionClock, walkingSpeed: walking.speed, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
         motor: motor === undefined ? null : { ...motor, anchor: { ...motor.anchor }, result: { ...motor.result } },
         rider: { velocity: rider.velocity.toArray(), onGround: rider.onGround, sprinting: rider.sprinting,
           crouching: rider.crouching, speedFactor: rider.speedFactor }, poses: [...poses].map(([id, pose]) => [id, pose.snapshot()]) };
@@ -201,7 +209,7 @@ export function installNalatiMountedPlayer(host: SimHost, ports: {
         const known = poses.get(id); if (known === undefined) throw new Error('Invalid mounted pose identity');
         new AnimalPoseLaw(known.recipe).restore(wire);
       }
-      body.restoreBody(state.body); horse = a; savedMotor = state.motor;
+      body.restoreBody(state.body); decisionClock = state.decisionClock; walking.speed = state.walkingSpeed; walking.crouching = state.rider.crouching; horse = a; savedMotor = state.motor;
       rider.velocity.fromArray(state.rider.velocity); rider.onGround = state.rider.onGround; rider.sprinting = state.rider.sprinting;
       rider.crouching = state.rider.crouching; rider.speedFactor = state.rider.speedFactor;
       for (let i = 0; i < Math.min(64, state.poses.length); i++) {

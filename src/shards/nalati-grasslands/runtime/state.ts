@@ -59,6 +59,7 @@ import { StealthController, type StealthController as Stealth, type StealthThrea
 import { AudioSceneDirector } from '@wildshard/game/audio/sceneDirector';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/grass';
+import type { RidingPrograms } from './tamingBindings';
 import { wireRide, type Ride } from '../ride/ride';
 import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
@@ -131,6 +132,7 @@ export interface Nalati {
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
   const { admission, pasture } = v.parse(v.object({ admission: v.unknown(), pasture: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  const ridingPrograms = await plugin.product.json<RidingPrograms>('ride/rules.json');
   const flockBody = await readFlockBody(plugin.product); plugin.scope.own(flockBody.geometry);
   const panels = await readDataPanels(plugin.product), namePanel = panels['name'];
   if (namePanel === undefined) throw new Error('Nalati requires its named horse panel');
@@ -395,7 +397,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       stealth = new StealthController(plugin,player,stealthRows);
       nalati.stealth = stealth;
       if (wildlife === null || attachedAnimals === null) throw new Error('Nalati creatures have not been built');
-      ride = wireRide({ namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
+      ride = wireRide({ programs: ridingPrograms, namePanel, ...(persistence === undefined ? {} : { persistence }), ctx: plugin, player, forest: ctx.forest, animals: attachedAnimals, wildlife, camera: game.camera });
       nalati.ride = ride;
       installRide(plugin, ride);
 

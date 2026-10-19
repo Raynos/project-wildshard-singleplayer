@@ -49,7 +49,7 @@ export interface FlockController {
   readonly n: number; readonly alive: number; readonly cx: number; readonly cz: number; readonly panicking: boolean;
   readPose: (index: number, out: SheepPose) => SheepPose;
   kill: (index: number) => void; scare: (x: number, z: number, seconds: number) => void;
-  straggler: (minimum?: number) => number;
+  straggler: (minimum?: number) => number; nearest: (x: number, z: number) => number;
 }
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 const flockOfDog = new WeakMap<Animal, Flock>();
@@ -173,15 +173,7 @@ export class Flock extends GroupBrain<SheepPrey> {
   /** B1: sheep i as a wolf pack's prey (Pack.raid): live position / heading, a bite kills it */
   prey(i: number): SheepPrey { return new SheepPrey(this, i); }
   /** the living sheep nearest (x, z) — the one a raid from that side reaches first — or -1 */
-  nearest(x: number, z: number): number {
-    let bi = -1, bd = Infinity;
-    for (let i = 0; i < this.n; i++) {
-      if (this.dead[i] === 1) continue;
-      const d = Math.hypot((this.px[i] ?? 0) - x, (this.pz[i] ?? 0) - z);
-      if (d < bd) { bd = d; bi = i; }
-    }
-    return bi;
-  }
+  nearest(x: number, z: number): number { return this.controller.nearest(x, z); }
 
   /** the sheep index a ray hits (a 0.42 m body sphere + a 0.14 m head sphere per sheep), or -1 */
   raycast(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {

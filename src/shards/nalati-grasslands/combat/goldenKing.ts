@@ -1,31 +1,24 @@
+import type { FightHost, GoldenKingFight, KurganPlay, KurganCtx } from './bossBindings';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { weaponEffects } from '../boot/weaponEffects.generated';
 import { weaponSpecimen } from '../weapons/loadout';
 import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { listenPage } from '@wildshard/engine/input/dom';
-import type { Player } from '@wildshard/engine/player/Player';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
-import type { Bow } from '@wildshard/game/weapons/Bow';
 import { bossFight, type PhasedBossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import type { KurganEntrance } from '../world/types';
 import { GOLDEN_KING, bindGoldenKing, BALBAL as KURGAN_BALBAL } from '../species/rows';
 import layout from '../data/kurganLayout.generated.json' with { type: 'json' };
-import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { installBossEncounter, type Boss, type BossPersistence } from '@wildshard/game/Boss';
+import { installBossEncounter, type Boss } from '@wildshard/game/Boss';
 import { GoldenBowPower } from '../runtime/weapons/GoldenBow';
-import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
+import type { KurganData } from './titanTypes';
 import { bakedActorGeometry } from '../world/places';
 import { BossArenaRoom, arenaRoomViews, ArenaRoomSchema } from '@wildshard/game/boss/arenaRoom';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
@@ -33,37 +26,12 @@ import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import * as v from 'valibot';
 
 
+let preparedKing: KurganData | null = null;
+function kingRows(): KurganData { if (preparedKing === null) throw new Error('King rows are not prepared'); return preparedKing; }
+export async function prepareKurganRows(product: Pick<ShardProduct, 'json'>): Promise<void> { preparedKing = await product.json<KurganData>('combat/titan-fight.json'); }
+
 const { DUNGEON, CH, PEDESTAL, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } = layout;
 
-
-/**
- * The Golden King fight (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden King fight, step by
- * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
- *
- *   goldenKingFight — the admitted arena boss profile (`@wildshard/game/plugin/bossPhase`, SF82) on his row
- *     (data/goldenKing.generated.json) with the chamber's views (world/BossArenaRoom.ts): the King's brain (`bindGoldenKing`,
- *     the species forwards its 10 Hz tick here), his damage rule, the three phases and what each does to the room:
- *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
- *           glints before each cut, the third's wide arc is painted on the floor) and the SUNBURST (sword up, gold spirals
- *           in, a gold ring races out across the floor from his feet — jump it: 25). Gold scale takes half from arrows,
- *           the face full (×2.5 headshot); every sabre / spear hit knocks plaques loose, and after six his chest takes
- *           arrows in full.
- *       II  "The Kurgan Wakes" (60 → 30 %): he staggers back to his coffin and kneels behind a dome of gold light
- *           (shielded — the bar shimmers). Two balbals step out of the wall niches, two more if you are slow; the dome
- *           holds while any stands. Sand pours through the ceiling where a gold shimmer marks it a second before, and
- *           drifts build (walking in sand halves your speed; the fallen beams and the coffin plinth are the high
- *           ground). The last balbal falls → the dome breaks, he is stunned 4 s, then fights until he kneels again.
- *       III "The Gold Burns" (30 → 0 %): he tears off his cloak — faster, a fourth strike, a DOUBLE sunburst. The
- *           looter's-hole light becomes a burning beam sweeping the floor on a gold line (15 to you; lure him through it:
- *           50 to him). His headdress glows: 200 hp of headshots knock it off and drop him to one knee for 3 s.
- *     Victory: he crumbles into a heap of gold plaques, the sand drains, the pedestal's shaft lights the Golden Bow.
- *
- *   KurganBoss — the glue `src/shards/nalati-grasslands/index.ts` wires: builds the interior (BossArenaRoom), the doors (walk into the POI
- *     agent's dark passage in the mound → fade → the dromos; walk back out of the dromos → the mound's flank), hides the
- *     outdoor world and calms the steppe's animals while you are inside, the Boss + BossBar, the Golden Bow reward (and
- *     re-applies it at boot once owned), the dev hooks (`?boss=golden-king` starts at the chamber door; `&bossPhase=2|3`
- *     at that checkpoint; `window.__boss`).
- */
 
 /** NALATI-MERGE F9: the chamber floor is level, and it is not the terrain. Animal.sampleTerrain tilts a body to the slope
  *  heightAt reads under it, and under the dungeon (140 m up, over the kurgan field's mound) that slope is steep: the King
@@ -75,29 +43,14 @@ function standOnFloor(a: Animal): void { a.levelGround = true; a.sampleTerrain()
 const KING_HAZARDS: Readonly<Record<string, StrikeSpec>> = { sunburst: NALATI_STRIKES.sunburst, sand: NALATI_STRIKES.sand, beam: NALATI_STRIKES.beam };
 
 /** What the Golden King fight is lent by the glue: the player, the animals, an optional body spawner, the player's hurt and the feed. */
-export interface FightHost {
-  player: Player;
-  animals: AnimalManager;
-  spawnKing?: () => Animal | null;
-  /** the player takes `dmg` from the King / a hazard (routed to the shared damage pipeline) */
-  hurt: (dmg: number, throughWalls?: boolean) => void;
-  feed: (text: string) => void;
-}
+
 
 /** The Golden King fight: the platform phased fight on his row, its `BossScript`, his body and the glue's park / dev hooks. */
-export interface GoldenKingFight {
-  readonly phased: PhasedBossFight<Animal>;
-  readonly script: BossScript;
-  readonly king: () => Animal | null;
-  /** park / unpark every fight animal (the player left / came back): out of the lists the HUD and the minimap read */
-  readonly setPresent: (on: boolean) => void;
-  /** dev: kill him now (screenshots of the victory) */
-  readonly devKill: () => void;
-}
+
 
 /** The Golden King's fight in the kurgan chamber: his row on the platform phased boss fight, the chamber as its arena and views. */
 export function goldenKingFight(dungeon: BossArenaRoom, host: FightHost): GoldenKingFight {
-  const profile = parseBossProfile(kingData.profile);
+  const profile = parseBossProfile(kingRows().king.profile);
   if (profile.pattern !== 'arena') throw new Error('The Golden King requires its declared arena pattern');
   /** out of the fight for good: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   const retire = (a: Animal): void => {
@@ -153,7 +106,7 @@ export function goldenKingFight(dungeon: BossArenaRoom, host: FightHost): Golden
     },
     rng: () => app.rng.stream('ai').next(),
     feed: (line) => { host.feed(line); },
-    views: arenaRoomViews(dungeon, kingData.tuning),
+    views: arenaRoomViews(dungeon, kingRows().king.tuning),
     rewardPoint: () => dungeon.world(PEDESTAL.x, PEDESTAL.h + 0.02, PEDESTAL.z),
     respawnPoint: () => ({ pos: dungeon.world(CHECKPOINT.x, 0, CHECKPOINT.z), yaw: CHECKPOINT.yaw }),
   });
@@ -187,23 +140,9 @@ function isTiny(o: THREE.Object3D): boolean {
 }
 
 
-export interface KurganPlay {
-  persistence?: BossPersistence;
-  animals: AnimalManager;
-  spawnKing?: () => Animal | null;
-  setWeaponsEnabled: (on: boolean) => void;
-  bow: Bow | null;
-  upgradeBow: (power: GoldenBowPower) => void;
-  refill: () => void;
-  interactables: Interactable[];
-  toast: (text: string) => void;
-  feed: (text: string) => void;
-  music?: (event: 'intro' | 'phase' | 'victory' | 'death' | 'pickup', intensity?: number) => void;
-  pickupHum?: (inside: boolean) => void;
-  params: URLSearchParams;
-}
 
-export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null; registry: WorldRegistry }
+
+
 
 
 export class KurganBoss {
@@ -221,8 +160,11 @@ export class KurganBoss {
   private calmWas = false;
   private locked = false; private slow = false;
   private skipKeys = false; private skipTouch = false;
+  private decisionT = 0;
+  private readonly author: ReturnProgram;
 
   constructor(private readonly ctx: KurganCtx, input: unknown) {
+    this.author = ReturnProgram.page(kingRows().programs.rules, ctx.game.levelScope);
     const rows = v.parse(ArenaRoomSchema, input), scenes = [parsePrivateScene(rows.view.scene), parsePrivateScene(rows.view.static)];
     this.dungeon = new BossArenaRoom(rows, new Map(scenes.flatMap(scene => scene.nodes.flatMap(node => node.kind === 'mesh' ? [[node.geometry, bakedActorGeometry(node.geometry)]] as const : []))));
   }
@@ -258,7 +200,7 @@ export class KurganBoss {
     // build the adds' model now, not mid-fight (a prewarm: a broken add rig must not take the whole boot down)
     try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
     this.golden = new GoldenBowPower({ multipliers: weaponEffects.multipliers, scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
-    const encounter = installBossEncounter({ definition: kingData.encounter, reward: kingData.reward }, () => {
+    const encounter = installBossEncounter({ definition: kingRows().king.encounter, reward: kingRows().king.reward }, () => {
       this.fight = goldenKingFight(this.dungeon, {
         player, animals: play.animals,
         ...(play.spawnKing === undefined ? {} : { spawnKing: play.spawnKing }),
@@ -369,29 +311,23 @@ export class KurganBoss {
       if (this.fadeT < 0) { const go = this.pending; this.pending = null; go?.(); this.ui?.fade(false, 420); }
       return;
     }
-    if (!this.inside) {
-      const e = this.ctx.entrance;
-      if (e && this.boss) {
-        const fx = -Math.sin(e.facing), fz = -Math.cos(e.facing);
-        const dx = p.x - e.x, dz = p.z - e.z, lz = -(dx * fx + dz * fz), lx = dx * fz - dz * fx;
-        if (lz > 0.8 && lz < 3 && Math.abs(lx) < 1.3 && Math.abs(p.y - e.y) < 1.5) this.enter();
-      }
-      return;
+    this.decisionT += dt;
+    if (this.decisionT >= .1 - 1e-9) {
+      const e = this.ctx.entrance, localZ = p.z - DUNGEON.z;
+      const sand = this.dungeon.inChamber(p) ? this.dungeon.sandAt(p.x - DUNGEON.x, localZ) : 0;
+      const result = this.author.project('kingDoor', { px: p.x, pz: p.z, y: p.y, ex: e?.x ?? 0, ey: e?.y ?? 0, ez: e?.z ?? 0, facing: e?.facing ?? 0,
+        volume: Number(this.dungeon.inVolume(p)), inside: Number(this.inside), corridor: localZ, land: DROMOS_END, engaged: Number(this.boss?.engaged === true),
+        sand, floor: this.dungeon.floorHeightAt(p.x, p.z) ?? DUNGEON.y, cy: DUNGEON.y });
+      this.decisionT = 0;
+      if (!this.inside) { if (e && this.boss && result['enter'] === 1) this.enter(); }
+      else if (result['exit'] !== 0) { this.exit(result['exit'] === 2); return; }
+      if (this.inside) { this.slow = result['slow'] === 1; this.applyMove(); }
     }
-    // inside
-    if (!this.dungeon.inVolume(p)) { this.exit(false); return; }         // respawned elsewhere (a death outside the fight)
-    const lz = p.z - DUNGEON.z;
-    if (lz > DROMOS_END - 0.7 && this.boss?.engaged !== true) { this.exit(true); return; }
+    if (!this.inside) return;
     // never below the dungeon floor: a drift that rises > 0.5 m under you in one step (a shove into a mound) is a platform
     // the Player refuses, and the terrain is 100 m down — lift the feet back onto the floor the same frame
     const fl = this.dungeon.floorHeightAt(p.x, p.z);
     if (fl !== undefined && p.y < fl - 0.02 && p.y > fl - 4) { p.y = fl; if (this.ctx.player.velocity.y < 0) this.ctx.player.velocity.y = 0; }
-    // sand drifts slow you (the plinth, the beams and the pedestal step are the high ground)
-    const lx = p.x - DUNGEON.x;
-    const sand = this.dungeon.inChamber(p) ? this.dungeon.sandAt(lx, lz) : 0;
-    const floor = this.dungeon.floorHeightAt(p.x, p.z) ?? DUNGEON.y;
-    const onSand = sand > 0.12 && Math.abs(floor - (DUNGEON.y + sand)) < 0.05;
-    if (onSand !== this.slow) { this.slow = onSand; this.applyMove(); }
     this.boss?.update(dt, t);
     this.dungeon.update(dt, t);
   }
@@ -399,5 +335,5 @@ export class KurganBoss {
 
 /** the wiring's one call (src/shards/nalati-grasslands/index.ts): the interior built at boot, the fight bound later by main.ts */
 /** `wireKurgan`, its hidden static interior built a task apart per part (SF67: the load's long task) */
-export async function wireKurganSliced(ctx: KurganCtx, product: Pick<ShardProduct, 'json'>, yieldTask: () => Promise<void>): Promise<KurganBoss> { return new KurganBoss(ctx, v.parse(v.object({ arenaRoom: v.unknown() }), await product.json('combat/titan-fight.json')).arenaRoom).buildSliced(yieldTask); }
+export async function wireKurganSliced(ctx: KurganCtx, product: Pick<ShardProduct, 'json'>, yieldTask: () => Promise<void>): Promise<KurganBoss> { await prepareKurganRows(product); return new KurganBoss(ctx, kingRows().arenaRoom).buildSliced(yieldTask); }
 

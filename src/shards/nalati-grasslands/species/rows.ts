@@ -1,3 +1,5 @@
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import speciesRows from './speciesRows.json' with { type: 'json' };
 import type { SpeciesRow, SpeciesVariant } from '@wildshard/engine/ai/species';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -13,9 +15,8 @@ import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { preloadNalatiBodies, nalatiBody, poseNalatiCreature, balbalCrackGeometry, balbalProgram } from './presentation';
 import * as THREE from 'three';
 import * as schema from 'valibot';
-import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
-import { NO_FUR, lookAngles, smooth01, step, bump } from '@wildshard/engine/entities/species/rigs';
-import { engineString } from '@wildshard/engine/strings';
+import { numericCreaturePose, installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
+import { NO_FUR, lookAngles, smooth01, step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
@@ -26,12 +27,12 @@ import { EAGLE_SPECIES } from './eagle';
 import { GHOSTRIDER_SPECIES } from './ghostRider';
 import { KOKBORI_SPECIES } from './kokbori';
 
-export const BALBAL = 'balbal';
-export const BALBAL_SLAM = { reach: 3.1, cone: .96, windup: 2.9 * .52, strike: 2.9 * (.52 + .58) / 2 };
+export const BALBAL = speciesRows.balbal.kind;
+export const BALBAL_SLAM = speciesRows.slam;
 export const balbalCombat: { melee: 'sabre' | 'spear' | 'other'; isPiercing?: (request: DamageRequest | undefined) => boolean | undefined } = { melee: 'other' };
 const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
 const localHit = new THREE.Vector3();
-const weak = [[.04, 1.26, .2], [-.05, 1.18, -.2], [-.28, 1.36, .02]].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+const weak = speciesRows.weak.map(([x, y, z]) => new THREE.Vector3(x, y, z));
 /** A geometric contact query, shared by hit effects and the event-driven damage law. */
 export function onBalbalCrack(a: Animal, point: THREE.Vector3): boolean {
   localHit.copy(point).sub(a.position); localHit.y -= a.yOffset;
@@ -80,14 +81,7 @@ function animateBalbal(c: RigAnimCtx): void {
 }
 const finite = schema.pipe(schema.number(), schema.finite());
 export const BALBAL_SPECIES: SpeciesDef = {
-  lockable: true, kind: BALBAL, label: engineString('s_21d824fec935'), fur: NO_FUR, rig: 'custom', tick: 'ai',
-  rigContract: { skeleton: 'balbal.v1', clips: [], sockets: ['body', 'head'] },
-  aggressive: true, walkSpeed: 1.25, chargeDamage: 30, blood: false,
-  sounds: { call: 'bear_growl', hurt: 'crab_click', callEvery: [10, 22] },
-  variants: [
-    { id: 'warrior', label: engineString('s_21d824fec935'), weight: 2, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220 },
-    { id: 'capped', label: engineString('s_21d824fec935'), weight: 1, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220, traits: { cap: true } },
-  ],
+  ...speciesRows.balbal, fur: NO_FUR,
   build: variant => nalatiBody('balbal', variant), animate: animateBalbal, think: thinkBalbal,
   damageMul: (a, point, _direction, request) => schema.parse(finite, balbalProgram(app.levelScope ?? undefined).project('damage', {
     field: a.mem['field'] ?? 0, rise: a.mem['rise'] ?? 1, open: a.mem['open'] ?? 0,
@@ -96,7 +90,7 @@ export const BALBAL_SPECIES: SpeciesDef = {
   })['damage']),
 };
 
-export const GOLDEN_KING = 'golden-king';
+export const GOLDEN_KING = speciesRows.king.kind;
 export interface GoldenKingPorts {
   think: (a: Animal, c: ThinkCtx) => void; act: (a: Animal, c: ThinkCtx) => void;
   damageMul: (a: Animal, point: Vector3, direction: Vector3) => number;
@@ -105,44 +99,33 @@ const kingBrains = new WeakMap<Animal, GoldenKingPorts>();
 export function bindGoldenKing(a: Animal, ports: GoldenKingPorts): void { kingBrains.set(a, ports); }
 let clips: ReturnType<typeof numericCreaturePose> | null = null;
 /** Bind the admitted numeric channels before the first body or Explorer pose. */
-export function prepareGoldenKing(programs: unknown): void { clips = numericCreaturePose({ group: 'creature.pose', programs }); }
-const kingFrames = new WeakMap<AnimalRigContext['bones'], AnimalRigContext>();
+let observationRows: ClientChannelProgram[] = [];
+export function prepareGoldenKing(input: unknown): void {
+  const programs = parseClientChannels(input); observationRows = programs.filter(row => row.numeric?.group === 'king.observe');
+  clips = numericCreaturePose({ group: 'creature.pose', programs: programs.filter(row => row.numeric?.group === 'creature.pose') });
+}
+const kingFrames = new WeakMap<AnimalRigContext['bones'], { frame: AnimalRigContext; look: { yaw: number; pitch: number }; draw: ReturnType<typeof installChannelPrograms> }>();
 /** Frame observations and terrain attachment; ordered rows pose the original bones. */
 export function animateGoldenKing(c: AnimalRigContext): void {
-  const retained = c.mem, dt = c.dt, act = retained['act'] ?? 0, atk = c.attack;
+  const retained = c.mem, dt = c.dt;
   retained['floorS'] = (retained['floorS'] ?? retained['floorY'] ?? 0) + ((retained['floorY'] ?? 0) - (retained['floorS'] ?? retained['floorY'] ?? 0)) * Math.min(1, dt * 8);
   if (!c.alive) retained['deadT'] = (retained['deadT'] ?? 0) + dt;
   c.animal.yOffset = (retained['floorS'] ?? 0) - terrainHeight(c.animal.position.x, c.animal.position.z) + (retained['lift'] ?? 0) - Math.max(0, (retained['deadT'] ?? 0) - .9) * .9;
   retained['kneelS'] = (retained['kneelS'] ?? 0) + ((retained['kneel'] ?? 0) - (retained['kneelS'] ?? 0)) * Math.min(1, dt * 5);
   retained['raiseS'] = (retained['raiseS'] ?? 0) + ((retained['raise'] ?? 0) - (retained['raiseS'] ?? 0)) * Math.min(1, dt * 6);
-  let frame = kingFrames.get(c.bones);
-  if (frame === undefined) { frame = { ...c, mem: {} }; kingFrames.set(c.bones, frame); }
-  const m = frame.mem; Object.assign(frame, c); frame.mem = m; Object.assign(m, retained);
-  const up = smooth01(m['pose'] === 0 ? m['rise'] ?? 0 : 1), stand = step(up, .45, 1), look = lookAngles(c, 1.65, 1, .5);
-  const cut = act === 1 && atk >= 0, wide = (m['strike'] ?? 0) >= 2;
-  m['kingriseInput'] = m['pose'] === 0 ? m['rise'] ?? 0 : 1; m['kingdeathInput'] = c.deathT >= 0 ? c.deathT : 0;
-  m['kingspeed'] = c.speed; m['kingbodyYInput'] = c.dims.bodyY; m['kingflinch'] = c.flinch;
-  m['kingbreathe'] = Math.sin(c.t * 1.3 + c.seed * 5); m['kingcapeWave'] = Math.sin(c.t * 1.1 + c.phase * Math.PI * 2);
-  m['kingcut'] = Number(cut); m['kingbackCut'] = Number(cut && (m['strike'] ?? 0) % 2 === 1);
-  m['kingwideRz'] = wide ? .9 : .35; m['kingwideSpine'] = wide ? -.8 : -.45;
-  m['kingburst'] = Number(act === 2 && atk >= 0); m['kinghold'] = atk < .72 ? 1 : 0;
-  m['kingroar'] = Number((act === 3 || act === 4) && atk >= 0); m['kingbump'] = bump(atk, 0, 1);
-  m['kingroarRx'] = act === 4 ? -2.2 : -.6; m['kingroarLx'] = act === 4 ? -1.2 : -.6;
-  m['kingsitting'] = Number(1 - step(up, 0, .55) > .02 || stand < .98); m['kingrising'] = bump(stand, 0, 1);
-  m['kinglookYaw'] = look.yaw; m['kinglookPitch'] = look.pitch;
-  m['kingup'] = up; m['kingsit'] = step(up, 0, .55); m['kingstand'] = stand;
-  m['kingkneel'] = smooth01(m['kneelS'] ?? 0); m['kingraise'] = smooth01(m['raiseS'] ?? 0); m['kingdead'] = c.deathT >= 0 ? smooth01(c.deathT) : 0;
-  m['kingwind'] = step(atk, 0, .55); m['kingcutProgress'] = step(atk, .55, .75); m['kingrecover'] = step(atk, .82, 1); m['kingkeep'] = 1 - m['kingrecover'];
-  m['kinglift'] = step(atk, 0, .3); m['kingslam'] = step(atk, .72, .82); m['kingburstRec'] = step(atk, .88, 1); m['kingburstKeep'] = 1 - m['kingburstRec'];
-  m['cape'] ??= 1; m['crown'] ??= 1;
+  let rig = kingFrames.get(c.bones);
+  if (rig === undefined) {
+    const frame = { ...c, mem: { ...speciesRows.kingPoseDefaults } }, look = { yaw: 0, pitch: 0 };
+    for (const row of observationRows) for (const output of row.numeric?.outputs ?? []) { const key = output.path[0]; if (key === undefined) throw new Error('Missing King visual field'); frame.mem[key] = 0; }
+    rig = { frame, look, draw: installChannelPrograms(observationRows, 'king.observe', new Map<string, unknown>([['frame',frame],['mem',frame.mem],['look',look]])) }; kingFrames.set(c.bones, rig);
+  }
+  const { frame, look, draw } = rig, m = frame.mem; Object.assign(frame, c); frame.mem = m; Object.assign(m, retained); Object.assign(look, lookAngles(c, 1.65, 1, .5));
+  draw.evaluate({ time: c.t, delta: c.dt, values: {} });
   if (clips === null) throw new Error('Golden King pose rows are not prepared');
   clips(frame);
 }
 export const GOLDENKING_SPECIES: SpeciesDef = {
-  lockable: true, rigContract: { skeleton: 'goldenKing.v1', clips: [], sockets: ['body', 'head'] },
-  kind: GOLDEN_KING, label: engineString('s_5e6771dbba8c'), fur: NO_FUR, rig: 'custom', aggressive: true, walkSpeed: 1.5, chargeDamage: 14,
-  eyeGlow: [.9, .55, .12], eyeGlowIntensity: .18, sounds: { call: 'king_call', hurt: 'king_hurt', callEvery: [18, 40] },
-  variants: [{ id: 'king', label: engineString('s_5e6771dbba8c'), weight: 1, rarity: 'legendary', scale: [1.22, 1.22], hp: 2400 }],
+  ...speciesRows.king, fur: NO_FUR,
   build: v => nalatiBody('goldenKing', v), animate: animateGoldenKing, tick: 'always',
   think: (a, c) => {
     const m = a.mem;

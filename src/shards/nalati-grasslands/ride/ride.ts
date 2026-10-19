@@ -1,3 +1,5 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import type { RidingPrograms } from '../runtime/tamingBindings';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager, AnimalSound } from '@wildshard/engine/entities/AnimalManager';
@@ -34,37 +36,10 @@ const { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOW
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
-/** B1: the NAME prompt at the rail: at the tied horse's head (its reach, from the eye), for a horse within NAME_HORSE of
- *  the rail — at its head, not its flank (MOUNT) and not the rail's far side (Erlan's TALK) */
-const NAME_REACH = 1.9, NAME_HORSE = 5, NAME_HEAD = 1.15;
-/** B1: lightning within this many metres panics the horse under you (s: nearer, longer) */
-const BOLT_PANIC = 35;
-
-/**
- * The riding + taming wiring (Nalati rows B7 / B8) — one call from src/shards/nalati-grasslands/index.ts once the animals exist:
- *
- *   const ride = wireRide({ player, forest, animals, wildlife, camera });
- *   interactables.push(ride.interactable)   // main.ts: ONE prompt that is always the nearest horse action —
- *                                           //   "Mount Camp horse" / "Mount Tulpar" / "Dismount" / "Mount the stallion"
- *   ride.bind({ toast })                     // once the HUD exists; combat owns damage
- *   ride.update(dt)                          // every frame
- *   game.onLate((dt) => ride.late(dt))       // B1: the reins in your hand, from this frame's final horse pose + camera
- *   ride.noteShot(x, z)                      // an arrow / javelin landed (TRUST)
- *   ride.mounted                             // for Wildlife's `extra.mounted` (the pack's two tokens, the herd's stampede)
- *
- * The camp's two saddled horses at the hitching rail are mountable from the start (so riding is testable before any
- * taming); TULPAR joins them once tamed (or on load, if tamed in an earlier session).
- *
- * B1 (N13): the horse under you panics (Mount.panic) at a wolf's bite on the rider (Pack's 'rider-bitten' event) and at
- * lightning within 35 m (Wildlife.scare's 'scare' event, which every storm strike raises, and the Storm Titan's own
- * 'lightning' bolts) — a squeal, a toast for the lightning.
- * Mount keeps to the shard's roads (`ROADS`) when you let go of the stick. At the hitching rail, on foot, a NAME prompt
- * names the horse standing nearest you there (HorseNamePrompt; the name is saved, horseNames.ts).
- */
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name; }
 
-export interface RideCtx { namePanel: PanelDefinition; persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
+export interface RideCtx { programs: RidingPrograms; namePanel: PanelDefinition; persistence?: NalatiPersistence; ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 export interface RidePlay { toast: (text: string) => void }
 
 export interface Ride {
@@ -96,6 +71,7 @@ export function wireRide(ctx: RideCtx): Ride {
   const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment?.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   if (ctx.ctx === undefined) throw new Error('Riding requires its level context');
+  const rules = ReturnProgram.page(ctx.programs.riding, ctx.ctx.scope);
   const names = ctx.persistence?.names.read() ?? {};
   const mount: Mount = Object.assign(new RidingMount(ctx.ctx, ctx.player, ctx.animals, { names, speeds: HORSE_SPEED, thrownDamage: 10, thrownLabel: 'Thrown from the saddle', restAt: { x: rest.x, z: rest.z }, roads: ROADS }), { refuse: null });
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h.entityId, 'Camp horse');
@@ -103,6 +79,7 @@ export function wireRide(ctx: RideCtx): Ride {
   // SF34: the saddle is the platform's ride mode, shown on RideHUD's band (Mount enters and exits it)
   registerPlayerMode({ player: ctx.player }, { id: 'ride', hud: 'ride' }, ctx.ctx.scope);
   const taming = new Taming({
+    programs: ctx.programs,
     ...(ctx.persistence === undefined ? {} : { bond: ctx.persistence.bond }),
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
     hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },
@@ -111,13 +88,10 @@ export function wireRide(ctx: RideCtx): Ride {
     taming.noteEvent(name, x, z);
     const h = mount.horse;
     if (h === null) return;
-    if (name === 'rider-bitten') mount.panic(x, z, 0.9);
-    else if (name === 'scare' || name === 'lightning') {   // a strike (Wildlife.scare) · the Storm Titan's bolts (stormTitan.ts)
-      // the steppe's storm strikes the grass 3 km under a practice room (the horse track rides over the same x / z): not near (E353)
-      if (practiceRoom.open) return;
-      const d = Math.hypot(h.position.x - x, h.position.z - z);
-      if (d < BOLT_PANIC && mount.panic(x, z, d < 12 ? 2.2 : 1.5)) play?.toast(`${h.label} panics at the lightning — hold on`);
-    }
+    if (name !== 'rider-bitten' && name !== 'scare' && name !== 'lightning') return;
+    const row = rules.project('panic', { x, z, px: h.position.x, pz: h.position.z, bite: Number(name === 'rider-bitten'), practice: Number(practiceRoom.open) });
+    const duration = row['duration'] ?? 0;
+    if (duration > 0 && mount.panic(x, z, duration) && name !== 'rider-bitten') play?.toast(`${h.label} panics at the lightning — hold on`);
   });
 
   // B1: the reins (from the hands just under the frame along the neck to the bit, E320); they drop while the bow draws or the stallion bucks
@@ -141,16 +115,15 @@ export function wireRide(ctx: RideCtx): Ride {
     nameIt.radius = 0;
     if (mount.mounted || namer.isOpen) return;
     const p = ctx.player.position;
-    let bd = Infinity;
+    let bd = Infinity, nearest: Readonly<Record<string, number>> | null = null;
     for (const m of mount.mountables) {
-      if (!m.a.alive || Math.hypot(m.a.position.x - HITCHING_RAIL.x, m.a.position.z - HITCHING_RAIL.z) > NAME_HORSE) continue;
-      const d = Math.hypot(m.a.position.x - p.x, m.a.position.z - p.z);
-      if (d < bd) { bd = d; naming = m.a; }
+      const row = rules.project('name', { alive: Number(m.a.alive), x: m.a.position.x, z: m.a.position.z, cx: HITCHING_RAIL.x, cz: HITCHING_RAIL.z, px: p.x, pz: p.z, yaw: m.a.yaw, scale: m.a.scale });
+      const d = row['distance'] ?? 1e12;
+      if (d < bd && d < 1e12) { bd = d; naming = m.a; nearest = row; }
     }
-    if (naming === null) return;
-    const a = naming, hx = a.position.x + Math.sin(a.yaw) * NAME_HEAD * a.scale, hz = a.position.z + Math.cos(a.yaw) * NAME_HEAD * a.scale;
-    nameIt.position.set(hx, heightAt(hx, hz) + 1.5, hz);
-    nameIt.radius = NAME_REACH;
+    if (naming === null || nearest === null) return;
+    const hx = nearest['x'] ?? naming.position.x, hz = nearest['z'] ?? naming.position.z;
+    nameIt.position.set(hx, heightAt(hx, hz) + 1.5, hz); nameIt.radius = nearest['radius'] ?? 0;
     nameIt.label = `Name ${mount.nameOf(naming.entityId) ?? naming.label}`;
   };
 
@@ -175,6 +148,7 @@ export function wireRide(ctx: RideCtx): Ride {
     ix.weak = mount.mounted && best !== taming.interactable;
   };
 
+  let decisionClock = 0;
   return {
     mount, taming, hud, interactable: ix, reins, raid,
     get mounted() { return mount.mounted; },
@@ -194,7 +168,8 @@ export function wireRide(ctx: RideCtx): Ride {
       taming.update(dt);
       hud.update(taming.view, { mounted: mount.mounted, breaking: mount.breaking, steed: mount.steed, winded: mount.winded, gait: mount.gait, leanLow: mount.leanLow, beat: mount.beat, spurFlash: mount.spurFlash, spur: { latched: mount.spur.latched, streak: mount.spur.streak }, horse: mount.horse?.entityId ?? null, mountables: mount.mountables.map(mt => ({ id: mt.a.entityId, name: mt.name, whistle: (mt.a.mem['whistle'] ?? 0) === 1, hidden: mt.a.hidden, position: [mt.a.position.x, mt.a.position.y, mt.a.position.z], scale: mt.a.scale })) });
       raid.update(dt, ctx.player.position);
-      nameUpdate();
+      decisionClock += dt;
+      if (decisionClock + 1e-9 >= .1) { decisionClock = 0; nameUpdate(); }
       choose();
     },
     late(dt) {

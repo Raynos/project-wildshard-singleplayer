@@ -1,0 +1,133 @@
+{
+  "slam": {
+    "reach": 3.1,
+    "cone": 0.96,
+    "windup": 1.508,
+    "strike": 1.595
+  },
+  "balbal": {
+    "lockable": true,
+    "kind": "balbal",
+    "label": "Balbal",
+    "rig": "custom",
+    "tick": "ai",
+    "rigContract": {
+      "skeleton": "balbal.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "aggressive": true,
+    "walkSpeed": 1.25,
+    "chargeDamage": 30,
+    "blood": false,
+    "sounds": {
+      "call": "bear_growl",
+      "hurt": "crab_click",
+      "callEvery": [
+        10,
+        22
+      ]
+    },
+    "variants": [
+      {
+        "id": "warrior",
+        "label": "Balbal",
+        "weight": 2,
+        "rarity": "uncommon",
+        "scale": [
+          1.15,
+          1.22
+        ],
+        "hp": 220
+      },
+      {
+        "id": "capped",
+        "label": "Balbal",
+        "weight": 1,
+        "rarity": "uncommon",
+        "scale": [
+          1.15,
+          1.22
+        ],
+        "hp": 220,
+        "traits": {
+          "cap": true
+        }
+      }
+    ]
+  },
+  "king": {
+    "lockable": true,
+    "rigContract": {
+      "skeleton": "goldenKing.v1",
+      "clips": [],
+      "sockets": [
+        "body",
+        "head"
+      ]
+    },
+    "kind": "golden-king",
+    "label": "The Golden King",
+    "rig": "custom",
+    "aggressive": true,
+    "walkSpeed": 1.5,
+    "chargeDamage": 14,
+    "eyeGlow": [
+      0.9,
+      0.55,
+      0.12
+    ],
+    "eyeGlowIntensity": 0.18,
+    "sounds": {
+      "call": "king_call",
+      "hurt": "king_hurt",
+      "callEvery": [
+        18,
+        40
+      ]
+    },
+    "variants": [
+      {
+        "id": "king",
+        "label": "The Golden King",
+        "weight": 1,
+        "rarity": "legendary",
+        "scale": [
+          1.22,
+          1.22
+        ],
+        "hp": 2400
+      }
+    ]
+  },
+  "weak": [
+    [
+      0.04,
+      1.26,
+      0.2
+    ],
+    [
+      -0.05,
+      1.18,
+      -0.2
+    ],
+    [
+      -0.28,
+      1.36,
+      0.02
+    ]
+  ],
+  "kingPoseDefaults": {
+    "pose": 1,
+    "act": 0,
+    "strike": 0,
+    "rise": 0,
+    "cape": 1,
+    "crown": 1,
+    "kneelS": 0,
+    "raiseS": 0
+  }
+}

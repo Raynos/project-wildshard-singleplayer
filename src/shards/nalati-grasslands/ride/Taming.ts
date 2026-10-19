@@ -5,6 +5,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import * as THREE from 'three';
 import { NalatiTamingLaw } from '../runtime/tamingLaw';
 import type { Mount } from './ride';
+import type { RidingPrograms } from '../runtime/tamingBindings';
 import type { HerdController } from '../runtime/groupRegistry';
 import type { RideHUD } from '@wildshard/game/riding/hud';
 import { wildEnv } from '../creatures/env';
@@ -13,6 +14,7 @@ import { tulparSave as savedSlot } from './saves';
 
 
 export interface TamingOpts {
+  programs: RidingPrograms;
   /** Bonded-horse identity owned by the declared runtime state. */
   bond?: { read: () => string | null; write: (value: string) => void };
   player: Player;

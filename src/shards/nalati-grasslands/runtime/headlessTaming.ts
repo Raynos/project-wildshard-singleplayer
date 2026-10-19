@@ -7,6 +7,7 @@ import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/pro
 import type { NalatiGroups } from './groups';
 import type { NalatiHostCreatures } from './headlessCreatures';
 import type { NalatiMountedPlayer } from './headlessMounted';
+import type { RidingPrograms } from './tamingBindings';
 import { NalatiTamingLaw } from './tamingLaw';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
@@ -29,7 +30,7 @@ export function nalatiTamingOf(host: SimHost): NalatiTamingLaw<AnimalSim, Nalati
  * The creature manager calls update after Wildlife, BEFORE raid and think. Only this law's owned clocks are saved here.
  */
 export function installNalatiTaming(host: SimHost, ports: {
-  readonly groups: NalatiGroups; readonly creatures: NalatiHostCreatures; readonly mounted: NalatiMountedPlayer;
+  readonly programs: RidingPrograms; readonly groups: NalatiGroups; readonly creatures: NalatiHostCreatures; readonly mounted: NalatiMountedPlayer;
   readonly animate: (context: AnimalRigContext) => void;
   readonly poses: readonly { readonly kind: string; readonly variant: string; readonly pose: NativeCreaturePoseRecipe }[];
   readonly environment: WildEnv; readonly context: HeadlessRuntimeInstallation;
@@ -52,6 +53,7 @@ export function installNalatiTaming(host: SimHost, ports: {
   for (let i = 0; i < 64; i++) { const a = ports.creatures.bodies[i]; if (a === undefined) break; if (a.kind === 'horse' || a.kind === 'argymaq') addPose(a); }
   const mounted = ports.mounted;
   const law = new NalatiTamingLaw({
+    programs: ports.programs,
     bond: { read: () => null, write: value => { if (value !== '1' && value !== 'argymaq') throw new Error('Invalid Nalati bond'); bond = value; } },
     player: { position: host.player.position, get crouching() { return mounted.rider.crouching; },
       get yaw() { return host.player.yaw; }, set yaw(value) { host.player.yaw = value; }, get pitch() { return pitch; }, set pitch(value) { pitch = value; },
