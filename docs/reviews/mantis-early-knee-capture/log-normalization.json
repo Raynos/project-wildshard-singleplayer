@@ -1,0 +1,10 @@
+{
+  "files": [
+    {
+      "file": "docs/reviews/mantis-early-knee-capture/app-build.txt",
+      "originalSha256": "14e48114fa5daa1af0c837433aa803ecd80822904a546389ac6a5d23dd2b61ae",
+      "publicSha256": "6779c84c7179fa509a02f0b71d16eda2fcc9137fd531cf0d4714daaf21b61c54",
+      "change": "Whitespace-only log normalization; original raw log retained."
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+heavy-lane: queued build ticket 10
+heavy-lane: acquired build after 0.00s queue
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 1141 modules transformed.
+rendering chunks...
+computing gzip size...
+tmp/mantis-early-knee-dist-capture1/assets/imageDecode.worker-ZOU3pmld.js          0.57 kB
+tmp/mantis-early-knee-dist-capture1/practice.html                                  1.57 kB │ gzip:   0.78 kB
+tmp/mantis-early-knee-dist-capture1/assets/contentCache.worker-DDj1l_TA.js        23.42 kB
+tmp/mantis-early-knee-dist-capture1/assets/basis_transcoder-o4Hde_L7.js           57.52 kB
+tmp/mantis-early-knee-dist-capture1/assets/basis_transcoder-VXdx5NbI.wasm        527.33 kB │ gzip: 248.94 kB
+tmp/mantis-early-knee-dist-capture1/assets/style-3STfMJLR.css                    102.55 kB │ gzip:  19.68 kB
+tmp/mantis-early-knee-dist-capture1/assets/audioLog-CNEZ94zn.js                    0.06 kB │ gzip:   0.07 kB
+tmp/mantis-early-knee-dist-capture1/assets/look-C4o9ByGS.js                        0.06 kB │ gzip:   0.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/emptyLook-ByH8maKc.js                   0.06 kB │ gzip:   0.07 kB
+tmp/mantis-early-knee-dist-capture1/assets/GLTFLoader-CitLpWWm.js                  0.06 kB │ gzip:   0.07 kB
+tmp/mantis-early-knee-dist-capture1/assets/Tool-jTOctduU.js                        0.07 kB │ gzip:   0.09 kB
+tmp/mantis-early-knee-dist-capture1/assets/emptyEquipment-fBwmFmVX.js              0.07 kB │ gzip:   0.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/declaredBank-k1WbV7pO.js                0.07 kB │ gzip:   0.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/graphBackend-Cf8QgiQK.js                0.08 kB │ gzip:   0.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/engineNodesHandler-DZ83QCHT.js          0.08 kB │ gzip:   0.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/meshopt_decoder.module-CwO9m-VD.js      0.08 kB │ gzip:   0.09 kB
+tmp/mantis-early-knee-dist-capture1/assets/shadowDepthVariants-BoIU_3-F.js         0.08 kB │ gzip:   0.09 kB
+tmp/mantis-early-knee-dist-capture1/assets/nodeCoarseMask-BL9dSruf.js              0.09 kB │ gzip:   0.09 kB
+tmp/mantis-early-knee-dist-capture1/assets/postPreparation-BECjvRCN.js             0.10 kB │ gzip:   0.10 kB
+tmp/mantis-early-knee-dist-capture1/assets/runtimeProduct-CuA4Spif.js              0.14 kB │ gzip:   0.11 kB
+tmp/mantis-early-knee-dist-capture1/assets/SetScore-HlRxIkLM.js                    0.15 kB │ gzip:   0.13 kB
+tmp/mantis-early-knee-dist-capture1/assets/rolldown-runtime-DK3Fl9T5.js            0.15 kB │ gzip:   0.15 kB
+tmp/mantis-early-knee-dist-capture1/assets/audioFiles-Cg74uihw.js                  0.17 kB │ gzip:   0.14 kB
+tmp/mantis-early-knee-dist-capture1/assets/tables-HCOmEZXl.js                      0.19 kB │ gzip:   0.15 kB
+tmp/mantis-early-knee-dist-capture1/assets/Stems-D9Kxi3Iv.js                       0.22 kB │ gzip:   0.16 kB
+tmp/mantis-early-knee-dist-capture1/assets/preload-CJokcInM.js                     0.23 kB │ gzip:   0.18 kB
+tmp/mantis-early-knee-dist-capture1/assets/audioLog-DDd08KrP.js                    0.23 kB │ gzip:   0.19 kB
+tmp/mantis-early-knee-dist-capture1/assets/Cues-Btc0ryJD.js                        0.24 kB │ gzip:   0.17 kB
+tmp/mantis-early-knee-dist-capture1/assets/look-Dusj6kkw.js                        0.36 kB │ gzip:   0.26 kB
+tmp/mantis-early-knee-dist-capture1/assets/tables-BovtVlAx.js                      0.43 kB │ gzip:   0.28 kB
+tmp/mantis-early-knee-dist-capture1/assets/bootInbox-ZfWFO76m.js                   0.43 kB │ gzip:   0.33 kB
+tmp/mantis-early-knee-dist-capture1/assets/memoryResources-ConTL0Oo.js             0.48 kB │ gzip:   0.30 kB
+tmp/mantis-early-knee-dist-capture1/assets/emptyEquipment-AHpV0mQX.js              0.50 kB │ gzip:   0.36 kB
+tmp/mantis-early-knee-dist-capture1/assets/precompile-DrZjd1sL.js                  0.65 kB │ gzip:   0.40 kB
+tmp/mantis-early-knee-dist-capture1/assets/Settings-BhMVwVLx.js                    0.67 kB │ gzip:   0.36 kB
+tmp/mantis-early-knee-dist-capture1/assets/json-Dr12Y27u.js                        0.72 kB │ gzip:   0.40 kB
+tmp/mantis-early-knee-dist-capture1/assets/emptyLook-D2dy-xuz.js                   0.74 kB │ gzip:   0.49 kB
+tmp/mantis-early-knee-dist-capture1/assets/audioFiles-DZ4lY0DW.js                  1.22 kB │ gzip:   0.65 kB
+tmp/mantis-early-knee-dist-capture1/assets/preload-helper-uBIymjUX.js              1.23 kB │ gzip:   0.68 kB
+tmp/mantis-early-knee-dist-capture1/assets/wind-CDg_obA2.js                        1.27 kB │ gzip:   0.64 kB
+tmp/mantis-early-knee-dist-capture1/assets/ui-X-khKP8C.js                          1.63 kB │ gzip:   0.72 kB
+tmp/mantis-early-knee-dist-capture1/assets/postPreparation-BM0ovkLk.js             1.70 kB │ gzip:   0.77 kB
+tmp/mantis-early-knee-dist-capture1/assets/shadowVariants-kzUh2vEP.js              1.87 kB │ gzip:   0.93 kB
+tmp/mantis-early-knee-dist-capture1/assets/Weapon-CNKF6Yh8.js                      2.07 kB │ gzip:   0.88 kB
+tmp/mantis-early-knee-dist-capture1/assets/memoryAttribution-DlUGm6mv.js           2.68 kB │ gzip:   1.18 kB
+tmp/mantis-early-knee-dist-capture1/assets/graphBackend-CEsLL-7B.js                2.91 kB │ gzip:   1.31 kB
+tmp/mantis-early-knee-dist-capture1/assets/shadowChunks-EAukh2qO.js                3.11 kB │ gzip:   1.52 kB
+tmp/mantis-early-knee-dist-capture1/assets/preload-C3HVuPWp.js                     4.42 kB │ gzip:   2.09 kB
+tmp/mantis-early-knee-dist-capture1/assets/clock-B53qIMMf.js                       5.27 kB │ gzip:   1.98 kB
+tmp/mantis-early-knee-dist-capture1/assets/audioCatalogue-DRLzXm07.js              5.63 kB │ gzip:   2.19 kB
+tmp/mantis-early-knee-dist-capture1/assets/nodeLayerFrame-PqqyriBq.js              5.66 kB │ gzip:   1.91 kB
+tmp/mantis-early-knee-dist-capture1/assets/Cues-BlprQVZp.js                        6.09 kB │ gzip:   2.27 kB
+tmp/mantis-early-knee-dist-capture1/assets/dayCycle-e1TDlXAt.js                    6.20 kB │ gzip:   2.37 kB
+tmp/mantis-early-knee-dist-capture1/assets/parkedDraws-Bdqe29oo.js                 7.38 kB │ gzip:   2.94 kB
+tmp/mantis-early-knee-dist-capture1/assets/scope-CDMJThrF.js                       8.17 kB │ gzip:   3.05 kB
+tmp/mantis-early-knee-dist-capture1/assets/time-j5TrBCGc.js                        8.41 kB │ gzip:   3.32 kB
+tmp/mantis-early-knee-dist-capture1/assets/hybrid-CN5i5Cnx.js                      9.26 kB │ gzip:   3.34 kB
+tmp/mantis-early-knee-dist-capture1/assets/SetScore-CC_btG6F.js                   10.82 kB │ gzip:   3.71 kB
+tmp/mantis-early-knee-dist-capture1/assets/toon-DjbKAfu9.js                       14.09 kB │ gzip:   5.20 kB
+tmp/mantis-early-knee-dist-capture1/assets/dataLook-BppklpF9.js                   14.21 kB │ gzip:   5.95 kB
+tmp/mantis-early-knee-dist-capture1/assets/declaredBank-Dbl2wgHz.js               16.92 kB │ gzip:   6.62 kB
+tmp/mantis-early-knee-dist-capture1/assets/precompile-BITQLS3K.js                 20.83 kB │ gzip:   8.02 kB
+tmp/mantis-early-knee-dist-capture1/assets/Stems-CaqP9Ib1.js                      22.85 kB │ gzip:   8.28 kB
+tmp/mantis-early-knee-dist-capture1/assets/lastEnd-C9AHPe9m.js                    23.91 kB │ gzip:   9.00 kB
+tmp/mantis-early-knee-dist-capture1/assets/meshopt_decoder.module-DDLmvpjg.js     26.47 kB │ gzip:   7.26 kB
+tmp/mantis-early-knee-dist-capture1/assets/presets-DucwFZVi.js                    27.86 kB │ gzip:   8.51 kB
+tmp/mantis-early-knee-dist-capture1/assets/weaponFamily-C43zOwNj.js               29.09 kB │ gzip:  10.76 kB
+tmp/mantis-early-knee-dist-capture1/assets/clientPlan-CEQ6M6N4.js                 30.00 kB │ gzip:   9.81 kB
+tmp/mantis-early-knee-dist-capture1/assets/compile-CF18Kdpl.js                    32.45 kB │ gzip:  10.99 kB
+tmp/mantis-early-knee-dist-capture1/assets/materialGraph-CteREh-_.js              32.81 kB │ gzip:   9.55 kB
+tmp/mantis-early-knee-dist-capture1/assets/Settings-WgaL9nT3.js                   39.45 kB │ gzip:  10.85 kB
+tmp/mantis-early-knee-dist-capture1/assets/lentLooks-BdwICgbt.js                  39.64 kB │ gzip:  14.39 kB
+tmp/mantis-early-knee-dist-capture1/assets/geometryBounds-kpdH-Mrk.js             42.25 kB │ gzip:  12.42 kB
+tmp/mantis-early-knee-dist-capture1/assets/GLTFLoader-DnZ_kjM2.js                 48.97 kB │ gzip:  14.32 kB
+tmp/mantis-early-knee-dist-capture1/assets/runtime-BwZsofkr.js                    81.88 kB │ gzip:  27.25 kB
+tmp/mantis-early-knee-dist-capture1/assets/registry-CketoMs_.js                   93.19 kB │ gzip:  32.58 kB
+tmp/mantis-early-knee-dist-capture1/assets/client-CLYcoj2i.js                     97.60 kB │ gzip:  35.19 kB
+tmp/mantis-early-knee-dist-capture1/assets/build-CehzHm6x.js                     190.13 kB │ gzip:  80.61 kB
+tmp/mantis-early-knee-dist-capture1/assets/practice-B3GtE_kS.js                  268.19 kB │ gzip:  69.88 kB
+tmp/mantis-early-knee-dist-capture1/assets/ui-DMhlLGU1.js                        276.69 kB │ gzip:  90.08 kB
+tmp/mantis-early-knee-dist-capture1/assets/three.core-BNyAOcZ3.js                295.58 kB │ gzip:  78.68 kB
+tmp/mantis-early-knee-dist-capture1/assets/shaderPatches-CWlvy5Ya.js             355.97 kB │ gzip:  85.95 kB
+tmp/mantis-early-knee-dist-capture1/assets/prod-C5nMThY5.js                      416.26 kB │ gzip: 139.74 kB
+tmp/mantis-early-knee-dist-capture1/assets/engineNodesHandler-XwMoGjXW.js        428.36 kB │ gzip: 125.65 kB
+tmp/mantis-early-knee-dist-capture1/assets/practiceBoot-But0NWdM.js              760.03 kB │ gzip: 252.44 kB
+tmp/mantis-early-knee-dist-capture1/assets/runtimeProduct-DPS5cVn7.js          1,030.51 kB │ gzip: 349.52 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/engine/boot/bakedTextures.ts is dynamically imported by src/engine/boot/bakedApi.ts but also statically imported by src/engine/entities/AnimalFactory.ts, src/engine/world/skyBackdrop.ts, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/engine/world/BakedSky.ts is dynamically imported by src/engine/boot/bakedApi.ts but also statically imported by src/engine/world/skyBackdrop.ts, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/engine/world/lut.ts is dynamically imported by src/engine/boot/bakedApi.ts but also statically imported by src/engine/world/skyBackdrop.ts, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/engine/world/Heightfield.ts is dynamically imported by src/game/plugin/audio.ts but also statically imported by src/engine/entities/AnimalView.ts, src/engine/player/Player.ts, src/engine/ui/HUD.ts, src/engine/world/BakedTerrain.ts, src/engine/world/Terrain.ts, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/game/shardfile/runtimeProduct.ts is dynamically imported by src/game/plugin/geometry.ts, src/game/plugin/headless.ts, src/game/plugin/shaderFamily.ts but also statically imported by src/game/models/worldSceneCatalogue.ts, src/game/plugin/bossStorm.ts, src/game/plugin/ui.ts, src/game/shardfile/audioCatalogue.ts, src/game/shardfile/hybrid.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 1.39s
+heavy-lane: finished build in 1.89s

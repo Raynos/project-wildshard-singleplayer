@@ -1,0 +1,140 @@
+{
+  "files": [
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/aim-events.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/aim-events.json",
+      "originalSha256": "4483d83353f460c8374a4485c4e03f5916159bd838025e6e663aa8b22e723b85",
+      "publicSha256": "4483d83353f460c8374a4485c4e03f5916159bd838025e6e663aa8b22e723b85",
+      "bytes": 5446,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/both-strikes-observation.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/both-strikes-observation.jpg",
+      "originalSha256": "c772740328db1f744f4c57965471350df092e5041d0716fcc7572a1b34374218",
+      "publicSha256": "c772740328db1f744f4c57965471350df092e5041d0716fcc7572a1b34374218",
+      "bytes": 64701,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/corpse-reward.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/corpse-reward.jpg",
+      "originalSha256": "fbd1b631c43e7c89a3313bc288d4d212a088cc78bcb98b5fa7b330e2bd6fcd83",
+      "publicSha256": "fbd1b631c43e7c89a3313bc288d4d212a088cc78bcb98b5fa7b330e2bd6fcd83",
+      "bytes": 59177,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/entry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/entry.jpg",
+      "originalSha256": "95c27d7b9ba2eb4d36b654118db70b9fc1a360e0cd8dbbb4807e4293b1254082",
+      "publicSha256": "95c27d7b9ba2eb4d36b654118db70b9fc1a360e0cd8dbbb4807e4293b1254082",
+      "bytes": 62770,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/hit-events.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/hit-events.json",
+      "originalSha256": "0c91b49fc198f7cbade5ade1b4b40f4d42dbab51162fae39de70e3ec4fe7ea1b",
+      "publicSha256": "0c91b49fc198f7cbade5ade1b4b40f4d42dbab51162fae39de70e3ec4fe7ea1b",
+      "bytes": 12673,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/opposite-oblique.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/opposite-oblique.jpg",
+      "originalSha256": "b0534907e5b7d9b673500b965052eb01098440fb2ca08b7e1da8ff5d76e692c4",
+      "publicSha256": "b0534907e5b7d9b673500b965052eb01098440fb2ca08b7e1da8ff5d76e692c4",
+      "bytes": 56181,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/player-defeat.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/player-defeat.jpg",
+      "originalSha256": "78835d3519f789489d44b4bce8f66239f943c3569b0dfda6cfc6c6c1f4e19cb0",
+      "publicSha256": "78835d3519f789489d44b4bce8f66239f943c3569b0dfda6cfc6c6c1f4e19cb0",
+      "bytes": 41297,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/reload-reentry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/reload-reentry.jpg",
+      "originalSha256": "8d61b459b4682ffb44777639881ff2c104f9e51a72c643d836b05edf93aeb45a",
+      "publicSha256": "8d61b459b4682ffb44777639881ff2c104f9e51a72c643d836b05edf93aeb45a",
+      "bytes": 66433,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/render-trace.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/render-trace.json",
+      "originalSha256": "c3d79d624bd3102a0eb73ee00d11f6ec73b6abfc22c6e7d4df59357d675f2f30",
+      "publicSha256": "c3d79d624bd3102a0eb73ee00d11f6ec73b6abfc22c6e7d4df59357d675f2f30",
+      "bytes": 11216106,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/report.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/report.json",
+      "originalSha256": "e38d6c616de5c70ef6db73f10555c7978504e5a84d38eedd00d730e61f3a563a",
+      "publicSha256": "e38d6c616de5c70ef6db73f10555c7978504e5a84d38eedd00d730e61f3a563a",
+      "bytes": 599435,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/retry.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/retry.jpg",
+      "originalSha256": "05d64bf1ec6cb4a734593a737b29b13a88afda3b7972141c79c95a7c2717324c",
+      "publicSha256": "05d64bf1ec6cb4a734593a737b29b13a88afda3b7972141c79c95a7c2717324c",
+      "bytes": 61356,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/side-recent-movement.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/side-recent-movement.jpg",
+      "originalSha256": "4f61a94817c5f8f299315d7b0defe9cf84a6aa1a1d94829020509ef42541e93d",
+      "publicSha256": "4f61a94817c5f8f299315d7b0defe9cf84a6aa1a1d94829020509ef42541e93d",
+      "bytes": 61532,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/sword-result.jpg",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/sword-result.jpg",
+      "originalSha256": "684af773f2464302f8c824454d2cc375b54a17a161aeb2db1755b222bc6f2eb8",
+      "publicSha256": "684af773f2464302f8c824454d2cc375b54a17a161aeb2db1755b222bc6f2eb8",
+      "bytes": 60823,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/video/page@7a48492c9b48275bec5ebfc3a512283b.webm",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/video/page@7a48492c9b48275bec5ebfc3a512283b.webm",
+      "originalSha256": "0dd504ff1ed622b2c43a8dc1bc386f3aa0fb8a585caceb0855c4ada906d9b32f",
+      "publicSha256": "0dd504ff1ed622b2c43a8dc1bc386f3aa0fb8a585caceb0855c4ada906d9b32f",
+      "bytes": 27588425,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    },
+    {
+      "source": "tmp/mantis-early-knee-capture-run1/world-contact.json",
+      "nativeSitePath": "source-evidence/mantis-early-knee-candidate6/run1/world-contact.json",
+      "originalSha256": "5fe6b555af3666b21fbe9b84b2194e20e86d65c45e057426e8060d8ad559fc79",
+      "publicSha256": "5fe6b555af3666b21fbe9b84b2194e20e86d65c45e057426e8060d8ad559fc79",
+      "bytes": 10986261,
+      "wholeFile": true,
+      "privatePathMetadataRedacted": false
+    }
+  ],
+  "scope": "Whole source evidence; no public Play promotion"
+}
