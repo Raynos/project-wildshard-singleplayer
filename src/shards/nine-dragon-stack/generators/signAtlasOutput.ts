@@ -95,11 +95,11 @@ export function signAtlasBlobs(): NamedBlob[] {
     });
     for (const channelRow of channels.slice(0, SIGN_CHANNELS.length)) channelRow.parts = primitives.map(part => part.name);
     const all = [...primitives, ...neonParts];
-    const pools = Array.from({ length: Math.ceil(all.length / 100) }, (_, index) => {
-      const parts = all.slice(index * 100, (index + 1) * 100), glb = staticGlb(parts);
+    const pools = [primitives, neonParts].flatMap(group => Array.from({ length: Math.ceil(group.length / 100) }, (_, index) => {
+      const parts = group.slice(index * 100, (index + 1) * 100), glb = staticGlb(parts);
       const name = `signs/pool-${hashImmutableBytes(glb)}.glb`;
       return { name, parts: parts.map(part => part.name), blob: nameBlob(name, 'glb', glb) };
-    });
+    }));
     for (const primitive of all) primitive.geometry.dispose(); material.dispose();
     return pools.map(pool => pool.blob).concat([
       nameBlob(`signs/atlas-${tier}.json`, 'json', json({ keys, glyphLayout: field.layout, neonLights: neon.emitters.map(({ at, color, ...rest }) => Object.assign(rest, { at: at.toArray(), color: color.toArray() })), copies: signCopies(placed, signRows.model), lights: row.lights,
