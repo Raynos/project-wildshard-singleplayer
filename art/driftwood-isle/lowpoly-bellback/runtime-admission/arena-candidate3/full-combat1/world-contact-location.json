@@ -4,6 +4,7 @@
     "sha256": "9bbe27a59f77db230b6dca93a80315a191b80000af0262dbf584699d1239a04b",
     "bytes": 7133376
   },
-  "method": "Complete original measurement retained as one ordinary JSON source file; split measurement copies excluded. Concatenated prior frame arrays verified exactly equal to original before duplicate split files removed. Native Site source checkpoint pending.",
-  "frames": 778
+  "method": "Complete original measurement retained as one ordinary JSON source file; split measurement copies excluded. Concatenated prior frame arrays verified exactly equal to original before duplicate split files removed. Native Site source checkpoint verified; served bundle unchanged, so no identical redeployment needed.",
+  "frames": 778,
+  "nativeSiteSourceCommit": "8d95788ce49a91f1545bbaee00d0e97c9f438165"
 }

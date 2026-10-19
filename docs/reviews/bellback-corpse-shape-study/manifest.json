@@ -1,0 +1,97 @@
+{
+  "status": "frozen-proposal-only",
+  "files": [
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/PROPOSAL.md",
+      "bytes": 16144,
+      "sha256": "b19f9a416af90eb956c03863fe9598e5fc69e2d5416e272277f7ca411c78863f"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/candidate-shapes.json",
+      "bytes": 698826,
+      "sha256": "784634c822115f3f6a6619a3de6661b4f9a92c26ed666e560d3b93cd00e87908"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/dense-poses.json",
+      "bytes": 932032,
+      "sha256": "de60415aab0f395507e892eaf071a3f60aa6dfb813df66623b4d4f63d31f77d6"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/measure-posed-parts.py",
+      "bytes": 2998,
+      "sha256": "4e56357877636e56c47e1bfc94dd4d538ca2a8f6f32ef86c5542a72255853f95"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/measure-support.py",
+      "bytes": 5472,
+      "sha256": "44f83e3e0680df5b1318fc642f5d80bed4b37beb14d8c5c334d3b7a699c8fcd0"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/posed-parts-proposal.json",
+      "bytes": 26767,
+      "sha256": "8cb4df8dd29ab33c06e15f905a1e9b1901f23b6c3e7a2c79376411eed119640b"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/posed-parts-results.json",
+      "bytes": 21165,
+      "sha256": "24a995cd8af1a1296365aa72661997ee9ccdf2844f210b17c401715462d7f3e8"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/sample-collapse.mjs",
+      "bytes": 1760,
+      "sha256": "bbf9bba15dcc4e48f94d665d4cd511984c4fca3cb1d79e2971916394933a7c73"
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/support-results.json",
+      "bytes": 74844,
+      "sha256": "5fdf5be1f6091c40b31bb507089ed81b1c6a94cfd72e7ef69bd397d73135c7d9"
+    }
+  ],
+  "referencedSourceInputs": [
+    {
+      "path": "src/shards/driftwood-isle/generators/bellbackTuckedClips.ts",
+      "bytes": 6877,
+      "sha256": "c23219a2ee36d6a0fa56d647aec2f2926c37b143a896061e4aa789290ebdfe1d"
+    },
+    {
+      "path": "src/game/plugin/channelPrograms.ts",
+      "bytes": 9947,
+      "sha256": "6e8c2a7ad6561669decfd2f7987ff24640aaa82cf61028508b2740dd2ca8370d"
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "bytes": 25315,
+      "sha256": "a385a470f0940b26c12d9cc255d78a0690882dfaec5eaad122ab471a21e257e3"
+    },
+    {
+      "path": "src/engine/entities/AnimalView.ts",
+      "bytes": 31484,
+      "sha256": "7df9e8d3f7d1adcf92231c83bee33418b9ed34cd15b76b947d77883b0efacd6e"
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "bytes": 136822,
+      "sha256": "a0e47e4049c72350f66f2c2f554e96792dbbc54c82c0560e26552ee2d60665c7"
+    },
+    {
+      "path": "src/format/nativePhysics.ts",
+      "bytes": 4245,
+      "sha256": "5412ff01519467279013e988aaaba83d008e3bad12194d14c3866f20a6351698"
+    },
+    {
+      "path": "src/format/rows.ts",
+      "bytes": 7920,
+      "sha256": "24f11f8e30cbf43a8498388c300dbb704d6b154a27bcbfeaabba70e0f0bf7629"
+    },
+    {
+      "path": "docs/reviews/bellback-anatomy3-full-combat.md",
+      "bytes": 6576,
+      "sha256": "3991d6fbce9c259391bb5914ed37ffb4b1a1b3de6ea0fe3f2a2bcd0cdde826b4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate2/CORPSE-SHAPE-PROPOSAL.md",
+      "bytes": 4452,
+      "sha256": "0131a999f6838b3ffb0cd1f5198a01ac41749a778b52cc839ef35f25ee67cbd1"
+    }
+  ]
+}

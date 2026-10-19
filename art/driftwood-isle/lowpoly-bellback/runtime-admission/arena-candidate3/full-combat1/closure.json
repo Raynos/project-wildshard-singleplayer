@@ -103,8 +103,8 @@
       "bytes": 2492
     },
     "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/world-contact-location.json": {
-      "sha256": "8a53474a53a9dedf44be7be0d69eff01458ad6335142d5b9f457fc66d49e4349",
-      "bytes": 518
+      "bytes": 653,
+      "sha256": "6f0ac355df8a0fb664373e94c472e35213f925233f7f6f3794df810e65f5abab"
     },
     "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/qa-lint-revision.json": {
       "bytes": 836,

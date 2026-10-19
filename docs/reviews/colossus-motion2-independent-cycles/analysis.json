@@ -1,0 +1,675 @@
+{
+  "inputClosure": "0f92a822d8e111480732974b7831edcac9429f4b2282ec21d147c9750bf72cca",
+  "verifiedEvidenceFiles": [
+    "README.md",
+    "analyze.py",
+    "both-strikes-observation.jpg",
+    "browser.log",
+    "combat-events.json",
+    "corpse-reward.jpg",
+    "entry.jpg",
+    "host-build.log",
+    "host-files.json",
+    "independent-world-contact.json",
+    "player-defeat.jpg",
+    "preview.json",
+    "product-build.log",
+    "product-files.json",
+    "render-trace.json",
+    "report.json",
+    "retry-test.log",
+    "summary.json",
+    "sword-result.jpg",
+    "verify_world.py",
+    "world-contact.json",
+    "log-whitespace-normalization.json"
+  ],
+  "productSourceHash": "052535ba72fa042ee5895194390d31b489123494143c27f837bafaa112bcb349",
+  "sourceClosureSha256": "5505a8fe6e39d82ce2ad36e87c17225011ef82c68b06799d0c37a68be054808d",
+  "video": {
+    "sha256": "b89f79ba8c4bd78cf4db9af99274325dd2e80e213b71190c4405e296dad916c1",
+    "encodedFrames": 3570,
+    "fps": 25,
+    "seconds": 142.8,
+    "reviewedZeroBasedFrames": [
+      0,
+      3569
+    ],
+    "sheetCount": 30,
+    "sheetCrop": "x0 y230 width402 height570; actor and local ground visible after observer starts; full corpse still also inspected"
+  },
+  "trace": {
+    "frames": 1080,
+    "deadFrames": 141,
+    "bonesPerFrame": [
+      22
+    ],
+    "firstFrame": 5,
+    "lastFrame": 1084,
+    "wallSeconds": 134.028,
+    "gameSeconds": 96.09880000003395,
+    "aggregateFPS": 8.045774173962828,
+    "medianMs": 105.30000000074506,
+    "p95Ms": 258.1000000014901,
+    "maxMs": 823.0
+  },
+  "cycles": [
+    {
+      "actor": 1,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 22,
+          "game": 1.12479999999702,
+          "wallMs": 5011.5,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 1.1166666666666676
+        },
+        {
+          "phase": "active",
+          "frame": 32,
+          "game": 2.0710999999940403,
+          "wallMs": 6144.5,
+          "state": 1,
+          "stateClock": 0.8999999999999999,
+          "strikeClock": 2.066666666666664
+        },
+        {
+          "phase": "recover",
+          "frame": 34,
+          "game": 2.2682999999970206,
+          "wallMs": 6355.10000000149,
+          "state": 1,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 2.2666666666666635
+        },
+        {
+          "phase": "idle",
+          "frame": 38,
+          "game": 2.6666999999955308,
+          "wallMs": 7017.70000000298,
+          "state": 1,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 2.666666666666662
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.5418999999985108,
+      "wallSeconds": 2.00620000000298
+    },
+    {
+      "actor": 1,
+      "id": "strike.colossus.slam",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 47,
+          "game": 3.440299999997021,
+          "wallMs": 7983.20000000298,
+          "state": 3,
+          "stateClock": 0,
+          "strikeClock": 3.433333333333326
+        },
+        {
+          "phase": "active",
+          "frame": 59,
+          "game": 4.536500000000001,
+          "wallMs": 9472.40000000596,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 4.533333333333323
+        },
+        {
+          "phase": "recover",
+          "frame": 61,
+          "game": 4.7365,
+          "wallMs": 9776.5,
+          "state": 3,
+          "stateClock": 1.3,
+          "strikeClock": 4.733333333333322
+        },
+        {
+          "phase": "idle",
+          "frame": 78,
+          "game": 6.2798000000044665,
+          "wallMs": 11768.70000000298,
+          "state": 3,
+          "stateClock": 2.800000000000001,
+          "strikeClock": 6.26666666666665
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 2.8395000000074453,
+      "wallSeconds": 3.7855
+    },
+    {
+      "actor": 1,
+      "id": "strike.colossus.right",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 91,
+          "game": 7.429100000001483,
+          "wallMs": 13071.80000000447,
+          "state": 2,
+          "stateClock": 0,
+          "strikeClock": 7.416666666666646
+        },
+        {
+          "phase": "active",
+          "frame": 102,
+          "game": 8.33920000001042,
+          "wallMs": 14270.80000000447,
+          "state": 2,
+          "stateClock": 0.8999999999999999,
+          "strikeClock": 8.333333333333327
+        },
+        {
+          "phase": "recover",
+          "frame": 105,
+          "game": 8.63380000001191,
+          "wallMs": 14580.5,
+          "state": 2,
+          "stateClock": 1.2,
+          "strikeClock": 8.633333333333342
+        },
+        {
+          "phase": "idle",
+          "frame": 109,
+          "game": 8.948800000011909,
+          "wallMs": 15153.5,
+          "state": 2,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 8.933333333333357
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.5197000000104257,
+      "wallSeconds": 2.0816999999955295
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 126,
+          "game": 10.383000000014887,
+          "wallMs": 16971.70000000298,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 1.1333333333333342
+        },
+        {
+          "phase": "active",
+          "frame": 135,
+          "game": 11.256400000013395,
+          "wallMs": 18016.60000000149,
+          "state": 1,
+          "stateClock": 0.7999999999999999,
+          "strikeClock": 1.9999999999999978
+        },
+        {
+          "phase": "recover",
+          "frame": 139,
+          "game": 11.579800000011904,
+          "wallMs": 18418.80000000447,
+          "state": 1,
+          "stateClock": 1.2,
+          "strikeClock": 2.3166666666666633
+        },
+        {
+          "phase": "idle",
+          "frame": 143,
+          "game": 11.903200000010413,
+          "wallMs": 18822.60000000149,
+          "state": 1,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 2.6499999999999955
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.5201999999955262,
+      "wallSeconds": 1.8508999999985098
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.slam",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 153,
+          "game": 12.73470000001041,
+          "wallMs": 19904,
+          "state": 3,
+          "stateClock": 0,
+          "strikeClock": 3.483333333333326
+        },
+        {
+          "phase": "active",
+          "frame": 165,
+          "game": 13.814500000007428,
+          "wallMs": 21078.90000000596,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 4.549999999999989
+        },
+        {
+          "phase": "recover",
+          "frame": 167,
+          "game": 14.002600000008917,
+          "wallMs": 21297.5,
+          "state": 3,
+          "stateClock": 1.3,
+          "strikeClock": 4.7499999999999885
+        },
+        {
+          "phase": "idle",
+          "frame": 174,
+          "game": 14.589200000002956,
+          "wallMs": 22022.30000000447,
+          "state": 0,
+          "stateClock": 0,
+          "strikeClock": 5.33333333333332
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.8544999999925462,
+      "wallSeconds": 2.1183000000044703
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.right",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 587,
+          "game": 53.29679999999742,
+          "wallMs": 83898.70000000298,
+          "state": 2,
+          "stateClock": 0,
+          "strikeClock": 44.033333333332116
+        },
+        {
+          "phase": "idle",
+          "frame": 589,
+          "game": 53.49679999999742,
+          "wallMs": 84101.70000000298,
+          "state": 0,
+          "stateClock": 0,
+          "strikeClock": 44.233333333332105
+        }
+      ],
+      "complete": false,
+      "gameSeconds": 0.20000000000000284,
+      "wallSeconds": 0.203
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 622,
+          "game": 56.42629999999745,
+          "wallMs": 87983.30000000447,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 47.16666666666527
+        },
+        {
+          "phase": "idle",
+          "frame": 623,
+          "game": 56.52629999999745,
+          "wallMs": 88102.30000000447,
+          "state": 0,
+          "stateClock": 0,
+          "strikeClock": 47.266666666665266
+        }
+      ],
+      "complete": false,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.119
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.right",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 656,
+          "game": 59.58819999999599,
+          "wallMs": 92602.30000000447,
+          "state": 2,
+          "stateClock": 0,
+          "strikeClock": 50.33333333333176
+        },
+        {
+          "phase": "idle",
+          "frame": 657,
+          "game": 59.688199999995994,
+          "wallMs": 92710.30000000447,
+          "state": 0,
+          "stateClock": 0,
+          "strikeClock": 50.43333333333175
+        }
+      ],
+      "complete": false,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.108
+    },
+    {
+      "actor": 2,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 674,
+          "game": 61.283200000003454,
+          "wallMs": 94874.20000000298,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 52.03333333333166
+        },
+        {
+          "phase": "idle",
+          "frame": 675,
+          "game": 61.383200000003455,
+          "wallMs": 94986.10000000149,
+          "state": 0,
+          "stateClock": 0,
+          "strikeClock": 52.133333333331656
+        }
+      ],
+      "complete": false,
+      "gameSeconds": 0.10000000000000142,
+      "wallSeconds": 0.11189999999850989
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 861,
+          "game": 77.0129000000061,
+          "wallMs": 114759.5,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 1.1666666666666674
+        },
+        {
+          "phase": "active",
+          "frame": 870,
+          "game": 77.85350000000759,
+          "wallMs": 115617.40000000596,
+          "state": 1,
+          "stateClock": 0.8999999999999999,
+          "strikeClock": 2.0166666666666644
+        },
+        {
+          "phase": "recover",
+          "frame": 874,
+          "game": 78.1494000000061,
+          "wallMs": 115912.30000000447,
+          "state": 1,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 2.2999999999999967
+        },
+        {
+          "phase": "idle",
+          "frame": 878,
+          "game": 78.54480000001205,
+          "wallMs": 116378.20000000298,
+          "state": 1,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 2.6999999999999953
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.5319000000059475,
+      "wallSeconds": 1.6187000000029803
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.slam",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 887,
+          "game": 79.33040000000608,
+          "wallMs": 117243.30000000447,
+          "state": 3,
+          "stateClock": 0,
+          "strikeClock": 3.483333333333326
+        },
+        {
+          "phase": "active",
+          "frame": 899,
+          "game": 80.39629999999715,
+          "wallMs": 118496.80000000447,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 4.549999999999989
+        },
+        {
+          "phase": "recover",
+          "frame": 901,
+          "game": 80.59629999999714,
+          "wallMs": 118696.60000000149,
+          "state": 3,
+          "stateClock": 1.3,
+          "strikeClock": 4.7499999999999885
+        },
+        {
+          "phase": "idle",
+          "frame": 918,
+          "game": 82.05910000000156,
+          "wallMs": 120354.40000000596,
+          "state": 3,
+          "stateClock": 2.800000000000001,
+          "strikeClock": 6.21666666666665
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 2.7286999999954844,
+      "wallSeconds": 3.11110000000149
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.right",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 932,
+          "game": 83.30780000000453,
+          "wallMs": 121725.90000000596,
+          "state": 2,
+          "stateClock": 0,
+          "strikeClock": 7.4666666666666455
+        },
+        {
+          "phase": "active",
+          "frame": 943,
+          "game": 84.1600000000075,
+          "wallMs": 122738,
+          "state": 2,
+          "stateClock": 0.8999999999999999,
+          "strikeClock": 8.31666666666666
+        },
+        {
+          "phase": "recover",
+          "frame": 947,
+          "game": 84.46110000000898,
+          "wallMs": 123120.90000000596,
+          "state": 2,
+          "stateClock": 1.2,
+          "strikeClock": 8.616666666666674
+        },
+        {
+          "phase": "idle",
+          "frame": 951,
+          "game": 84.84300000000749,
+          "wallMs": 123511.90000000596,
+          "state": 2,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 9.000000000000027
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.535200000002959,
+      "wallSeconds": 1.786
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.slam",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 961,
+          "game": 85.63460000000896,
+          "wallMs": 124468.40000000596,
+          "state": 3,
+          "stateClock": 0,
+          "strikeClock": 9.800000000000066
+        },
+        {
+          "phase": "active",
+          "frame": 973,
+          "game": 86.65180000001189,
+          "wallMs": 125722.70000000298,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 10.816666666666784
+        },
+        {
+          "phase": "recover",
+          "frame": 975,
+          "game": 86.85180000001188,
+          "wallMs": 125994.10000000149,
+          "state": 3,
+          "stateClock": 1.3,
+          "strikeClock": 11.016666666666794
+        },
+        {
+          "phase": "idle",
+          "frame": 991,
+          "game": 88.37540000002073,
+          "wallMs": 128048.30000000447,
+          "state": 3,
+          "stateClock": 2.800000000000001,
+          "strikeClock": 12.533333333333536
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 2.740800000011774,
+      "wallSeconds": 3.57989999999851
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.left",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 1004,
+          "game": 89.55150000002963,
+          "wallMs": 129419.5,
+          "state": 1,
+          "stateClock": 0,
+          "strikeClock": 13.716666666666928
+        },
+        {
+          "phase": "active",
+          "frame": 1016,
+          "game": 90.52080000003407,
+          "wallMs": 130628,
+          "state": 1,
+          "stateClock": 0.8999999999999999,
+          "strikeClock": 14.683333333333643
+        },
+        {
+          "phase": "recover",
+          "frame": 1019,
+          "game": 90.74020000003257,
+          "wallMs": 130975,
+          "state": 1,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 14.90000000000032
+        },
+        {
+          "phase": "idle",
+          "frame": 1023,
+          "game": 91.05300000003704,
+          "wallMs": 131282.40000000596,
+          "state": 1,
+          "stateClock": 1.5000000000000002,
+          "strikeClock": 15.216666666667003
+        }
+      ],
+      "complete": true,
+      "gameSeconds": 1.501500000007411,
+      "wallSeconds": 1.8629000000059606
+    },
+    {
+      "actor": 3,
+      "id": "strike.colossus.slam",
+      "phases": [
+        {
+          "phase": "windup",
+          "frame": 1032,
+          "game": 91.93000000004446,
+          "wallMs": 132205.20000000298,
+          "state": 3,
+          "stateClock": 0,
+          "strikeClock": 16.0833333333337
+        },
+        {
+          "phase": "active",
+          "frame": 1045,
+          "game": 93.02420000003998,
+          "wallMs": 133482.20000000298,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 17.18333333333364
+        },
+        {
+          "phase": "idle",
+          "frame": 1046,
+          "game": 93.124000000037,
+          "wallMs": 133580.30000000447,
+          "state": 3,
+          "stateClock": 1.0999999999999999,
+          "strikeClock": 17.283333333333633
+        }
+      ],
+      "complete": false,
+      "gameSeconds": 1.193999999992542,
+      "wallSeconds": 1.3751000000014901
+    }
+  ],
+  "completeCycles": 10,
+  "contactReexecution": {
+    "frames": 1080,
+    "livingMinimum": 0.027000000700354576,
+    "deadMinimum": 0.018563022046578226,
+    "framesBelow": 0,
+    "vertices": 15600,
+    "multiweightVertices": 4384
+  },
+  "maxOracleDeltaM": 1.1368683772161603e-13,
+  "deadRootYRange": [
+    899.77197265625,
+    901.622727050776
+  ],
+  "deadPoseClock": {
+    "firstDeadFrame": 706,
+    "firstState6Frame": 707,
+    "firstDeathT1Frame": 715,
+    "stateClockValues": [
+      0,
+      0.8999999999999999
+    ]
+  }
+}

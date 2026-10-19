@@ -1,0 +1,1144 @@
+{
+  "acceptance": false,
+  "parts": 8,
+  "pointsPerPart": [
+    86,
+    49,
+    86,
+    29,
+    43,
+    42,
+    50,
+    50
+  ],
+  "totalPoints": 435,
+  "maximumObservedHullGap": 0.0,
+  "maximumObservedBoneBoxGap": 0.5504758564340558,
+  "oldFrozenBoxGap": 0.3671523244443689,
+  "frame449BoxGap": 0.004477326120398084,
+  "scope": "Exact rigid part hulls retain identical support in every direction at the SAME posed transforms, by convex-hull support identity; does not establish runtime publication clocks, contact, solver stability, render interpolation, slope behavior or pose-change impulses.",
+  "rows": [
+    {
+      "capture": 0,
+      "frame": 244,
+      "hullGap": 0.0,
+      "boxGap": 0.0
+    },
+    {
+      "capture": 0,
+      "frame": 245,
+      "hullGap": 0.0,
+      "boxGap": 0.0
+    },
+    {
+      "capture": 0,
+      "frame": 246,
+      "hullGap": 0.0,
+      "boxGap": 0.09571751676474623
+    },
+    {
+      "capture": 0,
+      "frame": 247,
+      "hullGap": 0.0,
+      "boxGap": 0.17104999306382393
+    },
+    {
+      "capture": 0,
+      "frame": 248,
+      "hullGap": 0.0,
+      "boxGap": 0.0937487109509246
+    },
+    {
+      "capture": 0,
+      "frame": 249,
+      "hullGap": 0.0,
+      "boxGap": 0.11992741827404933
+    },
+    {
+      "capture": 0,
+      "frame": 250,
+      "hullGap": 0.0,
+      "boxGap": 0.18807895547912035
+    },
+    {
+      "capture": 0,
+      "frame": 251,
+      "hullGap": 0.0,
+      "boxGap": 0.26040444978616195
+    },
+    {
+      "capture": 0,
+      "frame": 252,
+      "hullGap": 0.0,
+      "boxGap": 0.3108872659151303
+    },
+    {
+      "capture": 0,
+      "frame": 253,
+      "hullGap": 0.0,
+      "boxGap": 0.3512567571593278
+    },
+    {
+      "capture": 0,
+      "frame": 254,
+      "hullGap": 0.0,
+      "boxGap": 0.36294859628812115
+    },
+    {
+      "capture": 0,
+      "frame": 255,
+      "hullGap": 0.0,
+      "boxGap": 0.3860205435058439
+    },
+    {
+      "capture": 0,
+      "frame": 256,
+      "hullGap": 0.0,
+      "boxGap": 0.3991166798494472
+    },
+    {
+      "capture": 0,
+      "frame": 257,
+      "hullGap": 0.0,
+      "boxGap": 0.42301548140100464
+    },
+    {
+      "capture": 0,
+      "frame": 258,
+      "hullGap": 0.0,
+      "boxGap": 0.4424257920648187
+    },
+    {
+      "capture": 0,
+      "frame": 259,
+      "hullGap": 0.0,
+      "boxGap": 0.4694562694204888
+    },
+    {
+      "capture": 0,
+      "frame": 260,
+      "hullGap": 0.0,
+      "boxGap": 0.4918818171023901
+    },
+    {
+      "capture": 0,
+      "frame": 261,
+      "hullGap": 0.0,
+      "boxGap": 0.5101994022681603
+    },
+    {
+      "capture": 0,
+      "frame": 262,
+      "hullGap": 0.0,
+      "boxGap": 0.5150456672618148
+    },
+    {
+      "capture": 0,
+      "frame": 263,
+      "hullGap": 0.0,
+      "boxGap": 0.5259869764563491
+    },
+    {
+      "capture": 0,
+      "frame": 264,
+      "hullGap": 0.0,
+      "boxGap": 0.5387328947278216
+    },
+    {
+      "capture": 0,
+      "frame": 265,
+      "hullGap": 0.0,
+      "boxGap": 0.5424145120638726
+    },
+    {
+      "capture": 0,
+      "frame": 266,
+      "hullGap": 0.0,
+      "boxGap": 0.5492195958971262
+    },
+    {
+      "capture": 0,
+      "frame": 267,
+      "hullGap": 0.0,
+      "boxGap": 0.5504758564340558
+    },
+    {
+      "capture": 0,
+      "frame": 268,
+      "hullGap": 0.0,
+      "boxGap": 0.5488706235654921
+    },
+    {
+      "capture": 0,
+      "frame": 269,
+      "hullGap": 0.0,
+      "boxGap": 0.5468316050937851
+    },
+    {
+      "capture": 0,
+      "frame": 270,
+      "hullGap": 0.0,
+      "boxGap": 0.5431557153722754
+    },
+    {
+      "capture": 0,
+      "frame": 271,
+      "hullGap": 0.0,
+      "boxGap": 0.5309654182156995
+    },
+    {
+      "capture": 0,
+      "frame": 272,
+      "hullGap": 0.0,
+      "boxGap": 0.5184382593378855
+    },
+    {
+      "capture": 0,
+      "frame": 273,
+      "hullGap": 0.0,
+      "boxGap": 0.5070302889098998
+    },
+    {
+      "capture": 0,
+      "frame": 274,
+      "hullGap": 0.0,
+      "boxGap": 0.4852186595968633
+    },
+    {
+      "capture": 0,
+      "frame": 275,
+      "hullGap": 0.0,
+      "boxGap": 0.4692828306513538
+    },
+    {
+      "capture": 0,
+      "frame": 276,
+      "hullGap": 0.0,
+      "boxGap": 0.4483998270588472
+    },
+    {
+      "capture": 0,
+      "frame": 277,
+      "hullGap": 0.0,
+      "boxGap": 0.4170298744891926
+    },
+    {
+      "capture": 0,
+      "frame": 278,
+      "hullGap": 0.0,
+      "boxGap": 0.3947391811142932
+    },
+    {
+      "capture": 0,
+      "frame": 279,
+      "hullGap": 0.0,
+      "boxGap": 0.3753168834675481
+    },
+    {
+      "capture": 0,
+      "frame": 280,
+      "hullGap": 0.0,
+      "boxGap": 0.3509689392241052
+    },
+    {
+      "capture": 0,
+      "frame": 281,
+      "hullGap": 0.0,
+      "boxGap": 0.3184930910730903
+    },
+    {
+      "capture": 0,
+      "frame": 282,
+      "hullGap": 0.0,
+      "boxGap": 0.293173537376745
+    },
+    {
+      "capture": 0,
+      "frame": 283,
+      "hullGap": 0.0,
+      "boxGap": 0.2064003598567125
+    },
+    {
+      "capture": 0,
+      "frame": 284,
+      "hullGap": 0.0,
+      "boxGap": 0.19013704037860174
+    },
+    {
+      "capture": 0,
+      "frame": 285,
+      "hullGap": 0.0,
+      "boxGap": 0.12297279450268139
+    },
+    {
+      "capture": 0,
+      "frame": 286,
+      "hullGap": 0.0,
+      "boxGap": 0.11172384449955008
+    },
+    {
+      "capture": 0,
+      "frame": 287,
+      "hullGap": 0.0,
+      "boxGap": 0.10643649717167483
+    },
+    {
+      "capture": 0,
+      "frame": 288,
+      "hullGap": 0.0,
+      "boxGap": 0.19016523835320534
+    },
+    {
+      "capture": 0,
+      "frame": 289,
+      "hullGap": 0.0,
+      "boxGap": 0.2644382205789762
+    },
+    {
+      "capture": 0,
+      "frame": 290,
+      "hullGap": 0.0,
+      "boxGap": 0.3638807713390439
+    },
+    {
+      "capture": 0,
+      "frame": 291,
+      "hullGap": 0.0,
+      "boxGap": 0.3722432401687261
+    },
+    {
+      "capture": 0,
+      "frame": 292,
+      "hullGap": 0.0,
+      "boxGap": 0.36789700365381106
+    },
+    {
+      "capture": 0,
+      "frame": 293,
+      "hullGap": 0.0,
+      "boxGap": 0.3671528332336315
+    },
+    {
+      "capture": 0,
+      "frame": 294,
+      "hullGap": 0.0,
+      "boxGap": 0.3671546870903496
+    },
+    {
+      "capture": 0,
+      "frame": 295,
+      "hullGap": 0.0,
+      "boxGap": 0.36715380205939396
+    },
+    {
+      "capture": 0,
+      "frame": 296,
+      "hullGap": 0.0,
+      "boxGap": 0.36715169404797116
+    },
+    {
+      "capture": 0,
+      "frame": 297,
+      "hullGap": 0.0,
+      "boxGap": 0.3671512550163143
+    },
+    {
+      "capture": 0,
+      "frame": 298,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 299,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 300,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 301,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 302,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 303,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 304,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 305,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 306,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 307,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 308,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 309,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 310,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 311,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 312,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 313,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 314,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 315,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 316,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 317,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 318,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 319,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 320,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 321,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 322,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 323,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 324,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 325,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 326,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 327,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 328,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 329,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 330,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 331,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 332,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 333,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 334,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 335,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 336,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 337,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 338,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 339,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 340,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 341,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 342,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 343,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 344,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 345,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 346,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 347,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 348,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 349,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 350,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 351,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 352,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 353,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 354,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 355,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 356,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 357,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 358,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 359,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 360,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 361,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 362,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 363,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 364,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 365,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 366,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 367,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 368,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 369,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 370,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 371,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 372,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 373,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 374,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 375,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 376,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 377,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 378,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 379,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 380,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 381,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 382,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 383,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 384,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 385,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 386,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 387,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 388,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 0,
+      "frame": 389,
+      "hullGap": 0.0,
+      "boxGap": 0.3671523244443689
+    },
+    {
+      "capture": 1,
+      "frame": 411,
+      "hullGap": 0.0,
+      "boxGap": 0.0
+    },
+    {
+      "capture": 1,
+      "frame": 412,
+      "hullGap": 0.0,
+      "boxGap": 0.0
+    },
+    {
+      "capture": 1,
+      "frame": 413,
+      "hullGap": 0.0,
+      "boxGap": 0.02022466563387343
+    },
+    {
+      "capture": 1,
+      "frame": 414,
+      "hullGap": 0.0,
+      "boxGap": 0.1360271125201451
+    },
+    {
+      "capture": 1,
+      "frame": 415,
+      "hullGap": 0.0,
+      "boxGap": 0.1748543977156628
+    },
+    {
+      "capture": 1,
+      "frame": 416,
+      "hullGap": 0.0,
+      "boxGap": 0.30145198137774126
+    },
+    {
+      "capture": 1,
+      "frame": 417,
+      "hullGap": 0.0,
+      "boxGap": 0.4070580414854101
+    },
+    {
+      "capture": 1,
+      "frame": 418,
+      "hullGap": 0.0,
+      "boxGap": 0.45612839946560957
+    },
+    {
+      "capture": 1,
+      "frame": 419,
+      "hullGap": 0.0,
+      "boxGap": 0.47583370047607726
+    },
+    {
+      "capture": 1,
+      "frame": 420,
+      "hullGap": 0.0,
+      "boxGap": 0.49096456505415464
+    },
+    {
+      "capture": 1,
+      "frame": 421,
+      "hullGap": 0.0,
+      "boxGap": 0.4972948667058945
+    },
+    {
+      "capture": 1,
+      "frame": 422,
+      "hullGap": 0.0,
+      "boxGap": 0.508359955232271
+    },
+    {
+      "capture": 1,
+      "frame": 423,
+      "hullGap": 0.0,
+      "boxGap": 0.5172930708406276
+    },
+    {
+      "capture": 1,
+      "frame": 424,
+      "hullGap": 0.0,
+      "boxGap": 0.5244512142162902
+    },
+    {
+      "capture": 1,
+      "frame": 425,
+      "hullGap": 0.0,
+      "boxGap": 0.5301528673893677
+    },
+    {
+      "capture": 1,
+      "frame": 426,
+      "hullGap": 0.0,
+      "boxGap": 0.5345822832885895
+    },
+    {
+      "capture": 1,
+      "frame": 427,
+      "hullGap": 0.0,
+      "boxGap": 0.5378815855988336
+    },
+    {
+      "capture": 1,
+      "frame": 428,
+      "hullGap": 0.0,
+      "boxGap": 0.540138204154486
+    },
+    {
+      "capture": 1,
+      "frame": 429,
+      "hullGap": 0.0,
+      "boxGap": 0.5413790003960913
+    },
+    {
+      "capture": 1,
+      "frame": 430,
+      "hullGap": 0.0,
+      "boxGap": 0.5413743246179665
+    },
+    {
+      "capture": 1,
+      "frame": 431,
+      "hullGap": 0.0,
+      "boxGap": 0.5400337680280999
+    },
+    {
+      "capture": 1,
+      "frame": 432,
+      "hullGap": 0.0,
+      "boxGap": 0.5373424770125402
+    },
+    {
+      "capture": 1,
+      "frame": 433,
+      "hullGap": 0.0,
+      "boxGap": 0.5330549042641879
+    },
+    {
+      "capture": 1,
+      "frame": 434,
+      "hullGap": 0.0,
+      "boxGap": 0.5207096359783094
+    },
+    {
+      "capture": 1,
+      "frame": 435,
+      "hullGap": 0.0,
+      "boxGap": 0.4883423366654509
+    },
+    {
+      "capture": 1,
+      "frame": 436,
+      "hullGap": 0.0,
+      "boxGap": 0.46771656154348906
+    },
+    {
+      "capture": 1,
+      "frame": 437,
+      "hullGap": 0.0,
+      "boxGap": 0.44118342394891874
+    },
+    {
+      "capture": 1,
+      "frame": 438,
+      "hullGap": 0.0,
+      "boxGap": 0.39550235203409434
+    },
+    {
+      "capture": 1,
+      "frame": 439,
+      "hullGap": 0.0,
+      "boxGap": 0.34358222117395254
+    },
+    {
+      "capture": 1,
+      "frame": 440,
+      "hullGap": 0.0,
+      "boxGap": 0.31185044843766296
+    },
+    {
+      "capture": 1,
+      "frame": 441,
+      "hullGap": 0.0,
+      "boxGap": 0.29987606316337456
+    },
+    {
+      "capture": 1,
+      "frame": 442,
+      "hullGap": 0.0,
+      "boxGap": 0.24238007136043094
+    },
+    {
+      "capture": 1,
+      "frame": 443,
+      "hullGap": 0.0,
+      "boxGap": 0.09782683727791097
+    },
+    {
+      "capture": 1,
+      "frame": 444,
+      "hullGap": 0.0,
+      "boxGap": 0.025511884941175955
+    },
+    {
+      "capture": 1,
+      "frame": 445,
+      "hullGap": 0.0,
+      "boxGap": 0.003419227543499881
+    },
+    {
+      "capture": 1,
+      "frame": 446,
+      "hullGap": 0.0,
+      "boxGap": 0.004382777653883174
+    },
+    {
+      "capture": 1,
+      "frame": 447,
+      "hullGap": 0.0,
+      "boxGap": 0.004062550823988209
+    },
+    {
+      "capture": 1,
+      "frame": 448,
+      "hullGap": 0.0,
+      "boxGap": 0.004373330802880604
+    },
+    {
+      "capture": 1,
+      "frame": 449,
+      "hullGap": 0.0,
+      "boxGap": 0.004477326120398084
+    },
+    {
+      "capture": 1,
+      "frame": 450,
+      "hullGap": 0.0,
+      "boxGap": 0.004378713823595559
+    },
+    {
+      "capture": 1,
+      "frame": 451,
+      "hullGap": 0.0,
+      "boxGap": 0.003763828203719344
+    }
+  ]
+}

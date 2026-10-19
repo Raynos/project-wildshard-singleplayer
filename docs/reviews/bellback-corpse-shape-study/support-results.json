@@ -1,0 +1,2747 @@
+{
+  "schema": "bellback.corpse-support-study.v1",
+  "acceptance": false,
+  "method": "Analytical support only, exact eight-bone rigid native geometry. 1001 numeric collapse knots plus 187 recorded last-live/corpse poses. Sampling is not continuous proof or a re-simulated trajectory. Compound hull and whole hull plane support equality asserted.",
+  "inputs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json",
+      "sha256": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+      "bytes": 1785369
+    },
+    {
+      "path": "docs/reviews/bellback-corpse-shape-study/dense-poses.json",
+      "sha256": "de60415aab0f395507e892eaf071a3f60aa6dfb813df66623b4d4f63d31f77d6",
+      "bytes": 932032
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/build1/render-trace.json",
+      "sha256": "fc7df48aa0b230bc3ef6971a286e884f41872887b2bf1081ad54fe8e7f6bc344",
+      "bytes": 631626
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate3/full-combat1/render-trace.json",
+      "sha256": "21654700da662f6b54887b4e21493a5fcb3d7666de2a34eb0eedd68dc34720a5",
+      "bytes": 1119748
+    }
+  ],
+  "vertices": 13374,
+  "bones": 8,
+  "denseSamples": 1001,
+  "observations": 187,
+  "hullVertices": 252,
+  "partHullVertices": [
+    99,
+    87,
+    4051,
+    2728,
+    1283,
+    1169,
+    921,
+    971
+  ],
+  "outerHullVertices": 48,
+  "box": {
+    "center": [
+      -0.012313466751927238,
+      1.7410751581192017,
+      0.12313208835651679
+    ],
+    "halfExtents": [
+      1.9022967041544954,
+      1.7410751581192017,
+      1.7133539702229719
+    ]
+  },
+  "summary": {
+    "envelopeBox": {
+      "maxCapturedGap": 1.198267604797421,
+      "oldFrozenGap": 0.12248750678131275,
+      "frame449Gap": 0.06881436977676603,
+      "orientationSweep": {
+        "gap": 2.0465463583645422,
+        "deathT": 1,
+        "normal": [
+          -0.43468707355425645,
+          0.6975,
+          0.569684911231495
+        ]
+      }
+    },
+    "partBoxes8": {
+      "maxCapturedGap": 1.170870582411302,
+      "oldFrozenGap": 0.12248695029211791,
+      "frame449Gap": 0.04487946567978285,
+      "orientationSweep": {
+        "gap": 1.353695529258036,
+        "deathT": 0.187,
+        "normal": [
+          -0.56252797259835,
+          -0.5625,
+          -0.6059340145959706
+        ]
+      }
+    },
+    "exactSweptHull": {
+      "maxCapturedGap": 0.9624185694652014,
+      "oldFrozenGap": 0.12248244449721458,
+      "frame449Gap": 0.040402139559384986,
+      "orientationSweep": {
+        "gap": 1.1352032156491951,
+        "deathT": 0.169,
+        "normal": [
+          -0.4455924768536921,
+          -0.6725000000000001,
+          -0.5909239329824032
+        ]
+      }
+    },
+    "partHulls8": {
+      "maxCapturedGap": 0.9624185694652014,
+      "oldFrozenGap": 0.12248244449721458,
+      "frame449Gap": 0.040402139559384986,
+      "orientationSweep": {
+        "gap": 1.1352032156491951,
+        "deathT": 0.169,
+        "normal": [
+          -0.4455924768536921,
+          -0.6725000000000001,
+          -0.5909239329824032
+        ]
+      }
+    },
+    "outer26PlaneHull": {
+      "maxCapturedGap": 0.9744165626328296,
+      "oldFrozenGap": 0.12248387991063028,
+      "frame449Gap": 0.06108500307291265,
+      "orientationSweep": {
+        "gap": 1.1474765508512916,
+        "deathT": 0.167,
+        "normal": [
+          -0.3845742882284209,
+          -0.7275,
+          -0.5681957117346129
+        ]
+      }
+    }
+  },
+  "rows": [
+    {
+      "capture": 0,
+      "frame": 244,
+      "alive": true,
+      "deathT": -1,
+      "meshFloor": 0.0,
+      "gaps": {
+        "envelopeBox": 0.0,
+        "partBoxes8": 0.0,
+        "exactSweptHull": 0.0,
+        "partHulls8": 0.0,
+        "outer26PlaneHull": 1.000000000139778e-06
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 245,
+      "alive": false,
+      "deathT": 0,
+      "meshFloor": 0.0,
+      "gaps": {
+        "envelopeBox": 0.0,
+        "partBoxes8": 0.0,
+        "exactSweptHull": 0.0,
+        "partHulls8": 0.0,
+        "outer26PlaneHull": 1.000000000139778e-06
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 246,
+      "alive": false,
+      "deathT": 0.125,
+      "meshFloor": 0.1318794730971149,
+      "gaps": {
+        "envelopeBox": 0.2709223862092019,
+        "partBoxes8": 0.2682233014340374,
+        "exactSweptHull": 0.2452736857302752,
+        "partHulls8": 0.2452736857302752,
+        "outer26PlaneHull": 0.24527762947955217
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 247,
+      "alive": false,
+      "deathT": 0.25,
+      "meshFloor": 0.37688741822682914,
+      "gaps": {
+        "envelopeBox": 0.7492748252400894,
+        "partBoxes8": 0.7413854111345157,
+        "exactSweptHull": 0.674295683471623,
+        "partHulls8": 0.674295683471623,
+        "outer26PlaneHull": 0.6743133617431596
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 248,
+      "alive": false,
+      "deathT": 0.375,
+      "meshFloor": 0.3829485074729746,
+      "gaps": {
+        "envelopeBox": 0.8345368366684143,
+        "partBoxes8": 0.8236359148538613,
+        "exactSweptHull": 0.730920984503469,
+        "partHulls8": 0.730920984503469,
+        "outer26PlaneHull": 0.7309610612211215
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 249,
+      "alive": false,
+      "deathT": 0.40549999999813735,
+      "meshFloor": 0.39434895600038544,
+      "gaps": {
+        "envelopeBox": 0.9222484263486677,
+        "partBoxes8": 0.9087900055392332,
+        "exactSweptHull": 0.7943113866774193,
+        "partHulls8": 0.7943113866774193,
+        "outer26PlaneHull": 0.7943721665001547
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 250,
+      "alive": false,
+      "deathT": 0.5304999999981374,
+      "meshFloor": 0.342598413566634,
+      "gaps": {
+        "envelopeBox": 0.9589709157449168,
+        "partBoxes8": 0.9430114186052295,
+        "exactSweptHull": 0.8072467183936379,
+        "partHulls8": 0.8072467183936379,
+        "outer26PlaneHull": 0.8073302732566529
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 251,
+      "alive": false,
+      "deathT": 0.6554999999981374,
+      "meshFloor": 0.28156427179987986,
+      "gaps": {
+        "envelopeBox": 1.0015553477193597,
+        "partBoxes8": 0.983012872354265,
+        "exactSweptHull": 0.8252618025751624,
+        "partHulls8": 0.8252618025751624,
+        "outer26PlaneHull": 0.825372110007236
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 252,
+      "alive": false,
+      "deathT": 0.7804999999981374,
+      "meshFloor": 0.2445372278383502,
+      "gaps": {
+        "envelopeBox": 1.0250516379186034,
+        "partBoxes8": 1.0047491404598317,
+        "exactSweptHull": 0.8320186380748236,
+        "partHulls8": 0.8320186380748236,
+        "outer26PlaneHull": 0.8321452532715352
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 253,
+      "alive": false,
+      "deathT": 0.9054999999981374,
+      "meshFloor": 0.22601299933478458,
+      "gaps": {
+        "envelopeBox": 1.0495437238462757,
+        "partBoxes8": 1.0278613521868958,
+        "exactSweptHull": 0.8433877711872864,
+        "partHulls8": 0.8433877711872864,
+        "outer26PlaneHull": 0.8435262279449462
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 254,
+      "alive": false,
+      "deathT": 0.9197499999962747,
+      "meshFloor": 0.22593588310144241,
+      "gaps": {
+        "envelopeBox": 1.061594423499738,
+        "partBoxes8": 1.03951723488396,
+        "exactSweptHull": 0.8516838415535035,
+        "partHulls8": 0.8516838415535035,
+        "outer26PlaneHull": 0.8518255059502431
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 255,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.22448658847497427,
+      "gaps": {
+        "envelopeBox": 1.0839863287231144,
+        "partBoxes8": 1.061136060395389,
+        "exactSweptHull": 0.8667249342453447,
+        "partHulls8": 0.8667249342453447,
+        "outer26PlaneHull": 0.8668718595646419
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 256,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.22624040879429685,
+      "gaps": {
+        "envelopeBox": 1.098785978193812,
+        "partBoxes8": 1.0755009831871454,
+        "exactSweptHull": 0.8773911177557853,
+        "partHulls8": 0.8773911177557853,
+        "outer26PlaneHull": 0.8775408771693328
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 257,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.22607031765460306,
+      "gaps": {
+        "envelopeBox": 1.1255745514087283,
+        "partBoxes8": 1.101397906248864,
+        "exactSweptHull": 0.895704215214633,
+        "partHulls8": 0.895704215214633,
+        "outer26PlaneHull": 0.8958572785345874
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 258,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.22230877178117225,
+      "gaps": {
+        "envelopeBox": 1.1440004987843764,
+        "partBoxes8": 1.1190819014409337,
+        "exactSweptHull": 0.9070810601520687,
+        "partHulls8": 0.9070810601520687,
+        "outer26PlaneHull": 0.9072334343098056
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 259,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21883671881153077,
+      "gaps": {
+        "envelopeBox": 1.1587778848939299,
+        "partBoxes8": 1.1332445971523324,
+        "exactSweptHull": 0.9160227598384948,
+        "partHulls8": 0.9160227598384948,
+        "outer26PlaneHull": 0.9161702283293237
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 260,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21570281725496443,
+      "gaps": {
+        "envelopeBox": 1.1705085848053214,
+        "partBoxes8": 1.1444710102671904,
+        "exactSweptHull": 0.9229712143353614,
+        "partHulls8": 0.9229712143353614,
+        "outer26PlaneHull": 0.9231093551265179
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 261,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21302872799913075,
+      "gaps": {
+        "envelopeBox": 1.1797111085778655,
+        "partBoxes8": 1.1532641651041176,
+        "exactSweptHull": 0.9282980217870486,
+        "partHulls8": 0.9282980217870486,
+        "outer26PlaneHull": 0.9284221846042108
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 262,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21225022416831507,
+      "gaps": {
+        "envelopeBox": 1.1820838870010366,
+        "partBoxes8": 1.155528538676875,
+        "exactSweptHull": 0.9296463751847718,
+        "partHulls8": 0.9296463751847718,
+        "outer26PlaneHull": 0.9297649343024287
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 263,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.2104209257565799,
+      "gaps": {
+        "envelopeBox": 1.187339706788482,
+        "partBoxes8": 1.1605390010388619,
+        "exactSweptHull": 0.9325874156184708,
+        "partHulls8": 0.9325874156184708,
+        "outer26PlaneHull": 0.9326894450284224
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 264,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20816956344697246,
+      "gaps": {
+        "envelopeBox": 1.1932632216806525,
+        "partBoxes8": 1.1661730217687372,
+        "exactSweptHull": 0.9357912960425102,
+        "partHulls8": 0.9357912960425102,
+        "outer26PlaneHull": 0.9358622772694859
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 265,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20747290823817366,
+      "gaps": {
+        "envelopeBox": 1.1949263760324502,
+        "partBoxes8": 1.1677508467858773,
+        "exactSweptHull": 0.936656878344614,
+        "partHulls8": 0.936656878344614,
+        "outer26PlaneHull": 0.9367146590397698
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 266,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20574044245995537,
+      "gaps": {
+        "envelopeBox": 1.1978573618745534,
+        "partBoxes8": 1.1705098657210966,
+        "exactSweptHull": 0.938006376976542,
+        "partHulls8": 0.938006376976542,
+        "outer26PlaneHull": 0.9380116693631281
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 267,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20504686804304129,
+      "gaps": {
+        "envelopeBox": 1.198267604797421,
+        "partBoxes8": 1.170870582411302,
+        "exactSweptHull": 0.9379894423711819,
+        "partHulls8": 0.9379894423711819,
+        "outer26PlaneHull": 0.9380660555401397
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 268,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20470790452100118,
+      "gaps": {
+        "envelopeBox": 1.197350727603526,
+        "partBoxes8": 1.1699604952499145,
+        "exactSweptHull": 0.9371880991240479,
+        "partHulls8": 0.9371880991240479,
+        "outer26PlaneHull": 0.937363311876171
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 269,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20459061725387073,
+      "gaps": {
+        "envelopeBox": 1.1963002768166024,
+        "partBoxes8": 1.1689354776487297,
+        "exactSweptHull": 0.9364125038960128,
+        "partHulls8": 0.9364125038960128,
+        "outer26PlaneHull": 0.9366518778631138
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 270,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20467904460417685,
+      "gaps": {
+        "envelopeBox": 1.1944804819160229,
+        "partBoxes8": 1.1671735887480534,
+        "exactSweptHull": 0.9351803155091782,
+        "partHulls8": 0.9351803155091782,
+        "outer26PlaneHull": 0.9354919787434479
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 271,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20531677110557212,
+      "gaps": {
+        "envelopeBox": 1.1884497416370559,
+        "partBoxes8": 1.161349206975877,
+        "exactSweptHull": 0.931210041039515,
+        "partHulls8": 0.931210041039515,
+        "outer26PlaneHull": 0.9317144282643091
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 272,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20629874795884007,
+      "gaps": {
+        "envelopeBox": 1.1821886390886789,
+        "partBoxes8": 1.1553134340348818,
+        "exactSweptHull": 0.9271717875556665,
+        "partHulls8": 0.9271717875556665,
+        "outer26PlaneHull": 0.9278343550176981
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 273,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20710880457647818,
+      "gaps": {
+        "envelopeBox": 1.1763935208493819,
+        "partBoxes8": 1.1497298410865335,
+        "exactSweptHull": 0.9234529753933577,
+        "partHulls8": 0.9234529753933577,
+        "outer26PlaneHull": 0.9242440000815525
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 274,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20870311909652628,
+      "gaps": {
+        "envelopeBox": 1.165026484823707,
+        "partBoxes8": 1.1387774920208276,
+        "exactSweptHull": 0.9161439591158707,
+        "partHulls8": 0.9161439591158707,
+        "outer26PlaneHull": 0.917162667745566
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 275,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20987590731556338,
+      "gaps": {
+        "envelopeBox": 1.1564823282882855,
+        "partBoxes8": 1.1305440387782015,
+        "exactSweptHull": 0.9106317314874951,
+        "partHulls8": 0.9106317314874951,
+        "outer26PlaneHull": 0.9118045390491168
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 276,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21140412766771988,
+      "gaps": {
+        "envelopeBox": 1.1449746158139777,
+        "partBoxes8": 1.1194512947123276,
+        "exactSweptHull": 0.9031669334224113,
+        "partHulls8": 0.9031669334224113,
+        "outer26PlaneHull": 0.9045330618706466
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 277,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.21374480773795312,
+      "gaps": {
+        "envelopeBox": 1.1253036610868339,
+        "partBoxes8": 1.1004800937727999,
+        "exactSweptHull": 0.8903006306145821,
+        "partHulls8": 0.8903006306145821,
+        "outer26PlaneHull": 0.8919679317262682
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 278,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.2131967696625452,
+      "gaps": {
+        "envelopeBox": 1.1015106797153147,
+        "partBoxes8": 1.0774225910700694,
+        "exactSweptHull": 0.8736472675527476,
+        "partHulls8": 0.8736472675527476,
+        "outer26PlaneHull": 0.8756070831590799
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 279,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.2099153912319025,
+      "gaps": {
+        "envelopeBox": 1.0804907604969514,
+        "partBoxes8": 1.0569586814908252,
+        "exactSweptHull": 0.8580185937429419,
+        "partHulls8": 0.8580185937429419,
+        "outer26PlaneHull": 0.8601875865648076
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 280,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20546281494580398,
+      "gaps": {
+        "envelopeBox": 1.0535792809989692,
+        "partBoxes8": 1.0307563626826435,
+        "exactSweptHull": 0.8379762121226941,
+        "partHulls8": 0.8379762121226941,
+        "outer26PlaneHull": 0.8403981824383526
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 281,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.19948858941882008,
+      "gaps": {
+        "envelopeBox": 1.0167644143653833,
+        "partBoxes8": 0.9949058476120511,
+        "exactSweptHull": 0.8104930717198942,
+        "partHulls8": 0.8104930717198942,
+        "outer26PlaneHull": 0.8132412502742141
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 282,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.19481536279590728,
+      "gaps": {
+        "envelopeBox": 0.9873624942523489,
+        "partBoxes8": 0.9662696089257408,
+        "exactSweptHull": 0.7884938618445267,
+        "partHulls8": 0.7884938618445267,
+        "outer26PlaneHull": 0.7914883892782376
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 283,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.17759435514938104,
+      "gaps": {
+        "envelopeBox": 0.8822312419581241,
+        "partBoxes8": 0.8638470391412355,
+        "exactSweptHull": 0.7095131317706983,
+        "partHulls8": 0.7095131317706983,
+        "outer26PlaneHull": 0.7133068906320342
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 284,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.17413474263230455,
+      "gaps": {
+        "envelopeBox": 0.8618118894367033,
+        "partBoxes8": 0.843948843603882,
+        "exactSweptHull": 0.6941198448159942,
+        "partHulls8": 0.6941198448159942,
+        "outer26PlaneHull": 0.6980570223877323
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 285,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.15947744464608604,
+      "gaps": {
+        "envelopeBox": 0.7752108395005559,
+        "partBoxes8": 0.7595422705945465,
+        "exactSweptHull": 0.6286668758055105,
+        "partHulls8": 0.6286668758055105,
+        "outer26PlaneHull": 0.6331778605359446
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 286,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.1476550203781244,
+      "gaps": {
+        "envelopeBox": 0.7042399942879558,
+        "partBoxes8": 0.6903524756895162,
+        "exactSweptHull": 0.5748435110375985,
+        "partHulls8": 0.5748435110375985,
+        "outer26PlaneHull": 0.5797884510889697
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 287,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.1207756879448425,
+      "gaps": {
+        "envelopeBox": 0.5883730893395137,
+        "partBoxes8": 0.5771609765389326,
+        "exactSweptHull": 0.48471305269121,
+        "partHulls8": 0.48471305269121,
+        "outer26PlaneHull": 0.490268006979552
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 288,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.07954055761058498,
+      "gaps": {
+        "envelopeBox": 0.4500981945240804,
+        "partBoxes8": 0.4417685063282982,
+        "exactSweptHull": 0.37413954345563893,
+        "partHulls8": 0.37413954345563893,
+        "outer26PlaneHull": 0.3803004747057306
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 289,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.04172098201922836,
+      "gaps": {
+        "envelopeBox": 0.32194238257499974,
+        "partBoxes8": 0.31627367589827754,
+        "exactSweptHull": 0.2715340150028873,
+        "partHulls8": 0.2715340150028873,
+        "outer26PlaneHull": 0.2782100354766947
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 290,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.009722635911430189,
+      "gaps": {
+        "envelopeBox": 0.15536838716289678,
+        "partBoxes8": 0.15417277610015273,
+        "exactSweptHull": 0.14835637069736352,
+        "partHulls8": 0.14835637069736352,
+        "outer26PlaneHull": 0.14898859161465364
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 291,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.013128192708222741,
+      "gaps": {
+        "envelopeBox": 0.13762735864747402,
+        "partBoxes8": 0.137414414390572,
+        "exactSweptHull": 0.1364548724018414,
+        "partHulls8": 0.1364548724018414,
+        "outer26PlaneHull": 0.13653627754598163
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 292,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.0059918437618762255,
+      "gaps": {
+        "envelopeBox": 0.12762227546653107,
+        "partBoxes8": 0.12762211139603682,
+        "exactSweptHull": 0.127216495802125,
+        "partHulls8": 0.127216495802125,
+        "outer26PlaneHull": 0.12724544777875688
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 293,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.0023947305180627154,
+      "gaps": {
+        "envelopeBox": 0.12249680857539644,
+        "partBoxes8": 0.12249676913043087,
+        "exactSweptHull": 0.12248442652919536,
+        "partHulls8": 0.12248442652919536,
+        "outer26PlaneHull": 0.12249120066411931
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 294,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002402010101832275,
+      "gaps": {
+        "envelopeBox": 0.12250336509582882,
+        "partBoxes8": 0.12250254412967082,
+        "exactSweptHull": 0.1224962665428097,
+        "partHulls8": 0.1224962665428097,
+        "outer26PlaneHull": 0.12249862325946434
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 295,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.0023998181982278766,
+      "gaps": {
+        "envelopeBox": 0.12249800079506429,
+        "partBoxes8": 0.12249733085698379,
+        "exactSweptHull": 0.12249196455160313,
+        "partHulls8": 0.12249196455160313,
+        "outer26PlaneHull": 0.12249360095045335
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 296,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.0023930882531431052,
+      "gaps": {
+        "envelopeBox": 0.12248206800315592,
+        "partBoxes8": 0.12248147318465485,
+        "exactSweptHull": 0.12247692123135792,
+        "partHulls8": 0.12247692123135792,
+        "outer26PlaneHull": 0.12247889721666734
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 297,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002391656536701703,
+      "gaps": {
+        "envelopeBox": 0.12247868680371506,
+        "partBoxes8": 0.12247810195648859,
+        "exactSweptHull": 0.1224739047877325,
+        "partHulls8": 0.1224739047877325,
+        "outer26PlaneHull": 0.1224757802532741
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 298,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 299,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 300,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 301,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 302,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 303,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 304,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 305,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 306,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 307,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 308,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 309,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 310,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 311,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 312,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 313,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 314,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 315,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 316,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 317,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 318,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 319,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 320,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 321,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 322,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 323,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 324,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 325,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 326,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 327,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 328,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 329,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 330,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 331,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 332,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 333,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 334,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 335,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 336,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 337,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 338,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 339,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 340,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 341,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 342,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 343,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 344,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 345,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 346,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 347,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 348,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 349,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 350,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 351,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 352,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 353,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 354,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 355,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 356,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 357,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 358,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 359,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 360,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 361,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 362,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 363,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 364,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 365,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 366,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 367,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 368,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 369,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 370,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 371,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 372,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 373,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 374,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 375,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 376,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 377,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 378,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 379,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 380,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 381,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 382,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 383,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 384,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 385,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 386,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 387,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 388,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 0,
+      "frame": 389,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.002395423196844604,
+      "gaps": {
+        "envelopeBox": 0.12248750678131275,
+        "partBoxes8": 0.12248695029211791,
+        "exactSweptHull": 0.12248244449721458,
+        "partHulls8": 0.12248244449721458,
+        "outer26PlaneHull": 0.12248387991063028
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 411,
+      "alive": true,
+      "deathT": -1,
+      "meshFloor": 0.0,
+      "gaps": {
+        "envelopeBox": 0.0,
+        "partBoxes8": 0.0,
+        "exactSweptHull": 0.0,
+        "partHulls8": 0.0,
+        "outer26PlaneHull": 1.000000000139778e-06
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 412,
+      "alive": false,
+      "deathT": 0,
+      "meshFloor": 0.0,
+      "gaps": {
+        "envelopeBox": 0.0,
+        "partBoxes8": 0.0,
+        "exactSweptHull": 0.0,
+        "partHulls8": 0.0,
+        "outer26PlaneHull": 1.000000000139778e-06
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 413,
+      "alive": false,
+      "deathT": 0.08850000000558793,
+      "meshFloor": -0.06594738008527656,
+      "gaps": {
+        "envelopeBox": 0.18929566840271736,
+        "partBoxes8": 0.18496501464367812,
+        "exactSweptHull": 0.14581864865039482,
+        "partHulls8": 0.14581864865039482,
+        "outer26PlaneHull": 0.14814832190267854
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 414,
+      "alive": false,
+      "deathT": 0.21350000000558794,
+      "meshFloor": 0.46277252440097527,
+      "gaps": {
+        "envelopeBox": 0.8475517166365434,
+        "partBoxes8": 0.8402007105926613,
+        "exactSweptHull": 0.772680438443279,
+        "partHulls8": 0.772680438443279,
+        "outer26PlaneHull": 0.7777060354461411
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 415,
+      "alive": false,
+      "deathT": 0.33850000000558794,
+      "meshFloor": 0.49127510891514703,
+      "gaps": {
+        "envelopeBox": 0.9522831925931642,
+        "partBoxes8": 0.9427642676260639,
+        "exactSweptHull": 0.8543269137946098,
+        "partHulls8": 0.8543269137946098,
+        "outer26PlaneHull": 0.8618386927146053
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 416,
+      "alive": false,
+      "deathT": 0.46350000000558794,
+      "meshFloor": 0.4936419137596886,
+      "gaps": {
+        "envelopeBox": 1.0400019314302833,
+        "partBoxes8": 1.0284101048099048,
+        "exactSweptHull": 0.9200204213532971,
+        "partHulls8": 0.9200204213532971,
+        "outer26PlaneHull": 0.9298614248239823
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 417,
+      "alive": false,
+      "deathT": 0.588500000005588,
+      "meshFloor": 0.46332981220314196,
+      "gaps": {
+        "envelopeBox": 1.1032151064512463,
+        "partBoxes8": 1.0896596200276425,
+        "exactSweptHull": 0.9624185694652014,
+        "partHulls8": 0.9624185694652014,
+        "outer26PlaneHull": 0.9744165626328296
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 418,
+      "alive": false,
+      "deathT": 0.713500000005588,
+      "meshFloor": 0.3912687344082997,
+      "gaps": {
+        "envelopeBox": 1.113115566445659,
+        "partBoxes8": 1.0979274034440683,
+        "exactSweptHull": 0.9549927447069748,
+        "partHulls8": 0.9549927447069748,
+        "outer26PlaneHull": 0.9688038690042715
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 419,
+      "alive": false,
+      "deathT": 0.838500000005588,
+      "meshFloor": 0.33083217637636153,
+      "gaps": {
+        "envelopeBox": 1.1022032441292284,
+        "partBoxes8": 1.0858998172580745,
+        "exactSweptHull": 0.9319852880428767,
+        "partHulls8": 0.9319852880428767,
+        "outer26PlaneHull": 0.9472946718216309
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 420,
+      "alive": false,
+      "deathT": 0.963500000005588,
+      "meshFloor": 0.29359017092599515,
+      "gaps": {
+        "envelopeBox": 1.1003902286709555,
+        "partBoxes8": 1.0832667300126322,
+        "exactSweptHull": 0.9209751703482901,
+        "partHulls8": 0.9209751703482901,
+        "outer26PlaneHull": 0.9376895958882284
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 421,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.2824684168542717,
+      "gaps": {
+        "envelopeBox": 1.1041229076851715,
+        "partBoxes8": 1.0866729476011336,
+        "exactSweptHull": 0.9209208761150969,
+        "partHulls8": 0.9209208761150969,
+        "outer26PlaneHull": 0.9383203408266274
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 422,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.26251213242426275,
+      "gaps": {
+        "envelopeBox": 1.1100773827237584,
+        "partBoxes8": 1.0920997165796216,
+        "exactSweptHull": 0.9204508972251296,
+        "partHulls8": 0.9204508972251296,
+        "outer26PlaneHull": 0.9392607146774653
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 423,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.24373869520786684,
+      "gaps": {
+        "envelopeBox": 1.111975365023223,
+        "partBoxes8": 1.0936471691510146,
+        "exactSweptHull": 0.9175544883160656,
+        "partHulls8": 0.9175544883160656,
+        "outer26PlaneHull": 0.9378280653114222
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 424,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.22600932898171777,
+      "gaps": {
+        "envelopeBox": 1.1103027830171803,
+        "partBoxes8": 1.0917919371395244,
+        "exactSweptHull": 0.9125905060404705,
+        "partHulls8": 0.9125905060404705,
+        "outer26PlaneHull": 0.9344200165604669
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 425,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.20914727800402488,
+      "gaps": {
+        "envelopeBox": 1.1054642405369042,
+        "partBoxes8": 1.0869252644329435,
+        "exactSweptHull": 0.905808700947489,
+        "partHulls8": 0.905808700947489,
+        "outer26PlaneHull": 0.9293142024342252
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 426,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.192777714724798,
+      "gaps": {
+        "envelopeBox": 1.0975691796533722,
+        "partBoxes8": 1.0791566592028468,
+        "exactSweptHull": 0.8972813206837794,
+        "partHulls8": 0.8972813206837794,
+        "outer26PlaneHull": 0.9226206913542875
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 427,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.17689139034507662,
+      "gaps": {
+        "envelopeBox": 1.086632374795681,
+        "partBoxes8": 1.0685006682561764,
+        "exactSweptHull": 0.8869875609603562,
+        "partHulls8": 0.8869875609603562,
+        "outer26PlaneHull": 0.9143520952787124
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 428,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.16113384613038306,
+      "gaps": {
+        "envelopeBox": 1.0725663214066845,
+        "partBoxes8": 1.0548707219096671,
+        "exactSweptHull": 0.874819879385627,
+        "partHulls8": 0.874819879385627,
+        "outer26PlaneHull": 0.904429792708155
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 429,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.14525493766734598,
+      "gaps": {
+        "envelopeBox": 1.0551515940097373,
+        "partBoxes8": 1.038051823497868,
+        "exactSweptHull": 0.8605719789273275,
+        "partHulls8": 0.8605719789273275,
+        "outer26PlaneHull": 0.8926764393303462
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 430,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.123461295512584,
+      "gaps": {
+        "envelopeBox": 1.0262243171665346,
+        "partBoxes8": 1.0101789690335747,
+        "exactSweptHull": 0.8379158134071643,
+        "partHulls8": 0.8379158134071643,
+        "outer26PlaneHull": 0.8737679375411014
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 431,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.10619571089068813,
+      "gaps": {
+        "envelopeBox": 0.9994942376154313,
+        "partBoxes8": 0.9844480946386319,
+        "exactSweptHull": 0.8175018216796267,
+        "partHulls8": 0.8175018216796267,
+        "outer26PlaneHull": 0.8565319741652008
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 432,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.0877144975745523,
+      "gaps": {
+        "envelopeBox": 0.9678189372775575,
+        "partBoxes8": 0.9539641442534029,
+        "exactSweptHull": 0.7936380091690848,
+        "partHulls8": 0.7936380091690848,
+        "outer26PlaneHull": 0.8361764837196487
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 433,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.06776336178768361,
+      "gaps": {
+        "envelopeBox": 0.930443373695303,
+        "partBoxes8": 0.9179863361215532,
+        "exactSweptHull": 0.7656896324975788,
+        "partHulls8": 0.7656896324975788,
+        "outer26PlaneHull": 0.8120819236748047
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 434,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": 0.039960226389325726,
+      "gaps": {
+        "envelopeBox": 0.8803373236245255,
+        "partBoxes8": 0.8695004782455764,
+        "exactSweptHull": 0.7267712038586165,
+        "partHulls8": 0.7267712038586165,
+        "outer26PlaneHull": 0.7773703936643499
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 435,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.007663866639518346,
+      "gaps": {
+        "envelopeBox": 0.804937616039636,
+        "partBoxes8": 0.7959594810045476,
+        "exactSweptHull": 0.6766910661077024,
+        "partHulls8": 0.6766910661077024,
+        "outer26PlaneHull": 0.7196315219211988
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 436,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.036536792691208575,
+      "gaps": {
+        "envelopeBox": 0.757458654308073,
+        "partBoxes8": 0.7496374519881528,
+        "exactSweptHull": 0.645738100993902,
+        "partHulls8": 0.645738100993902,
+        "outer26PlaneHull": 0.6831453411674508
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 437,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.0729915569578452,
+      "gaps": {
+        "envelopeBox": 0.6971092303914328,
+        "partBoxes8": 0.6907507247648708,
+        "exactSweptHull": 0.6062823040707219,
+        "partHulls8": 0.6062823040707219,
+        "outer26PlaneHull": 0.6366939618280663
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 438,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.13251239015426108,
+      "gaps": {
+        "envelopeBox": 0.5943646720664912,
+        "partBoxes8": 0.590455244822216,
+        "exactSweptHull": 0.5385211639961918,
+        "partHulls8": 0.5385211639961918,
+        "outer26PlaneHull": 0.5572197059616022
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 439,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.19453487777377632,
+      "gaps": {
+        "envelopeBox": 0.47980622372244497,
+        "partBoxes8": 0.4785300742257781,
+        "exactSweptHull": 0.46157729650033286,
+        "partHulls8": 0.46157729650033286,
+        "outer26PlaneHull": 0.46768175326924144
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 440,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.2379567491935859,
+      "gaps": {
+        "envelopeBox": 0.4168972734321328,
+        "partBoxes8": 0.4166424305286691,
+        "exactSweptHull": 0.41433936315309383,
+        "partHulls8": 0.41433936315309383,
+        "outer26PlaneHull": 0.4145104830789037
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 441,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.2635871608747493,
+      "gaps": {
+        "envelopeBox": 0.39697107746987426,
+        "partBoxes8": 0.39619762940656456,
+        "exactSweptHull": 0.38920782126554854,
+        "partHulls8": 0.38920782126554854,
+        "outer26PlaneHull": 0.38972501031347884
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 442,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.36591498702364333,
+      "gaps": {
+        "envelopeBox": 0.3040324335924238,
+        "partBoxes8": 0.30245783499617507,
+        "exactSweptHull": 0.28822786583729476,
+        "partHulls8": 0.28822786583729476,
+        "outer26PlaneHull": 0.28927966035153774
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 443,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.5543192581657195,
+      "gaps": {
+        "envelopeBox": 0.10769745192227198,
+        "partBoxes8": 0.10584311786683842,
+        "exactSweptHull": 0.08908512222150677,
+        "partHulls8": 0.08908512222150677,
+        "outer26PlaneHull": 0.09032356938832153
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 444,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.6732048677645253,
+      "gaps": {
+        "envelopeBox": 0.07604017475211511,
+        "partBoxes8": 0.03905338070365527,
+        "exactSweptHull": 0.013541495762479316,
+        "partHulls8": 0.013541495762479316,
+        "outer26PlaneHull": 0.04652908702458958
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 445,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.7612116190621236,
+      "gaps": {
+        "envelopeBox": 0.05233216139757202,
+        "partBoxes8": 0.027679219069436156,
+        "exactSweptHull": 0.024259991525936275,
+        "partHulls8": 0.024259991525936275,
+        "outer26PlaneHull": 0.04652201530889166
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 446,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.8031341313958364,
+      "gaps": {
+        "envelopeBox": 0.06052144857625108,
+        "partBoxes8": 0.03578617664749961,
+        "exactSweptHull": 0.03140339899361644,
+        "partHulls8": 0.03140339899361644,
+        "outer26PlaneHull": 0.05306938609053824
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 447,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.8340135797632229,
+      "gaps": {
+        "envelopeBox": 0.06460034203965703,
+        "partBoxes8": 0.0406159100478245,
+        "exactSweptHull": 0.03655335922383629,
+        "partHulls8": 0.03655335922383629,
+        "outer26PlaneHull": 0.0575881729040586
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 448,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.850979983905404,
+      "gaps": {
+        "envelopeBox": 0.06778239622718263,
+        "partBoxes8": 0.04383738008551474,
+        "exactSweptHull": 0.03946404928263392,
+        "partHulls8": 0.03946404928263392,
+        "outer26PlaneHull": 0.060232561325890055
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 449,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.8564556849935343,
+      "gaps": {
+        "envelopeBox": 0.06881436977676603,
+        "partBoxes8": 0.04487946567978285,
+        "exactSweptHull": 0.040402139559384986,
+        "partHulls8": 0.040402139559384986,
+        "outer26PlaneHull": 0.06108500307291265
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 450,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.85131127108491,
+      "gaps": {
+        "envelopeBox": 0.06783681757589699,
+        "partBoxes8": 0.04389239408465695,
+        "exactSweptHull": 0.03951368026106161,
+        "partHulls8": 0.03951368026106161,
+        "outer26PlaneHull": 0.060277617711828047
+      }
+    },
+    {
+      "capture": 1,
+      "frame": 451,
+      "alive": false,
+      "deathT": 1,
+      "meshFloor": -0.8189194161033129,
+      "gaps": {
+        "envelopeBox": 0.06173126859026179,
+        "partBoxes8": 0.0377319988345004,
+        "exactSweptHull": 0.03396817063078106,
+        "partHulls8": 0.03396817063078106,
+        "outer26PlaneHull": 0.05523350155068463
+      }
+    }
+  ]
+}

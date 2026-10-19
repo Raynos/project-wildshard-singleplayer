@@ -1,0 +1,180 @@
+{
+  "schema": "wildshard.colossus.motion2.independent-cycle-review.v1",
+  "inputClosureSha256": "0f92a822d8e111480732974b7831edcac9429f4b2282ec21d147c9750bf72cca",
+  "recommendation": "usable-labeled-WIP-isolated-playable; no promotion",
+  "sourceFiles": [
+    {
+      "path": "docs/reviews/colossus-motion2-independent-cycles/README.md",
+      "bytes": 7438,
+      "sha256": "45981687767fe6dcc5ed45c57906c2325a755b07e9e7692c46215cadd172e662"
+    },
+    {
+      "path": "docs/reviews/colossus-motion2-independent-cycles/analysis.json",
+      "bytes": 17656,
+      "sha256": "1e8d6f0148b087bde4434a7eb0c9e1bb8bff78a125a5bad2ed95f70c70c8336f"
+    },
+    {
+      "path": "docs/reviews/colossus-motion2-independent-cycles/review.py",
+      "bytes": 3731,
+      "sha256": "fde5c0ec5c9e06545758c49a4580645e2175ae1bc238672fd5c6fb73240a8a11"
+    }
+  ],
+  "localDiagnosticFiles": [
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/recomputed-world.json",
+      "bytes": 672493,
+      "sha256": "69ee04146a4ecc6dd6c568070cdbd522c03cd2d0eb0a7d82fa22703192697394"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-001.jpg",
+      "bytes": 431033,
+      "sha256": "46ba0cfcf56fbb0de4fdb2495a6dd3d112bc7e4680263d2581093db3f72450eb"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-002.jpg",
+      "bytes": 726329,
+      "sha256": "7acf354f5304116c39e3b7b9c54a27bf4edce10279da6d3da3eecfc0cd4ba394"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-003.jpg",
+      "bytes": 722054,
+      "sha256": "4fbe008ea1c7340360e7212861692a335aedc3b275107b2ce3a03e8354629f7e"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-004.jpg",
+      "bytes": 726117,
+      "sha256": "9e7b45646fb9fc1c00ec0be8cd9c0274ac9ae930ddcfe66002143ac2793bdc79"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-005.jpg",
+      "bytes": 723350,
+      "sha256": "0cd49278b1facc11602d0183c5f966aa9b283f768bfb8a104b6cd9963523a0c6"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-006.jpg",
+      "bytes": 718401,
+      "sha256": "9402ebd915a1e9187baeaa09e32307920d0ae82086e2022dfd2a4a89eb3a6b8c"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-007.jpg",
+      "bytes": 719067,
+      "sha256": "150ebc70cfdba53172d3a25a7b9e81306d58034d40e3e7dde067f426096d2be2"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-008.jpg",
+      "bytes": 710898,
+      "sha256": "bba8abddb49190c2be7a263bc4783b12a11265d8590854897dbb0fb91958dce5"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-009.jpg",
+      "bytes": 711986,
+      "sha256": "135358d16fb675b4566330de06721f8abd78b8353ba754e0adc3edb37983c0d1"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-010.jpg",
+      "bytes": 706189,
+      "sha256": "a7bd820944eb7436dba3a6a3b3a0d80b2131a98267bb4e0cea9b13e509658754"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-011.jpg",
+      "bytes": 696408,
+      "sha256": "66c9aab311d0cfeaa2fcb3a5220cdc777d995192638675e2e8244ca96f277f0d"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-012.jpg",
+      "bytes": 700818,
+      "sha256": "a68170695397331201dd5798a14cda0a4ec6141539e040896d6922157719b79c"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-013.jpg",
+      "bytes": 694192,
+      "sha256": "8ccaffc3bb12a62b6eb8387a2f58f6b6e07ecdf58465264420ed5f3ab238937a"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-014.jpg",
+      "bytes": 692858,
+      "sha256": "23cf5e8c87c23bde3ec2b3d6c5df62a4f68e6370434cd069dc55c5d291606ec1"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-015.jpg",
+      "bytes": 689208,
+      "sha256": "c7f143b4ebd31d5717127ccf4d8f50eaa6fa41d996d2d506164ed5ca29ca0853"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-016.jpg",
+      "bytes": 692103,
+      "sha256": "e23c26478b9ef4d33aa51441d53d019bd3e46d4205d69cba5c5599ce6eb16832"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-017.jpg",
+      "bytes": 700940,
+      "sha256": "c735d2a032d84354d3ba08d21e4b05ddca1fe0e6c5a5005eefb028e640c5df29"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-018.jpg",
+      "bytes": 677282,
+      "sha256": "9b72fed370e95c12153bad168c19db9df876065adae9cdd4f6cc794c31a9faaf"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-019.jpg",
+      "bytes": 649528,
+      "sha256": "8f58008b136bea2181b5efb3b1e43e6561ff2346cdfa32621840ee9c4aad1c00"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-020.jpg",
+      "bytes": 639119,
+      "sha256": "6c0d66b6506bc5d5bc790f5570999152f118958ed1c35f360637eb5cd99aad50"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-021.jpg",
+      "bytes": 644957,
+      "sha256": "418999b617a7bdb5131d23017d3c1517c8f7aeb8441359951b05035681100073"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-022.jpg",
+      "bytes": 571797,
+      "sha256": "6f162dd4ba8eb86242de902b871800302f4472fc27435038bdd69aea710eb74f"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-023.jpg",
+      "bytes": 605000,
+      "sha256": "cb92930cf613728e14f34764db30a33e247293e5c885b9a66362bc277a795d66"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-024.jpg",
+      "bytes": 625422,
+      "sha256": "fa7e1fdcf5c500efba53d59ee5cf2e3a1ebda38cb3567cff6e83c2aea37307be"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-025.jpg",
+      "bytes": 736731,
+      "sha256": "046cfdff19f4c9270ec300421c7cc54ad95e5690fda87797fe2a3a4213c8cadb"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-026.jpg",
+      "bytes": 734723,
+      "sha256": "a63672c3a677da195ecb542de2ed9f7411fc7e522dd9ae5aa8487882a8e522bd"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-027.jpg",
+      "bytes": 729233,
+      "sha256": "003c42a2c2e0831cbebf7b1faeeb66a9ad8716c3ebafa5101bef5f35c81eb376"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-028.jpg",
+      "bytes": 737219,
+      "sha256": "0a7482aaace500af3cde5205453e058ce6aad852328119565cdeaec87e60a6c1"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-029.jpg",
+      "bytes": 702131,
+      "sha256": "211a44b6c748cae61cfd41306d254658aa4b9eada8b96eed14994de4096b6b5f"
+    },
+    {
+      "path": "tmp/colossus-motion2-independent-cycles/sheet-030.jpg",
+      "bytes": 404314,
+      "sha256": "bd0cefd503e65dd6d52913fe98c33a831e998aaf21d2cccc5c2857859fca002a"
+    }
+  ],
+  "originalInputClosureSha256": "72226a9dc20f51db713f93fdd67113166b379dfd59de559400c69ed159b737eb"
+}
