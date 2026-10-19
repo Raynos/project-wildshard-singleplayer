@@ -1,0 +1,31 @@
+{
+  "preferred": "complete-character-next",
+  "candidateScore": 3.735,
+  "freshPass4Score": 3.625,
+  "margin": 0.11,
+  "candidateComponents": [
+    3.7,
+    3.7,
+    3.8,
+    3.8
+  ],
+  "pass4Components": [
+    3.65,
+    3.6,
+    3.6,
+    3.65
+  ],
+  "weights": [
+    0.35,
+    0.3,
+    0.2,
+    0.15
+  ],
+  "historicalPass4Score": 3.855,
+  "historicalScoreNotInherited": true,
+  "likenessAccepted": false,
+  "runtimePromotion": false,
+  "publicMotion2": "unchanged",
+  "method": "image-order blind; candidate locked before baseline imagery; historical score exposed by required plan read",
+  "report": "docs/reviews/colossus-complete-character-next-independent/REVIEW.md"
+}

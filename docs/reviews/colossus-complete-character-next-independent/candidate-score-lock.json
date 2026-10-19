@@ -1,0 +1,11 @@
+{
+  "candidate":"complete-character-next",
+  "lockedBeforeBaselineImages":true,
+  "blindness":"Image-order blind, not strict score blind: required STATE.md exposed historical pass4 3.855. No baseline images or builder opinions were read before this lock.",
+  "reviewedOriginalPNGs":["hero","front","left","right","back","top","diag-front","diag-left","diag-right","diag-back"],
+  "reference":"Original approved raw hero and corresponding repository WebP inspected, composition matches; native Site corrected v3 World and Explorer originals inspected. Hero authoritative, hidden-angle sheets approximate.",
+  "scores":{"silhouette":3.7,"face":3.7,"details":3.8,"facetStyle":3.8},
+  "weights":{"silhouette":0.35,"face":0.30,"details":0.20,"facetStyle":0.15},
+  "exactWeightedScore":3.735,
+  "findings":"Recognizable crown, cyan core, wood ribs, foliage and stone feet. Front arms spread excessively into near frame-wide U; chest is stacked armor rather than organic root cage; head has long dark divided mask and pencil-thin eyes; profile chest/core protrusion and thin stacked leg construction depart from integrated muscular roots. Flat canopy pieces and separated toe rocks weaken rich but coherent hero material hierarchy. Whole character solidly recognizable, below 4/5."
+}

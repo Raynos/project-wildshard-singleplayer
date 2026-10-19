@@ -1,0 +1,62 @@
+[
+  {
+    "view": "hero",
+    "horizontalMarginPixels": 22.356562432911375,
+    "verticalMarginPixels": 65.11276793077144,
+    "elevationDegrees": 15.20858775449472
+  },
+  {
+    "view": "front",
+    "horizontalMarginPixels": 15.654906359585851,
+    "verticalMarginPixels": 66.13238074562764,
+    "elevationDegrees": -0.0
+  },
+  {
+    "view": "left",
+    "horizontalMarginPixels": 108.97213328968394,
+    "verticalMarginPixels": 66.13238074562764,
+    "elevationDegrees": -0.0
+  },
+  {
+    "view": "right",
+    "horizontalMarginPixels": 108.97213328968394,
+    "verticalMarginPixels": 66.13238074562764,
+    "elevationDegrees": -0.0
+  },
+  {
+    "view": "back",
+    "horizontalMarginPixels": 15.654906359585851,
+    "verticalMarginPixels": 66.13238074562764,
+    "elevationDegrees": -0.0
+  },
+  {
+    "view": "top",
+    "horizontalMarginPixels": 15.654906359585851,
+    "verticalMarginPixels": 196.41011860441375,
+    "elevationDegrees": 89.94270423995874
+  },
+  {
+    "view": "diag-front",
+    "horizontalMarginPixels": 15.654906359585851,
+    "verticalMarginPixels": 85.71318813866537,
+    "elevationDegrees": 33.02386513784449
+  },
+  {
+    "view": "diag-left",
+    "horizontalMarginPixels": 58.43288694930283,
+    "verticalMarginPixels": 52.930187193645736,
+    "elevationDegrees": 24.684430218916706
+  },
+  {
+    "view": "diag-right",
+    "horizontalMarginPixels": 51.29749446397878,
+    "verticalMarginPixels": 52.93999276250156,
+    "elevationDegrees": 24.684430218916706
+  },
+  {
+    "view": "diag-back",
+    "horizontalMarginPixels": 58.43288694930283,
+    "verticalMarginPixels": 67.78278092648014,
+    "elevationDegrees": 24.684430218916706
+  }
+]

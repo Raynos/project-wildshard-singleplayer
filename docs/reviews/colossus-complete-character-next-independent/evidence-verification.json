@@ -1,0 +1,572 @@
+{
+  "final-closure": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/README.md",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/build_colossus_complete.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/cameras.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/back.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/diag-back.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/diag-front.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/diag-left.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/diag-right.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/front.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/hero.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/left.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/right.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/candidate/top.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/capture-receipt.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/construct_source.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/editable-native.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/export_native.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/build_colossus_complete.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/closure.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/hero.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/normalfixed-presize.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/validation.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/framing-check.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/input-preservation.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/matched-hero-board.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/mesh-map.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/metadata.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/metrics-complete-character-next.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/native-consumer.test.ts",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/native-source.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/package_evidence.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/payload.bin",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/render-equivalence.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/render_matched.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/rig-provenance.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/tide-root-colossus-complete-character-next.glb",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/validate_glb.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/validation.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/vitest.config.ts",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    }
+  ],
+  "capture-receipt": [
+    {
+      "path": "tmp/colossus-complete-character-next/build-final.log",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/cameras.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/back.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-back.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-front.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-left.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-right.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/editable-native.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/front.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/hero.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/left.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/metrics-complete-character-next.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/right.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/tide-root-colossus-complete-character-next.glb",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/top.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/validation.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/exit.txt",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test-direct.log",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test-focused.log",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test.log",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/render.log",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/rendered-before-metadata-strip.glb",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    }
+  ],
+  "input-preservation": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/build_colossus_complete.py",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/tide-root-colossus-complete-pass4.glb",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/final-closure.json",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/tide-root-colossus-lowpoly.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/previews/colossusWorldGen-sheet.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/previews/colossusExplorerGen-sheet.webp",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/hero.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/front.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/left.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/right.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/back.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/top.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-front.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-left.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-right.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-back.png",
+      "exists": true,
+      "bytesMatch": true,
+      "hashMatch": true
+    }
+  ],
+  "matchedCameraViews": {
+    "hero": true,
+    "front": true,
+    "left": true,
+    "right": true,
+    "back": true,
+    "top": true,
+    "diag-front": true,
+    "diag-left": true,
+    "diag-right": true,
+    "diag-back": true
+  },
+  "dimensions": {
+    "tmp/colossus-complete-character-next/candidate/hero.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/diag-left.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/diag-right.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/diag-back.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/right.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/back.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/left.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/top.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/front.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-character-next/candidate/diag-front.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/hero.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/diag-left.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/diag-right.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/diag-back.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/right.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/back.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/left.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/top.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/front.png": [
+      525,
+      700
+    ],
+    "tmp/colossus-complete-pass4/candidate/diag-front.png": [
+      525,
+      700
+    ]
+  },
+  "renderedFinalJSONEqualAfterRemovingMeshNames": true,
+  "renderedFinalBINEqual": true,
+  "validationRecheckEqual": true,
+  "referencePins": {
+    "../generated_images/tide-root-colossus-lowpoly-style-revision.png": "709015b080ce352b9561717f7c28b6711ad592b87e6eacde89dd582d6907d10c",
+    "../wildshard-review-site-current/source-evidence/approved-nine-qa/originals/corrections/colossusWorldCorrectedGen-v3.png": "52e33b3e7de75bb77844939c143a32862b1128f831559e73428975b0bb8c564d",
+    "../wildshard-review-site-current/source-evidence/approved-nine-qa/originals/corrections/colossusExplorerCorrectedGen-v3.png": "5e3d598b1aa97f80f073909d4bd6903142bf6e8fdf81438539c85608880ff523"
+  }
+}
