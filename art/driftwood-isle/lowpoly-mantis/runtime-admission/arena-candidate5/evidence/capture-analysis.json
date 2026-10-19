@@ -1,0 +1,4152 @@
+{
+  "traceFrames": 1355,
+  "gameSeconds": 106.58170000003153,
+  "wallSeconds": 152.16540000000597,
+  "renderIntervalMilliseconds": {
+    "minimum": 2.5999999940395355,
+    "median": 98.29999999701977,
+    "maximum": 987.3999999910593
+  },
+  "stagePhaseCounts": {
+    "0:idle": 222,
+    "1:windup": 96,
+    "1:active": 158,
+    "1:recover": 13,
+    "1:idle": 121,
+    "3:windup": 38,
+    "3:active": 145,
+    "3:recover": 121,
+    "2:idle": 248,
+    "5:idle": 187,
+    "3:idle": 6
+  },
+  "sampledPlayerDamage": true,
+  "terminalDefensePlayerDamageAssertion": false,
+  "changes": [
+    {
+      "index": 61,
+      "frame": 66,
+      "phase": "approach-defense",
+      "gameTime": 5.8030999999940365,
+      "wallTime": 12420.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 5.799999999999985,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 5.699999999999996,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 62,
+      "frame": 67,
+      "phase": "approach-defense",
+      "gameTime": 5.903099999994036,
+      "wallTime": 12550.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.19999999999999998,
+        "speedMul": 1,
+        "clock": 5.899999999999984,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 69,
+      "frame": 74,
+      "phase": "approach-defense",
+      "gameTime": 6.508999999985094,
+      "wallTime": 13440,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 6.499999999999982,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 70,
+      "frame": 75,
+      "phase": "approach-defense",
+      "gameTime": 6.608999999985094,
+      "wallTime": 13541.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 6.599999999999982,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 86,
+      "frame": 91,
+      "phase": "approach-defense",
+      "gameTime": 8.175599999964229,
+      "wallTime": 15395.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 8.166666666666652,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 87,
+      "frame": 92,
+      "phase": "approach-defense",
+      "gameTime": 8.258299999967209,
+      "wallTime": 15476.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 8.24999999999999,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.002921897179846018,
+        "z0": -0.8059123819693923,
+        "x1": 0.0006334758698312475,
+        "z1": 2.694085812219067,
+        "yaw": 0.0010158210460393551,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.1,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 88,
+      "frame": 93,
+      "phase": "approach-defense",
+      "gameTime": 8.358299999967208,
+      "wallTime": 15603.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 8.349999999999994,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 89,
+      "frame": 94,
+      "phase": "approach-defense",
+      "gameTime": 8.451999999955287,
+      "wallTime": 15691.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 8.45,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 93,
+      "frame": 98,
+      "phase": "approach-defense",
+      "gameTime": 8.789299999967207,
+      "wallTime": 16061.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 8.78333333333335,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.30000000000000004,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 94,
+      "frame": 99,
+      "phase": "approach-defense",
+      "gameTime": 8.889299999967207,
+      "wallTime": 16185.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 8.883333333333354,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 114,
+      "frame": 119,
+      "phase": "approach-defense",
+      "gameTime": 10.558399999991044,
+      "wallTime": 18323.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 10.550000000000104,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 125,
+      "frame": 130,
+      "phase": "approach-defense",
+      "gameTime": 11.65839999999104,
+      "wallTime": 19674.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 11.650000000000158,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 8.216666666666654
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 11.583333333333488
+          }
+        ],
+        "scores": [],
+        "x0": 0.9399643698558006,
+        "z0": 3.983655710842868,
+        "x1": -1.5263022657453904,
+        "z1": 1.5002047082820407,
+        "yaw": -2.3596662635688355,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 208,
+      "frame": 213,
+      "phase": "stop",
+      "gameTime": 18.913199999988073,
+      "wallTime": 28456.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 0.6166666666666669,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.00010560211107498623,
+        "z0": -6.553305895999074,
+        "x1": 0.00010560144471253478,
+        "z1": -3.053305895999074,
+        "yaw": -1.9038927184459923e-10,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 209,
+      "frame": 214,
+      "phase": "stop",
+      "gameTime": 19.013199999988075,
+      "wallTime": 28620.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 0.7166666666666672,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.00010560211107498623,
+        "z0": -6.553305895999074,
+        "x1": 0.00010560144471253478,
+        "z1": -3.053305895999074,
+        "yaw": -1.9038927184459923e-10,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 216,
+      "frame": 221,
+      "phase": "stop",
+      "gameTime": 19.703899999991062,
+      "wallTime": 29511,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 1.4166666666666665,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.00010560211107498623,
+        "z0": -6.553305895999074,
+        "x1": 0.00010560144471253478,
+        "z1": -3.053305895999074,
+        "yaw": -1.9038927184459923e-10,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 231,
+      "frame": 236,
+      "phase": "resume",
+      "gameTime": 21.11300000000002,
+      "wallTime": 31219.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 2.8166666666666615,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0.00010560211107498623,
+        "z0": -6.553305895999074,
+        "x1": 0.00010560144471253478,
+        "z1": -3.053305895999074,
+        "yaw": -1.9038927184459923e-10,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 232,
+      "frame": 237,
+      "phase": "resume",
+      "gameTime": 21.195700000003,
+      "wallTime": 31302.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 2.8999999999999946,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.00010560211107498623,
+        "z0": -6.553305895999074,
+        "x1": 0.00010560144471253478,
+        "z1": -3.053305895999074,
+        "yaw": -1.9038927184459923e-10,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 233,
+      "frame": 238,
+      "phase": "resume",
+      "gameTime": 21.294000000000022,
+      "wallTime": 31401.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 2.9999999999999942,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 234,
+      "frame": 239,
+      "phase": "resume",
+      "gameTime": 21.378200000003,
+      "wallTime": 31484.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 3.0833333333333273,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 237,
+      "frame": 242,
+      "phase": "resume",
+      "gameTime": 21.666400000005982,
+      "wallTime": 31787.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 3.383333333333326,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.30000000000000004,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 238,
+      "frame": 243,
+      "phase": "resume",
+      "gameTime": 21.76310000000896,
+      "wallTime": 31883.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 3.4666666666666592,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 245,
+      "frame": 250,
+      "phase": "resume",
+      "gameTime": 22.436900000005988,
+      "wallTime": 32576.5,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 4.149999999999991,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 258,
+      "frame": 263,
+      "phase": "stop-again",
+      "gameTime": 23.516900000005993,
+      "wallTime": 33890,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 5.23333333333332,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": 0.01868080024047332,
+        "z0": -1.625097748968983,
+        "x1": 0.014156762502780787,
+        "z1": 1.8748993271844454,
+        "yaw": -0.0012925825707038974,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 279,
+      "frame": 284,
+      "phase": "stop-again",
+      "gameTime": 25.245100000008986,
+      "wallTime": 35917.5,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 6.949999999999981,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 280,
+      "frame": 285,
+      "phase": "stop-again",
+      "gameTime": 25.345100000008987,
+      "wallTime": 36028.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 7.04999999999998,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 288,
+      "frame": 293,
+      "phase": "sword-interruptions",
+      "gameTime": 26.02479999999707,
+      "wallTime": 36927,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 7.733333333333311,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 292,
+      "frame": 297,
+      "phase": "sword-interruptions",
+      "gameTime": 26.39170000000303,
+      "wallTime": 37298.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.44999999999999996,
+        "speedMul": 1,
+        "clock": 8.099999999999982,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0.30000000000000004,
+      "stage": 1,
+      "hp": 43,
+      "alive": true
+    },
+    {
+      "index": 293,
+      "frame": 298,
+      "phase": "sword-interruptions",
+      "gameTime": 26.48210000000899,
+      "wallTime": 37385.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 8.199999999999987,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0.4,
+      "stage": 1,
+      "hp": 43,
+      "alive": true
+    },
+    {
+      "index": 294,
+      "frame": 299,
+      "phase": "sword-interruptions",
+      "gameTime": 26.57570000000303,
+      "wallTime": 37478.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 8.283333333333324,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 43,
+      "alive": true
+    },
+    {
+      "index": 312,
+      "frame": 317,
+      "phase": "sword-interruptions",
+      "gameTime": 28.12579999999709,
+      "wallTime": 39594.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 9.833333333333401,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.6000000000000003,
+      "stage": 2,
+      "hp": 31,
+      "alive": true
+    },
+    {
+      "index": 334,
+      "frame": 339,
+      "phase": "sword-interruptions",
+      "gameTime": 30.03479999999711,
+      "wallTime": 42185,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 11.750000000000163,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 3.5000000000000018,
+      "stage": 2,
+      "hp": 19,
+      "alive": true
+    },
+    {
+      "index": 359,
+      "frame": 364,
+      "phase": "sword-interruptions",
+      "gameTime": 32.03079999999713,
+      "wallTime": 44818.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 13.733333333333595,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 5.4999999999999964,
+      "stage": 2,
+      "hp": 7,
+      "alive": true
+    },
+    {
+      "index": 384,
+      "frame": 389,
+      "phase": "sword-interruptions",
+      "gameTime": 34.11109999999416,
+      "wallTime": 47658.5,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 15.816666666667032,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 2.8666666666666614
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 5.166666666666654
+          }
+        ],
+        "scores": [],
+        "x0": -0.019687956402266435,
+        "z0": 2.4791011087581865,
+        "x1": -0.019691017981762763,
+        "z1": 5.979101108756847,
+        "yaw": -8.74736998950795e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 7.599999999999989,
+      "stage": 0,
+      "hp": 0,
+      "alive": false
+    },
+    {
+      "index": 572,
+      "frame": 577,
+      "phase": "death-settle-reward",
+      "gameTime": 48.16450000000023,
+      "wallTime": 66094.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.08333333333333333,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 0,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 615,
+      "frame": 620,
+      "phase": "real-player-defeat",
+      "gameTime": 51.34829999999728,
+      "wallTime": 70621.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 3.26666666666666,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0004011627690606213,
+        "z0": -3.6544381487183273,
+        "x1": 2.0508773018159548e-05,
+        "z1": -0.1544381741193117,
+        "yaw": 0.00012047758374253255,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 3.2000000000000015,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 616,
+      "frame": 621,
+      "phase": "real-player-defeat",
+      "gameTime": 51.44829999999728,
+      "wallTime": 70732.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.16666666666666666,
+        "speedMul": 1,
+        "clock": 3.3666666666666596,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0004011627690606213,
+        "z0": -3.6544381487183273,
+        "x1": 2.0508773018159548e-05,
+        "z1": -0.1544381741193117,
+        "yaw": 0.00012047758374253255,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 623,
+      "frame": 628,
+      "phase": "real-player-defeat",
+      "gameTime": 52.058099999994305,
+      "wallTime": 71513,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 3.983333333333324,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0004011627690606213,
+        "z0": -3.6544381487183273,
+        "x1": 2.0508773018159548e-05,
+        "z1": -0.1544381741193117,
+        "yaw": 0.00012047758374253255,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 624,
+      "frame": 629,
+      "phase": "real-player-defeat",
+      "gameTime": 52.1485999999943,
+      "wallTime": 71601.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 4.0666666666666575,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0004011627690606213,
+        "z0": -3.6544381487183273,
+        "x1": 2.0508773018159548e-05,
+        "z1": -0.1544381741193117,
+        "yaw": 0.00012047758374253255,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 645,
+      "frame": 650,
+      "phase": "real-player-defeat",
+      "gameTime": 53.72320000001817,
+      "wallTime": 74104.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 5.633333333333319,
+        "deadlines": [],
+        "scores": [],
+        "x0": -0.0004011627690606213,
+        "z0": -3.6544381487183273,
+        "x1": 2.0508773018159548e-05,
+        "z1": -0.1544381741193117,
+        "yaw": 0.00012047758374253255,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 649,
+      "frame": 654,
+      "phase": "real-player-defeat",
+      "gameTime": 53.81860000002413,
+      "wallTime": 74200.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 5.733333333333318,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          }
+        ],
+        "scores": [],
+        "x0": 0.8848853603892959,
+        "z0": 0.5886980741997832,
+        "x1": -0.149791993620066,
+        "z1": -2.75486929809888,
+        "yaw": -2.841485993615516,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 650,
+      "frame": 655,
+      "phase": "real-player-defeat",
+      "gameTime": 53.91860000002413,
+      "wallTime": 74316.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.13333333333333333,
+        "speedMul": 1,
+        "clock": 5.833333333333318,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          }
+        ],
+        "scores": [],
+        "x0": 0.8848853603892959,
+        "z0": 0.5886980741997832,
+        "x1": -0.149791993620066,
+        "z1": -2.75486929809888,
+        "yaw": -2.841485993615516,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 655,
+      "frame": 660,
+      "phase": "real-player-defeat",
+      "gameTime": 54.30200000003009,
+      "wallTime": 74816.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 6.21666666666665,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          }
+        ],
+        "scores": [],
+        "x0": 0.8848853603892959,
+        "z0": 0.5886980741997832,
+        "x1": -0.149791993620066,
+        "z1": -2.75486929809888,
+        "yaw": -2.841485993615516,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 676,
+      "frame": 681,
+      "phase": "real-player-defeat",
+      "gameTime": 56.0005000000152,
+      "wallTime": 76570.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 7.916666666666644,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          }
+        ],
+        "scores": [],
+        "x0": 0.8848853603892959,
+        "z0": 0.5886980741997832,
+        "x1": -0.149791993620066,
+        "z1": -2.75486929809888,
+        "yaw": -2.841485993615516,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 693,
+      "frame": 698,
+      "phase": "real-player-defeat",
+      "gameTime": 57.15650000001522,
+      "wallTime": 78366.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 9.066666666666697,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": 0.8848853603892959,
+        "z0": 0.5886980741997832,
+        "x1": -0.149791993620066,
+        "z1": -2.75486929809888,
+        "yaw": -2.841485993615516,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 712,
+      "frame": 717,
+      "phase": "real-player-defeat",
+      "gameTime": 58.852100000009266,
+      "wallTime": 80500.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 10.766666666666781,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 713,
+      "frame": 718,
+      "phase": "real-player-defeat",
+      "gameTime": 58.94960000000926,
+      "wallTime": 80597.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.16666666666666666,
+        "speedMul": 1,
+        "clock": 10.866666666666786,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 721,
+      "frame": 726,
+      "phase": "real-player-defeat",
+      "gameTime": 59.548900000006284,
+      "wallTime": 81570.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 11.466666666666816,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 722,
+      "frame": 727,
+      "phase": "real-player-defeat",
+      "gameTime": 59.648900000006286,
+      "wallTime": 81710.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 11.566666666666821,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 737,
+      "frame": 742,
+      "phase": "real-player-defeat",
+      "gameTime": 60.76140000002119,
+      "wallTime": 83382.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 12.683333333333543,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 5.6833333333333185
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 1.0999999999999999,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 738,
+      "frame": 743,
+      "phase": "real-player-defeat",
+      "gameTime": 60.86140000002119,
+      "wallTime": 83593.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 12.783333333333548,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -9.18367371880887,
+        "z0": 6.400017505489814,
+        "x1": -9.183674301672152,
+        "z1": 9.900017505489766,
+        "yaw": -1.665323659350666e-07,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 739,
+      "frame": 744,
+      "phase": "real-player-defeat",
+      "gameTime": 60.96140000002119,
+      "wallTime": 83715.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 12.883333333333553,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 740,
+      "frame": 745,
+      "phase": "real-player-defeat",
+      "gameTime": 61.061400000021195,
+      "wallTime": 83823.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 12.983333333333558,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 743,
+      "frame": 748,
+      "phase": "real-player-defeat",
+      "gameTime": 61.356300000012254,
+      "wallTime": 84216.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 13.266666666666906,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.30000000000000004,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 744,
+      "frame": 749,
+      "phase": "real-player-defeat",
+      "gameTime": 61.454700000018214,
+      "wallTime": 84315,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 13.36666666666691,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 764,
+      "frame": 769,
+      "phase": "real-player-defeat",
+      "gameTime": 63.11080000004206,
+      "wallTime": 86448.5,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 15.03333333333366,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 8.98333333333336
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 782,
+      "frame": 787,
+      "phase": "real-player-defeat",
+      "gameTime": 64.20660000003907,
+      "wallTime": 88139.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 16.116666666667033,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": -10.154992837810996,
+        "z0": 11.136381769530999,
+        "x1": -9.181729833060325,
+        "z1": 7.774424136903292,
+        "yaw": 2.8598030178880838,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 804,
+      "frame": 809,
+      "phase": "real-player-defeat",
+      "gameTime": 65.90480000002714,
+      "wallTime": 90485.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 17.816666666666936,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 805,
+      "frame": 810,
+      "phase": "real-player-defeat",
+      "gameTime": 66.00480000002713,
+      "wallTime": 90589.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 17.91666666666693,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 812,
+      "frame": 817,
+      "phase": "real-player-defeat",
+      "gameTime": 66.661800000042,
+      "wallTime": 91292.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 18.58333333333356,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 813,
+      "frame": 818,
+      "phase": "real-player-defeat",
+      "gameTime": 66.73430000004201,
+      "wallTime": 91364.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 18.650000000000222,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 826,
+      "frame": 831,
+      "phase": "real-player-defeat",
+      "gameTime": 67.73180000004196,
+      "wallTime": 93101.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 19.650000000000166,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 12.733333333333546
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 827,
+      "frame": 832,
+      "phase": "real-player-defeat",
+      "gameTime": 67.83180000004195,
+      "wallTime": 93208.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 19.75000000000016,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 0.34903249807831394,
+        "z0": 11.444312740954047,
+        "x1": 0.349021605952649,
+        "z1": 14.944312740937098,
+        "yaw": -3.1120359042759077e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.1,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 828,
+      "frame": 833,
+      "phase": "real-player-defeat",
+      "gameTime": 67.93180000004195,
+      "wallTime": 93323.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 19.850000000000154,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 829,
+      "frame": 834,
+      "phase": "real-player-defeat",
+      "gameTime": 68.03180000004194,
+      "wallTime": 93432.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 19.95000000000015,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 833,
+      "frame": 838,
+      "phase": "real-player-defeat",
+      "gameTime": 68.39460000005386,
+      "wallTime": 93804.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 20.316666666666794,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 849,
+      "frame": 854,
+      "phase": "real-player-defeat",
+      "gameTime": 69.49230000004191,
+      "wallTime": 95380.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 21.416666666666732,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 1.0999999999999999,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 851,
+      "frame": 856,
+      "phase": "real-player-defeat",
+      "gameTime": 69.64640000003594,
+      "wallTime": 95567.5,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 21.566666666666723,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 16.0833333333337
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 861,
+      "frame": 866,
+      "phase": "real-player-defeat",
+      "gameTime": 70.61490000005081,
+      "wallTime": 97082.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 22.533333333333335,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.9999999999999999,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 864,
+      "frame": 869,
+      "phase": "real-player-defeat",
+      "gameTime": 70.73100000005975,
+      "wallTime": 97204.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 22.649999999999995,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 2.258518886865941,
+        "z0": 15.99813153771538,
+        "x1": 2.258518886865941,
+        "z1": 19.49813153771538,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 883,
+      "frame": 888,
+      "phase": "real-player-defeat",
+      "gameTime": 72.42950000004478,
+      "wallTime": 99188.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 24.3499999999999,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 884,
+      "frame": 889,
+      "phase": "real-player-defeat",
+      "gameTime": 72.52950000004478,
+      "wallTime": 99449.5,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 24.449999999999893,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 899,
+      "frame": 904,
+      "phase": "real-player-defeat",
+      "gameTime": 73.1869000000507,
+      "wallTime": 100565.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 25.099999999999856,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 900,
+      "frame": 905,
+      "phase": "real-player-defeat",
+      "gameTime": 73.2869000000507,
+      "wallTime": 100683,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 25.19999999999985,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 923,
+      "frame": 928,
+      "phase": "real-player-defeat",
+      "gameTime": 74.86860000003868,
+      "wallTime": 103535.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 26.783333333333093,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 1.6000000000000003,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 924,
+      "frame": 929,
+      "phase": "real-player-defeat",
+      "gameTime": 74.96860000003868,
+      "wallTime": 103689.5,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 26.883333333333088,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 19.700000000000163
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 925,
+      "frame": 930,
+      "phase": "real-player-defeat",
+      "gameTime": 75.06860000003867,
+      "wallTime": 103885.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 26.983333333333082,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 3.1046865588257884,
+        "z0": 21.62576365595305,
+        "x1": 3.10470810708592,
+        "z1": 25.12576365588672,
+        "yaw": 6.156645752034431e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.1,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 926,
+      "frame": 931,
+      "phase": "real-player-defeat",
+      "gameTime": 75.16860000003867,
+      "wallTime": 104143.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 27.083333333333076,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 927,
+      "frame": 932,
+      "phase": "real-player-defeat",
+      "gameTime": 75.26860000003866,
+      "wallTime": 104253.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 27.18333333333307,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 930,
+      "frame": 935,
+      "phase": "real-player-defeat",
+      "gameTime": 75.54780000002675,
+      "wallTime": 104532.5,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 27.466666666666388,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.30000000000000004,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 931,
+      "frame": 936,
+      "phase": "real-player-defeat",
+      "gameTime": 75.63380000002675,
+      "wallTime": 104619.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 27.549999999999716,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 954,
+      "frame": 959,
+      "phase": "real-player-defeat",
+      "gameTime": 77.30280000004159,
+      "wallTime": 107001.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.03333333333333333,
+        "speedMul": 1,
+        "clock": 29.21666666666629,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 22.51666666666667
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 970,
+      "frame": 975,
+      "phase": "real-player-defeat",
+      "gameTime": 78.3730000000296,
+      "wallTime": 108942.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 30.283333333332894,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.9999999999999999,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 971,
+      "frame": 976,
+      "phase": "real-player-defeat",
+      "gameTime": 78.4730000000296,
+      "wallTime": 109136.5,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 30.38333333333289,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.030931152827689,
+        "z0": 24.245733366755303,
+        "x1": 4.0602651943055985,
+        "z1": 27.745610438026603,
+        "yaw": 0.008381252831704392,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 997,
+      "frame": 1002,
+      "phase": "real-player-defeat",
+      "gameTime": 80.15790000003551,
+      "wallTime": 111910.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 32.083333333332796,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 998,
+      "frame": 1003,
+      "phase": "real-player-defeat",
+      "gameTime": 80.2579000000355,
+      "wallTime": 112021.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 32.18333333333279,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1005,
+      "frame": 1010,
+      "phase": "real-player-defeat",
+      "gameTime": 80.8907000000325,
+      "wallTime": 112933.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.06666666666666667,
+        "speedMul": 1,
+        "clock": 32.81666666666609,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1026,
+      "frame": 1031,
+      "phase": "real-player-defeat",
+      "gameTime": 82.56040000002052,
+      "wallTime": 115381.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 34.48333333333266,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 1.6000000000000003,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1027,
+      "frame": 1032,
+      "phase": "real-player-defeat",
+      "gameTime": 82.65530000001158,
+      "wallTime": 115477.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 34.56666666666599,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 26.899999999999753
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1028,
+      "frame": 1033,
+      "phase": "real-player-defeat",
+      "gameTime": 82.68470000001754,
+      "wallTime": 115505.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 34.59999999999932,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.94861176216085,
+        "z0": 28.63517514832347,
+        "x1": 4.9485682243588816,
+        "z1": 32.13517514805268,
+        "yaw": -1.2439371991120279e-05,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1030,
+      "frame": 1035,
+      "phase": "real-player-defeat",
+      "gameTime": 82.86900000001455,
+      "wallTime": 115884.5,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 34.78333333333264,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1031,
+      "frame": 1036,
+      "phase": "real-player-defeat",
+      "gameTime": 82.96900000001455,
+      "wallTime": 115988.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 34.88333333333264,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1034,
+      "frame": 1039,
+      "phase": "real-player-defeat",
+      "gameTime": 83.26900000001453,
+      "wallTime": 116438.20000000298,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 35.18333333333262,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.30000000000000004,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1035,
+      "frame": 1040,
+      "phase": "real-player-defeat",
+      "gameTime": 83.36900000001452,
+      "wallTime": 116548.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 35.283333333332614,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1057,
+      "frame": 1062,
+      "phase": "real-player-defeat",
+      "gameTime": 84.97309999999358,
+      "wallTime": 118898.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 36.88333333333252,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 1.6000000000000003,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1058,
+      "frame": 1063,
+      "phase": "real-player-defeat",
+      "gameTime": 85.07309999999357,
+      "wallTime": 119439.79999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.09999999999999999,
+        "speedMul": 1,
+        "clock": 36.98333333333252,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 30.283333333332894
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1072,
+      "frame": 1077,
+      "phase": "real-player-defeat",
+      "gameTime": 86.1334999999995,
+      "wallTime": 120797.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 38.04999999999912,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 4.025936344157006,
+        "z0": 29.988558019309494,
+        "x1": 4.0318737107723885,
+        "z1": 33.48855298325982,
+        "yaw": 0.0016963912751676682,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1092,
+      "frame": 1097,
+      "phase": "real-player-defeat",
+      "gameTime": 87.87060000000845,
+      "wallTime": 122605.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 39.78333333333236,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.7000000000000004,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1093,
+      "frame": 1098,
+      "phase": "real-player-defeat",
+      "gameTime": 87.97060000000845,
+      "wallTime": 123192.70000000298,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.18333333333333332,
+        "speedMul": 1,
+        "clock": 39.88333333333235,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1105,
+      "frame": 1110,
+      "phase": "real-player-defeat",
+      "gameTime": 88.5777999999965,
+      "wallTime": 123936.10000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 40.499999999998984,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0.6,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1106,
+      "frame": 1111,
+      "phase": "real-player-defeat",
+      "gameTime": 88.6742999999965,
+      "wallTime": 124032.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 40.59999999999898,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1128,
+      "frame": 1133,
+      "phase": "real-player-defeat",
+      "gameTime": 90.33399999999942,
+      "wallTime": 126692.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 42.249999999998884,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 34.59999999999932
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1129,
+      "frame": 1134,
+      "phase": "real-player-defeat",
+      "gameTime": 90.43399999999941,
+      "wallTime": 126814.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 42.34999999999888,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 3.2007507508499797,
+        "z0": 34.277239295983236,
+        "x1": 3.200739957095597,
+        "z1": 37.777239295966595,
+        "yaw": -3.0839298237023793e-06,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.1,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1130,
+      "frame": 1135,
+      "phase": "real-player-defeat",
+      "gameTime": 90.53399999999941,
+      "wallTime": 126925.5,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.05,
+        "speedMul": 1,
+        "clock": 42.44999999999887,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1131,
+      "frame": 1136,
+      "phase": "real-player-defeat",
+      "gameTime": 90.62939999999047,
+      "wallTime": 127021,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": false,
+        "elapsed": 0.15,
+        "speedMul": 1,
+        "clock": 42.54999999999887,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1136,
+      "frame": 1141,
+      "phase": "real-player-defeat",
+      "gameTime": 91.02429999999642,
+      "wallTime": 127445,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 42.949999999998845,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1147,
+      "frame": 1152,
+      "phase": "real-player-defeat",
+      "gameTime": 91.98419999998745,
+      "wallTime": 128590.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 43.89999999999879,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0.8999999999999999,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1150,
+      "frame": 1155,
+      "phase": "real-player-defeat",
+      "gameTime": 92.09549999998447,
+      "wallTime": 129246.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "recover",
+        "currentId": "strike.splinter-mantis.second",
+        "hit": true,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 44.01666666666545,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 37.98333333333246
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1166,
+      "frame": 1171,
+      "phase": "real-player-defeat",
+      "gameTime": 93.09799999999932,
+      "wallTime": 130692.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 45.016666666665394,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 3,
+      "observedClock": 0.9999999999999999,
+      "stage": 3,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1168,
+      "frame": 1173,
+      "phase": "real-player-defeat",
+      "gameTime": 93.20749999999931,
+      "wallTime": 130801.90000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 45.133333333332054,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 2.91061944167713,
+        "z0": 34.90557915785939,
+        "x1": 4.169375573147953,
+        "z1": 38.171391920631415,
+        "yaw": 0.3678869898256414,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 2,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1194,
+      "frame": 1199,
+      "phase": "real-player-defeat",
+      "gameTime": 95.00080000002609,
+      "wallTime": 133541,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.016666666666666666,
+        "speedMul": 1,
+        "clock": 46.916666666665286,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 5.257257529966313,
+        "z0": 40.51792799424038,
+        "x1": 5.257257529966313,
+        "z1": 44.01792799424038,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 0,
+      "observedClock": 1.8000000000000005,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1195,
+      "frame": 1200,
+      "phase": "real-player-defeat",
+      "gameTime": 95.09370000003204,
+      "wallTime": 133634.60000000894,
+      "actual": {
+        "version": 1,
+        "phase": "windup",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": false,
+        "elapsed": 0.11666666666666665,
+        "speedMul": 1,
+        "clock": 47.01666666666528,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 5.257257529966313,
+        "z0": 40.51792799424038,
+        "x1": 5.257257529966313,
+        "z1": 44.01792799424038,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 1,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1203,
+      "frame": 1208,
+      "phase": "real-player-defeat",
+      "gameTime": 95.81750000002904,
+      "wallTime": 134431.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "active",
+        "currentId": "strike.splinter-mantis.first",
+        "hit": true,
+        "elapsed": 0.08333333333333333,
+        "speedMul": 1,
+        "clock": 47.733333333331906,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 5.257257529966313,
+        "z0": 40.51792799424038,
+        "x1": 5.257257529966313,
+        "z1": 44.01792799424038,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1204,
+      "frame": 1209,
+      "phase": "real-player-defeat",
+      "gameTime": 95.90870000003203,
+      "wallTime": 134580.40000000596,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": true,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 47.8333333333319,
+        "deadlines": [
+          {
+            "id": "strike.splinter-mantis.first",
+            "at": 42.29999999999888
+          },
+          {
+            "id": "strike.splinter-mantis.second",
+            "at": 44.99999999999873
+          }
+        ],
+        "scores": [],
+        "x0": 5.257257529966313,
+        "z0": 40.51792799424038,
+        "x1": 5.257257529966313,
+        "z1": 44.01792799424038,
+        "yaw": 0,
+        "length": 3.5
+      },
+      "observed": 2,
+      "observedClock": 0,
+      "stage": 1,
+      "hp": 55,
+      "alive": true
+    },
+    {
+      "index": 1316,
+      "frame": 1321,
+      "phase": "defeat-retry",
+      "gameTime": 104.3343000000555,
+      "wallTime": 149436.29999999702,
+      "actual": {
+        "version": 1,
+        "phase": "idle",
+        "currentId": null,
+        "hit": false,
+        "elapsed": 0,
+        "speedMul": 1,
+        "clock": 0.09999999999999999,
+        "deadlines": [],
+        "scores": [],
+        "x0": 0,
+        "z0": 0,
+        "x1": 0,
+        "z1": 0,
+        "yaw": 0,
+        "length": 0
+      },
+      "observed": 0,
+      "observedClock": 0,
+      "stage": 0,
+      "hp": 55,
+      "alive": true
+    }
+  ],
+  "caveat": "Simulation combat snapshots,10Hz pose observation and cloud compositor/video timing are separate. Positive geometry clearance and passing harness assertions are not quality acceptance."
+}
