@@ -99,6 +99,14 @@ function remember(last: unknown, value: unknown): unknown {
   const clone: unknown = Reflect.get(value, 'clone');
   return typeof clone === 'function' ? Reflect.apply(clone, value, []) : value;
 }
+/** Compare the exact upload image, including signed zero and NaN payloads.
+ * The slot already retains these bytes, so mutable arrays need no clone. */
+function sameBytes(value: ArrayBufferView, data: Float32Array): boolean {
+  const next = new Uint32Array(value.buffer, value.byteOffset, data.length);
+  const previous = new Uint32Array(data.buffer, data.byteOffset, data.length);
+  for (let i = 0; i < next.length; i++) if (next[i] !== previous[i]) return false;
+  return true;
+}
 function changed(last: unknown, value: unknown): boolean {
   if (last === undefined || ArrayBuffer.isView(value)) return true;
   if (!isObject(value)) return last !== value;
@@ -186,6 +194,9 @@ export class NodeUniformBuffers {
     for (const slot of block.slots) {
       const value: unknown = Array.isArray(slot.uniform.value) ? slot.uniform.value[slot.element]
         : slot.element === 0 ? slot.uniform.value : undefined;
+      if (slot.last !== undefined && ArrayBuffer.isView(value) && sameBytes(value, slot.data)) {
+        slot.last = value; continue;
+      }
       if (!changed(slot.last, value)) continue;
       slot.last = remember(slot.last, value);
       write(value, slot.data);

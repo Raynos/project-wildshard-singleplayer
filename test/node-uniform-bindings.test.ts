@@ -25,6 +25,30 @@ class Gl {
   uniformBlockBinding(): void { /* Each fake program has one block. */ }
 }
 
+test('uploads typed uniforms only when their byte image changes', () => {
+  const gl = new Gl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  const uniform = { value: new Float32Array([1, 2, 3, 4]) };
+  const group = { name: 'bones', uniforms: [uniform] };
+  blocks.bind(program, [group]); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(1);
+  uniform.value[2] = 10; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(2);
+  const buffer = gl.bindings.get(23);
+  if (buffer === undefined || buffer === null) throw new Error('Missing typed uniform block');
+  expect(gl.values.get(buffer)?.get(0)).toEqual([1, 2, 10, 4]);
+  uniform.value = new Float32Array([1, 2, 10, 4]); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(2);
+  uniform.value[1] = -0; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(3);
+  uniform.value[1] = 0; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(4);
+  const bits = new Uint32Array(uniform.value.buffer);
+  bits[2] = 0x7fc00001; blocks.bind(program, [group]); blocks.bind(program, [group]);
+  expect(gl.writes).toBe(5);
+  bits[2] = 0x7fc00002; blocks.bind(program, [group]);
+  expect(gl.writes).toBe(6);
+});
+
 test('keeps extensions first, removes only the stock matrix and preserves custom and buffer layouts', () => {
   const stock: unknown = Reflect.get(modelWorldMatrix, 'uniformNode');
   const original = '#extension GL_ANGLE_multi_draw : require\nprecision highp float;\nlayout( std140 ) uniform object {\nmat4 nodeUniform0;\nmat4 nodeUniform1;\n};\nvoid main() { gl_Position = nodeUniform0 * nodeUniform1 * vec4(1.0); }';
@@ -67,7 +91,8 @@ test('coalesces dirty slots while retaining padding, unchanged gaps and live arr
   expect(uploads?.get(32)).toEqual([1, 30, 7, 0, 2, 5, 8, 0, 3, 6, 9, 0, 10, 31, 0, 0, 12, 13, 32, 15]);
   array.value = [40, 41];
   blocks.bind(program, [group]);
-  expect(uploads?.get(80)).toEqual([40, 41, 0, 0, 12, 13, 32, 15]);
+  expect(uploads?.get(80)).toEqual([40, 41]);
+  expect(uploads?.get(32)?.slice(-4)).toEqual([12, 13, 32, 15]);
 });
 
 test('retains consecutive bindings while still uploading live changes and restoring displaced groups', () => {
