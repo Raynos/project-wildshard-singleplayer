@@ -1,23 +1,19 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 11:39 UTC. Static milestones complete; runtime WIP.
+Updated 2026-10-19 11:49 UTC. Static milestones complete; runtime WIP.
 
-OWNER: EACH other enemy strictly above3.5/5. Puffer polishing and twenty extra concepts parked; supersedes Puffer4/5-or-V100. No art-score chasing. Rubric silhouette35/face30/details20/style15; approved originals control. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
+OWNER: Each other enemy strictly above 3.5/5. Puffer polishing and twenty extra concepts stay parked; this supersedes Puffer's 4/5-or-V100 gate. No score chasing. Rubric: silhouette35/face30/details20/style15. Approved originals control. Plan: docs/reviews/driftwood-four-enemy-resume-plan.md.
 
-Full-nine static: Bellback V6 3.5625; Mantis V7 3.6025; Colossus V4 3.65; Conch character3.57. Zero quality-complete enemies or physical-phone/human-fun acceptance.
+Independent full-nine static: Bellback V6 3.5625; Mantis V7 3.6025; Colossus V4 3.65; Conch character 3.57. Zero quality-complete enemies, physical-phone or human-fun acceptance.
 
-PUBLIC: Site59 live11:11:48UTC, source78ac40012d44b98ae541343278da5d4fb1ff5d8d. Candidate6 replaces Mantis4 as UNACCEPTED WIP; old host retained. Conch4, Colossus2, Puffer70 unchanged. No Bellback Play.
+PUBLIC: Site61 live at11:49:04UTC; source8535087411be6839b751fd18b88d650f4562a7a3. Mantis7 replaces6 as UNACCEPTED diagnostic WIP; original6 host retained. Conch4, Colossus2 and Puffer70 unchanged. No Bellback Play.
 
-CONCH4: Product e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8 passes34 mounted checks. All4460 frames/1444 poses independently reviewed. Tells3/5 from2.5; hit/recovery2.5, death3, grounding3. Early/late guarded hits through counter/recovery pass. Unguarded windup unreachable; mistaken gate preserved. Sliding, angular jumps, collider limits and cloud cadence remain.
+MANTIS7: Product123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7. Authoritative frame.attack drives precontact sweep; AI/strike clocks, geometry, gait and accelerated knee death remain unchanged. Source10+independent15 tests, strict admission3 and mounted24 checks pass. Root typecheck resource-killed137, not passed. Actual run2 is17/19: both named early/late-hit checks fail. The early-labelled attempt actually lands a late-sweep hit; the other lands active. No early-windup hit or death during sweep observed.
 
-MANTIS5: Failed102.23mm early-death contact; all4066frames preserved.
+All4598 encoded frames and1306 exact pose inputs independently reviewed; evaluator error <=1.11e-16. Sampled floor minima living0.674mm/dead13.685mm. One moving active death,3 coins, actual player defeat/blocked attack, Retry/reload and empty stores pass.16 sampled endpoint transitions have zero raptor jump. Sparse100ms windup still jumps0.684rad; recovery onset0.708rad; first approach holds cut pose0.928s before damage. Passive proximal-arm overlap, weak gait and corpse overlap remain. Animation/readability stay2/5; no continuous-contact acceptance. docs/reviews/mantis-precontact-independent/capture2/REVIEW.md. Originals protected in native Site; failed preflight/run1 and prior candidates retained.
 
-MANTIS6: Product1411a8ac1dbbbc08e9da4e3857ac9b369de248e491a23ba25566279842a59996 recommended as UNACCEPTED WIP replacement. All13775 encoded frames/4471 poses reviewed; five genuine deaths show positive sampled clearance. Short moving clip closes early-fold gap; later HUD213/215 absent. Main17/20 failed defeat/pose-input/terminal-HP checks; supplement13/14 proves defeat/Retry/empty stores but stationary lethal; moving9/9. Mounted24/25 lacked defeat, separately supplied by supplement. Animation2/5, readability2; weak gait, abrupt attacks/corpse overlap open. Synthetic interpolation−10mm persists; no continuous-contact/quality acceptance. docs/reviews/mantis-early-knee-independent/final-assessment.md.
+CONCH4: Mounted34 checks and4460 frames reviewed. Tells3/5 from2.5; hit/recovery2.5, death3, grounding3. Sliding matches intentional stagger push; do not suppress physics. Deferred hit-handoff audit: docs/reviews/conch-hit-handoff/audit.md.
 
-NEXT: Candidate7 precontact sweep built product123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7. Run2 passes17/19; early/late named-hit attempts fail.1306 exact pose-input replays clear sampled floor. Full-video review/mounted QA pending; public6 retained. Whole evidence saved nativeSite60, no redeploy.
+BELLBACK: Candidates4/5 rejected for contact;5 also regresses death to1.5/5. Solver/timing/CCD failures preserved; do not repeat parameter chasing. OWNER DECISION pending since08:38: isolated five-body/four-joint Ragdolls prototype with eight shapes. No implementation before approval; do not repeat question.
 
-BELLBACK: Candidate4 fails22mm rendered/24mm fixed. Candidate5 passes157focused+3native/28combat/15walk but fails5.834mm rendered/10.302mm fixed; death1.5/5 regresses from3. All3637frames reviewed. Terrain13/28; MAX_T moving/airborne freezes. Both rejected. Candidate4 solver0/2/4 and timing failed; candidate5 proposed0/2/4 NEVER RUN. Full-life CCD diverged at57; exact0–56 no improvement. No more parameter chasing.
-
-OWNER DECISION pending since08:38: isolated Bellback five-body/four-joint prototype with existing Ragdolls/eight shapes. No implementation before approval; do not repeat question. docs/reviews/bellback-next-design/REVIEW.md.
-
-Six-shard work open. Sourcecf059ed0908da6d2fe62f883ba8c5a8772e14f62 verified. Root connector gamedev-dot only; preserve unrelated/sparse work.
+Six-shard work remains open. Sources verified through c606ef2dc2a4027fa037129eb5343ca000139169. Root connector gamedev-dot only; preserve unrelated/sparse work.
