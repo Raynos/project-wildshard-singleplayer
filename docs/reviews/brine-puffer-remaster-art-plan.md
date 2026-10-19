@@ -1,6 +1,10 @@
 # Brine Puffer: artistic remaster plan
 
-## Purpose and current verdict
+## Parked by owner — 2026-10-19 02:54 UTC
+
+The owner explicitly moved priority to Conch Duelist, Splinter Mantis, Bellback and Tide-Root Colossus, each above 3.5/5 independent likeness, because Puffer polishing showed diminishing returns. Preserve this unfinished remaster and best tested playable. The prior Puffer-first stopping condition below is historical and superseded. No further Puffer polishing is scheduled.
+
+## Historical purpose and verdict
 
 The goal is a recognizable, coherent, animated low-poly Brine Puffer that closely matches the owner-approved reference, not a higher version number or a flattering render. The owner received the ranked artistic plan on 2026-10-19 (message Sentinel_0678010cb62481919a47490e91df85bb). Execution starts after the current arena-lighting work is resolved.
 
@@ -8,7 +12,7 @@ Reference authority: `art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/br
 
 Preserve V71, every earlier source and failed study, and the tested playable candidate. V71 is the latest retained static study, with modest improvements over V70. The fresh independent reviewer scores it 3.60/5: silhouette 3.5, face 3.5, details 4.0, facet/style 3.5. Earlier incremental reviews rated some versions more highly; that disagreement remains visible and is not resolved by choosing the most favorable score. V71 is not a final accepted model.
 
-The stopping condition remains an honestly reviewed 4/5 or V100, whichever comes first, followed by work on the other four creatures. This plan promises a better-directed process, not an automatic 4/5 result. Do not manufacture versions to approach the cap.
+The historical stopping condition was an honestly reviewed 4/5 or V100, whichever comes first, followed by work on the other four creatures. This plan promises a better-directed process, not an automatic 4/5 result. Do not manufacture versions to approach the cap.
 
 ## Diagnosis
 
