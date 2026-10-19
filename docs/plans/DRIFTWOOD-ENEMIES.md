@@ -149,3 +149,27 @@ are supporting illustrations, not replacements for the approved original.
 The current best remains V9 at 3.43/5 until independently reviewed evidence
 beats it. Preserve rejected revisions and avoid publishing a worse successor
 as the current best. Runtime, animation and combat acceptance stay separate.
+
+## 2026-10-19 16:51 UTC — Nine approved identities and paired contexts
+
+Owner approves Brine Pitcher Matriarch (DI-N16), Pearlglass Medusa (DI-N17),
+Keelmaw (DI-N19), and Bloomthroat Iguana (DI-N10). The other sixteen of the
+twenty catalog concepts are rejected, superseding their parked status. Retain
+rejected art as history and do not develop it. The original five continue
+toward separate 4/5 likeness and animation/readability targets.
+
+Every approved identity requires art-direction-matched mockups and TWO
+nine-angle sets: one in the world and one in Model Explorer, eighteen views
+per creature, visible in Approved Mockups with individually accessible views.
+Actual reconstructed model renders do not substitute for target mockups.
+Original approved images remain authoritative; inferred AI hidden surfaces
+are supporting references and must retain orientation/anatomy caveats.
+Audit found only Puffer had an earlier supporting nine-view reference set;
+the other eight require new sets. Generated labels alone do not establish
+correct camera orientation or consistent anatomy.
+
+Owner also clarifies one shared arena website/runtime and enemy selector,
+not a selector over separate engine builds. Consolidation is in progress
+using exact admitted products in one engine, canvas and practice world.
+Keep existing tested hosts until the replacement passes actual testing.
+Bellback remains unavailable and its architecture approval remains pending.

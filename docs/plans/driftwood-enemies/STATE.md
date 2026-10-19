@@ -1,21 +1,15 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-19 16:03 UTC. No quality-complete enemy.
+Updated 2026-10-19 16:59 UTC. No quality-complete enemy.
 
-OWNER: Loop all five to >=4/5 likeness and separately >=4/5 animation/readability. Prior four-enemy >3.5, Puffer parking and V100 gates superseded. Rotate consequential complete passes; no rounding or score inflation. Twenty extra concepts parked. Plan: docs/reviews/five-enemy-four-star-loop.md.
+OWNER: Original five loop toward separate >=4/5 likeness and animation/readability. Four more identities approved: Brine Pitcher DI-N16, Pearlglass Medusa DI-N17, Keelmaw DI-N19, Bloomthroat Iguana DI-N10. Other sixteen catalog concepts rejected. Every approved identity needs matching art-direction mockups in TWO nine-angle contexts: World and Model Explorer, visible in Approved Mockups. AI hidden surfaces inferred; labels do not prove correct angles.
 
-LIVE: Site66 source ff10592406d0b74f51df59c3ecb99fc01bb7a94b retains pinned Arena, Mantis7/Conch4/Colossus2/Puffer70 exact WIP hosts; Bellback unavailable. Site67 source-only preservation succeeded. Next native source push rejected oversized Conch movie; failed checkout retained without history rewrite. Movie independently verified in owned Library; later full captures also preserved there. Existing public hosts unchanged. Storage cleanup approval pending; no deletion inferred or repeated question.
+LIVE: Site68 source5e05815af6171f5bdc1faee567ad7cca0cb1c3fc deployed16:45, current paired model galleries and pinned Arena. Mantis7/Conch4/Colossus2/Puffer70 exact WIP hosts retained. Bellback unavailable. Owner clarified one shared runtime, not separate builds behind selector: practice/shared-arena build2 validating actual lifecycle now. No replacement yet.
 
-LATEST STATIC REVIEWS (judgments remain separate):
-- Mantis complete proportion study preferred3.915 vs paired repaired predecessor3.765. Historical3.935/3.670 remain separate. Full20 captures verified; native payload and articulation still open.
-- Puffer closed anatomy:3.6375 vs paired pass2 3.5975; preferred, historical pass2 3.80 separate. Four inlays closed, nine inherited hull crossings remain. PNG pixels exact after lossless re-encoding; original encoded bytes lost, explicitly disclosed. Failed pass3 retained.
-- Bellback complete face-character:3.75 vs paired pass3 3.79; retain pass3, historical3.895 separate. Failed initial folds and continuous-frame correction preserved. No runtime admission.
-- Corrected selected Conch independently4.05 static likeness; baseline ties visually, corrected preferred structurally. Four folded sweeps fixed, fuller face retained. Earlier refinement3.97 rejected, historicalpass2 3.865/4.01 separate. Receipt counts corrected51/95. Exact native normal-channel preparation active; no runtime/animation acceptance.
-- Colossus pass3 rejected3.52 vs paired pass1 3.675. Historical pass1 3.895/3.765 separate.
-Reports: docs/reviews/*independent/.
+ART: Conch corrected source4.05 static likeness; native rest independently3.2375. All18 actual paired captures complete; native face jitter/tint/materials change appearance. No animation acceptance. Mantis proportion3.915 preferred vs3.765. Bellback woody3.73 preferred vs3.6425. Puffer closed3.6375 vs3.5975; local repair eliminates21 proper crossings but fails coplanar/normal checks, preserved. Colossus pass3 rejected3.52 vs retained3.675. Historical judgments remain separate.
 
-MOTION: Conch motion5 rejected at2/5 after13012-frame reduced-resolution overview plus21 original-resolution details; missing timing/stop/active-lethal coverage and dead-pose jump. Mounted37/39, counter trials failed. Public motion4 retained. Mantis7 remains2/5; gait fit rejected.
+REFERENCES: Four fresh low-poly heroes generated; dual-context sheets for all nine generated and independently audited. Several incorrect side/elevated orientations and two missing contexts require correction; do not mark canonical completion. Originals and failures retained. Site source integration active.
 
-Colossus death-fold1 replay failed135/141 contact. Retained-input source corrects102 interrupted poses. Two ordinary guest inline annotations bring paired event fuel350927 under unchanged400000;145 candidate tests and strict TS pass. Baseline failure preserved separately. Contact remains rejected; mounted rewards/Retry untested, no build or promotion.
+MOTION: Conch5 rejected2/5 after13012 encoded-frame review, missing boundary coverage and dead-pose jump; public4 retained. Mantis7 animation/readability2. Colossus source inline/retained-input tests pass but135/141 contact replay fails; no promotion. Bellback five-body/four-joint prototype still awaits specific approval since08:38; no expansion.
 
-Bellback five-body/four-joint prototype awaits specific owner approval since08:38; no expansion. Root owns connector checkpoints/native Sites. Sources through 0227af6509fe0cb907d7ff908b654863818336f5. Preserve unrelated/sparse work; six-shard Explorer open.
+PRESERVATION: Wildshard8301e2763bb0472986d70785ec66342fcb80e87e includes native comparison and failed Puffer repair. Source protection continues independently of publication. Owner approved cleanup; ten audited regenerable categories reclaimed7.2GiB, originals/backups retained; hourly cleanup enabled. Six-shard Explorer coverage remains open.

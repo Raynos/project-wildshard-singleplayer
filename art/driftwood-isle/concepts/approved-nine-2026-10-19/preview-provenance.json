@@ -1,0 +1,236 @@
+[
+  {
+    "original": "bellbackExplorerGen.png",
+    "original_sha256": "4b4ff8bb49f128a69d2ab12c1c207861cf4e264a335ffd3e2400eb9b6a769977",
+    "preview": "previews/bellbackExplorerGen-sheet.webp",
+    "preview_sha256": "053253071ceac51623d65fa80dfdd88c207191827cf7f7e1eb4a6467dd21c82c",
+    "bytes": 132008,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "bellbackWorldGen.png",
+    "original_sha256": "4823cac55b9a0c84062709315c4155ba83ea20d345891709f6335a22d33500aa",
+    "preview": "previews/bellbackWorldGen-sheet.webp",
+    "preview_sha256": "f464749927bd359d3e49b09fbd5553895883098d61f0eba1a0500062b8531abd",
+    "bytes": 191752,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "bloomthroat-iguana-hero.png",
+    "original_sha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4",
+    "preview": "previews/bloomthroat-iguana-hero.webp",
+    "preview_sha256": "bb65f7b19eaf92ab29d618dc0596e7b654c44c6c3d1039397512ce28ce168860",
+    "bytes": 59658,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "brine-pitcher-hero.png",
+    "original_sha256": "39b586abd4d1b956e13d6249311a71ece6ce1669f8fb0443db4ff02703318e76",
+    "preview": "previews/brine-pitcher-hero.webp",
+    "preview_sha256": "5c66e8200e854a26b2db536917cd1c3cd2b73705853a5ba76de9a88adbd939a5",
+    "bytes": 90440,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "colossusExplorerGen.png",
+    "original_sha256": "08f365b9c59d0d3dd53dc088385fa75b682d453a1ca618947593928bcb17c681",
+    "preview": "previews/colossusExplorerGen-sheet.webp",
+    "preview_sha256": "95d01340c0572ebff1b68fda0d3661c02cebe2f993bcd1ed6aee5689e4ce4a51",
+    "bytes": 146554,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "colossusWorldGen.png",
+    "original_sha256": "c76831876ad2fe2e1b4397d057971401be247dba78f80a2a3345bca8b8c6b9b4",
+    "preview": "previews/colossusWorldGen-sheet.webp",
+    "preview_sha256": "5aa0685e8f2c708f8373cb42d6bafd5842592d3d29f51f460fe6ccfcd229a258",
+    "bytes": 211592,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "conch-nine-noncanonical-draft.png",
+    "original_sha256": "793459e70d1c1db05c0f7372da14c02a67a718e9ae565e693c291027d3864f28",
+    "preview": "previews/conch-nine-noncanonical-draft-sheet.webp",
+    "preview_sha256": "0985ac0c45a8aa0dc8b5246e7c241ebeb8288851cf97a6314689bc21249f76bc",
+    "bytes": 85526,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "conchExplorerGen.png",
+    "original_sha256": "dc4752ce6054c12913cc106b0604387f25ce7c3ee854f65544237e9aa4d2f751",
+    "preview": "previews/conchExplorerGen-sheet.webp",
+    "preview_sha256": "52e2d13513ac26461e463e965c07ff0fda810e62b1f8259c4e154f5003a85548",
+    "bytes": 110952,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "conchWorldGen.png",
+    "original_sha256": "6be7e426a6aed81b94a53e20f4b48c7a8cc765b18a1497b64c246f9e43f900c9",
+    "preview": "previews/conchWorldGen-sheet.webp",
+    "preview_sha256": "25956ea04888cb9662e07a9ebb60fd62b808878437eccb8e5372378048a69dbf",
+    "bytes": 161066,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "iguanaExplorerGen.png",
+    "original_sha256": "91745cf6c99876dca8d7091fa50df1c843edc78ac90701e6a05b33a37abf6426",
+    "preview": "previews/iguanaExplorerGen-sheet.webp",
+    "preview_sha256": "b3e02b592ea2f6ae0975349b8c96f7e80b2dd63ca5f19c2637e187ea28d99f36",
+    "bytes": 145706,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "iguanaWorldGen.png",
+    "original_sha256": "16efec40da515672a1755ac942aebe1d35aab57ecfc3e161425400f70953c695",
+    "preview": "previews/iguanaWorldGen-sheet.webp",
+    "preview_sha256": "617b09962ce45d88e6b9f2300ee9fda798ceed47d6cbfd071c6478da4ff974c2",
+    "bytes": 189828,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "keelmaw-hero.png",
+    "original_sha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+    "preview": "previews/keelmaw-hero.webp",
+    "preview_sha256": "1ff3048cedf440ce6543d1d1b479370295072dfe7b68572d0476ffb619af8ac5",
+    "bytes": 84390,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "keelmawExplorerCorrectedGen.png",
+    "original_sha256": "10aaa6cb65464c3359533dc10afaec8ccc6b109813ab7e04e18e01da71ed3561",
+    "preview": "previews/keelmawExplorerCorrectedGen-sheet.webp",
+    "preview_sha256": "7d978e2069792f72be94788de1fb9d56d79fdd4bf4ea624c10acc317d48f793e",
+    "bytes": 178708,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "keelmawExplorerGen.png",
+    "original_sha256": "658de9ad1e54a8ea21771e0edd45427731c11afc257d3b056ca1e192721f7a27",
+    "preview": "previews/keelmawExplorerGen-sheet.webp",
+    "preview_sha256": "eda03df41f1248fa00e0007032476e6cefa25b6651af2400216c79def5abe21e",
+    "bytes": 122318,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "keelmawWorldGen.png",
+    "original_sha256": "bad000719ab4abe7c66ff48a7d1b524e6a1f892dfb535705beac654846a77cfe",
+    "preview": "previews/keelmawWorldGen-sheet.webp",
+    "preview_sha256": "5765eb8567490980bb372d7506c1454e5a27c10bada25fe0b40ad6a0615285ac",
+    "bytes": 243974,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "mantisExplorerGen.png",
+    "original_sha256": "0e1c64ace284b5c0bb770832da63d705596eb2e38f09f19c309547665bf8d82c",
+    "preview": "previews/mantisExplorerGen-sheet.webp",
+    "preview_sha256": "fe8547d9df96b1d7f8d15c6d13de822b2cc97716d864616c158fccf10a5b09b6",
+    "bytes": 136740,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "mantisWorldGen.png",
+    "original_sha256": "763b44a12590e1eea84fe9137f1fc02b3040e499bc6e618a497f9e8e72fd5691",
+    "preview": "previews/mantisWorldGen-sheet.webp",
+    "preview_sha256": "a2ad52d85b69f198193dbe46313b3202a13caa4154fde352b35a01be6f7f5dca",
+    "bytes": 193666,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "medusaExplorerGen.png",
+    "original_sha256": "b4ba8bf5a53c5f8481d44384e87e54caae73d6ff083600e179926f395a148054",
+    "preview": "previews/medusaExplorerGen-sheet.webp",
+    "preview_sha256": "384f6aae507db3826537e20b01dcfaccd4af61643a71d47454b2b8485f6c8de6",
+    "bytes": 166860,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "medusaWorldCorrectedGen.png",
+    "original_sha256": "16c62a25b34fd185787b76088ea14dc4e30152ba011bf56bf3939efb668aa042",
+    "preview": "previews/medusaWorldCorrectedGen-sheet.webp",
+    "preview_sha256": "e83c250dda6d3fd17e43f3dab3a609c38a30cd00d686207944e10503f4a70721",
+    "bytes": 228510,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "medusaWorldGen.png",
+    "original_sha256": "0deff9a2d7f89602304454082eec008fec3a777529ee75d3600441cb83222143",
+    "preview": "previews/medusaWorldGen-sheet.webp",
+    "preview_sha256": "2570ca1ad771ab61ca50b5c403ebc7296dc4af7f2bdb7543b88a6cfc03934b87",
+    "bytes": 102534,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pearlglass-medusa-hero.png",
+    "original_sha256": "d53da30e8e8f6aa425db8ec317bc4ad6c8e9ad4aea2af1ca7b0f1172520649db",
+    "preview": "previews/pearlglass-medusa-hero.webp",
+    "preview_sha256": "f0e0ceb87aa6bd0a6f0dfb34de6c7a387205f4179faa444b380be26825dca1b3",
+    "bytes": 61228,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pitcherExplorerCorrectedGen.png",
+    "original_sha256": "6d7a88b156db57fdcdaac00134d6be40928f1388321b1363911df4f3aa197679",
+    "preview": "previews/pitcherExplorerCorrectedGen-sheet.webp",
+    "preview_sha256": "f7c9bfe504f26063a3ff7fdd738d881415d8db28f8f23f687e31e604a3e179df",
+    "bytes": 202048,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pitcherExplorerGen.png",
+    "original_sha256": "532c44a9ce5e75383262f6f81f2ae718acf8f82edc1b1776e73a3151ba196a0d",
+    "preview": "previews/pitcherExplorerGen-sheet.webp",
+    "preview_sha256": "66963d4b2f67808d241a89f3001b438007f0bb897bbe92c4e7d6ff626cedeb06",
+    "bytes": 211264,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pitcherWorldGen.png",
+    "original_sha256": "ceb8639db1d7e0da56d3e6e2197e0695162d1e5a60617c80ec311f7145843aa3",
+    "preview": "previews/pitcherWorldGen-sheet.webp",
+    "preview_sha256": "26188fb841fbefef56b3fb21af069fb720c87dfee9aff5e4c056088483f0a9b9",
+    "bytes": 275494,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pufferExplorerGen.png",
+    "original_sha256": "0475dd6be36bb4df6b8dd729698472d48153f9a9da293e29cce682bfe414d599",
+    "preview": "previews/pufferExplorerGen-sheet.webp",
+    "preview_sha256": "a2f0664095adec170da79cd0298d4d2efbe8b16e234e1d11d3d704f67cf843f7",
+    "bytes": 107110,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  },
+  {
+    "original": "pufferWorldGen.png",
+    "original_sha256": "7143b7097078e50f427490ae3d60cb3e8eda9244e7a46a3e9cf2c45d16d133eb",
+    "preview": "previews/pufferWorldGen-sheet.webp",
+    "preview_sha256": "65f11862bfd79ce2f1cad92cd308fcd3d5cdc77438817c1af833316b5675e304",
+    "bytes": 156556,
+    "lossy_delivery_only": true,
+    "original_unchanged": true
+  }
+]

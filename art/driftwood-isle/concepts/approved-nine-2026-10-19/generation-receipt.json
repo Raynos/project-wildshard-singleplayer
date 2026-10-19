@@ -1,0 +1,37 @@
+[
+  {
+    "file": "brine-pitcher-hero.png",
+    "sha256": "39b586abd4d1b956e13d6249311a71ece6ce1669f8fb0443db4ff02703318e76",
+    "bytes": 1887689,
+    "kind": "AI mockup",
+    "status": "fresh-style-revision"
+  },
+  {
+    "file": "pearlglass-medusa-hero.png",
+    "sha256": "d53da30e8e8f6aa425db8ec317bc4ad6c8e9ad4aea2af1ca7b0f1172520649db",
+    "bytes": 1717081,
+    "kind": "AI mockup",
+    "status": "fresh-style-revision"
+  },
+  {
+    "file": "keelmaw-hero.png",
+    "sha256": "69eb665a0f2224f1a35e61934304eb0ee4e205912c5b38d0bbfbe9ca160ac4d3",
+    "bytes": 2042436,
+    "kind": "AI mockup",
+    "status": "fresh-style-revision"
+  },
+  {
+    "file": "bloomthroat-iguana-hero.png",
+    "sha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4",
+    "bytes": 1768041,
+    "kind": "AI mockup",
+    "status": "fresh-style-revision"
+  },
+  {
+    "file": "conch-nine-noncanonical-draft.png",
+    "sha256": "793459e70d1c1db05c0f7372da14c02a67a718e9ae565e693c291027d3864f28",
+    "bytes": 1764160,
+    "kind": "AI mockup",
+    "status": "draft-noncanonical-views"
+  }
+]

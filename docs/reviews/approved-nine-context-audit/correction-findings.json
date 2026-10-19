@@ -1,0 +1,46 @@
+{
+  "reviewed_at": "2026-10-19T17:01:00Z",
+  "scope": "Three corrected sheets; supplements original audit without replacing it",
+  "disclaimer": "AI concept references, not game/model captures. Hidden geometry inferred; exact angles and rigid anatomy are not proven.",
+  "replacement_choices": [
+    {
+      "original": "pitcherExplorerGen.png",
+      "selected": "pitcherExplorerCorrectedGen.png",
+      "status": "usable_with_caveats",
+      "context_present": true,
+      "finding": "Improved opposing side coverage; strict-profile labels remain unproven and foliage/occlusion changes between views.",
+      "remaining_issues": [
+        "02/03 remain side-oblique",
+        "Foliage and head visibility drift",
+        "07/08 do not establish rigid consistency with corrected sides"
+      ],
+      "silhouette_crop": "No obvious creature silhouette clipping observed"
+    },
+    {
+      "original": "medusaWorldGen.png",
+      "selected": "medusaWorldCorrectedGen.png",
+      "status": "usable_with_style_caveat",
+      "context_present": true,
+      "finding": "World context repaired in all nine panels; naturalistic background clashes with low-poly creature and other sheets.",
+      "remaining_issues": [
+        "Environment noticeably more photorealistic than set",
+        "Cap tilt and ribbon layout change",
+        "Exact left/right and elevation unproven"
+      ],
+      "silhouette_crop": "No obvious creature silhouette clipping observed"
+    },
+    {
+      "original": "keelmawExplorerGen.png",
+      "selected": "keelmawExplorerCorrectedGen.png",
+      "status": "usable_with_caveats",
+      "context_present": true,
+      "finding": "Explorer context and elevated side directions repaired; elevated front remains three-quarter and anatomy varies.",
+      "remaining_issues": [
+        "06 front-high is noticeably three-quarter",
+        "Tail, rope and jaw details vary",
+        "Exact orthographic/elevation claims unproven"
+      ],
+      "silhouette_crop": "No obvious creature silhouette clipping observed"
+    }
+  ]
+}

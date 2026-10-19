@@ -1,0 +1,20 @@
+[
+  {
+    "key": "pitcherExplorerCorrectedGen",
+    "file": "pitcherExplorerCorrectedGen.png",
+    "sha256": "6d7a88b156db57fdcdaac00134d6be40928f1388321b1363911df4f3aa197679",
+    "bytes": 2284626
+  },
+  {
+    "key": "medusaWorldCorrectedGen",
+    "file": "medusaWorldCorrectedGen.png",
+    "sha256": "16c62a25b34fd185787b76088ea14dc4e30152ba011bf56bf3939efb668aa042",
+    "bytes": 2670262
+  },
+  {
+    "key": "keelmawExplorerCorrectedGen",
+    "file": "keelmawExplorerCorrectedGen.png",
+    "sha256": "10aaa6cb65464c3359533dc10afaec8ccc6b109813ab7e04e18e01da71ed3561",
+    "bytes": 2408403
+  }
+]

@@ -1,0 +1,169 @@
+{
+  "reviewed_at": "2026-10-19T16:59:00Z",
+  "scope": "Original 18 sheets, before context corrections",
+  "disclaimer": "AI concept references, not game/model captures. Hidden geometry inferred; exact angles and rigid anatomy are not proven.",
+  "sheets": [
+    {
+      "file": "pitcherExplorerGen.png",
+      "creature": "pitcher",
+      "context": "Explorer",
+      "status": "needs_angle_correction",
+      "finding": "Side views are oblique; 03 RIGHT resembles the rear rather than the opposite side.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "pitcherWorldGen.png",
+      "creature": "pitcher",
+      "context": "World",
+      "status": "needs_angle_correction",
+      "finding": "03 RIGHT and 07 ELEVATED LEFT remain front-oblique; beach context is usable.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "medusaExplorerGen.png",
+      "creature": "medusa",
+      "context": "Explorer",
+      "status": "usable_with_caveats",
+      "finding": "Approximate angles only; cap tilt and ribbon layout change between views.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "medusaWorldGen.png",
+      "creature": "medusa",
+      "context": "World",
+      "status": "wrong_context",
+      "finding": "Studio background throughout; no in-world environment.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": false
+    },
+    {
+      "file": "keelmawExplorerGen.png",
+      "creature": "keelmaw",
+      "context": "Explorer",
+      "status": "wrong_context",
+      "finding": "Studio turnaround lacks Explorer context; elevated left/right directions reversed.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": false
+    },
+    {
+      "file": "keelmawWorldGen.png",
+      "creature": "keelmaw",
+      "context": "World",
+      "status": "usable_with_caveats",
+      "finding": "Recognizable nine approximate directions; tail, jaw and armor details vary.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "iguanaExplorerGen.png",
+      "creature": "iguana",
+      "context": "Explorer",
+      "status": "usable_with_caveats",
+      "finding": "Strong approximate coverage; rear tail curl reverses between 04 and 09.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "iguanaWorldGen.png",
+      "creature": "iguana",
+      "context": "World",
+      "status": "usable_with_caveats",
+      "finding": "Strong approximate coverage; elevated front is three-quarter and details drift.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "conchExplorerGen.png",
+      "creature": "conch",
+      "context": "Explorer",
+      "status": "needs_angle_correction",
+      "finding": "Side convention reversed; TOP is elevated-front rather than vertical.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "conchWorldGen.png",
+      "creature": "conch",
+      "context": "World",
+      "status": "needs_angle_correction",
+      "finding": "Side convention reversed; TOP is front-high and 07 is another front-oblique.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "pufferExplorerGen.png",
+      "creature": "puffer",
+      "context": "Explorer",
+      "status": "usable_with_caveats",
+      "finding": "Recognizable approximate coverage; spike and fin details vary.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "pufferWorldGen.png",
+      "creature": "puffer",
+      "context": "World",
+      "status": "usable_with_caveats",
+      "finding": "Recognizable approximate coverage; rear tail is edge-on unlike Explorer disk.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "mantisExplorerGen.png",
+      "creature": "mantis",
+      "context": "Explorer",
+      "status": "usable_with_caveats",
+      "finding": "Recognizable approximate coverage; wing/limb count and pose vary.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "mantisWorldGen.png",
+      "creature": "mantis",
+      "context": "World",
+      "status": "needs_angle_correction",
+      "finding": "07/08 directions reversed against 02/03; TOP resembles elevated back.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "bellbackExplorerGen.png",
+      "creature": "bellback",
+      "context": "Explorer",
+      "status": "needs_anatomy_correction",
+      "finding": "Rear views expose frontal bell mouth/clapper instead of the rear wooden frame.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "bellbackWorldGen.png",
+      "creature": "bellback",
+      "context": "World",
+      "status": "usable_with_caveats",
+      "finding": "Approximate coverage with plausible rear frame; plank/horn details vary.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "colossusExplorerGen.png",
+      "creature": "colossus",
+      "context": "Explorer",
+      "status": "needs_angle_correction",
+      "finding": "Side convention reversed; TOP is steep front-high rather than clean overhead.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    },
+    {
+      "file": "colossusWorldGen.png",
+      "creature": "colossus",
+      "context": "World",
+      "status": "needs_angle_correction",
+      "finding": "02/03 explicitly contradict printed nose directions; TOP remains front-high.",
+      "silhouette_crop": "No obvious creature silhouette clipping observed",
+      "context_present": true
+    }
+  ]
+}
