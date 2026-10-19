@@ -1,0 +1,411 @@
+{
+  "status": "PASS_STATIC_EVIDENCE_CLOSURE",
+  "checkedHashes": [
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-diag-front.webp",
+      "sha256": "1e799ade0c86514e0a90a319813d996ded588ede2a6ad1ec58259d3ba8390d49"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/render_matched.py",
+      "sha256": "040e8d1be886b3d62dfa0c71ba86d6aa90149595f94ced22a797ada2f654cfd2"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/checkpoint-normalization.json",
+      "sha256": "6af414c1371bba7c6c27c76f682a577cc0d1ea2bd713b4b14bff28842efa5ded"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-diag-left.webp",
+      "sha256": "9efc213ae3980225b28e992d247e5d6180e2eb5a9a82d3d8c3a0e7ecc0831126"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-front.webp",
+      "sha256": "cc9d51753d6ad07fcb8da2bb9d18b7f1a700a1b7190ca92bc922647ec0cff312"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-diag-back.webp",
+      "sha256": "eda318ca56fa1221cba34a2edab0790623d0aee78c120b1ed721a4227fab69ab"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-diag-back.webp",
+      "sha256": "a4fd9b0ec547748bcb9f214e4a61745ee475d96cddaf9147f9244db10b2ef5a9"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-right.webp",
+      "sha256": "533cc11dd62c9c1f6d646afdb141f908debb4f7992946e2cacf787facda55377"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/matched-hero-board.webp",
+      "sha256": "8ba63fe390d202feb84ea0f98e61aa027f9e1a7240ee58e7c6e60fdd01735a63"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/mantis-study-complete-proportion-study.glb",
+      "sha256": "fd81310b495a160cd4f698ace0fbda5a0cae59f57ad9b8db1e21428478a5217d"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-front.webp",
+      "sha256": "4b4a38c5a799b0c471345b4f3b86a6bf2a9692a54267de08c7e1a78fc78db570"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/geometry-audit.json",
+      "sha256": "0d1249891521a61756e775f1ef2b97b464501cffd5b4cda7ff444c5c23e67a6c"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-left.webp",
+      "sha256": "e7c55c83656662c942891c0dc78cad916e6ef167ceaba8642ebdc8c61a690386"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/pivots.json",
+      "sha256": "0ddd64223fc48f9d8787fd1f1711e2dbee0c3c050d31c82c2329d9d3feca82e6"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-nine-board.webp",
+      "sha256": "27a52d0ee08f46d6dfedd5bb576256b5c68af48bbf0ceb5cddbc16480937b556"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/metrics-complete-proportion-study.json",
+      "sha256": "136b4a2225e6c39205e5590306b4b05b70b0e69d8cc9ea06b99c4704ffb78442"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/capture-provenance.json",
+      "sha256": "9bbc1e2411017b85ef8456c4ddfc67a68e2bd91c81e6c071eff8625b6927c073"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-top.webp",
+      "sha256": "8f081d4109cd1b67ecca467bd4388db8cee523e55d2360ed55c1ad14cfbf29e8"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-top.webp",
+      "sha256": "7084ad81453dc7da59120101ddfd5b4d0816e6ac01543b2f199e4a6b5e2d1793"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-hero.webp",
+      "sha256": "3b40421351cb9dc8bc417f9f0f8e0e2f6c69a39afa8332f5ce9b6433571ce4a4"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-right.webp",
+      "sha256": "4bbf1e7dd692102fade2fef509e5a819b2c65c7616e73d2633090e1c6d02eabd"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-nine-board.webp",
+      "sha256": "274a7d78a69599fb74f34b622abf3315b4ad54d1e0625588c8c53c446550b2bc"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-back.webp",
+      "sha256": "7acae965dd7b82d9de33e4c09cf1a530b5e21083052ee21c06ab049abcf5b99e"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/assemble_evidence.py",
+      "sha256": "93befcfab1176374625531a63204d051aee0de1f8cc26d8113dea9b93eaa85c9"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/cameras.json",
+      "sha256": "11159bff09856562cbbed9a3ad8eed63ab0c6c06301b852ddc49bf5560a7644c"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-diag-front.webp",
+      "sha256": "0f6e801d2e28a8add40bfc66e0182e10b54870cef47f992c4cb6111647ae7aac"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-diag-right.webp",
+      "sha256": "b41f3d050c2af3e1008edd54cc6a7fb7d3fa5a5405795a313551f2f86aa93eb1"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-diag-left.webp",
+      "sha256": "5b021973d051b087055eadbefacb6a4b1c4f9c1b4a9300744b5eb809445cb0ba"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/build_mantis_complete.py",
+      "sha256": "7a3112e04a8b2094f6ca2a47abbcbadcb9ea92d28d2c196f204d40400f91d76d"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-left.webp",
+      "sha256": "d253cc4f924d6db5927d074b93d00caed38e4d6d91f10f0d5f075acdc41125d2"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-diag-right.webp",
+      "sha256": "a7b0f942c53e3b27eebdb3c2ed3364f13e6ec8d28de45a1e35a1b0f190f851ba"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/candidate-back.webp",
+      "sha256": "4e8f9fa63e107bd36f91e834211462da5f63a7c260af2b426bd577fb55448991"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/check_geometry.py",
+      "sha256": "3b61bb9e8e55e69bac33ef2344dc594723d4a2270e09777e991250916263f31f"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/input-pins.json",
+      "sha256": "6f9f972a8c1b798b1491a775df1c5cfa204253c529bca68694b98eeb15200bb5"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/build.log",
+      "sha256": "3df677f75cc7a181acbb0589cc1921085c6035c9089fc02cea074e06fc1d6cd2"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/geometry-test.log",
+      "sha256": "5de17475084beb77a9132cf6e0a7111ddeb384d349523f0f64846e796757fe4b"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/baseline-hero.webp",
+      "sha256": "1a69aea7b17b71a5089c2831018b0b14d6f6e5c3cb1af7a13d1d34c2453fdcc0"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/mantis-mesh-complete-proportion-study.json",
+      "sha256": "03d7e655682aeb086989a0165e6d2ac4056e9742407cc25900af1adea0c960cc"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/failed-midrib-fold/mantis-study-complete-proportion-study.glb",
+      "sha256": "86c824e742aced501b84617b15a64134d11c8171ab61ce9da8a4ed507dd4db73"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/failed-midrib-fold/metrics-complete-proportion-study.json",
+      "sha256": "136b4a2225e6c39205e5590306b4b05b70b0e69d8cc9ea06b99c4704ffb78442"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/failed-midrib-fold/build_mantis_complete.py",
+      "sha256": "c6f97e9aaa5f9b7e11e7e71185324e2ac8941d91de52613cdc15bcfe43ae2e07"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/failed-midrib-fold/geometry-test.log",
+      "sha256": "7dc892f5e81e690d2476c2a80538471a6ac56bf2315062fc2330c6adc8a5acfd"
+    },
+    {
+      "kind": "receipt",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/failed-midrib-fold/mantis-mesh-complete-proportion-study.json",
+      "sha256": "25205dbd674fe891701825240b074910118e1d2b5f655c204ccb57307184839d"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/splinter-mantis-lowpoly.webp",
+      "sha256": "9df569c2e487ce529e21cb0fc7e09ca5e7a82c4dbae45ed092ccc44a2e88e7de"
+    },
+    {
+      "kind": "input",
+      "path": "docs/reviews/mantis-cervical-frame-independent/REVIEW.md",
+      "sha256": "a4dff37931a7faf7b4a8300c7fbfdd6989177678c2c950b0e2b3c2bdc0aa84a5"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2/build_mantis_complete.py",
+      "sha256": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-study-complete-pass2.glb",
+      "sha256": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-mesh-complete-pass2.json",
+      "sha256": "9658e2c4cfc7821483c66c73e0a44e341763517cc15608673cddd18c4eafcf4f"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/complete-pass2/metrics-complete-pass2.json",
+      "sha256": "0e1473d80bf363ffaf6ba2e96337c18cd450e824bf4736c1340ecc8f3707ea1c"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/build_mantis_complete.py",
+      "sha256": "1b9cef26207dbf1acbf09f258fd625d50ae97b52b3ff63bc4db6520aa81f1025"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mantis-study-cervical-frame-repair.glb",
+      "sha256": "f2c8a05301e00f0cb2c41dc0efe67c1ed162f606ee8aecf7f1446a317165fd67"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/mantis-mesh-cervical-frame-repair.json",
+      "sha256": "2147371259a966d1ac5dac8085eae1db878abd1d6709bedaf54e076acb0128b3"
+    },
+    {
+      "kind": "input",
+      "path": "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/metrics-cervical-frame-repair.json",
+      "sha256": "92d0d657e21a4a05f4172d6b47db407747b1f9a4f442f05ae3d35e97d778b974"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/hero.png",
+      "sha256": "473c4e9cc2f34d9203386090e23f55562459114dcb4ad62b1a161783730138a7"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/hero.png",
+      "sha256": "17982cb6874e8cea30ebbb8faa8f3c68a6e8d731866f0368067c44879d9e09b3"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/front.png",
+      "sha256": "279b4e4c6165b43bf0f04c29d759744908653004f8298c7c6b3bbeb3b866c878"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/front.png",
+      "sha256": "9590869035efd870203d388c338b588a9941f25cfcd101691e585c53caa2e618"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/left.png",
+      "sha256": "95023c573883573a9b55e42d6f30a5cfbc7e5d0172920b12bf6fc20613f6f18e"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/left.png",
+      "sha256": "762b1b77cb250069b8eeeedbf80cc9e832b6d3e16963a5385bfda586d50394dd"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/right.png",
+      "sha256": "be52cb26249d2fc98e995f20c9df6785ab89b8b0c63a6b90bbc3b0691f7bbbff"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/right.png",
+      "sha256": "2cf57da80e8d3502c05102b9b45e2a68781a9472fcd80755bc11ed7725fedcc0"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/back.png",
+      "sha256": "7057ead669e6f2ce1e524ff68eb6cbdc5a6b8095c0fdc8af79e08e451bff8603"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/back.png",
+      "sha256": "68ea206bf5917546b07a22c4c45d175f867ed63713a3cefdd3c005121c894ccf"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/top.png",
+      "sha256": "18226bb978b8eefedfabbcc8c49061d13b94098fdc6ab45dec2611504b58afc1"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/top.png",
+      "sha256": "797684f6057015eb7e6ceaf1a2ee6fe30e23b036e125a0de32181f2e221f60a8"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/diag-front.png",
+      "sha256": "873b3bd285fe9ede103765f715930f9ecb92da26990356a4a1dbc44196893697"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/diag-front.png",
+      "sha256": "29ba866aa39b02c993c9598833fed369b5de405512046685dc02dc94432f8b7d"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/diag-left.png",
+      "sha256": "18e61ccf5f7af8631a298dca069310c11ef80fcdbdfad24026dbc9508c977cda"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/diag-left.png",
+      "sha256": "14ca0b06ecd08cd331efdd137b664d52e925891187d3474620aa6bb2ce91cdc9"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/diag-right.png",
+      "sha256": "fa273344079892b7e09f081fc27517e76dfc82c13e9198ae9cfb2735c6bbef4a"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/diag-right.png",
+      "sha256": "3c6263737f7fe3a65d904cfb8abe2ba102a3405456ba7794f03b6256f0f590ca"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/baseline/diag-back.png",
+      "sha256": "daa7f4059043e236128ddd450dc30c5000e499770f0f36c1a3cd25f2cbb32a41"
+    },
+    {
+      "kind": "raw",
+      "path": "tmp/mantis-complete-proportion-study/candidate/diag-back.png",
+      "sha256": "5203944913557638600e505ce8cce9b477a8a207120227759d7081365676e897"
+    }
+  ],
+  "evidenceSha256": "520032e3efd943d54cd36a3f4522c01d7c5b277169585eb925a9c7d6336970bb",
+  "sourceGlbRawMeshMetricsExact": true,
+  "matchedCameraLightSettingsViews": 10,
+  "geometry": {
+    "candidate": {
+      "meshObjects": 89,
+      "triangles": 3052,
+      "minimumNormalFacetCosine": 0.1775645656903133,
+      "minimumStoredNormalSourcePolygonCosine": 0.9999999968575035,
+      "opposedTriangles": [],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0,
+      "exactPositionMaterialTriangleCorrespondence": true,
+      "facetDeviationCount": 639,
+      "selfIntersectionParts": [],
+      "neckCrossObjectTriangleIntersections": 629
+    },
+    "baseline": {
+      "meshObjects": 89,
+      "triangles": 3052,
+      "minimumNormalFacetCosine": 0.3485399854984324,
+      "minimumStoredNormalSourcePolygonCosine": 0.9999999967910094,
+      "opposedTriangles": [],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "degenerateTriangles": 0,
+      "exactPositionMaterialTriangleCorrespondence": true,
+      "facetDeviationCount": 595,
+      "selfIntersectionParts": [],
+      "neckCrossObjectTriangleIntersections": 614
+    }
+  },
+  "native": "No exact complete-proportion native payload supplied. Older complete-pass2-native cannot establish this candidate native normal closure.",
+  "animation": "Not evaluated; static evidence only.",
+  "limits": "Existing source rebuild receipts are byte-verified, not independently rebuilt here. Geometry diagnostic functions reused with top-level writes excluded; no visual points from tests.",
+  "verifierDependencies": {
+    "docs/reviews/mantis-curved-normal-diagnosis/diagnose.py": "105d5913946a9b0f319c97fe45fac36804b003cc010e4c3c381b8195e091fb56",
+    "art/driftwood-isle/lowpoly-mantis/cervical-frame-repair/check_geometry.py": "154c375d76835b4a2a93ea9594410497b8bc0653289fdceb608c654328e88ad2",
+    "art/driftwood-isle/lowpoly-mantis/complete-proportion-study/check_geometry.py": "3b61bb9e8e55e69bac33ef2344dc594723d4a2270e09777e991250916263f31f"
+  }
+}

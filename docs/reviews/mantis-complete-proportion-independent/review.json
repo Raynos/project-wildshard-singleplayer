@@ -1,0 +1,39 @@
+{
+  "status": "BELOW_TARGET",
+  "best_of_reviewed_pair": "complete-proportion-study",
+  "candidate": {
+    "silhouette": "3.9",
+    "face": "3.8",
+    "details": "3.9",
+    "facet": "4.2"
+  },
+  "candidateWeightedExact": "3.915",
+  "baseline": {
+    "silhouette": "3.7",
+    "face": "3.6",
+    "details": "3.8",
+    "facet": "4.2"
+  },
+  "baselineWeightedExact": "3.765",
+  "deltaExact": "0.150",
+  "target": "4",
+  "rounding": "None; decimal arithmetic. No scores transferred.",
+  "animationAcceptance": false,
+  "viewObservations": {
+    "hero": "Candidate has less blanket-like leaf overlap, tighter arm reach, and longer pointed head; stronger overall reference gesture.",
+    "front": "Candidate thinner separated wing fan and better mask taper; face still flat-eyed and bilaterally schematic.",
+    "left": "Candidate neck/head reach shortened, tail lifted; long smooth arch remains dominant mismatch. Original does not establish a true side orthographic.",
+    "right": "Same arch and planar leaf rib issue; candidate leaf tips longer and less crowded.",
+    "back": "Candidate separates four leaf volumes, predecessor merges to broad green wall. No original rear to prove exact shape.",
+    "top": "Candidate narrows the paired wing masses and raptor spread; four leaves and four walkers remain coherent. No original top view.",
+    "diag-front": "Candidate sharper leaf silhouettes, improved central face taper; still broad near-symmetric leaf crown.",
+    "diag-left": "Candidate tighter head/arm relationship, less broad wing silhouette; blade crosses face in this projection.",
+    "diag-right": "Candidate long leaf points and higher rear-body taper improve balance; head and thin blade nearly superpose.",
+    "diag-back": "Candidate less bulky foliage and tail; both preserve separate limbs, hidden original anatomy remains inferred."
+  },
+  "ambiguity": [
+    "Reference is a stylized AI concept with two different poses and perspective; no exact orthographic or hidden-side design.",
+    "Scores are independent judgment, not objective measurement; close visual differences remain taste-sensitive.",
+    "Hero is the most directly comparable frame; diagnostic angles expose weaknesses but cannot invent unseen reference detail."
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "reference": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/splinter-mantis-lowpoly.webp",
+  "review_order": "Original, then all ten full candidate PNGs individually; frozen before baseline, receipt, source or prior scores",
+  "scale": 5,
+  "weights": {
+    "silhouette": "0.35",
+    "face": "0.30",
+    "details": "0.20",
+    "facet": "0.15"
+  },
+  "candidate_scores": {
+    "silhouette": "3.9",
+    "face": "3.8",
+    "details": "3.9",
+    "facet": "4.2"
+  },
+  "weighted_exact": "3.915",
+  "target_met": false,
+  "observations": [
+    "Hero conveys leaf-backed wooden mantis convincingly with green eyes and pale toothed sickles.",
+    "Side profiles reveal long uniformly curved cervical arch and comparatively low horizontal abdomen, less compact angular chest/head transition than original.",
+    "Face is narrow pointed mask with large flat green panels; original has a more integrated brow/cheek and fuller faceted eye volume.",
+    "Leaf fan is broad but straight brown perimeter ribs and repeated planar kite construction feel engineered compared with original folded irregular leaf masses.",
+    "Sickles are strong but smooth broad outer arcs and sparse large teeth simplify original jagged profile; limbs and thorax remain comparatively regular.",
+    "Back/top are useful geometry evidence, not directly supported reference views. Static stills do not establish animation readiness."
+  ]
+}

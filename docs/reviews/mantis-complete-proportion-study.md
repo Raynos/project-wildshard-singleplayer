@@ -43,8 +43,8 @@ not a normal overwrite or changed validator threshold.
 Matched hero plus nine views will use the repaired baseline and this complete
 study under identical union-bounds cameras, lighting and render settings.
 Original PNGs are immutable; labelled WebP previews are derivatives only.
-Rendering is pending the shared renderer release. Independent visual review and
-all runtime/motion acceptance remain outstanding.
+Rendering completed in the shared lease. Independent visual review and all
+runtime/motion acceptance remain outstanding.
 
 ### Frozen source gate result
 
@@ -59,3 +59,24 @@ cross-object triangle intersections number 629 versus 614 in the preserved repai
 these are overlapping shell counts, not a penetration-depth or contact verdict.
 The complete source/export/audit footprint is approximately 1.3 MiB including the
 preserved failed first build. Every existing predecessor input is SHA-256 pinned.
+
+### Matched capture closure
+
+The sole renderer completed all 20 actual 638 × 900 frames in 245.75 seconds.
+Every raw PNG hash agrees with the render-time receipt; every vertex projects
+inside its frame, and paired camera/light/settings equality passes. All ten
+frames of each model were individually inspected at full image size. The model,
+raw PNGs, labelled previews and receipts together occupy approximately 14 MiB,
+below the 20 MiB bound. No PNG was re-encoded; no blend was saved.
+
+The visual change is clear in thinner, separated leaf blades and the longer
+pointed facial keel. Profiles still show a pronounced forward neck arch; the
+reduced reach is not a solved claim. The new face can read as a long beak from
+profile, and the broad hip/upper-leg mass remains. The complete silhouette is
+coherent across hidden views, but these weaknesses need independent judgment
+against the approved large figure. No likeness score or replacement selection
+is assigned here.
+
+The checkpoint-normalization receipt is included in evidence closure. Only
+diagnostic prefixes/terminal whitespace changed in its listed logs; original
+log bytes remain retained. No source, geometry or audit was normalized.
