@@ -79,3 +79,20 @@ it('branches around rejected arithmetic inside a bounded loop', () => {
   expect(shader).toMatch(/for\s*\([^]*if\s*\(/u);
   expect(shader).toMatch(/if\s*\([^]*noise_float/u);
 });
+
+it('computes a reused branch result before its separate consumers', () => {
+  const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit',
+    params: { a: { type: 'float', value: 0.4 }, b: { type: 'float', value: 0.6 } },
+    nodes: { a: { op: 'param', param: 'a' }, b: { op: 'param', param: 'b' },
+      ca: { op: 'lt', in: ['a', 0.5] }, cb: { op: 'lt', in: ['b', 0.5] },
+      uv: { op: 'uv' }, seed: { op: 'noise', in: ['uv'] },
+      shared: { op: 'select', in: ['ca', 'seed', 0] },
+      uvA: { op: 'add', in: ['uv', [0.2, 0.3]] }, uvB: { op: 'add', in: ['uv', [0.7, 0.8]] },
+      na: { op: 'noise', in: ['uvA'] }, nb: { op: 'noise', in: ['uvB'] },
+      va: { op: 'add', in: ['shared', 'na'] }, vb: { op: 'add', in: ['shared', 'nb'] },
+      first: { op: 'select', in: ['ca', 'va', 0] }, second: { op: 'select', in: ['cb', 'vb', 0] },
+      sum: { op: 'add', in: ['first', 'second'] }, colour: { op: 'mul', in: ['sum', [1, 1, 1]] },
+    }, stages: { surface: { colour: 'colour' } } };
+  const shader = program(graph).fragmentShader.split('void main()')[1] ?? '';
+  expect(shader.match(/mx_perlin_noise_float_\d+\(/gu)).toHaveLength(3);
+});

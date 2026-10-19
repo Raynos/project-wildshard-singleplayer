@@ -630,7 +630,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       const memo = s === root && perLight.has(r) ? lightMemo : s.lightDeps?.has(r) === true ? s.lightMemo ?? s.memo : s.memo;
       const hit = memo.get(r);
       if (hit !== undefined) return hit;
-      const v = build(n, s);
+      const built = build(n, s);
+      // Reused branch results need one dominating assignment. Otherwise each
+      // later conditional can rebuild the same branch tree in its own cache.
+      const v = s === root && (readers.get(r) ?? 0) > 1 && built.n instanceof ConditionalNode
+        ? { ...built, n: Var(built.n) } : built;
       memo.set(r, v);
       return v;
     }
