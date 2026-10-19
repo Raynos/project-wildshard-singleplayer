@@ -1,0 +1,62 @@
+{
+  "status": "Actual nine-view evidence; independent likeness review required",
+  "source_sha256": "c798497883c47c76b1eb90828cd78a4c775cbab901c2ea4da75a05a0e7ef28bb",
+  "capture_script_sha256": "a3b31173f044f959cf0961f35b237c0427c10201b7cc258c834c55df7487ce2d",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-01-front.webp",
+      "bytes": 19702,
+      "sha256": "8bd3547c8cb5d3d5d3e3c137cbfc4a5afc98ff35ae9ee908d33ebbaa9aae0813"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-02-left.webp",
+      "bytes": 18882,
+      "sha256": "b8333911cec8ea2d1b8ee526f9476e7e7ffa452d8abe4a7d8b6c57b8fc2bcaab"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-03-right.webp",
+      "bytes": 21180,
+      "sha256": "69ddf9f35b1e4bf9d70857db3903730f304d378a1ef5125cb4f5fb16d5f20a0b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-04-back.webp",
+      "bytes": 15484,
+      "sha256": "c6053df68d36eb4b12ff4b8529c1701426716426823e28c30d8860d1c78d5243"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-05-top.webp",
+      "bytes": 46814,
+      "sha256": "39e911240ce6297cc01414959fd9b514ca25c9e86d80500ffe466a35f66ab918"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-06-diag-front.webp",
+      "bytes": 42612,
+      "sha256": "c19ae8f696113afd7e9e800122ad1d8be495fea37a18aeef5994ef286bd766f1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-07-diag-left.webp",
+      "bytes": 38480,
+      "sha256": "fdc587f014af582e8f37d71bc55e913c9962acdc56266400498032c52d3be045"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-08-diag-right.webp",
+      "bytes": 40760,
+      "sha256": "e2415d299d48d6248cee6f349bcf9a8c94885a7900ad999b0eea751d951ce6fe"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-09-diag-back.webp",
+      "bytes": 60440,
+      "sha256": "9d331d88ac17729fe768f87f850f53613383fc9078cb48ada5ea8f7ec0b73fc6"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/bellback-v5-nine-board.webp",
+      "bytes": 157774,
+      "sha256": "5d079ae25e212ee852c17782cb929157e0c6539201087f5558be949cf11cb73c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/capture-v5-nine.json",
+      "bytes": 21329,
+      "sha256": "f8301864ff54b269f736db2d628cba4963883d88dda8b622092b6c21473a0397"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "status": "Unbuilt V6 source. No visual or acceptance claim. V5 nine evidence preserved.",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/build_bellback_v6.py",
+      "bytes": 16966,
+      "sha256": "952a8ddca0991a5aaaf1044d3a0498626567d6805881b77e43450c65f1e90a1d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/capture_review_v2.py",
+      "bytes": 5510,
+      "sha256": "a3b31173f044f959cf0961f35b237c0427c10201b7cc258c834c55df7487ce2d"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/assemble_review.py",
+      "bytes": 2023,
+      "sha256": "911f8d0811613b8f63d53c930410467ad68e04ab5675594469928935ae73095c"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-bellback/closure-v5-nine.json",
+      "bytes": 2460,
+      "sha256": "9ebc5e93d28494268563907b9798ddaf9741eb964eb535193b2ceab10b4b5d2f"
+    },
+    {
+      "path": "docs/reviews/bellback-lowpoly-review-2026-10-19.md",
+      "bytes": 3595,
+      "sha256": "dac060a8b3e5cd6de6583cd8eb5c1fd6b1142812818414b3c685f890e3f8b1ef"
+    }
+  ]
+}
