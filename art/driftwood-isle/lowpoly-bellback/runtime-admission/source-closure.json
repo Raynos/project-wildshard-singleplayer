@@ -1,0 +1,61 @@
+{
+  "status": "Frozen preparation, not admitted; folded source polygons remain open",
+  "files": {
+    "ADMISSION.md": {
+      "sha256": "5335df02bf4816b6807ebbbb8bc719ac5f79621351a9a958d7a92041153dcc48",
+      "bytes": 9092
+    },
+    "audit_source_normals.py": {
+      "sha256": "1688e3ad88ee0876ab2ea8fbae6e41b5f21e023ea80d9e3a0b413b70bfbf65a8",
+      "bytes": 2542
+    },
+    "export_native.py": {
+      "sha256": "60e6793714f6a24e1abe298c435be7be0ff57222ad6bce44c65a9785554c1bdc",
+      "bytes": 12386
+    },
+    "native-consumer.test.ts": {
+      "sha256": "7c8542d0f95f970f6d6b4fe24d10a024b4d6773219b0efe572de38342780f606",
+      "bytes": 9197
+    },
+    "source-normal-caveats.json": {
+      "sha256": "d95c8d485465aaf23d47b6c22d86c900a5e409361bb9c98b8322f39847fdb330",
+      "bytes": 10782
+    },
+    "test_export_native.py": {
+      "sha256": "82a034752d16dd0d816d8267fffde887a393a316866a314367c887182b687f2f",
+      "bytes": 6719
+    },
+    "v6-rigid1/bellback-v6-native.json": {
+      "sha256": "21eb128ec5b34a61df27cddb3b54a89e5982213eeb56e48256d8697088018fa6",
+      "bytes": 1785350
+    },
+    "v6-rigid1/closure.json": {
+      "sha256": "abf902827b3280b7134f9fda3dbcb30f0a9af95fad0a50855f0268edbe187c90",
+      "bytes": 1447
+    },
+    "v6-rigid1/diagnostic-dimensions.json": {
+      "sha256": "f0dd896925b539354fb59051a7f560e536e59ecf7272e564c3d9b8d66ceef74e",
+      "bytes": 345
+    },
+    "v6-rigid1/mesh-map.json": {
+      "sha256": "11c1672a5e38c8fd754b0dece7c8ab733d57cb8b1d27d9eb20cb1c42d8e25df6",
+      "bytes": 6767
+    },
+    "v6-rigid1/metadata.json": {
+      "sha256": "d16965b8965f7465e0373ad926e0153888f47de1ccc645ce2764272a479d2144",
+      "bytes": 3285
+    },
+    "v6-rigid1/payload.bin": {
+      "sha256": "518a350a2c49349f5b5d3a6c03324bcc5c18b6e0edf085350c4dcff79970d9fb",
+      "bytes": 38760
+    },
+    "validation.json": {
+      "sha256": "3b2a0ce968fd6ea5e1454dc6b83d887202eab01da71b3abffb99df60b23c92cc",
+      "bytes": 960
+    },
+    "vitest.config.ts": {
+      "sha256": "5b56f03b3534245ca194dc551b4f4a985ea36bd13a0e7630142819ba44139bea",
+      "bytes": 236
+    }
+  }
+}

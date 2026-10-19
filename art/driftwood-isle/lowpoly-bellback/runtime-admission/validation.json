@@ -1,0 +1,33 @@
+{
+  "status": "Source preparation verified; arena admission blocked pending source geometry and visual review",
+  "checkedAtUtc": "2026-10-19T03:30:46Z",
+  "pythonTests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 0.546
+  },
+  "focusedVitest": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 10.01,
+    "coverage": [
+      "actual packedCreatureBodies typed attributes and fresh copy ownership",
+      "independent GLTFLoader exact triangle and linear material parity",
+      "actual THREE skin rest preservation and eight-joint isolation"
+    ]
+  },
+  "openSourceNormalCases": 14,
+  "windingRepairProduced": false,
+  "lint": "Repository config excludes art; no files selected, not a lint pass",
+  "typecheck": "Not run; focused Vitest transpilation only",
+  "notRun": [
+    "Blender",
+    "app/product build",
+    "browser/rendered comparison",
+    "gameplay",
+    "phone performance"
+  ],
+  "admitted": false
+}

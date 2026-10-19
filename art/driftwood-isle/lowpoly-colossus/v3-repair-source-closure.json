@@ -1,0 +1,20 @@
+{
+  "status": "Frozen V3 repair source; closes mask cap and reseats occluded canopy, preserving original V3",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v3_repair.py",
+      "bytes": 19940,
+      "sha256": "5894cd199ead0318fe45cdd656430f007de52e8b4ba99389da1f81e9387b90c1"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v3_repair_nine.py",
+      "bytes": 2768,
+      "sha256": "771a4a8c37d43e8a1edd017490991190b66f0000607fd3fe7bf90ae5cade50a2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/validate_colossus_v3.py",
+      "bytes": 4008,
+      "sha256": "5a64375e837b9ab91a2f9b49271c863d057b2a3787bd910841d7a5fc4a06ffea"
+    }
+  ]
+}

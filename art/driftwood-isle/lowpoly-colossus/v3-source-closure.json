@@ -1,0 +1,15 @@
+{
+  "status": "Frozen unrendered V3 source; syntax passed; no visual score",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/build_colossus_v3.py",
+      "bytes": 19895,
+      "sha256": "0daea9d6c2914574d19fa5415f10258cd63bd49eaea181a9e3d71db4369972cf"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/render_colossus_v3_nine.py",
+      "bytes": 2747,
+      "sha256": "6bb679cea49435c3510b2f2dc99c31c3651fdbd3842c66d17a6e4678ae34c780"
+    }
+  ]
+}
