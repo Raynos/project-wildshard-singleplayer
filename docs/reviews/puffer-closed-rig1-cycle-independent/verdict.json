@@ -1,0 +1,25 @@
+{
+  "completeCycle": false,
+  "promote": false,
+  "overviewFramesInspected": 3605,
+  "overviewSheetsInspected": 37,
+  "nativeFramesInspected": 32,
+  "nativeSheetsInspected": 8,
+  "telemetryRowsAnalyzed": 363,
+  "verticesPerPose": 10458,
+  "scoresOutOf5": {
+    "presentation": 3.5,
+    "animation": 2.5,
+    "combatReadability": 2,
+    "deathContactPresentation": 2.5,
+    "functionalCoverage": 3
+  },
+  "playerDefeat": false,
+  "defeatedInputProof": false,
+  "postDefeatRetryProof": false,
+  "reloadDamageVisible": true,
+  "twoSimulationSecondHoldVisible": false,
+  "visibleSimulationHoldFromFirstDamage": 0.8105,
+  "telemetrySimulationHoldFromCheckpoint": 2.0105,
+  "settledCorpseObserved": false
+}

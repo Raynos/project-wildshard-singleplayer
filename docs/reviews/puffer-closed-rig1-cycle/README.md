@@ -49,9 +49,14 @@ HTTP errors occurred. Owned browser and server were closed. Attempt 1 is intact.
 - Observed actual locomotion and controller stages 0/1/2, authored hit recoil,
   sword kill, death, 2 bout-local coins, and fresh Retry/reload state. There were
   eight stationary living stage-0 rows and 46 flinch-positive rows before reload.
-- Genuine reload sword damage was 45→33. The movie continued for another 21
-  rendered frames, 2.0105 simulation seconds and 7.895 wall seconds. Persistent
-  browser and world stores were empty at every checkpoint.
+- Genuine reload sword damage was 45→33. Telemetry continued for another 21
+  rendered frames, 2.0105 simulation seconds and 7.895 wall seconds. This is
+  **telemetry-only hold evidence, not an encoded-video hold pass**. Independent
+  complete-frame review observed the final encoded movie frame at reload f28
+  (overlay t5.183), while final telemetry reaches f41 (t10.2335). The movie
+  therefore does not prove telemetry f41 or the full 2.0105-second hold. No
+  video-hold acceptance is claimed. Persistent browser and world stores were
+  empty at every checkpoint.
 - **Player defeat was not reached:** the bounded observation produced five
   12-damage hits, leaving 40 health. Therefore defeated-input blocking and Retry
   after actual defeat remain untested. The recorder's intended phase labels are
