@@ -1,0 +1,90 @@
+/** Mounted Site functional checks. No health, enemy, time, damage, or RNG injection.
+ * Only diagnostic player placement and aim; native touch buttons drive combat. */
+import { verifyMotion5CaptureIdentity, newCaptureDirectory, exactInventory } from '../scripts/qa-conch-motion5-identity.mjs';
+import { chromium, devices } from 'playwright';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone Node QA runner, never bundled into the browser.
+import process from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone Node QA runner requires local immutable file and loopback access.
+import { createServer } from 'node:http';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone Node QA runner requires local immutable file and loopback access.
+import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone Node QA runner requires local immutable file and loopback access.
+import { readFileSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Standalone Node QA runner requires local immutable file and loopback access.
+import { resolve as resolvePath, extname, sep } from 'node:path';
+
+if (process.env.CHROME_PATH !== resolvePath('tmp/dot-audit/tools/chrome-headless-shell-linux64/chrome-headless-shell')) throw new Error('Only approved Chrome shell may be used');
+const identityBefore = verifyMotion5CaptureIdentity();
+const kind = 'conch';
+const config = { actor:'conch-duelist', hp:60, coins:3, source:'tmp/conch-motion5-preview-dist', stage:'conch-st', attempts:24 };
+const built = resolvePath('../wildshard-review-site/dist'), out = newCaptureDirectory(process.env.CONCH_QA_OUT ?? 'tmp/conch-motion5-qa/mounted-run2');
+const hash = data => createHash('sha256').update(data).digest('hex');
+const inventory=exactInventory;
+const inventories=()=>Object.fromEntries(['colossus-engine','conch-engine','puffer-engine','mantis-engine'].map(app=>[app,inventory(resolvePath(built,app))]));
+const report={schema:'wildshard.conch.motion5.local-mounted-unified-functional.v1',kind,identityBefore,startedAt:new Date().toISOString(),url:`http://127.0.0.1:4478/${kind}-engine/index.html`,checks:{},errors:[],failedRequests:[],responses:[],placements:[],samples:[],persistence:[],caveat:'Local mounted proof only, not public deployment. Unchanged Site HTML, only /conch-engine/ routed to exact frozen motion5 bytes. Native desktop and muted iPhone 16 Pro emulation in dot cloud Chromium. No physical-device, Safari, performance, visual acceptance, or fun claim. Diagnostic player placement/aim only. Sword-only supplied loadout; spear is unavailable and not injected.'};
+const save=()=>writeFileSync(`${out}/report.json`,JSON.stringify(report,null,2));
+report.testSourceSha256=hash(readFileSync(new URL(import.meta.url)));
+const navigationInventory=()=>Object.fromEntries(['index.html','arena.html','arena.js','arena.css'].map(path=>[path,hash(readFileSync(resolvePath(built,path)))]));
+report.navigationBefore=navigationInventory();
+const before=inventories(); const siteHtmlBefore=hash(readFileSync(resolvePath(built,'index.html')));
+report.localSiteHtmlSha256=siteHtmlBefore;writeFileSync(`${out}/inventory-before.json`,JSON.stringify(before,null,2));
+const source=inventory(resolvePath(config.source));writeFileSync(`${out}/source-inventory.json`,JSON.stringify(source,null,2));
+report.checks.exactFrozenBytesBefore=true; // Strict motion5 admission above precedes any browser.
+const server=createServer((req,res)=>{const url=new URL(req.url??'/','http://localhost');const mounted=url.pathname.startsWith('/conch-engine/');const root=mounted?resolvePath(config.source):built;const pathname=mounted?url.pathname.slice('/conch-engine/'.length):url.pathname==='/'?'index.html':`.${url.pathname}`;const p=resolvePath(root,pathname);if(!p.startsWith(root+sep)){res.writeHead(403).end();return;}try{res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.glb':'model/gltf-binary'})[extname(p)]??'application/octet-stream');res.end(readFileSync(p));}catch{res.writeHead(404).end();}});
+await new Promise(resolve=>{server.listen(4478,'127.0.0.1',resolve);});
+let browser;
+try {
+ browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--mute-audio','--disable-dev-shm-usage','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ const navigate=async (outer,touch,label)=>{
+  await outer.goto('http://127.0.0.1:4478/index.html',{waitUntil:'domcontentloaded'});
+  await outer.locator('a[href="arena.html"]').first()[touch?'tap':'click']();
+  await outer.waitForURL('**/arena.html');
+  const selector={cards:await outer.locator('.roster article').count(),frames:await outer.locator('#frame-host iframe').count(),conchText:await outer.locator('[data-enemy="conch"]').textContent()};
+  if(selector.cards!==5||selector.frames!==0)throw new Error('Expected pinned five-enemy selector without active engine');
+  await outer.locator('[data-enemy="conch"]')[touch?'tap':'click']();
+  await outer.locator('#frame-host iframe').waitFor();
+  const frame=await outer.locator('#frame-host iframe').elementHandle().then(e=>e.contentFrame());
+  await frame.locator('#practice-start').waitFor();
+  report[`${label}Navigation`]={...selector,framesAfter:await outer.locator('#frame-host iframe').count(),url:frame.url(),title:await outer.locator('#opponent-title').textContent(),frameText:await frame.locator('body').textContent()};
+  report.checks[`${label}SingleMountedEngine`]=report[`${label}Navigation`].framesAfter===1&&frame.url()==='http://127.0.0.1:4478/conch-engine/index.html';
+  save();return frame;
+ };
+ const desktop=await browser.newContext({viewport:{width:650,height:900},deviceScaleFactor:1});
+ const desktopPage=await desktop.newPage();desktopPage.setDefaultTimeout(120000);
+ report.desktopErrors=[];report.desktopFailures=[];
+ desktopPage.on('pageerror',e=>report.desktopErrors.push(e.message));desktopPage.on('requestfailed',r=>report.desktopFailures.push({url:r.url(),failure:r.failure()}));
+ const app=await navigate(desktopPage,false,'desktop');
+ await app.locator('#practice-start').click();await app.waitForFunction(()=>window.__practiceDemo?.arena.entered===true);
+ report.desktop=await app.evaluate(()=>({entered:window.__practiceDemo.arena.entered,kind:window.__practiceDemo.arena.activeTargets[0]?.kind,canvas:[...document.querySelectorAll('canvas')].map(c=>({width:c.width,height:c.height})),touch:navigator.maxTouchPoints,dpr:devicePixelRatio,body:document.body.textContent}));
+ report.checks.desktopPlayStart=report.desktop.entered&&report.desktop.kind===config.actor&&report.desktop.canvas.some(c=>c.width>0&&c.height>0);
+ await desktopPage.screenshot({path:`${out}/desktop-entry.jpg`,type:'jpeg',quality:80,scale:'css'});
+ report.checks.desktopNoRuntimeErrors=report.desktopErrors.length===0&&report.desktopFailures.length===0;await desktop.close();save();
+ const context=await browser.newContext({...devices['iPhone 16 Pro'],viewport:{width:402,height:874},deviceScaleFactor:3});
+ const outer=await context.newPage();outer.setDefaultTimeout(120000);let page;
+ outer.on('pageerror',e=>report.errors.push(e.message));outer.on('requestfailed',r=>report.failedRequests.push({url:r.url(),failure:r.failure()}));outer.on('response',r=>report.responses.push({url:r.url(),status:r.status()}));
+ const mark=phase=>{report.phase=phase;save();console.info(new Date().toISOString(),kind,phase);};
+ const storage=()=>page.evaluate(()=>({local:Object.fromEntries(Object.keys(localStorage).map(key=>[key,localStorage.getItem(key)])),session:Object.fromEntries(Object.keys(sessionStorage).map(key=>[key,sessionStorage.getItem(key)]))}));
+ const persistence=async phase=>{report.persistence.push({phase,browser:await storage(),state:await page.evaluate(()=>{const s=window.__practiceDemo.game.app.saves;return {docs:JSON.parse(s.exportAll()).docs,shard:s.inspectShard({id:'driftwood-isle'}),generation:s.inspectShardGeneration({id:'driftwood-isle'})};})});save();};
+ const sample=()=>page.evaluate(()=>{const d=window.__practiceDemo,a=d.arena.activeTargets[0];return {time:d.game.frameTime,state:d.game.app.state,targets:d.arena.activeTargets.length,enemy:{kind:a?.kind,hp:a?.hp,maxHp:a?.maxHp,alive:a?.alive,state:a?.state,mem:{...a?.mem},position:a?.position.toArray(),bones:Object.keys(a?.bones??{}),strike:a?JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike:null},player:{health:d.arena.playerVitals,position:d.player.position.toArray(),carried:d.player.carried},loot:d.arena.opponent?.loot?.receipt,status:document.querySelector('#practice-status')?.textContent};});
+ const place=async(placementDistance,placementPitch=.03)=>{report.placements.push(await page.evaluate(({distance,pitch})=>{const d=window.__practiceDemo,a=d.arena.activeTargets[0];d.player.spawn(a.position.x,a.position.z+distance,0,a.position.y);d.player.pitch=pitch;return {reason:'Diagnostic player placement and aim only',distance,pitch,time:d.game.frameTime,position:d.player.position.toArray()};},{distance:placementDistance,pitch:placementPitch}));};
+ const snap=async name=>{report[name]=await sample();await outer.screenshot({path:`${out}/${name}.jpg`,type:'jpeg',quality:80,scale:'css'});save();};
+ const fresh=async name=>{await page.evaluate(()=>{window.__mountedPreviousActor=window.__practiceDemo.arena.activeTargets[0];});await page.locator('#practice-retry').tap();await page.waitForTimeout(600);const row=await sample();report[name]=row;report.checks[name]=await page.evaluate(()=>window.__practiceDemo.arena.activeTargets[0]!==window.__mountedPreviousActor)&&row.enemy.hp===config.hp&&row.enemy.alive===true&&row.player.health?.health===100&&row.loot?.coins===0&&row.loot?.complete===false;save();};
+ mark('boot');page=await navigate(outer,true,'phone');report.beforeStart={storage:await storage(),title:await page.evaluate(()=>document.title),text:await page.locator('body').textContent()};report.checks.wipLabel=report.beforeStart.text.includes('UNACCEPTED WIP');await page.locator('#practice-start').tap();await page.waitForFunction(()=>window.__practiceDemo?.arena.entered===true);await snap('entry');report.phoneRendering=await page.evaluate(()=>({dpr:devicePixelRatio,touch:navigator.maxTouchPoints,pixelRatio:window.__practiceDemo.game.renderer.getPixelRatio(),canvas:[...document.querySelectorAll('canvas')].map(c=>({width:c.width,height:c.height})),viewport:{width:innerWidth,height:innerHeight}}));report.checks.normalPhonePolicy=report.phoneRendering.dpr===3&&report.phoneRendering.pixelRatio===2&&report.phoneRendering.touch>0;await persistence('entry');report.checks.correctSingleEnemy=report.entry.enemy.kind===config.actor&&report.entry.targets===1&&report.entry.enemy.hp===config.hp;report.checks.nativeModel=report.entry.enemy.bones.length>10;
+ mark('guard-counter');
+ await page.evaluate(()=>{window.__mountedGuardFrames=[];const record=()=>{const d=window.__practiceDemo,a=d.arena.activeTargets[0];window.__mountedGuardFrames.push({time:d.game.frameTime,hp:a.hp,playerHp:d.arena.playerVitals.health,mem:{...a.mem},strike:JSON.parse(d.arena.opponent.callbacks.control(a).snapshot()).strike});window.__mountedGuardRaf=requestAnimationFrame(record);};window.__mountedGuardRaf=requestAnimationFrame(record);});
+ for(let attempt=0;attempt<4;attempt++){await fresh(`guardRetry${attempt}`);await place(2.1,.08);await page.waitForFunction(()=>{const a=window.__practiceDemo.arena.activeTargets[0];return a?.mem['conch-st']===1&&a?.mem['regular-clock']<.25;},null,{timeout:30000});await page.locator('.ws-touch-attack').tap();await page.waitForTimeout(4500);if(await page.evaluate(()=>window.__mountedGuardFrames.some(r=>r.mem['conch-st']===3)))break;}
+ report.guardFrames=await page.evaluate(()=>{cancelAnimationFrame(window.__mountedGuardRaf);return window.__mountedGuardFrames;});report.checks.guardObserved=report.guardFrames.some(r=>r.mem['conch-guard']===1);report.checks.counterPending=report.guardFrames.some(r=>r.mem['conch-st']===4);report.checks.counterObserved=report.guardFrames.some(r=>r.mem['conch-st']===3);report.counterDamageObserved=report.guardFrames.some((r,i,rows)=>i>0&&r.playerHp<rows[i-1].playerHp&&(r.mem['conch-st']===3||rows[i-1].mem['conch-st']===3));await snap('guardCounter');await fresh('retryAfterGuard');
+ mark('sword-combat');for(let i=0;i<config.attempts;i++){const row=await sample();if(!row.enemy.alive||row.player.health?.health===0)break;await place(2.2);await page.locator('.ws-touch-attack').tap();await page.waitForTimeout(1100);report.samples.push({phase:'sword',...await sample()});save();}
+ await snap('swordResult');report.checks.swordDamage=report.swordResult.enemy.hp<config.hp;report.checks.enemyDefeated=report.swordResult.enemy.alive===false;
+ if(report.checks.enemyDefeated){await place(1.4);const hp=report.swordResult.player.health?.health;const until=Date.now()+30000;while(Date.now()<until){await page.waitForTimeout(1000);const corpseSample=await sample();report.samples.push({phase:'corpse',...corpseSample});if(corpseSample.loot?.complete)break;}await page.waitForTimeout(2000);await snap('corpseReward');report.checks.noPostDeathStrike=report.corpseReward.player.health?.health>=hp&&report.corpseReward.enemy.strike?.phase==='idle'&&report.samples.filter(r=>r.phase==='corpse').every(r=>r.player.health?.health>=hp&&r.enemy.strike?.phase==='idle');report.checks.localReward=report.corpseReward.loot?.scope==='practice'&&report.corpseReward.loot?.coins===config.coins&&report.corpseReward.loot?.complete===true;}
+ await persistence('after-reward');await fresh('retryAfterReward');await persistence('retry-after-reward');
+ mark('enemy-attacks-player-defeat');const until=Date.now()+180000;while(Date.now()<until){const row=await sample();if(row.player.health?.health===0)break;await place(.85,.15);await page.waitForTimeout(1600);report.samples.push({phase:'player-defeat',...await sample()});save();}
+ await snap('playerDefeat');report.checks.enemyAttacks=report.samples.some(r=>r.phase==='player-defeat'&&r.player.health?.health<100);report.checks.playerDefeated=report.playerDefeat.player.health?.health===0;report.checks.playerDeathDoesNotKillEnemy=report.playerDefeat.enemy.alive===true&&report.playerDefeat.enemy.hp===config.hp;
+ if(report.checks.playerDefeated){await page.waitForTimeout(2000);await page.locator('.ws-touch-attack').tap();await page.waitForTimeout(1000);report.defeatedAttack=await sample();report.checks.defeatedAttackBlocked=report.defeatedAttack.enemy.hp===report.playerDefeat.enemy.hp;}
+ await persistence('after-player-defeat');await fresh('retryAfterDefeat');await persistence('retry-after-defeat');
+ mark('reload');const responseMark=report.responses.length;await outer.locator('#reload').tap();page=await outer.locator('#frame-host iframe').elementHandle().then(e=>e.contentFrame());await page.locator('#practice-start').waitFor();report.checks.reloadSingleEngine=await outer.locator('#frame-host iframe').count()===1;await page.locator('#practice-start').tap();await page.waitForFunction(()=>window.__practiceDemo?.arena.entered===true);await snap('reentry');await persistence('reentry');report.checks.reloadFresh=report.reentry.enemy.kind===config.actor&&report.reentry.enemy.hp===config.hp&&report.reentry.player.health?.health===100;
+ report.reloadResponses=report.responses.slice(responseMark);report.checks.reloadAssets=report.reloadResponses.some(r=>r.url.includes('/assets/')&&r.status===200)&&report.reloadResponses.every(r=>r.status<400);report.checks.mountedAssetBase=report.responses.filter(r=>new URL(r.url).pathname.includes('-engine/')).every(r=>new URL(r.url).pathname.startsWith(`/${kind}-engine/`));
+ report.checks.emptyBrowserStorage=[report.beforeStart.storage,...report.persistence.map(r=>r.browser)].every(r=>Object.keys(r.local).length===0&&Object.keys(r.session).length===0);const states=report.persistence.map(r=>r.state);report.checks.emptyWorldShardPersistence=states.every(r=>JSON.stringify(r)===JSON.stringify(states[0])&&Object.keys(r.shard).length===0&&r.generation===0&&Object.values(r.docs).every(d=>Object.keys(d.keys).length===0));report.checks.noRuntimeErrors=report.errors.length===0&&report.failedRequests.length===0&&report.responses.every(r=>r.status<400);
+ await context.close();mark('complete');
+} catch(e){report.fatal=e.stack;process.exitCode=1;}
+finally {await browser?.close();await new Promise(resolve=>{server.close(resolve);});const after=inventories();const sourceAfter=inventory(resolvePath(config.source));writeFileSync(`${out}/source-inventory-after.json`,JSON.stringify(sourceAfter,null,2));try { report.identityAfter=verifyMotion5CaptureIdentity(); report.checks.exactFrozenBytesAfter=JSON.stringify(identityBefore)===JSON.stringify(report.identityAfter); } catch(error) { report.identityError=error.message; report.checks.exactFrozenBytesAfter=false; }report.navigationAfter=navigationInventory();report.checks.navigationUnchanged=JSON.stringify(report.navigationBefore)===JSON.stringify(report.navigationAfter);report.checks.testSourceUnchanged=report.testSourceSha256===hash(readFileSync(new URL(import.meta.url)));report.checks.siteHtmlUnchanged=siteHtmlBefore===hash(readFileSync(resolvePath(built,'index.html')));writeFileSync(`${out}/inventory-after.json`,JSON.stringify(after,null,2));report.checks.allFourAppsUnchanged=JSON.stringify(before)===JSON.stringify(after);report.endedAt=new Date().toISOString();report.pass=!report.fatal&&Object.values(report.checks).every(v=>v===true);if(!report.pass)process.exitCode=1;save();console.info(JSON.stringify({kind,pass:report.pass,checks:report.checks,fatal:report.fatal}));}

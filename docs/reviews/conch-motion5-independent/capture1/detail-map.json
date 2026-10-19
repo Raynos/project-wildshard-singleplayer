@@ -1,0 +1,86 @@
+{
+  "detail-01.png": {
+    "frame": 710,
+    "pts": 28.400000000000002
+  },
+  "detail-02.png": {
+    "frame": 730,
+    "pts": 29.2
+  },
+  "detail-03.png": {
+    "frame": 753,
+    "pts": 30.12
+  },
+  "detail-04.png": {
+    "frame": 780,
+    "pts": 31.2
+  },
+  "detail-05.png": {
+    "frame": 1265,
+    "pts": 50.6
+  },
+  "detail-06.png": {
+    "frame": 1272,
+    "pts": 50.88
+  },
+  "detail-07.png": {
+    "frame": 1290,
+    "pts": 51.6
+  },
+  "detail-08.png": {
+    "frame": 1450,
+    "pts": 58.0
+  },
+  "detail-09.png": {
+    "frame": 1480,
+    "pts": 59.2
+  },
+  "detail-10.png": {
+    "frame": 1510,
+    "pts": 60.4
+  },
+  "detail-11.png": {
+    "frame": 1550,
+    "pts": 62.0
+  },
+  "detail-12.png": {
+    "frame": 10080,
+    "pts": 403.2
+  },
+  "detail-13.png": {
+    "frame": 10085,
+    "pts": 403.40000000000003
+  },
+  "detail-14.png": {
+    "frame": 10093,
+    "pts": 403.72
+  },
+  "detail-15.png": {
+    "frame": 10100,
+    "pts": 404.0
+  },
+  "detail-16.png": {
+    "frame": 10110,
+    "pts": 404.40000000000003
+  },
+  "detail-17.png": {
+    "frame": 10125,
+    "pts": 405.0
+  },
+  "detail-18.png": {
+    "frame": 10140,
+    "pts": 405.6
+  },
+  "detail-19.png": {
+    "frame": 10400,
+    "pts": 416.0
+  },
+  "detail-20.png": {
+    "frame": 12150,
+    "pts": 486.0
+  },
+  "detail-21.png": {
+    "frame": 12360,
+    "pts": 494.40000000000003
+  }
+}

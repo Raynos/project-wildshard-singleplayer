@@ -1,0 +1,37 @@
+{
+  "capture-receipt.json": {
+    "checked": 26,
+    "mismatches": []
+  },
+  "source-closure.json": {
+    "checked": 7,
+    "mismatches": []
+  },
+  "final-closure.json": {
+    "checked": 52,
+    "mismatches": []
+  },
+  "predecessor-preservation.json": {
+    "checked": 80,
+    "mismatches": []
+  },
+  "checkpoint-closure.json": {
+    "checked": 8,
+    "mismatches": []
+  },
+  "failed-initial/closure.json": {
+    "checked": 26,
+    "mismatches": []
+  },
+  "cameraComparison": {
+    "pairs": 10,
+    "mismatches": [],
+    "resolution": [
+      525,
+      700
+    ],
+    "samples": 16
+  },
+  "approvedOriginalSHA256": "157fe0ad0db0705fd0ca4604b0bbf6d24893a935079f7529b29b010a25bb80d3",
+  "frozenInitialSHA256": "0951d75da0a2bc01e9904753fa230e883e5c478eaf3c6712181ce036ee07c18f"
+}

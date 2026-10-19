@@ -1,0 +1,17 @@
+{
+  "objects": 89,
+  "triangles": 3052,
+  "vertices": 9156,
+  "packedChannels": 132,
+  "facetDeviations": 603,
+  "nonOpposedDeviations": 599,
+  "opposed": 4,
+  "minimumCosine": -0.8982597841363307,
+  "pointMaterialBoundaryCorrespondence": true,
+  "sixChannelCorrespondence": true
+}
+polygon 53 point ids [36, 43, 42] stored/Newell 0.9999999998858302 distance 0.009593010110829173 diagonals [{'triangles': [[35, 36, 43], [35, 43, 42]], 'facetMutualCosine': -0.9947898953214468, 'cosinesToPolygon': [0.7672205475582019, -0.6978365358245902]}, {'triangles': [[35, 36, 42], [36, 43, 42]], 'facetMutualCosine': -0.9944042544583217, 'cosinesToPolygon': [0.7713337277574965, -0.6997838691846583]}]
+polygon 59 point ids [40, 47, 46] stored/Newell 0.9999999997495664 distance 0.008004731837734189 diagonals [{'triangles': [[39, 40, 47], [39, 47, 46]], 'facetMutualCosine': -0.9968724199344254, 'cosinesToPolygon': [0.9026980960710335, -0.8658712284724667]}, {'triangles': [[39, 40, 46], [40, 47, 46]], 'facetMutualCosine': -0.9970365650093634, 'cosinesToPolygon': [0.9028735544835886, -0.8671256455166064]}]
+polygon 62 point ids [35, 42, 48] stored/Newell 0.9999999984081038 distance 0.011203250794154684 diagonals [{'triangles': [[41, 35, 42], [41, 42, 48]], 'facetMutualCosine': -0.9929312639853081, 'cosinesToPolygon': [0.7935966018059337, -0.7157701419565557]}, {'triangles': [[41, 35, 48], [35, 42, 48]], 'facetMutualCosine': -0.9924100134752739, 'cosinesToPolygon': [0.7943781272198953, -0.7136520936396608]}]
+polygon 56 point ids [38, 45, 44] stored/Newell 0.999999999046069 distance 0.005942301630596208 diagonals [{'triangles': [[37, 38, 45], [37, 45, 44]], 'facetMutualCosine': -0.998289907932296, 'cosinesToPolygon': [0.9232386121942419, -0.8991988977908305]}, {'triangles': [[37, 38, 44], [38, 45, 44]], 'facetMutualCosine': -0.9983734067718434, 'cosinesToPolygon': [0.9218664784000699, -0.8982738029702769]}]
+Final frame {'station': 6, 'center': (0, -0.89, 2.55), 'width': 0.125, 'depth': 0.105, 'tangent': [0.0, -0.9946917938265512, -0.10289915108550612], 'u': [1.0, -0.0, 0.0], 'v': [-0.0, -0.10289915108550614, 0.9946917938265513], 'previousUCosine': -1.0, 'previousVCosine': -0.9788235294117648}

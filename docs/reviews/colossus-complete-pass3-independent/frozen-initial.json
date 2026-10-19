@@ -1,0 +1,28 @@
+{
+  "reviewer": "independent-canopy-anatomy",
+  "frozenAtUTC": "2026-10-19T14:34:15.801395+00:00",
+  "sequence": "Approved original and ten candidate full PNGs individually inspected; no predecessor images, construction prose or prior scores inspected before freeze.",
+  "scoresOutOf5": {
+    "silhouetteProportions": 3.6,
+    "faceExpression": 3.2,
+    "definingDetails": 3.8,
+    "facetStyle": 3.6
+  },
+  "weights": {
+    "silhouetteProportions": 0.35,
+    "faceExpression": 0.3,
+    "definingDetails": 0.2,
+    "facetStyle": 0.15
+  },
+  "exactWeightedScore": 3.52,
+  "target": 4,
+  "passes": false,
+  "observations": [
+    "Broad crouched wood guardian, antler crown, cyan chest crystal and rocky feet clearly match identity.",
+    "Face is a small compressed dark mask with tiny cyan slits; approved original has a longer pale pointed mask and more conspicuous stern eye geometry.",
+    "Candidate is broad and stocky with comparatively short legs; original has a more sinuous lanky root-body rhythm and differentiated claws.",
+    "Bright shallow polygon leaf plates read as geometric badges and a broad shoulder/back cape; original canopy has layered hanging fronds and richer depth.",
+    "Antlers, core and rib framing are recognizable; bark and foliage feel more uniform and bilateral than the original."
+  ],
+  "blinding": "Role/version names and receipt metadata visible. Not blinded to candidate identity; prior scores and construction prose deferred."
+}

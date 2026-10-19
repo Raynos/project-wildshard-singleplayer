@@ -1,0 +1,76 @@
+{
+  "sourceFreeze": {
+    "path": "art/driftwood-isle/approved-conch/motion5-study/freeze-manifest.json",
+    "sha256": "29f4f09a8c397394c532450aabe4c0b8989088beeb718d37249b5e7106213fc9",
+    "matches": true
+  },
+  "buildPin": {
+    "path": "tmp/conch-motion5-preview/reviewed-build-pin.json",
+    "sha256": "3a584795af56adef1d35d4ff3907bc8ac053f481cee43c222775541c27305489",
+    "matches": true
+  },
+  "hostInventory": {
+    "path": "tmp/conch-motion5-preview-dist/motion5-host-files.json",
+    "sha256": "7a51507bf92abd3af2261785bfcbb87097986a7c8d0613f28bee78ddbff7964b",
+    "matches": true
+  },
+  "preview": {
+    "path": "tmp/conch-motion5-preview-dist/conch-preview.json",
+    "sha256": "346580249b80f84598fe7e3e7781fbf9cdcc284370474a480c12d1becba2cea7",
+    "matches": true
+  },
+  "video": {
+    "path": "tmp/conch-motion5-qa/actual-run1/video/page@cb44d293943a4df9fd5207326d277192.webm",
+    "sha256": "730f29e7f535027eac5e2f1d31022cd9f202ae994c9f65d3219d2989338044de",
+    "matches": true
+  },
+  "trace": {
+    "path": "tmp/conch-motion5-qa/actual-run1/render-trace.json",
+    "sha256": "09222bae3382ebc4a41c44cf399b9b04f50d6e19870a8a52dd339ae269fef7b5",
+    "matches": true
+  },
+  "events": {
+    "path": "tmp/conch-motion5-qa/actual-run1/events.json",
+    "sha256": "0c2f4e4d7694ead981b3612d6d533ca42247c167c2d6d5c3a53851852141ef31",
+    "matches": true
+  },
+  "geometry": {
+    "path": "tmp/conch-motion5-qa/actual-run1/runtime-geometry.json",
+    "sha256": "e7c7ab65d8c8e08cae682f308ac2f5cc060d5f959b34aed05981ba3f6f71bb5e",
+    "matches": true
+  },
+  "contact": {
+    "path": "tmp/conch-motion5-qa/actual-run1/weighted-contact.json",
+    "sha256": "3c6226ad246a3a73ef32e3f48f818bbc204b5a145ffbd5cca49fbc3d8270eb00",
+    "matches": true
+  },
+  "framesIndex": {
+    "path": "tmp/conch-motion5-qa/actual-run1/streamed-frame-review/index.json",
+    "sha256": "b870afd7ca18714a222fc3ff873c692bdf57101835756ae0c60e8b49553cec42",
+    "matches": true
+  },
+  "actualReport": {
+    "path": "tmp/conch-motion5-qa/actual-run1/report.json",
+    "sha256": "59f655eca6b79f84891f3cf8035f2c783dc28bfdb0eb82aee1af69c064fe151b",
+    "matches": true
+  },
+  "mountedReport": {
+    "path": "tmp/conch-motion5-qa/mounted-run1/report.json",
+    "sha256": "bd0a4ae3d63d38c39bda944b813686d6dfee8ea86195e3c11b3ae113f1e758d0",
+    "matches": true
+  },
+  "encodedFrames": {
+    "sha256": "8c922727c6c5695db55cb73f18807ba3d30b05af293bfd7c8f0c243397810345",
+    "matches": true
+  },
+  "productSourceHash": {
+    "value": "be09cb6bd1c376099bf4d38edc9fd8f38873c999168f72902cf06279320eab38",
+    "matches": true,
+    "method": "Equality of validated product build.sourceHash, preview.sourceHash and run-summary.hashes.source; not independently rebuilt."
+  },
+  "factoryFile": {
+    "path": "art/driftwood-isle/approved-conch/motion5-study/conchMotion5Preview.ts",
+    "sha256": "3c1925fc70f12f51119d6cbad06a6d9709eed0ec6c5eeef9aa20f714ccf0d2ac",
+    "matchesFrozenManifest": true
+  }
+}

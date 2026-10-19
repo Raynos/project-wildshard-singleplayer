@@ -1,0 +1,266 @@
+[
+  {
+    "kind": "ordinary",
+    "firstObservation": 36,
+    "lastObservation": 52,
+    "startWallSeconds": 25.8675,
+    "endWallSeconds": 29.88789999999106,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 75,
+    "lastObservation": 91,
+    "startWallSeconds": 36.284,
+    "endWallSeconds": 42.62359999999404,
+    "uninterrupted": true
+  },
+  {
+    "kind": "counter",
+    "firstObservation": 145,
+    "lastObservation": 161,
+    "startWallSeconds": 56.43529999999702,
+    "endWallSeconds": 60.82329999999702,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 175,
+    "lastObservation": 191,
+    "startWallSeconds": 64.17739999999105,
+    "endWallSeconds": 68.39929999999703,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 196,
+    "lastObservation": 206,
+    "startWallSeconds": 69.67419999998808,
+    "endWallSeconds": 72.25539999999106,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 240,
+    "lastObservation": 248,
+    "startWallSeconds": 81.2655,
+    "endWallSeconds": 83.35839999999106,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 258,
+    "lastObservation": 266,
+    "startWallSeconds": 94.94819999998808,
+    "endWallSeconds": 97.75329999999703,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 307,
+    "lastObservation": 316,
+    "startWallSeconds": 105.40629999999702,
+    "endWallSeconds": 108.11669999998809,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 345,
+    "lastObservation": 354,
+    "startWallSeconds": 117.34139999999105,
+    "endWallSeconds": 119.08919999998808,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 397,
+    "lastObservation": 405,
+    "startWallSeconds": 127.19539999999105,
+    "endWallSeconds": 128.9765,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 441,
+    "lastObservation": 453,
+    "startWallSeconds": 137.12189999999106,
+    "endWallSeconds": 140.54729999999702,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 487,
+    "lastObservation": 498,
+    "startWallSeconds": 149.493,
+    "endWallSeconds": 151.9845,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 533,
+    "lastObservation": 543,
+    "startWallSeconds": 160.2746999999881,
+    "endWallSeconds": 162.48809999999403,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 582,
+    "lastObservation": 596,
+    "startWallSeconds": 170.46039999999107,
+    "endWallSeconds": 173.4425,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 625,
+    "lastObservation": 638,
+    "startWallSeconds": 181.25359999999404,
+    "endWallSeconds": 183.57939999999107,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 658,
+    "lastObservation": 674,
+    "startWallSeconds": 187.86229999999702,
+    "endWallSeconds": 190.93619999998808,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 681,
+    "lastObservation": 696,
+    "startWallSeconds": 191.94229999999703,
+    "endWallSeconds": 196.842,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 728,
+    "lastObservation": 744,
+    "startWallSeconds": 206.71609999999404,
+    "endWallSeconds": 211.56969999998807,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 783,
+    "lastObservation": 799,
+    "startWallSeconds": 222.49639999999107,
+    "endWallSeconds": 230.01139999999106,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 828,
+    "lastObservation": 845,
+    "startWallSeconds": 241.588799999997,
+    "endWallSeconds": 247.27869999998808,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 900,
+    "lastObservation": 916,
+    "startWallSeconds": 269.9841999999881,
+    "endWallSeconds": 273.7995,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 965,
+    "lastObservation": 982,
+    "startWallSeconds": 287.0178999999911,
+    "endWallSeconds": 292.15709999999405,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1030,
+    "lastObservation": 1046,
+    "startWallSeconds": 305.2,
+    "endWallSeconds": 309.00729999999703,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1072,
+    "lastObservation": 1080,
+    "startWallSeconds": 314.43509999999407,
+    "endWallSeconds": 317.49369999998805,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1122,
+    "lastObservation": 1132,
+    "startWallSeconds": 332.20639999999105,
+    "endWallSeconds": 335.9715,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1285,
+    "lastObservation": 1298,
+    "startWallSeconds": 397.0475,
+    "endWallSeconds": 400.77389999999104,
+    "uninterrupted": false
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1381,
+    "lastObservation": 1398,
+    "startWallSeconds": 420.77129999999704,
+    "endWallSeconds": 424.65129999999704,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1414,
+    "lastObservation": 1431,
+    "startWallSeconds": 427.3015,
+    "endWallSeconds": 430.395799999997,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1447,
+    "lastObservation": 1464,
+    "startWallSeconds": 433.59909999999405,
+    "endWallSeconds": 436.79209999999404,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1481,
+    "lastObservation": 1498,
+    "startWallSeconds": 440.7946999999881,
+    "endWallSeconds": 444.5016999999881,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1514,
+    "lastObservation": 1530,
+    "startWallSeconds": 450.736,
+    "endWallSeconds": 458.8493999999911,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1547,
+    "lastObservation": 1563,
+    "startWallSeconds": 465.75139999999107,
+    "endWallSeconds": 469.165099999994,
+    "uninterrupted": true
+  },
+  {
+    "kind": "ordinary",
+    "firstObservation": 1580,
+    "lastObservation": 1596,
+    "startWallSeconds": 472.50229999999704,
+    "endWallSeconds": 476.90589999999105,
+    "uninterrupted": true
+  }
+]

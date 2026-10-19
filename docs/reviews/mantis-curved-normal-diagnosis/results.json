@@ -1,0 +1,1167 @@
+{
+  "schema": "mantis-curved-normal-diagnosis.v1",
+  "summary": {
+    "objects": 89,
+    "triangles": 3052,
+    "vertices": 9156,
+    "packedChannels": 132,
+    "facetDeviations": 603,
+    "nonOpposedDeviations": 599,
+    "opposed": 4,
+    "minimumCosine": -0.8982597841363307,
+    "pointMaterialBoundaryCorrespondence": true,
+    "sixChannelCorrespondence": true
+  },
+  "opposedFacets": [
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 53,
+      "primitive": 0,
+      "triangle": 32,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        36,
+        43,
+        42
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 96,
+      "cosines": [
+        -0.6997748062874358,
+        -0.6997748062874358,
+        -0.6997748062874358
+      ],
+      "geometricNormal": [
+        0.6597482071013234,
+        0.44304712526663176,
+        -0.606993861599574
+      ],
+      "storedNormals": [
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ],
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ],
+        [
+          -0.7851640582084656,
+          0.31788545846939087,
+          0.5314756631851196
+        ]
+      ],
+      "sourcePolygonVertices": [
+        35,
+        36,
+        43,
+        42
+      ],
+      "sourcePositionsBlender": [
+        [
+          -0.14499999582767487,
+          -0.6000000238418579,
+          2.5799999237060547
+        ],
+        [
+          -0.09040601551532745,
+          -0.6096540093421936,
+          2.486678123474121
+        ],
+        [
+          0.07793622463941574,
+          -0.8984472155570984,
+          2.6316564083099365
+        ],
+        [
+          0.125,
+          -0.8899999856948853,
+          2.549999952316284
+        ]
+      ],
+      "polygonNewellNormal": [
+        -0.7851611143998121,
+        0.3178749791626952,
+        0.5314861447458074
+      ],
+      "storedVsNewellCosine": 0.9999999998858302,
+      "fourthPointPlaneDistance": 0.009593010110829173,
+      "triangulations": [
+        {
+          "triangles": [
+            [
+              35,
+              36,
+              43
+            ],
+            [
+              35,
+              43,
+              42
+            ]
+          ],
+          "facetMutualCosine": -0.9947898953214468,
+          "cosinesToPolygon": [
+            0.7672205475582019,
+            -0.6978365358245902
+          ]
+        },
+        {
+          "triangles": [
+            [
+              35,
+              36,
+              42
+            ],
+            [
+              36,
+              43,
+              42
+            ]
+          ],
+          "facetMutualCosine": -0.9944042544583217,
+          "cosinesToPolygon": [
+            0.7713337277574965,
+            -0.6997838691846583
+          ]
+        }
+      ],
+      "polygonExportTriangles": [
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 53,
+          "primitive": 0,
+          "triangle": 31,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            35,
+            36,
+            42
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 93,
+          "cosines": [
+            0.7713256640643832,
+            0.7713256640643832,
+            0.7713256640643832
+          ],
+          "geometricNormal": [
+            -0.7038939921376406,
+            -0.34770966526660463,
+            0.6193797191648439
+          ],
+          "storedNormals": [
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ],
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ],
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ]
+          ]
+        },
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 53,
+          "primitive": 0,
+          "triangle": 32,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            36,
+            43,
+            42
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 96,
+          "cosines": [
+            -0.6997748062874358,
+            -0.6997748062874358,
+            -0.6997748062874358
+          ],
+          "geometricNormal": [
+            0.6597482071013234,
+            0.44304712526663176,
+            -0.606993861599574
+          ],
+          "storedNormals": [
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ],
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ],
+            [
+              -0.7851640582084656,
+              0.31788545846939087,
+              0.5314756631851196
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 59,
+      "primitive": 0,
+      "triangle": 35,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        40,
+        47,
+        46
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 105,
+      "cosines": [
+        -0.867132842414658,
+        -0.867132842414658,
+        -0.867132842414658
+      ],
+      "geometricNormal": [
+        -0.46084029883363886,
+        -0.6266025000709925,
+        -0.6284866950665736
+      ],
+      "storedNormals": [
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ],
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ],
+        [
+          -0.00010000062320614234,
+          0.8405052423477173,
+          0.5418034195899963
+        ]
+      ],
+      "sourcePolygonVertices": [
+        39,
+        40,
+        47,
+        46
+      ],
+      "sourcePositionsBlender": [
+        [
+          0.13064047694206238,
+          -0.5946424603462219,
+          2.6317896842956543
+        ],
+        [
+          0.03226553276181221,
+          -0.587961733341217,
+          2.6963703632354736
+        ],
+        [
+          -0.027815116569399834,
+          -0.8794664740562439,
+          2.4481759071350098
+        ],
+        [
+          -0.11262110620737076,
+          -0.8853121399879456,
+          2.5046839714050293
+        ]
+      ],
+      "polygonNewellNormal": [
+        -0.0001068757383830645,
+        0.8405167733045796,
+        0.5417855132533856
+      ],
+      "storedVsNewellCosine": 0.9999999997495664,
+      "fourthPointPlaneDistance": 0.008004731837734189,
+      "triangulations": [
+        {
+          "triangles": [
+            [
+              39,
+              40,
+              47
+            ],
+            [
+              39,
+              47,
+              46
+            ]
+          ],
+          "facetMutualCosine": -0.9968724199344254,
+          "cosinesToPolygon": [
+            0.9026980960710335,
+            -0.8658712284724667
+          ]
+        },
+        {
+          "triangles": [
+            [
+              39,
+              40,
+              46
+            ],
+            [
+              40,
+              47,
+              46
+            ]
+          ],
+          "facetMutualCosine": -0.9970365650093634,
+          "cosinesToPolygon": [
+            0.9028735544835886,
+            -0.8671256455166064
+          ]
+        }
+      ],
+      "polygonExportTriangles": [
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 59,
+          "primitive": 0,
+          "triangle": 34,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            39,
+            40,
+            46
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 102,
+          "cosines": [
+            0.9028797675443847,
+            0.9028797675443847,
+            0.9028797675443847
+          ],
+          "geometricNormal": [
+            0.3977395546210574,
+            0.6706435968416254,
+            0.626131306281015
+          ],
+          "storedNormals": [
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ],
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ],
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ]
+          ]
+        },
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 59,
+          "primitive": 0,
+          "triangle": 35,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            40,
+            47,
+            46
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 105,
+          "cosines": [
+            -0.867132842414658,
+            -0.867132842414658,
+            -0.867132842414658
+          ],
+          "geometricNormal": [
+            -0.46084029883363886,
+            -0.6266025000709925,
+            -0.6284866950665736
+          ],
+          "storedNormals": [
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ],
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ],
+            [
+              -0.00010000062320614234,
+              0.8405052423477173,
+              0.5418034195899963
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 62,
+      "primitive": 0,
+      "triangle": 38,
+      "material": 0,
+      "materialName": "Honey driftwood.001",
+      "sourceVertexIds": [
+        35,
+        42,
+        48
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 114,
+      "cosines": [
+        -0.7136163621589874,
+        -0.7136163621589874,
+        -0.7136163621589874
+      ],
+      "geometricNormal": [
+        0.6763051859022577,
+        -0.32122215362081813,
+        -0.662893372681396
+      ],
+      "storedNormals": [
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ],
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ],
+        [
+          -0.17630049586296082,
+          0.8592023849487305,
+          0.4803013503551483
+        ]
+      ],
+      "sourcePolygonVertices": [
+        41,
+        35,
+        42,
+        48
+      ],
+      "sourcePositionsBlender": [
+        [
+          -0.09040601551532745,
+          -0.5903460383415222,
+          2.6733217239379883
+        ],
+        [
+          -0.14499999582767487,
+          -0.6000000238418579,
+          2.5799999237060547
+        ],
+        [
+          0.125,
+          -0.8899999856948853,
+          2.549999952316284
+        ],
+        [
+          0.07793622463941574,
+          -0.8815527558326721,
+          2.468343496322632
+        ]
+      ],
+      "polygonNewellNormal": [
+        -0.17632626756260397,
+        0.8591739696709666,
+        0.4803427289001822
+      ],
+      "storedVsNewellCosine": 0.9999999984081038,
+      "fourthPointPlaneDistance": 0.011203250794154684,
+      "triangulations": [
+        {
+          "triangles": [
+            [
+              41,
+              35,
+              42
+            ],
+            [
+              41,
+              42,
+              48
+            ]
+          ],
+          "facetMutualCosine": -0.9929312639853081,
+          "cosinesToPolygon": [
+            0.7935966018059337,
+            -0.7157701419565557
+          ]
+        },
+        {
+          "triangles": [
+            [
+              41,
+              35,
+              48
+            ],
+            [
+              35,
+              42,
+              48
+            ]
+          ],
+          "facetMutualCosine": -0.9924100134752739,
+          "cosinesToPolygon": [
+            0.7943781272198953,
+            -0.7136520936396608
+          ]
+        }
+      ],
+      "polygonExportTriangles": [
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 62,
+          "primitive": 0,
+          "triangle": 37,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            41,
+            35,
+            48
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 111,
+          "cosines": [
+            0.7943471423145607,
+            0.7943471423145607,
+            0.7943471423145607
+          ],
+          "geometricNormal": [
+            -0.6173974164679283,
+            0.4293690151068489,
+            0.6591378300514257
+          ],
+          "storedNormals": [
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ],
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ],
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ]
+          ]
+        },
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 62,
+          "primitive": 0,
+          "triangle": 38,
+          "material": 0,
+          "materialName": "Honey driftwood.001",
+          "sourceVertexIds": [
+            35,
+            42,
+            48
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 114,
+          "cosines": [
+            -0.7136163621589874,
+            -0.7136163621589874,
+            -0.7136163621589874
+          ],
+          "geometricNormal": [
+            0.6763051859022577,
+            -0.32122215362081813,
+            -0.662893372681396
+          ],
+          "storedNormals": [
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ],
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ],
+            [
+              -0.17630049586296082,
+              0.8592023849487305,
+              0.4803013503551483
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "node": 4,
+      "name": "Rising prothorax curved cervical arch",
+      "polygon": 56,
+      "primitive": 1,
+      "triangle": 28,
+      "material": 1,
+      "materialName": "Warm broad wood plane.001",
+      "sourceVertexIds": [
+        38,
+        45,
+        44
+      ],
+      "nativeJoint": "neck",
+      "nativeVertexStart": 231,
+      "cosines": [
+        -0.8982597841363307,
+        -0.8982597841363307,
+        -0.8982597841363307
+      ],
+      "geometricNormal": [
+        -0.44150401890286817,
+        0.7182323109723019,
+        -0.5377885725524509
+      ],
+      "storedNormals": [
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ],
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ],
+        [
+          0.7392909526824951,
+          -0.37989532947540283,
+          0.5559931397438049
+        ]
+      ],
+      "sourcePolygonVertices": [
+        37,
+        38,
+        45,
+        44
+      ],
+      "sourcePositionsBlender": [
+        [
+          0.03226553276181221,
+          -0.6120383143424988,
+          2.4636294841766357
+        ],
+        [
+          0.13064047694206238,
+          -0.6053575873374939,
+          2.528210163116455
+        ],
+        [
+          -0.11262110620737076,
+          -0.894687831401825,
+          2.595315933227539
+        ],
+        [
+          -0.027815116569399834,
+          -0.9005334973335266,
+          2.6518239974975586
+        ]
+      ],
+      "polygonNewellNormal": [
+        0.7392881102311183,
+        -0.37993300531275787,
+        0.5559712236662233
+      ],
+      "storedVsNewellCosine": 0.999999999046069,
+      "fourthPointPlaneDistance": 0.005942301630596208,
+      "triangulations": [
+        {
+          "triangles": [
+            [
+              37,
+              38,
+              45
+            ],
+            [
+              37,
+              45,
+              44
+            ]
+          ],
+          "facetMutualCosine": -0.998289907932296,
+          "cosinesToPolygon": [
+            0.9232386121942419,
+            -0.8991988977908305
+          ]
+        },
+        {
+          "triangles": [
+            [
+              37,
+              38,
+              44
+            ],
+            [
+              38,
+              45,
+              44
+            ]
+          ],
+          "facetMutualCosine": -0.9983734067718434,
+          "cosinesToPolygon": [
+            0.9218664784000699,
+            -0.8982738029702769
+          ]
+        }
+      ],
+      "polygonExportTriangles": [
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 56,
+          "primitive": 1,
+          "triangle": 27,
+          "material": 1,
+          "materialName": "Warm broad wood plane.001",
+          "sourceVertexIds": [
+            37,
+            38,
+            44
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 228,
+          "cosines": [
+            0.9218541125248902,
+            0.9218541125248902,
+            0.9218541125248902
+          ],
+          "geometricNormal": [
+            0.4852481571892311,
+            -0.682651646375108,
+            0.5463707126537893
+          ],
+          "storedNormals": [
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ],
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ],
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ]
+          ]
+        },
+        {
+          "node": 4,
+          "name": "Rising prothorax curved cervical arch",
+          "polygon": 56,
+          "primitive": 1,
+          "triangle": 28,
+          "material": 1,
+          "materialName": "Warm broad wood plane.001",
+          "sourceVertexIds": [
+            38,
+            45,
+            44
+          ],
+          "nativeJoint": "neck",
+          "nativeVertexStart": 231,
+          "cosines": [
+            -0.8982597841363307,
+            -0.8982597841363307,
+            -0.8982597841363307
+          ],
+          "geometricNormal": [
+            -0.44150401890286817,
+            0.7182323109723019,
+            -0.5377885725524509
+          ],
+          "storedNormals": [
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ],
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ],
+            [
+              0.7392909526824951,
+              -0.37989532947540283,
+              0.5559931397438049
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "sourceLoftFrames": [
+    {
+      "station": 0,
+      "center": [
+        0,
+        0.36,
+        1.4
+      ],
+      "width": 0.265,
+      "depth": 0.22,
+      "tangent": [
+        0.0,
+        -0.4613527366419894,
+        0.8872168012345951
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.8872168012345952,
+        -0.46135273664198945
+      ]
+    },
+    {
+      "station": 1,
+      "center": [
+        0,
+        0.23,
+        1.65
+      ],
+      "width": 0.205,
+      "depth": 0.175,
+      "tangent": [
+        0.0,
+        -0.36244626115494843,
+        0.9320046715412961
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.9320046715412961,
+        -0.36244626115494843
+      ],
+      "previousUCosine": 1.0,
+      "previousVCosine": 0.9941057778900609
+    },
+    {
+      "station": 2,
+      "center": [
+        0,
+        0.15,
+        1.94
+      ],
+      "width": 0.155,
+      "depth": 0.13,
+      "tangent": [
+        0.0,
+        -0.38235179272629966,
+        0.9240168324218908
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.9240168324218909,
+        -0.3823517927262997
+      ],
+      "previousUCosine": 1.0,
+      "previousVCosine": 0.9997699821195324
+    },
+    {
+      "station": 3,
+      "center": [
+        0,
+        -0.01,
+        2.23
+      ],
+      "width": 0.135,
+      "depth": 0.115,
+      "tangent": [
+        0.0,
+        -0.6415552004911059,
+        0.7670768701524098
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.7670768701524098,
+        -0.6415552004911059
+      ],
+      "previousUCosine": 1.0,
+      "previousVCosine": 0.9540917208229828
+    },
+    {
+      "station": 4,
+      "center": [
+        0,
+        -0.31,
+        2.49
+      ],
+      "width": 0.14,
+      "depth": 0.12,
+      "tangent": [
+        0.0,
+        -0.8600546538736993,
+        0.5102019133149065
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.5102019133149065,
+        -0.8600546538736993
+      ],
+      "previousUCosine": 1.0,
+      "previousVCosine": 0.9431366227106195
+    },
+    {
+      "station": 5,
+      "center": [
+        0,
+        -0.6,
+        2.58
+      ],
+      "width": 0.145,
+      "depth": 0.12,
+      "tangent": [
+        0.0,
+        -0.9946917938265513,
+        0.10289915108550463
+      ],
+      "u": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.10289915108550464,
+        -0.9946917938265514
+      ],
+      "previousUCosine": 1.0,
+      "previousVCosine": 0.9079886502128078
+    },
+    {
+      "station": 6,
+      "center": [
+        0,
+        -0.89,
+        2.55
+      ],
+      "width": 0.125,
+      "depth": 0.105,
+      "tangent": [
+        0.0,
+        -0.9946917938265512,
+        -0.10289915108550612
+      ],
+      "u": [
+        1.0,
+        -0.0,
+        0.0
+      ],
+      "v": [
+        -0.0,
+        -0.10289915108550614,
+        0.9946917938265513
+      ],
+      "previousUCosine": -1.0,
+      "previousVCosine": -0.9788235294117648
+    }
+  ],
+  "deviationClassification": {
+    "sourcePolygonSizes": {
+      "4": 561,
+      "8": 5,
+      "5": 3,
+      "12": 34
+    },
+    "minimumStoredVsPolygonCosine": 0.9999999967910094,
+    "note": "All 603 compared independently to source polygon Newell normals; facet deviations are not all opposition."
+  },
+  "continuousFrameCounterfactual": {
+    "kind": "numeric counterfactual only, no source repair",
+    "changedVertexIds": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48
+    ],
+    "maxDisplacement": 0.2500000000000198,
+    "fixedQuads": [
+      {
+        "polygon": 53,
+        "diagonals": [
+          {
+            "mutualCosine": 0.999983275397267,
+            "minimumToPolygon": 0.9999955880510072
+          },
+          {
+            "mutualCosine": 0.9999852121143112,
+            "minimumToPolygon": 0.9999955962135134
+          }
+        ]
+      },
+      {
+        "polygon": 56,
+        "diagonals": [
+          {
+            "mutualCosine": 0.999932262135262,
+            "minimumToPolygon": 0.9999798666897932
+          },
+          {
+            "mutualCosine": 0.9999255864206117,
+            "minimumToPolygon": 0.9999796859416982
+          }
+        ]
+      },
+      {
+        "polygon": 59,
+        "diagonals": [
+          {
+            "mutualCosine": 0.9997436362434761,
+            "minimumToPolygon": 0.9999239449670584
+          },
+          {
+            "mutualCosine": 0.9997314151061241,
+            "minimumToPolygon": 0.9999260220501006
+          }
+        ]
+      },
+      {
+        "polygon": 62,
+        "diagonals": [
+          {
+            "mutualCosine": 0.9996209578762774,
+            "minimumToPolygon": 0.999899041436096
+          },
+          {
+            "mutualCosine": 0.9996513996536863,
+            "minimumToPolygon": 0.9998961638293216
+          }
+        ]
+      }
+    ]
+  },
+  "deviationsByObject": {
+    "Abdomen core": 6,
+    "Abdominal tergite 2": 2,
+    "Rising prothorax curved cervical arch": 8,
+    "Integrated pale throat": 8,
+    "Overlapping dorsal curved neck shell 0": 1,
+    "Overlapping dorsal curved neck shell 1": 1,
+    "Overlapping dorsal curved neck shell 2": 2,
+    "Overlapping dorsal curved neck shell 3": 3,
+    "Volumetric pointed insect skull": 5,
+    "Inset green compound eye -1": 2,
+    "Integrated eye socket rim -1": 20,
+    "Tucked cheek shell -1": 15,
+    "Compact mandible -1": 17,
+    "Seated folded wing midrib wing-1_0": 23,
+    "Seated folded wing midrib wing-1_1": 24,
+    "Walking femur leg-1_0": 4,
+    "Ground tarsus leg-1_0": 16,
+    "Angular ankle cuff leg-1_0": 5,
+    "Articulated foot claw leg-1_0_-1": 17,
+    "Articulated foot claw leg-1_0_1": 4,
+    "Walking femur leg-1_1": 11,
+    "Ground tarsus leg-1_1": 16,
+    "Angular ankle cuff leg-1_1": 5,
+    "Articulated foot claw leg-1_1_-1": 17,
+    "Articulated foot claw leg-1_1_1": 4,
+    "Raptorial upper arm -1": 26,
+    "Swept bevelled wood sickle -1": 31,
+    "Bevelled continuous ivory teeth -1": 25,
+    "Inset green compound eye 1": 1,
+    "Integrated eye socket rim 1": 20,
+    "Tucked cheek shell 1": 15,
+    "Compact mandible 1": 18,
+    "Seated folded wing midrib wing1_0": 26,
+    "Seated folded wing midrib wing1_1": 30,
+    "Walking femur leg1_0": 4,
+    "Ground tarsus leg1_0": 16,
+    "Angular ankle cuff leg1_0": 3,
+    "Articulated foot claw leg1_0_-1": 4,
+    "Articulated foot claw leg1_0_1": 18,
+    "Walking femur leg1_1": 8,
+    "Ground tarsus leg1_1": 16,
+    "Angular ankle cuff leg1_1": 3,
+    "Articulated foot claw leg1_1_-1": 4,
+    "Articulated foot claw leg1_1_1": 18,
+    "Raptorial upper arm 1": 25,
+    "Swept bevelled wood sickle 1": 31,
+    "Bevelled continuous ivory teeth 1": 25
+  },
+  "inputs": {
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/build_mantis_complete.py": "ec5645e1dda1aa88df12043f2361e39b98291544e2588314d9ce628b0349fb0e",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-mesh-complete-pass2.json": "9658e2c4cfc7821483c66c73e0a44e341763517cc15608673cddd18c4eafcf4f",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2/mantis-study-complete-pass2.glb": "3566ee1301fd6461d59ff5627ae922856f952667310f6d36463c2ff706927604",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mantis-native.json": "7177c84b1735b5945ce120392cefbb6d85c792e61935454abf3e1cd6a39839ef",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/payload.bin": "91d30ca5d6f3d2a3f542676b27307f2c5ff222680bc94dbf276b2856a1776bb4",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/metadata.json": "86929177c1bfec0ac18109b2649262ba45e977b7d3e3d73ba5722639b8113401",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/authored-mapping.json": "49d6a7bddcb6e3d1ffd84d4f9d8c8dbaffef44239aeab3a5bdf9ef384659e426",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/mesh-map.json": "1af11ffb2de0a51ba3031c73cd7fa0567157de219a57f3ecdfcf2155d2aaa514",
+    "art/driftwood-isle/lowpoly-mantis/complete-pass2-native/normal-audit.json": "41f683cabd736f26aed520a92e27f807f8ae6d32792979ddabe7de1d62e16a10"
+  }
+}

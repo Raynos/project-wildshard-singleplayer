@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "docs/reviews/colossus-complete-pass3-independent/REPORT.md",
+      "bytes": 7977,
+      "sha256": "99dff1cf36b1a915aeb141ca152d2745c26bded3f4adac9f21f1782431b8b1eb"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass3-independent/frozen-initial.json",
+      "bytes": 1467,
+      "sha256": "0951d75da0a2bc01e9904753fa230e883e5c478eaf3c6712181ce036ee07c18f"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass3-independent/hash-verification.json",
+      "bytes": 778,
+      "sha256": "ff58cf492199537264f318086fa228ae29ac7a39e22e0018d260e7cedc81f4cd"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass3-independent/validation-recheck.json",
+      "bytes": 78681,
+      "sha256": "41e58640a455c7e99e30a76662295f9f027554a7fca2f1c56f5690c106829377"
+    }
+  ]
+}
