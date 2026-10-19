@@ -1,0 +1,33 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vite/rapier" without a file extension (docs/reviews/mantis-precontact-source/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ test/mantis-precontact-study.test.ts (7 tests | 1 failed) 17682ms
+   × lower-body living gait and accelerated death are candidate6-exact 11485ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/mantis-precontact-study.test.ts > lower-body living gait and accelerated death are candidate6-exact
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/mantis-precontact-study.test.ts:101:1
+     99|     expect(snapshot(pose(stage, phase, .1, attack).bones)).toEqual(sna…
+    100| });
+    101| test('lower-body living gait and accelerated death are candidate6-exac…
+       | ^
+    102|   let cases = 0;
+    103|   for (const stage of [0, 1, 2, 3, 5]) for (const phase of [0, 1, 2, 3…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 7 passed (8)
+   Start at  07:21:56
+   Duration  30.61s (tests 59%, transform 26%, setup 12%, import 3%)
+
+  Transform  transforming modules took 7.83s · 26% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

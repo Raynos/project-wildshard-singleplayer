@@ -1,0 +1,84 @@
+{
+  "schema": "wildshard.mantis.arena-candidate.v1",
+  "candidate": "V7-native22-motion7",
+  "rootFlinch": "authored-pose",
+  "footOrder": [
+    0,
+    2,
+    1,
+    3
+  ],
+  "footLabels": [
+    "front-left",
+    "front-right",
+    "rear-left",
+    "rear-right"
+  ],
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/metadata.json": "f6354fa3ca75a30fdddd428fd81152884e96a27a246107e98ffcc5801281a73a",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/payload.bin": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/mantis-v7-native.json": "6c47dd59acdc01993b84f70adf39a1c3f050088e6bbd781409514f85fda75bb0",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/v7-rigid1/diagnostic-dimensions.json": "669e51c975ad55819484c9d24c6d9f10edf053c49097103cd1eda45093755a01",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/metadata.json": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimensions.json": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+    "src/shards/driftwood-isle/generators/mantisPrecontactClips.ts": "71aaea5933aa71c701d1e739371f980d593b53b9f823ac07a66f0dd6d21a5b2d",
+    "src/shards/driftwood-isle/generators/mantisPrecontactPreview.ts": "18185e878c39dfd6c05ffce13cecd20e9099b6035529bea57b14907c75530f58",
+    "src/shards/driftwood-isle/generators/driftwoodRegularCombat.ts": "1d440026e146b9d46ab58098e9517165ba3290365f1317e0a6f8fe169ade72ff",
+    "src/shards/driftwood-isle/behaviour/splinterMantis.as": "c75103f4bdd3370baafa989dba6b82dc6b1396b56a484426a2ff3de0eafc1a71",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimension-measurement.json": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate2/measure_dimensions.py": "995df6961e81082b02bf4ae781484d7ed0d21edaeea39dee7ab22e82ed5cdb69",
+    "src/shards/driftwood-isle/generators/mantisPhaseDecision.ts": "321cb5d3bae727bb56168b5711c79813aa6db840ce2e0e5343e6b78f0d72d226",
+    "src/shards/driftwood-isle/behaviour/splinterMantisPhase.as": "acd01e44c1954481889b80f285e5cd8986589dbf223edb7c64a56818316e1dd2"
+  },
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "phonePerformanceAcceptance": false,
+  "note": "Source-only authoritative precontact sweep. Candidate6 geometry, lower-body, accelerated knee death, combat and observer unchanged. Active hold and recovery stair-step remain. Not built or accepted.",
+  "observation": {
+    "read": "strikeState",
+    "fields": [
+      "mantis-pose-phase",
+      "mantis-pose-clock"
+    ],
+    "cadenceHz": 10,
+    "tacticsChanged": false,
+    "timingsChanged": false
+  },
+  "activeDelta": {
+    "tell": 0,
+    "cut": 1,
+    "clockOffsets": false,
+    "cadenceChanged": false
+  },
+  "kneeDeathFold": {
+    "normalizedClockScale": 2.5,
+    "durationSeconds": 0.32,
+    "unchangedEndpoints": [
+      0,
+      0.38
+    ],
+    "rootChanged": false,
+    "hipChanged": false
+  },
+  "precontact": {
+    "input": "frame.attack",
+    "normalizedKeys": [
+      0,
+      0.3,
+      0.45,
+      0.95,
+      1
+    ],
+    "windupSeconds": [
+      0.75,
+      0.45
+    ],
+    "negativeAttackObservedWindup": "full-cut",
+    "stageGate": [
+      1,
+      3
+    ],
+    "history": false
+  }
+}

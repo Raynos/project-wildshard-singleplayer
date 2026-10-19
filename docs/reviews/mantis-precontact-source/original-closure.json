@@ -1,0 +1,102 @@
+{
+  "status": "source frozen; not built or accepted",
+  "focusedTests": 10,
+  "admissionTests": 3,
+  "focusedLint": "passed exit0",
+  "rootTypecheck": "resource-killed exit137; not established",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/admission.json": {
+      "sha256": "5b4d993d4d16f41406cd8e4757d56a5582fcc302eee145c93a15284ad958d004",
+      "bytes": 3522
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimension-measurement.json": {
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/dimensions.json": {
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate7/metadata.json": {
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223
+    },
+    "docs/reviews/mantis-precontact-source/REVIEW.md": {
+      "sha256": "1330b1d44e2258d6f0b6f168df7a1d10aa5a0fe1ace4b403010a496748011f02",
+      "bytes": 4600
+    },
+    "docs/reviews/mantis-precontact-source/admission-tests-01.txt": {
+      "sha256": "ff3f71421a586be6eeeff158f47df0ce0d62dad0e43f16049c308020f5f01a42",
+      "bytes": 408
+    },
+    "docs/reviews/mantis-precontact-source/focused-tests-01.txt": {
+      "sha256": "f365b11a303d1c3679f7c2acc56e7a961db333a653b43034004275f981627b2c",
+      "bytes": 1952
+    },
+    "docs/reviews/mantis-precontact-source/focused-tests-02.txt": {
+      "sha256": "76a2428f8dab9155b3e7db8576ccd82c64ce3f05196724af3d55f07dfadab301",
+      "bytes": 1731
+    },
+    "docs/reviews/mantis-precontact-source/focused-tests-03.txt": {
+      "sha256": "b4d7f81556a3ea2b97d5c84e7e207a7d241824efa807365d85ef8a41ee46d0cd",
+      "bytes": 3839
+    },
+    "docs/reviews/mantis-precontact-source/focused-tests-04.txt": {
+      "sha256": "beabdaefc09dfa1ab071b38214a872643632574193bc0d96acd93e757103ca76",
+      "bytes": 549
+    },
+    "docs/reviews/mantis-precontact-source/lint-01.txt": {
+      "sha256": "206e6cc5ac59123ba0b6ec08bcbdbf54cbb12e7a5114e42d13247679a9c91bc7",
+      "bytes": 362
+    },
+    "docs/reviews/mantis-precontact-source/lint-02.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/reviews/mantis-precontact-source/results.json": {
+      "sha256": "b5ba5651047b8398b14792d36d3f5a83d442f5493f094ed18a448143e1fc78a5",
+      "bytes": 981
+    },
+    "docs/reviews/mantis-precontact-source/typecheck-01.txt": {
+      "sha256": "29e3f94d77407693ebb1e8537c225a504b0f26f777f5187e402fcc31a6f38fa8",
+      "bytes": 183
+    },
+    "docs/reviews/mantis-precontact-source/vitest.config.ts": {
+      "sha256": "d01c31f1e1815cec38c81f0e4e28dbc2ef64a1f65140ce8aba328a8ea861934d",
+      "bytes": 288
+    },
+    "scripts/build-mantis-precontact-preview.mjs": {
+      "sha256": "46fe7bc3952bb258054e12bfe348f9e54e5e38588f6e21b2881fc2d1ee4df24f",
+      "bytes": 5209
+    },
+    "scripts/mantis-precontact-admission.mjs": {
+      "sha256": "aac43ebbffcf857635ee6ed5e6740db758e284d4bae4744482f432947a34e7fd",
+      "bytes": 3438
+    },
+    "scripts/mantis-precontact-admission.test.mjs": {
+      "sha256": "c032160bc23d2036fd8b8d5cd2646d65fdf2808bb67dd8bc534d5cdb70c89f6f",
+      "bytes": 3269
+    },
+    "src/shards/driftwood-isle/generators/mantisPrecontactClips.ts": {
+      "sha256": "71aaea5933aa71c701d1e739371f980d593b53b9f823ac07a66f0dd6d21a5b2d",
+      "bytes": 8906
+    },
+    "src/shards/driftwood-isle/generators/mantisPrecontactPreview.ts": {
+      "sha256": "18185e878c39dfd6c05ffce13cecd20e9099b6035529bea57b14907c75530f58",
+      "bytes": 7738
+    },
+    "test/mantis-precontact-preview.test.ts": {
+      "sha256": "5c6957a33e16826010b78d0df2dc9baff7fd5e4593334dab6dc27b7e85b796a8",
+      "bytes": 2722
+    },
+    "test/mantis-precontact-study.test.ts": {
+      "sha256": "9464e28f5497073a530399afbd6226999421477a9a126394ceaed04f8c0fbe22",
+      "bytes": 10844
+    },
+    "vite/mantis-precontact-preview.config.ts": {
+      "sha256": "421386a03a5cac98b3d6a55bdc324c0dab01c87dd8398d3069a2979570dcf10d",
+      "bytes": 7751
+    }
+  },
+  "fallbackReceiptSha256": "c28c8293bf423d6a9e64c9780430eca2e579dc95c1019e70cde64d7d3e3f5ebf"
+}

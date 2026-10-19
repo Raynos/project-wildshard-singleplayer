@@ -1,0 +1,20 @@
+[
+  {
+    "path": "docs/reviews/mantis-precontact-source/focused-tests-02.txt",
+    "before": "76a2428f8dab9155b3e7db8576ccd82c64ce3f05196724af3d55f07dfadab301",
+    "after": "d39ca02e131e71c15574df1062657f619a942702353221df495fbec1bad2705e",
+    "change": "Remove trailing empty EOF line only; original retained locally."
+  },
+  {
+    "path": "docs/reviews/mantis-precontact-source/focused-tests-03.txt",
+    "before": "b4d7f81556a3ea2b97d5c84e7e207a7d241824efa807365d85ef8a41ee46d0cd",
+    "after": "67c6abb00fa7ed83564078e4f8103f5a43584894b607b4a52be611674bd8d7db",
+    "change": "Remove trailing empty EOF line only; original retained locally."
+  },
+  {
+    "path": "docs/reviews/mantis-precontact-source/focused-tests-04.txt",
+    "before": "beabdaefc09dfa1ab071b38214a872643632574193bc0d96acd93e757103ca76",
+    "after": "03f258eaf3acd1aafa571c4e1eb1754c9b1a893dbaf81d2d5978f9532b7d8d52",
+    "change": "Remove trailing empty EOF line only; original retained locally."
+  }
+]

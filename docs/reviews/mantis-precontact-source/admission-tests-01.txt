@@ -1,0 +1,11 @@
+✔ exact V7 tuple admits only Mantis and explicit FL FR RL RR diagnostic foot order (18.587952ms)
+✔ tampered candidate bytes are refused rather than becoming an engine exemption (13.116755ms)
+✔ receipt edits cannot self-authorize changed, missing or additional tuple members (4.357046ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.142699

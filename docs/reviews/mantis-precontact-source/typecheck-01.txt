@@ -1,0 +1,2 @@
+Command: node node_modules/typescript/bin/tsc --noEmit --pretty false
+Result: process killed, exit137; no compiler diagnostics emitted. Full root typecheck not established; no retry.

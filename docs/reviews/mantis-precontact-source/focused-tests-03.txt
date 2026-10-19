@@ -1,0 +1,36 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vite/rapier" without a file extension (docs/reviews/mantis-precontact-source/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ test/mantis-precontact-preview.test.ts (2 tests | 1 failed) 270ms
+   × combat, rewards, AI and all non-pose catalogues preserve candidate6 exact source 173ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/mantis-precontact-preview.test.ts > combat, rewards, AI and all non-pose catalogues preserve candidate6 exact source
+AssertionError: expected '{"sections":[{"name":"actors/moves","…' to be '{"sections":[{"name":"actors/moves","…' // Object.is equality
+
+Expected: "{"sections":[{"name":"actors/moves","path":"sections/actors/moves.json","schema":"wildshard:actors/moves@1","hash":"26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742","bytes":193},{"name":"actors/species-programs","path":"sections/actors/species-programs.json","schema":"wildshard:actors/species-programs@1","hash":"84092ff2ce315be8f8b7f775462ae950ab1513b86a32bda0c6bfcf32750862a7","bytes":1345},{"name":"actors/strikes","path":"sections/actors/strikes.json","schema":"wildshard:actors/strikes@1","hash":"877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3","bytes":589},{"name":"held/arms","path":"sections/held/arms.json","schema":"wildshard:held/arms@1","hash":"09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1","bytes":895},{"name":"sim/scripts","path":"sections/sim/scripts.json","schema":"wildshard:sim/scripts@1","hash":"fe966a8048ae3a5a751d2ac5d3eed05cae2870a19728b963b147a6b857e85a29","bytes":1347}],"files":{}}"
+Received: "{"sections":[{"name":"actors/moves","path":"sections/actors/moves.json","schema":"wildshard:actors/moves@1","hash":"26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742","bytes":193},{"name":"actors/species-programs","path":"sections/actors/species-programs.json","schema":"wildshard:actors/species-programs@1","hash":"7a0e6e1d2e47ce3a0c4e1ad7519d7abe7b6ffc5be1fd545d69e78333b116c848","bytes":1346},{"name":"actors/strikes","path":"sections/actors/strikes.json","schema":"wildshard:actors/strikes@1","hash":"877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3","bytes":589},{"name":"held/arms","path":"sections/held/arms.json","schema":"wildshard:held/arms@1","hash":"09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1","bytes":895},{"name":"sim/scripts","path":"sections/sim/scripts.json","schema":"wildshard:sim/scripts@1","hash":"fe966a8048ae3a5a751d2ac5d3eed05cae2870a19728b963b147a6b857e85a29","bytes":1347}],"files":{}}"
+
+ ❯ test/mantis-precontact-preview.test.ts:22:76
+     20|   expect(JSON.stringify(after).replaceAll('Precontact', 'EarlyKnee')).…
+     21|   const a = createMantisEarlyKneePreviewOutput({ diagnosticOnly: true …
+     22|   expect(JSON.stringify(b.platform).replaceAll('Precontact', 'EarlyKne…
+       |                                                                            ^
+     23|   for (const row of a.namedFiles ?? []) if (row.name !== 'poses/splint…
+     24| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 8 passed (9)
+   Start at  07:22:44
+   Duration  51.74s (tests 54%, transform 30%, setup 13%, import 3%)
+
+  Transform  transforming modules took 15.18s · 30% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

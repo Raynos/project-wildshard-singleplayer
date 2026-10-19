@@ -1,0 +1,2 @@
+test/mantis-precontact-study.test.ts:9:1: error import(newline-after-import): Expected 1 empty line after import statement not followed by another import. help: Add empty line(s) after import
+test/mantis-precontact-study.test.ts:135:71: error eslint(prefer-template): Unexpected string concatenation. help: Use template literals instead of string concatenation.
