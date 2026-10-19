@@ -1,0 +1,69 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=30 Hz 423ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=60 Hz 234ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=0.5 render=120 Hz 570ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=30 Hz 180ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=60 Hz 191ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=1 render=120 Hz 259ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=30 Hz 140ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=60 Hz 204ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: rigid lite=false scale=2 render=120 Hz 266ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=30 Hz 137ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=60 Hz 160ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=0.5 render=120 Hz 203ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=30 Hz 390ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=60 Hz 173ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=1 render=120 Hz 216ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=30 Hz 111ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=60 Hz 154ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: upright lite=false scale=2 render=120 Hz 209ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=30 Hz 464ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=60 Hz 546ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=0.5 render=120 Hz 1048ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=30 Hz 279ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=60 Hz 320ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=1 render=120 Hz 462ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=30 Hz 653ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=60 Hz 431ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=false scale=2 render=120 Hz 557ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=30 Hz 244ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=60 Hz 309ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=0.5 render=120 Hz 731ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=30 Hz 217ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=60 Hz 230ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=1 render=120 Hz 372ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=30 Hz 189ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=60 Hz 262ms
+ ✓ test/rigid-corpse-default-parity.test.ts > exact old-path trace: quadruped lite=true scale=2 render=120 Hz 705ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: rigid lite=false 50ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: upright lite=false 56ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: quadruped lite=false 88ms
+ ✓ test/rigid-corpse-default-parity.test.ts > sleep, live disposal and cap parity: quadruped lite=true 50ms
+ ✓ test/rigid-corpse-default-parity.test.ts > legacy render-clock quiet freeze retains exact threshold 42ms
+ ✓ test/rigid-corpse-default-parity.test.ts > legacy render-clock timeout freeze retains exact threshold 128ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: rigid lite=false damage=0 23ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: rigid lite=false damage=1000 22ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: upright lite=false damage=0 29ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: upright lite=false damage=1000 35ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=false damage=0 42ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=false damage=1000 35ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=true damage=0 49ms
+ ✓ test/rigid-corpse-default-parity.test.ts > throw clamps and zero-direction fallback: quadruped lite=true damage=1000 36ms
+ ✓ test/rigid-corpse-default-parity.test.ts > tier-sized cap 2 releases exactly one slot on live disposal 108ms
+ ✓ test/rigid-corpse-default-parity.test.ts > tier-sized cap 6 releases exactly one slot on live disposal 197ms
+
+ Test Files  1 passed (1)
+      Tests  52 passed (52)
+   Start at  03:03:11
+   Duration  28.20s (tests 48%, transform 39%, setup 10%, import 3%)
+
+  Transform  transforming modules took 10.92s · 39% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

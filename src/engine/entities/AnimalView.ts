@@ -84,6 +84,12 @@ function capsuleOn(m: THREE.Matrix4, at: readonly [number, number, number], axis
 /** the melee hit flash: seconds to fade, emissive intensity at strength 1 */
 const FLASH_T = 0.14, FLASH_I = 0.9;
 
+/** Trusted current scalar view; the fixed owner copies it before evaluating admitted numeric transforms. */
+function corpseInputs(owner: Animal): Pick<RigAnimCtx, 'mem' | 'phase' | 'state' | 'yaw'> {
+  return { get mem() { return owner.mem; }, get phase() { return owner.gaitPhase; },
+    get state() { return owner.state; }, get yaw() { return owner.yaw; } };
+}
+
 /** Client creature view over headless state: rigs, animation, material LOD and corpse presentation. */
 export class Animal extends AnimalSim {
   mesh: THREE.SkinnedMesh;
@@ -330,7 +336,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
       build: !this.custom ? 'quadruped' : d.capsuleAxis === 'y' ? 'upright' : 'rigid',
       ...(d.rigidCorpse === undefined ? {} : { corpsePose: new RigidCorpsePose({ ...this.rigCtx,
         deathT: this.deathT, flinch: this.flinch, phase: this.phase, state: this.state, yaw: this.yaw,
-        position: this.position, mem: this.mem }, this.model.species.animate) }),
+        position: this.position, mem: this.mem }, this.model.species.animate, corpseInputs(this)) }),
       root: this.mesh, bones: this.bones, dims: d, scale: this.scale, lite: TIER === 'phone',
       // forward along the heading, strafe to the animal's left (world (cos yaw, -sin yaw))
       velocity: { x: sin * this.speed + cos * this.strafe, y: 0, z: cos * this.speed - sin * this.strafe },

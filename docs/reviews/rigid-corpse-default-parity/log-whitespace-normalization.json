@@ -1,0 +1,7 @@
+{
+  "method": "Trailing blank lines removed only; test outcomes unchanged.",
+  "originalSha256": "44f9826fd7f965a4e05808c3ec233e1a92baa9f059e8abb5bdfb23847cd6d901",
+  "originalBytes": 7084,
+  "sha256": "8eec405fa3138e048a4659502c8402e8443a76575def1a13f7d2d85f07be57e5",
+  "bytes": 7083
+}

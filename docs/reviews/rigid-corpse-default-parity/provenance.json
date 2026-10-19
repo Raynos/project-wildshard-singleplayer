@@ -1,0 +1,83 @@
+{
+  "baselineCommit": "540a4156ec261fe95e8bcf6b9f420d67bd9532ef",
+  "baselineBlob": "e40bda9544ad770150d2ce7654c0338c67b0464f",
+  "currentHead": "3f32029d33e0931cbe703b53d7065a7ad05dbf56",
+  "baselineIsAncestor": true,
+  "baselineByteExact": true,
+  "testCount": 52,
+  "passed": 52,
+  "workers": 1,
+  "nativeRapier": "0.21.0 installed SIMD WASM",
+  "comparison": "Exact exposed numeric/boolean/string state equality, no epsilon; not a claim of whole native memory or cross-device bitwise parity.",
+  "defaultRecipeAbsent": true,
+  "sharedRuntimeImportsIdenticalToBaseline": [
+    "src/engine/physics/query.ts",
+    "src/engine/physics/groups.ts",
+    "src/engine/core/fixedStep.ts",
+    "src/engine/core/tier.ts"
+  ],
+  "constantDeclarationsIdenticalToBaseline": [
+    "export const RAGDOLL_CAP = { phone: 2, desktop: 6 } as const;",
+    "const QUIET_V = 0.12, QUIET_T = 0.5, MAX_T = 5;",
+    "const SPIN_LEVER = 0.05;",
+    "const THROW_PER_HP = 0.04, THROW_MIN = 0.8, THROW_MAX = 3.5, RIGID_THROW = [2, 2.5] as const;",
+    "const ANG_DAMP = 5, LIN_DAMP = 0.8;",
+    "const SHIN_DAMP = 10;",
+    "const RIGHT_KP = 3, RIGHT_KD = 0.6, RIGHT_SLOW = 0.8, RIGHT_BAND = [0.35, 0.08] as const;",
+    "const LIMIT_SLACK = 0.05;"
+  ],
+  "sources": [
+    {
+      "path": "test/rigid-corpse-default-parity.test.ts",
+      "sha256": "f6d8e56e0c7a54b2ee168e2507b301a51396a6c3a19e685426cd5066904e087f"
+    },
+    {
+      "path": "docs/reviews/rigid-corpse-default-parity/ragdoll-540a4156.ts.txt",
+      "sha256": "a385a470f0940b26c12d9cc255d78a0690882dfaec5eaad122ab471a21e257e3"
+    },
+    {
+      "path": "src/engine/physics/ragdoll.ts",
+      "sha256": "be12a0fa8d3005a9ee988a1e9aa845c423cadb92c6df7b4594c8fab6ba33dec9"
+    },
+    {
+      "path": "src/engine/physics/Physics.ts",
+      "sha256": "6a45536093316ae57848fba28d6b77c5a9159da1aeeb2bc7be2228bd7bd18739"
+    },
+    {
+      "path": "src/engine/physics/query.ts",
+      "sha256": "b1a3de663966e1c68954307f6ea208b78c438f8348341c4bef613205e221ed8a"
+    },
+    {
+      "path": "src/engine/physics/groups.ts",
+      "sha256": "0ac3ea5f7c711ceb636b0256138c8ad2c1517bd52fa3d0a4716f1f862e5b095c"
+    },
+    {
+      "path": "src/engine/core/fixedStep.ts",
+      "sha256": "f0aabbd6becaa0552cf869c331675d5501a295f95ae7054eb0b57425d5fc8794"
+    },
+    {
+      "path": "src/engine/core/tier.ts",
+      "sha256": "89fd341214e1ce64d51cb9ae0be583428e6b51f773ea96f810484720b2267bfd"
+    },
+    {
+      "path": "src/engine/core/bootstrap.ts",
+      "sha256": "18fc3a9bc4c86ccd48c1739f9b245125d69d97fcbed656f125f1af34762799fd"
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "sha256": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd"
+    },
+    {
+      "path": "src/shards/driftwood-isle/data/creatureBodies.generated.json",
+      "sha256": "362fb1e3ffb4b037694187c076e682bb5a8fc46d27a8f37e8ff1656f6b96a43a"
+    },
+    {
+      "path": "public/assets/driftwood-isle/creatures/bodies-52302db244df83ae1d4967f5e16b8df380ebb34debcb2d69a6d2675f67d4530f.bin",
+      "sha256": "52302db244df83ae1d4967f5e16b8df380ebb34debcb2d69a6d2675f67d4530f"
+    },
+    {
+      "path": "public/assets/physics/rapier.wasm",
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f"
+    }
+  ]
+}

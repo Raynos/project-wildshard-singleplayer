@@ -15,6 +15,8 @@ function fixture() {
   };
   let calls = 0;
   const animate = registerRigidCorpseAnimation(c => {
+    expect(Object.isFrozen(c)).toBe(true); expect(Object.isFrozen(c.mem)).toBe(true);
+    expect(c.mem).not.toBe(context.mem);
     calls++; body.position.y = c.deathT + (c.mem['value'] ?? 0);
     body.rotation.z = c.deathT; expect(c.speed).toBe(0); expect(c.attack).toBe(-1); expect(c.brace).toBe(0); expect(c.alive).toBe(false);
   });
@@ -29,7 +31,7 @@ test.each([30, 60, 120, 6])('fixed endpoint clock is independent of %s Hz render
   }
   pose.render(1); expect(steps).toBe(60); expect(f.calls()).toBe(60); expect(pose.deathT).toBe(1); expect(f.body.position.y).toBe(4);
 });
-test('death inputs are detached, paused/dropped steps do not advance and hit-stop does not invent clock scaling', () => {
+test('each fixed step copies current inputs; paused render and hit-stop do not advance clocks', () => {
   const f = fixture(), pose = new RigidCorpsePose(f.context, f.animate);
   f.context.mem['value'] = 900; f.context.phase = 8; f.context.position.y = 20;
   worldTime.scale = .05;
@@ -38,7 +40,7 @@ test('death inputs are detached, paused/dropped steps do not advance and hit-sto
     for (let i = 0; i < 120; i++) pose.render(.5);
     expect(pose.deathT).toBe(death); expect(f.calls()).toBe(1);
     // Host pause or catch-up clamp contributes no extra fixed call, regardless of wall time.
-    pose.step(1 / 60); pose.render(1); expect(pose.deathT).toBeCloseTo(2 / 48); expect(f.body.position.y).toBeCloseTo(3 + 2 / 48);
+    pose.step(1 / 60); pose.render(1); expect(pose.deathT).toBeCloseTo(2 / 48); expect(f.body.position.y).toBeCloseTo(900 + 2 / 48);
   } finally { worldTime.scale = 1; }
 });
 test('rejects arbitrary callbacks and rolls back unsafe scale writes', () => {

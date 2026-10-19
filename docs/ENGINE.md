@@ -9901,9 +9901,16 @@ Native living simulation does not create corpses. The separate species-row and
 legacy GLB routes still do not admit this field. Absence retains the old builds.
 
 The existing bootstrap and practice composition register fixed pre/post corpse
-publication. Pre evaluates the same numeric pose from captured death inputs and
-updates collider-local transforms. Post captures every root endpoint, including
-catch-up steps. Render interpolates those bone/root endpoints and never advances
+publication. Pre evaluates the same numeric pose from a fresh detached input
+snapshot and updates collider-local transforms. The current actor memory, phase,
+state and yaw are copied at each executed owning pre boundary, including replaced
+memory objects. This is a trusted engine data view, never an authored callback.
+The per-step context and memory are frozen; rejected evaluation publishes neither
+new endpoints nor clock advancement. Structural dimensions, uniform scale, seed,
+position and look target remain detached death-time captures. In particular,
+render-updated actor positions cannot feed back into the fixed pose. Death/flinch
+and numeric time remain private fixed clocks, never recopied from render state.
+Post captures every root endpoint, including catch-up steps. Render interpolates those bone/root endpoints and never advances
 the opted-in collapse. The .8-second death clock advances once per executed fixed
 step, independently of near/far render observation. Pauses and dropped catch-up
 steps do not advance it. Existing unscaled creature time through visual hit-stop
@@ -9958,9 +9965,12 @@ simulation state, hit volumes, motion/attack/damage clocks, memory and storage.
 
 Review still owes: complete default rigid/upright/full-and-lite quadruped trace
 snapshots; actual bootstrap and practice phase ordering under repeated lifecycle,
-pause/resume and catch-up; post-lethal external event timing versus the captured
-memory snapshot; real original-mesh varied-hit/yaw/scale/terrain contact evidence;
+pause/resume and catch-up; real original-mesh varied-hit/yaw/scale/terrain contact evidence;
 full gameplay/cooldown/retry/loot/storage cycles; exact-build physics walk and
-phone review. In particular, the initial death snapshot precedes onDamaged in
-AnimalSim. Standard callbacks do not mutate pose memory themselves, but external
-event consumers require a targeted review before enabling any product recipe.
+phone review. The initial rig endpoint still precedes onDamaged in AnimalSim;
+events and combat are not reordered. The owning pre step sees only decisions
+already committed at that boundary. A later fixed.post death handler is therefore
+visible at the following pre, not retroactively. Practice and retained-body native
+owners can deliver queued death decisions; the current page-world alive-only
+authority instead retires dead decision scopes. This change does not alter that
+separate lifetime policy or enable a product recipe.
