@@ -11,7 +11,7 @@ import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { parseKtx2 } from '../../src/format/product';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
-import { signAtlasBlobs, SIGN_CHANNELS } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
+import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
 import atlas from '../../src/shards/nine-dragon-stack/data/signAtlas.generated.json' with { type: 'json' };
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
 
@@ -41,13 +41,18 @@ test.each(['phone', 'desktop'] as const)('%s restores all 401 original buffers t
   const rows = atlas[tier], before: Readonly<Record<string, string>> = reference[tier].geometry;
   const metadata = blobs.find(blob => blob.file.name === `signs/atlas-${tier}.json`);
   if (metadata === undefined) throw new Error('Missing sign metadata');
-  const pools = v.parse(v.object({ pools: v.array(v.object({ name: v.string() })) }), JSON.parse(new TextDecoder().decode(metadata.bytes))).pools;
+  const { pools, channels } = v.parse(v.object({ pools: v.array(v.object({ name: v.string() })),
+    channels: v.array(v.object({ name: v.string(), source: v.string(), width: v.number(), parts: v.optional(v.array(v.string())) })) }), JSON.parse(new TextDecoder().decode(metadata.bytes)));
   const source = Object.entries(rows.geometries);
   for (let start = 0; start < source.length; start += 100) {
     const parts = source.slice(start, start + 100), blob = blobs.find(b => b.file.name === pools[start / 100]?.name);
     if (blob === undefined) throw new Error('Missing baked sign pool');
+    const names = parts.map(([name]) => name), localChannels = channels.flatMap(({ parts: channelParts, ...row }) => {
+      const scopedParts = channelParts?.filter(part => names.includes(part));
+      return scopedParts?.length === 0 ? [] : [{ ...row, ...(scopedParts === undefined ? {} : { parts: scopedParts }) }];
+    });
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-      geometryPools: [{ url: 'sign-pool', parts: parts.map(([name]) => name), channels: SIGN_CHANNELS }] }, 'Nine sign test', {},
+      geometryPools: [{ url: 'sign-pool', parts: names, channels: localChannels }] }, 'Nine sign test', {},
     async () => (await readSourceModel(blob.bytes)).gltf);
     await library.preload();
     for (const [name, original] of parts) {

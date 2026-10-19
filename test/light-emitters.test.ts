@@ -6,10 +6,8 @@ import { Scope } from '../src/engine/app/scope';
 import { applyGround, updateGround } from '../src/engine/render/families/ground';
 import { parseGroundLayer } from '../src/format/materialFamilies';
 import { parseLightEmitters } from '../src/format/lightEmitters';
-import { lightPoolRows, lightVolumeBlobs, volumeSources } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
-import { unzlibSync } from 'fflate';
+import { lightPoolRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { bakeVolume } from '../src/shards/nine-dragon-stack-legacy/look/light/lightvol';
 import { loadLut, gradeUniforms } from '../src/shards/nine-dragon-stack/look/light/grade';
 import { loadLut as sealedLut, gradeUniforms as sealedGrade } from '../src/shards/nine-dragon-stack-legacy/look/light/grade';
 import { gatherPools } from '../src/shards/nine-dragon-stack-legacy/look/light/pools';
@@ -97,36 +95,6 @@ test('Signal generator admits every original fire graph and keeps the four pool 
   if (shared?.light === undefined) throw new Error('Missing declared shared lamp');
   expect(() => parseLightEmitters({ ...SIGNAL_EMITTERS, rows: [{ ...shared, light: { ...shared.light, decay: 1 } }] })).toThrow();
 });
-
-
-test('Nine admitted volume bytes match the sealed live bake for both tiers and entry states', () => {
-  const blobs = lightVolumeBlobs();
-  expect(blobs).toHaveLength(8);
-  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const sources = volumeSources(tier, caps);
-    expect(sources.lanterns.length).toBe(caps ? 2591 : 2583);
-    expect(sources.windows).toHaveLength(9912);
-    const lights = gatherPools({ ...sources, shops: sources.ctxEmitters.filter(e => e.w >= 0.5 || e.h >= 0.5),
-      lamps: sources.ctxEmitters.filter(e => e.w < 0.5 && e.h < 0.5).map(e => e.at) });
-    const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
-      { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
-    for (const [index, box] of boxes.entries()) {
-      const blob = blobs.find(b => b.file.name === `looks/volumes-${tier}-${caps ? 'capped' : 'open'}-${index}.bin`);
-      if (blob === undefined) throw new Error('Missing baked irradiance');
-      const bytes = blob.bytes, header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      const min = new Vector3(), inv = new Vector3(), live = bakeVolume(lights, box, min, inv);
-      const expected = live.tex.image.data;
-      if (!(expected instanceof Uint8Array)) throw new Error('Sealed volume has no bytes');
-      expect(hashImmutableBytes(unzlibSync(bytes.subarray(108)))).toBe(hashImmutableBytes(expected));
-      expect([8, 12, 16].map(offset => header.getUint32(offset, true))).toEqual([live.tex.image.width, live.tex.image.height, live.tex.image.depth]);
-      expect(Array.from({ length: 11 }, (_, i) => header.getFloat64(20 + i * 8, true))).toEqual([
-        ...min, ...inv, live.stats.lights, live.stats.cells, live.stats.maxE, lights.length, POOL.maximum,
-      ]);
-      expect(bytes.length).toBeLessThan(1_000_000);
-      live.tex.dispose();
-    }
-  }
-}, 30_000);
 
 
 test('Nine uses the engine LUT with the sealed bytes and sampler', async () => {

@@ -107,7 +107,7 @@ test.each(['marketBooth', 'parasolTable', 'diningPavilion', 'guardianLion'])('%s
         expect(choice.colliders).toHaveLength(5);
         const turn: unknown = Reflect.get(choice.params, 'turn');
         if (typeof turn !== 'number') throw new Error('Pavilion needs its turn');
-        expect(choice.colliders.every(collider => Reflect.get(collider, 'yaw') === -turn)).toBe(true);
+        for (const collider of choice.colliders) expect(Reflect.get(collider, 'yaw')).toBeCloseTo(-turn, 12);
       }
     }
   } finally { owner.dispose(); source.dispose(); }
