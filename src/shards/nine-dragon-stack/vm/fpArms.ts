@@ -20,15 +20,18 @@
 // Timing is the engine's sword timing (SwordMoves.ts): `arms.moves[name].timing` = { windup, slashEnd, total, sweep } —
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
-import { type AnimationClip, type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, type Group, type Matrix3, Mesh, type Texture } from 'three';
+import { type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, type Matrix3, Mesh, type Texture, type Material, Matrix4, Vector3, Vector2 } from 'three';
 import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
 import { restoreWeave } from '../look/style';
 import * as v from 'valibot';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, prepareVmGraphs } from './materials';
-import { FpArmsRig, type FpArmsRig as FpArmsRigView, type FpArmsState, armRigBake, armRigContract, rigRoot, takeRigScene } from '../runtime/viewmodel/fpArmsRig';
-import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps } from '../runtime/viewmodel/inkedRig';
+import { RigArms, swordArmsOf, type RigState } from '@wildshard/game/systems/viewmodel/rigArms';
+import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
+import { BrushTrail } from '../runtime/viewmodel/brushTrail';
+import type { ShardSword } from '@wildshard/game/shard/manifest';
+import { type InkedRigMaps, addInkedPair, dressInkedMesh, loadInkedRigMaps, prepRigGeometry } from '../runtime/viewmodel/inkedRig';
 import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
@@ -81,12 +84,12 @@ void main() {
 
 export const RIG_URL = `${ARMS_BASE}fp-rig.glb`;
 
-export const ARMS_CONTRACT: RigContract = armRigContract('nine-dragon-fp', ['R_weapon', 'L_claw']);
-export const ARMS_BAKE: RigBake = armRigBake('nine-dragon-fp', ['R', 'L'], ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand']);
+export const ARMS_CONTRACT: RigContract = { skeleton: 'nine-dragon-fp', clips: armClipNames(ARM_CLIPS), sockets: ['R_weapon', 'L_claw'] };
+export const ARMS_BAKE: RigBake = { skeleton: 'nine-dragon-fp', clips: ARM_CLIPS, joints: ['R', 'L'].map(side => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].map(joint => `${side}_${joint}`)) };
 
 export type MoveName = 'light' | 'light2' | 'light3' | 'charge' | 'heavy' | 'parry' | 'draw' | 'sheathe' | 'sheathed';
 export type LeftName = 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle';
-export type ArmsState = FpArmsState;
+export type ArmsState = RigState;
 
 /** the decal atlas (a 2048 × 1024 canvas, drawn once): every rig of the shard reads the same one */
 const atlases = new Map<NdTier, Decals>();
@@ -97,7 +100,7 @@ function sharedDecals(tier: NdTier): Decals {
 }
 
 /** the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon */
-function dressParts(rig: FpArmsRigView, u: VmUniforms, haloRows: HaloRows, geometry: ClothGeometry): Mesh {
+function dressParts(rig: NineDragonArms, u: VmUniforms, haloRows: HaloRows, geometry: ClothGeometry): Mesh {
   const weapon = rig.bones.get(ARMS.weapon);
   if (weapon === undefined) throw new Error('Jian pendant socket is missing');
   const hullThin = inkHullMaterial(u, 0.55, true);
@@ -123,22 +126,26 @@ function dressParts(rig: FpArmsRigView, u: VmUniforms, haloRows: HaloRows, geome
   return halo;
 }
 
-export class NineDragonArms extends FpArmsRig {
+export class NineDragonArms {
   readonly u: VmUniforms;
   readonly halo: Mesh;
+  readonly materials: Material[] = [];
+  readonly trail = new BrushTrail();
+  readonly root: RigArms['root'];
+  readonly bones: RigArms['nodes'];
   private t = 0;
+  private readonly matrix = new Matrix4();
 
-  private constructor(scene: Group, clips: AnimationClip[], textures: InkedRigMaps, silk: Texture, tier: NdTier, halo: HaloRows, geometry: ClothGeometry) {
-    const u = vmUniforms(silk, sharedDecals(tier));
-    const parts: { halo?: Mesh } = {};
-    const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(u, k) };
-    super(scene, clips, ARMS, ARMS_CONTRACT, ARMS_BAKE, {
-      mesh: (o, ud, rig) => dressInkedMesh(o, ud, rig, look, textures),
-      dress: (rig) => { parts.halo = dressParts(rig, u, halo, geometry); },
-    });
-    if (parts.halo === undefined) throw new Error('nine-dragon: the arms were not dressed');
-    this.u = u;
-    this.halo = parts.halo;
+  private constructor(readonly rig: RigArms, textures: InkedRigMaps, silk: Texture, tier: NdTier, halo: HaloRows, geometry: ClothGeometry) {
+    this.root = rig.root; this.bones = rig.nodes;
+    this.u = vmUniforms(silk, sharedDecals(tier));
+    const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(this.u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(this.u, k) };
+    for (const mesh of rig.meshes()) {
+      prepRigGeometry(mesh.geometry, ARMS.rename);
+      dressInkedMesh(mesh, mesh.userData, this, look, textures);
+    }
+    this.halo = dressParts(this, this.u, halo, geometry);
+    this.root.add(this.trail.mesh);
   }
 
   static async load(tier: NdTier = app.render?.tier ?? 'desktop', url = RIG_URL): Promise<NineDragonArms> {
@@ -150,30 +157,74 @@ export class NineDragonArms extends FpArmsRig {
     const parts = v.parse(v.strictObject({ knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-cloth.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const loader = new BufferGeometryLoader();
     const geometry = { knot: loader.parse(parts.knot), tassel: loader.parse(parts.tassel), sheet: loader.parse(parts.sheet), cord: loader.parse(parts.cord) };
-    const gltf = await takeRigScene(url);
+    const rig = await RigArms.load(url, ARMS_CONTRACT, ARMS_BAKE, false, { aliases: ARM_CLIPS, holdRight: ARMS.holdRight, holdLeft: ARMS.holdLeft, walkRate: ARMS.walkRate, lag: ARMS.lag });
     const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
-    return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, restoreWeave(await product.file('looks/plain-weave.r8')), tier, halo, geometry);
+    return new NineDragonArms(rig, textures, restoreWeave(await product.file('looks/plain-weave.r8')), tier, halo, geometry);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */
-  override play(name: MoveName, fade = 0.1): void { super.play(name, fade, Math.random() * 100); }
+  beginTrail(): void {
+    const name = this.rig.move ?? 'light';
+    this.trail.begin((this.rig.meta.clips[name]?.timing?.total ?? ARMS.trail.total) * ARMS.trail.life, Math.random() * 100);
+  }
 
   /** the left arm: the grapple's poses, or 'idle' to fade back */
-  override playLeft(name: LeftName, fade = 0.1): void { super.playLeft(name, fade); }
+  playLeft(name: LeftName, fade = 0.1): void { this.rig.playLeft(name, fade); }
+
+  setClawVisible(on: boolean): void { for (const mesh of this.rig.meshes()) if (mesh.name.startsWith(ARMS.claw)) mesh.visible = on; }
+
+  blade(base: Vector3, tip: Vector3, from = 0): void {
+    const weapon = this.bones.get(ARMS.weapon); if (weapon === undefined) return;
+    this.root.updateMatrixWorld(true);
+    this.matrix.copy(this.root.matrixWorld).invert().multiply(weapon.matrixWorld);
+    base.set(0, ARMS.bladeBase + (ARMS.bladeTip - ARMS.bladeBase) * from, 0).applyMatrix4(this.matrix);
+    tip.set(0, ARMS.bladeTip, 0).applyMatrix4(this.matrix);
+  }
 
   /** buffer size + pixel ratio: the ink widths and the halo are in pixels */
   resize(bw: number, bh: number, pr: number): void {
     this.u.uRes.value.set(bw, bh);
     this.u.uLinePx.value = Math.max(1.0, 1.6 * (pr / 2));
     this.u.uHullPx.value = Math.max(1.0, 2.4 * (pr / 2));
-    this.resizeMaterials(bw, bh, pr);
+    const material = this.halo.material;
+    if (material instanceof ShaderMaterial) {
+      const res = material.uniforms['uRes'], px = material.uniforms['uPx'];
+      if (res?.value instanceof Vector2) res.value.set(bw, bh);
+      if (px !== undefined) px.value = 7 * pr;
+    }
   }
 
-  update(dt: number, s: ArmsState): void {
+  update(dt: number, s: ArmsState): void { this.rig.update(dt, s); this.advanceLook(dt); }
+
+  advanceLook(dt: number): void {
     this.t += dt;
     this.u.uTime.value = this.t;
     const hu = (this.halo.material as ShaderMaterial).uniforms['uTime'];
     if (hu !== undefined) hu.value = this.t;
-    super.advancePose(dt, s);
+    const name = this.rig.move, clip = name === null ? undefined : this.rig.meta.clips[name];
+    const timing = clip?.timing;
+    if (timing !== null && timing !== undefined && this.rig.time >= timing.windup && this.rig.time <= timing.slashEnd) {
+      const base = new Vector3(), tip = new Vector3();
+      const trailFrom = clip !== undefined && 'trailFrom' in clip && typeof clip.trailFrom === 'number' ? clip.trailFrom : ARMS.trail.from;
+      this.blade(base, tip, trailFrom); this.trail.sample(base, tip);
+    }
+    this.trail.update(dt);
   }
+}
+
+/** The shared rig player owns clip blending and the held camera projection. */
+export async function jianArms(): Promise<ShardSword> {
+  const rig = await NineDragonArms.load();
+  rig.root.traverse(node => { node.userData['treatAsOpaque'] = true; });
+  const arms = swordArmsOf(rig.rig, {});
+  return { arms: { ...arms, engineTrail: false,
+    play: move => { arms.play(move); rig.beginTrail(); },
+    playLeft: name => { rig.playLeft(name); },
+    setClawVisible: visible => { rig.setClawVisible(visible); },
+    update: (dt, state) => {
+      const renderer = state.renderer;
+      rig.resize(renderer.domElement.width, renderer.domElement.height, renderer.getPixelRatio());
+      arms.update(dt, state); rig.advanceLook(dt);
+    },
+  } };
 }

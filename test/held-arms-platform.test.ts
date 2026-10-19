@@ -11,6 +11,8 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { parseToonArmsLook } from '../src/format/heldArms';
 import { ToonArms } from '../src/game/systems/viewmodel/toonArms';
+import { RigArms } from '../src/game/systems/viewmodel/rigArms';
+import { ARM_CLIPS, armClipNames } from '../src/game/systems/viewmodel/armClips';
 
 // A fictional harbour look uses the native rig loader and resolver. Spies observe the file/compiler
 // seams; neither seam is a parameter of the held host's public API.
@@ -121,4 +123,28 @@ test('held arms refuse malformed rows and missing catalogue bindings before dres
     { ...row, frame: { ...row.frame, surprise: 1 } }]) expect(() => new ToonArms(bad)).toThrow();
   queuedLooks = [{ ...catalogue(), materials: new Map() }];
   await expect(new ToonArms(row).prepare(context())).rejects.toThrow('look.materials lacks');
+});
+
+test('shared rig player preserves the multi-mesh Jian and held grapple clips', async () => {
+  vi.mocked(rigLoader.loadRigFile).mockImplementation(async () =>
+    (await readSourceModel(readFileSync('public/assets/nine-dragon/viewmodel/fp-rig.glb'))).gltf);
+  const contract = { skeleton: 'nine-dragon-fp', clips: armClipNames(ARM_CLIPS), sockets: ['R_weapon', 'L_claw'] };
+  const bake = { skeleton: contract.skeleton, clips: ARM_CLIPS,
+    joints: ['R', 'L'].map(side => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].map(joint => `${side}_${joint}`)) };
+  const options = { aliases: ARM_CLIPS, holdRight: ['charge'], holdLeft: ['grapple_hold'] };
+  const first = await RigArms.load('fixture:jian-native', contract, bake, false, options);
+  const second = await RigArms.load('fixture:jian-native', contract, bake, false, options);
+  expect(first.meshes().length).toBeGreaterThan(3);
+  expect(first.nodes.get('R_weapon')).toBeDefined();
+  const claw = first.nodes.get('L_claw');
+  expect(claw).toBeDefined();
+  expect(claw).not.toBe(second.nodes.get('L_claw'));
+  const state = { speed: 0, lookVel: new Vector2() };
+  first.play('charge'); first.playLeft('grapple_hold'); first.update(2, state);
+  expect(first.move).toBe('charge');
+  const held = claw?.quaternion.toArray(); first.update(.1, state);
+  expect(claw?.quaternion.toArray()).toEqual(held);
+  expect(second.move).toBeNull();
+  first.play('light'); first.update(.1, state);
+  expect(first.move).toBe('light');
 });

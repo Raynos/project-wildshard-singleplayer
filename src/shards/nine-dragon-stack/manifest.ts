@@ -16,7 +16,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   ground: { terrain: TERRAIN, structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
-  sword: async () => (await import('./vm/arms')).jianArms(),
+  sword: async () => (await import('./vm/fpArms')).jianArms(),
   roster: async () => (await import('./roster')).ROSTER,
   render: async () => (await import('./look/render')).shardRender(),
 };
