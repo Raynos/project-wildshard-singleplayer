@@ -1,6 +1,13 @@
 import * as v from 'valibot';
 
+const colour = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff));
+const intensity = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(4));
+
 const presentationSchema = v.strictObject({
+  arenaLighting: v.exactOptional(v.strictObject({ profile: v.literal('neutral-studio-v1'),
+    sky: colour, ground: colour, intensity })),
+  arenaOcclusion: v.exactOptional(v.strictObject({ profile: v.literal('contact-v1'),
+    radius: v.pipe(v.number(), v.finite(), v.minValue(0.01), v.maxValue(2)), intensity })),
   materials: v.strictObject({ body: v.string(), glowing: v.string() }),
   looks: v.array(v.strictObject({ id: v.string(), species: v.string(), kind: v.string(), pose: v.string(),
     rootFlinch: v.exactOptional(v.picklist(['engine', 'authored-pose'])),

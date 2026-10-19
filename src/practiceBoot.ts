@@ -7,6 +7,8 @@ import { loadShardProduct } from './game/shardfile/runtimeProduct';
 import { startPracticeDemo, type PracticeDemo } from './game/practiceDemo/startPracticeDemo';
 import { practiceLevel } from './practiceLevel';
 import { preparePracticeContent } from './practiceContent';
+import { readPracticePresentation } from './practicePresentation';
+import { configurePracticeOcclusion } from './practiceLighting';
 
 /** Separate explicit entry; no session, world plugin, service worker or persistent save boot. */
 export async function bootPractice(canvas: HTMLCanvasElement, status: (message: string) => void): Promise<PracticeDemo> {
@@ -19,8 +21,10 @@ export async function bootPractice(canvas: HTMLCanvasElement, status: (message: 
     const physics = await fetch(practiceAssetUrl('/assets/physics/rapier.wasm'));
     if (!physics.ok) throw new Error(`Practice physics fetch failed: ${physics.status}`);
     await loadRapier(await physics.arrayBuffer());
-    const demo = await startPracticeDemo({ canvas, level: practiceLevel(), product,
+    const presentation = readPracticePresentation(JSON.parse(new TextDecoder().decode(await product.file('practice/looks.json'))));
+    const demo = await startPracticeDemo({ canvas, level: practiceLevel(presentation.arenaLighting), product,
       prepare: game => preparePracticeContent(game, product), status });
+    configurePracticeOcclusion(demo.game.post?.ao ?? null, presentation.arenaOcclusion);
     demo.game.levelScope.expose(window, '__practiceDemo', demo);
     demo.game.levelScope.onDispose(() => { productOwner.dispose(); });
     return demo;

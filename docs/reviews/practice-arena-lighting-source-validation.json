@@ -1,0 +1,78 @@
+{
+  "schema": "wildshard.arena-lighting-source-validation.v1",
+  "baselineDiagnosisCommit": "4a0f35514ca2b01d61ff2f2ee77594709786d122",
+  "baseRecoilCommit": "a617d3d718e34437104d28842f97d2d713772479",
+  "checks": {
+    "focusedTests": {
+      "passed": 19,
+      "files": 5,
+      "terminal": 0
+    },
+    "finalLightingRetest": {
+      "passed": 5,
+      "files": 1,
+      "terminal": 0
+    },
+    "typedOxlint": {
+      "terminal": 0,
+      "files": 7
+    },
+    "nativeGaitAdmissionTests": {
+      "passed": 6,
+      "terminal": 0
+    },
+    "diffCheck": {
+      "terminal": 0
+    }
+  },
+  "omittedPresentationSha256": "a1914dcbd133b29c899818087e9682cf2ecc08408a80af3737bca539744af273",
+  "firstTrial": "An initial host import of authored JSON was rejected by no-build-time-import. Corrected to strict numeric data in admitted product presentation, without disabling the guard. A test expectation was corrected to resolve existing toon schema defaults.",
+  "visualAcceptance": false,
+  "files": [
+    {
+      "path": "scripts/build-puffer-native-preview.mjs",
+      "bytes": 7964,
+      "sha256": "15378da687270d455d86c8136390a1976c4865d777b5c85efefb09ef37be7a88"
+    },
+    {
+      "path": "src/practiceBoot.ts",
+      "bytes": 2090,
+      "sha256": "8fc3f94d031de2498152d0372b5e871577c6f4c38352922ec9951f56c62768bf"
+    },
+    {
+      "path": "src/practiceLevel.ts",
+      "bytes": 1901,
+      "sha256": "36ad421b0ea086a78237556cea60df00f84fd3a609314e5f5e0f88e33eff5547"
+    },
+    {
+      "path": "src/practicePresentation.ts",
+      "bytes": 1168,
+      "sha256": "c7df70d082e2e6d8bcd0aed29148fa1552c9292a2a4c92443a5d07001b0d0498"
+    },
+    {
+      "path": "src/practiceLighting.ts",
+      "bytes": 901,
+      "sha256": "f0380bd362fea40267ccab77a18366f0384fbc917c7381cd1f4546602e2438dc"
+    },
+    {
+      "path": "src/shards/driftwood-isle/generators/pufferNativePreview.ts",
+      "bytes": 7956,
+      "sha256": "63d6cf44869662a9dd149890307699400f4b3e9c32d2b490822822ac2b66952e"
+    },
+    {
+      "path": "src/shards/driftwood-isle/data/practiceLighting.json",
+      "bytes": 231,
+      "sha256": "0e39d9246fd4e547fc5ef087fb2bd3467538aef2d3a5966885ad4d112e729765"
+    },
+    {
+      "path": "test/practice-lighting.test.ts",
+      "bytes": 5608,
+      "sha256": "a8c3c2e02f7a5f885fe32c981276d5fb143736b7af222721efb922afa16ba91a"
+    },
+    {
+      "path": "docs/reviews/practice-arena-lighting-candidate.md",
+      "bytes": 3263,
+      "sha256": "57df8c095c0d2ed0003c03c4cdcd66d8345bf12b7f526e0151b3f31f777274b8"
+    }
+  ]
+}

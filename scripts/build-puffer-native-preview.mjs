@@ -16,8 +16,11 @@ import { shardfileValidationRevision } from './shardfile-validation-revision.mjs
 import { resolvePufferPreviewInput } from './puffer-preview-input.mjs';
 import { assertPufferGaitAdmission } from './puffer-gait-admission.mjs';
 
-/** Pack one native source and compile one unchanged decision through the official SDK pipeline. */
-export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null) {
+/** Pack one native source and compile one unchanged decision through the official SDK pipeline.
+ * @param {string | null} [arenaLighting]
+ * @param {string | null} [arenaOcclusion]
+ */
+export async function buildPufferNativePreview(dimensions, mode = 'rest', destination = resolve(import.meta.dirname, `../tmp/puffer-native-preview/${mode}`), descriptor = null, arenaLighting = null, arenaOcclusion = null) {
   assertHeavyLease('build');
   if (!['rest', 'inflate-105', 'inflate-110', 'attack', 'gait4', 'gait5'].includes(mode)) throw new Error('Unknown Puffer diagnostic pose');
   if (typeof dimensions !== 'string') throw new Error('Supply an explicit dimensions JSON; collider tuning is unaccepted');
@@ -27,6 +30,8 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const input = resolvePufferPreviewInput(root, descriptor, dimensions);
   const { candidate, source, sourceRelative, sourceBytes, dimensionBytes, measurementSha256 } = input;
   const rigAdmission = mode === 'gait4' || mode === 'gait5' ? assertPufferGaitAdmission(root, input, mode) : null;
+  if (arenaLighting !== null && (arenaLighting !== 'neutral-studio-v1' || rigAdmission?.profile !== 'v70-rig1-gait5')) throw new Error('Lighting study requires exact admitted V70 gait5');
+  if (arenaOcclusion !== null && (arenaOcclusion !== 'contact-v1' || arenaLighting !== 'neutral-studio-v1')) throw new Error('Contact AO requires explicit neutral studio lighting study');
   const packed = resolve(destination, 'pack'), productDirectory = resolve(destination, 'product');
   mkdirSync(destination, { recursive: true });
   writeFileSync(resolve(destination, 'unaccepted-dimensions.json'), dimensionBytes, { flag: 'wx' });
@@ -57,12 +62,15 @@ export async function buildPufferNativePreview(dimensions, mode = 'rest', destin
   const lines = decisionLegacyLines(root, 'driftwood-isle');
   if (lines === undefined) throw new Error('Practice decisions require the sealed Driftwood line budget');
   const rootFlinch = rigAdmission?.profile === 'v70-rig1-gait5' ? 'authored-pose' : undefined;
-  const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode, rootFlinch);
+  const product = await author.buildPufferPreviewProduct(project, productDirectory, { decisionLegacyLines: lines }, metadata, mode, rootFlinch, arenaLighting ?? undefined, arenaOcclusion ?? undefined);
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   writeFileSync(resolve(destination, 'preview.json'), JSON.stringify({
     schema: 'wildshard.puffer.native-preview.v1', candidate, mode,
     ...(rigAdmission === null ? {} : { rigAdmission }),
     ...(rootFlinch === undefined ? {} : { rootFlinch }),
+    ...(arenaLighting === null ? {} : { arenaLighting,
+      arenaLightingProfileSha256: hash(readFileSync(resolve(project, 'data/practiceLighting.json'))) }),
+    ...(arenaOcclusion === null ? {} : { arenaOcclusion }),
     ...(mode === 'gait5' ? { visualAdapter: 'puffer-gait5-continuity', visualAdapterSha256: hash(readFileSync(resolve(root, 'src/pufferGaitContinuityPreview.ts'))) } : {}),
     source: sourceRelative, measurementSha256, sourceSha256: hash(sourceBytes), metadataSha256: hash(readFileSync(resolve(packed, 'metadata.json'))),
     dimensionsSha256: hash(dimensionBytes), colliderAcceptance: false, visualAcceptance: false,
@@ -83,7 +91,7 @@ if (command !== undefined && import.meta.url === pathToFileURL(resolve(command))
         ...(outDir === undefined ? {} : { build: { ...config.build, outDir: resolve(outDir) } }) });
     } else {
     const dimensions = process.argv.at(2), mode = process.argv.at(3) ?? 'rest', output = process.argv.at(4);
-    const index = await buildPufferNativePreview(dimensions, mode, output === undefined ? undefined : resolve(output), process.argv.at(5));
+    const index = await buildPufferNativePreview(dimensions, mode, output === undefined ? undefined : resolve(output), process.argv.at(5), process.argv.at(6), process.argv.at(7));
     console.info(JSON.stringify({ slug: index.identity.slug, sourceHash: index.build.sourceHash,
       mode, files: index.files.length, wasm: index.files.filter(file => file.kind === 'wasm').length,
       visualAcceptance: false, colliderAcceptance: false }));

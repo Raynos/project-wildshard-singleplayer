@@ -15,6 +15,7 @@ import { pufferNativeGait4Clips } from './pufferNativeGait4Clips';
 import pickupCatalogue from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import authoredGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import heldArms from '../data/heldArms.json' with { type: 'json' };
+import practiceLighting from '../data/practiceLighting.json' with { type: 'json' };
 import { DRIFTWOOD_REGULAR_ACTORS, DRIFTWOOD_REGULAR_DECISIONS, DRIFTWOOD_REGULAR_FIELDS,
   DRIFTWOOD_REGULAR_MOVES, DRIFTWOOD_REGULAR_REWARDS, DRIFTWOOD_REGULAR_SPECIES, DRIFTWOOD_REGULAR_STRIKES } from './driftwoodRegularCombat';
 
@@ -34,13 +35,15 @@ const materials = ['driftwood-creature', 'driftwood-creature-glowing',
 export const PUFFER_PREVIEW_DECISION_MEMORY = decisions.reduce((sum, row) => sum + row.pages * 65536 * 2, 0);
 
 /** Build-only, isolated practice catalogue. No world generator, placement, save or production inventory is imported. */
-export function createPufferPreviewSource(): Shardfile {
+export function createPufferPreviewSource(arenaLighting?: 'neutral-studio-v1'): Shardfile {
   const base = emptyShardfile({ slug: 'driftwood-isle', name: 'Puffer Native WIP Preview', author: 'Wildshard', revision: 2, seed: 0x5ea1 });
   return parseShardfile({ ...base,
     state: { ...base.state, shared: DRIFTWOOD_REGULAR_FIELDS.filter(row => ['puffer-st', 'regular-clock'].includes(row.name)) },
     serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + PUFFER_PREVIEW_DECISION_MEMORY },
     budgets: { ...base.budgets, sim: { ...base.budgets.sim, resident: PUFFER_PREVIEW_DECISION_MEMORY } },
-    look: { ...base.look, materials: Object.fromEntries(materials.map(id => [id, { family: 'graph', graph: authoredGraphs.looks[id] }])) },
+    look: { ...base.look,
+      ...(arenaLighting === undefined ? {} : { familyLooks: { ...base.look.familyLooks, toon: practiceLighting[arenaLighting].toon } }),
+      materials: Object.fromEntries(materials.map(id => [id, { family: 'graph', graph: authoredGraphs.looks[id] }])) },
     // This is the existing source runtime identity, not a copied runtime or an instruction to boot the island.
     // The standalone practice host owns the scene and consumes these admitted data sections directly.
     runtime: { entry: 'runtime/hybrid.ts', binds: ['spawns', 'loot'],
@@ -57,14 +60,16 @@ export function createPufferPreviewSource(): Shardfile {
 }
 
 /** Separate product only: never reads or writes the rejected multi-creature generated bake. */
-export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose'): ProjectOutput {
+export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose',
+  arenaLighting?: 'neutral-studio-v1', arenaOcclusion?: 'contact-v1'): ProjectOutput {
   if (rootFlinch !== undefined && mode !== 'gait5') throw new Error('Authored recoil requires the admitted gait5 preview');
   const looks: ((typeof practiceLooks.looks)[number] & { rootFlinch?: 'authored-pose' })[] = [];
   for (const row of practiceLooks.looks) {
     if (row.kind === 'brine-puffer') looks.push(rootFlinch === undefined ? row : { ...row, rootFlinch });
   }
   const poses = emitNamedBlobs([
-    ['practice/looks.json', { ...practiceLooks, looks }],
+    ['practice/looks.json', { ...practiceLooks, looks, ...(arenaLighting === undefined ? {} : { arenaLighting: { profile: arenaLighting, ...practiceLighting[arenaLighting].hemisphere } }),
+      ...(arenaOcclusion === undefined ? {} : { arenaOcclusion: { profile: arenaOcclusion, ...practiceLighting[arenaOcclusion] } }) }],
     ['practice/bodies.json', creatureBodies],
     ['practice/pickups.json', { ...pickupCatalogue, looks: [], geometries: pickupCatalogue.geometries.filter(row => row.key === pickupCatalogue.coin) }],
     ['poses/brine-puffer.json', mode === 'gait4' || mode === 'gait5' ? pufferNativeGait4Clips() : pufferNativeClips(mode)],
@@ -91,9 +96,10 @@ export function createPufferPreviewOutput(creatureBodies: unknown, mode: PufferN
 }
 
 /** Recompile the one Puffer guest against this exact catalogue, then emit and re-read the real SDK product and receipt. */
-export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose'): Promise<ReturnType<typeof validateOutputProduct>> {
-  const source = createPufferPreviewSource();
-  const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode, rootFlinch), { source, options });
+export async function buildPufferPreviewProduct(project: string, destination: string, options: DecisionBuildOptions, bodies: unknown, mode: PufferNativePreviewMode, rootFlinch?: 'authored-pose',
+  arenaLighting?: 'neutral-studio-v1', arenaOcclusion?: 'contact-v1'): Promise<ReturnType<typeof validateOutputProduct>> {
+  const source = createPufferPreviewSource(arenaLighting);
+  const prepared = await prepareProjectOutput(project, createPufferPreviewOutput(bodies, mode, rootFlinch, arenaLighting, arenaOcclusion), { source, options });
   const merged = mergeProjectBlobs(source, prepared.assets, prepared.blobs, prepared.options.namedFiles);
   writeOutputProduct(merged.shard, merged.assets, destination, { ...prepared.options, namedFiles: merged.namedFiles });
   return validateOutputProduct(destination);
