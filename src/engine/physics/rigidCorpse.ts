@@ -4,8 +4,9 @@ import type { Rapier } from './rapier';
 
 /** One convex point hull in the named bone's local bind units. No actor scale is baked here. */
 export interface RigidCorpsePart { readonly bone: string; readonly points: readonly (readonly [number, number, number])[] }
-/** Client-only optional rigid corpse collision. One existing root body, no extra joints or living shapes. */
-export interface RigidCorpseRecipe { readonly parts: readonly RigidCorpsePart[] }
+/** Client-only optional collision on one existing root body, with no extra joints or living shapes.
+ * Captured holds the lethal local pose, sacrificing the death fold; omission retains numeric animation. */
+export interface RigidCorpseRecipe { readonly posePolicy?: 'captured'; readonly parts: readonly RigidCorpsePart[] }
 export const RIGID_CORPSE_LIMITS = Object.freeze({ parts: 8, pointsPerPart: 128, points: 512, coordinate: 20 });
 
 function record(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
@@ -14,7 +15,7 @@ function record(value: unknown, keys: readonly string[]): value is Record<string
 }
 /** Revalidate typed callers too: no native allocation occurs until the complete recipe has passed. */
 export function validateRigidCorpse(value: unknown): asserts value is RigidCorpseRecipe {
-  if (!record(value, ['parts']) || !Array.isArray(value['parts']) || value['parts'].length === 0 || value['parts'].length > 8) throw new Error('Invalid rigid corpse parts');
+  if (!(record(value, ['parts']) || record(value, ['parts', 'posePolicy']) && value['posePolicy'] === 'captured') || !Array.isArray(value['parts']) || value['parts'].length === 0 || value['parts'].length > 8) throw new Error('Invalid rigid corpse parts');
   const names = new Set<string>(); let count = 0;
   for (const part of value['parts']) {
     if (!record(part, ['bone', 'points']) || typeof part['bone'] !== 'string' || part['bone'].length === 0 || part['bone'].length > 64
@@ -77,6 +78,7 @@ export function prepareRigidCorpse(R: Rapier, recipe: unknown, root: Object3D,
 
 /** @internal Existing numeric pose publication owned by AnimalView, not an authored callback. */
 export interface CorpsePosePublication {
+  readonly posePolicy?: 'captured' | undefined;
   readonly complete: boolean;
   readonly deathT?: number;
   readonly flinch?: number;

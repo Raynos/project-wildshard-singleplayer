@@ -1,0 +1,5 @@
+test/rigid-corpse-clock.test.ts:85:25: error unicorn(prefer-number-properties): Use `Number.NaN` instead of the global `NaN` help: Replace it with `Number.NaN`
+test/rigid-corpse-clock.test.ts:92:25: error unicorn(prefer-number-properties): Use `Number.NaN` instead of the global `NaN` help: Replace it with `Number.NaN`
+test/rigid-corpse-schema.test.ts:21:66: error oxc(no-map-spread): Spreading to modify object properties in `map` calls is inefficient help: If in-place mutation is acceptable, use `Object.assign` or direct property assignment instead of spreading
+test/rigid-corpse-physics.test.ts:134:60: error unicorn(prefer-number-properties): Use `Number.NaN` instead of the global `NaN` help: Replace it with `Number.NaN`
+src/engine/entities/rigidCorpsePose.ts:22:37: error typescript(no-unnecessary-condition): Unnecessary comparison between literal values.

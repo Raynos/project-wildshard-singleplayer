@@ -177,6 +177,7 @@ export class Ragdoll {
   get corpseDeathT(): number | undefined { return this.corpsePose?.deathT; }
   get corpseFlinch(): number | undefined { return this.corpsePose?.flinch; }
   private readonly joints: ImpulseJoint[] = [];
+  private readonly capturedCorpse: boolean;
   private readonly root: THREE.Object3D;
   private readonly build: RagdollBuild;
   private readonly scale: number;
@@ -195,8 +196,10 @@ export class Ragdoll {
     this.root = spec.root; this.build = spec.build; this.scale = spec.scale;
     const s = spec.scale, d = spec.dims;
     const prepared = Object.hasOwn(d, 'rigidCorpse') ? prepareRigidCorpse(R, d.rigidCorpse, spec.root, spec.bones, s, spec.build) : undefined;
+    this.capturedCorpse = prepared !== undefined && d.rigidCorpse?.posePolicy === 'captured';
     this.corpsePose = prepared === undefined ? undefined : spec.corpsePose;
     if (prepared !== undefined && this.corpsePose === undefined) throw new Error('Rigid corpse requires fixed pose ownership');
+    if (prepared !== undefined && this.capturedCorpse !== (this.corpsePose?.posePolicy === 'captured')) throw new Error('Rigid corpse pose policy mismatch');
     spec.root.updateMatrixWorld(true);
     const bone = (name: string): THREE.Object3D => {
       const b = spec.bones[name];
@@ -368,6 +371,8 @@ export class Ragdoll {
     if (this.system.physics.disposed || this.parts.some(part => !this.system.physics.world.bodies.contains(part.body.handle))) { this.dispose(); return; }
     try {
       this.corpsePose.step(dt);
+      // Captured hulls retain their exact prepared local transforms, including across root interpolation.
+      if (this.capturedCorpse) return;
       const poses = this.corpseColliders.map(part => rigidCorpseTransform(this.root, part.bone, this.scale));
       this.corpseColliders.forEach((part, i) => {
         const pose = poses[i]; if (pose === undefined) throw new Error('Missing prepared corpse pose');

@@ -127,7 +127,7 @@ function driver(scope: Scope) {
 
 // Reuses the already-built, reviewed numeric candidate. This test never enables the product recipe.
 const productRoot = 'tmp/bellback-tucked-preview/motion3-build1/product';
-async function composition(mode: 'practice-update' | 'retained-fixed-post') {
+async function composition(mode: 'practice-update' | 'retained-fixed-post', posePolicy?: 'captured') {
   const product = await loadHeadlessProduct(productRoot), descriptor = outputDescriptor(product.shardfile);
   if (descriptor === undefined) throw new Error('Missing admitted product descriptor');
   const assets = new Map(descriptor.index.files.map(file => [file.hash, Uint8Array.from(readFileSync(`${productRoot}/${file.path}`))]));
@@ -141,22 +141,24 @@ async function composition(mode: 'practice-update' | 'retained-fixed-post') {
   const root = bones['body']; if (root === undefined) throw new Error('Missing body'); mesh.add(root);
   const model: AnimalModel = { kind: row.kind, variant: variant.id, style: 'toon', species: speciesWithLook(row, look), variantDef: variant,
     render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-    geometry, bones: [], dims: { ...dims, rigidCorpse: recipe }, fur: material, hard: material, eye: material, shells: [] };
+    geometry, bones: [], dims: { ...dims, rigidCorpse: { ...recipe, ...(posePolicy === undefined ? {} : { posePolicy }) } }, fur: material, hard: material, eye: material, shells: [] };
   const actor = new Animal({ mesh, bones, materials: [material] }, model, .7, 1, 'practice.bellback', {
     heightAt: () => 0, floorBelow: () => 0, random: () => .5, now: () => 0, hit: req => host.combat.hit(req),
   });
   actor.place(0, 0, 0, 15); actor.state = 'stalk';
   const clock = driver(scope), system = ragdollsFor(host.physics), expected = context();
   let ticks = 0, lastInput = -1;
+  let lethalPose: number[] = [];
   clock.add('fixed.pre', 'physics.corpse.pre', dt => {
     const memory = { ...actor.mem }; system.fixedPre(dt);
     ticks++;
     if (!actor.alive) {
       expected.mem = memory; expected.t = ticks / 60; expected.deathT = Math.min(1, ticks / 48);
       expected.flinch = Math.exp(-5.5 * ticks / 60); expected.phase = actor.gaitPhase;
-      animate(expected); lastInput = memory['tg-state'] ?? -1;
+      if (posePolicy === undefined) animate(expected);
+      lastInput = memory['tg-state'] ?? -1;
       const actual = transforms(bones);
-      transforms(expected.bones).forEach((n, i) => expect(actual[i]).toBeCloseTo(n, 10));
+      (posePolicy === 'captured' ? lethalPose : transforms(expected.bones)).forEach((n, i) => expect(actual[i]).toBeCloseTo(n, 10));
       mesh.updateMatrixWorld(true);
       const body = host.physics.world.getRigidBody(0);
       // SimHost already owns other bodies: locate this compound by its collider count.
@@ -192,7 +194,7 @@ async function composition(mode: 'practice-update' | 'retained-fixed-post') {
   const flushDecision = () => { practice.update(.1); practice.update(1 / 60); };
   actor.mem['tg-state'] = 1; actor.mem['tg-clock'] = .96;
   scope.onDispose(() => { actor.retireBody(); });
-  const kill = () => { expect(actor.applyDamage(1000, new Vector3(), new Vector3(1, 0, 0))).toBe(true); };
+  const kill = () => { lethalPose = transforms(bones); expect(actor.applyDamage(1000, new Vector3(), new Vector3(1, 0, 0))).toBe(true); };
   return { actor, bones, clock, system, fixed, host, scope, kill, flushDecision,
     ticks: () => ticks, lastInput: () => lastInput,
     dispose: () => { scope.dispose(); host.dispose(); app.physics = savedPhysics; geometry.dispose(); material.dispose(); } };
@@ -240,5 +242,31 @@ test('repeated bout retirement creates fresh corpse inputs without touching reti
       Object.defineProperty(f.actor, 'mem', { get: () => { throw new Error('retired input read'); } });
       expect(() => { f.system.fixedPre(1 / 60); f.system.fixedPost(1 / 60); f.actor.retireBody(); }).not.toThrow();
     } finally { f.dispose(); }
+  }
+});
+
+
+test.each(['practice-update', 'retained-fixed-post'] as const)('captured lethal pose survives actual %s death, pause, catch-up and repeated retirement', async mode => {
+  for (let bout = 0; bout < 2; bout++) {
+    const f = await composition(mode, 'captured');
+    setRagdollClock(() => .37);
+    try {
+      f.actor.update(1 / 60, .5, true);
+      const before = transforms(f.bones);
+      f.kill(); expect(transforms(f.bones)).toEqual(before);
+      f.host.events.flush('update'); f.flushDecision();
+      f.clock.step(1 / 60); f.actor.update(0, 1, true);
+      expect(transforms(f.bones)).toEqual(before);
+      const ticks = f.ticks(); f.clock.owner.setState('paused'); f.clock.step(10);
+      for (let i = 0; i < 8; i++) f.actor.update(1 / 60, i, i % 2 === 0);
+      expect(f.ticks()).toBe(ticks); expect(transforms(f.bones)).toEqual(before);
+      f.clock.owner.setState('practice'); f.clock.step(1 / 6); expect(f.clock.game.fixedSteps).toBe(3);
+      f.clock.step(0); expect(f.clock.game.fixedSteps).toBe(0);
+      for (let i = 0; i < 50; i++) { f.clock.step(1 / 60); f.actor.update(0, i, true); }
+      expect(transforms(f.bones)).toEqual(before); expect(f.actor.snapshot().motion.deathT).toBe(0);
+      f.scope.dispose(); expect(f.system.live).toBe(0); expect(f.fixed.size).toBe(0);
+      Object.defineProperty(f.actor, 'mem', { get: () => { throw new Error('retired input read'); } });
+      expect(() => { f.system.fixedPre(1 / 60); f.system.fixedPost(1 / 60); f.actor.retireBody(); }).not.toThrow();
+    } finally { setRagdollClock(null); f.dispose(); }
   }
 });

@@ -36,27 +36,29 @@ test('rejects unsupported rig/bones/scales and degenerate hulls without native a
   expect(() => prepareRigidCorpse(R, { parts: [{ bone: 'body', points: [[0, 0, 0], [1, 0, 0], [0, 0, 1], [1, 0, 1]] }] }, root, bones, 1, 'rigid')).toThrow('Degenerate');
 });
 
-function spec(scale = 1, optional = true): RagdollSpec {
+function spec(scale = 1, optional = true, captured = false): RagdollSpec {
   const { root, bones } = rig(scale); root.position.y = 10;
   return { root, bones, scale, build: 'rigid', lite: false,
     dims: { bodyY: 2, bodyHalfLen: 1, bodyRadius: .5, headRadius: .3, halfWidth: .5,
-      ...(optional ? { rigidCorpse: recipe } : {}) },
-    ...(optional ? { corpsePose: { complete: true, step: () => undefined, render: () => undefined } } : {}),
+      ...(optional ? { rigidCorpse: { ...recipe, ...(captured ? { posePolicy: 'captured' as const } : {}) } } : {}) },
+    ...(optional ? { corpsePose: { ...(captured ? { posePolicy: 'captured' as const } : {}), complete: true, step: () => undefined, render: () => undefined } } : {}),
     velocity: { x: 0, y: 0, z: 0 }, hitPoint: { x: 0, y: 0, z: 0 }, dir: { x: 1, y: 0, z: 0 }, damage: 20 };
 }
-test.each([.5, 1, 2])('one root preserves legacy mass, COM, tensor and airborne integration at scale %s', scale => {
+test.each([.5, 1, 2].flatMap(scale => [false, true].map(captured => ({ scale, captured }))))('one root preserves legacy mass, COM, tensor and airborne integration at $scale, captured=$captured', ({ scale, captured }) => {
   const legacy = new Physics(R), posed = new Physics(R);
   try {
     legacy.world.gravity.y = 0; posed.world.gravity.y = 0;
-    const old = new Ragdolls(legacy).spawn(spec(scale, false)), system = new Ragdolls(posed), current = system.spawn(spec(scale));
+    const old = new Ragdolls(legacy).spawn(spec(scale, false)), system = new Ragdolls(posed), current = system.spawn(spec(scale, true, captured));
     const a = legacy.world.getRigidBody(0), b = posed.world.getRigidBody(0);
     expect(old?.bodies).toBe(1); expect(current?.bodies).toBe(1);
     expect(a).toBeDefined(); expect(b).toBeDefined();
+    expect(b.linvel()).toEqual(a.linvel()); expect(b.angvel()).toEqual(a.angvel());
     legacy.step(); posed.step();
     expect(b.mass()).toBeCloseTo(a.mass(), 5); expect(b.localCom()).toEqual(a.localCom());
     const oldTensor = a.effectiveAngularInertia(), tensor = b.effectiveAngularInertia();
     for (const key of ['m11', 'm12', 'm13', 'm22', 'm23', 'm33'] as const) expect(tensor[key]).toBeCloseTo(oldTensor[key], 4);
     expect(b.numColliders()).toBe(1);
+    expect(b.linearDamping()).toBe(a.linearDamping()); expect(b.angularDamping()).toBe(a.angularDamping());
     expect(b.collider(0).collisionGroups()).toBe(groups('DEBRIS')); expect(b.collider(0).solverGroups()).toBe(groups('DEBRIS'));
     for (let i = 0; i < 30; i++) { system.fixedPre(1 / 60); legacy.step(); posed.step(); system.fixedPost(1 / 60); }
     const ap = a.translation(), bp = b.translation(), aq = a.rotation(), bq = b.rotation();
@@ -102,7 +104,7 @@ test('whole-world teardown before corpse retirement never dereferences freed han
   expect(system.live).toBe(0); expect(r?.state).toBe('gone');
 });
 
-test('deterministic native 8-part/435-point fixture follows the actual numeric collapse on one body', () => {
+test.each([undefined, 'captured'] as const)('native 8-part/435-point fixture preserves geometry under pose policy %s on one body', posePolicy => {
   const native = v.parse(v.object({ bones: v.array(v.strictObject({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(), v.number(), v.number()]) })),
     parts: v.array(v.object({ name: v.string(), positions: v.array(v.number()) })) }),
     JSON.parse(readFileSync('art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json', 'utf8')));
@@ -122,15 +124,33 @@ test('deterministic native 8-part/435-point fixture follows the actual numeric c
   const context: AnimalRigContext & { bones: Record<string, Bone> } = { bones, dims: { ...base.dims, bodyY: 1.2000000476837158, legLen: 0, feet: [] },
     dt: 0, t: 0, seed: .7, scale: 1, speed: 0, strafe: 0, phase: 0, state: 'stalk', alive: false, deathT: 0, flinch: 0, brace: 0, attack: -1,
     lookTarget: new Vector3(), lookWeight: 0, position, yaw: 0, mem, animal: { mem, position, yOffset: 0 } };
-  const pose = new RigidCorpsePose(context, numericCreaturePose(bellbackTuckedClips()));
+  const animate = numericCreaturePose(bellbackTuckedClips());
+  if (posePolicy === 'captured') {
+    context.alive = true; context.mem['tg-state'] = 1; context.mem['tg-clock'] = .96;
+    animate(context); context.alive = false;
+  }
+  const snapshot = Object.values(bones).map(b => ({ p: b.position.clone(), q: b.quaternion.clone() }));
+  const pose = new RigidCorpsePose(context, animate, context, posePolicy);
+  if (posePolicy === 'captured') context.mem['tg-clock'] = Number.NaN; // Never evaluated after lethal capture.
   const physics = new Physics(R), system = new Ragdolls(physics); root.position.y = 15;
   try {
-    const r = system.spawn({ ...base, root, bones, dims: { ...base.dims, rigidCorpse: proposed }, corpsePose: pose });
+    const r = system.spawn({ ...base, root, bones, dims: { ...base.dims, rigidCorpse: { ...proposed, ...(posePolicy === undefined ? {} : { posePolicy }) } }, corpsePose: pose });
     const body = physics.world.getRigidBody(0);
     expect(native.parts.reduce((n, p) => n + p.positions.length / 3, 0)).toBe(13374);
     expect(proposed.parts.reduce((n, p) => n + p.points.length, 0)).toBe(435); expect(body.numColliders()).toBe(8); expect(r?.bodies).toBe(1);
+    const local = Array.from({ length: body.numColliders() }, (_, i) => ({ p: body.collider(i).translationWrtParent(), q: body.collider(i).rotationWrtParent() }));
+    const initialRoot = root.position.clone(), initialRotation = root.quaternion.clone();
+    r?.pose(0); expect(root.position).toEqual(initialRoot); expect(root.quaternion.toArray()).toEqual(initialRotation.toArray());
     for (let tick = 0; tick < 48; tick++) {
       system.fixedPre(1 / 60);
+      if (posePolicy === 'captured') {
+        Object.values(bones).forEach((b, i) => { expect(b.position).toEqual(snapshot[i]?.p); expect(b.quaternion.toArray()).toEqual(snapshot[i]?.q.toArray()); });
+        for (let i = 0; i < body.numColliders(); i++) {
+          expect(body.collider(i).translationWrtParent()).toEqual(local[i]?.p);
+          expect(body.collider(i).rotationWrtParent()).toEqual(local[i]?.q);
+        }
+        expect(pose.deathT).toBe(0);
+      }
       for (let i = 0; i < proposed.parts.length; i++) {
         const part = proposed.parts[i]; if (part === undefined) throw new Error('Missing fixture part');
         const bone = bones[part.bone]; if (bone === undefined) throw new Error('Missing fixture bone');
@@ -167,13 +187,13 @@ test('deterministic native 8-part/435-point fixture follows the actual numeric c
   } finally { physics.dispose(); }
 });
 
-test.each([0, 1, 2, 3, 4, 5, 6, 7])('part allocation failure at index %s releases the entire root and permits retry', index => {
-  const physics = new Physics(R), system = new Ragdolls(physics, 1), source = spec(), bones: Record<string, Bone> = {};
+test.each([0, 1, 2, 3, 4, 5, 6, 7].flatMap(index => [false, true].map(captured => ({ index, captured }))))('part allocation failure at $index, captured=$captured releases the entire root and permits retry', ({ index, captured }) => {
+  const physics = new Physics(R), system = new Ragdolls(physics, 1), source = spec(1, true, captured), bones: Record<string, Bone> = {};
   const points = recipe.parts[0]?.points; if (points === undefined) throw new Error('Missing tetrahedron');
   const parts = Array.from({ length: 8 }, (_, i) => {
     const name = `part${i}`, bone = new Bone(); source.root.add(bone); bones[name] = bone; return { bone: name, points };
   });
-  const input = { ...source, bones, dims: { ...source.dims, rigidCorpse: { parts } } }, create = physics.world.createCollider.bind(physics.world);
+  const input = { ...source, bones, dims: { ...source.dims, rigidCorpse: { parts, ...(captured ? { posePolicy: 'captured' as const } : {}) } } }, create = physics.world.createCollider.bind(physics.world);
   let attempt = 0;
   try {
     physics.world.createCollider = (...args) => { if (attempt++ === index) throw new Error('injected part failure'); return create(...args); };
@@ -250,5 +270,17 @@ test.each(['translation', 'rotation', 'scale'])('opt-in refuses parent %s before
     const defaultSource = spec(1, false); parent.add(defaultSource.root);
     const legacy = system.spawn(defaultSource); expect(legacy?.bodies).toBe(1); legacy?.dispose();
     expect(system.live).toBe(0); expect(physics.world.bodies.len()).toBe(0);
+  } finally { physics.dispose(); }
+});
+
+
+test.each([false, true])('recipe/publication policy mismatch %s refuses before native allocation', capturedRecipe => {
+  const physics = new Physics(R), system = new Ragdolls(physics), source = spec();
+  try {
+    expect(() => system.spawn({ ...source,
+      dims: { ...source.dims, rigidCorpse: { ...recipe, ...(capturedRecipe ? { posePolicy: 'captured' } : {}) } },
+      corpsePose: { complete: true, ...(capturedRecipe ? {} : { posePolicy: 'captured' }), step: () => undefined, render: () => undefined },
+    })).toThrow('policy mismatch');
+    expect(system.live).toBe(0); expect(physics.world.bodies.len()).toBe(0); expect(physics.world.colliders.len()).toBe(0);
   } finally { physics.dispose(); }
 });

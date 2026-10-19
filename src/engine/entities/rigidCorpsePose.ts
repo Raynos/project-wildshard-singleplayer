@@ -10,13 +10,16 @@ export function registerRigidCorpseAnimation(animate: NumericPose): NumericPose 
 /** @internal Refuse arbitrary legacy animation code in the fixed corpse phase. */
 export function supportsRigidCorpseAnimation(animate: unknown): boolean { return typeof animate === 'function' && numericPoses.has(animate); }
 
-/** Fixed-step presentation owner for an admitted numeric animation. Each endpoint uses detached current inputs. */
+/** Fixed-step owner for admitted numeric animation. Captured policy holds every lethal local transform,
+ * with no later evaluator/input reads or animation-clock advance. The root still responds immediately to physics. */
 export class RigidCorpsePose {
   private readonly joints;
+  private readonly captured: boolean;
   private context: AnimalRigContext;
   private readonly animate: NumericPose;
   private readonly inputs: PoseInputs;
-  constructor(source: AnimalRigContext & { bones: Record<string, Bone> }, animate: unknown, inputs: PoseInputs = source) {
+  constructor(source: AnimalRigContext & { bones: Record<string, Bone> }, animate: unknown, inputs: PoseInputs = source, posePolicy?: 'captured') {
+    this.captured = posePolicy === 'captured';
     const evaluator = typeof animate === 'function' ? numericPoses.get(animate) : undefined;
     if (evaluator === undefined) throw new Error('Rigid corpse requires admitted numeric animation');
     this.animate = evaluator; this.inputs = inputs;
@@ -27,14 +30,26 @@ export class RigidCorpsePose {
       animal: Object.freeze(animal), dims: Object.freeze(structuredClone(source.dims)), speed: 0, strafe: 0, alive: false, deathT: Math.max(0, source.deathT), brace: 0, attack: -1, lookWeight: 0 };
     this.joints = Object.values(source.bones).map((bone: Bone) => ({ bone,
       prevP: bone.position.clone(), curP: bone.position.clone(), prevQ: bone.quaternion.clone(), curQ: bone.quaternion.clone() }));
+    if (this.captured) {
+      for (const joint of this.joints) {
+        const { bone } = joint;
+        if ([...bone.position, ...bone.quaternion].some(n => !Number.isFinite(n))
+          || Math.abs(bone.quaternion.lengthSq() - 1) > 1e-6
+          || [bone.scale.x, bone.scale.y, bone.scale.z].some(n => !Number.isFinite(n) || Math.abs(n - 1) > 1e-7)) throw new Error('Unsafe captured corpse pose');
+        Object.freeze(joint.prevP); Object.freeze(joint.curP); Object.freeze(joint.prevQ); Object.freeze(joint.curQ); Object.freeze(joint);
+      }
+      Object.freeze(this.joints);
+    }
   }
-  get complete(): boolean { return this.context.deathT >= 1; }
+  get posePolicy(): 'captured' | undefined { return this.captured ? 'captured' : undefined; }
+  get complete(): boolean { return this.captured || this.context.deathT >= 1; }
   get deathT(): number { return this.context.deathT; }
   get flinch(): number { return this.context.flinch; }
   /** Evaluate from the last fixed endpoint, never from an interpolated render pose. */
   step(dt: number): void {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Invalid corpse pose delta');
     this.render(1);
+    if (this.captured) return;
     try {
       // Death handlers may run after construction, or in fixed.post after our first pre step.
       // Read again at every owning boundary, but never lend live actor memory to the evaluator.
@@ -59,6 +74,7 @@ export class RigidCorpsePose {
   /** Render only interpolates published endpoints; it owns no collapse clock or callback. */
   render(alpha: number): void {
     for (const joint of this.joints) {
+      if (this.captured) { joint.bone.position.copy(joint.curP); joint.bone.quaternion.copy(joint.curQ); continue; }
       joint.bone.position.lerpVectors(joint.prevP, joint.curP, alpha);
       joint.bone.quaternion.slerpQuaternions(joint.prevQ, joint.curQ, alpha);
     }

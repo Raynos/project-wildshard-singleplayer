@@ -1,0 +1,56 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ test/rigid-corpse-physics.test.ts (49 tests | 6 failed) 654ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=false 131ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=true 4ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=false 3ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=true 2ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=false 3ms
+   × one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=true 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=false
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 0.5, captured=true
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=false
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 1, captured=true
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=false
+ FAIL  test/rigid-corpse-physics.test.ts > one root preserves legacy mass, COM, tensor and airborne integration at 2, captured=true
+AssertionError: expected Vector3{ x: +0, …(2) } to deeply equal Vector3{ x: +0, y: +0, …(1) }
+
+- Expected
++ Received
+
+  Vector3 {
+    "x": 0,
+-   "y": 0,
+-   "z": -4.975128173828125,
++   "y": 4.4854908676228433e-10,
++   "z": -4.975132465362549,
+  }
+
+ ❯ test/rigid-corpse-physics.test.ts:61:64
+     59|     expect(b.numColliders()).toBe(1);
+     60|     expect(b.linearDamping()).toBe(a.linearDamping()); expect(b.angula…
+     61|     expect(b.linvel()).toEqual(a.linvel()); expect(b.angvel()).toEqual…
+       |                                                                ^
+     62|     expect(b.collider(0).collisionGroups()).toBe(groups('DEBRIS')); ex…
+     63|     for (let i = 0; i < 30; i++) { system.fixedPre(1 / 60); legacy.ste…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  6 failed | 151 passed (157)
+   Start at  03:59:09
+   Duration  75.59s (transform 58%, tests 24%, setup 14%, import 3%)
+
+  Transform  transforming modules took 42.83s · 58% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

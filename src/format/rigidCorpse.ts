@@ -26,11 +26,12 @@ const part = v.strictObject({
 });
 /** Strict inert presentation recipe. Bone-local bind units; runtime rig and hull checks remain mandatory. */
 export const rigidCorpseSchema = v.pipe(v.strictObject({
+  posePolicy: v.exactOptional(v.literal('captured')),
   parts: v.pipe(v.array(part), v.minLength(1), v.maxLength(8)),
 }), v.check(row => new Set(row.parts.map(p => p.bone)).size === row.parts.length
   && row.parts.reduce((count, p) => count + p.points.length, 0) <= 512, 'Invalid rigid corpse part budget'));
 
 /** Copy every nested coordinate; absent dimensions must omit the optional property altogether. */
 export function copyRigidCorpse(row: v.InferOutput<typeof rigidCorpseSchema>): v.InferOutput<typeof rigidCorpseSchema> {
-  return { parts: row.parts.map(p => ({ bone: p.bone, points: p.points.map(([x, y, z]) => [x, y, z]) })) };
+  return { ...(row.posePolicy === undefined ? {} : { posePolicy: row.posePolicy }), parts: row.parts.map(p => ({ bone: p.bone, points: p.points.map(([x, y, z]) => [x, y, z]) })) };
 }

@@ -18,6 +18,7 @@ test('strict corpse recipe owns copies and preserves declared values', () => {
 });
 test.each([
   undefined, null, {}, { parts: [] }, { ...recipe(), extra: 1 },
+  ...[undefined, null, 'animated', 'freeze', 0, () => undefined].map(posePolicy => Object.assign(recipe(), { posePolicy })),
   { parts: [{ ...recipe().parts[0], extra: undefined }] },
   { parts: [{ bone: '', points: tetra }] }, { parts: [{ bone: 'x'.repeat(65), points: tetra }] },
   { parts: [{ bone: 'body', points: tetra.slice(1) }] },
@@ -71,13 +72,13 @@ test.each([
 });
 
 
-test('optional corpse recipe leaves living simulation, attack clocks, memory and analytic hit volumes byte-identical', () => {
+test.each([undefined, 'captured'] as const)('optional corpse policy %s leaves living simulation, attack clocks, memory and analytic hit volumes byte-identical', posePolicy => {
   const base: AnimalSimSpec = { kind: 'fixture', label: 'Fixture', variant: 'base', rarity: 'common', hp: 180, aggressive: true,
     dims: { bodyY: 1, bodyHalfLen: .5, bodyRadius: .3, headRadius: .2, legLen: .5, feet: [], halfWidth: .4 },
     mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 1, relentless: false } };
   const ports = { heightAt: () => 0, now: () => 5, random: () => .5 };
   const a = new AnimalSim(base, 123, 1.5, 'fixture', ports),
-    b = new AnimalSim({ ...base, dims: { ...base.dims, rigidCorpse: v.parse(rigidCorpseSchema, recipe()) } }, 123, 1.5, 'fixture', ports);
+    b = new AnimalSim({ ...base, dims: { ...base.dims, rigidCorpse: v.parse(rigidCorpseSchema, { ...recipe(), ...(posePolicy === undefined ? {} : { posePolicy }) }) } }, 123, 1.5, 'fixture', ports);
   const beforeStorage = localStorage.length;
   for (let tick = 0; tick < 180; tick++) {
     for (const actor of [a, b]) {
@@ -108,4 +109,12 @@ test('native world retains inert corpse geometry without accepting extra fields'
     solids: [], actors: [{ id: 'fixture', kind: 'fixture', variant: 'base', spec: body, seed: 1, scale: 1, herd: 0 }], herds: [] };
   expect(parseWorldPhysics(row)).toEqual(row);
   expect(() => parseWorldPhysics({ ...row, actors: [{ ...row.actors[0], spec: { ...body, dims: { ...body.dims, extra: 1 } } }] })).toThrow();
+});
+
+
+test('captured policy survives detached schema copies and does not materialize absent policy', () => {
+  const input = { ...recipe(), posePolicy: 'captured' }, parsed = v.parse(rigidCorpseSchema, input), copied = copyRigidCorpse(parsed);
+  validateRigidCorpse(parsed); expect(copied).toEqual(input);
+  expect(copied.parts[0]?.points[0]).not.toBe(parsed.parts[0]?.points[0]);
+  expect(Object.hasOwn(copyRigidCorpse(v.parse(rigidCorpseSchema, recipe())), 'posePolicy')).toBe(false);
 });

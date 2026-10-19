@@ -1,0 +1,18 @@
+[
+  {
+    "path": "docs/reviews/rigid-corpse-captured-pose/second-test-attempt.txt",
+    "originalSha256": "ce545fc3fd532cc211d67207e8793b0159b0fd3b33b1eaaf2bbcadfd5de52800",
+    "originalBytes": 3365,
+    "sha256": "87839c6c6c8c0b36ce7a37cb926f793509a815f7e12da188a2e9a80450215e42",
+    "bytes": 3364,
+    "change": "Remove blank EOF lines only; outcomes unchanged."
+  },
+  {
+    "path": "docs/reviews/rigid-corpse-captured-pose/tests-final.txt",
+    "originalSha256": "cd1ae7b5b2fe61df0d7c5d3666581bc3f5de1e3d353276c1afb3426d2ce4618c",
+    "originalBytes": 977,
+    "sha256": "de9a17da23bb220c8c606a2680da1e5ad630b321f5d09da41973ebeddc5f9ddc",
+    "bytes": 976,
+    "change": "Remove blank EOF lines only; outcomes unchanged."
+  }
+]

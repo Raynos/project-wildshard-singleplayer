@@ -9885,7 +9885,9 @@ admission. Ordinary callers retain `fetchBuildFile` and the existing decode.
 
 `AnimalDims.rigidCorpse` is an optional client-presentation extension to the
 existing ragdoll host, not a living body shape. Its strict data shape is
-`{parts: [{bone, points: [[x,y,z], ...]}]}`. Points are bone-local bind units:
+`{parts: [{bone, points: [[x,y,z], ...]}], posePolicy?: 'captured'}`.
+Omitting `posePolicy` preserves animated behavior; no other value or explicit
+undefined is admitted. Points are bone-local bind units:
 1–8 unique admitted bone ids, 4–128 finite triples per part, at most 512 total,
 coordinates within ±20. Physics rejects degenerate hulls, unsafe transforms,
 non-unit bone scales, and nonpositive/nonuniform actor scale before allocation.
@@ -9915,6 +9917,18 @@ the opted-in collapse. The .8-second death clock advances once per executed fixe
 step, independently of near/far render observation. Pauses and dropped catch-up
 steps do not advance it. Existing unscaled creature time through visual hit-stop
 is retained. No Game clock or living animation/motor/AI is changed.
+
+Opting into `posePolicy: 'captured'` holds the exact local positions/quaternions
+of every supplied rig bone at the lethal boundary, including non-collider bones.
+Detached frozen endpoints are copied exactly at fixed pre and render; no numeric
+evaluator, live pose inputs, or animation clocks are advanced after capture.
+The existing admitted numeric-animation requirement is retained. Collider-local
+transforms remain exactly as prepared, rather than recomputed from interpolated
+roots. The original root throw and dynamics start immediately with no root lift,
+phase delay, final-pose snap or terrain correction. Captured local motion is
+complete immediately for ordinary settling, while root endpoints/lifetime remain
+fixed-step owned. This explicitly sacrifices the authored death fold and makes
+no collision-quality or visual-acceptance claim. No product is opted in here.
 
 One dynamic root retains mass 5, the old cuboid COM and physical inertia tensor;
 all hull colliders are massless DEBRIS with the original friction, restitution

@@ -59,3 +59,38 @@ test('numeric compiler marks only rigid-transform programs eligible for fixed co
   for (const output of numeric.outputs) output.path = ['scale', 'y'];
   expect(supportsRigidCorpseAnimation(numericCreaturePose({ ...row, programs }))).toBe(false);
 });
+
+
+test.each([30, 60, 120, 6])('captured endpoints at %s Hz never read live inputs, call animation or advance clocks', hz => {
+  const f = fixture(), detail = new Bone(); f.body.add(detail); f.context.bones['detail'] = detail;
+  f.body.position.set(.1, .2, .3); f.body.rotation.set(.2, .4, -.6); detail.position.set(.7, .8, .9); detail.rotation.z = .35;
+  const expected = Object.values(f.context.bones).map(b => ({ p: b.position.clone(), q: b.quaternion.clone() }));
+  const input = { get mem(): never { throw new Error('live memory read'); }, get phase(): never { throw new Error('live phase read'); },
+    get state(): never { throw new Error('live state read'); }, get yaw(): never { throw new Error('live yaw read'); } };
+  const pose = new RigidCorpsePose(f.context, f.animate, input, 'captured');
+  const assertCapture = () => Object.values(f.context.bones).forEach((b, i) => {
+    expect(b.position).toEqual(expected[i]?.p); expect(b.quaternion.toArray()).toEqual(expected[i]?.q.toArray());
+  });
+  assertCapture(); expect(pose.complete).toBe(true); pose.step(0); assertCapture();
+  f.context.mem['value'] = 100; f.context.deathT = 1; f.context.flinch = 0; f.context.t = 90;
+  let accumulator = 0;
+  for (let frame = 0; frame < hz; frame++) {
+    accumulator += 1 / hz;
+    while (accumulator >= 1 / 60 - 1e-12) { pose.step(1 / 60); accumulator -= 1 / 60; }
+    f.body.position.y = 99; detail.rotation.x = 9;
+    pose.render((frame % 4) / 3); assertCapture();
+  }
+  for (let frame = 0; frame < 120; frame++) pose.render(.5);
+  expect(pose.deathT).toBe(0); expect(pose.flinch).toBe(.5); expect(f.calls()).toBe(0);
+  for (const dt of [-1, Number.NaN, Infinity]) expect(() => pose.step(dt)).toThrow('Invalid');
+  pose.step(1 / 60); assertCapture(); expect(f.calls()).toBe(0);
+});
+
+test('captured policy still refuses unadmitted animation and validates every bone, including non-collider descendants', () => {
+  const f = fixture(), detail = new Bone(); f.context.bones['detail'] = detail;
+  expect(() => new RigidCorpsePose(f.context, () => undefined, f.context, 'captured')).toThrow('admitted');
+  detail.quaternion.x = Number.NaN;
+  expect(() => new RigidCorpsePose(f.context, f.animate, f.context, 'captured')).toThrow('Unsafe captured');
+  detail.quaternion.identity(); detail.scale.y = 2;
+  expect(() => new RigidCorpsePose(f.context, f.animate, f.context, 'captured')).toThrow('Unsafe captured');
+});
