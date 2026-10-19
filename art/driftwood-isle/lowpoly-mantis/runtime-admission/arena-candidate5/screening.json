@@ -1,0 +1,17 @@
+{
+  "schema": "wildshard.mantis.source-screen.v1",
+  "files": 20,
+  "totalBytes": 166266,
+  "binaryBytes": 0,
+  "sizeLimitsPassed": true,
+  "absolutePrivatePathsOrCredentialPatterns": [],
+  "preservedBaselineVerified": 39,
+  "candidate4SourceClosureSha256": "0b9a31b042ecceddbe55b10bab620ae05a478bf09f16a7f9b0ac37dc407372d0",
+  "buildRun": false,
+  "browserRun": false,
+  "publicationRun": false,
+  "focusedTests": 16,
+  "admissionTests": 3,
+  "lintExit": 0,
+  "claim": "Source-only test freeze; no visual/runtime/collider acceptance. Root owns source checkpoint and build decision."
+}

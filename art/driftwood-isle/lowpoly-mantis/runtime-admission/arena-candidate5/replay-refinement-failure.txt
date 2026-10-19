@@ -1,0 +1,34 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <checkout>
+
+ ❯ test/mantis-onset-study.test.ts (4 tests | 1 failed) 1482ms
+   × replay all 469 exact recorded inputs/world transforms, including both boundary windows; quantify clearance and discontinuity 1011ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/mantis-onset-study.test.ts > replay all 469 exact recorded inputs/world transforms, including both boundary windows; quantify clearance and discontinuity
+AssertionError: expected 0.02149884226134862 to be less than 1e-10
+ ❯ test/mantis-onset-study.test.ts:119:121
+    117|     oldPrevious = av; newPrevious = bv;
+    118|   }
+    119|   expect(trace.length).toBe(469); expect(maxBoundaryBaselineError).toB…
+       |                                                                                                                         ^
+    120|   expect(oldMinimum).toBeGreaterThan(0); expect(newMinimum).toBeGreate…
+    121|   const windows = rows.filter(row => (row.frame >= 69 && row.frame <= …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  05:45:44
+   Duration  10.82s (transform 63%, setup 22%, tests 14%, import 1%)
+
+  Transform  transforming modules took 6.68s · 63% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

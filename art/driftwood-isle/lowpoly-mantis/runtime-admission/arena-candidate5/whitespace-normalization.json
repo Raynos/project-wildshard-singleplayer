@@ -1,0 +1,27 @@
+{
+  "file": "scripts/mantis-onset-admission.mjs",
+  "originalSha256": "0c0327cd65ae9de383d7ba7c2def02d2923b42ef5e7ccd7f53329d40bad937d4",
+  "normalizedSha256": "37deed5dd5ad56418b7e1611abd3a3acf27575cd5f8bc3d20367549810ca7742",
+  "change": "Remove trailing space after receipt parse; no semantics or admission tuple changed.",
+  "rawOriginalRetained": "tmp/mantis-onset-preflight/mantis-onset-admission.mjs",
+  "logs": [
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/focused-tests.txt",
+      "originalSha256": "c2c2cb99d8b8a4fab6064e77b67970cdfc23671b88d8413b1a36f686ae3307f9",
+      "normalizedSha256": "8f0df76e05aaa8e9b7bbe427430591931c1cba24ca0992b5ebecc714809c4633",
+      "change": "Remove extra blank lines at EOF only; diagnostic content unchanged."
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/initial-test-failure.txt",
+      "originalSha256": "f7db35b7d7be645956d2e145b1f0a08fef2fb426d8aa0f6dacf5a76f34a5f274",
+      "normalizedSha256": "6dd94771056fd97ca3d82bb9a4e32a594e790e624d40a11718052d3b2c6154d0",
+      "change": "Remove extra blank lines at EOF only; diagnostic content unchanged."
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/replay-refinement-failure.txt",
+      "originalSha256": "0e728c298efb01c90f7813e671c22ac347b74be99debba17dda7bd56d3458e86",
+      "normalizedSha256": "ab7678538418c1787061d178c2a5833fae55b744fd4ffbaee1487e20c32ed311",
+      "change": "Remove extra blank lines at EOF only; diagnostic content unchanged."
+    }
+  ]
+}

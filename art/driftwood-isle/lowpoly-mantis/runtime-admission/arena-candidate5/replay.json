@@ -1,0 +1,3499 @@
+{
+  "tracePath": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/evidence/observer-render-trace.json",
+  "count": 469,
+  "changedInputMismatches": [
+    {
+      "frame": 399,
+      "name": "body",
+      "component": 1,
+      "evaluated": 1.4678268628030864,
+      "captured": 1.48159460271266,
+      "error": 0.013767739909573695
+    },
+    {
+      "frame": 399,
+      "name": "neck",
+      "component": 3,
+      "evaluated": -0.05669437808165624,
+      "captured": -0.04380351750996152,
+      "error": 0.012890860571694723
+    },
+    {
+      "frame": 399,
+      "name": "neck",
+      "component": 6,
+      "evaluated": 0.9983915802399048,
+      "captured": 0.9990401652855377,
+      "error": 0.0006485850456329212
+    },
+    {
+      "frame": 399,
+      "name": "head",
+      "component": 3,
+      "evaluated": 0.008966271550362495,
+      "captured": -0.00824318983592254,
+      "error": 0.017209461386285034
+    },
+    {
+      "frame": 399,
+      "name": "head",
+      "component": 6,
+      "evaluated": 0.9999598021793101,
+      "captured": 0.9999660243334915,
+      "error": 0.000006222154181334538
+    },
+    {
+      "frame": 399,
+      "name": "abdomen",
+      "component": 3,
+      "evaluated": -0.008069664939790522,
+      "captured": 0.007418886816371831,
+      "error": 0.015488551756162353
+    },
+    {
+      "frame": 399,
+      "name": "abdomen",
+      "component": 6,
+      "evaluated": 0.999967439723794,
+      "captured": 0.9999724796805189,
+      "error": 0.000005039956724961492
+    },
+    {
+      "frame": 399,
+      "name": "wing-1_0",
+      "component": 5,
+      "evaluated": -0.023789765829647147,
+      "captured": -0.04528860809099577,
+      "error": 0.02149884226134862
+    },
+    {
+      "frame": 399,
+      "name": "wing-1_0",
+      "component": 6,
+      "evaluated": 0.9997169834717077,
+      "captured": 0.9989739445937418,
+      "error": 0.0007430388779658958
+    },
+    {
+      "frame": 399,
+      "name": "wing-1_1",
+      "component": 5,
+      "evaluated": -0.023789765829647147,
+      "captured": -0.04528860809099577,
+      "error": 0.02149884226134862
+    },
+    {
+      "frame": 399,
+      "name": "wing-1_1",
+      "component": 6,
+      "evaluated": 0.9997169834717077,
+      "captured": 0.9989739445937418,
+      "error": 0.0007430388779658958
+    },
+    {
+      "frame": 399,
+      "name": "wing1_0",
+      "component": 5,
+      "evaluated": 0.023789765829647147,
+      "captured": 0.04528860809099577,
+      "error": 0.02149884226134862
+    },
+    {
+      "frame": 399,
+      "name": "wing1_0",
+      "component": 6,
+      "evaluated": 0.9997169834717077,
+      "captured": 0.9989739445937418,
+      "error": 0.0007430388779658958
+    },
+    {
+      "frame": 399,
+      "name": "wing1_1",
+      "component": 5,
+      "evaluated": 0.023789765829647147,
+      "captured": 0.04528860809099577,
+      "error": 0.02149884226134862
+    },
+    {
+      "frame": 399,
+      "name": "wing1_1",
+      "component": 6,
+      "evaluated": 0.9997169834717077,
+      "captured": 0.9989739445937418,
+      "error": 0.0007430388779658958
+    },
+    {
+      "frame": 427,
+      "name": "body",
+      "component": 1,
+      "evaluated": 1.4808300361801996,
+      "captured": 1.4684482306719344,
+      "error": 0.012381805508265176
+    },
+    {
+      "frame": 427,
+      "name": "neck",
+      "component": 3,
+      "evaluated": -0.0445195993288395,
+      "captured": -0.05611277307464339,
+      "error": 0.011593173745803896
+    },
+    {
+      "frame": 427,
+      "name": "neck",
+      "component": 6,
+      "evaluated": 0.999008511112693,
+      "captured": 0.9984244371497893,
+      "error": 0.0005840739629036085
+    },
+    {
+      "frame": 427,
+      "name": "head",
+      "component": 3,
+      "evaluated": -0.0072875105220768285,
+      "captured": 0.008189590309859532,
+      "error": 0.01547710083193636
+    },
+    {
+      "frame": 427,
+      "name": "head",
+      "component": 6,
+      "evaluated": 0.999973445742631,
+      "captured": 0.9999664647429716,
+      "error": 0.000006980999659456089
+    },
+    {
+      "frame": 427,
+      "name": "abdomen",
+      "component": 3,
+      "evaluated": 0.0065587705002850905,
+      "captured": -0.00737064693352196,
+      "error": 0.01392941743380705
+    },
+    {
+      "frame": 427,
+      "name": "abdomen",
+      "component": 6,
+      "evaluated": 0.9999784910334445,
+      "captured": 0.9999728364129604,
+      "error": 0.000005654620484074613
+    },
+    {
+      "frame": 427,
+      "name": "wing-1_0",
+      "component": 5,
+      "evaluated": -0.044095166612913024,
+      "captured": -0.024760366982704722,
+      "error": 0.019334799630208302
+    },
+    {
+      "frame": 427,
+      "name": "wing-1_0",
+      "component": 6,
+      "evaluated": 0.999027335102188,
+      "captured": 0.9996934151162954,
+      "error": 0.0006660800141073953
+    },
+    {
+      "frame": 427,
+      "name": "wing-1_1",
+      "component": 5,
+      "evaluated": -0.044095166612913024,
+      "captured": -0.024760366982704722,
+      "error": 0.019334799630208302
+    },
+    {
+      "frame": 427,
+      "name": "wing-1_1",
+      "component": 6,
+      "evaluated": 0.999027335102188,
+      "captured": 0.9996934151162954,
+      "error": 0.0006660800141073953
+    },
+    {
+      "frame": 427,
+      "name": "wing1_0",
+      "component": 5,
+      "evaluated": 0.044095166612913024,
+      "captured": 0.024760366982704722,
+      "error": 0.019334799630208302
+    },
+    {
+      "frame": 427,
+      "name": "wing1_0",
+      "component": 6,
+      "evaluated": 0.999027335102188,
+      "captured": 0.9996934151162954,
+      "error": 0.0006660800141073953
+    },
+    {
+      "frame": 427,
+      "name": "wing1_1",
+      "component": 5,
+      "evaluated": 0.044095166612913024,
+      "captured": 0.024760366982704722,
+      "error": 0.019334799630208302
+    },
+    {
+      "frame": 427,
+      "name": "wing1_1",
+      "component": 6,
+      "evaluated": 0.999027335102188,
+      "captured": 0.9996934151162954,
+      "error": 0.0006660800141073953
+    }
+  ],
+  "maxBaselineError": 0.09903134748620968,
+  "maxBaselineAt": {
+    "frame": 205,
+    "name": "body",
+    "i": 1,
+    "value": 1.4917849320528112,
+    "captured": 1.3927535845666015,
+    "gameTime": 17.578299999997007
+  },
+  "maxBoundaryBaselineError": 1.1102230246251565e-16,
+  "maxChangedBaselineError": 0.02149884226134862,
+  "oldMinimum": 0.0006728281084633636,
+  "newMinimum": 0.0006728281084633636,
+  "deadMinimum": 0.013622386081578952,
+  "scope": "Renderer-free exact-input replay for the two complete attacks (62 frames), plus active-only Euler deltas applied to all 469 captured local poses with exact recorded world matrices. Unchanged transforms retained verbatim. Full-trace scalar recomputation is NOT exact at post-hit and interpolated-corpse frames (errors reported). Not fresh gameplay, visual acceptance, collision proof or continuous-time clearance. Frame travel includes unchanged recorded root motion. One observer tick of latency remains.",
+  "windows": [
+    {
+      "frame": 69,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.010243105915319345,
+          "revisedTravel": 0.010243105915319345,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.010243104764414503,
+          "revisedTravel": 0.010243104764414503,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.03333333333333333,
+      "observedPhase": 0,
+      "observedClock": 5.399999999999997,
+      "oldFloor": 0.010524354668859814,
+      "newFloor": 0.010524354668859814,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.10100307929169318,
+      "newFrameMaxVertexTravel": 0.10100307929169318
+    },
+    {
+      "frame": 70,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.0033306670647679465,
+          "revisedTravel": 0.0033306670647679465,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.0033306670647681603,
+          "revisedTravel": 0.0033306670647681603,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.13333333333333333,
+      "observedPhase": 1,
+      "observedClock": 0,
+      "oldFloor": 0.009226561081277396,
+      "newFloor": 0.009226561081277396,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.007453728120030462,
+      "newFrameMaxVertexTravel": 0.007453728120030462
+    },
+    {
+      "frame": 71,
+      "angles": {
+        "old": [
+          -0.03333333333333333,
+          0.025925925925925925,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.03333333333333333,
+          0.025925925925925925,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.03333333333333333,
+        "revised": 0.03333333333333333
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.05478012208767794,
+          "revisedTravel": 0.05478012208767794,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.032254384878944165,
+          "revisedTravel": 0.032254384878944165,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.2333333333333333,
+      "observedPhase": 1,
+      "observedClock": 0.1,
+      "oldFloor": 0.011100049785227384,
+      "newFloor": 0.011100049785227384,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.05478012208767794,
+      "newFrameMaxVertexTravel": 0.05478012208767794
+    },
+    {
+      "frame": 72,
+      "angles": {
+        "old": [
+          -0.11666666666666667,
+          0.09074074074074072,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.11666666666666667,
+          0.09074074074074072,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.08333333333333334,
+        "revised": 0.08333333333333334
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.13252388720709202,
+          "revisedTravel": 0.13252388720709202,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.07617229544932361,
+          "revisedTravel": 0.07617229544932361,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.3333333333333333,
+      "observedPhase": 1,
+      "observedClock": 0.2,
+      "oldFloor": 0.017755597243194643,
+      "newFloor": 0.017755597243194643,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.13252388720709202,
+      "newFrameMaxVertexTravel": 0.13252388720709202
+    },
+    {
+      "frame": 73,
+      "angles": {
+        "old": [
+          -0.22499999999999998,
+          0.17500000000000002,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.22499999999999998,
+          0.17500000000000002,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.10833333333333331,
+        "revised": 0.10833333333333331
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.17144379572504603,
+          "revisedTravel": 0.17144379572504603,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.0980555401730559,
+          "revisedTravel": 0.0980555401730559,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.41666666666666663,
+      "observedPhase": 1,
+      "observedClock": 0.30000000000000004,
+      "oldFloor": 0.027063770139307053,
+      "newFloor": 0.027063770139307053,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.17144379572504603,
+      "newFrameMaxVertexTravel": 0.17144379572504603
+    },
+    {
+      "frame": 74,
+      "angles": {
+        "old": [
+          -0.33333333333333337,
+          0.2592592592592593,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.33333333333333337,
+          0.2592592592592593,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.10833333333333339,
+        "revised": 0.10833333333333339
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.17096546608475646,
+          "revisedTravel": 0.17096546608475646,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.09798868226606305,
+          "revisedTravel": 0.09798868226606305,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.5166666666666666,
+      "observedPhase": 1,
+      "observedClock": 0.4,
+      "oldFloor": 0.03667470903599224,
+      "newFloor": 0.03667470903599224,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.17096546608475646,
+      "newFrameMaxVertexTravel": 0.17096546608475646
+    },
+    {
+      "frame": 75,
+      "angles": {
+        "old": [
+          -0.4166666666666666,
+          0.324074074074074,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.4166666666666666,
+          0.324074074074074,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.0833333333333332,
+        "revised": 0.0833333333333332
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.13074167466348718,
+          "revisedTravel": 0.13074167466348718,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.07533089136892077,
+          "revisedTravel": 0.07533089136892077,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.6166666666666669,
+      "observedPhase": 1,
+      "observedClock": 0.5,
+      "oldFloor": 0.044267505194056866,
+      "newFloor": 0.044267505194056866,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.13074167466348718,
+      "newFrameMaxVertexTravel": 0.13074167466348718
+    },
+    {
+      "frame": 76,
+      "angles": {
+        "old": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.03333333333333338,
+        "revised": 0.03333333333333338
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.05196154578043765,
+          "revisedTravel": 0.05196154578043765,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.030062294493729873,
+          "revisedTravel": 0.030062294493729873,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "windup",
+      "actualElapsed": 0.7166666666666672,
+      "observedPhase": 1,
+      "observedClock": 0.6,
+      "oldFloor": 0.047377271056006975,
+      "newFloor": 0.047377271056006975,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.05196154578043765,
+      "newFrameMaxVertexTravel": 0.05196154578043765
+    },
+    {
+      "frame": 77,
+      "angles": {
+        "old": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.0567883348906598,
+          "revisedTravel": 0.0567883348906598,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.056734459863599575,
+          "revisedTravel": 0.056734459863599575,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.05,
+      "observedPhase": 1,
+      "observedClock": 0.6,
+      "oldFloor": 0.04750690280832259,
+      "newFloor": 0.04750690280832259,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.0568013076416561,
+      "newFrameMaxVertexTravel": 0.0568013076416561
+    },
+    {
+      "frame": 78,
+      "angles": {
+        "old": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6500000000000001,
+          -0.65,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 1.1
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.021466302644854364,
+          "revisedTravel": 1.2242915246746435,
+          "sameFrameDelta": 1.235970811066888
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.021434392682333468,
+          "revisedTravel": 0.6390733889492097,
+          "sameFrameDelta": 0.6453825705489933
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.08333333333333333,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.04758367007138986,
+      "newFloor": 0.035115921329406774,
+      "sameFrameMaxVertexDelta": 1.235970811066888,
+      "oldFrameMaxVertexTravel": 0.021473919599412923,
+      "newFrameMaxVertexTravel": 1.2242915246746435
+    },
+    {
+      "frame": 79,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 1.0999999999999999,
+        "revised": 2.220446049250313e-16
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 1.1585571138333373,
+          "revisedTravel": 0.15165435376160613,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.6913785566239846,
+          "revisedTravel": 0.15175870737695532,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.18333333333333332,
+      "observedPhase": 2,
+      "observedClock": 0.1,
+      "oldFloor": 0.03556624561872468,
+      "newFloor": 0.03556624561872468,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 1.1585571138333373,
+      "newFrameMaxVertexTravel": 0.15219390521755463
+    },
+    {
+      "frame": 80,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.034603199458103855,
+          "revisedTravel": 0.034603199458103855,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.03463198345987346,
+          "revisedTravel": 0.03463198345987346,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.19999999999999998,
+      "observedPhase": 2,
+      "observedClock": 0.1,
+      "oldFloor": 0.03569034372424085,
+      "newFloor": 0.03569034372424085,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.03475188218140573,
+      "newFrameMaxVertexTravel": 0.03475188218140573
+    },
+    {
+      "frame": 81,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.20947202094618203,
+          "revisedTravel": 0.20947202094618203,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.20962441790251907,
+          "revisedTravel": 0.20962441790251907,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.2833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.2,
+      "oldFloor": 0.03634961978843876,
+      "newFloor": 0.03634961978843876,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.21026216750289597,
+      "newFrameMaxVertexTravel": 0.21026216750289597
+    },
+    {
+      "frame": 82,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.26582552767478657,
+          "revisedTravel": 0.26582552767478657,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.2660166712488252,
+          "revisedTravel": 0.2660166712488252,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.3833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.30000000000000004,
+      "oldFloor": 0.03717943801984802,
+      "newFloor": 0.03717943801984802,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.26682046571379053,
+      "newFrameMaxVertexTravel": 0.26682046571379053
+    },
+    {
+      "frame": 83,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.36390135734421114,
+          "revisedTravel": 0.36390135734421114,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.36415173250549726,
+          "revisedTravel": 0.36415173250549726,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.4833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.4,
+      "oldFloor": 0.03827173716274501,
+      "newFloor": 0.03827173716274501,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.36521170670424546,
+      "newFrameMaxVertexTravel": 0.36521170670424546
+    },
+    {
+      "frame": 84,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.43404495518948943,
+          "revisedTravel": 0.43404495518948943,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.4343279757696474,
+          "revisedTravel": 0.4343279757696474,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.5833333333333335,
+      "observedPhase": 2,
+      "observedClock": 0.5,
+      "oldFloor": 0.03951384508070532,
+      "newFloor": 0.03951384508070532,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4355359778207024,
+      "newFrameMaxVertexTravel": 0.4355359778207024
+    },
+    {
+      "frame": 85,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.4717778254552605,
+          "revisedTravel": 0.4717778254552605,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.4720668411733699,
+          "revisedTravel": 0.4720668411733699,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.6666666666666671,
+      "observedPhase": 2,
+      "observedClock": 0.6,
+      "oldFloor": 0.04079054035480567,
+      "newFloor": 0.04079054035480567,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4733114225389269,
+      "newFrameMaxVertexTravel": 0.4733114225389269
+    },
+    {
+      "frame": 86,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.561469194558916,
+          "revisedTravel": 0.561469194558916,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5617828011775216,
+          "revisedTravel": 0.5617828011775216,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.7666666666666674,
+      "observedPhase": 2,
+      "observedClock": 0.7,
+      "oldFloor": 0.04218582849750874,
+      "newFloor": 0.04218582849750874,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5631464898821652,
+      "newFrameMaxVertexTravel": 0.5631464898821652
+    },
+    {
+      "frame": 87,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.016815823627227618,
+          "revisedTravel": 0.016815823627227618,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.017239889053013564,
+          "revisedTravel": 0.017239889053013564,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.8666666666666677,
+      "observedPhase": 2,
+      "observedClock": 0.7999999999999999,
+      "oldFloor": 0.04362388517495219,
+      "newFloor": 0.04362388517495219,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.018486307486953485,
+      "newFrameMaxVertexTravel": 0.018486307486953485
+    },
+    {
+      "frame": 88,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.2655877733066693,
+          "revisedTravel": 0.2655877733066693,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.26575996058037077,
+          "revisedTravel": 0.26575996058037077,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.9333333333333346,
+      "observedPhase": 2,
+      "observedClock": 0.7999999999999999,
+      "oldFloor": 0.04439801166415691,
+      "newFloor": 0.04439801166415691,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.2665194137174307,
+      "newFrameMaxVertexTravel": 0.2665194137174307
+    },
+    {
+      "frame": 89,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.17609499560350486,
+          "revisedTravel": 0.17609499560350486,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.1764066049274581,
+          "revisedTravel": 0.1764066049274581,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.0333333333333345,
+      "observedPhase": 2,
+      "observedClock": 0.8999999999999999,
+      "oldFloor": 0.04578111249804806,
+      "newFloor": 0.04578111249804806,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.17775639990066203,
+      "newFrameMaxVertexTravel": 0.17775639990066203
+    },
+    {
+      "frame": 90,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.0664330450809436,
+          "revisedTravel": 0.0664330450809436,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.06652762173613722,
+          "revisedTravel": 0.06652762173613722,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.0666666666666678,
+      "observedPhase": 2,
+      "observedClock": 0.9999999999999999,
+      "oldFloor": 0.04620485448094769,
+      "newFloor": 0.04620485448094769,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.06694278441746647,
+      "newFrameMaxVertexTravel": 0.06694278441746647
+    },
+    {
+      "frame": 91,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.029842733457683644,
+          "revisedTravel": 0.029842733457683644,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.030143386237482712,
+          "revisedTravel": 0.030143386237482712,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.1666666666666674,
+      "observedPhase": 2,
+      "observedClock": 1.0999999999999999,
+      "oldFloor": 0.0474565481464424,
+      "newFloor": 0.0474565481464424,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.03191442238112461,
+      "newFrameMaxVertexTravel": 0.03191442238112461
+    },
+    {
+      "frame": 92,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.016469265295122878,
+          "revisedTravel": 0.016469265295122878,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.016533191761803324,
+          "revisedTravel": 0.016533191761803324,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.2333333333333338,
+      "observedPhase": 2,
+      "observedClock": 1.0999999999999999,
+      "oldFloor": 0.04833273961617124,
+      "newFloor": 0.04833273961617124,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.020901029984866877,
+      "newFrameMaxVertexTravel": 0.020901029984866877
+    },
+    {
+      "frame": 93,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.03497429537471932,
+          "revisedTravel": 0.03497429537471932,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.03501840278288122,
+          "revisedTravel": 0.03501840278288122,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.3333333333333335,
+      "observedPhase": 2,
+      "observedClock": 1.2,
+      "oldFloor": 0.049297750654773154,
+      "newFloor": 0.049297750654773154,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.039810358817924794,
+      "newFrameMaxVertexTravel": 0.039810358817924794
+    },
+    {
+      "frame": 94,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.06655299751276075,
+          "revisedTravel": 0.06655299751276075,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.06658022321204528,
+          "revisedTravel": 0.06658022321204528,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.4333333333333331,
+      "observedPhase": 2,
+      "observedClock": 1.3,
+      "oldFloor": 0.05005629114577914,
+      "newFloor": 0.05005629114577914,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.0702882570019112,
+      "newFrameMaxVertexTravel": 0.0702882570019112
+    },
+    {
+      "frame": 95,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.12354324051947559,
+          "revisedTravel": 0.12354324051947559,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.12356795943262758,
+          "revisedTravel": 0.12356795943262758,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.5333333333333328,
+      "observedPhase": 2,
+      "observedClock": 1.4000000000000001,
+      "oldFloor": 0.05058385066297433,
+      "newFloor": 0.05058385066297433,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.12605752827916583,
+      "newFrameMaxVertexTravel": 0.12605752827916583
+    },
+    {
+      "frame": 96,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.2342661265067405,
+          "revisedTravel": 0.2342661265067405,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.23428827974185423,
+          "revisedTravel": 0.23428827974185423,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 1.6333333333333324,
+      "observedPhase": 2,
+      "observedClock": 1.5000000000000002,
+      "oldFloor": 0.05086338237890686,
+      "newFloor": 0.05086338237890686,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.23548743079949108,
+      "newFrameMaxVertexTravel": 0.23548743079949108
+    },
+    {
+      "frame": 97,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.347342497519265,
+          "revisedTravel": 0.347342497519265,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.3473457054849848,
+          "revisedTravel": 0.3473457054849848,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "recover",
+      "actualElapsed": 0.016666666666666666,
+      "observedPhase": 2,
+      "observedClock": 1.6000000000000003,
+      "oldFloor": 0.05088585389307809,
+      "newFloor": 0.05088585389307809,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.34741348485258533,
+      "newFrameMaxVertexTravel": 0.34741348485258533
+    },
+    {
+      "frame": 98,
+      "angles": {
+        "old": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6499999999999999,
+          -0.6499999999999999,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.40647207363212107,
+          "revisedTravel": 0.40647207363212107,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.40643575122442027,
+          "revisedTravel": 0.40643575122442027,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "recover",
+      "actualElapsed": 0.11666666666666665,
+      "observedPhase": 3,
+      "observedClock": 0,
+      "oldFloor": 0.05068887840752723,
+      "newFloor": 0.05068887840752723,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.40647207363212107,
+      "newFrameMaxVertexTravel": 0.40647207363212107
+    },
+    {
+      "frame": 99,
+      "angles": {
+        "old": [
+          0.04814814814814807,
+          -0.04814814814814807,
+          0.023703703703703668,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.04814814814814807,
+          -0.04814814814814807,
+          0.023703703703703668,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.6018518518518519,
+        "revised": 0.6018518518518519
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.9217448180892337,
+          "revisedTravel": 0.9217448180892337,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.562427220413078,
+          "revisedTravel": 0.562427220413078,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "idle",
+      "actualElapsed": 0,
+      "observedPhase": 3,
+      "observedClock": 0.1,
+      "oldFloor": 0.022738125633622985,
+      "newFloor": 0.022738125633622985,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.9217448180892337,
+      "newFrameMaxVertexTravel": 0.9217448180892337
+    },
+    {
+      "frame": 100,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.04814814814814807,
+        "revised": 0.04814814814814807
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.2862302768841469,
+          "revisedTravel": 0.2862302768841469,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5151805783468973,
+          "revisedTravel": 0.5151805783468973,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "windup",
+      "actualElapsed": 0.08333333333333333,
+      "observedPhase": 0,
+      "observedClock": 0,
+      "oldFloor": 0.019934744943952865,
+      "newFloor": 0.019934744943952865,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5151805783468973,
+      "newFrameMaxVertexTravel": 0.5151805783468973
+    },
+    {
+      "frame": 101,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.21312270778830084,
+          "revisedTravel": 0.21312270778830084,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.40901693984810117,
+          "revisedTravel": 0.40901693984810117,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "windup",
+      "actualElapsed": 0.18333333333333332,
+      "observedPhase": 1,
+      "observedClock": 0,
+      "oldFloor": 0.01902540077537651,
+      "newFloor": 0.01902540077537651,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4191667629131271,
+      "newFrameMaxVertexTravel": 0.4191667629131271
+    },
+    {
+      "frame": 102,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.08487654320987652,
+          0.0660150891632373,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          -0.08487654320987652,
+          0.0660150891632373,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.08487654320987652,
+        "revised": 0.08487654320987652
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.2554363756710303,
+          "revisedTravel": 0.2554363756710303,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.35364470632197004,
+          "revisedTravel": 0.35364470632197004,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "windup",
+      "actualElapsed": 0.2833333333333333,
+      "observedPhase": 1,
+      "observedClock": 0.1,
+      "oldFloor": 0.025694556144799208,
+      "newFloor": 0.025694556144799208,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.35364470632197004,
+      "newFrameMaxVertexTravel": 0.35364470632197004
+    },
+    {
+      "frame": 103,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.26234567901234573,
+          0.2040466392318244,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          -0.26234567901234573,
+          0.2040466392318244,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.1774691358024692,
+        "revised": 0.1774691358024692
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.29023390556570194,
+          "revisedTravel": 0.29023390556570194,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.36189380168586743,
+          "revisedTravel": 0.36189380168586743,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "windup",
+      "actualElapsed": 0.36666666666666664,
+      "observedPhase": 1,
+      "observedClock": 0.2,
+      "oldFloor": 0.04115250171298612,
+      "newFloor": 0.04115250171298612,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.36189380168586743,
+      "newFrameMaxVertexTravel": 0.36189380168586743
+    },
+    {
+      "frame": 104,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.4166666666666667,
+          0.32407407407407407,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          -0.4166666666666667,
+          0.32407407407407407,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0.15432098765432095,
+        "revised": 0.15432098765432095
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 1.1036674278746967,
+          "revisedTravel": 1.1036674278746967,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 1.1128491022210512,
+          "revisedTravel": 1.1128491022210512,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0,
+      "observedPhase": 1,
+      "observedClock": 0.30000000000000004,
+      "oldFloor": 0.054437271336723825,
+      "newFloor": 0.054437271336723825,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 1.2606166126587444,
+      "newFrameMaxVertexTravel": 1.2606166126587444
+    },
+    {
+      "frame": 105,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.44999999999999996,
+          0.35,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6500000000000001,
+          -0.65,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0.03333333333333327,
+        "revised": 1.0666666666666669
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.07729832518898727,
+          "revisedTravel": 0.595659413490378,
+          "sameFrameDelta": 0.6454238580647433
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.13143598920972382,
+          "revisedTravel": 1.1405823449131114,
+          "sameFrameDelta": 1.2360435054102104
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.09999999999999999,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.05622008836019177,
+      "newFloor": 0.04375233961820868,
+      "sameFrameMaxVertexDelta": 1.2360435054102104,
+      "oldFrameMaxVertexTravel": 0.13143598920972382,
+      "newFrameMaxVertexTravel": 1.1405823449131114
+    },
+    {
+      "frame": 106,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 1.0999999999999999,
+        "revised": 2.220446049250313e-16
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.6452190815798844,
+          "revisedTravel": 0.09362768781139333,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 1.1664897271573589,
+          "revisedTravel": 0.15456634850418965,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.18333333333333332,
+      "observedPhase": 2,
+      "observedClock": 0.1,
+      "oldFloor": 0.042488347902235546,
+      "newFloor": 0.042488347902235546,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 1.1664897271573589,
+      "newFrameMaxVertexTravel": 0.1579615726318879
+    },
+    {
+      "frame": 107,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.1690735968154406,
+          "revisedTravel": 0.1690735968154406,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.23751362022867556,
+          "revisedTravel": 0.23751362022867556,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.2833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.2,
+      "oldFloor": 0.04112096022129208,
+      "newFloor": 0.04112096022129208,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.23751362022867556,
+      "newFrameMaxVertexTravel": 0.23751362022867556
+    },
+    {
+      "frame": 108,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.24077513374293444,
+          "revisedTravel": 0.24077513374293444,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.31357186550948096,
+          "revisedTravel": 0.31357186550948096,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.3833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.30000000000000004,
+      "oldFloor": 0.039753784381105106,
+      "newFloor": 0.039753784381105106,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.3142848215167997,
+      "newFrameMaxVertexTravel": 0.3142848215167997
+    },
+    {
+      "frame": 109,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.3135381424763824,
+          "revisedTravel": 0.3135381424763824,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.38671012654693565,
+          "revisedTravel": 0.38671012654693565,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.4833333333333333,
+      "observedPhase": 2,
+      "observedClock": 0.4,
+      "oldFloor": 0.03848852849580453,
+      "newFloor": 0.03848852849580453,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.38671012654693565,
+      "newFrameMaxVertexTravel": 0.38671012654693565
+    },
+    {
+      "frame": 110,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.3412437878955714,
+          "revisedTravel": 0.3412437878955714,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.4081259220876511,
+          "revisedTravel": 0.4081259220876511,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.5666666666666668,
+      "observedPhase": 2,
+      "observedClock": 0.5,
+      "oldFloor": 0.03746343011380304,
+      "newFloor": 0.03746343011380304,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4081259220876511,
+      "newFrameMaxVertexTravel": 0.4081259220876511
+    },
+    {
+      "frame": 111,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.17309441100504946,
+          "revisedTravel": 0.17309441100504946,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.20476640099306131,
+          "revisedTravel": 0.20476640099306131,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.6166666666666669,
+      "observedPhase": 2,
+      "observedClock": 0.5,
+      "oldFloor": 0.0370284570591366,
+      "newFloor": 0.0370284570591366,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.20476640099306131,
+      "newFrameMaxVertexTravel": 0.20476640099306131
+    },
+    {
+      "frame": 112,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.23315432671260528,
+          "revisedTravel": 0.23315432671260528,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.27219122929545825,
+          "revisedTravel": 0.27219122929545825,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.6666666666666671,
+      "observedPhase": 2,
+      "observedClock": 0.6,
+      "oldFloor": 0.03654104010217907,
+      "newFloor": 0.03654104010217907,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.27219122929545825,
+      "newFrameMaxVertexTravel": 0.27219122929545825
+    },
+    {
+      "frame": 113,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.5124905480830102,
+          "revisedTravel": 0.5124905480830102,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5866089088727939,
+          "revisedTravel": 0.5866089088727939,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.7666666666666674,
+      "observedPhase": 2,
+      "observedClock": 0.7,
+      "oldFloor": 0.03577672610379068,
+      "newFloor": 0.03577672610379068,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5866089088727939,
+      "newFrameMaxVertexTravel": 0.5866089088727939
+    },
+    {
+      "frame": 114,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.5822570926690922,
+          "revisedTravel": 0.5822570926690922,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.656519086274524,
+          "revisedTravel": 0.656519086274524,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.8666666666666677,
+      "observedPhase": 2,
+      "observedClock": 0.7999999999999999,
+      "oldFloor": 0.035242841210788356,
+      "newFloor": 0.035242841210788356,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.656519086274524,
+      "newFrameMaxVertexTravel": 0.656519086274524
+    },
+    {
+      "frame": 115,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.5173096030161405,
+          "revisedTravel": 0.5173096030161405,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5775827772674356,
+          "revisedTravel": 0.5775827772674356,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.9500000000000013,
+      "observedPhase": 2,
+      "observedClock": 0.8999999999999999,
+      "oldFloor": 0.034991413542798,
+      "newFloor": 0.034991413542798,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5775827772674356,
+      "newFrameMaxVertexTravel": 0.5775827772674356
+    },
+    {
+      "frame": 116,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.522064301778952,
+          "revisedTravel": 0.522064301778952,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5798633359151331,
+          "revisedTravel": 0.5798633359151331,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 1.016666666666668,
+      "observedPhase": 2,
+      "observedClock": 0.8999999999999999,
+      "oldFloor": 0.03490806434547267,
+      "newFloor": 0.03490806434547267,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5798633359151331,
+      "newFrameMaxVertexTravel": 0.5798633359151331
+    },
+    {
+      "frame": 117,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.1553105071275123,
+          "revisedTravel": 0.1553105071275123,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.17254990972723366,
+          "revisedTravel": 0.17254990972723366,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 1.0500000000000012,
+      "observedPhase": 2,
+      "observedClock": 0.9999999999999999,
+      "oldFloor": 0.034913356178094546,
+      "newFloor": 0.034913356178094546,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.17254990972723366,
+      "newFrameMaxVertexTravel": 0.17254990972723366
+    },
+    {
+      "frame": 118,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6499999999999999,
+          -0.6499999999999999,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.5902250354931972,
+          "revisedTravel": 0.5902250354931972,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.5901832700968447,
+          "revisedTravel": 0.5901832700968447,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.08333333333333333,
+      "observedPhase": 3,
+      "observedClock": 0,
+      "oldFloor": 0.035095071464752436,
+      "newFloor": 0.035095071464752436,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.5904011199202077,
+      "newFrameMaxVertexTravel": 0.5904011199202077
+    },
+    {
+      "frame": 119,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.6348610067618332,
+          -0.6348610067618332,
+          -0.3125469571750563
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6348610067618332,
+          -0.6348610067618332,
+          -0.3125469571750563
+        ]
+      },
+      "angularJump": {
+        "old": 0.015138993238166698,
+        "revised": 0.015138993238166698
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.4830251666371371,
+          "revisedTravel": 0.4830251666371371,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.4929123873312853,
+          "revisedTravel": 0.4929123873312853,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.18333333333333332,
+      "observedPhase": 3,
+      "observedClock": 0.1,
+      "oldFloor": 0.03493542254705062,
+      "newFloor": 0.03493542254705062,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4929123873312853,
+      "newFrameMaxVertexTravel": 0.4929123873312853
+    },
+    {
+      "frame": 120,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.5933508640120212,
+          -0.5933508640120212,
+          -0.2921111945905334
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.5933508640120212,
+          -0.5933508640120212,
+          -0.2921111945905334
+        ]
+      },
+      "angularJump": {
+        "old": 0.04151014274981202,
+        "revised": 0.04151014274981202
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.3797080647459182,
+          "revisedTravel": 0.3797080647459182,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.4067787774757751,
+          "revisedTravel": 0.4067787774757751,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.2833333333333333,
+      "observedPhase": 3,
+      "observedClock": 0.2,
+      "oldFloor": 0.033994133418104866,
+      "newFloor": 0.033994133418104866,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.4067787774757751,
+      "newFrameMaxVertexTravel": 0.4067787774757751
+    },
+    {
+      "frame": 121,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.5313298271975958,
+          -0.5313298271975958,
+          -0.26157776108189335
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.5313298271975958,
+          -0.5313298271975958,
+          -0.26157776108189335
+        ]
+      },
+      "angularJump": {
+        "old": 0.06202103681442539,
+        "revised": 0.06202103681442539
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.27471684509177735,
+          "revisedTravel": 0.27471684509177735,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.3147539284849322,
+          "revisedTravel": 0.3147539284849322,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.3833333333333333,
+      "observedPhase": 3,
+      "observedClock": 0.30000000000000004,
+      "oldFloor": 0.03228672943657784,
+      "newFloor": 0.03228672943657784,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.3147539284849322,
+      "newFrameMaxVertexTravel": 0.3147539284849322
+    },
+    {
+      "frame": 122,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.4546581517655898,
+          -0.4546581517655898,
+          -0.22383170548459808
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.4546581517655898,
+          -0.4546581517655898,
+          -0.22383170548459808
+        ]
+      },
+      "angularJump": {
+        "old": 0.07667167543200598,
+        "revised": 0.07667167543200598
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.16851292275554902,
+          "revisedTravel": 0.16851292275554902,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.21723148200260392,
+          "revisedTravel": 0.21723148200260392,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.4833333333333333,
+      "observedPhase": 3,
+      "observedClock": 0.4,
+      "oldFloor": 0.029576543333064365,
+      "newFloor": 0.029576543333064365,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.21723148200260392,
+      "newFrameMaxVertexTravel": 0.21723148200260392
+    },
+    {
+      "frame": 123,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.36919609316303537,
+          -0.36919609316303537,
+          -0.18175807663410973
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.36919609316303537,
+          -0.36919609316303537,
+          -0.18175807663410973
+        ]
+      },
+      "angularJump": {
+        "old": 0.08546205860255446,
+        "revised": 0.08546205860255446
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.06364920887119463,
+          "revisedTravel": 0.06364920887119463,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.11648358843473866,
+          "revisedTravel": 0.11648358843473866,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.5833333333333335,
+      "observedPhase": 3,
+      "observedClock": 0.5,
+      "oldFloor": 0.02666898300037701,
+      "newFloor": 0.02666898300037701,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.11648358843473866,
+      "newFrameMaxVertexTravel": 0.11648358843473866
+    },
+    {
+      "frame": 124,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.36919609316303537,
+          -0.36919609316303537,
+          -0.18175807663410973
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.36919609316303537,
+          -0.36919609316303537,
+          -0.18175807663410973
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.0030887476728898838,
+          "revisedTravel": 0.0030887476728898838,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.002926820510781349,
+          "revisedTravel": 0.002926820510781349,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.6666666666666671,
+      "observedPhase": 3,
+      "observedClock": 0.5,
+      "oldFloor": 0.02784693817625339,
+      "newFloor": 0.02784693817625339,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.006763598306928797,
+      "newFrameMaxVertexTravel": 0.006763598306928797
+    },
+    {
+      "frame": 125,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.2808039068369647,
+          -0.2808039068369647,
+          -0.1382419233658903
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.2808039068369647,
+          -0.2808039068369647,
+          -0.1382419233658903
+        ]
+      },
+      "angularJump": {
+        "old": 0.08839218632607065,
+        "revised": 0.08839218632607065
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.03239912391951919,
+          "revisedTravel": 0.03239912391951919,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.08241233819309164,
+          "revisedTravel": 0.08241233819309164,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.7666666666666674,
+      "observedPhase": 3,
+      "observedClock": 0.6,
+      "oldFloor": 0.02501870309208698,
+      "newFloor": 0.02501870309208698,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.08241233819309164,
+      "newFrameMaxVertexTravel": 0.08241233819309164
+    },
+    {
+      "frame": 126,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.19534184823441028,
+          -0.19534184823441028,
+          -0.09616829451540199
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.19534184823441028,
+          -0.19534184823441028,
+          -0.09616829451540199
+        ]
+      },
+      "angularJump": {
+        "old": 0.08546205860255443,
+        "revised": 0.08546205860255443
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.030900786492963857,
+          "revisedTravel": 0.030900786492963857,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.07926140227941496,
+          "revisedTravel": 0.07926140227941496,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.8666666666666677,
+      "observedPhase": 3,
+      "observedClock": 0.7,
+      "oldFloor": 0.022496508070616983,
+      "newFloor": 0.022496508070616983,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.07926140227941496,
+      "newFrameMaxVertexTravel": 0.07926140227941496
+    },
+    {
+      "frame": 127,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.11867017280240419,
+          -0.11867017280240419,
+          -0.05842223891810668
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.11867017280240419,
+          -0.11867017280240419,
+          -0.05842223891810668
+        ]
+      },
+      "angularJump": {
+        "old": 0.07667167543200609,
+        "revised": 0.07667167543200609
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.02955634738753418,
+          "revisedTravel": 0.02955634738753418,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.07276061648387538,
+          "revisedTravel": 0.07276061648387538,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 0.9000000000000011,
+      "observedPhase": 3,
+      "observedClock": 0.7999999999999999,
+      "oldFloor": 0.019567477387113286,
+      "newFloor": 0.019567477387113286,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.07276061648387538,
+      "newFrameMaxVertexTravel": 0.07276061648387538
+    },
+    {
+      "frame": 128,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.05664913598797904,
+          -0.05664913598797904,
+          -0.027888805409466606
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.05664913598797904,
+          -0.05664913598797904,
+          -0.027888805409466606
+        ]
+      },
+      "angularJump": {
+        "old": 0.06202103681442515,
+        "revised": 0.06202103681442515
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.02136914975780751,
+          "revisedTravel": 0.02136914975780751,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.056381073361356296,
+          "revisedTravel": 0.056381073361356296,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 1.0000000000000013,
+      "observedPhase": 3,
+      "observedClock": 0.8999999999999999,
+      "oldFloor": 0.018209434455911833,
+      "newFloor": 0.018209434455911833,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.056381073361356296,
+      "newFrameMaxVertexTravel": 0.056381073361356296
+    },
+    {
+      "frame": 129,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.05664913598797904,
+          -0.05664913598797904,
+          -0.027888805409466606
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.05664913598797904,
+          -0.05664913598797904,
+          -0.027888805409466606
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 0
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.0012954467028539977,
+          "revisedTravel": 0.0012954467028539977,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.0012871535093228346,
+          "revisedTravel": 0.0012871535093228346,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "recover",
+      "actualElapsed": 1.0333333333333345,
+      "observedPhase": 3,
+      "observedClock": 0.8999999999999999,
+      "oldFloor": 0.0187115659319943,
+      "newFloor": 0.0187115659319943,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.002875632219174116,
+      "newFrameMaxVertexTravel": 0.002875632219174116
+    },
+    {
+      "frame": 130,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          0.015138993238166892,
+          -0.015138993238166892,
+          -0.007453042824943701
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.015138993238166892,
+          -0.015138993238166892,
+          -0.007453042824943701
+        ]
+      },
+      "angularJump": {
+        "old": 0.04151014274981215,
+        "revised": 0.04151014274981215
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.013389154843316674,
+          "revisedTravel": 0.013389154843316674,
+          "sameFrameDelta": 0
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.03680938523439087,
+          "revisedTravel": 0.03680938523439087,
+          "sameFrameDelta": 0
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "idle",
+      "actualElapsed": 0,
+      "observedPhase": 3,
+      "observedClock": 0.9999999999999999,
+      "oldFloor": 0.01817441894354488,
+      "newFloor": 0.01817441894354488,
+      "sameFrameMaxVertexDelta": 0,
+      "oldFrameMaxVertexTravel": 0.03680938523439087,
+      "newFrameMaxVertexTravel": 0.03680938523439087
+    }
+  ],
+  "changedFrames": [
+    {
+      "frame": 78,
+      "angles": {
+        "old": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6500000000000001,
+          -0.65,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 1.1
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.021466302644854364,
+          "revisedTravel": 1.2242915246746435,
+          "sameFrameDelta": 1.235970811066888
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.021434392682333468,
+          "revisedTravel": 0.6390733889492097,
+          "sameFrameDelta": 0.6453825705489933
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.08333333333333333,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.04758367007138986,
+      "newFloor": 0.035115921329406774,
+      "sameFrameMaxVertexDelta": 1.235970811066888,
+      "oldFrameMaxVertexTravel": 0.021473919599412923,
+      "newFrameMaxVertexTravel": 1.2242915246746435
+    },
+    {
+      "frame": 105,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.44999999999999996,
+          0.35,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6500000000000001,
+          -0.65,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0.03333333333333327,
+        "revised": 1.0666666666666669
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.07729832518898727,
+          "revisedTravel": 0.595659413490378,
+          "sameFrameDelta": 0.6454238580647433
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.13143598920972382,
+          "revisedTravel": 1.1405823449131114,
+          "sameFrameDelta": 1.2360435054102104
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.09999999999999999,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.05622008836019177,
+      "newFloor": 0.04375233961820868,
+      "sameFrameMaxVertexDelta": 1.2360435054102104,
+      "oldFrameMaxVertexTravel": 0.13143598920972382,
+      "newFrameMaxVertexTravel": 1.1405823449131114
+    },
+    {
+      "frame": 399,
+      "angles": {
+        "old": [
+          -0.44999999999999996,
+          0.35,
+          0,
+          0,
+          0,
+          0
+        ],
+        "revised": [
+          0.6500000000000001,
+          -0.65,
+          0.32,
+          0,
+          0,
+          0
+        ]
+      },
+      "angularJump": {
+        "old": 0,
+        "revised": 1.1
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.07235793427762278,
+          "revisedTravel": 1.1985817545919217,
+          "sameFrameDelta": 1.2360928447524155
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.07197716347748329,
+          "revisedTravel": 0.6416967401818952,
+          "sameFrameDelta": 0.6454524450194982
+        }
+      ],
+      "stage": 1,
+      "actualPhase": "active",
+      "actualElapsed": 0.06666666666666667,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.06197034440037896,
+      "newFloor": 0.049502595658395876,
+      "sameFrameMaxVertexDelta": 1.2360928447524155,
+      "oldFrameMaxVertexTravel": 0.07245046212713875,
+      "newFrameMaxVertexTravel": 1.1985817545919217
+    },
+    {
+      "frame": 427,
+      "angles": {
+        "old": [
+          0,
+          0,
+          0,
+          -0.44999999999999996,
+          0.35,
+          0
+        ],
+        "revised": [
+          0,
+          0,
+          0,
+          0.6500000000000001,
+          -0.65,
+          -0.32
+        ]
+      },
+      "angularJump": {
+        "old": 0.03333333333333327,
+        "revised": 1.0666666666666669
+      },
+      "blades": [
+        {
+          "side": -1,
+          "oldTravel": 0.11860050802992851,
+          "revisedTravel": 0.6330370239494143,
+          "sameFrameDelta": 0.6453883779654418
+        },
+        {
+          "side": 1,
+          "oldTravel": 0.08702067259358992,
+          "revisedTravel": 1.165103232411207,
+          "sameFrameDelta": 1.2359811462625514
+        }
+      ],
+      "stage": 3,
+      "actualPhase": "active",
+      "actualElapsed": 0.06666666666666667,
+      "observedPhase": 2,
+      "observedClock": 0,
+      "oldFloor": 0.04882397235962799,
+      "newFloor": 0.0363562236176449,
+      "sameFrameMaxVertexDelta": 1.2359811462625514,
+      "oldFrameMaxVertexTravel": 0.11959562215264234,
+      "newFrameMaxVertexTravel": 1.165103232411207
+    }
+  ]
+}
