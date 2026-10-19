@@ -1,0 +1,327 @@
+{
+  "scope": "Read-only source, JSON and GLB-header inspection. No simulation, build, browser, physics or parameter sweep.",
+  "observedUtc": "2026-10-19T22:33:00Z",
+  "sources": {
+    "src/engine/ai/flight.ts": {
+      "bytes": 4146,
+      "sha256": "e3471e00b11cf3fcef4dc2738c97eb38d945ade30e7a50949bf12a7824edf52a"
+    },
+    "src/engine/entities/AnimalSim.ts": {
+      "bytes": 24229,
+      "sha256": "13a7e23fe566753d97879100addd4493357c2617b251fd82148a305c9b871ae7"
+    },
+    "src/engine/entities/AnimalFactory.ts": {
+      "bytes": 41499,
+      "sha256": "3150a92ee756e5afb7035751d48cf2d1b63de806e919d16f5f23176df3119f8c"
+    },
+    "src/engine/entities/animalPose.ts": {
+      "bytes": 23868,
+      "sha256": "3bdbc2f4c1085445e7998597e608758365857aaa45248c45cc31bceb3f56b9f3"
+    },
+    "src/engine/entities/animalRig.ts": {
+      "bytes": 5143,
+      "sha256": "489476be6cd84a182251f4c159a04b996197e174d70d87aa315f825479807687"
+    },
+    "src/game/plugin/geometry.ts": {
+      "bytes": 137286,
+      "sha256": "ddcae285f9e7f5327d521eefba3fe8f3c4ea677f70562d62b5a410d54fe28efd"
+    },
+    "src/game/plugin/animation.ts": {
+      "bytes": 50449,
+      "sha256": "d8acce2705308496eb5057bb4d6052478e3059901d1b886ce76dd0864f536984"
+    },
+    "src/shards/far-reach/generators/creatures.ts": {
+      "bytes": 18810,
+      "sha256": "7da89a73eecb576fd78761b7ebdd0fd7b74cd010db06476d130c26a19e72ea41"
+    },
+    "src/shards/far-reach/generators/creatureClips.ts": {
+      "bytes": 2621,
+      "sha256": "7ec9b6f9356769b1717b999e3ef4c7fd34c4bd840d192f8638e2e90d4f110021"
+    },
+    "src/shards/far-reach/generators/creatureLooks.ts": {
+      "bytes": 1092,
+      "sha256": "73fa1881082ae1a6f98f27a3f324ef0c6047430c8a6789250b7df827df5a91d9"
+    },
+    "src/shards/far-reach/generators/fileInventory.ts": {
+      "bytes": 8585,
+      "sha256": "59d5651011f54b49ce6bce07fce5b1e0c64f40c345a3b3e000b5c1a86a75c8a8"
+    },
+    "src/shards/far-reach/generators/rows/species.ts": {
+      "bytes": 2973,
+      "sha256": "1295d9e9170236430af94b2fbe5b9cc9a6e10710f532000335e9e17371f7bbd3"
+    },
+    "src/shards/far-reach/generators/rows/spawns.ts": {
+      "bytes": 2884,
+      "sha256": "38a018be29fa65706a8bb9ad1b4a94334dcbb4f7b814398eb491428bfbd222cd"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/medusaClips.ts": {
+      "bytes": 2799,
+      "sha256": "c770bafb4f66243df98679f669460abb0372c56757d70e65b9f5c7230c758e2e"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/medusaBehavior.ts": {
+      "bytes": 1177,
+      "sha256": "450e61381438b8de9314a35f01cb4bd9c12e1c178b725cefd7086e2089578643"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/native-source.json": {
+      "bytes": 1896210,
+      "sha256": "8ce441a4b0e3fda4d8f2ce0f16bb31f9152324d2ee8c32cfc498c1360289665e"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/metadata.json": {
+      "bytes": 15656,
+      "sha256": "1fb41e995198d3968469be0cf248aa8db4bbac32ba696125d1cd39cfcb2d1668"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/payload.bin": {
+      "bytes": 43442,
+      "sha256": "3ff82524190ed2e79e993060cf2caef01041d65452a7bbcd04963533ed05fae3"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/v2/rejected-flight-death.json": {
+      "bytes": 283,
+      "sha256": "8c8d70b7fdb7cbaa576efa76b4db28d62043f8ff20196771a98f6a519e87ed02"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/complete-character-next/native-source.json": {
+      "bytes": 3409542,
+      "sha256": "184e65010a8582051713947da9204683d14178753b65b1f1f91800653d1c78d8"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/complete-character-next/metadata.json": {
+      "bytes": 17104,
+      "sha256": "eb1346054c4f93010ccbdedd98a7a5a933be60b36d47dcc9fb831af99357b765"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/complete-character-next/payload.bin": {
+      "bytes": 125916,
+      "sha256": "982033aaacb7d90feaa0b01ae7413df43def2157b9c6312e66f1ea75fdff0abc"
+    },
+    "art/driftwood-isle/approved-pearlglass-medusa/complete-character-next/rejected-flight-death.json": {
+      "bytes": 283,
+      "sha256": "69f3c12a1d3b99cf177eb0c027f2ed059e09aba9571e98b9b7b64fa970f0270c"
+    },
+    "public/assets/far-reach/rigs/gale-wisp.glb": {
+      "bytes": 10132,
+      "sha256": "55467d69a6f7144ba38a06a7f917a3de09d30a44e9c9e1729a6e520af2d6be31"
+    },
+    "public/assets/far-reach/rigs/drift-ray.glb": {
+      "bytes": 74448,
+      "sha256": "d0f39e6fa142c5f12c9949e6ba91f6bc621cd8bfaa8c2c327650f05439a56020"
+    },
+    "public/assets/far-reach/rigs/storm-roc.glb": {
+      "bytes": 492772,
+      "sha256": "1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0"
+    },
+    "src/engine/physics/rigidCorpse.ts": {
+      "bytes": 6690,
+      "sha256": "fddc4e6ae605d79405782b36314e052668cc2b59b6307dc5879e41a9c2be3a8a"
+    },
+    "src/engine/physics/ragdoll.ts": {
+      "bytes": 30374,
+      "sha256": "4f54ab8d7159634c6f7cea5e88e91182693c351821be03f195d3ef3a5cb7484c"
+    },
+    "src/engine/entities/rigidCorpsePose.ts": {
+      "bytes": 5372,
+      "sha256": "c8e6957432df0ad3f6cdc673c655ec720e58656e74b99938e38e155dd99cb5b6"
+    },
+    "src/engine/entities/AnimalView.ts": {
+      "bytes": 32382,
+      "sha256": "36f47df937bb2ff48aac743f7b307b0f16fafcc48795107f9121fecf106e6f28"
+    },
+    "src/format/rigidCorpse.ts": {
+      "bytes": 2433,
+      "sha256": "d9340faf8fee23c5456a0cd4d0d0cd46a825c70ba473f0f390aa41284b4e5a2e"
+    },
+    "src/game/shardfile/client.ts": {
+      "bytes": 48063,
+      "sha256": "aeac10074a84082c00e6ac1a60c951b1198003460a15eb1cf5e5dda684bc3894"
+    },
+    "src/game/plugin/channelPrograms.ts": {
+      "bytes": 12138,
+      "sha256": "cb92376833e49b75453252098c3da6059bd0ad03eb156a0de1ae1f3f6b9247c2"
+    }
+  },
+  "medusa": {
+    "v2": {
+      "root": {
+        "name": "body",
+        "parent": null,
+        "pos": [
+          0,
+          0.0,
+          0
+        ]
+      },
+      "dims": {
+        "bodyY": 0,
+        "bodyHalfLen": 0.72,
+        "bodyRadius": 0.63,
+        "headRadius": 0.42,
+        "legLen": 0,
+        "feet": [],
+        "halfWidth": 1.85,
+        "capsuleAxis": "y"
+      },
+      "sourceRestYBounds": [
+        -3.1040236711502076,
+        1.1525136612021858
+      ],
+      "retainedDeathDiagnostic": {
+        "proof": "actual FlightMotion plus weighted THREE death pose replay, 121 fixed steps",
+        "minimumVertexY": -1.1920032153359559,
+        "finalRootY": 0,
+        "status": "REJECTED: standard flyer death penetrates; existing physical corpse admission required",
+        "runtimeAcceptance": false
+      }
+    },
+    "complete-character-next": {
+      "root": {
+        "name": "body",
+        "parent": null,
+        "pos": [
+          0,
+          0.0,
+          0
+        ]
+      },
+      "dims": {
+        "bodyY": 0,
+        "bodyHalfLen": 0.72,
+        "bodyRadius": 0.63,
+        "headRadius": 0.42,
+        "legLen": 0,
+        "feet": [],
+        "halfWidth": 1.85,
+        "capsuleAxis": "y"
+      },
+      "sourceRestYBounds": [
+        -3.1361625254154206,
+        1.2945481233623561
+      ],
+      "retainedDeathDiagnostic": {
+        "proof": "actual FlightMotion plus weighted THREE death pose replay, 121 fixed steps",
+        "minimumVertexY": -1.1913332079183132,
+        "finalRootY": 0,
+        "status": "REJECTED: standard flyer death penetrates; existing physical corpse admission required",
+        "runtimeAcceptance": false
+      }
+    }
+  },
+  "existingFlyers": {
+    "gale-wisp": {
+      "bodyNodes": [
+        {
+          "name": "body",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "extras": {
+            "wildshard": {
+              "bind": [
+                0,
+                0,
+                0
+              ]
+            }
+          },
+          "children": [
+            2,
+            3
+          ]
+        }
+      ],
+      "positionAccessorBounds": [
+        {
+          "min": [
+            -0.800000011920929,
+            -0.3827928602695465,
+            -0.7608451843261719
+          ],
+          "max": [
+            0.800000011920929,
+            0.3827928602695465,
+            0.7608451843261719
+          ]
+        }
+      ]
+    },
+    "drift-ray": {
+      "bodyNodes": [
+        {
+          "name": "body",
+          "translation": [
+            0,
+            0.3,
+            0
+          ],
+          "extras": {
+            "wildshard": {
+              "bind": [
+                0,
+                0.3,
+                0
+              ]
+            }
+          },
+          "children": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "positionAccessorBounds": [
+        {
+          "min": [
+            -2.700000047683716,
+            -0.1087038666009903,
+            -2.685497522354126
+          ],
+          "max": [
+            2.700000047683716,
+            0.708703875541687,
+            2.685497522354126
+          ]
+        }
+      ]
+    },
+    "storm-roc": {
+      "bodyNodes": [
+        {
+          "name": "body",
+          "translation": [
+            0,
+            1.6,
+            0
+          ],
+          "extras": {
+            "wildshard": {
+              "bind": [
+                0,
+                1.6,
+                0
+              ]
+            }
+          },
+          "children": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "positionAccessorBounds": [
+        {
+          "min": [
+            -7.999999523162842,
+            -1.7364141941070557,
+            -4.265655517578125
+          ],
+          "max": [
+            7.999999523162842,
+            4.922849178314209,
+            4.265655517578125
+          ]
+        }
+      ]
+    }
+  }
+}
