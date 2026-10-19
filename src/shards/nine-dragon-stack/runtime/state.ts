@@ -7,7 +7,6 @@ import { specimenLight } from '../look/specimenLight';
 /** State owned by one level's world hook. */
 export class NdRuntime {
   readonly world: NineDragonWorld;
-  guardOpen = false;
   private disposed = false;
   /** the page's camera */
   private readonly page: PerspectiveCamera;
@@ -36,7 +35,6 @@ export class NdRuntime {
   dispose(): void {
     if (this.disposed) return;
     this.specimenLight(false);
-    this.guardOpen = false;
     this.disposed = true;
   }
 }

@@ -19,8 +19,10 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
 import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
-import { GRAPPLE_AIM, GRAPPLE_LOCK, GRAPPLE_STEP } from '../../../src/shards/nine-dragon-stack/runtime/grapple';
+import grappleProfile from '../../../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
 import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
+
+const { aim: GRAPPLE_AIM, lock: GRAPPLE_LOCK, step: GRAPPLE_STEP } = grappleProfile.headless;
 
 /**
  * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its generated native proof module map,

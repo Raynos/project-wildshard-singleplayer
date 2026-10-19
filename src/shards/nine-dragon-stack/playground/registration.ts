@@ -8,5 +8,5 @@ const CLAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2v9.3" 
 
 export function grapplePlayground(ctx: ShardContext): PlaygroundSpec { return {
   id: 'grapple', title: 'Grapple playground', blurb: 'Fei Zhua parkour · dev course · timer', icon: CLAW, art: grappleArt,
-  load: async () => { const [{ GrapplePlayground }, rows] = await Promise.all([import('./GrapplePlayground'), ctx.product.json<{ practice: HookPracticeLayout }>('geometry/fixed-kits.json')]); return class extends GrapplePlayground { constructor(host: PlaygroundHost) { super(host, rows.practice); } }; },
+  load: async () => { const [{ HookCoursePlayground }, rows] = await Promise.all([import('@wildshard/game/practice/hookCourse'), ctx.product.json<{ practice: HookPracticeLayout }>('geometry/fixed-kits.json')]); return class extends HookCoursePlayground { constructor(host: PlaygroundHost) { super(host, rows.practice); } }; },
 }; }

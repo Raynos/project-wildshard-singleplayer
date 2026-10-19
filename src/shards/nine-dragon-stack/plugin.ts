@@ -1,5 +1,5 @@
 import { prepareNinePost } from './look/render';
-import type { GrappleRows } from './data/grappleTypes';
+import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
@@ -11,7 +11,8 @@ import { BufferGeometryLoader, MaterialLoader, Group, type PerspectiveCamera } f
 import * as v from 'valibot';
 import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { FEI_ZHUA_ROW } from './grapple/row';
-import { FeiZhua } from './grapple/FeiZhua';
+import { GrappleTool } from '@wildshard/game/grapple/tool';
+import grappleProfile from './data/grappleProfile.json' with { type: 'json' };
 import { grapplePlayground } from './playground/registration';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
@@ -92,7 +93,10 @@ export class NdPlugin extends ShardPlugin {
     if (primary === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = bindNineFacts(ctx, this.shell?.play?.progress);
-    const grapple = new FeiZhua(ctx, await ctx.product.json<GrappleRows>('weapons/jian-row.json'), undefined, facts);
+    if (this.ndWorld === null) throw new Error('Grapple needs its constructed world');
+    const grapple = new GrappleTool(ctx, { equipment: FEI_ZHUA_ROW, profile: parseGrappleProfile(grappleProfile),
+      presentation: await ctx.product.json<GrappleRows>('weapons/jian-row.json'), hooks: this.ndWorld.ctx.hooks });
+    this.grapple = grapple;
     const source = ctx.product.shardfile, items = source.items, tool = grapple.row;
     bindRuntimeEquipment(ctx, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
       [{ id: primary.row.id, weapon: primary, profile: this.profile }]);
@@ -103,11 +107,12 @@ export class NdPlugin extends ShardPlugin {
     });
     equipment.add(grapple, { locked: false });
     // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
-    const world = this.shell?.world, slot = this.ndWorld?.portal;
+    const world = this.shell?.world, slot = this.ndWorld.portal;
     if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics, source), source, facts);
   }
   /** G224: the portals while they run (captures read them through the shard handle) */
   portals: PortalRide | null = null;
+  private grapple: GrappleTool | null = null;
   private ndWorld: NineDragonWorld | null = null;
   private profile: v.InferOutput<typeof MeleeWeaponProfileSchema> | null = null;
   private primary: InstanceType<typeof Sword> | null = null;
@@ -145,7 +150,7 @@ export class NdPlugin extends ShardPlugin {
     for (const row of rows) pieces.push({ ...row,
       ...(row.id === 'nds-floors' ? { object: world.root, floor: (x: number, z: number) => floorAtRects(worldRows.floors, x, z, 'first') ?? floorAtRects(deckFloors, x, z, 'first'), solidFloor: true } : {}),
     });
-    for (const piece of pieces) ctx.piece(piece.id === 'nds-grapple-guard' ? { ...piece, follows: new Group(), active: () => !rt.guardOpen } : piece);
+    for (const piece of pieces) ctx.piece(piece.id === 'nds-grapple-guard' ? { ...piece, follows: new Group(), active: () => this.grapple?.guardOpen !== true } : piece);
     ctx.piece({ ...worldInstall.crossings, category: 'buildings', surface: 'stone', colliders: [...worldRows.crossings] });
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });

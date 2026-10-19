@@ -522,6 +522,8 @@ function cachedSourceInfo(source, path, directory, recipe) {
 const approvedFeatures = {
   'audio-cue-director':'G478',
   'mounts-riding-taming':'G478',
+  'grapple-traversal':'G478',
+  'practice-courses':'G478',
   'H6 ambient life':'G474',
   'light emitters':'G478',
   'eased fields':'G484',

@@ -220,7 +220,12 @@
     "./riding/ride.css": "./riding/ride.css",
     "./boss/arenaRoom": "./boss/arenaRoom.ts",
     "./boss/arenaFire": "./boss/arenaFire.ts",
-    "./looks/scaledPost": "./looks/scaledPost.ts"
+    "./looks/scaledPost": "./looks/scaledPost.ts",
+    "./grapple/tool": "./grapple/tool.ts",
+    "./grapple/course": "./grapple/course.ts",
+    "./grapple/headless": "./grapple/headless.ts",
+    "./grapple/sim": "./grapple/sim.ts",
+    "./practice/hookCourse": "./practice/hookCourse.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

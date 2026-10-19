@@ -1,20 +1,7 @@
 import type { HookPracticeLayout, HookPracticeRow } from '@wildshard/format/practiceCourse';
-import { buildPracticeScene } from '@wildshard/game/practice/scene';
+import { buildPracticeScene } from './scene';
+import { GrappleTool } from '../grapple/tool';
 
-// hookCourse — a grapple tool's practice course as a playground (SHARD-PLATFORM M3, ex Nine Dragon's
-// playground/GrapplePlayground.ts). Nothing here knows a shard: the course (the room, the pads, the hooks on their lips, the
-// run, its words and colours) is a data row (`HookCourseRow`), and the tool that bites the hooks is the caller's.
-//
-// A closed dev-grid room high over the shard (PLAYGROUND_Y): pads over a pit, each a slab on a pillar (a finish cap on the
-// row's column), a gold ring on a thin mast at a pad's lip for every hook (drawn only: the zip flies past a ring onto its
-// pad), the pads' names and the target rings painted on their floors, a start line across the start's far edge. Every slab,
-// pillar and wall is a box registered through the world registry as one piece. While the room is open the tool bites only
-// its hooks (`setGrappleCourse`).
-//
-// The run: the timer starts when you cross the start's line and stops on the finish pad (the best is kept for the page). A
-// fall into the pit puts you back on the last pad you stood on, facing its next pad; ↺ on the chip starts over.
-//
-//   class MyPlayground extends HookCoursePlayground { constructor(host) { super(host, COURSE_ROW, { tool: () => myTool(host), now }); } }
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { practiceFps } from '@wildshard/engine/core/tier';
@@ -35,17 +22,6 @@ export interface HookCourseCourse {
   readonly hooks: readonly THREE.Vector3[];
 }
 
-/** The tool that bites the course's hooks while the room is open (null: its own course again). */
-export interface HookCourseTool {
-  setGrappleCourse: (course: HookCourseCourse | null) => void;
-}
-
-/** What only the caller has: the tool that bites the hooks (looked up on entry) and the run clock (ms). */
-export interface HookCourseHooks {
-  readonly tool: () => HookCourseTool;
-  readonly now: () => number;
-}
-
 /** a pad of the row by id (throws on an unknown one) */
 export function hookCoursePad(row: HookCourseRow, id: string): HookCoursePad {
   const p = row.pads.find((q) => q.id === id);
@@ -58,6 +34,7 @@ const fill = (text: string, words: Readonly<Record<string, string | number>>): s
 /** the way the player faces to look from (x, z) toward (tx, tz): Player.forward is (−sin yaw, −cos yaw) */
 const yawToward = (x: number, z: number, tx: number, tz: number): number => Math.atan2(-(tx - x), -(tz - z));
 
+/** Client-only timed practice runner driven entirely by admitted room/pad rows. */
 export class HookCoursePlayground implements Playground {
   readonly id: PlaygroundId;
   readonly title: string;
@@ -70,7 +47,6 @@ export class HookCoursePlayground implements Playground {
   readonly hooks: THREE.Vector3[];
   private readonly host: PlaygroundHost;
   private readonly row: HookCourseRow;
-  private readonly caller: HookCourseHooks;
   private readonly course: HookCourseCourse;
   private readonly chip: PlaygroundChip;
   /** the lowest pad floor: a fall `fallY` under it is a fall */
@@ -87,10 +63,10 @@ export class HookCoursePlayground implements Playground {
   /** the room's pit floor centre, world space (one vector: update() reads it every frame) */
   private readonly origin: THREE.Vector3;
 
-  constructor(host: PlaygroundHost, row: HookCourseRow, caller: HookCourseHooks, layout: HookPracticeLayout) {
+  constructor(host: PlaygroundHost, layout: HookPracticeLayout) {
     this.host = host;
+    const row = layout.course;
     this.row = row;
-    this.caller = caller;
     this.id = 'grapple';
     this.title = row.title;
     this.lowest = Math.min(...row.pads.map((p) => p.top));
@@ -109,6 +85,12 @@ export class HookCoursePlayground implements Playground {
     host.game.onUpdate(() => { if (this.active) this.update(); }, row.piece.id);
   }
 
+  private tool(): GrappleTool {
+    const tool = this.host.game.app.equipment?.tools.find(item => item instanceof GrappleTool);
+    if (!(tool instanceof GrappleTool)) throw new Error('Hook practice needs the equipped grapple tool');
+    return tool;
+  }
+
   get entered(): boolean { return this.active; }
 
   enter(): void {
@@ -116,7 +98,7 @@ export class HookCoursePlayground implements Playground {
     this.active = true;
     app.setState('playground');
     this.root.visible = true;
-    this.caller.tool().setGrappleCourse(this.course);  // the tool bites these hooks now (before the practice flag, which it reads)
+    this.tool().setGrappleCourse(this.course);  // the tool bites these hooks now (before the practice flag, which it reads)
     practiceFps.on = true;                        // a tiny scene: mobile runs it at 60 (tier.ts, as the Practice arena)
     playgroundActive(true);                       // ws:practice-active, then #hud.playground-active
     app.events.emit('practice.active', true);
@@ -134,7 +116,7 @@ export class HookCoursePlayground implements Playground {
     playgroundActive(false);
     app.events.emit('practice.active', false);
     practiceFps.on = false;
-    this.caller.tool().setGrappleCourse(null);
+    this.tool().setGrappleCourse(null);
   }
 
   /** ↺: back on the start facing its next pad, the run reset */
@@ -180,9 +162,9 @@ export class HookCoursePlayground implements Playground {
     // the run starts across the start's line (its far edge, toward the next pad; a range line off its west side does not
     // count) and stops on the finish pad
     const s = hookCoursePad(row, row.run.from);
-    if (this.run === 'ready' && p.z - o.z < s.z - s.d / 2 && p.x - o.x > s.x - s.w / 2 - 1) { this.run = 'running'; this.t0 = this.caller.now(); }
+    if (this.run === 'ready' && p.z - o.z < s.z - s.d / 2 && p.x - o.x > s.x - s.w / 2 - 1) { this.run = 'running'; this.t0 = performance.now(); }
     if (this.run === 'running') {
-      this.elapsed = (this.caller.now() - this.t0) / 1000;
+      this.elapsed = (performance.now() - this.t0) / 1000;
       if (pad?.id === row.run.to) {
         this.run = 'done';
         this.best = this.best === null ? this.elapsed : Math.min(this.best, this.elapsed);

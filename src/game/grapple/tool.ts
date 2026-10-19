@@ -1,23 +1,13 @@
-import type { GrappleRows } from '../../data/grappleTypes';
+import { type GrapplePorts, type GrappleCourse, type GrappleTarget, type GrappleView, type Side, GrappleSim, DEFAULT_GRAPPLE_MODE, NONE, hookVisible, landingFor, targetFor } from './sim';
+import { Tool } from '@wildshard/engine/combat/Tool';
+import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
+import { bindRuntimeLedger, projectRuntimeFacts } from '../plugin/headless';
+import { grappleCourse } from './course';
+import type { GrappleRows, GrappleProfile, GrappleCourseRow } from '@wildshard/format/grapple';
 import * as v from 'valibot';
 
-// grappleAim — a grapple tool's aim, line and zip view (SHARD-PLATFORM M3, ex Nine Dragon's grapple/FeiZhua.ts). Nothing
-// here knows a shard: the law (where a hook may be seen, where a zip lands, how the capsule moves) is the caller's, handed
-// in as `GrappleAimRules`; the words, icons, colours, styles, system ids and mesh names are a data row (`GrappleAimRow`).
-//
-// LOCK a visible hook, JUMP to fire, then zip: every hook in reach (the rules' range, in sight, with a floor to land on)
-// wears a small marker wherever it is on screen; the one nearest the centre wears the chip and turns the touch LOCK disc
-// into the row's READY hint, a locked one makes it LOCKED and JUMP reads ZIP (the grapple input context). The reach test is
-// a round robin, a couple of hooks a frame, so the phone never raycasts the whole hook list in one frame (E283). The line
-// is a fixed-step verlet rope drawn as a screen-width filament with a three-talon claw on its end; the muzzle, bite and
-// dock flash, the bite sparks and the lock halo follow the law's phases. The tool registers the platform's grapple mode
-// (SF34): its context, its LOCK disc and its zip as the fixed step's traversal.
-//
-//   const setCourse = installGrappleAim(host, shard, scope, ROW, { fragment, law, visible, landing, target, … });
-//   setCourse(playgroundCourse);   // a playground opens: only its hooks
-//   setCourse(null);               // the caller's own course again
 import {
-  AdditiveBlending, CustomBlending, OneFactor, ZeroFactor, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
+  AdditiveBlending, CustomBlending, OneFactor, ZeroFactor, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3, BufferGeometry,
 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { inState } from '@wildshard/engine/app/systems';
@@ -26,9 +16,9 @@ import type { InputContextDef } from '@wildshard/engine/level/context';
 import { playerModes } from '@wildshard/engine/player/modes';
 import type { DiscSpot, TouchRelabel } from '@wildshard/engine/ui/hudSlots';
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { Filament, Rope } from '../looks/ropeFilament';
+import { Filament, Rope } from './ribbon';
 import { effectField } from '@wildshard/engine/fx/effectField';
-import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentParam } from '../shardfile/lentLooks';
 
 type GrappleAimRow = GrappleRows['aim'];
 const hintRow = v.object({ label: v.string(), icon: v.exactOptional(v.string()), tone: v.exactOptional(v.picklist(['rest', 'ready', 'active'])), accent: v.exactOptional(v.string()) });
@@ -37,74 +27,10 @@ const hints = v.object({ rest: hintRow, ready: hintRow, locked: hintRow, zip: hi
 /** A grapple tool's presentation as data: its hints, chip, markers, toasts, line, FX, system ids and mesh names. */
 
 
-/** The aim: an eye, a screen projection (normalized device coordinates) and the look direction. */
-export interface GrappleAimView {
-  readonly eye: Vector3;
-  /** refresh the view's matrices before a full test of every hook */
-  update?: () => void;
-  project: (point: Vector3, out: Vector3) => Vector3;
-  forward: (out: Vector3) => Vector3;
-}
-/** A course: the hooks the claw may bite (world space). */
-export interface GrappleAimCourse { readonly hooks: readonly Vector3[] }
-/** A locked target: at least the hook it bit. */
-export interface GrappleAimTarget { readonly hook: Vector3 }
-/** The law's phase changes the view follows (cues, arms, flashes, toasts). */
-export interface GrappleAimEvents {
-  fire: () => void;
-  miss: () => void;
-  bite: () => void;
-  zip: () => void;
-  reel: () => void;
-  dock: () => void;
-  release: (active: boolean) => void;
-}
-/** The caller's grapple law, as the view reads it. */
-export interface GrappleAimLaw<C extends GrappleAimCourse, T extends GrappleAimTarget> {
-  course: C;
-  readonly phase: string;
-  readonly clock: number;
-  readonly target: T | null;
-  readonly missEnd: Vector3;
-  holding: () => boolean;
-  release: () => void;
-  lock: (view: GrappleAimView, candidate: () => T | null, lockedOn: () => boolean) => string;
-  fire: (view: GrappleAimView) => boolean;
-}
-/** A sound the view plays at a law event. */
-export type GrappleAimCue = 'fire' | 'bite' | 'zip' | 'reel' | 'dock';
-/** What only the caller knows: its course, its law, its sight and landing tests, its traversal and sounds. */
-export interface GrappleAimRules<C extends GrappleAimCourse, T extends GrappleAimTarget, S, L extends GrappleAimLaw<C, T> = GrappleAimLaw<C, T>> {
-  /** the course used whenever no other is set */
-  readonly fragment: C;
-  /** the law, made once with the view's events */
-  readonly law: (course: C, events: GrappleAimEvents) => L;
-  /** whether the claw sees `hook` from `eye` on `course` */
-  readonly visible: (course: C, eye: Vector3, hook: Vector3) => boolean;
-  /** the landing for a zip from the feet at `from` to `hook` (into `out`), or `none` */
-  readonly landing: (from: Vector3, hook: Vector3, out: Vector3) => S;
-  /** the landing test's "no landing" */
-  readonly none: S;
-  /** the target for a hook with its landing */
-  readonly target: (course: C, hook: Vector3, landing: Vector3, side: S) => T;
-  /** the grapple mode's traversal while the claw flies, reels or docks */
-  readonly traverse: (law: L, dt: number) => boolean;
-  /** a sound at a law event */
-  readonly cue: (cue: GrappleAimCue) => void;
-  /** the grapple input context (its touch relabel is the view's) */
-  readonly context: InputContextDef;
-  /** the reach (m) and the candidate window (normalized device coordinates) */
-  readonly reach: { readonly min: number; readonly max: number; readonly winX: number; readonly winY: number };
-  /** how long the claw flies out and reels back (s) */
-  readonly timing: { readonly fire: number; readonly reel: number };
-  /** whether the tool itself is on */
-  readonly enabled: () => boolean;
-}
-
-function makeTracer(ctx: EquipmentHost, row: GrappleAimRow) {
+function makeTracer(ctx: EquipmentHost, row: GrappleAimRow, profile: GrappleProfile, scope: Scope) {
   // Lab P9's fixed-step rope and screen-width ribbon replace the straight world-space cylinders.
   const rope = new Rope(row.ropePoints);
-  const line = new Filament(rope.n, row.ribbon, row.filament, row.filamentState);
+  const line = new Filament(rope.n, row.ribbon, profile.looks.ribbon, row.filament);
   line.mesh.name = `${row.name}:filament`;
   const claw = new Group();
   const brass = new MeshBasicMaterial({ color: row.claw });
@@ -122,6 +48,10 @@ function makeTracer(ctx: EquipmentHost, row: GrappleAimRow) {
   claw.name = `${row.name}:flying-claw`;
   line.mesh.visible = claw.visible = false;
   ctx.game.scene.add(line.mesh, claw);
+  scope.onDispose(() => {
+    line.mesh.removeFromParent(); line.mesh.geometry.dispose(); claw.removeFromParent();
+    claw.traverse(part => { if (part instanceof Mesh && part.geometry instanceof BufferGeometry) part.geometry.dispose(); }); brass.dispose();
+  });
   const res = new Vector2(), dir = new Vector3(0, 0, 1), forward = new Vector3(0, 0, 1), turn = new Quaternion();
   return {
     reset(start: Vector3): void { rope.reset(start, start); },
@@ -165,24 +95,41 @@ class Pin {
   }
 }
 
-/**
- * Install a grapple tool's aim, line and zip view on the page's equipment host (`ctx`) for as long as `scope` lives; returns
- * the course setter (null: the rules' own course again). The law, its sight / landing tests and its traversal are `rules`'.
- */
-export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleAimTarget, S, L extends GrappleAimLaw<C, T>>(ctx: EquipmentHost, shard: ShardContext, scope: Scope, row: GrappleAimRow, burstData: GrappleRows['bursts'], rules: GrappleAimRules<C, T, S, L>): (course: C | null) => void {
-  const fragment = rules.fragment;
+/** Client-only presentation; all rules below are native platform traversal. */
+function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope, row: GrappleAimRow, burstData: GrappleRows['bursts'], profile: GrappleProfile, tool: GrappleTool): (course: GrappleCourseRow | null) => void {
+  const ports: GrapplePorts = { get physics() { return ctx.physics; }, get body() { return ctx.player; } };
+  const fragment = grappleCourse({ ...profile.course, hooks: tool.hooks });
+  const modeRow = fragment.mode ?? DEFAULT_GRAPPLE_MODE;
+  const facts = profile.fact === undefined ? undefined : projectRuntimeFacts(
+    bindRuntimeLedger(shard, shard.product.shardfile, shard.product.slug), shard.game.runtime?.play?.progress);
+  const rules = {
+    fragment, context: { id: 'grapple', actions: ['lock', 'jump'], blocks: [], touch: { relabel: {} } } satisfies InputContextDef,
+    reach: { min: modeRow.minRange, max: modeRow.maxRange, winX: modeRow.windowX, winY: modeRow.windowY },
+    timing: { fire: modeRow.fireTime, reel: modeRow.reelTime }, none: NONE,
+    enabled: (): boolean => tool.enabled,
+    visible: (course: GrappleCourse, eye: Vector3, hook: Vector3): boolean => hookVisible(ports, course, eye, hook),
+    landing: (from: Vector3, hook: Vector3, out: Vector3): Side => landingFor(ports, from, hook, out),
+    target: (course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): GrappleTarget => targetFor(ports, course, hook, landing, side),
+    traverse: (sim: GrappleSim, dt: number): boolean => {
+      const settling = sim.phase === 'settle' && sim.target?.lifts === true;
+      const owned = sim.traverse(dt);
+      if (settling && sim.phase === 'idle' && profile.fact !== undefined && facts !== undefined) facts(profile.fact.name, profile.fact.entity);
+      return owned;
+    },
+    cue: (cue: keyof GrappleProfile['cues']): void => { shard.app.audio?.cue(profile.cues[cue]); },
+  };
   const { min: MIN_RANGE, max: MAX_RANGE, winX: WIN_X, winY: WIN_Y } = rules.reach;
   const { fire: FIRE_TIME, reel: REEL_TIME } = rules.timing;
   const MARKS = row.marks, H = v.parse(hints, row.hints);
   let hooks = fragment.hooks;
   // the camera as the aim (read live, as the Tool always did)
-  const view: GrappleAimView = {
+  const view: GrappleView = {
     get eye() { return ctx.game.camera.position; },
     update: () => { ctx.game.camera.updateMatrixWorld(true); },
     project: (point, out) => out.copy(point).project(ctx.game.camera),
     forward: (out) => ctx.game.camera.getWorldDirection(out),
   };
-  const tracer = makeTracer(ctx, row);
+  const tracer = makeTracer(ctx, row, profile, scope);
   const touchUi = document.getElementById('hud')?.classList.contains('touch') === true;
   const chip = new Pin(row.chip.style, row.chip.className);
   const marks: Pin[] = [];
@@ -213,7 +160,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   const up = new Vector3();
   const muzzle = new Vector3(), tip = new Vector3(), screen = new Vector2();
   const fields = Object.fromEntries(Object.entries(burstData).map(([id, data]) => {
-    const material = lentLook(`nine-grapple-${id}`);
+    const material = lentLook(profile.looks[id as keyof GrappleRows['bursts']]);
     material.blending = CustomBlending; material.blendSrc = OneFactor; material.blendDst = OneFactor;
     material.blendSrcAlpha = ZeroFactor; material.blendDstAlpha = OneFactor; material.depthTest = id === 'sparks';
     const field = effectField(data, material); field.object.renderOrder = id === 'sparks' ? 11 : 12;
@@ -227,25 +174,33 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     color: row.halo, transparent: true, opacity: 0.72, depthWrite: false, side: DoubleSide, blending: AdditiveBlending,
   }));
   lockHalo.name = `${row.name}:lock-halo`;
+  scope.own(lockHalo.geometry); scope.own(lockHalo.material);
+  scope.onDispose(() => { lockHalo.removeFromParent(); });
   lockHalo.visible = false;
   ctx.game.scene.add(lockHalo);
   ctx.game.scene.add(...bursts.map(field => field.object));
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   // the law (the caller's); the view draws, sounds and animates what it does
-  const sim = rules.law(fragment, {
+  const sim = new GrappleSim(ports, fragment); tool.sim = sim;
+  const callbacks = {
     fire: () => { muzzleFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
     miss: () => { ctx.toast(row.toasts.miss); },
     bite: () => { biteAge = 0; biteFlash.burst(sim.target?.hook ?? sim.missEnd, up.set(0, 1, 0), 0); sparks.burst(sim.target?.hook ?? sim.missEnd, up, 0); rules.cue('bite'); ctx.arms?.playLeft?.('grapple_hold'); },
     zip: () => { rules.cue('zip'); },
     reel: () => { rules.cue('reel'); },
     dock: () => { dockFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('dock'); },
-    release: (active) => {
+    release: (active: boolean) => {
       if (active) rules.cue('dock');
       tracer.hide(); hideCues();
       lockHalo.visible = false; for (let i = 0; i < 4; i++) { const field = bursts[i]; if (field !== undefined) field.object.visible = false; }
       ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
     },
-  });
+  };
+  const flushEvents = (): void => {
+    for (const event of sim.drainEvents()) {
+      if (event.kind === 'release') callbacks.release(event.active); else callbacks[event.kind]();
+    }
+  };
   // the course's hooks and the grapple's phase, for captures and native bakes
   shard.debug.expose(row.debug, { hooks: () => sim.course.hooks.map(({ x, y, z }) => ({ x, y, z })), phase: () => sim.phase });
   const tipAt = (): void => {
@@ -260,11 +215,11 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     } else if (sim.phase === 'dock') tip.copy(muzzle);
     else tip.copy(goal);
   };
-  // E307: a playground opens / closes — let go of anything in flight on the old course, then its hooks and a fresh cache
-  const setCourse = (value: C | null): void => {
-    const next = value ?? fragment;
+  const setCourse = (value: GrappleCourseRow | null): void => {
+    const next = value === null ? fragment : grappleCourse({ ...value,
+      ...(value.mode === undefined && profile.course.mode !== undefined ? { mode: profile.course.mode } : {}) });
     if (next === sim.course) return;
-    if (sim.phase !== 'idle' || sim.holding()) sim.release();
+    if (sim.phase !== 'idle' || sim.holding()) { sim.release(); flushEvents(); }
     sim.course = next; hooks = next.hooks; n = hooks.length;
     ndcX = new Float32Array(n); ndcY = new Float32Array(n); dist = new Float32Array(n);
     inView = new Uint8Array(n); reach = new Uint8Array(n); hasLanding = new Uint8Array(n);
@@ -287,7 +242,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   };
 
   /** the cached candidate, checked afresh (its sight and landing) at the moment LOCK is pressed */
-  const pickCandidate = (): T | null => {
+  const pickCandidate = (): GrappleTarget | null => {
     if (candidate < 0) return null;
     const hook = hooks[candidate];
     if (hook === undefined || !rules.visible(sim.course, ctx.game.camera.position, hook)) return null;
@@ -296,7 +251,6 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     return side === rules.none ? null : rules.target(sim.course, hook, landing, side);
   };
 
-  // E298: the practice room hangs over the world with no hook in it, so LOCK there is the plain lock-on (the nearest hook
   // below would otherwise take the tap, and a zip would leave the room). A playground's room is a practice room too, but
   // it brings its own course (E307): the claw works there
   let inPractice = false;
@@ -304,7 +258,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   const lockPress = (): boolean => {
     if (!enabled() || (inPractice && sim.course === fragment)) return false;
     // Once a crossing starts the law keeps it until a safe landing or bailout (lock: 'busy').
-    const result = sim.lock(view, pickCandidate, () => ctx.lock.hasTarget());
+    const result = sim.lock(view, pickCandidate(), ctx.lock.hasTarget()); flushEvents();
     if (result === 'pass') return false;
     if (result === 'armed') {
       ctx.arms?.playLeft?.('grapple_aim');
@@ -321,6 +275,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     if (!enabled()) return false;
     const idle = sim.phase === 'idle';
     if (!sim.fire(view)) return false;
+    flushEvents();
     // the claw leaves the muzzle: the line is laid out from there
     if (idle) { tipAt(); tracer.reset(muzzle); }
     return true;
@@ -333,7 +288,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
   /** The grapple mode's traversal: while the claw flies, reels or docks, it moves the capsule on the fixed step. */
   function zip(dt: number): boolean {
     if (!enabled() || sim.phase === 'idle') return false;
-    return rules.traverse(sim, dt);
+    const owned = rules.traverse(sim, dt); flushEvents(); return owned;
   }
 
   shard.app.addSystem({ id: row.systems.rope, phase: 'fixed.post', run: (dt) => {
@@ -397,7 +352,7 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
 
   shard.app.addSystem({ id: row.systems.update, phase: 'update', after: ['training-arena'], before: ['hud.perf', 'engine.world.bounds', 'main.6', 'hud.combat', 'first hints', 'main.frame', 'engine.player.hud'], run: () => {
     if (!enabled()) {
-      if (sim.holding() || sim.phase !== 'idle') sim.release();
+      if (sim.holding() || sim.phase !== 'idle') { sim.release(); flushEvents(); }
       hideCues(); hint(null); candidate = -1;
       return;
     }
@@ -447,10 +402,39 @@ export function installGrappleAim<C extends GrappleAimCourse, T extends GrappleA
     tipAt();
     tracer.draw(tip, sim.phase === 'fire' || sim.phase === 'miss' || sim.phase === 'reel', biteAge < 0.4 ? 1 - biteAge / 0.4 : -1, time);
     ctx.game.renderer.getDrawingBufferSize(screen);
-    setLentParam('nine-grapple-sparks', 'pixelScale', 3 / Math.max(screen.y * ctx.game.camera.projectionMatrix.elements[5], 1));
+    setLentParam(profile.looks.sparks, 'pixelScale', 3 / Math.max(screen.y * ctx.game.camera.projectionMatrix.elements[5], 1));
     muzzleFlash.object.position.copy(muzzle);
     dockFlash.object.position.copy(muzzle);
   } }, scope);
-  scope.onDispose(() => { sim.release(); input.pop('grapple'); for (let i = 0; i < 4; i++) bursts[i]?.object.removeFromParent(); });
+  scope.onDispose(() => { sim.release(); flushEvents(); input.pop('grapple'); for (let i = 0; i < 4; i++) bursts[i]?.object.removeFromParent(); });
   return setCourse;
+}
+
+/** Client-only data-driven grapple tool. Context supplies standard services, never shard laws. */
+export class GrappleTool extends Tool {
+  readonly id: Tool['id'];
+  readonly slot = 'offhand' as const;
+  readonly actions = ['lock', 'jump'] as const;
+  enabled = true;
+  holster = 0;
+  sim: GrappleSim | null = null;
+  private setter: ((course: GrappleCourseRow | null) => void) | undefined;
+  constructor(private readonly shard: ShardContext, private readonly data: { readonly equipment: EquipmentRow; readonly profile: GrappleProfile; readonly presentation: GrappleRows; readonly hooks: GrappleCourseRow['hooks'] }) {
+    super(data.equipment);
+    const id: string = data.equipment.id;
+    const toolId = (value: string): value is `tool.${string}` => value.startsWith('tool.');
+    if (!toolId(id)) throw new Error('Grapple requires a tool item identity');
+    this.id = id;
+    if (data.profile.id !== this.id) throw new Error('Grapple profile and equipped item differ');
+  }
+  get hooks(): GrappleCourseRow['hooks'] { return this.data.hooks; }
+  get guardOpen(): boolean { return this.sim?.guardOpen() === true; }
+  override install(equip: EquipContext): void {
+    super.install(equip);
+    const host = this.shard.app.equipmentHost;
+    if (host === null) throw new Error('Grapple needs the actual equipment host');
+    this.setter = installGrappleAim(host, this.shard, equip.scope, this.data.presentation.aim, this.data.presentation.bursts, this.data.profile, this);
+  }
+  setGrappleCourse(course: GrappleCourseRow | null): void { this.setter?.(course); }
+  override update(_dt: number, _t: number): void { /* Native fixed/update systems own this tool. */ }
 }

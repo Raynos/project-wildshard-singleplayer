@@ -17,11 +17,6 @@
       "installNineJian",
       "JIAN_ID"
     ],
-    "src/shards/nine-dragon-stack/runtime/grapple": [
-      "installNineGrapple",
-      "GRAPPLE_LOCK",
-      "GRAPPLE_AIM"
-    ],
     "src/shards/nine-dragon-stack/runtime/portals/hostRide": [
       "installHostRide"
     ],
@@ -32,6 +27,12 @@
     ],
     "src/shards/nine-dragon-stack/world/feats": [
       "rideFeats"
+    ],
+    "@wildshard/game/grapple/headless": [
+      "installGrapple"
+    ],
+    "@wildshard/format/grapple": [
+      "parseGrappleProfile"
     ]
   },
   "constants": {
@@ -806,13 +807,34 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nine-dragon-stack/runtime/grapple",
-              "installNineGrapple"
+              "@wildshard/game/grapple/headless",
+              "installGrapple"
             ]
           },
           {
             "$ref": [
               "host"
+            ]
+          },
+          {
+            "$ref": [
+              "context"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/format/grapple",
+                  "parseGrappleProfile"
+                ]
+              },
+              {
+                "$ref": [
+                  "payload",
+                  "grappleProfile"
+                ]
+              }
             ]
           },
           {
@@ -829,256 +851,6 @@
           {
             "$ref": [
               "guard"
-            ]
-          },
-          {
-            "$fn": {
-              "$sequence": [
-                {
-                  "$set": [
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    "lock",
-                    {
-                      "$call": [
-                        {
-                          "$fn": {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "args",
-                                  0,
-                                  "some"
-                                ]
-                              },
-                              {
-                                "$fn": {
-                                  "$if": [
-                                    {
-                                      "$eq": [
-                                        {
-                                          "$ref": [
-                                            "args",
-                                            0,
-                                            "kind"
-                                          ]
-                                        },
-                                        "script"
-                                      ]
-                                    },
-                                    {
-                                      "$eq": [
-                                        {
-                                          "$ref": [
-                                            "args",
-                                            0,
-                                            "actorId"
-                                          ]
-                                        },
-                                        {
-                                          "$ref": [
-                                            "src/shards/nine-dragon-stack/runtime/grapple",
-                                            "GRAPPLE_LOCK"
-                                          ]
-                                        }
-                                      ]
-                                    },
-                                    false
-                                  ]
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "$call": [
-                            {
-                              "$ref": [
-                                "context",
-                                "commands"
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "$set": [
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    "jump",
-                    {
-                      "$call": [
-                        {
-                          "$fn": {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "args",
-                                  0,
-                                  "some"
-                                ]
-                              },
-                              {
-                                "$fn": {
-                                  "$if": [
-                                    {
-                                      "$eq": [
-                                        {
-                                          "$ref": [
-                                            "args",
-                                            0,
-                                            "kind"
-                                          ]
-                                        },
-                                        "player"
-                                      ]
-                                    },
-                                    {
-                                      "$eq": [
-                                        {
-                                          "$ref": [
-                                            "args",
-                                            0,
-                                            "jump"
-                                          ]
-                                        },
-                                        true
-                                      ]
-                                    },
-                                    false
-                                  ]
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "$call": [
-                            {
-                              "$ref": [
-                                "context",
-                                "commands"
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "$set": [
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    "pitch",
-                    {
-                      "$call": [
-                        {
-                          "$fn": {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "args",
-                                  0,
-                                  "reduce"
-                                ]
-                              },
-                              {
-                                "$fn": {
-                                  "$if": [
-                                    {
-                                      "$if": [
-                                        {
-                                          "$eq": [
-                                            {
-                                              "$ref": [
-                                                "args",
-                                                1,
-                                                "kind"
-                                              ]
-                                            },
-                                            "script"
-                                          ]
-                                        },
-                                        {
-                                          "$eq": [
-                                            {
-                                              "$ref": [
-                                                "args",
-                                                1,
-                                                "actorId"
-                                              ]
-                                            },
-                                            {
-                                              "$ref": [
-                                                "src/shards/nine-dragon-stack/runtime/grapple",
-                                                "GRAPPLE_AIM"
-                                              ]
-                                            }
-                                          ]
-                                        },
-                                        false
-                                      ]
-                                    },
-                                    {
-                                      "$ref": [
-                                        "args",
-                                        1,
-                                        "value"
-                                      ]
-                                    },
-                                    {
-                                      "$ref": [
-                                        "args",
-                                        0
-                                      ]
-                                    }
-                                  ]
-                                }
-                              },
-                              {
-                                "$ref": [
-                                  "absent"
-                                ]
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "$call": [
-                            {
-                              "$ref": [
-                                "context",
-                                "commands"
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "$ref": [
-              "fact"
             ]
           }
         ]

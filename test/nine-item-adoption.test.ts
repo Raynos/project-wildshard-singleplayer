@@ -18,7 +18,7 @@ import source from '../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { FEI_ZHUA_ROW } from '../src/shards/nine-dragon-stack/grapple/row';
-import { FeiZhua } from '../src/shards/nine-dragon-stack/grapple/FeiZhua';
+import { GrappleTool } from '../src/game/grapple/tool';
 import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
 import baseline from './fixtures/nine-item-equipment.json' with { type: 'json' };
 
@@ -51,9 +51,9 @@ test('Nine play admits the complete primary/tool set before installing the nativ
   const primary = new NativeWeapon(readItemEquipment(items, 'weapon.jian')), equipment = new EquipmentService(primary, { scope });
   app.registerEquipment(equipment, scope);
   const plugin = new NdPlugin();
-  Object.assign(plugin, { primary, profile: source.items.rows.find(row => row.kind === 'weapon')?.profile });
+  Object.assign(plugin, { primary, ndWorld: { ctx: { hooks: [] } }, profile: source.items.rows.find(row => row.kind === 'weapon')?.profile });
   // Scene/physics installation is covered by the phone boot; keep item admission and loadout installation real.
-  const install = vi.spyOn(FeiZhua.prototype, 'install').mockImplementation(() => undefined);
+  const install = vi.spyOn(GrappleTool.prototype, 'install').mockImplementation(() => undefined);
   try {
     await plugin.play(ctx);
     expect(equipment.current).toBe(primary);

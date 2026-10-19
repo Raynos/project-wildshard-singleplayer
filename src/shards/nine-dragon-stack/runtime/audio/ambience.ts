@@ -6,7 +6,7 @@ import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { castRay } from '@wildshard/engine/physics/query';
 import { lanternAudioPositions } from '../../look/lanterns';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import { ndCueMap, bindTraversalCue } from './cues';
+import { ndCueMap } from './cues';
 
 
 export async function installAudio(ctx: ShardContext): Promise<void> {
@@ -22,7 +22,6 @@ export async function installAudio(ctx: ShardContext): Promise<void> {
   ctx.scope.onDispose(music.setScore(musicProfile.id, score));
   ctx.scope.onDispose(() => { score.dispose(); });
   audio.installCues(map, ctx.scope);
-  ctx.scope.onDispose(bindTraversalCue(map));
   audio.onLevelBank((bank) => { player.useBank(bank.cues); score.useBank(bank.score); }, ctx.scope);
   const priorSurface = audio.stepSurface;
   audio.stepSurface = () => {

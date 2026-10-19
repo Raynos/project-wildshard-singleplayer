@@ -222,5 +222,6 @@
   "test/nine-architecture-graphs.test.ts": [],
   "test/practice-course-scene.test.ts": [],
   "test/riding-platform.test.ts": [],
-  "test/boss-arena-room.test.ts": []
+  "test/boss-arena-room.test.ts": [],
+  "test/grapple-platform.test.ts": []
 }

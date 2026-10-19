@@ -209,7 +209,8 @@
     "./clientCues": "./clientCues.ts",
     "./practiceCourse": "./practiceCourse.ts",
     "./riding": "./riding.ts",
-    "./scaledPost": "./scaledPost.ts"
+    "./scaledPost": "./scaledPost.ts",
+    "./grapple": "./grapple.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

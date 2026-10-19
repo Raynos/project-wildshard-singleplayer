@@ -9,8 +9,17 @@
  */
 import { Vector3 } from 'three';
 import { castRay, castSegment, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
-import type { GrappleCourse, GrapplePorts } from '../../../src/game/plugin/mover';
+import type { GrapplePorts } from '../../../src/game/grapple/sim';
 import { WELL, Y0 } from '../../../src/shards/nine-dragon-stack/layout';
+
+/** Frozen oracle shape; authored callbacks are not part of the native profile API. */
+interface GrappleCourse {
+  readonly name: string; readonly hooks: readonly Vector3[];
+  seePast?: (ports: GrapplePorts, eye: Vector3, hook: Vector3) => boolean;
+  lifts?: (from: Vector3, landing: Vector3) => boolean;
+  liftTo?: (from: Vector3, approach: Vector3) => number;
+  guard?: (open: boolean) => void;
+}
 
 export const MIN_RANGE = 2.5;
 export const MAX_RANGE = 38;

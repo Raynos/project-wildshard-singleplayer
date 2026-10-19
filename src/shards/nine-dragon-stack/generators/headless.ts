@@ -1,3 +1,4 @@
+import grappleProfile from '../data/grappleProfile.json' with { type: 'json' };
 import * as v from 'valibot';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -45,7 +46,7 @@ function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
  * Treads expand with the engine's own law; hull floats retain their original
  * float32 payload. No runtime adapter filters or rewrites this payload. */
 export const headlessConstants: Record<string, unknown> = {
-  spawnY: source.spawn.y + 0.1, hooks: NINE_HOOKS,
+  spawnY: source.spawn.y + 0.1, hooks: NINE_HOOKS, grappleProfile,
   fade: portals.fade, trigger: portals.trigger,
   pieces: NINE_PIECES.filter(piece => piece.active && !piece.file.startsWith(PRACTICE)).map(piece => ({
     id: piece.id, name: piece.name, category: 'buildings', file: piece.file, active: true,

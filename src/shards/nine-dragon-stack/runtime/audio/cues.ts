@@ -1,4 +1,4 @@
-import type { CuePlayer, CueMap, CueOpts } from '@wildshard/engine/audio/Cues';
+import type { CuePlayer, CueMap } from '@wildshard/engine/audio/Cues';
 import { tap } from '@wildshard/engine/core/harnessTap';
 
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
@@ -31,10 +31,3 @@ export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number, 
   voices.set('nd.unhandled', () => false);
   return createCueRouter(routing, { voices });
 }
-/** Traversal owns its event boundaries; this callback keeps that path independent of the shell. */
-let traversalCue: CueMap | undefined;
-export function bindTraversalCue(map: CueMap): () => void {
-  traversalCue = map;
-  return () => { if (traversalCue === map) traversalCue = undefined; };
-}
-export function grappleCue(id: 'grapple.fire' | 'grapple.bite' | 'grapple.reel' | 'grapple.dock' | 'grapple.zip', opts: CueOpts = {}): void { traversalCue?.(id, opts); }
