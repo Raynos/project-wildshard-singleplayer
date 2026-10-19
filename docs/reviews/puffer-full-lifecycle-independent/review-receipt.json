@@ -1,0 +1,467 @@
+{
+  "movieSha256": "57ecaea24d60b0e1b4f84fbb868136f2dbdcb39472a97b4283c033f131ab5afb",
+  "allEncodedFramesInspectedAsOverviews": 6854,
+  "overviewSheets": 35,
+  "thumbnailSize": [
+    78,
+    169
+  ],
+  "nativeKeyframesInspected": 77,
+  "nativeMontageSheets": 13,
+  "distinctVideoMarkers": 618,
+  "initialDistinctMarkers": 581,
+  "reloadDistinctMarkers": 37,
+  "finalInitialMarker": 665,
+  "lastEncodedMarker": 10046,
+  "visibleCorpseSimSeconds": 5.2442,
+  "telemetryCorpseSimSeconds": 5.3442,
+  "priorEvidenceFilesPreserved": 19,
+  "priorEvidenceRehashPass": true,
+  "derivativeBytes": 40585328,
+  "nativeKeyframeIndex": [
+    {
+      "encodedFrame": 139,
+      "time": 5.52,
+      "marker": 3,
+      "file": "native-e00139-m3.jpg"
+    },
+    {
+      "encodedFrame": 233,
+      "time": 9.28,
+      "marker": 10,
+      "file": "native-e00233-m10.jpg"
+    },
+    {
+      "encodedFrame": 517,
+      "time": 20.64,
+      "marker": 30,
+      "file": "native-e00517-m30.jpg"
+    },
+    {
+      "encodedFrame": 793,
+      "time": 31.68,
+      "marker": 60,
+      "file": "native-e00793-m60.jpg"
+    },
+    {
+      "encodedFrame": 1152,
+      "time": 46.04,
+      "marker": 100,
+      "file": "native-e01152-m100.jpg"
+    },
+    {
+      "encodedFrame": 2044,
+      "time": 81.72,
+      "marker": 200,
+      "file": "native-e02044-m200.jpg"
+    },
+    {
+      "encodedFrame": 2954,
+      "time": 118.12,
+      "marker": 300,
+      "file": "native-e02954-m300.jpg"
+    },
+    {
+      "encodedFrame": 3840,
+      "time": 153.56,
+      "marker": 400,
+      "file": "native-e03840-m400.jpg"
+    },
+    {
+      "encodedFrame": 4563,
+      "time": 182.48,
+      "marker": 480,
+      "file": "native-e04563-m480.jpg"
+    },
+    {
+      "encodedFrame": 4637,
+      "time": 185.44,
+      "marker": 488,
+      "file": "native-e04637-m488.jpg"
+    },
+    {
+      "encodedFrame": 4646,
+      "time": 185.8,
+      "marker": 489,
+      "file": "native-e04646-m489.jpg"
+    },
+    {
+      "encodedFrame": 4656,
+      "time": 186.2,
+      "marker": 490,
+      "file": "native-e04656-m490.jpg"
+    },
+    {
+      "encodedFrame": 4713,
+      "time": 188.48,
+      "marker": 496,
+      "file": "native-e04713-m496.jpg"
+    },
+    {
+      "encodedFrame": 4749,
+      "time": 189.92,
+      "marker": 500,
+      "file": "native-e04749-m500.jpg"
+    },
+    {
+      "encodedFrame": 4761,
+      "time": 190.4,
+      "marker": 501,
+      "file": "native-e04761-m501.jpg"
+    },
+    {
+      "encodedFrame": 4775,
+      "time": 190.96,
+      "marker": 503,
+      "file": "native-e04775-m503.jpg"
+    },
+    {
+      "encodedFrame": 4791,
+      "time": 191.6,
+      "marker": 505,
+      "file": "native-e04791-m505.jpg"
+    },
+    {
+      "encodedFrame": 4899,
+      "time": 195.92,
+      "marker": 515,
+      "file": "native-e04899-m515.jpg"
+    },
+    {
+      "encodedFrame": 4947,
+      "time": 197.84,
+      "marker": 520,
+      "file": "native-e04947-m520.jpg"
+    },
+    {
+      "encodedFrame": 5039,
+      "time": 201.52,
+      "marker": 530,
+      "file": "native-e05039-m530.jpg"
+    },
+    {
+      "encodedFrame": 5085,
+      "time": 203.36,
+      "marker": 535,
+      "file": "native-e05085-m535.jpg"
+    },
+    {
+      "encodedFrame": 5130,
+      "time": 205.16,
+      "marker": 540,
+      "file": "native-e05130-m540.jpg"
+    },
+    {
+      "encodedFrame": 5173,
+      "time": 206.88,
+      "marker": 545,
+      "file": "native-e05173-m545.jpg"
+    },
+    {
+      "encodedFrame": 5213,
+      "time": 208.48,
+      "marker": 550,
+      "file": "native-e05213-m550.jpg"
+    },
+    {
+      "encodedFrame": 5298,
+      "time": 211.88,
+      "marker": 560,
+      "file": "native-e05298-m560.jpg"
+    },
+    {
+      "encodedFrame": 5335,
+      "time": 213.36,
+      "marker": 565,
+      "file": "native-e05335-m565.jpg"
+    },
+    {
+      "encodedFrame": 5376,
+      "time": 215.0,
+      "marker": 570,
+      "file": "native-e05376-m570.jpg"
+    },
+    {
+      "encodedFrame": 5416,
+      "time": 216.6,
+      "marker": 575,
+      "file": "native-e05416-m575.jpg"
+    },
+    {
+      "encodedFrame": 5459,
+      "time": 218.32,
+      "marker": 580,
+      "file": "native-e05459-m580.jpg"
+    },
+    {
+      "encodedFrame": 5514,
+      "time": 220.52,
+      "marker": 585,
+      "file": "native-e05514-m585.jpg"
+    },
+    {
+      "encodedFrame": 5523,
+      "time": 220.88,
+      "marker": 586,
+      "file": "native-e05523-m586.jpg"
+    },
+    {
+      "encodedFrame": 5563,
+      "time": 222.48,
+      "marker": 590,
+      "file": "native-e05563-m590.jpg"
+    },
+    {
+      "encodedFrame": 5592,
+      "time": 223.64,
+      "marker": 593,
+      "file": "native-e05592-m593.jpg"
+    },
+    {
+      "encodedFrame": 5655,
+      "time": 226.16,
+      "marker": 600,
+      "file": "native-e05655-m600.jpg"
+    },
+    {
+      "encodedFrame": 5682,
+      "time": 227.24,
+      "marker": 603,
+      "file": "native-e05682-m603.jpg"
+    },
+    {
+      "encodedFrame": 5756,
+      "time": 230.2,
+      "marker": 609,
+      "file": "native-e05756-m609.jpg"
+    },
+    {
+      "encodedFrame": 5769,
+      "time": 230.72,
+      "marker": 610,
+      "file": "native-e05769-m610.jpg"
+    },
+    {
+      "encodedFrame": 5781,
+      "time": 231.2,
+      "marker": 611,
+      "file": "native-e05781-m611.jpg"
+    },
+    {
+      "encodedFrame": 5792,
+      "time": 231.64,
+      "marker": 612,
+      "file": "native-e05792-m612.jpg"
+    },
+    {
+      "encodedFrame": 5802,
+      "time": 232.04,
+      "marker": 613,
+      "file": "native-e05802-m613.jpg"
+    },
+    {
+      "encodedFrame": 5810,
+      "time": 232.36,
+      "marker": 614,
+      "file": "native-e05810-m614.jpg"
+    },
+    {
+      "encodedFrame": 5819,
+      "time": 232.72,
+      "marker": 615,
+      "file": "native-e05819-m615.jpg"
+    },
+    {
+      "encodedFrame": 5828,
+      "time": 233.08,
+      "marker": 616,
+      "file": "native-e05828-m616.jpg"
+    },
+    {
+      "encodedFrame": 5838,
+      "time": 233.48,
+      "marker": 617,
+      "file": "native-e05838-m617.jpg"
+    },
+    {
+      "encodedFrame": 5912,
+      "time": 236.44,
+      "marker": 625,
+      "file": "native-e05912-m625.jpg"
+    },
+    {
+      "encodedFrame": 5960,
+      "time": 238.36,
+      "marker": 630,
+      "file": "native-e05960-m630.jpg"
+    },
+    {
+      "encodedFrame": 6004,
+      "time": 240.12,
+      "marker": 635,
+      "file": "native-e06004-m635.jpg"
+    },
+    {
+      "encodedFrame": 6037,
+      "time": 241.44,
+      "marker": 639,
+      "file": "native-e06037-m639.jpg"
+    },
+    {
+      "encodedFrame": 6044,
+      "time": 241.72,
+      "marker": 640,
+      "file": "native-e06044-m640.jpg"
+    },
+    {
+      "encodedFrame": 6124,
+      "time": 244.92,
+      "marker": 650,
+      "file": "native-e06124-m650.jpg"
+    },
+    {
+      "encodedFrame": 6217,
+      "time": 248.64,
+      "marker": 660,
+      "file": "native-e06217-m660.jpg"
+    },
+    {
+      "encodedFrame": 6424,
+      "time": 256.92,
+      "marker": 10002,
+      "file": "native-e06424-m10002.jpg"
+    },
+    {
+      "encodedFrame": 6474,
+      "time": 258.92,
+      "marker": 10010,
+      "file": "native-e06474-m10010.jpg"
+    },
+    {
+      "encodedFrame": 6583,
+      "time": 263.28,
+      "marker": 10021,
+      "file": "native-e06583-m10021.jpg"
+    },
+    {
+      "encodedFrame": 6591,
+      "time": 263.6,
+      "marker": 10022,
+      "file": "native-e06591-m10022.jpg"
+    },
+    {
+      "encodedFrame": 6602,
+      "time": 264.04,
+      "marker": 10023,
+      "file": "native-e06602-m10023.jpg"
+    },
+    {
+      "encodedFrame": 6763,
+      "time": 270.48,
+      "marker": 10040,
+      "file": "native-e06763-m10040.jpg"
+    },
+    {
+      "encodedFrame": 6809,
+      "time": 272.32,
+      "marker": 10045,
+      "file": "native-e06809-m10045.jpg"
+    },
+    {
+      "encodedFrame": 6818,
+      "time": 272.68,
+      "marker": 10046,
+      "file": "native-e06818-m10046.jpg"
+    },
+    {
+      "marker": 541,
+      "encodedFrame": 5139,
+      "file": "extra-e05139-m541.jpg"
+    },
+    {
+      "marker": 542,
+      "encodedFrame": 5148,
+      "file": "extra-e05148-m542.jpg"
+    },
+    {
+      "marker": 543,
+      "encodedFrame": 5157,
+      "file": "extra-e05157-m543.jpg"
+    },
+    {
+      "marker": 544,
+      "encodedFrame": 5165,
+      "file": "extra-e05165-m544.jpg"
+    },
+    {
+      "marker": 546,
+      "encodedFrame": 5181,
+      "file": "extra-e05181-m546.jpg"
+    },
+    {
+      "marker": 548,
+      "encodedFrame": 5197,
+      "file": "extra-e05197-m548.jpg"
+    },
+    {
+      "marker": 549,
+      "encodedFrame": 5205,
+      "file": "extra-e05205-m549.jpg"
+    },
+    {
+      "marker": 551,
+      "encodedFrame": 5221,
+      "file": "extra-e05221-m551.jpg"
+    },
+    {
+      "marker": 552,
+      "encodedFrame": 5229,
+      "file": "extra-e05229-m552.jpg"
+    },
+    {
+      "marker": 553,
+      "encodedFrame": 5238,
+      "file": "extra-e05238-m553.jpg"
+    },
+    {
+      "marker": 554,
+      "encodedFrame": 5249,
+      "file": "extra-e05249-m554.jpg"
+    },
+    {
+      "marker": 556,
+      "encodedFrame": 5265,
+      "file": "extra-e05265-m556.jpg"
+    },
+    {
+      "marker": 557,
+      "encodedFrame": 5273,
+      "file": "extra-e05273-m557.jpg"
+    },
+    {
+      "marker": 558,
+      "encodedFrame": 5281,
+      "file": "extra-e05281-m558.jpg"
+    },
+    {
+      "marker": 559,
+      "encodedFrame": 5290,
+      "file": "extra-e05290-m559.jpg"
+    },
+    {
+      "marker": 561,
+      "encodedFrame": 5305,
+      "file": "extra-e05305-m561.jpg"
+    },
+    {
+      "marker": 665,
+      "encodedFrame": 6346,
+      "file": "extra-e06346-m665.jpg"
+    },
+    {
+      "marker": 10046,
+      "encodedFrame": 6854,
+      "file": "extra-last-e06854.jpg"
+    }
+  ]
+}

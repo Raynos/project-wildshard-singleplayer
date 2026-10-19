@@ -1,0 +1,780 @@
+{
+  "movieSha256": "57ecaea24d60b0e1b4f84fbb868136f2dbdcb39472a97b4283c033f131ab5afb",
+  "rawReportSha256": "e1406a4151bff1a84a401942f49e5340eb3212aca058eb73787fb2d0d75b82ca",
+  "pinsBeforeAfterEqual": true,
+  "appExactCount": 137,
+  "app137HashesMatch": true,
+  "product50HashesMatch": true,
+  "runtimeVertices": 10458,
+  "sourcePositionsMatch": true,
+  "sourcePositionMaxError": 5.7220459037665705e-08,
+  "weightsMaxSumError": 1.4901161193847656e-08,
+  "floorY": 900,
+  "rows": 723,
+  "liveNormalClocks": true,
+  "frameTimeEqualsClockElapsed": true,
+  "frozenFirstFrame": 639,
+  "frozenRagdoll": {
+    "state": "frozen",
+    "age": 2.7845000000000013,
+    "quietT": 0.5161000000089406,
+    "fastest": 0.0005438252150777468
+  },
+  "offenders": [
+    {
+      "vertex": 9343,
+      "part": "Volumetric connected finR",
+      "partVertex": 169,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9345,
+      "part": "Volumetric connected finR",
+      "partVertex": 171,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9349,
+      "part": "Volumetric connected finR",
+      "partVertex": 175,
+      "gap": -0.03507233192476633,
+      "world": [
+        -1.6243827766585963,
+        899.9649276680752,
+        -5.7276818651202115
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9351,
+      "part": "Volumetric connected finR",
+      "partVertex": 177,
+      "gap": -0.03507233192476633,
+      "world": [
+        -1.6243827766585963,
+        899.9649276680752,
+        -5.7276818651202115
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9352,
+      "part": "Volumetric connected finR",
+      "partVertex": 178,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9355,
+      "part": "Volumetric connected finR",
+      "partVertex": 181,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9357,
+      "part": "Volumetric connected finR",
+      "partVertex": 183,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9358,
+      "part": "Volumetric connected finR",
+      "partVertex": 184,
+      "gap": -0.03507233192476633,
+      "world": [
+        -1.6243827766585963,
+        899.9649276680752,
+        -5.7276818651202115
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9364,
+      "part": "Volumetric connected finR",
+      "partVertex": 190,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9426,
+      "part": "Volumetric connected finR",
+      "partVertex": 252,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9429,
+      "part": "Volumetric connected finR",
+      "partVertex": 255,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9430,
+      "part": "Volumetric connected finR",
+      "partVertex": 256,
+      "gap": -0.03507233192476633,
+      "world": [
+        -1.6243827766585963,
+        899.9649276680752,
+        -5.7276818651202115
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9431,
+      "part": "Volumetric connected finR",
+      "partVertex": 257,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9434,
+      "part": "Volumetric connected finR",
+      "partVertex": 260,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9441,
+      "part": "Volumetric connected finR",
+      "partVertex": 267,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9442,
+      "part": "Volumetric connected finR",
+      "partVertex": 268,
+      "gap": -0.02129397981082093,
+      "world": [
+        -1.5967747025169914,
+        899.9787060201892,
+        -5.821294810376805
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9446,
+      "part": "Volumetric connected finR",
+      "partVertex": 272,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9448,
+      "part": "Volumetric connected finR",
+      "partVertex": 274,
+      "gap": -0.021287021944431217,
+      "world": [
+        -1.57693958556559,
+        899.9787129780556,
+        -5.642391007560786
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9456,
+      "part": "Volumetric connected finR",
+      "partVertex": 282,
+      "gap": -0.015514688633174956,
+      "world": [
+        -1.5714761584061763,
+        899.9844853113668,
+        -5.514187036127834
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9459,
+      "part": "Volumetric connected finR",
+      "partVertex": 285,
+      "gap": -0.008037241786269078,
+      "world": [
+        -1.6259230915830931,
+        899.9919627582137,
+        -5.603732905567376
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9460,
+      "part": "Volumetric connected finR",
+      "partVertex": 286,
+      "gap": -0.015514688633174956,
+      "world": [
+        -1.5714761584061763,
+        899.9844853113668,
+        -5.514187036127834
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9463,
+      "part": "Volumetric connected finR",
+      "partVertex": 289,
+      "gap": -0.008037241786269078,
+      "world": [
+        -1.6259230915830931,
+        899.9919627582137,
+        -5.603732905567376
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9466,
+      "part": "Volumetric connected finR",
+      "partVertex": 292,
+      "gap": -0.04158551139585143,
+      "world": [
+        -1.6368299703207385,
+        899.9584144886041,
+        -5.677981890451302
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9477,
+      "part": "Volumetric connected finR",
+      "partVertex": 303,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9480,
+      "part": "Volumetric connected finR",
+      "partVertex": 306,
+      "gap": -0.015514688633174956,
+      "world": [
+        -1.5714761584061763,
+        899.9844853113668,
+        -5.514187036127834
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9481,
+      "part": "Volumetric connected finR",
+      "partVertex": 307,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9483,
+      "part": "Volumetric connected finR",
+      "partVertex": 309,
+      "gap": -0.0367820584524452,
+      "world": [
+        -1.615494229491289,
+        899.9632179415476,
+        -5.604888038624452
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9484,
+      "part": "Volumetric connected finR",
+      "partVertex": 310,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9485,
+      "part": "Volumetric connected finR",
+      "partVertex": 311,
+      "gap": -0.015514688633174956,
+      "world": [
+        -1.5714761584061763,
+        899.9844853113668,
+        -5.514187036127834
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9486,
+      "part": "Volumetric connected finR",
+      "partVertex": 312,
+      "gap": -0.008037241786269078,
+      "world": [
+        -1.6259230915830931,
+        899.9919627582137,
+        -5.603732905567376
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9487,
+      "part": "Volumetric connected finR",
+      "partVertex": 313,
+      "gap": -0.0367820584524452,
+      "world": [
+        -1.615494229491289,
+        899.9632179415476,
+        -5.604888038624452
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9488,
+      "part": "Volumetric connected finR",
+      "partVertex": 314,
+      "gap": -0.015514688633174956,
+      "world": [
+        -1.5714761584061763,
+        899.9844853113668,
+        -5.514187036127834
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9489,
+      "part": "Volumetric connected finR",
+      "partVertex": 315,
+      "gap": -0.04158551139585143,
+      "world": [
+        -1.6368299703207385,
+        899.9584144886041,
+        -5.677981890451302
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9490,
+      "part": "Volumetric connected finR",
+      "partVertex": 316,
+      "gap": -0.0367820584524452,
+      "world": [
+        -1.615494229491289,
+        899.9632179415476,
+        -5.604888038624452
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9491,
+      "part": "Volumetric connected finR",
+      "partVertex": 317,
+      "gap": -0.008037241786269078,
+      "world": [
+        -1.6259230915830931,
+        899.9919627582137,
+        -5.603732905567376
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9493,
+      "part": "Volumetric connected finR",
+      "partVertex": 319,
+      "gap": -0.04158551139585143,
+      "world": [
+        -1.6368299703207385,
+        899.9584144886041,
+        -5.677981890451302
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9494,
+      "part": "Volumetric connected finR",
+      "partVertex": 320,
+      "gap": -0.008037241786269078,
+      "world": [
+        -1.6259230915830931,
+        899.9919627582137,
+        -5.603732905567376
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9495,
+      "part": "Volumetric connected finR",
+      "partVertex": 321,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9496,
+      "part": "Volumetric connected finR",
+      "partVertex": 322,
+      "gap": -0.0367820584524452,
+      "world": [
+        -1.615494229491289,
+        899.9632179415476,
+        -5.604888038624452
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9497,
+      "part": "Volumetric connected finR",
+      "partVertex": 323,
+      "gap": -0.04158551139585143,
+      "world": [
+        -1.6368299703207385,
+        899.9584144886041,
+        -5.677981890451302
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9500,
+      "part": "Volumetric connected finR",
+      "partVertex": 326,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9501,
+      "part": "Volumetric connected finR",
+      "partVertex": 327,
+      "gap": -0.04158551139585143,
+      "world": [
+        -1.6368299703207385,
+        899.9584144886041,
+        -5.677981890451302
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    },
+    {
+      "vertex": 9503,
+      "part": "Volumetric connected finR",
+      "partVertex": 329,
+      "gap": -0.02340542215165442,
+      "world": [
+        -1.5686133336881358,
+        899.9765945778483,
+        -5.514504131458016
+      ],
+      "bones": [
+        [
+          "finR",
+          1.0
+        ]
+      ]
+    }
+  ],
+  "summary": {
+    "living": {
+      "count": 665,
+      "minGap": 0.004000000189989805,
+      "penetratingRows": 0,
+      "maxBelow1mm": 0
+    },
+    "dead": {
+      "count": 58,
+      "minGap": -0.04161322966547232,
+      "penetratingRows": 34,
+      "maxBelow1mm": 43
+    },
+    "frozen": {
+      "count": 28,
+      "minGap": -0.04158551139585143,
+      "penetratingRows": 28,
+      "maxBelow1mm": 43
+    }
+  },
+  "offendingParts": {
+    "Volumetric connected finR": 43
+  },
+  "priorAnalysisMaxDifference": 1.1368683772161603e-13
+}
