@@ -234,7 +234,10 @@
     "./weapons/heldDecision": "./weapons/heldDecision.ts",
     "./shardfile/walkInPortalRide": "./shardfile/walkInPortalRide.ts",
     "./audio/voicePatches": "./audio/voicePatches.ts",
-    "./audio/sceneDirector": "./audio/sceneDirector.ts"
+    "./audio/sceneDirector": "./audio/sceneDirector.ts",
+    "./ambient/wingField": "./ambient/wingField.ts",
+    "./looks/staticCapture": "./looks/staticCapture.ts",
+    "./looks/grassPresentation": "./looks/grassPresentation.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

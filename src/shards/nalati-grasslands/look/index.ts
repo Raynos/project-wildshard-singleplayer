@@ -13,8 +13,8 @@ import { gradeUniforms } from './grade';
 import { tintUniforms, updateTint } from './tint';
 import { fogLut, syncPaintedFog } from './fog';
 import { LightCheat } from './light';
-import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
-import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
+import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
+import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface LookV2Ctx {
@@ -57,7 +57,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const graphUniforms = Object.entries({ ...gradeUniforms, ...tintUniforms }).filter(([key]) => key !== 'uV2LookSat');
   const cheat = new LightCheat(sky, game.level.grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
-  const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture(), scope);
+  const bake = createStaticCapture(game.renderer, game.scene, terrainHeightTexture(), scope);
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
   // the generated models' shading (glbPaint.ts; N20, the user's pick): the clones the builders made of a model get their own bake

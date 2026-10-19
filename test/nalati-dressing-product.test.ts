@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
-import { DRESSING_PLAN, CAMP_CLUTTER } from '../src/shards/nalati-grasslands/world/dressing/index';
+import { DRESSING_PLAN, CAMP_CLUTTER } from '../src/shards/nalati-grasslands/world/declaredDressing';
 import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
 import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';

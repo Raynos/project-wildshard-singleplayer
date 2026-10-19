@@ -214,7 +214,8 @@
     "./stealth": "./stealth.ts",
     "./heldMelee": "./heldMelee.ts",
     "./voicePatches": "./voicePatches.ts",
-    "./audioScene": "./audioScene.ts"
+    "./audioScene": "./audioScene.ts",
+    "./fieldPresentation": "./fieldPresentation.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

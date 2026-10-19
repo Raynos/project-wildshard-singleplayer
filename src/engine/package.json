@@ -449,6 +449,7 @@
     "./models/trainingDummy": "./models/trainingDummy.ts",
     "./models/hoverboard": "./models/hoverboard.ts",
     "./fx/lightEmitters": "./fx/lightEmitters.ts",
-    "./world/easedFields": "./world/easedFields.ts"
+    "./world/easedFields": "./world/easedFields.ts",
+    "./render/scatterInstances": "./render/scatterInstances.ts"
   }
 }

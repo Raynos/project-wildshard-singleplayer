@@ -14,7 +14,7 @@ import type { LookStrategy, TerrainPainter } from '@wildshard/engine/render/look
 import { installPaintedAir, NALATI_SKY } from './air';
 import { installLookV2Fog } from './fog';
 import { lookV2EngineKnobs, lookV2Passes } from './grade';
-import { GrassV2 } from './grass';
+import { createGrass } from './field';
 import * as THREE from 'three';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -23,7 +23,7 @@ import { materialColourGraph } from '@wildshard/engine/render/graph/colourFuncti
 import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { createClientScene } from '@wildshard/game/plugin/ui';
-import { bakeUniforms } from './bake';
+import { bakeUniforms } from './capture';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../boot/specimens.generated.json' with { type: 'json' };
 import { loadSpecimenTexture } from '@wildshard/game/models/specimenCatalogue';
@@ -79,6 +79,6 @@ export const shardRender = (): LookStrategy => ({
   engineKnobs: lookV2EngineKnobs,
   fog: { order: 300, install: () => { installPaintedAir(); installLookV2Fog(); } },
   terrainPainter: NALATI_TERRAIN_PAINTER,
-  grass: { build: (sky, forest) => new GrassV2(sky, forest).build() },
+  grass: { build: (sky, forest) => createGrass(sky, forest) },
   sky: NALATI_SKY,
 });

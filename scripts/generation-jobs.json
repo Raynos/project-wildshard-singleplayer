@@ -147,7 +147,13 @@
         "src/engine",
         "src/game",
         "src/sdk",
-        "src/format"
+        "src/format",
+        "src/shards/nalati-grasslands/data/grassView.json",
+        "src/shards/nalati-grasslands/data/dressing-boulder.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-slab.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-juniper.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-rose.generated.json",
+        "src/shards/nalati-grasslands/data/dressing-willow.generated.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/grass.generated.json"
@@ -785,11 +791,13 @@
         "src/shards/nalati-grasslands/generators/placeFloors.mjs",
         "src/shards/nalati-grasslands/data/campCatalogue.json",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/nalati-grasslands/data/staticCapture.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json",
-        "src/shards/nalati-grasslands/boot/modelMetrics.generated.json"
+        "src/shards/nalati-grasslands/boot/modelMetrics.generated.json",
+        "src/shards/nalati-grasslands/boot/staticCapture.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {

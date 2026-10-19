@@ -1,0 +1,24 @@
+{
+  "layer": 7,
+  "shadowSize": {
+    "phone": 1024,
+    "desktop": 2048
+  },
+  "contactSize": 1024,
+  "half": 262,
+  "rekeyDegrees": 1.5,
+  "heightOrigin": -256,
+  "heightSize": 512,
+  "staticOffCsm": {
+    "phone": true,
+    "desktop": false
+  },
+  "contact": 0.45,
+  "depthBias": 0.25,
+  "shaders": {
+    "LOOK_BAKE_GLSL": "\nuniform sampler2D tBakeShadow;\nuniform mat4 uBakeMatrix;\nuniform vec3 uBakeInfo;\nuniform sampler2D tBakeContact;\nuniform vec4 uContactXf;\n// both read at a world position (a grid cell's receivers add their root: the maps are baked where the level is drawn)\n// 1 = lit, 0 = in a static caster's shadow (the key light's direction at the last bake)\nfloat bakedShadow(vec3 wp) {\n  if (uBakeInfo.x < 0.5) return 1.0;\n  vec4 c = uBakeMatrix * vec4(wp, 1.0);\n  vec3 p = c.xyz / c.w * 0.5 + 0.5;\n  if (p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0 || p.z > 1.0) return 1.0;\n  float z = p.z - uBakeInfo.y, t = uBakeInfo.z * 0.75;\n  float s = step(z, texture(tBakeShadow, p.xy + vec2(-t, -t)).r) + step(z, texture(tBakeShadow, p.xy + vec2(t, -t)).r)\n          + step(z, texture(tBakeShadow, p.xy + vec2(-t, t)).r) + step(z, texture(tBakeShadow, p.xy + vec2(t, t)).r);\n  return s * 0.25;\n}\n// 1 = open ground \u2026 darker where something stands close by (the blurred height of the casters above the ground)\nfloat bakedContact(vec3 wp) {\n  if (uContactXf.w <= 0.0) return 1.0;\n  vec2 uv = vec2((wp.x - uContactXf.x) * uContactXf.z, 1.0 - (wp.z - uContactXf.y) * uContactXf.z);   // the top-down camera's image: right = +x, up = \u2212z\n  float near = textureLod(tBakeContact, uv, 2.0).r, wide = textureLod(tBakeContact, uv, 3.5).r;\n  float occ = smoothstep(0.05, 1.4, near) * 0.55 + smoothstep(0.05, 1.6, wide) * 0.45;\n  return 1.0 - uContactXf.w * occ;\n}\n",
+    "planeVertex": "\n      #include <common>\n      #include <batching_pars_vertex>\n      void main() {\n        #include <batching_vertex>\n        #include <begin_vertex>\n        #include <project_vertex>\n      }",
+    "bakeVertex": "\n      #include <common>\n      #include <batching_pars_vertex>\n      varying vec3 vWP;\n      void main() {\n        #include <batching_vertex>\n        #include <begin_vertex>\n        vec4 wp = vec4(transformed, 1.0);\n        #ifdef USE_BATCHING\n          wp = batchingMatrix * wp;\n        #endif\n        #ifdef USE_INSTANCING\n          wp = instanceMatrix * wp;\n        #endif\n        wp = modelMatrix * wp;\n        vWP = wp.xyz;\n        gl_Position = projectionMatrix * viewMatrix * wp;\n      }",
+    "bakeFragment": "\n      uniform sampler2D tHeight; uniform vec4 uHXf;\n      varying vec3 vWP;\n      void main() {\n        float g = texture2D(tHeight, (vWP.xz - uHXf.xy) * uHXf.z).r;\n        gl_FragColor = vec4(clamp(vWP.y - uHXf.w - g, 0.0, 8.0), 0.0, 0.0, 1.0);\n      }"
+  }
+}

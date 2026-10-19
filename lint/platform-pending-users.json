@@ -2480,6 +2480,50 @@
           "row": "G478"
         }
       }
+    },
+    {
+      "module": "src/game/looks/staticCapture.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "toon look host",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/looks/grassPresentation.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "grass-field",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G478"
+        }
+      }
+    },
+    {
+      "module": "src/engine/render/scatterInstances.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "streamed cover",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G475"
+        }
+      }
+    },
+    {
+      "module": "src/game/ambient/wingField.ts",
+      "documentation": "docs/HOST-BAR.md",
+      "approvedFeature": {
+        "name": "H6 ambient life",
+        "decision": {
+          "path": "docs/plans/shard-platform/decisions.md",
+          "row": "G474"
+        }
+      }
     }
   ]
 }

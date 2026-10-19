@@ -22,7 +22,7 @@ import { parse } from 'valibot';
 import rifleRows from '../data/rifle.generated.json' with { type: 'json' };
 import bootMetadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { RIVER } from '../world/geography';
-import { prepareGrassV2 } from '../look/grass';
+import { prepareGrassV2 } from '../look/field';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';

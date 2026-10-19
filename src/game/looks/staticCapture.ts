@@ -1,40 +1,19 @@
-/**
- * Look v2 — the baked shadows + contact darkening (port-v2.md step 6; the prototype's "baked once, zero runtime cost").
- *
- * Two orthographic renders of the STATIC casters only (the POIs, the dressing, the outcrops, the spruce — every mesh
- * in the groups handed to `add()`, tagged with a layer of their own; creatures, the player and the grass are not in
- * it), made once and again only when the key light has swung more than ~1.5° (the clock) or the casters changed:
- *
- *   shadow  a 2048² (phone 1024²) depth map from the key direction over the whole slab — the grass and the flowers
- *           read it per vertex (`bakedShadow(worldPos)`, 4-tap PCF), so the yurts, the rocks and the spruce throw
- *           their long golden-hour shadows across the meadow. The terrain keeps its CSM (desktop and phone).
- *   contact a top-down map of how high the casters stand above the ground (half float, mipmapped): a blurred read of
- *           it (`bakedContact(worldPos)`) darkens the ground and the grass round every yurt, rock and trunk foot —
- *           the painted contact shade the mockups carry, without SSAO.
- *
- * `LOOK_BAKE_GLSL` holds the uniforms + both functions; `bakeUniforms` are shared by every receiver.
- */
+import * as v from 'valibot';
+import { StaticCaptureSchema, type StaticCaptureRows } from '@wildshard/format/fieldPresentation';
 import * as THREE from 'three';
 import { onGpuRestored } from '@wildshard/engine/core/gpuOnly';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+
 import { registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
-import { LOOK_BAKE_GLSL_DATA } from '../runtime/looks/lookBakeGlsl';
 
-/** the GLSL below is trusted custom code (runtime/looks/lookBakeGlsl.ts); `@{name}` splices the fragments this module passes */
-const LOOK_BAKE_GLSL_DATA_FAMILY = new ShaderFamily(LOOK_BAKE_GLSL_DATA, {});
 
-const LAYER = 7;
-const SIZE = TIER === 'phone' ? 1024 : 2048;
-const AO_SIZE = 1024;
-const HALF = 262;          // the slab (±250) and a margin
-const REBAKE_COS = Math.cos(1.5 * Math.PI / 180);
-/** phone: the static casters cast only into the bake, not the realtime shadow map (see `add`) */
-export const PHONE_STATIC_OFF_CSM = TIER === 'phone';
-
-export const bakeUniforms = {
+/** Client-only static shadow and contact capture. Scene bounds, pass programs and quality are authored rows. */
+export function staticCaptureUniforms(input: unknown): StaticCaptureUniforms {
+  const row = v.parse(StaticCaptureSchema,input);
+  const SIZE = row.shadowSize[TIER], HALF = row.half;
+  return {
   tBakeShadow: { value: null as THREE.Texture | null },
   uBakeMatrix: { value: new THREE.Matrix4() },
   /** x = on (0 until the first bake), y = depth bias (0..1 depth units), z = texel (uv) */
@@ -44,51 +23,63 @@ export const bakeUniforms = {
   uContactXf: { value: new THREE.Vector4(-HALF, -HALF, 1 / (HALF * 2), 0) },
 };
 
-export const LOOK_BAKE_GLSL = LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.LOOK_BAKE_GLSL);
+}
+
+export interface StaticCaptureUniforms {
+  readonly tBakeShadow: { value: THREE.Texture | null }; readonly uBakeMatrix: { value: THREE.Matrix4 };
+  readonly uBakeInfo: { value: THREE.Vector3 }; readonly tBakeContact: { value: THREE.Texture | null };
+  readonly uContactXf: { value: THREE.Vector4 };
+}
 
 /** the casters' material for the depth pass: position only (instancing / batching kept), no colour work */
-function depthMaterial(): THREE.ShaderMaterial {
+function depthMaterial(row: StaticCaptureRows): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
-    vertexShader: LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.planeVertex),
+    vertexShader: row.shaders.planeVertex,
     fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }',
   });
 }
 
 /** the casters' material for the contact pass: how far above the ground this fragment stands (m) */
-function contactMaterial(tHeight: THREE.Texture, xf: THREE.Vector4): THREE.ShaderMaterial {
+function contactMaterial(row: StaticCaptureRows, tHeight: THREE.Texture, xf: THREE.Vector4): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     // `xf` x, y: the height texture's corner where the level is drawn (its origin − 256), z: 1 / its size, w: the origin's height
     uniforms: { tHeight: { value: tHeight }, uHXf: { value: xf } },
-    vertexShader: LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.bakeVertex),
-    fragmentShader: LOOK_BAKE_GLSL_DATA_FAMILY.glsl(LOOK_BAKE_GLSL_DATA.bakeFragment),
+    vertexShader: row.shaders.bakeVertex,
+    fragmentShader: row.shaders.bakeFragment,
   });
 }
 
 const _at = new THREE.Vector3();
 
-export class StaticBake {
+export class StaticCapture {
   private readonly shadowRT: THREE.WebGLRenderTarget;
   private readonly contactRT: THREE.WebGLRenderTarget;
   private readonly shadowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 1400);
-  private readonly contactCam = new THREE.OrthographicCamera(-HALF, HALF, HALF, -HALF, 1, 600);
-  private readonly depthMat = depthMaterial();
+  private readonly contactCam = new THREE.OrthographicCamera();
+  private readonly depthMat: THREE.ShaderMaterial;
   private readonly contactMat: THREE.ShaderMaterial;
-  private readonly contactXf = new THREE.Vector4(-256, -256, 1 / 512, 0);
+  private readonly contactXf = new THREE.Vector4();
   private readonly lastDir = new THREE.Vector3(0, -1, 0);
   /** where the level's frame is drawn (its scene's world position: zero standalone, the cell's root in a grid cell) */
   private readonly origin = new THREE.Vector3();
   private dirty = true;
   /** contact darkening strength (0 = off) */
-  contact = 0.45;
+  contact: number;
+  private readonly row: StaticCaptureRows;
 
-  constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope) {
+  constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope, input: unknown, private readonly uniforms: StaticCaptureUniforms) {
+    const row = this.row = v.parse(StaticCaptureSchema,input);
+    const SIZE = row.shadowSize[TIER], AO_SIZE = row.contactSize, HALF = row.half, LAYER = row.layer;
+    this.depthMat = depthMaterial(row); this.contact = row.contact;
+    this.contactCam.left = -HALF; this.contactCam.right = HALF; this.contactCam.top = HALF; this.contactCam.bottom = -HALF; this.contactCam.near = 1; this.contactCam.far = 600; this.contactCam.updateProjectionMatrix();
+    this.contactXf.set(row.heightOrigin, row.heightOrigin, 1 / row.heightSize, 0);
     const depthTexture = new THREE.DepthTexture(SIZE, SIZE, THREE.UnsignedIntType);
     this.shadowRT = new THREE.WebGLRenderTarget(SIZE, SIZE, { depthTexture, depthBuffer: true, type: THREE.UnsignedByteType });
     depthTexture.minFilter = depthTexture.magFilter = THREE.NearestFilter;
     this.contactRT = new THREE.WebGLRenderTarget(AO_SIZE, AO_SIZE, {
       type: THREE.HalfFloatType, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true,
     });
-    this.contactMat = contactMaterial(tHeight, this.contactXf);
+    this.contactMat = contactMaterial(row, tHeight, this.contactXf);
     this.shadowCam.layers.set(LAYER);
     this.contactCam.layers.set(LAYER);
     // straight down over the slab: image right = +x, image up = −z (bakedContact's uv follows)
@@ -96,14 +87,14 @@ export class StaticBake {
     this.contactCam.up.set(0, 0, -1);
     this.contactCam.lookAt(0, 0, 0);
     this.contactCam.updateMatrixWorld();
-    bakeUniforms.tBakeShadow.value = depthTexture;
-    bakeUniforms.tBakeContact.value = this.contactRT.texture;
-    if (typeof window !== 'undefined') scope.expose(window, '__bake', this);
+    this.uniforms.tBakeShadow.value = depthTexture;
+    this.uniforms.tBakeContact.value = this.contactRT.texture;
+    if (typeof window !== 'undefined') scope.expose(window, '__staticCapture', this);
     scope.own(this.shadowRT); scope.own(this.contactRT); scope.own(this.depthMat); scope.own(this.contactMat);
     scope.onDispose(() => {
       this.roots.length = 0;
-      if (bakeUniforms.tBakeShadow.value === depthTexture) { bakeUniforms.tBakeShadow.value = null; bakeUniforms.uBakeInfo.value.x = 0; }
-      if (bakeUniforms.tBakeContact.value === this.contactRT.texture) { bakeUniforms.tBakeContact.value = null; bakeUniforms.uContactXf.value.w = 0; }
+      if (this.uniforms.tBakeShadow.value === depthTexture) { this.uniforms.tBakeShadow.value = null; this.uniforms.uBakeInfo.value.x = 0; }
+      if (this.uniforms.tBakeContact.value === this.contactRT.texture) { this.uniforms.tBakeContact.value = null; this.uniforms.uContactXf.value.w = 0; }
     });
     // These exact override programs draw only on the bake's first update; prepare them while the resident is hidden.
     registerOffscreenPreparation(scene, scope, { label: 'static shadow', camera: this.shadowCam, material: this.depthMat,
@@ -133,8 +124,8 @@ export class StaticBake {
     for (const root of this.roots) root.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return;
       n++;
-      o.layers.enable(LAYER);
-      if (PHONE_STATIC_OFF_CSM) o.castShadow = false;
+      o.layers.enable(this.row.layer);
+      if (this.row.staticOffCsm[TIER]) o.castShadow = false;
     });
     if (n !== this.seen) { this.seen = n; this.dirty = true; }
   }
@@ -147,14 +138,15 @@ export class StaticBake {
     this.scene.updateWorldMatrix(true, false);
     const at = _at.setFromMatrixPosition(this.scene.matrixWorld);
     if (!at.equals(this.origin)) { this.origin.copy(at); this.dirty = true; }
-    if (!this.dirty && keyDir.dot(this.lastDir) > REBAKE_COS) return;
+    if (!this.dirty && keyDir.dot(this.lastDir) > Math.cos(this.row.rekeyDegrees * Math.PI / 180)) return;
     this.lastDir.copy(keyDir);
     this.dirty = false;
     this.bake(keyDir);
   }
 
   private bake(keyDir: THREE.Vector3): void {
-    const { renderer, scene } = this;
+    const { renderer, scene, row } = this;
+    const HALF = row.half, SIZE = row.shadowSize[TIER];
     const prevTarget = renderer.getRenderTarget();
     const prevOverride = scene.overrideMaterial;
     const prevAuto = renderer.shadowMap.autoUpdate;
@@ -181,20 +173,20 @@ export class StaticBake {
       renderer.setRenderTarget(this.shadowRT);
       renderer.setClearColor(0xffffff, 1);
       renderer.render(scene, cam);
-      bakeUniforms.uBakeMatrix.value.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+      this.uniforms.uBakeMatrix.value.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
       // depth bias: ~0.25 m in the camera's depth range
-      bakeUniforms.uBakeInfo.value.set(1, 0.25 / (cam.far - cam.near), 1 / SIZE);
+      this.uniforms.uBakeInfo.value.set(1, row.depthBias / (cam.far - cam.near), 1 / SIZE);
       // the contact map: the casters' height above the ground, straight down
       this.contactCam.position.set(o.x, o.y + 300, o.z);
       this.contactCam.lookAt(o);
       this.contactCam.updateMatrixWorld();
-      this.contactXf.set(o.x - 256, o.z - 256, 1 / 512, o.y);
-      bakeUniforms.uContactXf.value.set(o.x - HALF, o.z - HALF, 1 / (HALF * 2), bakeUniforms.uContactXf.value.w);
+      this.contactXf.set(o.x + row.heightOrigin, o.z + row.heightOrigin, 1 / row.heightSize, o.y);
+      this.uniforms.uContactXf.value.set(o.x - HALF, o.z - HALF, 1 / (HALF * 2), this.uniforms.uContactXf.value.w);
       scene.overrideMaterial = this.contactMat;
       renderer.setRenderTarget(this.contactRT);
       renderer.setClearColor(0x000000, 1);
       renderer.render(scene, this.contactCam);
-      bakeUniforms.uContactXf.value.w = this.contact;
+      this.uniforms.uContactXf.value.w = this.contact;
     } finally {
       scene.overrideMaterial = prevOverride;
       scene.background = prevBg;

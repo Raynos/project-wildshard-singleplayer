@@ -1,0 +1,35 @@
+{
+  "looks": [
+    "nalati-grass-blades",
+    "nalati-grass-flowers",
+    "nalati-grass-cards"
+  ],
+  "half": 250,
+  "heightSize": 512,
+  "heightOrigin": -256,
+  "lattice": 4,
+  "gain": 1.8,
+  "playerRadius": 0.55,
+  "cardsHeight": 6,
+  "ringHeight": 0.9,
+  "gainFalloff": [
+    0.18,
+    0.5,
+    0.52
+  ],
+  "saturationFalloff": [
+    0.25,
+    0.5,
+    0.42
+  ],
+  "tintNight": [
+    -0.22,
+    -0.12,
+    0.12
+  ],
+  "tintStorm": [
+    -0.08,
+    -0.04,
+    0.04
+  ]
+}
