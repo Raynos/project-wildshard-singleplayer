@@ -1,0 +1,90 @@
+{
+  "status": "Initial normals failure retained; not final",
+  "files": [
+    {
+      "path": "tmp/colossus-complete-character-next-initial/cameras.json",
+      "bytes": 7517,
+      "sha256": "ceaa1834ab3dbef09b730a6671d2f258da6691001559839ac34e7fa8ff3be27a"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/back.png",
+      "bytes": 535837,
+      "sha256": "841704f63f761cfd2461b0534dca65d0e3687a32f540cd028d84e4435f1b1c2c"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/diag-back.png",
+      "bytes": 734354,
+      "sha256": "0c8b685469b035618b88883b973b707509e75d633d0016999899c17337a46c93"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/diag-front.png",
+      "bytes": 733042,
+      "sha256": "de3590840cd5a89a309a8d422e6abb1d77b47cbf428d36e1baf69a589d40ce55"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/diag-left.png",
+      "bytes": 703937,
+      "sha256": "7287af5e21dca89ff6f6007c58e0377cd6e29d3eae94fd1a670c5db9f193ba0a"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/diag-right.png",
+      "bytes": 720430,
+      "sha256": "2a62c5a4fec4303e139ea47ba1baba914e85fa8f6a8617c5014a678d7fac8ab6"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/editable-native.json",
+      "bytes": 333101,
+      "sha256": "eda6f92944b6aa2c87828a0c5f7e90b7d9e0b89ee153e1e30bf2e54c6547528b"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/front.png",
+      "bytes": 518011,
+      "sha256": "7afb8bb016ef24a4992b73a9fe622cd052e3dab825465c0c2e5ebd6538968c2d"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/hero.png",
+      "bytes": 690956,
+      "sha256": "25464fee469e85d3efb6d1d638664869230c9dcb53baed265f5ba7b6ffcc18fe"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/left.png",
+      "bytes": 416987,
+      "sha256": "934253dafb82f53fdbfe86ca9d948a486c84959b2f5f3648905309c4e7cc7bd2"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/metrics-complete-character-next.json",
+      "bytes": 482,
+      "sha256": "0e7a805505b81653c22c337226eaec05fb3e685680df82083137d9e7c4875041"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/right.png",
+      "bytes": 421534,
+      "sha256": "54bc64bb13a1405aa5a0be7206ac09f1eb146d5f2eb928f0ee78b258fca84f7d"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/tide-root-colossus-complete-character-next.glb",
+      "bytes": 867748,
+      "sha256": "d5b229ab60218990da5b1b09d9ec3e57e9220d82b1f10c81d735626c8d013725"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/top.png",
+      "bytes": 703050,
+      "sha256": "c0dc76efec78a4d5d235385973a0bce6fc69fcc4b7e7ed8a822196b4652d5762"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/candidate/validation.json",
+      "bytes": 120735,
+      "sha256": "bdfdddbb2426ebe002c04fe6f653ae68d34eb45b65b4f19adb1de0f218484c2a"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next-initial/render.log",
+      "bytes": 465566,
+      "sha256": "2f7d890cb8dcc835996177312318c1c0ab20366c0e37c3b46721c9eb87cbab12"
+    }
+  ]
+}

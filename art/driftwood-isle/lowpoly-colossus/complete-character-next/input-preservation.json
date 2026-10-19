@@ -1,0 +1,84 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/build_colossus_complete.py",
+      "bytes": 28003,
+      "sha256": "4ac78cfb86d5cc48f7ed71ed955fc9ca1389d8dcceff2b37a0078eadf8a83693"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/tide-root-colossus-complete-pass4.glb",
+      "bytes": 609368,
+      "sha256": "fb9f593dfa1d1f82259b79429795e355d0736a0977dab73316744041e7ea5fb2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/final-closure.json",
+      "bytes": 6296,
+      "sha256": "cc7877e81e7703ac4fdf2701024edcbd552eb14832b0e7c1151977e13d08b50c"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/tide-root-colossus-lowpoly.webp",
+      "bytes": 207866,
+      "sha256": "157fe0ad0db0705fd0ca4604b0bbf6d24893a935079f7529b29b010a25bb80d3"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/previews/colossusWorldGen-sheet.webp",
+      "bytes": 211592,
+      "sha256": "5aa0685e8f2c708f8373cb42d6bafd5842592d3d29f51f460fe6ccfcd229a258"
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/previews/colossusExplorerGen-sheet.webp",
+      "bytes": 146554,
+      "sha256": "95d01340c0572ebff1b68fda0d3661c02cebe2f993bcd1ed6aee5689e4ce4a51"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/hero.png",
+      "bytes": 688088,
+      "sha256": "e5c698bfcb2dacb24a8d2574829449fb1b0431677d360b5fde32b6b8e2fcf443"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/front.png",
+      "bytes": 517963,
+      "sha256": "a6a1d28f43cd7ec2374aa46a024edd4200a2dd9fa9cd090cd0ccd60e7480f567"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/left.png",
+      "bytes": 409582,
+      "sha256": "32a4b2372f87d23e602b1299fe8da7d35d4b74ea4bb167b8be79a7813b6bc9e7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/right.png",
+      "bytes": 412916,
+      "sha256": "a08cfacf8f6db5753a668002a7165424464c6ccaf22ca421b141254dcf1a4ef2"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/back.png",
+      "bytes": 535873,
+      "sha256": "f37827b25f52776db62fbd0efe9979bb0daaa21bed67bf70126b82d928283937"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/top.png",
+      "bytes": 695134,
+      "sha256": "0d569a77330a79b3932e2d3ea6e4d85159eea9242567e71e29a9245ce90f7664"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-front.png",
+      "bytes": 730794,
+      "sha256": "51aff09a7cfdbe851a1679ed86eb8a621734cd21ba176896bc016bb748ca2d5e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-left.png",
+      "bytes": 703512,
+      "sha256": "153b6713fec2cbb2d09cccd10759cea2eaa47b53b4d8267ee0f9e04143fb2103"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-right.png",
+      "bytes": 713900,
+      "sha256": "deee88ea4fc32369bb2a3230b51c1b50f751ece378bb121d29ba451f4be7fe38"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-back.png",
+      "bytes": 726015,
+      "sha256": "a95a924fae85f482aa87d638b2819ee9e75805fa368edd1302c1dd0eadb2d07f"
+    }
+  ]
+}

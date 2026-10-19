@@ -1,0 +1,134 @@
+{
+  "status": "Actual candidate frames paired with unchanged retained pass4 captures",
+  "referenceStatus": "Original hero authoritative; both AI nine-angle sheets approximate hidden surfaces",
+  "resolution": [
+    525,
+    700
+  ],
+  "samples": 16,
+  "denoising": false,
+  "viewTransform": "Standard",
+  "worldColor": [
+    0.12,
+    0.12,
+    0.12
+  ],
+  "target": [
+    0,
+    0,
+    2.9
+  ],
+  "orthoScale": 7.7,
+  "files": [
+    {
+      "path": "tmp/colossus-complete-character-next/build-final.log",
+      "bytes": 29600,
+      "sha256": "433da8cf83a22a4eaf7791567f060a03a282256ec5f204bc7daabed6fa70955d"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/cameras.json",
+      "bytes": 7517,
+      "sha256": "ceaa1834ab3dbef09b730a6671d2f258da6691001559839ac34e7fa8ff3be27a"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/back.png",
+      "bytes": 535702,
+      "sha256": "9af337db1eedb635a5f1fde4ac908a81114bd2d3cbfd7404beabe1742467783c"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-back.png",
+      "bytes": 734669,
+      "sha256": "8e5303c1d5171d49d1b93087f051de16a9c5471d157db699b26ccb1c1e758e11"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-front.png",
+      "bytes": 732587,
+      "sha256": "4421fb02d8e6505e36c85af82ac8e72b201662e3da6bc6bdc358dad915c4c16e"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-left.png",
+      "bytes": 703552,
+      "sha256": "0dcecd8d9a472a6ad49c8f15de84f50d0620dba536be249d150346c3e6cb9136"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/diag-right.png",
+      "bytes": 720479,
+      "sha256": "ae475cedb425f73568df22f2339d3a59c02b81852832d7ed53af40144ac34499"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/editable-native.json",
+      "bytes": 366869,
+      "sha256": "98a6ccd73816748fcb8ff873be43897e7630ebb6d3191800f30c999962682f26"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/front.png",
+      "bytes": 517853,
+      "sha256": "6e439457978900618f6b3315cec4659b924db2ed78ed412614b9372cc71d18ad"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/hero.png",
+      "bytes": 691053,
+      "sha256": "563d69c7fe701a180706c18bee6b9afe457414d1a975f92ec77b94483ca8fbce"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/left.png",
+      "bytes": 416894,
+      "sha256": "f7087edceb188666b6d35e36096d3ed30e23fe6ad2704a05642fc922d89e6e30"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/metrics-complete-character-next.json",
+      "bytes": 482,
+      "sha256": "2c9e7fab60356f8f797d650ef113e26bff62c521258ef8ffb434154f7e9701fb"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/right.png",
+      "bytes": 421703,
+      "sha256": "0b2d041efe49cab6e577c57efdffd19c3a553d964ea22df3607041d3c7a6ca17"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/tide-root-colossus-complete-character-next.glb",
+      "bytes": 993940,
+      "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/top.png",
+      "bytes": 703488,
+      "sha256": "e560e4dccb64193fd03e26725a8e1d6cd25f00e9770735d735edaffeebeceadb"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/candidate/validation.json",
+      "bytes": 120556,
+      "sha256": "5350ea6999f0eb5323095121790a6f33ccaeebd220ca627cc53230b52e3d48fb"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test-direct.log",
+      "bytes": 2135,
+      "sha256": "645e47ac5dbacf8e6fd8da6554083495918ecefd0db3d6734a4c2c46fd7e6f7a"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test-focused.log",
+      "bytes": 1184,
+      "sha256": "ff756bf8613246510cebec6706be6f0eb312be839617853a078978bd3fbad4a0"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/native-test.log",
+      "bytes": 2907,
+      "sha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/render.log",
+      "bytes": 465574,
+      "sha256": "ed495c0ea9ddb58c9c5e55ee9e843c8a7199221bd1dd9d2278da9348656de2e2"
+    },
+    {
+      "path": "tmp/colossus-complete-character-next/rendered-before-metadata-strip.glb",
+      "bytes": 1004572,
+      "sha256": "c86d484736ec5ea6bbca18b59446f334725c5432194790c608089f487f1c1944"
+    }
+  ]
+}

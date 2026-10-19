@@ -1,0 +1,19 @@
+{
+  "method": "Exact JSON equality after deleting only duplicate mesh names; exact BIN chunk equality. Node names retained.",
+  "rendered": {
+    "path": "tmp/colossus-complete-character-next/rendered-before-metadata-strip.glb",
+    "bytes": 1004572,
+    "sha256": "c86d484736ec5ea6bbca18b59446f334725c5432194790c608089f487f1c1944"
+  },
+  "final": {
+    "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/tide-root-colossus-complete-character-next.glb",
+    "bytes": 993940,
+    "sha256": "3850986dc692952441053cd8b47465898cfc3aa11fcfbe18cfcac0bb7bb6e467"
+  },
+  "geometryMaterialsTransformsIdentical": true,
+  "renderProducer": {
+    "path": "art/driftwood-isle/lowpoly-colossus/complete-character-next/failed-initial/normalfixed-presize.py",
+    "bytes": 30613,
+    "sha256": "dd524dea1598870f6678317ee8c316549e22f24d95bc9a6876ec556c87bb696b"
+  }
+}

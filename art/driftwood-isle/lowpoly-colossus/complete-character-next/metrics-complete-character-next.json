@@ -1,0 +1,21 @@
+{
+  "status": "unaccepted complete character next coupled anatomy/growth study",
+  "objects": 269,
+  "triangles": 6002,
+  "bounds": {
+    "min": [
+      -2.7053160667419434,
+      -1.4604820013046265,
+      -0.07760000228881836
+    ],
+    "max": [
+      2.7152960300445557,
+      1.6888065338134766,
+      6.022543907165527
+    ]
+  },
+  "front": "-Y",
+  "glbBytes": 993940,
+  "sourceSHA256": "a5b73ef6334c8d9a997e4271365554971e244eed45d4bba4a4489c37b64f3a7f",
+  "rendered": false
+}
