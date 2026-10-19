@@ -1,0 +1,83 @@
+{
+  "status": "six-frame Blender render exited 0; inspected labelled comparison; no runtime proof",
+  "blenderVersion": "4.3.2",
+  "sourcePinsVerifiedAfterRender": true,
+  "temporaryArtifacts": [
+    {
+      "path": "tmp/puffer-spike-study/capture-receipt.json",
+      "bytes": 883,
+      "sha256": "2887b763a7690f2305d8971eda5fe5812abc8b45b0d263857c396b3b61cca977"
+    },
+    {
+      "path": "tmp/puffer-spike-study/evidence-receipt.json",
+      "bytes": 1192,
+      "sha256": "f9a995023409d57d2ab66fa22fbbf91fe90c8e77f42ac37b56903f27d538efbb"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-hierarchy-comparison.webp",
+      "bytes": 300554,
+      "sha256": "03f55a7d68f476dbcfbe5ab166c9a39ddc96eac641ab247c2c59c06619f27b59"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-elevated-side.png",
+      "bytes": 792977,
+      "sha256": "ab5e3c4e3be293dfa69c8104275118371f9c88d1d32eaa2a06b4ac1eb69999d0"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-elevated-side.webp",
+      "bytes": 65140,
+      "sha256": "d33524d6f94f5076c585433fd897d3eb0387aca70cc570538ae94ba98af95dbb"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-front.png",
+      "bytes": 327659,
+      "sha256": "a1d409a93bd993eb468dd3d259e7c90014cc94fed8a564ef32cbbf3b094fe692"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-front.webp",
+      "bytes": 17458,
+      "sha256": "be2f898222743df34e95431ae7bd03ef182034d7288e5be76fe0625f02bdec4f"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-hero.png",
+      "bytes": 787959,
+      "sha256": "7ac400b7043b4d659cf58e2052d841239ca197a6f0b9e60f923b4385d3d56a64"
+    },
+    {
+      "path": "tmp/puffer-spike-study/spike-study-hero.webp",
+      "bytes": 69480,
+      "sha256": "cc6394aba7b3c8514a229811a120b746948f20320ff6d91a8a89424fc284b0ac"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-elevated-side.png",
+      "bytes": 793453,
+      "sha256": "c22200764c291b84a1116411b2245f2c2833ff666942b1982a993cb79b254d86"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-elevated-side.webp",
+      "bytes": 64674,
+      "sha256": "e9b442286d418131cb14b0440a3b5ad56f4e3b6f9ab8c02e0df44dc0f26b416c"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-front.png",
+      "bytes": 328271,
+      "sha256": "84eaef60735b079502bc135ebdf0d6dc0faa97380cae8aa5cad5c164bd0e6db4"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-front.webp",
+      "bytes": 16924,
+      "sha256": "bc5c36fac05b8208c98d6632fdd39a1129638cebb5b594b85ad9083ab42da29a"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-hero.png",
+      "bytes": 788526,
+      "sha256": "5f4d1705178aae248c7000f5aebc60b5ddf80ab20eda90d37026bcd5a44b8d48"
+    },
+    {
+      "path": "tmp/puffer-spike-study/v71-hero.webp",
+      "bytes": 68788,
+      "sha256": "17b6c9e16f03e4c7b3e4da26f6a0b08e1cccc2507b2ba1e73e1e0651847e4c03"
+    }
+  ],
+  "publication": "Review-image artifacts require native Site source publication by coordinator; no images added to Git."
+}

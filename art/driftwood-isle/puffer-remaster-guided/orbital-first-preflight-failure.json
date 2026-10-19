@@ -1,0 +1,26 @@
+{
+  "status": "failed-before-export-no-render",
+  "session": 19882,
+  "exitCode": 1,
+  "sourceSha256": "af2a613c3891d5fed74c17f7a316055217dd3b6eb911950b22d81410318ee6ed",
+  "failure": "Hood control outside facial patch",
+  "diagnosis": "Upper outer ridge points project onto real V71 roof faces with positive Y-normal .0227/.0887, excluded by the initial frontal-only selection. Explicit upper-only region extension is a geometry scope repair; original failed source stays intact.",
+  "upperCandidateRegion": {
+    "absX": [
+      0.17,
+      0.49
+    ],
+    "z": [
+      0.96,
+      1.12
+    ],
+    "normalYMin": 0.01,
+    "frontYMin": 0.2
+  },
+  "lightOriginalGuideCheck": {
+    "leftFaces": 42,
+    "rightFaces": 43,
+    "boundaryBranchCount": 0
+  },
+  "closedVolumeAndExactBoundaryGuardsUnchanged": true
+}

@@ -1,0 +1,56 @@
+{
+  "status": "actual Blender native-bind comparison; unaccepted",
+  "shots": [
+    [
+      "hero",
+      [
+        3,
+        4.6,
+        2.25
+      ],
+      [
+        0,
+        -0.03,
+        0.84
+      ],
+      3.2
+    ],
+    [
+      "front",
+      [
+        0,
+        4.9425,
+        0.79
+      ],
+      [
+        0,
+        -0.0575,
+        0.79
+      ],
+      4.2
+    ],
+    [
+      "elevated-side",
+      [
+        3.869,
+        -0.0575,
+        3.956
+      ],
+      [
+        0,
+        -0.0575,
+        0.79
+      ],
+      4.2
+    ]
+  ],
+  "resolution": [
+    600,
+    740
+  ],
+  "samples": 20,
+  "lighting": "V71 studio three-light setup",
+  "albedo": "unchanged V71 except six subordinate spike positions; all colors exact",
+  "onlyReplacement": "Six subordinate spike components in the consolidated core; primary and all anatomy exact",
+  "runtimeValidated": false
+}

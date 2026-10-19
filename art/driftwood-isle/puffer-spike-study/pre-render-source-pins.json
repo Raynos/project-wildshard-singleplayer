@@ -1,0 +1,30 @@
+{
+  "render_comparison.py": {
+    "sha256": "34b2d461468c3b116fdf6c141bb798075fe4d1dbb2583b2e989e19fc90b9514b",
+    "bytes": 3949
+  },
+  "spike-native-study.json": {
+    "sha256": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd",
+    "bytes": 1416932
+  },
+  "build_spikes.py": {
+    "sha256": "ca57ec38ef34576adaa1ece0c72cca343cc99c33360bb8829b8d54e27210b4a9",
+    "bytes": 5334
+  },
+  "spikes-indexed.json": {
+    "sha256": "107075e5258bd2f94bade9ac9cdc23082c5a185c70f008251149d30055f1419f",
+    "bytes": 18905
+  },
+  "prepare_evidence.py": {
+    "sha256": "91f5973aec66062726e32146f4fa2bab88893285df9b881f66a693166e81670f",
+    "bytes": 2134
+  },
+  "check_spikes.py": {
+    "sha256": "097c94901aa71f41236bec44879543da876bc03db9eb5fc816bfa6b3ef29c987",
+    "bytes": 3029
+  },
+  "structural-audit.json": {
+    "sha256": "68c4a8539bd43ba482cf048fd28ac6d062d8ce723a2ecd8b0ffc99d110819b71",
+    "bytes": 6389
+  }
+}

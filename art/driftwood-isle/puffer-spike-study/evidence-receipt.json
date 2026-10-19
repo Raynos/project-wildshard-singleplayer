@@ -1,0 +1,40 @@
+{
+  "status": "Labelled actual-render evidence; not runtime proof",
+  "files": [
+    {
+      "name": "v71-hero.webp",
+      "bytes": 68788,
+      "sha256": "17b6c9e16f03e4c7b3e4da26f6a0b08e1cccc2507b2ba1e73e1e0651847e4c03"
+    },
+    {
+      "name": "spike-study-hero.webp",
+      "bytes": 69480,
+      "sha256": "cc6394aba7b3c8514a229811a120b746948f20320ff6d91a8a89424fc284b0ac"
+    },
+    {
+      "name": "v71-front.webp",
+      "bytes": 16924,
+      "sha256": "bc5c36fac05b8208c98d6632fdd39a1129638cebb5b594b85ad9083ab42da29a"
+    },
+    {
+      "name": "spike-study-front.webp",
+      "bytes": 17458,
+      "sha256": "be2f898222743df34e95431ae7bd03ef182034d7288e5be76fe0625f02bdec4f"
+    },
+    {
+      "name": "v71-elevated-side.webp",
+      "bytes": 64674,
+      "sha256": "e9b442286d418131cb14b0440a3b5ad56f4e3b6f9ab8c02e0df44dc0f26b416c"
+    },
+    {
+      "name": "spike-study-elevated-side.webp",
+      "bytes": 65140,
+      "sha256": "d33524d6f94f5076c585433fd897d3eb0387aca70cc570538ae94ba98af95dbb"
+    },
+    {
+      "name": "spike-hierarchy-comparison.webp",
+      "bytes": 300554,
+      "sha256": "03f55a7d68f476dbcfbe5ab166c9a39ddc96eac641ab247c2c59c06619f27b59"
+    }
+  ]
+}

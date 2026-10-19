@@ -1,0 +1,205 @@
+{
+  "status": "static geometry checks only; no visual acceptance, animation or runtime proof",
+  "checks": {
+    "bonesExact": true,
+    "otherPartsExact": true,
+    "allNonpositionArraysExact": true,
+    "protectedPositionsExact": true,
+    "primaryExact": true,
+    "inheritedHiddenAccentExact": true,
+    "spikeCountExact": true
+  },
+  "spikes": [
+    {
+      "name": "Cream crown spine 0",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0018275347219015182,
+      "minimumTriangleArea": 0.011113200074439058,
+      "rootClearance": [
+        -0.002231145470174481,
+        -0.03947515271569548,
+        -0.03947515271569548,
+        -0.10960417454611293
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.002231145470174481
+    },
+    {
+      "name": "Cream crown spine 1",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0037878750763222654,
+      "minimumTriangleArea": 0.02022999539349352,
+      "rootClearance": [
+        -0.028362143459480387,
+        0.006194892669808762,
+        -0.05022255028086595,
+        -0.027286306563372817
+      ],
+      "baselineExact": true,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": 0.006194892669808762
+    },
+    {
+      "name": "Cream crown spine 2",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0009162667429807007,
+      "minimumTriangleArea": 0.008780800577189973,
+      "rootClearance": [
+        -0.06736316137257099,
+        -0.015787149980790796,
+        -0.015787149980790796,
+        -0.007381923587080907
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.007381923587080907
+    },
+    {
+      "name": "Cream crown spine 3",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0018790682387358388,
+      "minimumTriangleArea": 0.010418798319330066,
+      "rootClearance": [
+        -0.014774913381080454,
+        -0.002033334358408132,
+        -0.0819936844554143,
+        -0.09149747095120028
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.002033334358408132
+    },
+    {
+      "name": "Cream crown spine 4",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0018790682387358343,
+      "minimumTriangleArea": 0.010418798319330066,
+      "rootClearance": [
+        -0.014774913381080454,
+        -0.0819936844554143,
+        -0.002033334358408132,
+        -0.09149747095120028
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.002033334358408132
+    },
+    {
+      "name": "Cream crown spine 5",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0007492259951445597,
+      "minimumTriangleArea": 0.005924798280084886,
+      "rootClearance": [
+        -0.0640906329703821,
+        -0.0024967032046530426,
+        -0.0957220257363774,
+        -0.03377425221760337
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.0024967032046530426
+    },
+    {
+      "name": "Cream crown spine 6",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.0007492259951445637,
+      "minimumTriangleArea": 0.005924798280084886,
+      "rootClearance": [
+        -0.0640906329703821,
+        -0.09572202088340317,
+        -0.002496725865361873,
+        -0.03377425264580352
+      ],
+      "baselineExact": false,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": -0.002496725865361873
+    },
+    {
+      "name": "Cream crown spine 7",
+      "checks": {
+        "sampledCapBuriedOrExactRetention": true,
+        "finite": true,
+        "closed": true,
+        "oriented": true,
+        "positiveVolume": true,
+        "nondegenerate": true,
+        "modifiedRootCornersBuriedOrExactRetention": true
+      },
+      "volume": 0.00036345429434909635,
+      "minimumTriangleArea": 0.003937498807710456,
+      "rootClearance": [
+        0.029523078921197796,
+        -0.04555461445211289,
+        0.03442319213531385,
+        -0.04156610759210085
+      ],
+      "baselineExact": true,
+      "rootCapSamples": 30,
+      "maximumSampledCapClearance": 0.03442319213531385
+    }
+  ],
+  "retainedRootCaveat": "Primary has an inherited +6.20 mm exposed corner; hidden rear accent has +34.43 mm. Preserved exactly, not falsely certified buried. Six modified wedges have all root corners at least 2 mm inside the actual main hull.",
+  "allPassed": true,
+  "generatedSourcePins": {
+    "build_spikes.py": "ca57ec38ef34576adaa1ece0c72cca343cc99c33360bb8829b8d54e27210b4a9",
+    "spikes-indexed.json": "107075e5258bd2f94bade9ac9cdc23082c5a185c70f008251149d30055f1419f",
+    "spike-native-study.json": "f49fb808735792d5945d8ac2991e89c5e8f013b4e4e8dcfe6ee51cfc189e90dd"
+  }
+}
