@@ -1,0 +1,41 @@
+{
+  "schema": "wildshard.brine-pitcher.source-audit.v1",
+  "vertices": 10554,
+  "triangles": 3518,
+  "joints": [
+    "body",
+    "head",
+    "headLid",
+    "leftHead",
+    "leftHeadLid",
+    "rightHead",
+    "rightHeadLid"
+  ],
+  "glbNativePositionColorSkinParity": true,
+  "maximumBindClosureError": 5.960464477539063e-08,
+  "zeroAreaTriangles": 0,
+  "minimumTriangleArea": 2.0736222944666064e-06,
+  "bounds": [
+    [
+      -1.8852843046188354,
+      0.013932550325989723,
+      -1.4516541957855225
+    ],
+    [
+      1.7964038848876953,
+      4.280439376831055,
+      1.4334635734558105
+    ]
+  ],
+  "coordinateConvention": "+Y-up +Z-forward right-handed; Blender x,-z,y",
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "brine-pitcher-v1.glb": "b6dc76cbcbdc708693841c4063971f1131acb69b6f6df48eaf65c397004bad6f",
+    "metadata.json": "c9fddb696d9cde215c9f6645719b52548409a139791165608fc388f2da667b05",
+    "native-source.json": "6194c6f4239bb37c53da75eb1ba584bc105dbcac48cc8424d8f37e7abdf0d88c",
+    "construction.json": "ab8ed44c257df07199ffbf7983acf187ea53eeccece6c7ba768366db6f240ce6",
+    "payload.bin": "0bd39fe43e694b86d2b55674231a501464e280a6a47540cd105c05b2c27cb924"
+  }
+}

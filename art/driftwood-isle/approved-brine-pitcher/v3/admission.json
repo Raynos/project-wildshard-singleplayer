@@ -1,0 +1,25 @@
+{
+  "schema": "wildshard.brine-pitcher.source-admission.v1",
+  "candidate": "brine-pitcher-native-v3",
+  "visualAcceptance": false,
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "rootFlinch": "authored-pose",
+  "files": {
+    "art/driftwood-isle/approved-brine-pitcher/build_pitcher_v3.py": "b7a838343cd4110201224d58592fc05e37aa3b370b5d5eefa2ad2a4f802a6cd3",
+    "art/driftwood-isle/approved-brine-pitcher/audit_source_v3.py": "a599d1bba810b420a0fc453743e26fb871053f759b608a4463ceb8170dfa7fe3",
+    "art/driftwood-isle/approved-brine-pitcher/make_review_v3.py": "4c7674990218068763df0e3418632074dba601907341968e365e9ee6cc43c4db",
+    "art/driftwood-isle/approved-brine-pitcher/v3/native-source.json": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+    "art/driftwood-isle/approved-brine-pitcher/v3/metadata.json": "2faa7fb3782856aa52fbf802af15eb069cca23bf13dbd642f9b506cdd3bf1d58",
+    "art/driftwood-isle/approved-brine-pitcher/v3/payload.bin": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+    "art/driftwood-isle/approved-brine-pitcher/v3/brine-pitcher-v1.glb": "e9c6e859beb91f4889c8f4f29af330ba4094955badd167fea1dd0a44dcb02199",
+    "art/driftwood-isle/approved-brine-pitcher/v3/construction.json": "60712405dffd8ef8c199ef9c940ea7312efd9627892e10bc7e9e412ea7f04052",
+    "art/driftwood-isle/approved-brine-pitcher/v3/source-audit.json": "cabaa60c15a681723f13d6a63692c40060453e57ffe2d32a2172d0f1cb7c4489",
+    "art/driftwood-isle/approved-brine-pitcher/v3/cameras.json": "e786801cab422130047a2801c8209f907ba44ef943815e5487a779d488f41157",
+    "art/driftwood-isle/approved-brine-pitcher/v3/review-captures.json": "99a13336e6b8b024d0d349c2ada705d36c954a82a3fa0047b60d5c0c707c8520",
+    "src/shards/driftwood-isle/generators/brinePitcherNativeClips.ts": "fd31acc10bb645cb9aba40546675aa0c87517e951ee78d652241b1146cd617f8",
+    "src/shards/driftwood-isle/generators/brinePitcherCombat.ts": "a633ce296c97b82554c7026cd9a9ae2c8d8a1a9b30430fa15cf2e5208e81d361",
+    "src/shards/driftwood-isle/generators/brinePitcherNativePreview.ts": "b43a1f9e79afb578f003bf97a82d168086d7c67bfa1770105fcd5c11ac0a059d",
+    "src/shards/driftwood-isle/behaviour/brine-pitcher.as": "25c67ba2ecb9037b7e3790dc1c41cd87138eb192860dfe5e54874e7ac175cdcf"
+  }
+}

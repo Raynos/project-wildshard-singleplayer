@@ -1,0 +1,62 @@
+[
+  {
+    "name": "hero",
+    "azimuthDegrees": 28.0,
+    "elevationDegrees": 14.999999999999998,
+    "actualRender": true
+  },
+  {
+    "name": "front",
+    "azimuthDegrees": 0.0,
+    "elevationDegrees": 0.0,
+    "actualRender": true
+  },
+  {
+    "name": "left",
+    "azimuthDegrees": -90.0,
+    "elevationDegrees": 0.0,
+    "actualRender": true
+  },
+  {
+    "name": "right",
+    "azimuthDegrees": 90.0,
+    "elevationDegrees": 0.0,
+    "actualRender": true
+  },
+  {
+    "name": "back",
+    "azimuthDegrees": 180.0,
+    "elevationDegrees": 0.0,
+    "actualRender": true
+  },
+  {
+    "name": "top",
+    "azimuthDegrees": 0.0,
+    "elevationDegrees": 89.9,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-front",
+    "azimuthDegrees": 0.0,
+    "elevationDegrees": 39.0,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-left",
+    "azimuthDegrees": -90.0,
+    "elevationDegrees": 39.0,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-right",
+    "azimuthDegrees": 90.0,
+    "elevationDegrees": 39.0,
+    "actualRender": true
+  },
+  {
+    "name": "elevated-back",
+    "azimuthDegrees": 180.0,
+    "elevationDegrees": 39.0,
+    "actualRender": true
+  }
+]

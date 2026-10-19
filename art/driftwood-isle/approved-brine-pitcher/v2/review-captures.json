@@ -1,0 +1,21 @@
+{
+  "renderSource": "build_pitcher_v2.py",
+  "rawDirectory": "tmp/brine-pitcher-v3",
+  "rawBytes": 7288501,
+  "referenceCameraCaveat": "Generated target panels approximate; actual model cameras are explicit orthographic angles. No native gameplay renders yet.",
+  "files": {
+    "paired-hero-board.webp": "c2ed658d2bb421f5dd7dc364c5fd30761c10f9c3afe54bd009a21efefba14a15",
+    "left.webp": "c0baf33cdd2511e6d157c34ef9716952b1c359dd03ace2bde5c8e533b958a27c",
+    "explorer-paired-nine-board.webp": "28cf645089536e43714a659f0611a1b61f8dddf16fda8bd4c8e9269173ac0b5b",
+    "elevated-left.webp": "f22eb64a2e45197325f3297170be65516c1cfa92400028065b2647e3e824fb05",
+    "elevated-back.webp": "7474713cfdb8ba21c408e82ddbd9cf52e963b9c82b28c0bbe8dd0dab7944d578",
+    "elevated-front.webp": "4de3a214fe36336370e06238ce7feafb43376262c1f813d29015cd6b7cafaea8",
+    "hero.webp": "3270282599a46b7d6ef32ea0b8db22f517c7e79ae4c652591ba9017a9157bc57",
+    "top.webp": "8669064c387b2eb39d519447b9eab797fa9af8724acdc63b2e6c9300027ab2b7",
+    "world-paired-nine-board.webp": "841cfe2b57eb3ccedbe06972bdd97e9ee2ce704e03a5f11f1b81e876bfde71a6",
+    "front.webp": "0a1988773a53fd6396848ea2c098cbf5123c576dc6b749c357327c0d6a6b77d5",
+    "elevated-right.webp": "f6a2fa3fffa12fa7506d133eade39a8dcab7b764802cd96918c11150bfda0223",
+    "right.webp": "7abd0a4bba70bb4b13f2f189d4f333ab94b1147c9a222fd228181652b3a9d827",
+    "back.webp": "ed2820904d79c0d959c5de5073ff1cdd54aed89551505eba08169117870bdedc"
+  }
+}
