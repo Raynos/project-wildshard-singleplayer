@@ -21639,6 +21639,88 @@
         "nalati-map-assembly",
         "nalati-terrain-scene"
       ]
+    },
+    {
+      "id": "nine-map-assembly",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/mapAssembly.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/mapAssembly.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/commons",
+        "src/shards/nine-dragon-stack",
+        "public/assets/nine-dragon/baked/casts",
+        "public/assets/nine-dragon/lab",
+        "scripts/map-assembly.mjs",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.bin"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.bin"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nine-casts",
+        "nine-sign-atlas",
+        "nine-declarations"
+      ]
+    },
+    {
+      "id": "nine-data-map",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-map.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-map.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nine-dragon-stack/generators",
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
+        "src/shards/nine-dragon-stack/data/mapAssembly.generated.bin",
+        "scripts/map-assembly.mjs",
+        "scripts/map-scenes.mjs",
+        "scripts/map-painter.mjs",
+        "scripts/bake-data-maps.mjs",
+        "src/shards/nine-dragon-stack/look/map.json",
+        "scripts/map-hash.mjs",
+        "scripts/legacy-shards.mjs",
+        "lint/legacy-shards.json",
+        "src/sdk/package.json",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/kit/geometryPack.ts",
+        "src/format/terrainTileBytes.ts",
+        "src/format/contentBounds.ts",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "public/assets/nine-dragon-stack/map/top.webp",
+        "src/shards/nine-dragon-stack/look/map.baked.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/nine-dragon-stack/map/top.webp",
+        "src/shards/nine-dragon-stack/look/map.baked.json"
+      ],
+      "platform": "portable",
+      "catalogueDependencies": [
+        "nine-map-assembly"
+      ]
     }
   ]
 }

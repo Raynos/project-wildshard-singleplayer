@@ -18,6 +18,8 @@ import isletScene from '../src/shards/far-reach/data/isletScenes.generated.json'
 import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
 import nalatiPlacesJson from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
+import { nineMapAssembly } from '../src/shards/nine-dragon-stack/generators/mapAssembly.mjs';
+import nineWorld from '../src/shards/nine-dragon-stack/data/worldRows.generated.json' with { type: 'json' };
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];
@@ -142,5 +144,23 @@ test('Nalati map assembly covers every POI model copy at its admitted pose', asy
     expect(assembly.inventory['dressing:stone']).toBeGreaterThan(19000);
     for (const node of assembly.nodes) expect(node.matrices.every(Number.isFinite)).toBe(true);
     expect(Object.entries(assembly.inventory).filter(([name]) => /^spruce:\d+:trunk$/u.test(name)).reduce((sum, [, n]) => sum + n, 0)).toBe(146);
+  } finally { for (const shape of assembly.shapes) shape.geometry.dispose(); }
+});
+
+test('Nine map contains every facade copy, queued set and rest mover', async () => {
+  const { assembly } = await nineMapAssembly();
+  try {
+    for (const row of nineWorld.rows.facade.drawn) {
+      const node = assembly.nodes.find(candidate => candidate.name === `facade:${row.id}`);
+      expect(node?.instances).toBe(row.count);
+      for (let i = 0; i < row.count; i++) expect(node?.matrices.slice(i * 16, (i + 1) * 16).map(value => value + 0))
+        .toEqual(nineWorld.records.slice(row.poses + i * 19, row.poses + i * 19 + 16).map(value => Math.fround(value) + 0));
+    }
+    for (const row of nineWorld.rows.sets) expect(assembly.inventory[`set:${row.name}`]).toBe(row.frames.length);
+    expect(assembly.inventory['portal-rings']).toBe(5);
+    expect(assembly.inventory['dragon-hooks']).toBe(3);
+    expect(assembly.inventory['facade-windows']).toBeGreaterThan(9000);
+    expect(assembly.nodes.filter(node => node.name.startsWith('mover:'))).toHaveLength(4);
+    for (const node of assembly.nodes) expect(node.matrices.every(Number.isFinite)).toBe(true);
   } finally { for (const shape of assembly.shapes) shape.geometry.dispose(); }
 });

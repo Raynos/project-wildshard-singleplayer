@@ -2115,3 +2115,8 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 /src/shards/nalati-grasslands/data/mapAssembly.generated.*
 /src/shards/nalati-grasslands/look/map.baked.json
 /public/assets/nalati-grasslands/map/top.webp
+
+# G508: Nine resting assembly and map are build outputs.
+/src/shards/nine-dragon-stack/data/mapAssembly.generated.*
+/src/shards/nine-dragon-stack/look/map.baked.json
+/public/assets/nine-dragon-stack/map/top.webp
