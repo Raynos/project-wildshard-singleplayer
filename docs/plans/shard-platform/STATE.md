@@ -18,4 +18,4 @@
 
 **Attribution SHAs (G496):** G499 d5a456d5e, ruler key 7b326dcb4, cue director c3ff4774b, section seal 68eb6e360, admin ruler e2a214cdc, W3 classifier df6bab26d; G478 keys c9cb5d2b8, c208e4ce4, d27df7e1f (portal ride), 15485dd84 (audio), 5d021eabb (stealth).
 
-Rows: [open-x-queue](open-x-queue.md). Paused: SF22 SF57 SF67. G495–G504 in the lane preamble.
+Rows: [open-x-queue](open-x-queue.md). Paused: SF22 SF57 SF67.
