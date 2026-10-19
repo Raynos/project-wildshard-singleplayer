@@ -45,3 +45,14 @@ test('admission rejects malformed triangles, negative solids and executable fiel
   expect(() => parsePracticeScene({ ...original, parts: [{ kind: 'box', tone: 'grey', at: [0, 0, 0], size: [-1, 1, 1], tint: 1 }] })).toThrow();
   expect(() => parsePracticeScene({ ...original, update: 'return player.mount()' })).toThrow();
 });
+
+
+test('Nine fixed-kit admission includes the emitted practice scene and refuses unknown fields', async () => {
+  const { parseFixedRows } = await import('../src/shards/nine-dragon-stack/world/casts');
+  const practice = grappleCourseScene(course);
+  const payload = { signs: [], lanterns: [], lantern: { drop: 1, glow: { color: 1, w: 1, h: 1, power: 1, spill: 1 } }, practice };
+  expect(parseFixedRows(payload).practice).toEqual(practice);
+  expect(() => parseFixedRows({ ...payload, update: 'run()' })).toThrow();
+  expect(() => parseFixedRows({ ...payload, practice: { ...practice, hooks: [{ pad: 'start', x: 'bad', y: 0, z: 0 }] } })).toThrow();
+  expect(() => parseFixedRows({ ...payload, practice: { ...practice, course: { ...course, update: 'run()' } } })).toThrow();
+});
