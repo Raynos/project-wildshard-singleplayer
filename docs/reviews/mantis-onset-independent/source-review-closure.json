@@ -1,0 +1,45 @@
+{
+  "schema": "wildshard.mantis.onset-independent-source-review.v1",
+  "frozenAtUtc": "2026-10-19T09:52:15Z",
+  "sourceClosureSha256": "471c590760e63d74f10a4601568fb36938901e1e1ce84b91a60a9843d01fb890",
+  "recommendation": "GO bounded isolated diagnostic capture only; HOLD promotion and all acceptance",
+  "tests": {
+    "focused": 16,
+    "admission": 3,
+    "independentCapturedPoseCounterfactual": 469
+  },
+  "files": {
+    "docs/reviews/mantis-onset-independent/REVIEW.md": {
+      "sha256": "58cf16a8e3a3c3065d932e27a8466c7a0235030cc21711015d7e9a09be30451d",
+      "bytes": 7925
+    },
+    "docs/reviews/mantis-onset-independent/admission-tests.txt": {
+      "sha256": "5a4eb092151161e912fe94055f985233039d4954ce15af85ab784001e9f83d26",
+      "bytes": 406
+    },
+    "docs/reviews/mantis-onset-independent/crosscheck.py": {
+      "sha256": "c70764d791299591370a258f3961a5cec691e34b613c8673fe0163eced5b1d6b",
+      "bytes": 3205
+    },
+    "docs/reviews/mantis-onset-independent/final-closure-check.json": {
+      "sha256": "83ff32d2e334916d9df7aba4c621119ed1aa7b0981ecc0781e823232ded3b658",
+      "bytes": 172
+    },
+    "docs/reviews/mantis-onset-independent/focused-tests.txt": {
+      "sha256": "6e8638730eac1d3020acf5b444b74b19f9c31e6f3bc0139cfe5efd4394cb5f0b",
+      "bytes": 972
+    },
+    "docs/reviews/mantis-onset-independent/focused-wrapper-failure.txt": {
+      "sha256": "b84e226c633b960f2abdc5eff7debc1b9d152216468129b6d921db8736836caa",
+      "bytes": 2225
+    },
+    "docs/reviews/mantis-onset-independent/initial-closure-check.json": {
+      "sha256": "e138bb030d1aa07a2d773359ec39087759585ff66cbaf4975c852105f42c5646",
+      "bytes": 773
+    },
+    "docs/reviews/mantis-onset-independent/world-crosscheck.json": {
+      "sha256": "2694aeb251a0f19427c9b7387322ed927be435cbdd63b0a34d5461e6b65b6568",
+      "bytes": 1407
+    }
+  }
+}

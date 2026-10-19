@@ -1,0 +1,37 @@
+[
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/clip-receipt.json",
+    "bytes": 1187,
+    "sha256": "3c0daef7bd84588d33ad3b6739f9befa0aaad01d88275638a9759a17d657b56b"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/combat-frame-map.json",
+    "bytes": 36994,
+    "sha256": "6848dd0fd5de7ff27257a176a72e0d0863e9b11e2d11437985ebf6828979f131"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/frame-review.md",
+    "bytes": 5823,
+    "sha256": "f726f6bc187262633e854be9e8e3181208400f84091f8a59a07c4c3832003cb9"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/normal-fullbody-f925.webp",
+    "bytes": 197730,
+    "sha256": "bd37b8d72c6c7419cd7bddb3d39f8f6f47d17d27ace0cae1a2a3f26b2f3628de"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/normal-hit-contact-board.jpg",
+    "bytes": 125782,
+    "sha256": "5b3f7890ceb5e4630df157292139b3780023adddbe3b0aee56cdc0ee1647c66a"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/transition-frame-map.json",
+    "bytes": 21491,
+    "sha256": "4206e0a75d2bc0f01b7406eb06bed5e5054c076d8023fbde87cc69320beca383"
+  },
+  {
+    "path": "docs/reviews/brine-puffer-animation-v70/walk-frame-map.json",
+    "bytes": 8665,
+    "sha256": "f7493b97109cb84be1fbd6ba4d0ba350c84edb68a08d3f6f9f5bb4b3bc087cb8"
+  }
+]

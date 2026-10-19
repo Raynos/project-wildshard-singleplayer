@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/media-addendum.md",
+      "bytes": 1349,
+      "sha256": "92c6611b6c5272e8d57d30797db0c1bad3364e96e2a696f207c5ccb640cda729"
+    },
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/clip-receipt.json",
+      "bytes": 954,
+      "sha256": "c8591c70b78172d77422a661b91c1c2d5f222f196d136f39a25e5bcb2e568639"
+    },
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/normal-fullbody-f1102.webp",
+      "bytes": 210738,
+      "sha256": "3abd40ff5052dcd1ac2914dd660081b010f9187d933b1afac372336cc9fb99e0"
+    },
+    {
+      "path": "public/review-evidence/puffer-animation-v70/authored-root-normal-hits-death.mp4",
+      "bytes": 523112,
+      "sha256": "cb15c75512a953c695b7353766b28b03ee7cd181fb0257d0e561331b63f103a3"
+    },
+    {
+      "path": "public/review-evidence/puffer-animation-v70/authored-root-diagnostic-hits-death.mp4",
+      "bytes": 431775,
+      "sha256": "89eb50513127316b4acc4c29516444adb0dbd844d3b097fd6105655913fb563b"
+    }
+  ]
+}

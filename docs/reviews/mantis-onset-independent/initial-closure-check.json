@@ -1,0 +1,27 @@
+[
+  {
+    "manifest": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/preserved-baseline.json",
+    "files": 39,
+    "mismatches": []
+  },
+  {
+    "manifest": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/source-closure.json",
+    "files": 18,
+    "mismatches": []
+  },
+  {
+    "manifest": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/capture-closure.json",
+    "files": 16,
+    "mismatches": []
+  },
+  {
+    "manifest": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate4/admission.json",
+    "files": 14,
+    "mismatches": []
+  },
+  {
+    "manifest": "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate5/admission.json",
+    "files": 14,
+    "mismatches": []
+  }
+]

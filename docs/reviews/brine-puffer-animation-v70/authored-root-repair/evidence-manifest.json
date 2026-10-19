@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/diagnostic-frame-map.json",
+      "bytes": 20645,
+      "sha256": "b7465c4c53ddccaa19d5ffb82dfc4df0d366d02096845de78352311902c0add6"
+    },
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/frame-review.md",
+      "bytes": 4249,
+      "sha256": "cd8a9e13de0be8b1dba54c898276a98dcf4a1c293adf2a174701beb0b06f3176"
+    },
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/normal-frame-map.json",
+      "bytes": 45959,
+      "sha256": "a0e8cf71b90e54f749831478378a3d8b604e4539f9fca483e46e9ad890a5183a"
+    },
+    {
+      "path": "docs/reviews/brine-puffer-animation-v70/authored-root-repair/selected-hit-poses.jpg",
+      "bytes": 153978,
+      "sha256": "bee3e05720712c87e3e9b6e395df0348e6e37f7b8a06980b3ad1bc2b71d8d634"
+    }
+  ],
+  "reviewed_encoded_frames": 492,
+  "heavy_extraction_terminal": true
+}

@@ -1,0 +1,45 @@
+{
+  "method": "Independent NumPy hierarchy and analytically derived XYZ Euler deltas from the two edited envelope terms; exact captured translations and world matrices retained. Counterfactual only; no scalar full-trace replay or visual/collider admission.",
+  "frames": 469,
+  "oldMinimum": 0.0006728281083496768,
+  "newMinimum": 0.0006728281083496768,
+  "deadMinimum": 0.013622386081692639,
+  "changed": [
+    {
+      "frame": 78,
+      "alive": true,
+      "oldMinimum": 0.04758367007138986,
+      "newMinimum": 0.035115921329406774,
+      "delta": 1.2359708110669794,
+      "oldTravel": 0.02147391959941259,
+      "newTravel": 1.224291524674736
+    },
+    {
+      "frame": 105,
+      "alive": true,
+      "oldMinimum": 0.05622008836019177,
+      "newMinimum": 0.04375233961820868,
+      "delta": 1.236043505410301,
+      "oldTravel": 0.13143598920977081,
+      "newTravel": 1.1405823449131116
+    },
+    {
+      "frame": 399,
+      "alive": true,
+      "oldMinimum": 0.06197034440037896,
+      "newMinimum": 0.049502595658395876,
+      "delta": 1.2360928447523256,
+      "oldTravel": 0.07245046212713875,
+      "newTravel": 1.1985817545919215
+    },
+    {
+      "frame": 427,
+      "alive": true,
+      "oldMinimum": 0.04882397235962799,
+      "newMinimum": 0.0363562236176449,
+      "delta": 1.2359811462625514,
+      "oldTravel": 0.11959562215264215,
+      "newTravel": 1.1651032324112072
+    }
+  ]
+}
