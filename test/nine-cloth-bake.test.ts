@@ -1,10 +1,8 @@
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
-import { BufferAttribute, BufferGeometryLoader, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { output } from '../src/shards/nine-dragon-stack/generators/output';
-import { ClothSheet, StrandTassel } from '../src/shards/nine-dragon-stack/runtime/looks/strandCloth';
-import { Tassel as OriginalTassel, Talisman as OriginalTalisman } from '../src/shards/nine-dragon-stack-legacy/vm/cloth';
-import { TALISMAN, TASSEL } from '../src/shards/nine-dragon-stack/data/cloth';
+import { BufferAttribute, BufferGeometryLoader, type BufferGeometry } from 'three';
+import { buildViewmodelParts } from '../src/shards/nine-dragon-stack/generators/viewmodelParts';
+import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
+import motion from '../src/shards/nine-dragon-stack/data/clothMotion.json' with { type: 'json' };
 import vmRows from '../src/shards/nine-dragon-stack/data/viewmodelUniforms.json' with { type: 'json' };
 import viewmodel from '../src/shards/nine-dragon-stack/data/decals.json' with { type: 'json' };
 import baseline from './fixtures/nine-cloth-buffers.json' with { type: 'json' };
@@ -22,55 +20,62 @@ async function channels(geometry: BufferGeometry): Promise<unknown> {
 }
 
 function parts(): { knot: BufferGeometry; tassel: BufferGeometry; sheet: BufferGeometry; cord: BufferGeometry } {
-  const row = output.namedFiles.find(file => file.name === 'weapons/jian-cloth.json');
-  const bytes = row === undefined ? undefined : output.assets.get(row.hash);
-  if (bytes === undefined) throw new Error('Missing admitted viewmodel cloth blob');
-  const data = v.parse(v.strictObject({ rows: v.unknown(), knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(bytes), (_key, value: unknown) => value === '-0' ? -0 : value));
-  expect(data.rows).toEqual({ tassel: TASSEL, sheet: TALISMAN });
-  const loader = new BufferGeometryLoader();
-  return { knot: loader.parse(data.knot), tassel: loader.parse(data.tassel), sheet: loader.parse(data.sheet), cord: loader.parse(data.cord) };
+  const baked = buildViewmodelParts(), loader = new BufferGeometryLoader();
+  const decoded = { knot: loader.parse(baked.knot.toJSON()), tassel: loader.parse(baked.tassel.toJSON()), sheet: loader.parse(baked.sheet.toJSON()), cord: loader.parse(baked.cord.toJSON()) };
+  for (const geometry of Object.values(baked)) geometry.dispose();
+  return decoded;
 }
 
-// Recorded from the original vm/cloth.ts, vm/geo.ts and fpArms dressParts at 21bcf8dac.
-test('fixed cloth and knot preserve every original vertex and index byte', async () => {
+test('baked cloth keeps its topology, UVs and material classes', async () => {
   const geometry = parts();
-  for (const key of ['knot', 'tassel', 'sheet', 'cord'] as const) expect(await channels(geometry[key])).toEqual(baseline.raw[key]);
-});
-
-test('baked topology retains the original 90-frame cloth and knot motion', async () => {
-  const geometry = parts();
-  const tassel = new StrandTassel(TASSEL, geometry.tassel), talisman = new ClothSheet(TALISMAN, geometry.sheet, geometry.cord);
-  const q = new Quaternion(), pivot = new Vector3(), gravity = new Vector3(0, -9.8, 0);
-  const caps = [{ a: new Vector3(-0.02, -0.12, 0), b: new Vector3(0.02, -0.2, 0), r: 0.035 }];
-  const originalTassel = new OriginalTassel(), originalTalisman = new OriginalTalisman();
-  for (let i = 0; i < 90; i++) {
-    const dt = i % 3 === 0 ? 1 / 30 : 1 / 60;
-    pivot.set(0.02 * Math.sin(i * 0.13), 0.005 * Math.cos(i * 0.17), 0.01 * Math.sin(i * 0.07));
-    q.setFromAxisAngle(new Vector3(0, 0, 1), 0.2 * Math.sin(i * 0.11));
-    tassel.step(dt, pivot, q, gravity, 1, caps);
-    talisman.step(dt, pivot, q, gravity, 1, caps);
-    originalTassel.step(dt, pivot, q, gravity, 1, caps);
-    originalTalisman.step(dt, pivot, q, gravity, 1, caps);
-    if ([0, 29, 59, 89].includes(i)) {
-      expect(await channels(tassel.geo)).toEqual(await channels(originalTassel.geo));
-      expect(await channels(talisman.geo)).toEqual(await channels(originalTalisman.geo));
-      expect(await channels(talisman.cordGeo)).toEqual(await channels(originalTalisman.cordGeo));
-      expect(tassel.cap.toArray()).toEqual(originalTassel.cap.toArray());
-      expect(tassel.capDir.toArray()).toEqual(originalTassel.capDir.toArray());
-    }
+  for (const key of ['knot', 'tassel', 'sheet', 'cord'] as const) {
+    const row = await channels(geometry[key]);
+    const expected = baseline.raw[key];
+    expect(row).toMatchObject({ index: expected.index, attributes: { uv: expected.attributes.uv, aMat: expected.attributes.aMat, color: expected.attributes.color } });
+    expect(geometry[key].getAttribute('position').count).toBe(expected.attributes.position.count);
+    geometry[key].dispose();
   }
-  // Both implementations run the host math, so Linux and arm64 compare the
-  // original algorithm instead of requiring one architecture's float hashes.
 });
 
-test('separate rigs retain independent mutable cloth buffers', () => {
+test('pendants have a finite drape and bounded flutter that leaves their roots pinned', () => {
+  const geometry = parts();
+  for (const key of ['tassel', 'sheet', 'cord'] as const) {
+    const g = geometry[key], positions = g.getAttribute('position'), field = g.getAttribute('aCloth');
+    expect(Array.from(positions.array).every(Number.isFinite)).toBe(true);
+    expect(g.getAttribute('normal').count).toBe(positions.count);
+    expect(field.count).toBe(positions.count);
+    expect(field.itemSize).toBe(4);
+    const weights = Array.from({ length: field.count }, (_, i) => field.getX(i));
+    expect(Math.min(...weights)).toBeCloseTo(0, 7);
+    expect(Math.max(...weights)).toBeLessThanOrEqual(Math.fround(motion.amplitude));
+    if (key !== 'cord') expect(Math.max(...weights)).toBeGreaterThan(0);
+    expect(new Set(Array.from(positions.array)).size).toBeGreaterThan(8);
+    g.dispose();
+  }
+  geometry.knot.dispose();
+});
+
+test('body and ink hull read the same baked motion with no extra outline draw', () => {
+  const graphs = viewmodelGraphs();
+  for (const id of ['nine-vm-cloth', 'nine-vm-cloth-hull']) {
+    const graph = graphs[id];
+    if (graph === undefined) throw new Error('Missing cloth graph');
+    expect(graph.stages[id.endsWith('hull') ? 'vertex.clip' : 'vertex.position']).toBeDefined();
+    expect(Object.values(graph.nodes).some(row => row.op === 'attribute' && row.name === 'aCloth')).toBe(true);
+    expect(graph.params?.['uTime']).toEqual({ type: 'float', value: 0 });
+    expect(Object.keys(graph.nodes).length).toBeLessThanOrEqual(4096);
+    expect(new TextEncoder().encode(JSON.stringify(graph)).length).toBeLessThanOrEqual(64000);
+    expect(graph.stages.outline).toBeUndefined();
+  }
+});
+
+test('decoded pendant buffers belong to each rig', () => {
   const first = parts(), second = parts();
-  const a = new StrandTassel(TASSEL, first.tassel), b = new StrandTassel(TASSEL, second.tassel);
-  a.step(1 / 30, new Vector3(1, 2, 3), new Quaternion(), new Vector3(0, -9.8, 0), 1);
-  const position = b.geo.getAttribute('position');
-  expect(Array.from(position.array).every(value => value === 0)).toBe(true);
-  expect(a.geo.index?.array).not.toBe(b.geo.index?.array);
-  expect(a.geo.getAttribute('uv').array).not.toBe(b.geo.getAttribute('uv').array);
+  for (const key of ['knot', 'tassel', 'sheet', 'cord'] as const) {
+    expect(first[key].getAttribute('position').array).not.toBe(second[key].getAttribute('position').array);
+    expect(first[key].index?.array).not.toBe(second[key].index?.array);
+    first[key].dispose(); second[key].dispose();
+  }
 });
 
 test('the held class table retains its authored palette and tuning', () => {

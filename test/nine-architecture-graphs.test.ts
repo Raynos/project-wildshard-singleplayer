@@ -37,7 +37,7 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
   const fogGraph = compileGraph(fog['nine-silk-fog'], { trustedBudget: true });
   const compiled = compileGraph(graph, { trustedBudget: true, fog: () => { if (fogGraph.fog === null) throw new Error('Missing silk fog'); return fogGraph.fog; } });
   const geometry = new THREE.PlaneGeometry(1, 1);
-  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
+  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3, aCloth: 4 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3));
   if (skinned) {
     geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(geometry.getAttribute('position').count * 4), 4));
@@ -125,6 +125,7 @@ test('held toon and hull graphs compile rigid and skinned without adding draws',
       expect(shader.fragment, id).not.toContain('sRGBTransferOETF');
       expect(shader.vertex.includes('skinWeight'), id).toBe(skinned);
       if (id === 'nine-vm-body' && skinned) expect(shader.vertex).toContain('aNs');
+      if (id.includes('cloth')) expect(shader.vertex).toContain('aCloth');
       if (id === 'nine-vm-hull') expect(shader.vertex).toContain('aHullN');
     }
   }

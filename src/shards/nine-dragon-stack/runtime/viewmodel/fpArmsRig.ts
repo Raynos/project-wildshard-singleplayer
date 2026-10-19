@@ -1,4 +1,4 @@
-import type { FpArmsRow, Vec3, FpCapsuleEnd } from "../../data/arms";
+import type { FpArmsRow, Vec3 } from "../../data/arms";
 // fpArmsRig — a baked first-person arm rig played on two channels with its living parts (SHARD-PLATFORM M3, ex Nine
 // Dragon's vm/fpArms.ts). Nothing here knows a shard: the rig's sockets, attach points, cloth colliders, holds and lag are
 // a data row (`FpArmsRow`), the meshes' materials and the parts the GLB can't hold (a knot, a halo) are the caller's hooks.
@@ -11,7 +11,7 @@ import type { FpArmsRow, Vec3, FpCapsuleEnd } from "../../data/arms";
 //
 //   const rig = new FpArmsRig(scene, clips, ROW, contract, bake, { mesh, dress });   // a shard wraps it in its own class
 //   rig.play('light', 0.1, seed);  rig.playLeft('grapple_aim');
-//   every frame: rig.update(dt, { speed, walkPhase?, lookVel, gravity });
+//   every frame: rig.advancePose(dt, { speed, walkPhase?, lookVel });
 import {
   type AnimationAction, type AnimationClip, BufferAttribute, type BufferGeometry, Group, LinearMipmapLinearFilter,
   Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, ShaderMaterial, type Material, SkinnedMesh, type Texture, TextureLoader,
@@ -22,7 +22,6 @@ import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.j
 import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '@wildshard/game/systems/viewmodel/armRig';
 import { BrushTrail, type BrushTrailLook } from './brushTrail';
-import type { ClothCapsule } from '../looks/strandCloth';
 import type { ClipChannel as Channel } from '@wildshard/engine/anim/channel';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
@@ -50,13 +49,6 @@ export interface FpArmsState {
   walkPhase?: number;
   /** look velocity (rad/s, x yaw, y pitch) for the lag */
   lookVel: Vector2;
-  /** gravity in the root's space (camera space: (0, −cos pitch, −sin pitch) · 9.8) */
-  gravity: Vector3;
-}
-
-/** A pendant (a tassel, a talisman): stepped each frame at its pivot (root space) against the colliders. */
-export interface FpPendant {
-  readonly step: (dt: number, pivot: Vector3, q: Quaternion, gravity: Vector3, breeze: number, caps: readonly ClothCapsule[]) => void;
 }
 
 /** A GLB mesh's extras. */
@@ -207,7 +199,6 @@ interface RigExtras {
 }
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
-const vec = (at: readonly number[]): Vector3 => new Vector3(at[0] ?? 0, at[1] ?? 0, at[2] ?? 0);
 
 /** A first-person arm rig: the GLB's arms on two channels, the pendants, the trail, the framing fit. */
 export class FpArmsRig {
@@ -217,11 +208,8 @@ export class FpArmsRig {
   readonly trail = new BrushTrail();
   /** triangles in the rig's meshes (bodies, hulls) */
   tris = { body: 0, hull: 0 };
-  breeze = 0.6;
   /** the rig's nodes by name (joints are Bones; the sockets are plain nodes: they skin nothing) */
   readonly bones = new Map<string, Object3D>();
-  /** the pendants the caller hung (each pivot's attach point is the row's, or the GLB's, under the same name) */
-  readonly pendants: { body: FpPendant; at: Vector3 }[] = [];
   readonly attach: { pendants: Map<string, Vector3>; muzzle: Vector3; bladeBase: number; bladeTip: number };
   private readonly row: FpArmsRow;
   private readonly mixer: AnimMachine;
@@ -283,11 +271,6 @@ export class FpArmsRig {
       tip: w === undefined ? new Vector3() : new Vector3(0, this.attach.bladeTip, 0).applyMatrix4(w.matrixWorld),
       hub: cl === undefined ? new Vector3() : new Vector3().setFromMatrixPosition(cl.matrixWorld),
     };
-  }
-
-  /** hang a pendant at the attach point `name` (weapon-socket space) */
-  hang(name: string, body: FpPendant): void {
-    this.pendants.push({ body, at: this.attach.pendants.get(name) ?? new Vector3() });
   }
 
   /** start a right-arm move (crossfade `fade` s; `seed` varies its trail). The row's holds keep their last pose. */
@@ -384,23 +367,7 @@ export class FpArmsRig {
     return { R: read(1, 'R'), L: read(-1, 'L') };
   }
 
-  /** the pendants' colliders in root space (none while a collider's socket is missing) */
-  colliders(): ClothCapsule[] {
-    const mats = new Map<string, Matrix4>();
-    for (const c of this.row.colliders) for (const end of [c.a, c.b]) {
-      if (mats.has(end.bone)) continue;
-      const m = this.rootMatrix(end.bone, new Matrix4());
-      if (m === null) return [];
-      mats.set(end.bone, m);
-    }
-    const point = (end: FpCapsuleEnd): Vector3 => {
-      const m = mats.get(end.bone) ?? new Matrix4();
-      return end.at === undefined ? new Vector3().setFromMatrixPosition(m) : vec(end.at).applyMatrix4(m);
-    };
-    return this.row.colliders.map((c) => ({ a: point(c.a), b: point(c.b), r: c.r }));
-  }
-
-  update(dt: number, s: FpArmsState): void {
+  advancePose(dt: number, s: FpArmsState): void {
     const row = this.row;
     this.walkW += (Math.min(1, Math.max(0, s.speed)) - this.walkW) * Math.min(1, dt * row.walkRate);
     this.right.update(dt, this.walkW, s.walkPhase);
@@ -423,13 +390,6 @@ export class FpArmsRig {
       this.trailOn = true;
     }
     this.trail.update(dt);
-    // cloth: pivots ride the weapon; gravity in root space
-    const w = this.rootMatrix(row.weapon, new Matrix4());
-    if (w !== null) {
-      const q = new Quaternion().setFromRotationMatrix(w);
-      const caps = this.colliders();
-      for (const p of this.pendants) p.body.step(dt, p.at.clone().applyMatrix4(w), q, s.gravity, this.breeze, caps);
-    }
   }
 
   /** true once the trail has sampled in the current move */

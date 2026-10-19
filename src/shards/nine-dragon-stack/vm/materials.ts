@@ -70,9 +70,9 @@ function graphMaterial(id: string, u: VmUniforms, maps: Texture | null, nrm: Tex
   };
   return material;
 }
-export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null): Material {
-  return graphMaterial('nine-vm-body', u, maps, nrm, assetRot, 1);
+export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null, cloth = false): Material {
+  return graphMaterial(cloth ? 'nine-vm-cloth' : 'nine-vm-body', u, maps, nrm, assetRot, 1);
 }
-export function inkHullMaterial(u: VmUniforms, k = 1): Material {
-  const material = graphMaterial('nine-vm-hull', u, null, null, null, k); material.side = BackSide; return material;
+export function inkHullMaterial(u: VmUniforms, k = 1, cloth = false): Material {
+  const material = graphMaterial(cloth ? 'nine-vm-cloth-hull' : 'nine-vm-hull', u, null, null, null, k); material.side = BackSide; return material;
 }

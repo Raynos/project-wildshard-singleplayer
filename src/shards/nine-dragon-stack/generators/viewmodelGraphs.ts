@@ -3,6 +3,7 @@ import type { GraphIr, GraphRef, GraphParam } from '@wildshard/format/materialGr
 import { LookGraph } from './lookGraph';
 import rows from '../data/viewmodelUniforms.json' with { type: 'json' };
 import decals from '../data/decals.json' with { type: 'json' };
+import motion from '../data/clothMotion.json' with { type: 'json' };
 
 const C = decals.classes;
 type Ref = GraphRef;
@@ -100,5 +101,22 @@ export function viewmodelGraphs(): Readonly<Record<string, GraphIr>> {
   const xy = ka(k.vec(km(ks(viewK, 'x'), ks(proj, 'x')), km(ks(viewK, 'y'), ks(proj, 'y'))), km(k.div(km(dir, km(w, 2)), k.u('uRes')), clipW));
   const clip = k.vec(xy, ka(ka(km(ks(viewK, 'z'), ks(proj, 'z')), ks(proj, 'w')), km(.0004, clipW)), clipW);
   const hull = k.finishVm(k.mix(k.u('uInk'), km(k.u('uGold'), 1.3), k.u('uSutra')), { 'vertex.normal': { normal: k.a('aHullN', 'vec3') }, 'vertex.clip': { position: clip } });
-  return { 'nine-vm-body': body, 'nine-vm-hull': hull };
+  return { 'nine-vm-body': body, 'nine-vm-hull': hull, 'nine-vm-cloth': flutter(body), 'nine-vm-cloth-hull': flutter(hull) };
+}
+
+/** Both existing cloth draws read the same baked field; no mutable geometry or frame callback. */
+function flutter(source: GraphIr): GraphIr {
+  const g = new LookGraph();
+  Object.assign(g.nodes, source.nodes); Object.assign(g.params, source.params); Object.assign(g.arrays, source.arrays);
+  const field = g.a('aCloth', 'vec4'), time = g.p('uTime', 'float', 0), phase = g.sw(field, 'y');
+  const wave = (speed: number): string => g.op('sin', [g.add(g.mul(time, speed), phase)]);
+  const offset = g.mul(g.vec(wave(motion.speed), 0, g.mul(wave(motion.secondSpeed), g.sw(field, 'z'))), g.sw(field, 'x'));
+  let stages = source.stages;
+  if (stages['vertex.clip'] === undefined) stages = { ...stages, 'vertex.position': { position: g.add(g.op('positionGeometry'), offset) } };
+  else {
+    const world = g.op('positionWorld'), delta = g.op('localToWorldVector', [offset]);
+    for (const [id, row] of Object.entries(source.nodes)) if (row.op === 'positionWorld') g.nodes[id] = { op: 'add', in: [world, delta] };
+  }
+  const graph = g.finish(stages, source.effectState);
+  return { ...graph, doubleSided: source.doubleSided ?? false };
 }

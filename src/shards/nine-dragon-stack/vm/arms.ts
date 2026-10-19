@@ -9,7 +9,6 @@
 // tan(70° / 2) with z kept, which draws it exactly as a 70° camera would. The world's FOV kicks (dodge, the heavy's
 // punch) then leave the arms still. The depth clear in front of the viewmodel queue (Sword.ts) keeps them out of the
 // walls.
-import { Quaternion, Vector3 } from 'three';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
 import { vmScale } from '@wildshard/game/systems/viewmodel/rigArms';
@@ -31,7 +30,6 @@ export async function jianArms(): Promise<ShardSword> {
   // out of n8ao's transparency pre-pass (Game.ts): it re-drew every depth-writing transparent — the whole rig, 25 draws /
   // 220 k triangles — only to mask the AO off it; the viewmodel queue's depth clear keeps the AO's world depth behind it
   rig.root.traverse((o) => { o.userData['treatAsOpaque'] = true; });
-  const gravity = new Vector3(), q = new Quaternion();
   let bw = 0, bh = 0, pr = 0, k = 1;
   const arms: SwordArms = {
     root: rig.root,
@@ -45,10 +43,7 @@ export async function jianArms(): Promise<ShardSword> {
       // the ink widths and the halo are in buffer pixels
       const w = r.domElement.width, h = r.domElement.height, p = r.getPixelRatio();
       if (w !== bw || h !== bh || p !== pr) { bw = w; bh = h; pr = p; rig.resize(w, h, p); }
-      // gravity in the rig's space: the world's down turned into the camera's, un-scaled by the projection
-      gravity.set(0, -9.8, 0).applyQuaternion(cam.getWorldQuaternion(q).invert());
-      gravity.set(gravity.x / k, gravity.y / k, gravity.z);
-      rig.update(dt, { speed: s.speed, walkPhase: s.walkPhase, lookVel: s.lookVel, gravity });
+      rig.update(dt, { speed: s.speed, walkPhase: s.walkPhase, lookVel: s.lookVel });
     },
     blade: (base, tip) => {
       rig.blade(base, tip);

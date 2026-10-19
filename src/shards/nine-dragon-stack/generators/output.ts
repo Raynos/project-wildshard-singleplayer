@@ -19,7 +19,6 @@ import { WORDS } from './words';
 import glyphs from '../data/glyphs.generated.json' with { type: 'json' };
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts } from './viewmodelParts';
-import { TALISMAN, TASSEL } from '../data/cloth';
 import { buildSword } from './jianSupport';
 import { headlessConstants } from './headless';
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
@@ -52,7 +51,7 @@ const emitted = emitNamedBlobs(glyphBlobs.concat(paintBlobs, signAtlasBlobs(), l
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/cast-channels.json', 'json', json(CAST_CHANNELS)),
   nameBlob('geometry/fixed-kits.json', 'json', json({ ...fixedKits, lantern, practice: grappleCourseScene(course) })),
-  nameBlob('weapons/jian-cloth.json', 'json', json({ rows: { tassel: TASSEL, sheet: TALISMAN }, ...Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])) })),
+  nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json(headlessConstants)),
   nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, look: { shared: sharedUniforms, vm: viewmodelUniforms, post: postRows(), ao: AO_TUNING } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look'], additionalProperties: false, properties: { look: { type: 'object', required: ['shared', 'vm', 'post', 'ao'], additionalProperties: false, properties: { shared: { type: 'object' }, vm: { type: 'object' }, post: { type: 'object', required: ['bleed', 'reflect', 'haze'], additionalProperties: false, properties: { bleed: { type: 'object' }, reflect: { type: 'object' }, haze: { type: 'object' } } }, ao: { type: 'object' } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),

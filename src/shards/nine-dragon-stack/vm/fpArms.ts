@@ -6,8 +6,8 @@
 // proxies and every clip. The SDK's first-person arm rig (@wildshard/sdk/viewmodel/fpArmsRig, its row data/arms.ts) plays
 // it: two channels (right: the jian arm, left: the Fei Zhua arm), each a base loop (idle ↔ walk by speed) under one-shot
 // moves that CROSSFADE (80–150 ms) — a move never restarts from a snap — the 飞白 trail and the cloth. This module dresses
-// it: the toon and ink-hull materials, the verlet tassel + talisman (colliding with the fist, the forearm and the guard),
-// the tassel's knot, the edge halo.
+// it: the toon and ink-hull materials, the baked tassel + talisman in weapon space,
+// the tassel's baked drape and bounded flutter, the edge halo.
 //
 //   const arms = await NineDragonArms.load();            // fp-rig.glb + the four map pairs
 //   camera.add(arms.root);  arms.layout(camera);         // or any group rendered in the viewmodel pass
@@ -20,8 +20,7 @@
 // Timing is the engine's sword timing (SwordMoves.ts): `arms.moves[name].timing` = { windup, slashEnd, total, sweep } —
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
-import { type AnimationClip, type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, Group, type Matrix3, Mesh, type Texture, Vector3 } from 'three';
-import { ClothSheet, StrandTassel, clothPenetration } from '../runtime/looks/strandCloth';
+import { type AnimationClip, type BufferGeometry, BufferGeometryLoader, MaterialLoader, ShaderMaterial, DoubleSide, type Group, type Matrix3, Mesh, type Texture } from 'three';
 import { ARMS, ARMS_BASE, ARMS_MAPS } from '../data/arms';
 import { restoreWeave } from '../look/style';
 import * as v from 'valibot';
@@ -34,24 +33,7 @@ import type { RigContract, RigBake } from '@wildshard/engine/anim/rig';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 
-const finite = v.number();
-const breeze = v.tuple([finite, finite, finite, finite, finite]);
-const attributes = v.strictObject({ normals: v.array(v.string()), hull: v.string() });
-const ClothRows = v.strictObject({
-  tassel: v.strictObject({
-    strands: finite, pts: finite, len: finite, cordPts: finite, cordLen: finite, capR: finite, strandR: finite, cap: finite,
-    cordSegs: finite, strandSegs: finite, cordRadius: finite, strandTaper: v.tuple([finite, finite, finite, finite]),
-    substeps: finite, cordDamp: finite, strandDamp: finite, cordIters: finite, strandIters: finite,
-    bundle: finite, bundleFall: finite, bundleWiden: finite, restDrop: finite, restWiden: finite, bend: finite, cordPad: finite,
-    spread: v.tuple([finite, finite, finite, finite]), breezeX: breeze, breezeZ: breeze, attributes,
-  }),
-  sheet: v.strictObject({
-    cols: finite, rows: finite, w: finite, h: finite, cordPts: finite, cordLen: finite, cordSegs: finite, cordRadius: finite,
-    substeps: finite, cordDamp: finite, sheetDamp: finite, cordIters: finite, iters: finite,
-    shear: finite, bendRows: finite, bendCols: finite, pad: finite, flutterPow: finite, flutter: breeze, sway: breeze, attributes,
-  }),
-});
-interface ClothGeometry { readonly rows: v.InferOutput<typeof ClothRows>; readonly knot: BufferGeometry; readonly tassel: BufferGeometry; readonly sheet: BufferGeometry; readonly cord: BufferGeometry }
+interface ClothGeometry { readonly knot: BufferGeometry; readonly tassel: BufferGeometry; readonly sheet: BufferGeometry; readonly cord: BufferGeometry }
 interface HaloRows { readonly geometry: unknown; readonly material: Readonly<Record<string, unknown>> }
 const VS_HALO = /* glsl */ `
 attribute vec3 aTan;
@@ -115,20 +97,22 @@ function sharedDecals(tier: NdTier): Decals {
 }
 
 /** the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon */
-function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: StrandTassel, talisman: ClothSheet, haloRows: HaloRows, geometry: ClothGeometry): { knot: Group; halo: Mesh } {
-  const knot = new Group();
-  const hullThin = inkHullMaterial(u, 0.55);
+function dressParts(rig: FpArmsRigView, u: VmUniforms, haloRows: HaloRows, geometry: ClothGeometry): Mesh {
+  const weapon = rig.bones.get(ARMS.weapon);
+  if (weapon === undefined) throw new Error('Jian pendant socket is missing');
+  const hullThin = inkHullMaterial(u, 0.55, true);
   // the tassel's strands are 5–7 px wide on the phone: a full brush hull would ink them solid black
-  const hullHair = inkHullMaterial(u, 0.18);
+  const hullHair = inkHullMaterial(u, 0.18, true);
   const body = vmMaterial(u);
-  const cloth = vmMaterial(u);
+  const cloth = vmMaterial(u, null, null, null, true);
+  const silk = vmMaterial(u, null, null, null, true);
+  const knotHull = inkHullMaterial(u, 0.55);
   cloth.side = DoubleSide;
-  rig.materials.push(hullThin, hullHair, body, cloth);
-  addInkedPair(knot, geometry.knot, body, hullThin, true);
-  rig.root.add(knot);
-  addInkedPair(rig.root, tassel.geo, body, hullHair, false);
-  addInkedPair(rig.root, talisman.geo, cloth, hullThin, false);
-  addInkedPair(rig.root, talisman.cordGeo, body, hullThin, false);
+  rig.materials.push(hullThin, hullHair, body, cloth, silk, knotHull);
+  addInkedPair(weapon, geometry.knot, body, knotHull, true);
+  addInkedPair(weapon, geometry.tassel, silk, hullHair, false);
+  addInkedPair(weapon, geometry.sheet, cloth, hullThin, false);
+  addInkedPair(weapon, geometry.cord, silk, hullThin, false);
   const material = new MaterialLoader().parse({ ...haloRows.material, vertexShader: VS_HALO, fragmentShader: FS_HALO });
   if (!(material instanceof ShaderMaterial)) throw new Error('Jian halo requires its shader material');
   const halo = new Mesh(new BufferGeometryLoader().parse(haloRows.geometry), material);
@@ -136,33 +120,24 @@ function dressParts(rig: FpArmsRigView, u: VmUniforms, tassel: StrandTassel, tal
   halo.renderOrder = 4;
   rig.materials.push(material);
   rig.bones.get(ARMS.weapon)?.add(halo);
-  rig.hang('tassel', tassel);
-  rig.hang('talisman', talisman);
-  return { knot, halo };
+  return halo;
 }
 
 export class NineDragonArms extends FpArmsRig {
   readonly u: VmUniforms;
   readonly halo: Mesh;
-  private readonly tassel: StrandTassel;
-  private readonly talisman: ClothSheet;
-  private readonly knot: Group;
   private t = 0;
 
   private constructor(scene: Group, clips: AnimationClip[], textures: InkedRigMaps, silk: Texture, tier: NdTier, halo: HaloRows, geometry: ClothGeometry) {
-    const tassel = new StrandTassel(geometry.rows.tassel, geometry.tassel), talisman = new ClothSheet(geometry.rows.sheet, geometry.sheet, geometry.cord);
     const u = vmUniforms(silk, sharedDecals(tier));
-    const parts: { knot?: Group; halo?: Mesh } = {};
+    const parts: { halo?: Mesh } = {};
     const look = { body: (maps: Texture | null, nrm: Texture | null, rot: Matrix3 | null) => vmMaterial(u, maps, nrm, rot), hull: (k: number) => inkHullMaterial(u, k) };
     super(scene, clips, ARMS, ARMS_CONTRACT, ARMS_BAKE, {
       mesh: (o, ud, rig) => dressInkedMesh(o, ud, rig, look, textures),
-      dress: (rig) => { Object.assign(parts, dressParts(rig, u, tassel, talisman, halo, geometry)); },
+      dress: (rig) => { parts.halo = dressParts(rig, u, halo, geometry); },
     });
-    if (parts.knot === undefined || parts.halo === undefined) throw new Error('nine-dragon: the arms were not dressed');
+    if (parts.halo === undefined) throw new Error('nine-dragon: the arms were not dressed');
     this.u = u;
-    this.tassel = tassel;
-    this.talisman = talisman;
-    this.knot = parts.knot;
     this.halo = parts.halo;
   }
 
@@ -172,9 +147,9 @@ export class NineDragonArms extends FpArmsRig {
     await prepareVmGraphs(render.renderer);
     const product = await loadFirstPartyProduct('nine-dragon-stack');
     const halo = v.parse(v.strictObject({ geometry: v.unknown(), material: v.record(v.string(), v.unknown()) }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-halo.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
-    const parts = v.parse(v.strictObject({ rows: ClothRows, knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-cloth.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
+    const parts = v.parse(v.strictObject({ knot: v.unknown(), tassel: v.unknown(), sheet: v.unknown(), cord: v.unknown() }), JSON.parse(new TextDecoder().decode(await product.file('weapons/jian-cloth.json')), (_key, value: unknown) => value === '-0' ? -0 : value));
     const loader = new BufferGeometryLoader();
-    const geometry = { rows: parts.rows, knot: loader.parse(parts.knot), tassel: loader.parse(parts.tassel), sheet: loader.parse(parts.sheet), cord: loader.parse(parts.cord) };
+    const geometry = { knot: loader.parse(parts.knot), tassel: loader.parse(parts.tassel), sheet: loader.parse(parts.sheet), cord: loader.parse(parts.cord) };
     const gltf = await takeRigScene(url);
     const textures = await loadInkedRigMaps(ARMS_BASE, ARMS_MAPS);
     return new NineDragonArms(rigRoot(gltf.scene), gltf.animations, textures, restoreWeave(await product.file('looks/plain-weave.r8')), tier, halo, geometry);
@@ -194,20 +169,11 @@ export class NineDragonArms extends FpArmsRig {
     this.resizeMaterials(bw, bh, pr);
   }
 
-  override update(dt: number, s: ArmsState): void {
+  update(dt: number, s: ArmsState): void {
     this.t += dt;
     this.u.uTime.value = this.t;
     const hu = (this.halo.material as ShaderMaterial).uniforms['uTime'];
     if (hu !== undefined) hu.value = this.t;
-    super.update(dt, s);
-    if (this.bones.has(ARMS.weapon)) {
-      this.knot.position.copy(this.tassel.cap);
-      this.knot.quaternion.setFromUnitVectors(new Vector3(0, -1, 0), this.tassel.capDir);
-    }
-  }
-
-  /** how deep the tassel / talisman sit inside the fist, forearm or guard right now (m; the gate's cloth check) */
-  clothPenetration(): number {
-    return clothPenetration([...this.tassel.points(), ...this.talisman.points()], this.colliders());
+    super.advancePose(dt, s);
   }
 }

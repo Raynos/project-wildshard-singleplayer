@@ -1,6 +1,6 @@
 import { unzlibSync } from 'fflate';
+import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
-import lightRows from '../src/shards/nine-dragon-stack/data/light.json' with { type: 'json' };
 import paintArray from '../src/shards/nine-dragon-stack/data/paintArray.generated.json' with { type: 'json' };
 import { burstGraphs } from '../src/shards/nine-dragon-stack/generators/burstGraphs';
 import { effectField } from '../src/engine/fx/effectField';
@@ -148,12 +148,12 @@ test('paint chunks cover every layer exactly with a neutral unmasked alpha', () 
 
 test('filament graph binds the simulated rope and preserves target alpha', async () => {
   const { filamentGraph } = await import('../src/shards/nine-dragon-stack/generators/filamentGraph');
-  const { Filament, Rope } = await import('../src/shards/nine-dragon-stack/runtime/looks/ropeFilament');
+  const { Filament, Rope } = await import('../src/game/grapple/ribbon');
   const graph = filamentGraph(), compiled = compileGraph(graph, { trustedBudget: true }), cleanups: (() => void)[] = [];
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-filament', compiled.material]]),
     setParam: (_id, name, value) => { compiled.setParam(name, value); }, setTexture: () => undefined, bindMeshMap: () => compiled.material });
   const { filamentGeometry } = await import('../src/shards/nine-dragon-stack/generators/filamentGeometry');
-  const rope = new Rope(), line = new Filament(rope.n, filamentGeometry(rope.n), filamentRows, lightRows.haloState);
+  const rope = new Rope(), line = new Filament(rope.n, filamentGeometry(rope.n), 'nine-filament', parseGrappleFilament(filamentRows));
   rope.reset(new THREE.Vector3(0, 1, -2), new THREE.Vector3(4, 2, -8));
   line.u.uRes.value.set(768, 1366); line.u.uProjection.value.set(1.5, 1.8); line.update(rope);
   const position = line.mesh.geometry.getAttribute('position'), previous = line.mesh.geometry.getAttribute('aPrev');
