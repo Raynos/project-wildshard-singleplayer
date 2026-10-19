@@ -1,0 +1,64 @@
+{
+  "verifiedAt": "2026-10-19T18:26:59.985Z",
+  "reportSha256": "961cbdbce962ae30217cbc79609e23fe3fe469e33078669bbc47d24b4067c3ba",
+  "pinSha256": "a9b6ed01b3119a5eb35008bc8934696d5e91a3962cf7073a90deb6a2c02c1a0d",
+  "hostSha256": "ed2227f7a355aa5a4d5b237e054b8a378d6c7de9d8ab4e8c4ad2577e4b0f9db2",
+  "hostFiles": 145,
+  "verified": [
+    {
+      "view": "front",
+      "controlsEqual": true,
+      "control": "6e8c8271c94ddbb9bf8a10f2d22e0df6c0988b2b4d1fbd590dbe18aed61d2095",
+      "tent": "14612d74a538a7dcab2b7260824309776c5895d335aaaa29678443495ed70392"
+    },
+    {
+      "view": "left",
+      "controlsEqual": true,
+      "control": "7a41cbac1d4550c6245c0533b810ee6a7b112cebefe7adfffef26a7458ad2ae2",
+      "tent": "20d19ca88b2cc2710439c0219e8cd43ea0204ed51ca9b3b13241fe80568b688f"
+    },
+    {
+      "view": "right",
+      "controlsEqual": true,
+      "control": "53ec2b85f1877e15a40ad43cbf8c8f098e6d2de3e6665de5235f60732f84b18d",
+      "tent": "0db794cdd24bbf28d45e549778b19eba8d25c8cbeac98d217d8d5dac62bc0510"
+    },
+    {
+      "view": "back",
+      "controlsEqual": true,
+      "control": "f0374c37e9006bae5833c33b8be37f68004c7ea75a76660fd8403a71d3cbb1c7",
+      "tent": "25b9079a674fd6c6a45c408d4cd8963b659437db32d550a82cdd0a78839e11bb"
+    },
+    {
+      "view": "top",
+      "controlsEqual": true,
+      "control": "84f93c1a05d80d735a92d2b1affef1081dae906fdfdd80d4b2de32cc4f458500",
+      "tent": "956c022c000a15b786a398d74de2c95eac7e066c53ed5b0eb77abf399fb42a94"
+    },
+    {
+      "view": "diag-front",
+      "controlsEqual": true,
+      "control": "c02994aa3c52fe1c84343123ba62b02ac58377d67da91d3df564c4ee0f7a3852",
+      "tent": "4be01b0377cc7c4a3a41c4d70364fe88ba193cf5e61bb8e066993f5c5c9a75b5"
+    },
+    {
+      "view": "diag-left",
+      "controlsEqual": true,
+      "control": "210a630ac75050edd42978027cf8c3a2f907a6cc538906ae8de8c2b862ba822d",
+      "tent": "ab757c9bb3c7d9d4f7bbcf581fdb8b2fd389305f6d6f5feba59fe2573b362022"
+    },
+    {
+      "view": "diag-right",
+      "controlsEqual": true,
+      "control": "f86d86364b6fae2d5b7e512ce03e6f786841b8fe11f2fe68d6be74dc6ac47ccd",
+      "tent": "c9c304f9c5a6ea8290d841429248c33ff876a6c3eae0c6d9f3682da2071b56ca"
+    },
+    {
+      "view": "diag-back",
+      "controlsEqual": true,
+      "control": "15baaca1ebee145ad366545919522b5582c6ab79d8ce8f48d90dc3969e309db3",
+      "tent": "dae6ec57a22f7af10c78ac0cdc43a8fbd0be3e3dde1d30f2af8640b8ffbff54d"
+    }
+  ],
+  "scope": "File and recorded-state verification; repeat stability and actual draw provenance rely on inspected capture source and retained telemetry. No browser rerun or acceptance."
+}

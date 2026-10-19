@@ -1,0 +1,429 @@
+{
+  "schema": "wildshard.conch.tent-playable.source-audit.v1",
+  "selectedNativeAdmitted": true,
+  "public4SourceAdmitted": true,
+  "selectedBodyFile": "/assets/driftwood-isle/conch-selected-color-640861d7e12003814917b45d38d622a3e796084cf0b86bf88d01353ecfdc4cbb.bin",
+  "public4BodyFile": "/assets/driftwood-isle/conch-canonical-a820f64e2252058c7a02fe3ce551e704e4262990c59b6d28a9b323ee1356d610.bin",
+  "selectedOwnership": {
+    "vertices": 6570,
+    "blended": 94,
+    "positiveInfluenceVertices": {
+      "body": 744,
+      "shell": 1398,
+      "head": 606,
+      "eyestalkLeft": 339,
+      "eyestalkRight": 339,
+      "shieldArm": 342,
+      "shieldForearm": 486,
+      "rapierArm": 342,
+      "rapierForearm": 582,
+      "legLeft": 246,
+      "legLeftKnee": 201,
+      "legLeftAnkle": 294,
+      "legRight": 246,
+      "legRightKnee": 205,
+      "legRightAnkle": 294
+    }
+  },
+  "public4Ownership": {
+    "vertices": 7338,
+    "blended": 94,
+    "positiveInfluenceVertices": {
+      "body": 1512,
+      "shell": 1398,
+      "head": 606,
+      "eyestalkLeft": 339,
+      "eyestalkRight": 339,
+      "shieldArm": 342,
+      "shieldForearm": 486,
+      "rapierArm": 342,
+      "rapierForearm": 582,
+      "legLeft": 246,
+      "legLeftKnee": 201,
+      "legLeftAnkle": 294,
+      "legRight": 246,
+      "legRightKnee": 205,
+      "legRightAnkle": 294
+    }
+  },
+  "skeletonNamesAndParentsEqual": true,
+  "bindDifferences": [
+    {
+      "name": "body",
+      "selected": {
+        "name": "body",
+        "parent": null,
+        "pos": [
+          0,
+          1.04,
+          0.05
+        ]
+      },
+      "public4": {
+        "name": "body",
+        "parent": null,
+        "pos": [
+          0,
+          1.04,
+          0
+        ]
+      }
+    },
+    {
+      "name": "shell",
+      "selected": {
+        "name": "shell",
+        "parent": "body",
+        "pos": [
+          0.38,
+          1.35,
+          0.34
+        ]
+      },
+      "public4": {
+        "name": "shell",
+        "parent": "body",
+        "pos": [
+          -0.38,
+          1.35,
+          -0.35000000000000003
+        ]
+      }
+    },
+    {
+      "name": "head",
+      "selected": {
+        "name": "head",
+        "parent": "body",
+        "pos": [
+          0,
+          1.64,
+          -0.365
+        ]
+      },
+      "public4": {
+        "name": "head",
+        "parent": "body",
+        "pos": [
+          0,
+          1.62,
+          0.415
+        ]
+      }
+    },
+    {
+      "name": "eyestalkLeft",
+      "selected": {
+        "name": "eyestalkLeft",
+        "parent": "head",
+        "pos": [
+          0.16,
+          1.51,
+          -0.33
+        ]
+      },
+      "public4": {
+        "name": "eyestalkLeft",
+        "parent": "head",
+        "pos": [
+          -0.16,
+          1.51,
+          0.38
+        ]
+      }
+    },
+    {
+      "name": "eyestalkRight",
+      "selected": {
+        "name": "eyestalkRight",
+        "parent": "head",
+        "pos": [
+          -0.16,
+          1.51,
+          -0.33
+        ]
+      },
+      "public4": {
+        "name": "eyestalkRight",
+        "parent": "head",
+        "pos": [
+          0.16,
+          1.51,
+          0.38
+        ]
+      }
+    },
+    {
+      "name": "shieldArm",
+      "selected": {
+        "name": "shieldArm",
+        "parent": "body",
+        "pos": [
+          0.27,
+          1.36,
+          0.015
+        ]
+      },
+      "public4": {
+        "name": "shieldArm",
+        "parent": "body",
+        "pos": [
+          -0.27,
+          1.36,
+          0.035
+        ]
+      }
+    },
+    {
+      "name": "shieldForearm",
+      "selected": {
+        "name": "shieldForearm",
+        "parent": "shieldArm",
+        "pos": [
+          0.76,
+          1.04,
+          -0.3
+        ]
+      },
+      "public4": {
+        "name": "shieldForearm",
+        "parent": "shieldArm",
+        "pos": [
+          -0.76,
+          1.04,
+          0.35
+        ]
+      }
+    },
+    {
+      "name": "rapierArm",
+      "selected": {
+        "name": "rapierArm",
+        "parent": "body",
+        "pos": [
+          -0.27,
+          1.36,
+          0.015
+        ]
+      },
+      "public4": {
+        "name": "rapierArm",
+        "parent": "body",
+        "pos": [
+          0.27,
+          1.36,
+          0.035
+        ]
+      }
+    },
+    {
+      "name": "rapierForearm",
+      "selected": {
+        "name": "rapierForearm",
+        "parent": "rapierArm",
+        "pos": [
+          -0.69,
+          1.1,
+          -0.22
+        ]
+      },
+      "public4": {
+        "name": "rapierForearm",
+        "parent": "rapierArm",
+        "pos": [
+          0.69,
+          1.1,
+          0.27
+        ]
+      }
+    },
+    {
+      "name": "legLeft",
+      "selected": {
+        "name": "legLeft",
+        "parent": "body",
+        "pos": [
+          0.23,
+          0.86,
+          0.03
+        ]
+      },
+      "public4": {
+        "name": "legLeft",
+        "parent": "body",
+        "pos": [
+          -0.23,
+          0.86,
+          0.020000000000000004
+        ]
+      }
+    },
+    {
+      "name": "legLeftKnee",
+      "selected": {
+        "name": "legLeftKnee",
+        "parent": "legLeft",
+        "pos": [
+          0.69,
+          0.63,
+          0.17
+        ]
+      },
+      "public4": {
+        "name": "legLeftKnee",
+        "parent": "legLeft",
+        "pos": [
+          -0.69,
+          0.63,
+          -0.12000000000000001
+        ]
+      }
+    },
+    {
+      "name": "legLeftAnkle",
+      "selected": {
+        "name": "legLeftAnkle",
+        "parent": "legLeftKnee",
+        "pos": [
+          0.86,
+          0.14,
+          -0.01
+        ]
+      },
+      "public4": {
+        "name": "legLeftAnkle",
+        "parent": "legLeftKnee",
+        "pos": [
+          -0.86,
+          0.14,
+          0.060000000000000005
+        ]
+      }
+    },
+    {
+      "name": "legRight",
+      "selected": {
+        "name": "legRight",
+        "parent": "body",
+        "pos": [
+          -0.23,
+          0.86,
+          0.03
+        ]
+      },
+      "public4": {
+        "name": "legRight",
+        "parent": "body",
+        "pos": [
+          0.23,
+          0.86,
+          0.020000000000000004
+        ]
+      }
+    },
+    {
+      "name": "legRightKnee",
+      "selected": {
+        "name": "legRightKnee",
+        "parent": "legRight",
+        "pos": [
+          -0.69,
+          0.63,
+          -0.13
+        ]
+      },
+      "public4": {
+        "name": "legRightKnee",
+        "parent": "legRight",
+        "pos": [
+          0.69,
+          0.63,
+          0.18
+        ]
+      }
+    },
+    {
+      "name": "legRightAnkle",
+      "selected": {
+        "name": "legRightAnkle",
+        "parent": "legRightKnee",
+        "pos": [
+          -0.86,
+          0.14,
+          -0.31
+        ]
+      },
+      "public4": {
+        "name": "legRightAnkle",
+        "parent": "legRightKnee",
+        "pos": [
+          0.86,
+          0.14,
+          0.36
+        ]
+      }
+    }
+  ],
+  "dimensionDifferences": [
+    {
+      "key": "bodyHalfLen",
+      "selected": 1.1148000955581665,
+      "public4": 0.472732982635498
+    },
+    {
+      "key": "bodyRadius",
+      "selected": 2.950717501331365,
+      "public4": 0.5091165774643404
+    },
+    {
+      "key": "capsuleAxis",
+      "selected": "z",
+      "public4": "y"
+    },
+    {
+      "key": "feet",
+      "selected": [
+        [
+          0.883899986743927,
+          -0.20716768503189087
+        ],
+        [
+          -0.8121898770332336,
+          -0.4344668388366699
+        ]
+      ],
+      "public4": [
+        [
+          -0.883899986743927,
+          0.25716768503189086
+        ],
+        [
+          0.8121898770332336,
+          0.4844668388366699
+        ]
+      ]
+    },
+    {
+      "key": "halfWidth",
+      "selected": 1.6487998962402344,
+      "public4": 1.6118314266204834
+    },
+    {
+      "key": "headRadius",
+      "selected": 0.4168165250961169,
+      "public4": 0.5859726700629535
+    }
+  ],
+  "directPoseTransferAllowed": false,
+  "selectedPose": {
+    "programs": 45,
+    "constantZero": true,
+    "hasDeathResponse": false,
+    "hasGaitResponse": false,
+    "hasAttackResponse": false
+  },
+  "buildAllowed": false,
+  "runtimeAcceptance": false,
+  "animationAcceptance": false,
+  "colliderAcceptance": false
+}

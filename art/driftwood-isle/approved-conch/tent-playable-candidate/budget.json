@@ -1,0 +1,14 @@
+{
+  "schema": "wildshard.conch.tent-playable.proposed-budget.v1",
+  "buildAllowed": false,
+  "currentScope": "source audit and exact host fixtures only",
+  "currentOutputs": ["compatibility.mjs", "fixture.mjs", "source.test.mjs", "source-audit.json", "candidate-practiceBoot.ts", "candidate-entry.ts", "candidate.html", "budget.json"],
+  "futureOutputRoot": "tmp/conch-tent-playable-attempt1",
+  "futureDist": "tmp/conch-tent-playable-dist-attempt1",
+  "futureRequirements": ["separate root review and exact pin", "new or empty destinations only", "heavy build lane", "one product and one app build", "one muted portrait browser", "stop on failed admission", "no automatic retries or pin refresh"],
+  "proposedMaxOutputBytes": 67108864,
+  "proposedMaxBrowserSeconds": 600,
+  "proposedMaxMovieSeconds": 120,
+  "proposedMaxRawPortraitFrames": 24,
+  "promotionAllowed": false
+}

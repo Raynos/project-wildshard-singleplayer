@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/build_colossus_complete.py",
+      "bytes": 28003,
+      "sha256": "4ac78cfb86d5cc48f7ed71ed955fc9ca1389d8dcceff2b37a0078eadf8a83693"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/construct_source.py",
+      "bytes": 11903,
+      "sha256": "596494db0021043ad61367dead15cc65560ef8e2c588d33b2ee6b5a42c9f8d63"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/render_matched.py",
+      "bytes": 2772,
+      "sha256": "adc828804f67dc29e15c840bfc874e42a0b726b078f84dbe06a396e17c29dfc2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/validate_glb.py",
+      "bytes": 4008,
+      "sha256": "5a64375e837b9ab91a2f9b49271c863d057b2a3787bd910841d7a5fc4a06ffea"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/package_evidence.py",
+      "bytes": 5215,
+      "sha256": "15dbdb4f44165305f0806780d8231199e35ca51fb3acdb0e27742c091321f5b7"
+    },
+    {
+      "path": "docs/reviews/colossus-complete-pass4-construction.md",
+      "bytes": 5634,
+      "sha256": "146c3f7c414790de8433ae1f09fbd907438839721dfb0c59e3fecb63594ef34f"
+    }
+  ]
+}

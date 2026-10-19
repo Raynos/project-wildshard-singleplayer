@@ -1,0 +1,85 @@
+{
+  "auditPinsVerified": true,
+  "files": [
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/tide-root-colossus-lowpoly.webp",
+      "sha256": "157fe0ad0db0705fd0ca4604b0bbf6d24893a935079f7529b29b010a25bb80d3",
+      "bytes": 207866
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/build_colossus_complete.py",
+      "sha256": "f7aff0e673e566e3cd6be4376d92b64109e596fb7124b904d0dab471381230b0",
+      "bytes": 23659
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass1/tide-root-colossus-complete-pass1.glb",
+      "sha256": "0a99d4bd244f29e9a9f37b841fabce0a87059ffffa0856046d3eea66b2b73a90",
+      "bytes": 905796
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/capture-receipt.json",
+      "sha256": "6365e76e1450788a98a94acda9f873b5f3bee5c7166659f379913fcd34cd1fcf",
+      "bytes": 5027
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/cameras.json",
+      "sha256": "151d1e18bf63f2e4491cbc5044e1cfab8eb1ecdbbf3e1020118b1c5363ac01f3",
+      "bytes": 6817
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass3/render_matched.py",
+      "sha256": "70556eb0c5009862f5021faad6dbd8c4f6a6b347f7ece09372aba2f9d161a940",
+      "bytes": 2794
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/hero.png",
+      "sha256": "b307192e99ec018ca85efccdeec8f3535f7e74de5cde4e1b5f6d869812dddff0",
+      "bytes": 679370
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/front.png",
+      "sha256": "69daa365520db1e1ecc99a8df482175ead8e8c983f49d020ae1ae89ac258cb84",
+      "bytes": 520365
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/left.png",
+      "sha256": "fa39210ecdf782b66b8017566454d9faccf5d83369b4e99c5f34644aa21d7222",
+      "bytes": 389570
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/right.png",
+      "sha256": "a3243cbbbc270d2272f01e0b50da63d46e6893f662b741c0ecc80a30ab8f154b",
+      "bytes": 391158
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/back.png",
+      "sha256": "8f4b04c9fb298cb78f66c56d841b31f8c9aaef076899b0fcca6b2d3187bb1370",
+      "bytes": 515896
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/top.png",
+      "sha256": "cc8360693bc8d31ea23ac97b77e7a7d3f73aa8849d27743214a6488d67ff4c3a",
+      "bytes": 678418
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-front.png",
+      "sha256": "8bddd2b6c5e42911f81d2ad0711d48155978aa4121b04f3ad81af2f2e981e6fe",
+      "bytes": 727175
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-left.png",
+      "sha256": "335a88a9e05212db5694a913e22c15fe8284409b9e742a08edd9e608d0479df7",
+      "bytes": 699004
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-right.png",
+      "sha256": "ec34fde9012db88482f28710a1d9ab82049492544a9f4e5493fd61178bed01ba",
+      "bytes": 708897
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-back.png",
+      "sha256": "dc6f945533daaf5b5ff3652410059f4bf7389ccfffd96decd7f2521a0e94b685",
+      "bytes": 696489
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "status": "unaccepted complete pass 4 coupled anatomy/growth study",
+  "objects": 157,
+  "triangles": 4836,
+  "bounds": {
+    "min": [
+      -2.6943247318267822,
+      -1.450282096862793,
+      0.01899999938905239
+    ],
+    "max": [
+      2.6994173526763916,
+      1.71966552734375,
+      6.022543907165527
+    ]
+  },
+  "front": "-Y",
+  "glbBytes": 609368,
+  "sourceSHA256": "4ac78cfb86d5cc48f7ed71ed955fc9ca1389d8dcceff2b37a0078eadf8a83693",
+  "rendered": false
+}

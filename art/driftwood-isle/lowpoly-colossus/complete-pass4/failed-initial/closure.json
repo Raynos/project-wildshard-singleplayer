@@ -1,0 +1,110 @@
+{
+  "status": "Preserved failed construction; not final candidate or independent judgment",
+  "files": [
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/failed-initial/build_colossus_complete.py",
+      "bytes": 27342,
+      "sha256": "8250047659e167d2f48a135cd1d7233268c0f3658b4f307ea993749b5dae04ee"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/failed-initial/construct_source.py",
+      "bytes": 11242,
+      "sha256": "a3979d2a26d850a9de138fe2b698da8b24df6bc543bb51d431a90498c4befeb8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/failed-initial/hero.webp",
+      "bytes": 68168,
+      "sha256": "d483aac4857eb4dbb68e9f287eb35858040e8a3644dc7eba19a3c827149d15f8"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/failed-initial/metrics-complete-pass4.json",
+      "bytes": 473,
+      "sha256": "23e2ffdb54b64dba8cd67a6fb44feb06682bf7b86e1e2daa92e391f34019bc53"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/complete-pass4/failed-initial/validation.json",
+      "bytes": 37859,
+      "sha256": "562acbe8a4b9295e97d825cdc687f5a6a4f73e4d7354ae652c6fd1cee9dd948d"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/cameras.json",
+      "bytes": 7447,
+      "sha256": "7288bdf20594904868af0f60d699b4c8d5c582e4bde19a0ab56acf59d778325a"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/back.png",
+      "bytes": 504497,
+      "sha256": "5f98ac2a181e40d9b3d7de25c3eb2b756bc1819d149004ce2641d924e7e94556"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/diag-back.png",
+      "bytes": 697400,
+      "sha256": "e634e0fd16fe190e1fc84a30e8d977e021d667befd62411a27aa351ef3442c18"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/diag-front.png",
+      "bytes": 708487,
+      "sha256": "a491472b88cd6d76e5b3f304b805afdaa6eb410f83ab17779fe2de677b59f8c7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/diag-left.png",
+      "bytes": 683084,
+      "sha256": "2b3cb8beaddf920b16147150603c83c0073aa2e115080950251d5ceddee1fa15"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/diag-right.png",
+      "bytes": 695622,
+      "sha256": "c56d4bdbeabb4fb4a295aef181d899e025c3143d7432627d7654c8104c25b53f"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/front.png",
+      "bytes": 491562,
+      "sha256": "191c79a572cb7f91526abb2e3e71a1747173138c8912e2d524e2a17b4c2f7a77"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/hero.png",
+      "bytes": 663468,
+      "sha256": "fa2fbd8b6160c7038cc8edf478542903176c3d83f74c97c05d7fe9b18e6d88f1"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/left.png",
+      "bytes": 387059,
+      "sha256": "3b8a949ad5f839a4a5e4c7dcd15472e2ef6b19dab3959703e4d6e6d3b50f1ee1"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/metrics-complete-pass4.json",
+      "bytes": 473,
+      "sha256": "23e2ffdb54b64dba8cd67a6fb44feb06682bf7b86e1e2daa92e391f34019bc53"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/right.png",
+      "bytes": 388682,
+      "sha256": "5f919dbbe0e8f00eee0c559397bc468521e1864f2f26caf8fee7c4b04bbaae70"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/tide-root-colossus-complete-pass4.glb",
+      "bytes": 601248,
+      "sha256": "02d755409b1181e08938ae281ee5cd8278038b1b2dd403031fdf2a2253fc9086"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/top.png",
+      "bytes": 670891,
+      "sha256": "6063938975f65ba6452fb824a3cc65586b7c6cd1fd23e2d7f5399937096d78c3"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/candidate/validation.json",
+      "bytes": 37859,
+      "sha256": "562acbe8a4b9295e97d825cdc687f5a6a4f73e4d7354ae652c6fd1cee9dd948d"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/failed-initial/render.log",
+      "bytes": 272579,
+      "sha256": "f8d1f32ae129afe08f6a1bdf504915c400ce90c4811f1cc726165febbacd59bc"
+    }
+  ]
+}

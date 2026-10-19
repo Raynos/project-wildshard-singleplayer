@@ -1,0 +1,191 @@
+{
+  "status": "Actual pass4 matched against exact pinned pass1 frames, reused by reference",
+  "retainedBaseline": "complete-pass1",
+  "resolution": [
+    525,
+    700
+  ],
+  "samples": 16,
+  "denoising": false,
+  "viewTransform": "Standard",
+  "worldColor": [
+    0.12,
+    0.12,
+    0.12
+  ],
+  "target": [
+    0,
+    0,
+    2.9
+  ],
+  "orthoScale": 7.7,
+  "lights": [
+    {
+      "name": "Key",
+      "position": [
+        -4,
+        -6,
+        9
+      ],
+      "energy": 1500,
+      "size": 5
+    },
+    {
+      "name": "Fill",
+      "position": [
+        5,
+        -3,
+        5
+      ],
+      "energy": 850,
+      "size": 4
+    },
+    {
+      "name": "Rim",
+      "position": [
+        0,
+        4,
+        7
+      ],
+      "energy": 1800,
+      "size": 3
+    }
+  ],
+  "files": [
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/hero.png",
+      "bytes": 679370,
+      "sha256": "b307192e99ec018ca85efccdeec8f3535f7e74de5cde4e1b5f6d869812dddff0"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/front.png",
+      "bytes": 520365,
+      "sha256": "69daa365520db1e1ecc99a8df482175ead8e8c983f49d020ae1ae89ac258cb84"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/left.png",
+      "bytes": 389570,
+      "sha256": "fa39210ecdf782b66b8017566454d9faccf5d83369b4e99c5f34644aa21d7222"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/right.png",
+      "bytes": 391158,
+      "sha256": "a3243cbbbc270d2272f01e0b50da63d46e6893f662b741c0ecc80a30ab8f154b"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/back.png",
+      "bytes": 515896,
+      "sha256": "8f4b04c9fb298cb78f66c56d841b31f8c9aaef076899b0fcca6b2d3187bb1370"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/top.png",
+      "bytes": 678418,
+      "sha256": "cc8360693bc8d31ea23ac97b77e7a7d3f73aa8849d27743214a6488d67ff4c3a"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-front.png",
+      "bytes": 727175,
+      "sha256": "8bddd2b6c5e42911f81d2ad0711d48155978aa4121b04f3ad81af2f2e981e6fe"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-left.png",
+      "bytes": 699004,
+      "sha256": "335a88a9e05212db5694a913e22c15fe8284409b9e742a08edd9e608d0479df7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-right.png",
+      "bytes": 708897,
+      "sha256": "ec34fde9012db88482f28710a1d9ab82049492544a9f4e5493fd61178bed01ba"
+    },
+    {
+      "path": "tmp/colossus-complete-pass3/predecessor/diag-back.png",
+      "bytes": 696489,
+      "sha256": "dc6f945533daaf5b5ff3652410059f4bf7389ccfffd96decd7f2521a0e94b685"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/hero.png",
+      "bytes": 688088,
+      "sha256": "e5c698bfcb2dacb24a8d2574829449fb1b0431677d360b5fde32b6b8e2fcf443"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/front.png",
+      "bytes": 517963,
+      "sha256": "a6a1d28f43cd7ec2374aa46a024edd4200a2dd9fa9cd090cd0ccd60e7480f567"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/left.png",
+      "bytes": 409582,
+      "sha256": "32a4b2372f87d23e602b1299fe8da7d35d4b74ea4bb167b8be79a7813b6bc9e7"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/right.png",
+      "bytes": 412916,
+      "sha256": "a08cfacf8f6db5753a668002a7165424464c6ccaf22ca421b141254dcf1a4ef2"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/back.png",
+      "bytes": 535873,
+      "sha256": "f37827b25f52776db62fbd0efe9979bb0daaa21bed67bf70126b82d928283937"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/top.png",
+      "bytes": 695134,
+      "sha256": "0d569a77330a79b3932e2d3ea6e4d85159eea9242567e71e29a9245ce90f7664"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-front.png",
+      "bytes": 730794,
+      "sha256": "51aff09a7cfdbe851a1679ed86eb8a621734cd21ba176896bc016bb748ca2d5e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-left.png",
+      "bytes": 703512,
+      "sha256": "153b6713fec2cbb2d09cccd10759cea2eaa47b53b4d8267ee0f9e04143fb2103"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-right.png",
+      "bytes": 713900,
+      "sha256": "deee88ea4fc32369bb2a3230b51c1b50f751ece378bb121d29ba451f4be7fe38"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/diag-back.png",
+      "bytes": 726015,
+      "sha256": "a95a924fae85f482aa87d638b2819ee9e75805fa368edd1302c1dd0eadb2d07f"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/render.log",
+      "bytes": 279128,
+      "sha256": "082b367df8734de67925e1edd7742d4d7e1455b092ff11ac385132bc064cddee"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/build.log",
+      "bytes": 16216,
+      "sha256": "4d052554d86523ef2c18dfec54e3d82c498e81908ec33740e123f3161a443480"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/cameras.json",
+      "bytes": 7447,
+      "sha256": "7288bdf20594904868af0f60d699b4c8d5c582e4bde19a0ab56acf59d778325a"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/tide-root-colossus-complete-pass4.glb",
+      "bytes": 609368,
+      "sha256": "fb9f593dfa1d1f82259b79429795e355d0736a0977dab73316744041e7ea5fb2"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/metrics-complete-pass4.json",
+      "bytes": 470,
+      "sha256": "769a318d922f3278825d6fbc757ca879a6528e37623d8e9d16274d85f7e0056e"
+    },
+    {
+      "path": "tmp/colossus-complete-pass4/candidate/validation.json",
+      "bytes": 38829,
+      "sha256": "f03058fbc41ab09cb909a78300364d1d06e7958a9e799a7870a7db2adf110a7b"
+    }
+  ]
+}
