@@ -1,0 +1,19 @@
+{
+  "schema": "wildshard.mantis.combat-observation.v1",
+  "startedAt": "2026-10-19T11:30:15.488Z",
+  "source": "5df5e1be3327063967cbd3dd14c38df13794d100",
+  "product": "123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7",
+  "previewSha256": "32439dea716983ace271ff48afc75db7bbfab2e939b9e5d94dd3085ed18b8f7c",
+  "errors": [],
+  "samples": [],
+  "placements": [],
+  "deaths": [],
+  "checks": {},
+  "caveat": "Cloud browser diagnostic; no physical phone performance, fun or visual acceptance claim.",
+  "fatal": "browserContext.newPage: Executable doesn't exist at <default-playwright-cache>/ffmpeg-1011/ffmpeg-linux\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Video rendering requires ffmpeg binary.                         \u2551\n\u2551 Downloading it will not affect any of the system-wide settings. \u2551\n\u2551 Please run the following command:                               \u2551\n\u2551                                                                 \u2551\n\u2551     npx playwright install ffmpeg                               \u2551\n\u2551                                                                 \u2551\n\u2551 <3 Playwright Team                                              \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\n    at <repository>/scripts/qa-mantis-precontact-motion.mjs:47:30",
+  "endedAt": "2026-10-19T11:30:15.960Z",
+  "preservation": {
+    "originalSha256": "a4f63b4491f54d09752a2652ecff2cdc73b399dce30bc8e8a1647e3b1586e8e2",
+    "normalization": "Environment paths only; original remains in failed run1."
+  }
+}

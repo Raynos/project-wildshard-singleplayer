@@ -1,0 +1,29 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../vite/rapier" without a file extension (docs/reviews/mantis-precontact-independent/source/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repo>
+
+ ❯ docs/reviews/mantis-precontact-independent/source/independent.test.ts (12 tests | 1 failed) 89412ms
+   × independent: full quaternions at 60/30Hz plus low-cadence gaps 37933ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/reviews/mantis-precontact-independent/source/independent.test.ts > independent: full quaternions at 60/30Hz plus low-cadence gaps
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ docs/reviews/mantis-precontact-independent/source/independent.test.ts:168:1
+    166| });
+    167|
+    168| test('independent: full quaternions at 60/30Hz plus low-cadence gaps',…
+       | ^
+    169|   const rows = [];
+    170|   for (const [stage, duration] of [[1,.75],[3,.45]]) for (const hz of …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 13 passed (14)
+   Start at  07:25:46
+   Duration  103.97s (tests 87%, transform 8%, setup 5%, import 1%)

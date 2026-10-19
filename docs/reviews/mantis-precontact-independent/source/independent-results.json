@@ -1,0 +1,661 @@
+{
+  "sampling": [
+    {
+      "stage": 1,
+      "hz": 60,
+      "offsets": 20,
+      "maxAngle": 0.0734785175824425,
+      "maxTravel": 0.08757062248527764
+    },
+    {
+      "stage": 1,
+      "hz": 30,
+      "offsets": 20,
+      "maxAngle": 0.14666604284300636,
+      "maxTravel": 0.17465111687081952
+    },
+    {
+      "stage": 1,
+      "hz": 10,
+      "offsets": 20,
+      "maxAngle": 0.43068744780672513,
+      "maxTravel": 0.5086359383393337
+    },
+    {
+      "stage": 3,
+      "hz": 60,
+      "offsets": 20,
+      "maxAngle": 0.12232049546955598,
+      "maxTravel": 0.14570955799913352
+    },
+    {
+      "stage": 3,
+      "hz": 30,
+      "offsets": 20,
+      "maxAngle": 0.2432938442569141,
+      "maxTravel": 0.28915661763948053
+    },
+    {
+      "stage": 3,
+      "hz": 10,
+      "offsets": 20,
+      "maxAngle": 0.6867860889420532,
+      "maxTravel": 0.7991538854345605
+    }
+  ],
+  "worldDeaths": [
+    {
+      "path": "docs/reviews/mantis-early-knee-moving/run1/render-trace.json",
+      "cases": 97,
+      "minWorldY": 0.013650863013140224,
+      "maxCapturedError": 1.1102230246251565e-16,
+      "maxVertexError": 0,
+      "omitted": "living/missing-input rows; no reconstruction of absent attack"
+    },
+    {
+      "path": "docs/reviews/mantis-early-knee-supplement/run1/render-trace.json",
+      "cases": 127,
+      "minWorldY": 0.01366695037199861,
+      "maxCapturedError": 1.1102230246251565e-16,
+      "maxVertexError": 0,
+      "omitted": "living/missing-input rows; no reconstruction of absent attack"
+    }
+  ],
+  "strikeClocks": [
+    {
+      "stage": 1,
+      "mode": "close",
+      "firstHit": 0.7666666666666674,
+      "firstOverlap": 0.7833333333333341,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.7166666666666672,
+      "activeStart": 0.7500000000000007,
+      "recovery": 1.266666666666667,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 1,
+      "mode": "approach",
+      "firstHit": 1.0500000000000012,
+      "firstOverlap": 1.0833333333333344,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.7166666666666672,
+      "activeStart": 0.7500000000000007,
+      "recovery": 1.266666666666667,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 1,
+      "mode": "obstructed",
+      "firstHit": null,
+      "firstOverlap": null,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.7166666666666672,
+      "activeStart": 0.7500000000000007,
+      "recovery": 2.466666666666663,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 1,
+      "mode": "long-active",
+      "firstHit": null,
+      "firstOverlap": null,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.7166666666666672,
+      "activeStart": 0.7500000000000007,
+      "recovery": 2.466666666666663,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 3,
+      "mode": "close",
+      "firstHit": 0.4833333333333333,
+      "firstOverlap": 0.49999999999999994,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.4333333333333333,
+      "activeStart": 0.4666666666666666,
+      "recovery": 0.9833333333333347,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 3,
+      "mode": "approach",
+      "firstHit": 0.7666666666666674,
+      "firstOverlap": 0.8000000000000008,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.4333333333333333,
+      "activeStart": 0.4666666666666666,
+      "recovery": 0.9833333333333347,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 3,
+      "mode": "obstructed",
+      "firstHit": null,
+      "firstOverlap": null,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.4333333333333333,
+      "activeStart": 0.4666666666666666,
+      "recovery": 2.1833333333333305,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    },
+    {
+      "stage": 3,
+      "mode": "long-active",
+      "firstHit": null,
+      "firstOverlap": null,
+      "overlapBeforeDamage": 0,
+      "endpoint": 0.4333333333333333,
+      "activeStart": 0.4666666666666666,
+      "recovery": 2.1833333333333305,
+      "scope": "Exact StrikeRunner; deterministic straight-line root integration, not actual physics or visual acceptance"
+    }
+  ],
+  "armBodyIntersections": {
+    "rows": [
+      {
+        "stage": 1,
+        "samples": [
+          {
+            "attack": 0,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.025,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.05,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.075,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.1,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.125,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.15,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.175,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.2,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.225,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.25,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.275,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.3,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.325,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.35,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.375,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.4,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.425,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.45,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.475,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.5,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.525,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.55,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.575,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.6,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.625,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.65,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.675,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.7,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.725,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.75,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.775,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.8,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.825,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.85,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.875,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.9,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.925,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.95,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 0.975,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          },
+          {
+            "attack": 1,
+            "hits": [
+              "raptor-1:neck"
+            ]
+          }
+        ]
+      },
+      {
+        "stage": 3,
+        "samples": [
+          {
+            "attack": 0,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.025,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.05,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.075,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.1,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.125,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.15,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.175,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.2,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.225,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.25,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.275,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.3,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.325,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.35,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.375,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.4,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.425,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.45,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.475,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.5,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.525,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.55,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.575,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.6,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.625,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.65,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.675,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.7,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.725,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.75,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.775,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.8,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.825,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.85,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.875,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.9,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.925,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.95,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 0.975,
+            "hits": [
+              "raptor1:neck"
+            ]
+          },
+          {
+            "attack": 1,
+            "hits": [
+              "raptor1:neck"
+            ]
+          }
+        ]
+      }
+    ],
+    "scope": "Triangle surface crossing at41 keys per strike; includes intentional shoulder attachment, excludes containment and world obstacles"
+  }
+}

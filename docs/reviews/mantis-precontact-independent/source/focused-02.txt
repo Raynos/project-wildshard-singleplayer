@@ -1,0 +1,11 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../../vite/rapier" without a file extension (docs/reviews/mantis-precontact-independent/source/vitest.config.ts:2:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repo>
+
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  07:27:40
+   Duration  77.66s (tests 79%, transform 14%, setup 6%, import 1%)

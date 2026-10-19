@@ -1,0 +1,18 @@
+{
+  "verdict": "GO diagnostic-build only; not acceptance",
+  "sourceCommit": "5df5e1be3",
+  "admissionSha256": "5b4d993d4d16f41406cd8e4757d56a5582fcc302eee145c93a15284ad958d004",
+  "tests": 15,
+  "admissionTests": 3,
+  "files": {
+    "docs/reviews/mantis-precontact-independent/source/REVIEW.md": "c63ebda45aae4fa07959bda588b7c6ff2527764c31d067d851334f0c40ec685b",
+    "docs/reviews/mantis-precontact-independent/source/admission.txt": "6d9697fbb0222ca94a92c3dc7a16a7927b68278c8d8dcea10be51aa5245d116d",
+    "docs/reviews/mantis-precontact-independent/source/baseline-results.json": "b5ba5651047b8398b14792d36d3f5a83d442f5493f094ed18a448143e1fc78a5",
+    "docs/reviews/mantis-precontact-independent/source/focused-01.txt": "da86cb95a17f4effb840c5b2747da79bfd3c7be7508c696d1acd23f49f34f9e9",
+    "docs/reviews/mantis-precontact-independent/source/focused-02.txt": "f69e5cfcc62710134c8492c3977829e569b6259667843c0c32e7a28957fc03ab",
+    "docs/reviews/mantis-precontact-independent/source/independent-results.json": "8fb01e09451c189e9b0e0cdae5bc542b191743fa2e2778a046a552486dc1a6ea",
+    "docs/reviews/mantis-precontact-independent/source/independent.test.ts": "80020c400b8eb1bee8c4c7c9cb0cc206ad15558ca23858026633af988d632527",
+    "docs/reviews/mantis-precontact-independent/source/log-normalization.json": "3b7c091963c529c8316b960450e4f479b8753c7659cf83a38e3d350ecdce7bf7",
+    "docs/reviews/mantis-precontact-independent/source/vitest.config.ts": "568cf2306bddb9c36ecfbf32b532db1d51f593703c1a0880c54e192ec38b86a6"
+  }
+}

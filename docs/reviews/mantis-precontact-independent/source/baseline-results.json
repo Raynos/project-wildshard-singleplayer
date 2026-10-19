@@ -1,0 +1,35 @@
+{
+  "acceptance": false,
+  "scope": "Exact native weighted vertices, fixed identity root, source evaluator only; no runtime world/contact claim",
+  "admission": {
+    "programs": 30,
+    "maxNodes": 111
+  },
+  "parityCases": 700,
+  "strike1": {
+    "duration": 0.75,
+    "baselineJump": 1.2360363233376488,
+    "endpointJump": 0,
+    "travel": 1.2360363233376488,
+    "maxVertexStep": 0.17465111687081952,
+    "maxShoulderStep": 0.14626879561042558,
+    "minBladeY": 0.4035223336841939,
+    "minAllY": 0.013307643122971058,
+    "samplesHz": 30,
+    "offsetSamples": 10,
+    "contactAcceptance": false
+  },
+  "strike3": {
+    "duration": 0.45,
+    "baselineJump": 1.2360363233376488,
+    "endpointJump": 0,
+    "travel": 1.2360363233376488,
+    "maxVertexStep": 0.2891472045388103,
+    "maxShoulderStep": 0.2426024488136972,
+    "minBladeY": 0.4035223336841939,
+    "minAllY": 0.013307643122971058,
+    "samplesHz": 30,
+    "offsetSamples": 10,
+    "contactAcceptance": false
+  }
+}

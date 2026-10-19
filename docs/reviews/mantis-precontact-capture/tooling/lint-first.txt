@@ -1,0 +1,11 @@
+scripts/qa-mantis-precontact-motion.mjs:161:41: error eslint(no-shadow): 'id' is already declared in the upper scope. help: Consider renaming 'id' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:161:45: error eslint(no-shadow): 'minimum' is already declared in the upper scope. help: Consider renaming 'minimum' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:161:54: error eslint(no-shadow): 'maximum' is already declared in the upper scope. help: Consider renaming 'maximum' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:161:63: error eslint(no-shadow): 'strikePhase' is already declared in the upper scope. help: Consider renaming 'strikePhase' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:175:54: error eslint(no-shadow): 'row' is already declared in the upper scope. help: Consider renaming 'row' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:176:36: error eslint(no-shadow): 'row' is already declared in the upper scope. help: Consider renaming 'row' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:177:38: error eslint(no-shadow): 'row' is already declared in the upper scope. help: Consider renaming 'row' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:178:57: error eslint(no-shadow): 'row' is already declared in the upper scope. help: Consider renaming 'row' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:178:120: error eslint(no-shadow): 'row' is already declared in the upper scope. help: Consider renaming 'row' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:225:11: error eslint(no-shadow): 'inwardAngle' is already declared in the upper scope. help: Consider renaming 'inwardAngle' to avoid shadowing the variable from the outer scope.
+scripts/qa-mantis-precontact-motion.mjs:178:14: error unicorn(consistent-existence-index-check): Prefer `!== -1` over `>= 0` to check non-existence. help: Replace index check with strict equality check

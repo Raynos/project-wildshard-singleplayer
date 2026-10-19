@@ -1,0 +1,62 @@
+{
+  "status": "17/19 functional checks; early/late hit attempts failed; independent review pending",
+  "files": {
+    "tmp/mantis-precontact-capture-run2/render-trace.json": {
+      "sha256": "8e48ee230fe7bf739b0303ba3c0463c087bea9778828f8d19b42c2f5d1558826",
+      "bytes": 27955938
+    },
+    "tmp/mantis-precontact-capture-run2/entry.jpg": {
+      "sha256": "aa4111338c2d4fc4188c65e7f060c0f7dcab968fadbacc772cbc5aaa852b134a",
+      "bytes": 61157
+    },
+    "tmp/mantis-precontact-capture-run2/reload-reentry.jpg": {
+      "sha256": "14373d92eb45aba9a975aba5a1974638df8667c72a4e86a284e14e62d28de1ef",
+      "bytes": 67615
+    },
+    "tmp/mantis-precontact-capture-run2/player-defeat.jpg": {
+      "sha256": "2776dc657654deceb52c536922db820f3ac87bb586b78653a9dc394c979ba044",
+      "bytes": 63771
+    },
+    "tmp/mantis-precontact-capture-run2/two-strike-cycle.jpg": {
+      "sha256": "c4bd808406bd94b8840e5e701e5f70039046ea2d5e63aa44eddae1721204aa66",
+      "bytes": 54808
+    },
+    "tmp/mantis-precontact-capture-run2/damage-events.json": {
+      "sha256": "9304b02d821f8fab4945e005f977ccc8f2353ba9a36480eb623bbe7968af6682",
+      "bytes": 153762
+    },
+    "tmp/mantis-precontact-capture-run2/retry.jpg": {
+      "sha256": "ef2212d8296d474f5f415b1b0e7b911e196ecc898767d5329d56760e1f577a4e",
+      "bytes": 59912
+    },
+    "tmp/mantis-precontact-capture-run2/late-windup-hit.jpg": {
+      "sha256": "b64cd908ba619c5a193ec58cfeb21fcdd49cff04b8b8009eba037d2acf970427",
+      "bytes": 59470
+    },
+    "tmp/mantis-precontact-capture-run2/report.json": {
+      "sha256": "be08ff7c71b4d4869b4cd3410eeb5fae464de65b8c6a97e29ff215af13075ee0",
+      "bytes": 805247
+    },
+    "tmp/mantis-precontact-capture-run2/early-windup-hit.jpg": {
+      "sha256": "1fe533bc7d2506c30439480414ea9e70243f0c7de0be4d0d5829eb9b0442f97d",
+      "bytes": 58977
+    },
+    "tmp/mantis-precontact-capture-run2/hit-events.json": {
+      "sha256": "5c6dff8e59c2e4f56648f08d6a459386435d18e269d4d8f51d8bc9038cbdbbb7",
+      "bytes": 48946
+    },
+    "tmp/mantis-precontact-capture-run2/aim-events.json": {
+      "sha256": "37ef49e402793b6887bb70701388b3f00f39c8ad4cbafbbc407d00337a2fdbdb",
+      "bytes": 5015
+    },
+    "tmp/mantis-precontact-capture-run2/moving-death-settled.jpg": {
+      "sha256": "13daeb9ca42f766bc4f1994dd7e9adad2270195c8b8f9acd0185347f4168625b",
+      "bytes": 54825
+    },
+    "tmp/mantis-precontact-capture-run2/video/page@46136c48fee0169faab60401ff101ed5.webm": {
+      "sha256": "130fd5eeca4507c74e133bb7d3766709119fab9bee8f9ed43154df642bc26821",
+      "bytes": 16976191
+    }
+  },
+  "nativeSiteOriginals": "source-evidence/mantis-precontact-candidate7/run2"
+}

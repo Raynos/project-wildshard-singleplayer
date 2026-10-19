@@ -1,0 +1,20 @@
+[
+  {
+    "path": "docs/reviews/mantis-precontact-independent/source/focused-01.txt",
+    "rawSha256": "b143e33f1043e4d9c683a4f44948463ebde9f589c5cf642753fdcd73360ba95a",
+    "screenedSha256": "da86cb95a17f4effb840c5b2747da79bfd3c7be7508c696d1acd23f49f34f9e9",
+    "changes": "Replace executor-specific repository prefix with <repo>; trim trailing blank lines only"
+  },
+  {
+    "path": "docs/reviews/mantis-precontact-independent/source/focused-02.txt",
+    "rawSha256": "f65e2264d9183b09f9a71d8b9f618732d12774646d38a6dae392b02c00d70db2",
+    "screenedSha256": "f69e5cfcc62710134c8492c3977829e569b6259667843c0c32e7a28957fc03ab",
+    "changes": "Replace executor-specific repository prefix with <repo>; trim trailing blank lines only"
+  },
+  {
+    "path": "docs/reviews/mantis-precontact-independent/source/admission.txt",
+    "rawSha256": "6d9697fbb0222ca94a92c3dc7a16a7927b68278c8d8dcea10be51aa5245d116d",
+    "screenedSha256": "6d9697fbb0222ca94a92c3dc7a16a7927b68278c8d8dcea10be51aa5245d116d",
+    "changes": "Replace executor-specific repository prefix with <repo>; trim trailing blank lines only"
+  }
+]

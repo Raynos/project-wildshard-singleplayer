@@ -1,0 +1,8 @@
+[
+  {
+    "path": "docs/reviews/mantis-precontact-capture/app-build.txt",
+    "originalSha256": "83d7587b3c58b524503273072d8fe4903569a92d8307eba68b2b76dcb6cb132c",
+    "sha256": "aadffabb1feacede1a9694f7dda0086a61595c0d46abc874442ed804093d1f2d",
+    "change": "Trailing line whitespace and empty EOF lines only"
+  }
+]

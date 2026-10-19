@@ -1,0 +1,750 @@
+{
+  "createdAtUtc": "2026-10-19T11:30:14.736167+00:00",
+  "sourceInputsUnchanged": true,
+  "files": {
+    "tmp/mantis-precontact-dist-capture1/practice.html": {
+      "sha256": "2bee84ca57485aa61ad1d288e316886d7e7059580226255b26f161c0f0c4499f",
+      "bytes": 1579
+    },
+    "tmp/mantis-precontact-dist-capture1/index.html": {
+      "sha256": "2bee84ca57485aa61ad1d288e316886d7e7059580226255b26f161c0f0c4499f",
+      "bytes": 1579
+    },
+    "tmp/mantis-precontact-dist-capture1/mantis-preview.json": {
+      "sha256": "32439dea716983ace271ff48afc75db7bbfab2e939b9e5d94dd3085ed18b8f7c",
+      "bytes": 4286
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/emptyLook-ByH8maKc.js": {
+      "sha256": "bd14a78f86e6398c3ff52da8cde487cb9e3b75caaacb698d14be9f7e2e631f4c",
+      "bytes": 67
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/presets-CY6YlZKC.js": {
+      "sha256": "3a8bf296369b049b88d3992d53844250c4352d6f71e5fd6bf301612b93c998ea",
+      "bytes": 27869
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/weaponFamily--WGJDdfV.js": {
+      "sha256": "285e6dd991c66f0f2cb69f396122e9a825bdbe78dbd16116bb4f6ea711e7c117",
+      "bytes": 29090
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/declaredBank-SnReBuf7.js": {
+      "sha256": "9ca0338b9a6cca3c7df54c4c8ccd9be4313baa2b044fe0498cab713387fc5478",
+      "bytes": 16924
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/GLTFLoader-CitLpWWm.js": {
+      "sha256": "ce5b6bdf4c659e9967666d276c31fbabc06584277149c0f32ee7e5fd874860c3",
+      "bytes": 69
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/lastEnd-ysVx8NxG.js": {
+      "sha256": "9ba0ad73a52e22eb9e2b694440e9dd700c7719f82904062c9260eb9fa71d35a7",
+      "bytes": 23915
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/prod-C5nMThY5.js": {
+      "sha256": "9cacb5d99e9391d67fa860cf4b7388812eb202e10d80e2f33666f8ac7f6c0a28",
+      "bytes": 416263
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/nodeCoarseMask-BL9dSruf.js": {
+      "sha256": "c9e6b79ff809441b9eae829bec23c8aaa0d10fa6f2254d8321d18033c9e8f0f2",
+      "bytes": 95
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Stems-BP1C7QL8.js": {
+      "sha256": "ef409f5b5573eba6bd50ef08fb3e1c6d8cecbef266e04072ff5ae7041ee2cd1c",
+      "bytes": 222
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/look-kfiySceg.js": {
+      "sha256": "57d538610100e48773c1c4c244f7e5b448a416afa332f5ea475e70e8a3c92f77",
+      "bytes": 66
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/client-BmdxTjmj.js": {
+      "sha256": "41684854e122fbafe31f8ea4791b4df95c60c474a3d2b20c4eac7e10e93477c3",
+      "bytes": 97607
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/imageDecode.worker-ZOU3pmld.js": {
+      "sha256": "3e4a75a497bcb0297a976855ce5083de46fa0c76e726c018b38a8746b1b4e73e",
+      "bytes": 576
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/dayCycle-e1TDlXAt.js": {
+      "sha256": "92d7c55e2ecdd130c63c3fc488632ea5d2acdddfe0786f904674f8fbc7258531",
+      "bytes": 6203
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/practice-CJUP7--h.js": {
+      "sha256": "0989aabf4617cf52aacce06981af7158b08192f189e66256ae051b0db11d13a1",
+      "bytes": 268193
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/precompile-BiQ3I_76.js": {
+      "sha256": "3c79fae6b8a94356f008534cc0ad7c4016d1035966e8b541fdc1ad7da9f69cea",
+      "bytes": 20838
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/geometryBounds-DSkLFGUo.js": {
+      "sha256": "97f301d9d171cf419a123117f736db5ee88c123b619013730437aa2a41c64e06",
+      "bytes": 42251
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/basis_transcoder-o4Hde_L7.js": {
+      "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1",
+      "bytes": 57529
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/meshopt_decoder.module-DDLmvpjg.js": {
+      "sha256": "4ee55c80aac81445136f4cfdb9d133e2d577128af02cab14ba2f0b59e5cfdea8",
+      "bytes": 26473
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Stems-DE3H66hs.js": {
+      "sha256": "1ba8be69aa4fef594e8fdb9e98b923d9bb35fcc6f1cfd8b5b19f1d9cc513c193",
+      "bytes": 22851
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/bootInbox-ZfWFO76m.js": {
+      "sha256": "ac62871ae671263cc3c7640eb60542179426a08073ea8a7245af4cdfb2952f2f",
+      "bytes": 434
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/emptyEquipment-fBwmFmVX.js": {
+      "sha256": "64d7142376901b669562711949e8f2ad511c62c7f33089fa4ed00ff208957c24",
+      "bytes": 77
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/declaredBank-D0qtdV6r.js": {
+      "sha256": "ad494868930b00f7fc7765a6a594741814fcea27b004f7a4203cd29ab805b014",
+      "bytes": 78
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/lentLooks-B-Im59pf.js": {
+      "sha256": "dc37b3ad69986971520a92fe480da7286a68fb8e519de28bdb632d95efe366d8",
+      "bytes": 39646
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/three.core-BNyAOcZ3.js": {
+      "sha256": "b2355b82917341d4899142d5da57d60534f44ac9f9660be34902cbdffcc3df52",
+      "bytes": 295588
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/materialGraph-CteREh-_.js": {
+      "sha256": "e1d32c6650c335b07ff3280b31b757015bc614ee9fc6de3328049561d202d008",
+      "bytes": 32819
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/practiceBoot-BUtD8QJP.js": {
+      "sha256": "db9ab1bb87c57edec815302036e4d8fb62eb3117ef143a5faacd9db1c06bb307",
+      "bytes": 760031
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/memoryResources-ConTL0Oo.js": {
+      "sha256": "e616349a08bb52a53a29265a8ba9bda4bfb17d5dacede6d0448d96b65ef296a0",
+      "bytes": 487
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/wind-CDg_obA2.js": {
+      "sha256": "ea7250436613955af8349386e4fa5901e08b08927350be4597f4a25a0876b30a",
+      "bytes": 1276
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/runtime-Cwyjp-fC.js": {
+      "sha256": "dd6bc00f7b35fdadee38604a87a13c4299b80b4826a0e7e2cf5495c6e4d13fee",
+      "bytes": 81883
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/runtimeProduct-DqlabFPi.js": {
+      "sha256": "e14146c61c1e2a652ff73ad172f7a79b57bae3e07aa520db5a31bc94532d7971",
+      "bytes": 1030512
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/rolldown-runtime-DK3Fl9T5.js": {
+      "sha256": "a526d1bb3288ef04d001028843220a24b0867a4edf8c685b69506d6525af36ff",
+      "bytes": 158
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/json-Dr12Y27u.js": {
+      "sha256": "eea02dcf802f1d98069fced3f139e705786d8ea18a9b4e55fbc4cfac0d0e5a15",
+      "bytes": 723
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/precompile-TnTra7a9.js": {
+      "sha256": "80977a5dfcee971e3a2300e7a5570a7a41ab1e7566bcbcf9a283771c87aa3e97",
+      "bytes": 651
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/audioLog-CNEZ94zn.js": {
+      "sha256": "5ccb4d88b22da897b88e0c78647d5d774f339ef6e236f73002bbc893651feac4",
+      "bytes": 65
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/contentCache.worker-DDj1l_TA.js": {
+      "sha256": "426f44e00cba764c61a0b3a577dc9ce12bf6cab666d8227e4b2591a55291c9d0",
+      "bytes": 23425
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/tables-HCOmEZXl.js": {
+      "sha256": "af54b257023b15c30d87f1bf531759b3159c679fd82a02bf8d261b3c4ee2e247",
+      "bytes": 192
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Settings-Ba1njlcr.js": {
+      "sha256": "97cc451e4b8261a438ba66e5c1b57d74267d668fb0f6acd2a8a607bdc0946220",
+      "bytes": 39453
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/ui-BvuHKfi2.js": {
+      "sha256": "d695de4bc01e3291b67ceca1cb1242cbbdfc609bfd2e974fe41154b9db03aa99",
+      "bytes": 276696
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/look-CiNRz9IT.js": {
+      "sha256": "40a4dffc63c6ff73a570b785b750675e1edc9e963195b4074cde3604a2a9acc6",
+      "bytes": 368
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/toon-CxxpQCSA.js": {
+      "sha256": "155c75430da32ed6ea5e34158aa36b235e98a90338e924e6699e812046fe9ff5",
+      "bytes": 14099
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/memoryAttribution-DlUGm6mv.js": {
+      "sha256": "0066d7b47a82eed6166f75ec0dc8f308b262890713e60220d6baa65d56c9b745",
+      "bytes": 2686
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/dataLook-CdhG-zcg.js": {
+      "sha256": "e6311663a299aa98669120e8b8d082f9f5f8884512e3dcd682487fb0ee52c71b",
+      "bytes": 14215
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/meshopt_decoder.module-CwO9m-VD.js": {
+      "sha256": "a52ffc6b3d679a8e65f8ca912977e9e5374008fa5679a8d3ff0eb8a7e1e8da46",
+      "bytes": 85
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/ui-CtJvgiEL.js": {
+      "sha256": "51883a7cb9c03c78c8fcfd8b9d58c842368eaa183648f6461e1fe139c9d4aed2",
+      "bytes": 1631
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/GLTFLoader-DnZ_kjM2.js": {
+      "sha256": "5f8a416c5e71cfbe15302f9cdffc4eea24af179baced5954d606e6ff2cd41c55",
+      "bytes": 48974
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/clientPlan-Dri7obPW.js": {
+      "sha256": "bbf255918405c4e1cec17b231cf3d0b9722eb3254244e32db95f1a1e205a9f27",
+      "bytes": 30001
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/postPreparation-BM0ovkLk.js": {
+      "sha256": "dbe0bf289be1c40b279c4e1ee78835e9c92c68f29daa064bbc411a7b7442158c",
+      "bytes": 1702
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/audioFiles-qkO2QM1B.js": {
+      "sha256": "6fba055429811638cf5d6acb6f6776f7c048f2412505f2da939cc2ea673fdace",
+      "bytes": 174
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/postPreparation-BECjvRCN.js": {
+      "sha256": "7f0fec95b1e2041de178031506d6aadb1fb1717b43be53c8d656583bd31bd3db",
+      "bytes": 101
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/clock-B53qIMMf.js": {
+      "sha256": "cf789c2a3e16ac707892818adf51a861174ea12d430deff1b142664e6bf69236",
+      "bytes": 5278
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Tool-jTOctduU.js": {
+      "sha256": "98795c79e3bebdf731da92cee8c364652a864c1f09b36bb16cab10d9e08d9520",
+      "bytes": 75
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/audioCatalogue-B3god8Yx.js": {
+      "sha256": "9a5dec76b22377edf9572f296631d83e08cbef28fb816d2a528c92ecc6d0e86c",
+      "bytes": 5639
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/audioLog-DDd08KrP.js": {
+      "sha256": "12ce81990e69112b82808c6eb9ff488e1284e92d02ec95c7e37eded31fd993f9",
+      "bytes": 239
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/basis_transcoder-VXdx5NbI.wasm": {
+      "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+      "bytes": 527333
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Weapon-CNKF6Yh8.js": {
+      "sha256": "6ed78ceb6fe4d4c09231e6f10f5cdf28c501e0bc66e4b3c7eacd2cb049ff6a13",
+      "bytes": 2072
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/scope-CDMJThrF.js": {
+      "sha256": "a7a5da789f4e0a772701b57c62a8e5004bf4f6ed35dfed97300be3eb54e306b0",
+      "bytes": 8176
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/runtimeProduct-rjix3kFr.js": {
+      "sha256": "2ea6e38406707152070384b5491dbaaca7da5c4765e639ae67aaeef783979a63",
+      "bytes": 141
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/shadowDepthVariants-BoIU_3-F.js": {
+      "sha256": "36bdae70b852f7d93bc4e2db4db1aa05fb633dc94def330bba13fee2e06a60a4",
+      "bytes": 87
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Cues-C8khGTWM.js": {
+      "sha256": "c4cc0a6963cf2d2bca2ca5194293d779ca179a2221cc781817692a3d2e56fb7b",
+      "bytes": 6096
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/emptyLook-D2dy-xuz.js": {
+      "sha256": "cc4bc53d71c3df4b84092b320fcd53559fea3c6a41119085cb2348c8cb46cbc8",
+      "bytes": 744
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/preload-C6UfVI9Y.js": {
+      "sha256": "7fb60d3a15342fe53a4974231a04dec53a7f5e885cd3f799f731a5c6ea38c2e1",
+      "bytes": 4422
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/hybrid-BIeCxNCE.js": {
+      "sha256": "388ae86533e4546ab2dde5d6efa041338a9d476a1f7c3015f284ce34a710aeb8",
+      "bytes": 9267
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/engineNodesHandler-DjEBngml.js": {
+      "sha256": "4579549ff131d772ae639fc310ced5996f57e2602345b0a31d37de6860a6e269",
+      "bytes": 85
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/SetScore-BZMr4R4o.js": {
+      "sha256": "0b72d00c9904815c71323036059455469b4d97e12d60e9637405b87dcab85c87",
+      "bytes": 155
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/shadowVariants-kzUh2vEP.js": {
+      "sha256": "067de742b01c0e0b3a7ac8ad0688072b16c4195f4a530352538f35670fd00faf",
+      "bytes": 1872
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/preload-drN_TLUh.js": {
+      "sha256": "cafd389f9da1f678e2acf933b47372dacdc2f4d8d284d7484e2e73dbf6cdc932",
+      "bytes": 237
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/emptyEquipment-AHpV0mQX.js": {
+      "sha256": "bd04bc2516349bd0d62b106150c3edcf408da1ef70f9a9dfeab4d6ef1fc2aafa",
+      "bytes": 506
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/time-BpfsQkaN.js": {
+      "sha256": "6cf2a09b2b1c563ec1b5374b1112d8dcd2b4a6c19eca626e3604ccabfb03a77d",
+      "bytes": 8414
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/shaderPatches-CWlvy5Ya.js": {
+      "sha256": "3c6fd4536de9e2424e72c6c456a571a2a7c9c04f09bb910757e803bfca2413da",
+      "bytes": 355979
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/engineNodesHandler-CyBqbEWe.js": {
+      "sha256": "0d417f65fb7bf8a09b20dd9be730fc6eb4b5d4c7a7154978a63c610a61b57572",
+      "bytes": 428364
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/graphBackend-DRlJv15G.js": {
+      "sha256": "10cdb6d03e6ff4ccc6e29ad10d74aad2034b9edc38815d96b02a666ac3e48eac",
+      "bytes": 82
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Cues-T1jD2iTd.js": {
+      "sha256": "b224c2616e67c8951578a4162469fab88e7e881dfde8c09654ec294dd37eeb18",
+      "bytes": 246
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/compile-CXrr4yNF.js": {
+      "sha256": "67336e98c17b9861041a96f6025611cbc82839adc09921a0c61b9ca9ba9baa71",
+      "bytes": 32451
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/audioFiles-BiiXIQZo.js": {
+      "sha256": "b0dd36d6a14d7f629f10fd4e1b6a86f87a75c36431a870f83e004fb6255a3378",
+      "bytes": 1228
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/style-3STfMJLR.css": {
+      "sha256": "651a2e309885a2cea80b9c58bbb49a322135242f2511c04c37de55832f4ff2bf",
+      "bytes": 102553
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/SetScore-Dw97jfuc.js": {
+      "sha256": "337c9359e8bbe754d94829e9621b52db81c146350668def0f87fb51a2eed095e",
+      "bytes": 10825
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/preload-helper-uBIymjUX.js": {
+      "sha256": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00",
+      "bytes": 1233
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/Settings-KVQPvcR0.js": {
+      "sha256": "fb6addcaeef9ad8a84b7b2a35abed499450c2065c5fbbf78097873da6fe1de3a",
+      "bytes": 676
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/shadowChunks-B0x8A1LY.js": {
+      "sha256": "d7c94406cba1fc9077da1ac95819be2a170947f44982ef16342f1726e675cc55",
+      "bytes": 3114
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/tables-BovtVlAx.js": {
+      "sha256": "d6476fce97ab773a05714c5cfab33157ea8fafc70ce4e19a65e6a4aefd98920b",
+      "bytes": 430
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/nodeLayerFrame-PqqyriBq.js": {
+      "sha256": "9bf4a74a1a08abac2ee9f536aed5eea4ad6634554ac5908867a1c3dc3560fff9",
+      "bytes": 5668
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/parkedDraws-BMweEpPU.js": {
+      "sha256": "0a5bbfbd97f884aba360d36009dc6656e8b6e6844a4e6cca92f051302a806dda",
+      "bytes": 7387
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/registry-DYBV1Kl9.js": {
+      "sha256": "a4810c56dad6d348de30bfac532e31ac78456580d91f4e0648188d034db5ae07",
+      "bytes": 93192
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/graphBackend-TWaz1L3C.js": {
+      "sha256": "0eecd6a78422110aa1a9b4d3d6f51c8cea98463cb483039900dbc937f6e94ad3",
+      "bytes": 2914
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/build-CehzHm6x.js": {
+      "sha256": "7f5f2158d984caf245ab2dd3c9c687c40b39dfb26396043126ad4ed3938e978e",
+      "bytes": 190130
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/shard.json": {
+      "sha256": "dd9668637405fbf924c8d7d2e9a0000c5ee17760a7843841e98a99753d0145a1",
+      "bytes": 9948
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/validation.json": {
+      "sha256": "063174afec5aae5c736a5f5f2f61a97c0d200b66b5ece854359678829f748c65",
+      "bytes": 853
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/driftwood-isle/mantis-native-dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2.bin": {
+      "sha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+      "bytes": 28370
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/physics/rapier.wasm": {
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f",
+      "bytes": 3292228
+    },
+    "tmp/mantis-precontact-dist-capture1/assets/models/driftwood-fp/fp-arms.glb": {
+      "sha256": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+      "bytes": 373240
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/sim/client-scripts.json": {
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "bytes": 46
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/sim/scripts.json": {
+      "sha256": "99fa420a290764601680ea806c3e2ea468d00db83f30892a0b89831a7dc4017d",
+      "bytes": 1347
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/sim/plumbing.json": {
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/sim/hooks.json": {
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "bytes": 40
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/sim/sim.json": {
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "bytes": 111
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/state/migrations.json": {
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/state/state.json": {
+      "sha256": "7e19f30b5eda8a7799d568cc668e3cb5e557d3684006df599cb13166c91655b4",
+      "bytes": 564
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/tiles.json": {
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/props.json": {
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "bytes": 15
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/weather.json": {
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/movers.json": {
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/water.json": {
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "bytes": 13
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/edge.json": {
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "bytes": 16835
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/days.json": {
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "bytes": 21
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/traversal.json": {
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "bytes": 30
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/spawn.json": {
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "bytes": 38
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/terrain.json": {
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "bytes": 37
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/collision.json": {
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "bytes": 23
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/world/navigation.json": {
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "bytes": 20
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/combat/encounters.json": {
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/combat/items.json": {
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "bytes": 103
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/combat/strikes.json": {
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/look/look.json": {
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "bytes": 6557
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/look/materials.json": {
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "bytes": 22
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/ui/card.json": {
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/ui/ui.json": {
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "bytes": 52
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/ui/compendium.json": {
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "bytes": 28
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/creatures.json": {
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "bytes": 52
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/crowds.json": {
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/strikes.json": {
+      "sha256": "877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3",
+      "bytes": 589
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/moves.json": {
+      "sha256": "26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742",
+      "bytes": 193
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/species-programs.json": {
+      "sha256": "7a0e6e1d2e47ce3a0c4e1ad7519d7abe7b6ffc5be1fd545d69e78333b116c848",
+      "bytes": 1346
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/species.json": {
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/actors/spawns.json": {
+      "sha256": "ca60e280d81a9d05f3747edab3d5a8e5a4d94588035a7f3d122762709755f74e",
+      "bytes": 163
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/audio/audio.json": {
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "bytes": 68
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/quests/quests.json": {
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "bytes": 64
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/held/arms.json": {
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "bytes": 895
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/economy/ledger.json": {
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/sections/economy/loot.json": {
+      "sha256": "a15429ab370c63a3fb7b3f5b3eb61854ff335c06eb1d49b2aa827c1d29e0b97d",
+      "bytes": 435
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm": {
+      "sha256": "45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1",
+      "bytes": 8810
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json": {
+      "sha256": "730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40",
+      "bytes": 450
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json": {
+      "sha256": "9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329",
+      "bytes": 60570
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json": {
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "bytes": 2520
+    },
+    "tmp/mantis-precontact-dist-capture1/practice-product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json": {
+      "sha256": "ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe",
+      "bytes": 8213
+    },
+    "tmp/mantis-precontact-native-capture1/preview.json": {
+      "sha256": "32439dea716983ace271ff48afc75db7bbfab2e939b9e5d94dd3085ed18b8f7c",
+      "bytes": 4286
+    },
+    "tmp/mantis-precontact-native-capture1/pack/metadata.json": {
+      "sha256": "8c285beec0a773327772546f347dc55dd70321c0c2a0f4341e80dff90a11018d",
+      "bytes": 8212
+    },
+    "tmp/mantis-precontact-native-capture1/pack/payload.bin": {
+      "sha256": "dff33ee217c763612d0ce3fad9c3627ea4414454e074fc092e1c86775ba192d2",
+      "bytes": 28370
+    },
+    "tmp/mantis-precontact-native-capture1/product/shard.json": {
+      "sha256": "dd9668637405fbf924c8d7d2e9a0000c5ee17760a7843841e98a99753d0145a1",
+      "bytes": 9948
+    },
+    "tmp/mantis-precontact-native-capture1/product/validation.json": {
+      "sha256": "063174afec5aae5c736a5f5f2f61a97c0d200b66b5ece854359678829f748c65",
+      "bytes": 853
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/sim/client-scripts.json": {
+      "sha256": "96ca7bb6c48e37e6ffdcf1fd2a08c138813a7936a692e4443b2af80fbd8b0dfb",
+      "bytes": 46
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/sim/scripts.json": {
+      "sha256": "99fa420a290764601680ea806c3e2ea468d00db83f30892a0b89831a7dc4017d",
+      "bytes": 1347
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/sim/plumbing.json": {
+      "sha256": "ef1ec9a322930a708b06353447b0c3b429ed8ff78da298112807856c2201a2ea",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/sim/hooks.json": {
+      "sha256": "9d1af184e2a4c934413e0a94292c6cfed0e5b3cb4e1c2c3ff9ed826f8817df10",
+      "bytes": 40
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/sim/sim.json": {
+      "sha256": "cf828c4acbaf1d8feb5e93f858a8dd2930b31839befed5d50d56aebb2ac2feb0",
+      "bytes": 111
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/state/migrations.json": {
+      "sha256": "0640fe767a5ac531b711035828569cc2a14bada77c8b8ef399921ce00837d65c",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/state/state.json": {
+      "sha256": "7e19f30b5eda8a7799d568cc668e3cb5e557d3684006df599cb13166c91655b4",
+      "bytes": 564
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/tiles.json": {
+      "sha256": "58750f359d78d421e87aabceef64a3188c64f0708e200eff8ca3d2d9dd9f4f95",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/props.json": {
+      "sha256": "a0a940f403f1fcceaced5da77ecb29971d7d8c01058de4c56d9d3fa254da3a59",
+      "bytes": 15
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/weather.json": {
+      "sha256": "df6942efc7fa07ab65dcfa68ef8b959465405b01b1aff83988a75cf9574b62c2",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/movers.json": {
+      "sha256": "4014410241ddfc49810f4c199e9d9379a9611e6d73f1bc978432d6184c2bc11b",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/water.json": {
+      "sha256": "8bdb144e458755d553027c917e971d9cfcbb206c05145ffeac3fe3834dd2299d",
+      "bytes": 13
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/edge.json": {
+      "sha256": "972e8a7775a9e1b816916a3c3fc8ec885d8c0f6734756dfd387609b23773f711",
+      "bytes": 16835
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/days.json": {
+      "sha256": "bebed3913ec3c4484a65670cc6b62ec4c250859bb07683faadb21302f622b842",
+      "bytes": 21
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/traversal.json": {
+      "sha256": "7049bdc5a15d9787e758717475c8755a909fa797db88ad0e5f5ccda3ed523078",
+      "bytes": 30
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/spawn.json": {
+      "sha256": "642d4ad3a152dd2386e8523c9a3a91c3e50e54bf04910b39c20f6b36b2ece2c7",
+      "bytes": 38
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/terrain.json": {
+      "sha256": "92a9c7dc6315b759465a034333197ab313bbb6db9970dc197af89a0d99fdba2e",
+      "bytes": 37
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/collision.json": {
+      "sha256": "98a5d49a289309b3880c9994b835dca241429e85de04460883bb011290e8020e",
+      "bytes": 23
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/world/navigation.json": {
+      "sha256": "db93316d7b06c3acbe809918bfbff596b5fc5c52cb7087e57844f6c20ff194c5",
+      "bytes": 20
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/combat/encounters.json": {
+      "sha256": "cbd1235a9eff2d868202a6739e4e37fc04b8127c0953d6503fd30446af1de3ca",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/combat/items.json": {
+      "sha256": "2042fc5d8fe882ec631844760b6f5a1383974c9b3a2304e721ace2c021f364ca",
+      "bytes": 103
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/combat/strikes.json": {
+      "sha256": "396a1b335f62862a774eaebf0d3fe63387d910dccfc37d448da3bee9015e312c",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/look/look.json": {
+      "sha256": "beb9da1be912cda899beea2ea68680ae79789214d91f84927606e278a9b351d6",
+      "bytes": 6557
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/look/materials.json": {
+      "sha256": "c2539264e092f8e91504b2468751c7de86145d0685e75f1f547bccbefc3ce4c7",
+      "bytes": 22
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/ui/card.json": {
+      "sha256": "1f4c256bfcf181fe91789dac073c775effe0a52e59f7cc0124b2e0967e2f401b",
+      "bytes": 18
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/ui/ui.json": {
+      "sha256": "a6677004c77cdc0a6336b8af8a2ad8e6bfb631f5bce61b8017c637499c30eab3",
+      "bytes": 52
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/ui/compendium.json": {
+      "sha256": "0ebfc82b1f9b2fa3045abd101af3bbbf246777dafec72ea68f9038d4a129b214",
+      "bytes": 28
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/creatures.json": {
+      "sha256": "c89f13d2a87f596635a76f669de79c66358495f2db610d80e1ddfc3f2270af84",
+      "bytes": 52
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/crowds.json": {
+      "sha256": "bc07b9f627a5b920815dd1a24636ddf5579b04c72d2f36a71fe3ce84771dcf96",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/strikes.json": {
+      "sha256": "877fd248257fc656bd87d11ffb51f532e238fdf9a94887c9003f371984dcb5c3",
+      "bytes": 589
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/moves.json": {
+      "sha256": "26bbbe45c93635f1d17e54dbb9139385b383d73b7ec0a524de950a0a0181d742",
+      "bytes": 193
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/species-programs.json": {
+      "sha256": "7a0e6e1d2e47ce3a0c4e1ad7519d7abe7b6ffc5be1fd545d69e78333b116c848",
+      "bytes": 1346
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/species.json": {
+      "sha256": "f955f74aafe92805753aef2a4302b577bb3826589e0d2df1a3aef643f3cf9ca7",
+      "bytes": 24
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/actors/spawns.json": {
+      "sha256": "ca60e280d81a9d05f3747edab3d5a8e5a4d94588035a7f3d122762709755f74e",
+      "bytes": 163
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/audio/audio.json": {
+      "sha256": "2c3a887650e0c4b9fccb5ce3096980f64abf6c86c4161b83055da33c92fa8543",
+      "bytes": 68
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/quests/quests.json": {
+      "sha256": "aec9343f24d95b46013519f09ddce7ad3d06c52650b1bbbbaac174e8fe05e3eb",
+      "bytes": 64
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/held/arms.json": {
+      "sha256": "09b3b8a5b56ee70fde66bb25e9efa4cb8f1f7c9301c34295662a95974d0da4d1",
+      "bytes": 895
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/economy/ledger.json": {
+      "sha256": "929a5a4588a4e696d287046e1a4778119b02abff9eac9df5f623b675a753b88f",
+      "bytes": 14
+    },
+    "tmp/mantis-precontact-native-capture1/product/sections/economy/loot.json": {
+      "sha256": "a15429ab370c63a3fb7b3f5b3eb61854ff335c06eb1d49b2aa827c1d29e0b97d",
+      "bytes": 435
+    },
+    "tmp/mantis-precontact-native-capture1/product/blobs/wasm/45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1.wasm": {
+      "sha256": "45993c383b856f95a6589b213e8e36c409bd0dd0f37aca3204aa55a9c9397cb1",
+      "bytes": 8810
+    },
+    "tmp/mantis-precontact-native-capture1/product/blobs/json/730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40.json": {
+      "sha256": "730500950cbc6838bb1045d2a4965f46ca682f5a607310fbc6d64d7d38878f40",
+      "bytes": 450
+    },
+    "tmp/mantis-precontact-native-capture1/product/blobs/json/9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329.json": {
+      "sha256": "9ee6d662a8a4ce0adfb4a4220dc3f883a8f47c38922fc9733c6c9808b295b329",
+      "bytes": 60570
+    },
+    "tmp/mantis-precontact-native-capture1/product/blobs/json/4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635.json": {
+      "sha256": "4c83c7004676352f3286b0d1d683eda67bcb97cde467e72cdddf29ec13853635",
+      "bytes": 2520
+    },
+    "tmp/mantis-precontact-native-capture1/product/blobs/json/ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe.json": {
+      "sha256": "ce9dc58febb6dd280af2fb1e58bc6fe75e8f0cda792c31acdc0fdcf7525df2fe",
+      "bytes": 8213
+    }
+  }
+}
