@@ -1,0 +1,56 @@
+{
+  "schema": "wildshard.colossus.visual-preparation-closure.v1",
+  "status": "source-preparation-only; no build/browser/Blender or repair selected",
+  "files": [
+    {
+      "path": "docs/reviews/colossus-native-visual-diagnostic.md",
+      "bytes": 6197,
+      "sha256": "bf5962c835798ee1cdcf7fe8f503ce6ff62756ffac0522832dadbf57ab94d0da"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/analyze_seam.py",
+      "bytes": 3695,
+      "sha256": "b33007562fbf328933addfd0730b5c7e41daffec16b7a71a71787a00b04d0dfa"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/capture.mjs",
+      "bytes": 7196,
+      "sha256": "a5609f2329150b0939bba09ba469eeeaa9b575d079f10c7527d06606792df964"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/diagnostic.ts",
+      "bytes": 4086,
+      "sha256": "04b48e9d6643c23f5580647c609fb7e7ed31e562c14f868cd9a6f83f55bd2bf4"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/frozen-inputs.json",
+      "bytes": 7675,
+      "sha256": "8028506f14608f28aaf4e4848eae5936e342bfbdab8f96c260a61e0a89f3b3f2"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/seam-analysis.json",
+      "bytes": 3078,
+      "sha256": "41d4d40af80cf3ca63c6f7a5befeb2e19a92fc402b9d049a0ee07b0c1f042092"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/test_preparation.py",
+      "bytes": 1852,
+      "sha256": "1f2d43714deadecb73e0f62aa44b3bbd805dfa2841c368589e650a39bd85768b"
+    },
+    {
+      "path": "art/driftwood-isle/lowpoly-colossus/runtime-admission/visual/vite.config.ts",
+      "bytes": 604,
+      "sha256": "11287a88a8f78b5b3d7fc6133aa715483cb0dcf42e244a2ebe380a53f83c0cc5"
+    }
+  ],
+  "validation": {
+    "pythonFocusedTests": 3,
+    "nodeSyntaxChecks": [
+      "capture.mjs",
+      "diagnostic.ts",
+      "vite.config.ts"
+    ],
+    "typecheck": "not run",
+    "render": "not run"
+  }
+}

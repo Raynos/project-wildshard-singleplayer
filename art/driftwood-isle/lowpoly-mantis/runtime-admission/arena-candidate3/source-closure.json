@@ -1,0 +1,83 @@
+{
+  "schema": "wildshard.mantis.arena-source-closure.v1",
+  "frozenAtUtc": "2026-10-19T04:45:19.749050+00:00",
+  "files": {
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/ADMISSION.md": {
+      "sha256": "a1aae097c2b7da986a7d3843b05360111f26cf9692cb5a78c021bf74e6322f00",
+      "bytes": 1668
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/admission.json": {
+      "sha256": "6424c8c6b270bc7627e78aa5c6ccbd34b3295d8317b055672e2fe08d7456cb1a",
+      "bytes": 2951
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/dimension-measurement.json": {
+      "sha256": "4b8e0cb9115a152425c5dddbb856de4862e2f27ea41368c6b2809437767924f8",
+      "bytes": 1651
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/dimensions.json": {
+      "sha256": "e0bd5afc3bee321177aabe6caa2aaa87afd79c1152e3fe94c467d4a842c3a7cc",
+      "bytes": 327
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/local-envelope.json": {
+      "sha256": "9b82ac093e4420ac4a81782b53822292acfbb3862ba8b40d1afa89f53207cce5",
+      "bytes": 1248
+    },
+    "art/driftwood-isle/lowpoly-mantis/runtime-admission/arena-candidate3/metadata.json": {
+      "sha256": "66f5398fd85336b407ee14a7f249d90dace499d0fb55695771aaebf9aa28e88f",
+      "bytes": 8223
+    },
+    "scripts/build-mantis-phase-preview.mjs": {
+      "sha256": "2d97cdf2ba2f53e54ba2e4bb7e3a95351b4239ff37b337906aea4d7795fe618f",
+      "bytes": 5164
+    },
+    "scripts/mantis-phase-admission.mjs": {
+      "sha256": "862291c2d730b1be73025c3678b896fd36a031236d20964d232473c0b69e57c9",
+      "bytes": 3218
+    },
+    "scripts/mantis-phase-admission.test.mjs": {
+      "sha256": "c103a279cefd9c62d5e29f6a9da95d9af0f5bd80c2814ee2cfdc4b6f9abb446d",
+      "bytes": 1987
+    },
+    "scripts/measure-mantis-world-contact.mjs": {
+      "sha256": "4561f96859336b5f7a6cfce612427229f4fc61666f51b57a22407c2a6cfdc0c8",
+      "bytes": 3829
+    },
+    "scripts/qa-mantis-phase-motion.mjs": {
+      "sha256": "9e504a8f8b952f5dd3beca03e4a7910baecac96377a62d1ba39cd3c8ca37e528",
+      "bytes": 11763
+    },
+    "src/shards/driftwood-isle/behaviour/splinterMantisPhase.as": {
+      "sha256": "acd01e44c1954481889b80f285e5cd8986589dbf223edb7c64a56818316e1dd2",
+      "bytes": 2186
+    },
+    "src/shards/driftwood-isle/generators/mantisPhaseClips.ts": {
+      "sha256": "38acc74deb580af0ae26d4416f36de452f5b8ab24ccaf3c5c64313dc7e9fb65c",
+      "bytes": 8283
+    },
+    "src/shards/driftwood-isle/generators/mantisPhaseDecision.ts": {
+      "sha256": "321cb5d3bae727bb56168b5711c79813aa6db840ce2e0e5343e6b78f0d72d226",
+      "bytes": 1123
+    },
+    "src/shards/driftwood-isle/generators/mantisPhasePreview.ts": {
+      "sha256": "062f0be3ec32529ce29ea56ab4334d413ceabd71f7863f4579d396f5dbb3bb2b",
+      "bytes": 7658
+    },
+    "test/mantis-phase-decision.test.ts": {
+      "sha256": "d7cbd2b7d8e4899a21e069430dce9d6aa767c8235608ccdea08b1abee689df60",
+      "bytes": 5543
+    },
+    "test/mantis-phase-envelope.test.ts": {
+      "sha256": "7cb9dec06f14a43ea7f1c044327c21590452f7b97ce3e6003ef4ca1fa4f6059e",
+      "bytes": 4376
+    },
+    "test/mantis-phase-preview.test.ts": {
+      "sha256": "a3c5a58903dda1bb4e3aa146db812a7e2b1cf653ea2d94af986c483c91fc24cc",
+      "bytes": 7982
+    },
+    "vite/mantis-phase-preview.config.ts": {
+      "sha256": "1f38edc533f5eb68e24b465e41eb95662597772658096faef16efb71d31f0411",
+      "bytes": 7721
+    }
+  },
+  "note": "Final source after lint-only map construction rewrite; fresh exact admission build follows."
+}

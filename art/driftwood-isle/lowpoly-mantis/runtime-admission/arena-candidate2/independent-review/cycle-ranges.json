@@ -1,0 +1,86 @@
+[
+  {
+    "name": "approach",
+    "renderFrames": [
+      5,
+      64
+    ],
+    "encodedRange": [
+      124,
+      356
+    ],
+    "encodedCount": 233
+  },
+  {
+    "name": "first attack",
+    "renderFrames": [
+      65,
+      91
+    ],
+    "encodedRange": [
+      357,
+      461
+    ],
+    "encodedCount": 105
+  },
+  {
+    "name": "second attack",
+    "renderFrames": [
+      92,
+      117
+    ],
+    "encodedRange": [
+      462,
+      621
+    ],
+    "encodedCount": 160
+  },
+  {
+    "name": "recovery",
+    "renderFrames": [
+      118,
+      133
+    ],
+    "encodedRange": [
+      622,
+      698
+    ],
+    "encodedCount": 77
+  },
+  {
+    "name": "resume and reset",
+    "renderFrames": [
+      134,
+      151
+    ],
+    "encodedRange": [
+      699,
+      788
+    ],
+    "encodedCount": 90
+  },
+  {
+    "name": "hit sequence",
+    "renderFrames": [
+      152,
+      196
+    ],
+    "encodedRange": [
+      789,
+      979
+    ],
+    "encodedCount": 191
+  },
+  {
+    "name": "death and settled corpse",
+    "renderFrames": [
+      197,
+      243
+    ],
+    "encodedRange": [
+      980,
+      1176
+    ],
+    "encodedCount": 197
+  }
+]

@@ -1,0 +1,4892 @@
+[
+  {
+    "first": 0,
+    "last": 0,
+    "count": 1,
+    "ocr": ""
+  },
+  {
+    "first": 1,
+    "last": 1,
+    "count": 1,
+    "ocr": "Touch controls or keyboard and mouse."
+  },
+  {
+    "first": 2,
+    "last": 2,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 3,
+    "last": 3,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 4,
+    "last": 4,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 5,
+    "last": 5,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 6,
+    "last": 6,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 7,
+    "last": 7,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 8,
+    "last": 8,
+    "count": 1,
+    "ocr": "Loading the isolated arena..."
+  },
+  {
+    "first": 9,
+    "last": 9,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 10,
+    "last": 10,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 11,
+    "last": 11,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 12,
+    "last": 12,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 13,
+    "last": 13,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 14,
+    "last": 14,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 15,
+    "last": 15,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 16,
+    "last": 16,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 17,
+    "last": 17,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 18,
+    "last": 18,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 19,
+    "last": 19,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 20,
+    "last": 20,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 21,
+    "last": 21,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 22,
+    "last": 22,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 23,
+    "last": 45,
+    "count": 12,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 24,
+    "last": 46,
+    "count": 12,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 47,
+    "last": 47,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 48,
+    "last": 48,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 49,
+    "last": 85,
+    "count": 19,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 50,
+    "last": 86,
+    "count": 19,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 87,
+    "last": 87,
+    "count": 1,
+    "ocr": "ee, ee cee"
+  },
+  {
+    "first": 88,
+    "last": 88,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 89,
+    "last": 89,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 90,
+    "last": 90,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 91,
+    "last": 91,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 92,
+    "last": 92,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 93,
+    "last": 93,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 94,
+    "last": 94,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 95,
+    "last": 95,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 96,
+    "last": 96,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 97,
+    "last": 97,
+    "count": 1,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 98,
+    "last": 102,
+    "count": 3,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 99,
+    "last": 103,
+    "count": 3,
+    "ocr": "Loading the isolated arena... |"
+  },
+  {
+    "first": 104,
+    "last": 104,
+    "count": 1,
+    "ocr": "ee, ee"
+  },
+  {
+    "first": 105,
+    "last": 105,
+    "count": 1,
+    "ocr": "ee, ee ee"
+  },
+  {
+    "first": 106,
+    "last": 106,
+    "count": 1,
+    "ocr": "ey"
+  },
+  {
+    "first": 107,
+    "last": 107,
+    "count": 1,
+    "ocr": "ee, a ee"
+  },
+  {
+    "first": 108,
+    "last": 108,
+    "count": 1,
+    "ocr": "Fy,"
+  },
+  {
+    "first": 109,
+    "last": 109,
+    "count": 1,
+    "ocr": "a"
+  },
+  {
+    "first": 110,
+    "last": 110,
+    "count": 1,
+    "ocr": "ee"
+  },
+  {
+    "first": 111,
+    "last": 111,
+    "count": 1,
+    "ocr": "eee"
+  },
+  {
+    "first": 112,
+    "last": 112,
+    "count": 1,
+    "ocr": "oe By"
+  },
+  {
+    "first": 113,
+    "last": 114,
+    "count": 2,
+    "ocr": "a"
+  },
+  {
+    "first": 115,
+    "last": 115,
+    "count": 1,
+    "ocr": "a"
+  },
+  {
+    "first": 116,
+    "last": 118,
+    "count": 2,
+    "ocr": "\u2014\u2014 ae"
+  },
+  {
+    "first": 117,
+    "last": 117,
+    "count": 1,
+    "ocr": "a ee"
+  },
+  {
+    "first": 119,
+    "last": 119,
+    "count": 1,
+    "ocr": "a  ___"
+  },
+  {
+    "first": 120,
+    "last": 120,
+    "count": 1,
+    "ocr": "a"
+  },
+  {
+    "first": 121,
+    "last": 123,
+    "count": 2,
+    "ocr": "a"
+  },
+  {
+    "first": 122,
+    "last": 122,
+    "count": 1,
+    "ocr": "a"
+  },
+  {
+    "first": 124,
+    "last": 124,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 125,
+    "last": 125,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 126,
+    "last": 126,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 127,
+    "last": 127,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 128,
+    "last": 128,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 129,
+    "last": 129,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 130,
+    "last": 130,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 131,
+    "last": 131,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 5 -\ngame 0.26s"
+  },
+  {
+    "first": 132,
+    "last": 132,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 7 -\ngame 0.33s"
+  },
+  {
+    "first": 133,
+    "last": 133,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 7 -\ngame 0.33s"
+  },
+  {
+    "first": 134,
+    "last": 134,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 7 -\ngame 0.33s"
+  },
+  {
+    "first": 135,
+    "last": 135,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 8 -\ngame 0.34s"
+  },
+  {
+    "first": 136,
+    "last": 136,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 8 -\ngame 0.34s"
+  },
+  {
+    "first": 137,
+    "last": 137,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 8 -\ngame 0.34s"
+  },
+  {
+    "first": 138,
+    "last": 138,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 8 -\ngame 0.34s"
+  },
+  {
+    "first": 139,
+    "last": 139,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 9 -\ngame 0.39s"
+  },
+  {
+    "first": 140,
+    "last": 140,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 9 -\ngame 0.39s"
+  },
+  {
+    "first": 141,
+    "last": 141,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 9 -\ngame 0.39s"
+  },
+  {
+    "first": 142,
+    "last": 142,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 9 -\ngame 0.39s"
+  },
+  {
+    "first": 143,
+    "last": 143,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 10 -\ngame 0.41s"
+  },
+  {
+    "first": 144,
+    "last": 144,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 10 -\ngame 0.41s"
+  },
+  {
+    "first": 145,
+    "last": 145,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 10 -\ngame 0.41s"
+  },
+  {
+    "first": 146,
+    "last": 146,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 10 -\ngame 0.41s"
+  },
+  {
+    "first": 147,
+    "last": 147,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 10 -\ngame 0.41s"
+  },
+  {
+    "first": 148,
+    "last": 148,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 11 -\ngame 0.43s"
+  },
+  {
+    "first": 149,
+    "last": 158,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 11 -\ngame 0.43s"
+  },
+  {
+    "first": 150,
+    "last": 157,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 11 -\ngame 0.43s"
+  },
+  {
+    "first": 159,
+    "last": 159,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 13 -\ngame 0.48s"
+  },
+  {
+    "first": 160,
+    "last": 162,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 13 -\ngame 0.48s"
+  },
+  {
+    "first": 161,
+    "last": 161,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 13 -\ngame 0.48s"
+  },
+  {
+    "first": 163,
+    "last": 164,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 14 -\ngame 0.52s"
+  },
+  {
+    "first": 165,
+    "last": 169,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 14 -\ngame 0.52s"
+  },
+  {
+    "first": 166,
+    "last": 168,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 14 -\ngame 0.52s"
+  },
+  {
+    "first": 170,
+    "last": 170,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 16 -\ngame 0.72s"
+  },
+  {
+    "first": 171,
+    "last": 171,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 16 -\ngame 0.72s"
+  },
+  {
+    "first": 172,
+    "last": 172,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 16 -\ngame 0.72s"
+  },
+  {
+    "first": 173,
+    "last": 173,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 16 -\ngame 0.72s"
+  },
+  {
+    "first": 174,
+    "last": 174,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 17 -\ngame 0.82s"
+  },
+  {
+    "first": 175,
+    "last": 175,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 17 -\ngame 0.82s"
+  },
+  {
+    "first": 176,
+    "last": 176,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 17 -\ngame 0.82s"
+  },
+  {
+    "first": 177,
+    "last": 177,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 18 -\ngame 0.92s"
+  },
+  {
+    "first": 178,
+    "last": 178,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 18 -\ngame 0.92s"
+  },
+  {
+    "first": 179,
+    "last": 179,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 18 -\ngame 0.92s"
+  },
+  {
+    "first": 180,
+    "last": 180,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 19 -\ngame 1.02s"
+  },
+  {
+    "first": 181,
+    "last": 181,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 19 -\ngame 1.02s"
+  },
+  {
+    "first": 182,
+    "last": 182,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 19 -\ngame 1.@2s"
+  },
+  {
+    "first": 183,
+    "last": 183,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 19 -\ngame 1.@2s"
+  },
+  {
+    "first": 184,
+    "last": 184,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 20 -\ngame 1.12s"
+  },
+  {
+    "first": 185,
+    "last": 185,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 20 -\ngame 1.12s"
+  },
+  {
+    "first": 186,
+    "last": 186,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 20 -\ngame 1.12s"
+  },
+  {
+    "first": 187,
+    "last": 187,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 21 -\ngame 1.22s"
+  },
+  {
+    "first": 188,
+    "last": 188,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 21 -\ngame 1.22s"
+  },
+  {
+    "first": 189,
+    "last": 189,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 21 -\ngame 1.22s"
+  },
+  {
+    "first": 190,
+    "last": 190,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 22 -\ngame 1.32s"
+  },
+  {
+    "first": 191,
+    "last": 191,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 22 -\ngame 1.32s"
+  },
+  {
+    "first": 192,
+    "last": 192,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 22 -\ngame 1.32s"
+  },
+  {
+    "first": 193,
+    "last": 193,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 23 -\ngame 1.42s"
+  },
+  {
+    "first": 194,
+    "last": 194,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 23 -\ngame 1.42s"
+  },
+  {
+    "first": 195,
+    "last": 195,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 23 -\ngame 1.42s"
+  },
+  {
+    "first": 196,
+    "last": 196,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 23 -\ngame 1.42s"
+  },
+  {
+    "first": 197,
+    "last": 197,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 24 -\ngame 1.52s"
+  },
+  {
+    "first": 198,
+    "last": 198,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 24 -\ngame 1.52s"
+  },
+  {
+    "first": 199,
+    "last": 199,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 24 -\ngame 1.52s"
+  },
+  {
+    "first": 200,
+    "last": 200,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 25 -\ngame 1.62s"
+  },
+  {
+    "first": 201,
+    "last": 202,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 25 -\ngame 1.62s"
+  },
+  {
+    "first": 203,
+    "last": 203,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 25 -\ngame 1.62s"
+  },
+  {
+    "first": 204,
+    "last": 204,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 25 -\ngame 1.62s"
+  },
+  {
+    "first": 205,
+    "last": 205,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 27 -\ngame 1.82s"
+  },
+  {
+    "first": 206,
+    "last": 206,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 27 -\ngame 1.82s"
+  },
+  {
+    "first": 207,
+    "last": 207,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 27 -\ngame 1.82s"
+  },
+  {
+    "first": 208,
+    "last": 208,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 27 -\ngame 1.82s"
+  },
+  {
+    "first": 209,
+    "last": 209,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 210,
+    "last": 210,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 211,
+    "last": 213,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 212,
+    "last": 212,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 214,
+    "last": 214,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 215,
+    "last": 215,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 28 -\ngame 1.92s"
+  },
+  {
+    "first": 216,
+    "last": 216,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 29 -\ngame 2.02s"
+  },
+  {
+    "first": 217,
+    "last": 217,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 29 -\ngame 2.@2s"
+  },
+  {
+    "first": 218,
+    "last": 218,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 29 -\ngame 2.@2s"
+  },
+  {
+    "first": 219,
+    "last": 219,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 29 -\ngame 2.@2s"
+  },
+  {
+    "first": 220,
+    "last": 220,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 30 -\ngame 2.12s"
+  },
+  {
+    "first": 221,
+    "last": 221,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 30 -\ngame 2.12s"
+  },
+  {
+    "first": 222,
+    "last": 222,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 30 -\ngame 2.12s"
+  },
+  {
+    "first": 223,
+    "last": 223,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 31 -\ngame 2.15s"
+  },
+  {
+    "first": 224,
+    "last": 224,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 31 -\ngame 2.15s"
+  },
+  {
+    "first": 225,
+    "last": 225,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 31 -\ngame 2.15s"
+  },
+  {
+    "first": 226,
+    "last": 226,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 32 -\ngame 2.25s"
+  },
+  {
+    "first": 227,
+    "last": 227,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 32 -\ngame 2.25s"
+  },
+  {
+    "first": 228,
+    "last": 228,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 32 -\ngame 2.25s"
+  },
+  {
+    "first": 229,
+    "last": 229,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 32 -\ngame 2.25s"
+  },
+  {
+    "first": 230,
+    "last": 230,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 32 -\ngame 2.25s"
+  },
+  {
+    "first": 231,
+    "last": 231,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 33 -\ngame 2.35s"
+  },
+  {
+    "first": 232,
+    "last": 232,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 33 -\ngame 2.35s"
+  },
+  {
+    "first": 233,
+    "last": 233,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 33 -\ngame 2.35s"
+  },
+  {
+    "first": 234,
+    "last": 234,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 34 -\ngame 2.45s"
+  },
+  {
+    "first": 235,
+    "last": 235,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 34 -\ngame 2.45s"
+  },
+  {
+    "first": 236,
+    "last": 237,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 34 -\ngame 2.45s"
+  },
+  {
+    "first": 238,
+    "last": 239,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 35 -\ngame 2.55s"
+  },
+  {
+    "first": 240,
+    "last": 240,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 35 -\ngame 2.55s"
+  },
+  {
+    "first": 241,
+    "last": 241,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 35 -\ngame 2.55s"
+  },
+  {
+    "first": 242,
+    "last": 242,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 35 -\ngame 2.55s"
+  },
+  {
+    "first": 243,
+    "last": 245,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 36 -\ngame 2.65s"
+  },
+  {
+    "first": 246,
+    "last": 246,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 36 -\ngame 2.65s"
+  },
+  {
+    "first": 247,
+    "last": 253,
+    "count": 7,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 36 -\ngame 2.65s"
+  },
+  {
+    "first": 254,
+    "last": 254,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 38 -\ngame 2.85s"
+  },
+  {
+    "first": 255,
+    "last": 255,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 38 -\ngame 2.85s"
+  },
+  {
+    "first": 256,
+    "last": 256,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 38 -\ngame 2.85s"
+  },
+  {
+    "first": 257,
+    "last": 257,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 39 -\ngame 2.95s"
+  },
+  {
+    "first": 258,
+    "last": 258,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 39 -\ngame 2.95s"
+  },
+  {
+    "first": 259,
+    "last": 261,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 39 -\ngame 2.95s"
+  },
+  {
+    "first": 262,
+    "last": 262,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 39 -\ngame 2.95s"
+  },
+  {
+    "first": 263,
+    "last": 263,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 41 -\ngame 3.15s"
+  },
+  {
+    "first": 264,
+    "last": 264,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 41 -\ngame 3.15s"
+  },
+  {
+    "first": 265,
+    "last": 266,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 41 -\ngame 3.15s"
+  },
+  {
+    "first": 267,
+    "last": 267,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 41 -\ngame 3.15s"
+  },
+  {
+    "first": 268,
+    "last": 270,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 42 -\ngame 3.25s"
+  },
+  {
+    "first": 269,
+    "last": 269,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 42 -\ngame 3.25s"
+  },
+  {
+    "first": 271,
+    "last": 271,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 272,
+    "last": 272,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 273,
+    "last": 273,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 274,
+    "last": 274,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 275,
+    "last": 275,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 276,
+    "last": 276,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 277,
+    "last": 277,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 278,
+    "last": 281,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 279,
+    "last": 279,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 43 -\ngame 3.30s"
+  },
+  {
+    "first": 282,
+    "last": 282,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 44 -\ngame 3.40s"
+  },
+  {
+    "first": 283,
+    "last": 283,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 44 -\ngame 3.40s"
+  },
+  {
+    "first": 284,
+    "last": 284,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 44 -\ngame 3.40s"
+  },
+  {
+    "first": 285,
+    "last": 286,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 45 -\ngame 3.50s"
+  },
+  {
+    "first": 287,
+    "last": 287,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 45 -\ngame 3.50s"
+  },
+  {
+    "first": 288,
+    "last": 288,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 46 -\ngame 3.60s"
+  },
+  {
+    "first": 289,
+    "last": 289,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 46 -\ngame 3.60s"
+  },
+  {
+    "first": 290,
+    "last": 290,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 46 -\ngame 3.60s"
+  },
+  {
+    "first": 291,
+    "last": 291,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 47 -\ngame 3.70s"
+  },
+  {
+    "first": 292,
+    "last": 293,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 47 -\ngame 3.70s"
+  },
+  {
+    "first": 294,
+    "last": 294,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 48 -\ngame 3.80s"
+  },
+  {
+    "first": 295,
+    "last": 295,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 48 -\ngame 3.80s"
+  },
+  {
+    "first": 296,
+    "last": 296,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 48 -\ngame 3.80s"
+  },
+  {
+    "first": 297,
+    "last": 297,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 48 -\ngame 3.80s"
+  },
+  {
+    "first": 298,
+    "last": 300,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 49 -\ngame 3.90s"
+  },
+  {
+    "first": 301,
+    "last": 301,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 49 -\ngame 3.90s"
+  },
+  {
+    "first": 302,
+    "last": 302,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 303,
+    "last": 303,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 304,
+    "last": 304,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 305,
+    "last": 305,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 306,
+    "last": 308,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 307,
+    "last": 307,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 50 -\ngame 4.00s"
+  },
+  {
+    "first": 309,
+    "last": 311,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 52 -\ngame 4.20s"
+  },
+  {
+    "first": 312,
+    "last": 312,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 53 -\ngame 4.30s"
+  },
+  {
+    "first": 313,
+    "last": 314,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 53 -\ngame 4.30s"
+  },
+  {
+    "first": 315,
+    "last": 315,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 53 -\ngame 4.30s"
+  },
+  {
+    "first": 316,
+    "last": 317,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 54 -\ngame 4.40s"
+  },
+  {
+    "first": 318,
+    "last": 319,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 54 -\ngame 4.40s"
+  },
+  {
+    "first": 320,
+    "last": 322,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 55 -\ngame 4.50s"
+  },
+  {
+    "first": 323,
+    "last": 324,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 56 -\ngame 4.60s"
+  },
+  {
+    "first": 325,
+    "last": 325,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 56 -\ngame 4.60s"
+  },
+  {
+    "first": 326,
+    "last": 326,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 57 -\ngame 4.70s"
+  },
+  {
+    "first": 327,
+    "last": 327,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 57 -\ngame 4.70s"
+  },
+  {
+    "first": 328,
+    "last": 328,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 57 -\ngame 4.70s"
+  },
+  {
+    "first": 329,
+    "last": 331,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 58 -\ngame 4.80s"
+  },
+  {
+    "first": 332,
+    "last": 333,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 58 -\ngame 4.80s"
+  },
+  {
+    "first": 334,
+    "last": 334,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 58 -\ngame 4.80s"
+  },
+  {
+    "first": 335,
+    "last": 335,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 58 -\ngame 4.80s"
+  },
+  {
+    "first": 336,
+    "last": 336,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 58 -\ngame 4.80s"
+  },
+  {
+    "first": 337,
+    "last": 338,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 59 -\ngame 4.90s"
+  },
+  {
+    "first": 339,
+    "last": 339,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 59 -\ngame 4.90s"
+  },
+  {
+    "first": 340,
+    "last": 341,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 60 -\ngame 5.00s"
+  },
+  {
+    "first": 342,
+    "last": 342,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 60 -\ngame 5.00s"
+  },
+  {
+    "first": 343,
+    "last": 343,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 344,
+    "last": 344,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 345,
+    "last": 345,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 346,
+    "last": 346,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 347,
+    "last": 347,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 348,
+    "last": 348,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 349,
+    "last": 349,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 61 -\ngame 5.10s"
+  },
+  {
+    "first": 350,
+    "last": 351,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 63 -\ngame 5.30s"
+  },
+  {
+    "first": 352,
+    "last": 352,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 63 -\ngame 5.30s"
+  },
+  {
+    "first": 353,
+    "last": 353,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 63 -\ngame 5.30s"
+  },
+  {
+    "first": 354,
+    "last": 354,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 64 -\ngame 5.40s"
+  },
+  {
+    "first": 355,
+    "last": 355,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 64 -\ngame 5.40s"
+  },
+  {
+    "first": 356,
+    "last": 356,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 64 -\ngame 5.40s"
+  },
+  {
+    "first": 357,
+    "last": 357,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 65 -\ngame 5.43s"
+  },
+  {
+    "first": 358,
+    "last": 358,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 65 -\ngame 5.43s"
+  },
+  {
+    "first": 359,
+    "last": 359,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 65 -\ngame 5.43s"
+  },
+  {
+    "first": 360,
+    "last": 360,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 65 -\ngame 5.43s"
+  },
+  {
+    "first": 361,
+    "last": 361,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 66 -\ngame 5.53s"
+  },
+  {
+    "first": 362,
+    "last": 362,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 66 -\ngame 5.53s"
+  },
+  {
+    "first": 363,
+    "last": 363,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 66 -\ngame 5.53s"
+  },
+  {
+    "first": 364,
+    "last": 364,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 67 -\ngame 5.63s"
+  },
+  {
+    "first": 365,
+    "last": 366,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 67 -\ngame 5.63s"
+  },
+  {
+    "first": 367,
+    "last": 367,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 67 -\ngame 5.63s"
+  },
+  {
+    "first": 368,
+    "last": 368,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 68 -\ngame 5.73s"
+  },
+  {
+    "first": 369,
+    "last": 369,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 68 -\ngame 5.73s"
+  },
+  {
+    "first": 370,
+    "last": 370,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 68 -\ngame 5.73s"
+  },
+  {
+    "first": 371,
+    "last": 371,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 69 -\ngame 5.83s"
+  },
+  {
+    "first": 372,
+    "last": 374,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 69 -\ngame 5.83s"
+  },
+  {
+    "first": 375,
+    "last": 375,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 70 -\ngame 5.93s"
+  },
+  {
+    "first": 376,
+    "last": 377,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 70 -\ngame 5.93s"
+  },
+  {
+    "first": 378,
+    "last": 378,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 71 -\ngame 6.03s"
+  },
+  {
+    "first": 379,
+    "last": 379,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 71 -\ngame 6.03s"
+  },
+  {
+    "first": 380,
+    "last": 380,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 71 -\ngame 6.03s"
+  },
+  {
+    "first": 381,
+    "last": 381,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 72 -\ngame 6.13s"
+  },
+  {
+    "first": 382,
+    "last": 382,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 72 -\ngame 6.13s"
+  },
+  {
+    "first": 383,
+    "last": 383,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 72 -\ngame 6.13s"
+  },
+  {
+    "first": 384,
+    "last": 384,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 72 -\ngame 6.13s"
+  },
+  {
+    "first": 385,
+    "last": 385,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 72 -\ngame 6.13s"
+  },
+  {
+    "first": 386,
+    "last": 386,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 387,
+    "last": 387,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 388,
+    "last": 388,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 389,
+    "last": 389,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 390,
+    "last": 390,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 391,
+    "last": 392,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 74 -\ngame 6.33s"
+  },
+  {
+    "first": 393,
+    "last": 393,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 75 -\ngame 6.43s"
+  },
+  {
+    "first": 394,
+    "last": 395,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 75 -\ngame 6.43s"
+  },
+  {
+    "first": 396,
+    "last": 396,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 76 -\ngame 6.53s"
+  },
+  {
+    "first": 397,
+    "last": 398,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 76 -\ngame 6.53s"
+  },
+  {
+    "first": 399,
+    "last": 399,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 77 -\ngame 6.63s"
+  },
+  {
+    "first": 400,
+    "last": 400,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 77 -\ngame 6.63s"
+  },
+  {
+    "first": 401,
+    "last": 401,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 77 -\ngame 6.63s"
+  },
+  {
+    "first": 402,
+    "last": 402,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 77 -\ngame 6.63s"
+  },
+  {
+    "first": 403,
+    "last": 403,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 78 -\ngame 6.73s"
+  },
+  {
+    "first": 404,
+    "last": 404,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 78 -\ngame 6.73s"
+  },
+  {
+    "first": 405,
+    "last": 405,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 78 -\ngame 6.73s"
+  },
+  {
+    "first": 406,
+    "last": 406,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 78 -\ngame 6.73s"
+  },
+  {
+    "first": 407,
+    "last": 407,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 79 -\ngame 6.83s"
+  },
+  {
+    "first": 408,
+    "last": 408,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 79 -\ngame 6.83s"
+  },
+  {
+    "first": 409,
+    "last": 409,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 79 -\ngame 6.83s"
+  },
+  {
+    "first": 410,
+    "last": 410,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 80 -\ngame 6.93s"
+  },
+  {
+    "first": 411,
+    "last": 411,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 80 -\ngame 6.93s"
+  },
+  {
+    "first": 412,
+    "last": 412,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 80 -\ngame 6.93s"
+  },
+  {
+    "first": 413,
+    "last": 413,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 80 -\ngame 6.93s"
+  },
+  {
+    "first": 414,
+    "last": 414,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 80 -\ngame 6.93s"
+  },
+  {
+    "first": 415,
+    "last": 415,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 81 -\ngame 7.03s"
+  },
+  {
+    "first": 416,
+    "last": 416,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 81 -\ngame 7.03s"
+  },
+  {
+    "first": 417,
+    "last": 417,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 81 -\ngame 7.03s"
+  },
+  {
+    "first": 418,
+    "last": 418,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 81 -\ngame 7.03s"
+  },
+  {
+    "first": 419,
+    "last": 419,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 420,
+    "last": 420,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 421,
+    "last": 421,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 422,
+    "last": 422,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 423,
+    "last": 423,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 424,
+    "last": 424,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 425,
+    "last": 425,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 426,
+    "last": 426,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 427,
+    "last": 427,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 428,
+    "last": 428,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 82 -\ngame 7.13s"
+  },
+  {
+    "first": 429,
+    "last": 429,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 84 -\ngame 7.33s"
+  },
+  {
+    "first": 430,
+    "last": 430,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 84 -\ngame 7.33s"
+  },
+  {
+    "first": 431,
+    "last": 431,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 84 -\ngame 7.33s"
+  },
+  {
+    "first": 432,
+    "last": 432,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 84 -\ngame 7.33s"
+  },
+  {
+    "first": 433,
+    "last": 433,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 85 -\ngame 7.43s"
+  },
+  {
+    "first": 434,
+    "last": 434,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 85 -\ngame 7.43s"
+  },
+  {
+    "first": 435,
+    "last": 435,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 85 -\ngame 7.43s"
+  },
+  {
+    "first": 436,
+    "last": 436,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 85 -\ngame 7.43s"
+  },
+  {
+    "first": 437,
+    "last": 439,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 86 -\ngame 7.53s"
+  },
+  {
+    "first": 438,
+    "last": 438,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 86 -\ngame 7.53s"
+  },
+  {
+    "first": 440,
+    "last": 440,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 86 -\ngame 7.53s"
+  },
+  {
+    "first": 441,
+    "last": 441,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 87 -\ngame 7.63s"
+  },
+  {
+    "first": 442,
+    "last": 442,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 87 -\ngame 7.63s"
+  },
+  {
+    "first": 443,
+    "last": 443,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 87 -\ngame 7.63s"
+  },
+  {
+    "first": 444,
+    "last": 444,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 87 -\ngame 7.63s"
+  },
+  {
+    "first": 445,
+    "last": 445,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 87 -\ngame 7.63s"
+  },
+  {
+    "first": 446,
+    "last": 446,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 88 -\ngame 7.73s"
+  },
+  {
+    "first": 447,
+    "last": 447,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 88 -\ngame 7.73s"
+  },
+  {
+    "first": 448,
+    "last": 448,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 88 -\ngame 7.73s"
+  },
+  {
+    "first": 449,
+    "last": 449,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 89 -\ngame 7.83s"
+  },
+  {
+    "first": 450,
+    "last": 450,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 89 -\ngame 7.83s"
+  },
+  {
+    "first": 451,
+    "last": 451,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 89 -\ngame 7.83s"
+  },
+  {
+    "first": 452,
+    "last": 452,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 89 -\ngame 7.83s"
+  },
+  {
+    "first": 453,
+    "last": 453,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 90 -\ngame 7.93s"
+  },
+  {
+    "first": 454,
+    "last": 454,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 90 -\ngame 7.93s"
+  },
+  {
+    "first": 455,
+    "last": 455,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 90 -\ngame 7.93s"
+  },
+  {
+    "first": 456,
+    "last": 456,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 90 -\ngame 7.93s"
+  },
+  {
+    "first": 457,
+    "last": 457,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 91 -\ngame 8.03s"
+  },
+  {
+    "first": 458,
+    "last": 458,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 91 -\ngame 8.03s"
+  },
+  {
+    "first": 459,
+    "last": 459,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 91 -\ngame 8.03s"
+  },
+  {
+    "first": 460,
+    "last": 460,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 91 -\ngame 8.03s"
+  },
+  {
+    "first": 461,
+    "last": 461,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 91 -\ngame 8.03s"
+  },
+  {
+    "first": 462,
+    "last": 462,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 92 -\ngame 8.13s"
+  },
+  {
+    "first": 463,
+    "last": 463,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 92 -\ngame 8.13s"
+  },
+  {
+    "first": 464,
+    "last": 464,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 92 -\ngame 8.13s"
+  },
+  {
+    "first": 465,
+    "last": 465,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 93 -\ngame 8.23s"
+  },
+  {
+    "first": 466,
+    "last": 470,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 93 -\ngame 8.23s"
+  },
+  {
+    "first": 467,
+    "last": 467,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 93 -\ngame 8.23s"
+  },
+  {
+    "first": 468,
+    "last": 468,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 93 -\ngame 8.23s"
+  },
+  {
+    "first": 471,
+    "last": 472,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 93 -\ngame 8.23s"
+  },
+  {
+    "first": 473,
+    "last": 473,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 95 -\ngame 8.43s"
+  },
+  {
+    "first": 474,
+    "last": 474,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 95 -\ngame 8.43s"
+  },
+  {
+    "first": 475,
+    "last": 475,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 95 -\ngame 8.43s"
+  },
+  {
+    "first": 476,
+    "last": 476,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 95 -\ngame 8.43s"
+  },
+  {
+    "first": 477,
+    "last": 480,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 96 -\ngame 8.53s"
+  },
+  {
+    "first": 481,
+    "last": 481,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 97 - |\ngame 8.63s"
+  },
+  {
+    "first": 482,
+    "last": 482,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 97 - |\ngame 8.63s"
+  },
+  {
+    "first": 483,
+    "last": 483,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 97 - |\ngame 8.63s"
+  },
+  {
+    "first": 484,
+    "last": 484,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 97 - |\ngame 8.63s"
+  },
+  {
+    "first": 485,
+    "last": 485,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 97 -\ngame 8.63s"
+  },
+  {
+    "first": 486,
+    "last": 486,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 487,
+    "last": 487,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 488,
+    "last": 488,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 489,
+    "last": 489,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 490,
+    "last": 490,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 491,
+    "last": 491,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 492,
+    "last": 492,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 98 -\ngame 8.73s"
+  },
+  {
+    "first": 493,
+    "last": 493,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 494,
+    "last": 494,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 495,
+    "last": 495,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 496,
+    "last": 496,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 497,
+    "last": 497,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 498,
+    "last": 498,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 499,
+    "last": 501,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 500,
+    "last": 500,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 99 -\ngame 8.83s"
+  },
+  {
+    "first": 502,
+    "last": 502,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 503,
+    "last": 503,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 504,
+    "last": 504,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 505,
+    "last": 505,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 506,
+    "last": 506,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 507,
+    "last": 507,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 100 -\ngame 8.93s"
+  },
+  {
+    "first": 508,
+    "last": 508,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 101 -\ngame 9.03s"
+  },
+  {
+    "first": 509,
+    "last": 509,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 101 -\ngame 9.03s"
+  },
+  {
+    "first": 510,
+    "last": 510,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 101 -\ngame 9.03s"
+  },
+  {
+    "first": 511,
+    "last": 511,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 101 -\ngame 9.03s"
+  },
+  {
+    "first": 512,
+    "last": 512,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 102 -\ngame 9.13s"
+  },
+  {
+    "first": 513,
+    "last": 513,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 102 -\ngame 9.13s"
+  },
+  {
+    "first": 514,
+    "last": 514,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 102 -\ngame 9.13s"
+  },
+  {
+    "first": 515,
+    "last": 515,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 103 -\ngame 9.23s"
+  },
+  {
+    "first": 516,
+    "last": 516,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 103 -\ngame 9.23s"
+  },
+  {
+    "first": 517,
+    "last": 517,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 103 -\ngame 9.23s"
+  },
+  {
+    "first": 518,
+    "last": 518,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 519,
+    "last": 525,
+    "count": 7,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 526,
+    "last": 526,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 527,
+    "last": 527,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 528,
+    "last": 528,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 529,
+    "last": 531,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 532,
+    "last": 532,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 533,
+    "last": 535,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 104 -\ngame 9.33s"
+  },
+  {
+    "first": 536,
+    "last": 536,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 106 -\ngame 9.53s"
+  },
+  {
+    "first": 537,
+    "last": 537,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 106 -\ngame 9.53s"
+  },
+  {
+    "first": 538,
+    "last": 538,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 106 -\ngame 9.53s"
+  },
+  {
+    "first": 539,
+    "last": 539,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 106 -\ngame 9.53s"
+  },
+  {
+    "first": 540,
+    "last": 541,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 106 -\ngame 9.53s"
+  },
+  {
+    "first": 542,
+    "last": 542,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 543,
+    "last": 543,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 544,
+    "last": 544,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 545,
+    "last": 545,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 546,
+    "last": 547,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 548,
+    "last": 548,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 549,
+    "last": 551,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 552,
+    "last": 552,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 107 -\ngame 9.63s"
+  },
+  {
+    "first": 553,
+    "last": 554,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 108 -\ngame 9.73s"
+  },
+  {
+    "first": 555,
+    "last": 555,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 108 -\ngame 9.73s"
+  },
+  {
+    "first": 556,
+    "last": 556,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 108 -\ngame 9.73s"
+  },
+  {
+    "first": 557,
+    "last": 557,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 108 -\ngame 9.73s"
+  },
+  {
+    "first": 558,
+    "last": 558,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 108 -\ngame 9.73s"
+  },
+  {
+    "first": 559,
+    "last": 559,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 560,
+    "last": 560,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 561,
+    "last": 561,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 562,
+    "last": 562,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 563,
+    "last": 563,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 564,
+    "last": 566,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 565,
+    "last": 565,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 109 -\ngame 9.83s"
+  },
+  {
+    "first": 567,
+    "last": 567,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 110 -\ngame 9.93s"
+  },
+  {
+    "first": 568,
+    "last": 569,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 110 -\ngame 9.93s"
+  },
+  {
+    "first": 570,
+    "last": 570,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 110 -\ngame 9.93s"
+  },
+  {
+    "first": 571,
+    "last": 575,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 110 -\ngame 9.93s"
+  },
+  {
+    "first": 572,
+    "last": 576,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 110 -\ngame 9.93s"
+  },
+  {
+    "first": 577,
+    "last": 577,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 111 -\ngame 10.03s"
+  },
+  {
+    "first": 578,
+    "last": 578,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 111 -\ngame 10.03s"
+  },
+  {
+    "first": 579,
+    "last": 579,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 111 -\ngame 10.03s"
+  },
+  {
+    "first": 580,
+    "last": 580,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 111 -\ngame 10.03s"
+  },
+  {
+    "first": 581,
+    "last": 586,
+    "count": 6,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 111 -\ngame 10.03s"
+  },
+  {
+    "first": 587,
+    "last": 587,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 112 -\ngame 10.13s"
+  },
+  {
+    "first": 588,
+    "last": 588,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 112 -\ngame 10.13s"
+  },
+  {
+    "first": 589,
+    "last": 597,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 112 -\ngame 10.13s"
+  },
+  {
+    "first": 590,
+    "last": 598,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 112 -\ngame 10.13s"
+  },
+  {
+    "first": 599,
+    "last": 599,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 112 -\ngame 10.13s"
+  },
+  {
+    "first": 600,
+    "last": 600,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 113 -\ngame 10.23s"
+  },
+  {
+    "first": 601,
+    "last": 601,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 113 -\ngame 10.23s"
+  },
+  {
+    "first": 602,
+    "last": 602,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 113 -\ngame 10.23s"
+  },
+  {
+    "first": 603,
+    "last": 603,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 113 -\ngame 10.23s"
+  },
+  {
+    "first": 604,
+    "last": 604,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 114 -\ngame 10.33s"
+  },
+  {
+    "first": 605,
+    "last": 607,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 114 -\ngame 10.33s"
+  },
+  {
+    "first": 606,
+    "last": 606,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 114 -\ngame 10.33s"
+  },
+  {
+    "first": 608,
+    "last": 608,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 115 -\ngame 10.43s"
+  },
+  {
+    "first": 609,
+    "last": 609,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 115 -\ngame 10.43s"
+  },
+  {
+    "first": 610,
+    "last": 616,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 115 -\ngame 10.43s"
+  },
+  {
+    "first": 611,
+    "last": 615,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 115 -\ngame 10.43s"
+  },
+  {
+    "first": 617,
+    "last": 617,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 117 -\ngame 10.63s"
+  },
+  {
+    "first": 618,
+    "last": 621,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 117 -\ngame 10.63s"
+  },
+  {
+    "first": 619,
+    "last": 619,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 117 -\ngame 10.63s"
+  },
+  {
+    "first": 622,
+    "last": 622,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 118 -\ngame 10.73s"
+  },
+  {
+    "first": 623,
+    "last": 623,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 118 -\ngame 10.73s"
+  },
+  {
+    "first": 624,
+    "last": 626,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 118 -\ngame 10.73s"
+  },
+  {
+    "first": 625,
+    "last": 627,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 118 -\ngame 10.73s"
+  },
+  {
+    "first": 628,
+    "last": 628,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 119 -\ngame 10.83s"
+  },
+  {
+    "first": 629,
+    "last": 631,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 119 -\ngame 10.83s"
+  },
+  {
+    "first": 630,
+    "last": 630,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 119 -\ngame 10.83s"
+  },
+  {
+    "first": 632,
+    "last": 632,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 119 -\ngame 10.83s"
+  },
+  {
+    "first": 633,
+    "last": 633,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 119 -\ngame 10.83s"
+  },
+  {
+    "first": 634,
+    "last": 634,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 1260 -\ngame 10.93s"
+  },
+  {
+    "first": 635,
+    "last": 635,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 1260 -\ngame 10.93s"
+  },
+  {
+    "first": 636,
+    "last": 638,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 1260 -\ngame 10.93s"
+  },
+  {
+    "first": 637,
+    "last": 639,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 1260 -\ngame 10.93s"
+  },
+  {
+    "first": 640,
+    "last": 640,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 120 -\ngame 10.93s"
+  },
+  {
+    "first": 641,
+    "last": 641,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 120 -\ngame 10.93s"
+  },
+  {
+    "first": 642,
+    "last": 642,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 120 -\ngame 10.93s"
+  },
+  {
+    "first": 643,
+    "last": 643,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 644,
+    "last": 644,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 645,
+    "last": 645,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 646,
+    "last": 646,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 647,
+    "last": 651,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 648,
+    "last": 649,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 121 -\ngame 11.03s"
+  },
+  {
+    "first": 652,
+    "last": 652,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 122 -\ngame 11.13s"
+  },
+  {
+    "first": 653,
+    "last": 653,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 122 -\ngame 11.13s"
+  },
+  {
+    "first": 654,
+    "last": 654,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 122 -\ngame 11.13s"
+  },
+  {
+    "first": 655,
+    "last": 655,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 122 -\ngame 11.13s"
+  },
+  {
+    "first": 656,
+    "last": 656,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 123 -\ngame 11.23s"
+  },
+  {
+    "first": 657,
+    "last": 657,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 123 -\ngame 11.23s"
+  },
+  {
+    "first": 658,
+    "last": 658,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 123 -\ngame 11.23s"
+  },
+  {
+    "first": 659,
+    "last": 659,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 124 -\ngame 11.33s"
+  },
+  {
+    "first": 660,
+    "last": 660,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 124 -\ngame 11.33s"
+  },
+  {
+    "first": 661,
+    "last": 661,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 124 -\ngame 11.33s"
+  },
+  {
+    "first": 662,
+    "last": 664,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 124 -\ngame 11.33s"
+  },
+  {
+    "first": 663,
+    "last": 663,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 124 -\ngame 11.33s"
+  },
+  {
+    "first": 665,
+    "last": 665,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 125 -\ngame 11.43s"
+  },
+  {
+    "first": 666,
+    "last": 666,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 125 -\ngame 11.43s"
+  },
+  {
+    "first": 667,
+    "last": 667,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 125 -\ngame 11.43s"
+  },
+  {
+    "first": 668,
+    "last": 669,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 125 -\ngame 11.43s"
+  },
+  {
+    "first": 670,
+    "last": 670,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 126 -\ngame 11.53s"
+  },
+  {
+    "first": 671,
+    "last": 673,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 126 -\ngame 11.53s"
+  },
+  {
+    "first": 674,
+    "last": 674,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 127 -\ngame 11.63s"
+  },
+  {
+    "first": 675,
+    "last": 675,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 127 -\ngame 11.63s"
+  },
+  {
+    "first": 676,
+    "last": 677,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 127 -\ngame 11.63s"
+  },
+  {
+    "first": 678,
+    "last": 681,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 128 -\ngame 11.73s"
+  },
+  {
+    "first": 682,
+    "last": 682,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 129 -\ngame 11.83s"
+  },
+  {
+    "first": 683,
+    "last": 685,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 129 -\ngame 11.83s"
+  },
+  {
+    "first": 686,
+    "last": 686,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 130 -\ngame 11.93s"
+  },
+  {
+    "first": 687,
+    "last": 687,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 130 -\ngame 11.93s"
+  },
+  {
+    "first": 688,
+    "last": 688,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 130 -\ngame 11.93s"
+  },
+  {
+    "first": 689,
+    "last": 689,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 131 -\ngame 12.03s"
+  },
+  {
+    "first": 690,
+    "last": 692,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 131 -\ngame 12.03s"
+  },
+  {
+    "first": 693,
+    "last": 693,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 132 -\ngame 12.13s"
+  },
+  {
+    "first": 694,
+    "last": 694,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 132 -\ngame 12.13s"
+  },
+  {
+    "first": 695,
+    "last": 695,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 132 -\ngame 12.13s"
+  },
+  {
+    "first": 696,
+    "last": 696,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 133 -\ngame 12.23s"
+  },
+  {
+    "first": 697,
+    "last": 698,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 133 -\ngame 12.23s"
+  },
+  {
+    "first": 699,
+    "last": 699,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 134 -\ngame 12.33s"
+  },
+  {
+    "first": 700,
+    "last": 700,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 134 -\ngame 12.335"
+  },
+  {
+    "first": 701,
+    "last": 702,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 134 -\ngame 12.335"
+  },
+  {
+    "first": 703,
+    "last": 703,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 135 -\ngame 12.43s"
+  },
+  {
+    "first": 704,
+    "last": 704,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 135 -\ngame 12.43s"
+  },
+  {
+    "first": 705,
+    "last": 705,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 136 -\ngame 12.53s"
+  },
+  {
+    "first": 706,
+    "last": 707,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 136 -\ngame 12.53s"
+  },
+  {
+    "first": 708,
+    "last": 708,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 137 -\ngame 12.63s"
+  },
+  {
+    "first": 709,
+    "last": 709,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 137 -\ngame 12.63s"
+  },
+  {
+    "first": 710,
+    "last": 710,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 138 -\ngame 12.73s"
+  },
+  {
+    "first": 711,
+    "last": 715,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 138 -\ngame 12.73s"
+  },
+  {
+    "first": 716,
+    "last": 716,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 12.93s"
+  },
+  {
+    "first": 717,
+    "last": 717,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 12.93s"
+  },
+  {
+    "first": 718,
+    "last": 718,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 12.93s"
+  },
+  {
+    "first": 719,
+    "last": 719,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 141 -\ngame 12.96s"
+  },
+  {
+    "first": 720,
+    "last": 720,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 141 -\ngame 12.96s"
+  },
+  {
+    "first": 721,
+    "last": 721,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 141 -\ngame 12.96s"
+  },
+  {
+    "first": 722,
+    "last": 722,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 142 -\ngame 13.06s"
+  },
+  {
+    "first": 723,
+    "last": 723,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 142 -\ngame 13.06s"
+  },
+  {
+    "first": 724,
+    "last": 726,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 142 -\ngame 13.06s"
+  },
+  {
+    "first": 727,
+    "last": 729,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 142 -\ngame 13.06s"
+  },
+  {
+    "first": 728,
+    "last": 728,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 142 -\ngame 13.06s"
+  },
+  {
+    "first": 730,
+    "last": 730,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 144 -\ngame 13.26s"
+  },
+  {
+    "first": 731,
+    "last": 731,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 145 -\ngame 13.34s"
+  },
+  {
+    "first": 732,
+    "last": 735,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 145 -\ngame 13.34s"
+  },
+  {
+    "first": 736,
+    "last": 736,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 13.41s"
+  },
+  {
+    "first": 737,
+    "last": 737,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 13.41s"
+  },
+  {
+    "first": 738,
+    "last": 741,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 13.41s"
+  },
+  {
+    "first": 742,
+    "last": 742,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 13.41s"
+  },
+  {
+    "first": 743,
+    "last": 743,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 146 -\ngame 13.41s"
+  },
+  {
+    "first": 744,
+    "last": 744,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 745,
+    "last": 746,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 747,
+    "last": 749,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 748,
+    "last": 748,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 750,
+    "last": 750,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 751,
+    "last": 758,
+    "count": 8,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 148 -\ngame 13.52s"
+  },
+  {
+    "first": 759,
+    "last": 759,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 760,
+    "last": 760,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 761,
+    "last": 761,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 762,
+    "last": 767,
+    "count": 6,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 768,
+    "last": 768,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 769,
+    "last": 769,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 770,
+    "last": 770,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 771,
+    "last": 771,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 772,
+    "last": 772,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 773,
+    "last": 773,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 774,
+    "last": 774,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 149 -\ngame 13.59s"
+  },
+  {
+    "first": 775,
+    "last": 785,
+    "count": 11,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 150 -\ngame 13.60s"
+  },
+  {
+    "first": 786,
+    "last": 786,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 151 -\ngame 13.70s"
+  },
+  {
+    "first": 787,
+    "last": 788,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 151 -\ngame 13.70s"
+  },
+  {
+    "first": 789,
+    "last": 789,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 152 -\ngame 13.80s"
+  },
+  {
+    "first": 790,
+    "last": 790,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 152 -\ngame 13.80s"
+  },
+  {
+    "first": 791,
+    "last": 791,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 152 -\ngame 13.80s"
+  },
+  {
+    "first": 792,
+    "last": 792,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 153 -\ngame 13.90s"
+  },
+  {
+    "first": 793,
+    "last": 793,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 153 -\ngame 13.90s"
+  },
+  {
+    "first": 794,
+    "last": 794,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 153 -\ngame 13.90s"
+  },
+  {
+    "first": 795,
+    "last": 795,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 154 -\ngame 14.00s"
+  },
+  {
+    "first": 796,
+    "last": 799,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 154 -\ngame 14.00s"
+  },
+  {
+    "first": 800,
+    "last": 800,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 156 -\ngame 14.20s"
+  },
+  {
+    "first": 801,
+    "last": 802,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 156 -\ngame 14.20s"
+  },
+  {
+    "first": 803,
+    "last": 803,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 157 -\ngame 14.30s"
+  },
+  {
+    "first": 804,
+    "last": 804,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 157 -\ngame 14.30s"
+  },
+  {
+    "first": 805,
+    "last": 807,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 157 -\ngame 14.30s"
+  },
+  {
+    "first": 808,
+    "last": 810,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 157 -\ngame 14.30s"
+  },
+  {
+    "first": 809,
+    "last": 809,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 157 -\ngame 14.30s"
+  },
+  {
+    "first": 811,
+    "last": 811,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 158 -\ngame 14.35s"
+  },
+  {
+    "first": 812,
+    "last": 812,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 158 -\ngame 14.35s"
+  },
+  {
+    "first": 813,
+    "last": 813,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 158 -\ngame 14.35s"
+  },
+  {
+    "first": 814,
+    "last": 814,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 158 -\ngame 14.35s"
+  },
+  {
+    "first": 815,
+    "last": 815,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 159 -\ngame 14.45s"
+  },
+  {
+    "first": 816,
+    "last": 816,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 159 -\ngame 14.45s"
+  },
+  {
+    "first": 817,
+    "last": 817,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 160 -\ngame 14.55s"
+  },
+  {
+    "first": 818,
+    "last": 819,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 160 -\ngame 14.55s"
+  },
+  {
+    "first": 820,
+    "last": 820,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 161 -\ngame 14.65s"
+  },
+  {
+    "first": 821,
+    "last": 821,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 161 -\ngame 14.65s"
+  },
+  {
+    "first": 822,
+    "last": 822,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 161 -\ngame 14.65s"
+  },
+  {
+    "first": 823,
+    "last": 823,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 162 -\ngame 14.75s"
+  },
+  {
+    "first": 824,
+    "last": 827,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 162 -\ngame 14.75s"
+  },
+  {
+    "first": 828,
+    "last": 828,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 164 -\ngame 14.86s"
+  },
+  {
+    "first": 829,
+    "last": 829,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 164 -\ngame 14.86s"
+  },
+  {
+    "first": 830,
+    "last": 830,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 164 -\ngame 14.86s"
+  },
+  {
+    "first": 831,
+    "last": 831,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 165 -\ngame 14.88s"
+  },
+  {
+    "first": 832,
+    "last": 832,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 165 -\ngame 14.88s"
+  },
+  {
+    "first": 833,
+    "last": 833,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 165 -\ngame 14.88s"
+  },
+  {
+    "first": 834,
+    "last": 834,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 835,
+    "last": 837,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 838,
+    "last": 842,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 843,
+    "last": 851,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 844,
+    "last": 852,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 853,
+    "last": 853,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 854,
+    "last": 855,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 166 -\ngame 14.98s"
+  },
+  {
+    "first": 856,
+    "last": 856,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 857,
+    "last": 857,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 858,
+    "last": 858,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 859,
+    "last": 859,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 860,
+    "last": 862,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 861,
+    "last": 863,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 864,
+    "last": 870,
+    "count": 7,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 168 -\ngame 15.15s"
+  },
+  {
+    "first": 871,
+    "last": 871,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 169 -\ngame 15.25s"
+  },
+  {
+    "first": 872,
+    "last": 872,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 169 -\ngame 15.25s"
+  },
+  {
+    "first": 873,
+    "last": 873,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 170 -\ngame 15.33s"
+  },
+  {
+    "first": 874,
+    "last": 874,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 170 -\ngame 15.33s"
+  },
+  {
+    "first": 875,
+    "last": 875,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 170 -\ngame 15.33s"
+  },
+  {
+    "first": 876,
+    "last": 876,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 171 -\ngame 15.43s"
+  },
+  {
+    "first": 877,
+    "last": 878,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 171 -\ngame 15.43s"
+  },
+  {
+    "first": 879,
+    "last": 879,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 172 -\ngame 15.53s"
+  },
+  {
+    "first": 880,
+    "last": 880,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 172 -\ngame 15.53s"
+  },
+  {
+    "first": 881,
+    "last": 881,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 173 -\ngame 15.63s"
+  },
+  {
+    "first": 882,
+    "last": 883,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 173 -\ngame 15.63s"
+  },
+  {
+    "first": 884,
+    "last": 884,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 174 -\ngame 15.71s"
+  },
+  {
+    "first": 885,
+    "last": 885,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 174 -\ngame 15.71s"
+  },
+  {
+    "first": 886,
+    "last": 888,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 174 -\ngame 15.71s"
+  },
+  {
+    "first": 889,
+    "last": 889,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 176 -\ngame 15.91s"
+  },
+  {
+    "first": 890,
+    "last": 890,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 176 -\ngame 15.91s"
+  },
+  {
+    "first": 891,
+    "last": 891,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 176 -\ngame 15.91s"
+  },
+  {
+    "first": 892,
+    "last": 892,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 177 -\ngame 16.01s"
+  },
+  {
+    "first": 893,
+    "last": 893,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 177 -\ngame 16.01s"
+  },
+  {
+    "first": 894,
+    "last": 894,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 177 -\ngame 16.01s"
+  },
+  {
+    "first": 895,
+    "last": 895,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 178 -\ngame 16.05s"
+  },
+  {
+    "first": 896,
+    "last": 896,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 178 -\ngame 16.05s"
+  },
+  {
+    "first": 897,
+    "last": 897,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 178 -\ngame 16.05s"
+  },
+  {
+    "first": 898,
+    "last": 898,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 179 -\ngame 16.15s"
+  },
+  {
+    "first": 899,
+    "last": 899,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 179 -\ngame 16.15s"
+  },
+  {
+    "first": 900,
+    "last": 900,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 180 -\ngame 16.25s"
+  },
+  {
+    "first": 901,
+    "last": 901,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 180 -\ngame 16.25s"
+  },
+  {
+    "first": 902,
+    "last": 902,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 180 -\ngame 16.25s"
+  },
+  {
+    "first": 903,
+    "last": 905,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 181 -\ngame 16.35s"
+  },
+  {
+    "first": 906,
+    "last": 906,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 182 -\ngame 16.45s"
+  },
+  {
+    "first": 907,
+    "last": 907,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 182 -\ngame 16.45s"
+  },
+  {
+    "first": 908,
+    "last": 908,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 183 -\ngame 16.55s"
+  },
+  {
+    "first": 909,
+    "last": 910,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 183 -\ngame 16.55s"
+  },
+  {
+    "first": 911,
+    "last": 911,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 184 -\ngame 16.65s"
+  },
+  {
+    "first": 912,
+    "last": 912,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 184 -\ngame 16.65s"
+  },
+  {
+    "first": 913,
+    "last": 913,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 914,
+    "last": 914,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 915,
+    "last": 915,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 916,
+    "last": 916,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 917,
+    "last": 918,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 919,
+    "last": 919,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 920,
+    "last": 921,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 922,
+    "last": 922,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 185 -\ngame 16.74s"
+  },
+  {
+    "first": 923,
+    "last": 925,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 926,
+    "last": 926,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 927,
+    "last": 927,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 928,
+    "last": 928,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 929,
+    "last": 929,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 930,
+    "last": 931,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 187 -\ngame 16.94s"
+  },
+  {
+    "first": 932,
+    "last": 933,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 188 -\ngame 17.04s"
+  },
+  {
+    "first": 934,
+    "last": 934,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 188 -\ngame 17.04s"
+  },
+  {
+    "first": 935,
+    "last": 950,
+    "count": 16,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 188 -\ngame 17.04s"
+  },
+  {
+    "first": 951,
+    "last": 953,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 188 -\ngame 17.04s"
+  },
+  {
+    "first": 954,
+    "last": 954,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 189 -\ngame 17.14s"
+  },
+  {
+    "first": 955,
+    "last": 956,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 189 -\ngame 17.14s"
+  },
+  {
+    "first": 957,
+    "last": 957,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 189 -\ngame 17.14s"
+  },
+  {
+    "first": 958,
+    "last": 958,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 190 -\ngame 17.24s"
+  },
+  {
+    "first": 959,
+    "last": 960,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 190 -\ngame 17.24s"
+  },
+  {
+    "first": 961,
+    "last": 961,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 191 -\ngame 17.33s"
+  },
+  {
+    "first": 962,
+    "last": 965,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 191 -\ngame 17.33s"
+  },
+  {
+    "first": 966,
+    "last": 966,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 193 -\ngame 17.53s"
+  },
+  {
+    "first": 967,
+    "last": 968,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 193 -\ngame 17.53s"
+  },
+  {
+    "first": 969,
+    "last": 969,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 194 -\ngame 17.63s"
+  },
+  {
+    "first": 970,
+    "last": 970,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 194 -\ngame 17.63s"
+  },
+  {
+    "first": 971,
+    "last": 971,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 195 -\ngame 17.67s"
+  },
+  {
+    "first": 972,
+    "last": 973,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 195 -\ngame 17.67s"
+  },
+  {
+    "first": 974,
+    "last": 974,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 196 -\ngame 17.75s"
+  },
+  {
+    "first": 975,
+    "last": 976,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 196 -\ngame 17.75s"
+  },
+  {
+    "first": 977,
+    "last": 978,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 196 -\ngame 17.75s"
+  },
+  {
+    "first": 979,
+    "last": 979,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 196 -\ngame 17.75s"
+  },
+  {
+    "first": 980,
+    "last": 981,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 197 -\ngame 17.85s"
+  },
+  {
+    "first": 982,
+    "last": 982,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 197 -\ngame 17.85s"
+  },
+  {
+    "first": 983,
+    "last": 983,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 198 -\ngame 17.95s"
+  },
+  {
+    "first": 984,
+    "last": 984,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 198 -\ngame 17.95s"
+  },
+  {
+    "first": 985,
+    "last": 985,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 198 -\ngame 17.95s"
+  },
+  {
+    "first": 986,
+    "last": 986,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 199 -\ngame 18.00s"
+  },
+  {
+    "first": 987,
+    "last": 987,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 199 -\ngame 18.00s"
+  },
+  {
+    "first": 988,
+    "last": 988,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 199 -\ngame 18.00s"
+  },
+  {
+    "first": 989,
+    "last": 989,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 199 -\ngame 18.00s"
+  },
+  {
+    "first": 990,
+    "last": 990,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 199 -\ngame 18.00s"
+  },
+  {
+    "first": 991,
+    "last": 991,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 201 -\ngame 18.20s"
+  },
+  {
+    "first": 992,
+    "last": 992,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 201 -\ngame 18.20s"
+  },
+  {
+    "first": 993,
+    "last": 995,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 201 -\ngame 18.20s"
+  },
+  {
+    "first": 996,
+    "last": 996,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 203 -\ngame 18.31s"
+  },
+  {
+    "first": 997,
+    "last": 997,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 203 -\ngame 18.31s"
+  },
+  {
+    "first": 998,
+    "last": 998,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 204 -\ngame 18.41s"
+  },
+  {
+    "first": 999,
+    "last": 999,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 204 -\ngame 18.41s"
+  },
+  {
+    "first": 1000,
+    "last": 1000,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 204 -\ngame 18.41s"
+  },
+  {
+    "first": 1001,
+    "last": 1001,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 205 -\ngame 18.43s"
+  },
+  {
+    "first": 1002,
+    "last": 1002,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 205 -\ngame 18.43s"
+  },
+  {
+    "first": 1003,
+    "last": 1003,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1004,
+    "last": 1004,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1005,
+    "last": 1005,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1006,
+    "last": 1006,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1007,
+    "last": 1007,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1008,
+    "last": 1008,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1009,
+    "last": 1009,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 206 -\ngame 18.53s"
+  },
+  {
+    "first": 1010,
+    "last": 1010,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 207 -\ngame 18.63s"
+  },
+  {
+    "first": 1011,
+    "last": 1012,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 207 -\ngame 18.63s"
+  },
+  {
+    "first": 1013,
+    "last": 1013,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 207 -\ngame 18.63s"
+  },
+  {
+    "first": 1014,
+    "last": 1014,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 208 -\ngame 18.70s"
+  },
+  {
+    "first": 1015,
+    "last": 1015,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 208 -\ngame 18.70s"
+  },
+  {
+    "first": 1016,
+    "last": 1016,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 208 -\ngame 18.70s"
+  },
+  {
+    "first": 1017,
+    "last": 1017,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 208 -\ngame 18.70s"
+  },
+  {
+    "first": 1018,
+    "last": 1018,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 208 -\ngame 18.70s"
+  },
+  {
+    "first": 1019,
+    "last": 1021,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1020,
+    "last": 1020,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1022,
+    "last": 1022,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1023,
+    "last": 1023,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1024,
+    "last": 1024,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1025,
+    "last": 1025,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1026,
+    "last": 1026,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1027,
+    "last": 1027,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1028,
+    "last": 1028,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1029,
+    "last": 1029,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 209 -\ngame 18.80s"
+  },
+  {
+    "first": 1030,
+    "last": 1030,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1031,
+    "last": 1033,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1032,
+    "last": 1032,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1034,
+    "last": 1035,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1036,
+    "last": 1036,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1037,
+    "last": 1037,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1038,
+    "last": 1046,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1039,
+    "last": 1045,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 210 -\ngame 18.90s"
+  },
+  {
+    "first": 1047,
+    "last": 1047,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 211 -\ngame 19.00s"
+  },
+  {
+    "first": 1048,
+    "last": 1048,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 211 -\ngame 19.00s"
+  },
+  {
+    "first": 1049,
+    "last": 1049,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 211 -\ngame 19.00s"
+  },
+  {
+    "first": 1050,
+    "last": 1050,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 211 -\ngame 19.00s"
+  },
+  {
+    "first": 1051,
+    "last": 1051,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 212 -\ngame 19.09s"
+  },
+  {
+    "first": 1052,
+    "last": 1052,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 212 -\ngame 19.09s"
+  },
+  {
+    "first": 1053,
+    "last": 1053,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 213 -\ngame 19.19s"
+  },
+  {
+    "first": 1054,
+    "last": 1054,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 213 -\ngame 19.19s"
+  },
+  {
+    "first": 1055,
+    "last": 1055,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 213 -\ngame 19.19s"
+  },
+  {
+    "first": 1056,
+    "last": 1058,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 213 -\ngame 19.19s"
+  },
+  {
+    "first": 1059,
+    "last": 1059,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 215 -\ngame 19.37s"
+  },
+  {
+    "first": 1060,
+    "last": 1060,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 215 -\ngame 19.37s"
+  },
+  {
+    "first": 1061,
+    "last": 1061,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 216 -\ngame 19.39s"
+  },
+  {
+    "first": 1062,
+    "last": 1062,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 216 -\ngame 19.39s"
+  },
+  {
+    "first": 1063,
+    "last": 1063,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 216 -\ngame 19.39s"
+  },
+  {
+    "first": 1064,
+    "last": 1064,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 216 -\ngame 19.39s"
+  },
+  {
+    "first": 1065,
+    "last": 1066,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 218 -\ngame 19.55s"
+  },
+  {
+    "first": 1067,
+    "last": 1068,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 219 -\ngame 19.63s"
+  },
+  {
+    "first": 1069,
+    "last": 1069,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 220 -\ngame 19.68s"
+  },
+  {
+    "first": 1070,
+    "last": 1070,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 220 -\ngame 19.68s"
+  },
+  {
+    "first": 1071,
+    "last": 1071,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 220 -\ngame 19.68s"
+  },
+  {
+    "first": 1072,
+    "last": 1072,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 221 -\ngame 19.78s"
+  },
+  {
+    "first": 1073,
+    "last": 1073,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 221 -\ngame 19.78s"
+  },
+  {
+    "first": 1074,
+    "last": 1074,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 222 -\ngame 19.88s"
+  },
+  {
+    "first": 1075,
+    "last": 1075,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 222 -\ngame 19.88s"
+  },
+  {
+    "first": 1076,
+    "last": 1076,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 223 -\ngame 19.98s"
+  },
+  {
+    "first": 1077,
+    "last": 1077,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 223 -\ngame 19.98s"
+  },
+  {
+    "first": 1078,
+    "last": 1078,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 223 -\ngame 19.98s"
+  },
+  {
+    "first": 1079,
+    "last": 1079,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 223 -\ngame 19.98s"
+  },
+  {
+    "first": 1080,
+    "last": 1080,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 225 -\ngame 20.11s"
+  },
+  {
+    "first": 1081,
+    "last": 1081,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 225 -\ngame 20.11s"
+  },
+  {
+    "first": 1082,
+    "last": 1082,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 226 -\ngame 20.21s"
+  },
+  {
+    "first": 1083,
+    "last": 1083,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 226 -\ngame 20.215"
+  },
+  {
+    "first": 1084,
+    "last": 1084,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 226 -\ngame 20.215"
+  },
+  {
+    "first": 1085,
+    "last": 1085,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 227 -\ngame 20.235"
+  },
+  {
+    "first": 1086,
+    "last": 1086,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 227 -\ngame 20.23s"
+  },
+  {
+    "first": 1087,
+    "last": 1087,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 228 -\ngame 20.31s"
+  },
+  {
+    "first": 1088,
+    "last": 1089,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 228 -\ngame 20.31s"
+  },
+  {
+    "first": 1090,
+    "last": 1090,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 228 -\ngame 20.31s"
+  },
+  {
+    "first": 1091,
+    "last": 1091,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 230 -\ngame 20.50s"
+  },
+  {
+    "first": 1092,
+    "last": 1092,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 230 -\ngame 20.50s"
+  },
+  {
+    "first": 1093,
+    "last": 1093,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 231 -\ngame 20.58s"
+  },
+  {
+    "first": 1094,
+    "last": 1094,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 231 -\ngame 20.58s"
+  },
+  {
+    "first": 1095,
+    "last": 1095,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 232 -\ngame 20.65s"
+  },
+  {
+    "first": 1096,
+    "last": 1096,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 232 -\ngame 20.65s"
+  },
+  {
+    "first": 1097,
+    "last": 1097,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 232 -\ngame 20.65s"
+  },
+  {
+    "first": 1098,
+    "last": 1098,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 232 -\ngame 20.65s"
+  },
+  {
+    "first": 1099,
+    "last": 1099,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 233 -\ngame 20.74s"
+  },
+  {
+    "first": 1100,
+    "last": 1101,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 233 -\ngame 20.74s"
+  },
+  {
+    "first": 1102,
+    "last": 1102,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 233 -\ngame 20.74s"
+  },
+  {
+    "first": 1103,
+    "last": 1103,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 233 -\ngame 20.74s"
+  },
+  {
+    "first": 1104,
+    "last": 1104,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 234 -\ngame 20.81s"
+  },
+  {
+    "first": 1105,
+    "last": 1105,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 234 -\ngame 20.81s"
+  },
+  {
+    "first": 1106,
+    "last": 1107,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 234 -\ngame 20.81s"
+  },
+  {
+    "first": 1108,
+    "last": 1108,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 235 -\ngame 20.91s"
+  },
+  {
+    "first": 1109,
+    "last": 1109,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 235 -\ngame 20.91s"
+  },
+  {
+    "first": 1110,
+    "last": 1110,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 235 -\ngame 20.91s"
+  },
+  {
+    "first": 1111,
+    "last": 1115,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 235 -\ngame 20.91s"
+  },
+  {
+    "first": 1112,
+    "last": 1116,
+    "count": 3,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 235 -\ngame 20.91s"
+  },
+  {
+    "first": 1117,
+    "last": 1117,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 236 -\ngame 20.99s"
+  },
+  {
+    "first": 1118,
+    "last": 1125,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 236 -\ngame 20.99s"
+  },
+  {
+    "first": 1119,
+    "last": 1126,
+    "count": 5,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 236 -\ngame 20.99s"
+  },
+  {
+    "first": 1127,
+    "last": 1127,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 237 -\ngame 21.09s"
+  },
+  {
+    "first": 1128,
+    "last": 1128,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 237 -\ngame 21.09s"
+  },
+  {
+    "first": 1129,
+    "last": 1132,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 237 -\ngame 21.09s"
+  },
+  {
+    "first": 1133,
+    "last": 1133,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 237 -\ngame 21.09s"
+  },
+  {
+    "first": 1134,
+    "last": 1134,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 238 -\ngame 21.19s"
+  },
+  {
+    "first": 1135,
+    "last": 1135,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 238 -\ngame 21.19s"
+  },
+  {
+    "first": 1136,
+    "last": 1136,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 238 -\ngame 21.19s"
+  },
+  {
+    "first": 1137,
+    "last": 1137,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 239 -\ngame 21.28s"
+  },
+  {
+    "first": 1138,
+    "last": 1138,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 239 -\ngame 21.28s"
+  },
+  {
+    "first": 1139,
+    "last": 1141,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 239 -\ngame 21.28s"
+  },
+  {
+    "first": 1140,
+    "last": 1140,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 239 -\ngame 21.28s"
+  },
+  {
+    "first": 1142,
+    "last": 1142,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 241 -\ngame 21.46s"
+  },
+  {
+    "first": 1143,
+    "last": 1143,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 241 -\ngame 21.46s"
+  },
+  {
+    "first": 1144,
+    "last": 1144,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 241 -\ngame 21.46s"
+  },
+  {
+    "first": 1145,
+    "last": 1146,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 241 -\ngame 21.46s"
+  },
+  {
+    "first": 1147,
+    "last": 1147,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1148,
+    "last": 1151,
+    "count": 4,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.635"
+  },
+  {
+    "first": 1152,
+    "last": 1152,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1153,
+    "last": 1153,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1154,
+    "last": 1154,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1155,
+    "last": 1155,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1156,
+    "last": 1158,
+    "count": 2,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1157,
+    "last": 1157,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1159,
+    "last": 1167,
+    "count": 9,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1168,
+    "last": 1168,
+    "count": 1,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  },
+  {
+    "first": 1169,
+    "last": 1176,
+    "count": 8,
+    "ocr": "LIVE AI / COMBAT - DIAGNOSTIC CAMERA - frame 243 -\ngame 21.63s"
+  }
+]

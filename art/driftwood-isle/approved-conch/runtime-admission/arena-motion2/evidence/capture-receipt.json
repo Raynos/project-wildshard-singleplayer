@@ -1,0 +1,34 @@
+{
+  "schema": "wildshard.conch.actual-capture.v1",
+  "atUTC": "2026-10-19T04:45:00Z",
+  "productSourceHash": "bb2f0928b20938a942a93f8b9d27b65bebc726464ffedd359c16f19a70c9e8d0",
+  "route": "normal approved cloud headless-shell browser lane",
+  "result": "Functional checks passed except counter not observed. No visual/motion admission; close corpse framing inadequate.",
+  "rawVideo": {
+    "path": "tmp/conch-grounded-qa-build1-headless/video/page@d0881af9f3012a6806e417f3092bff4e.webm",
+    "bytes": 9434174,
+    "sha256": "fe09777b74895d5a8429e5270b845fa0dca93507750ee940194a0a443ba10a95"
+  },
+  "worldEnvelopeCaveat": "Report floor field0 is invalid here; arena plane is900. Preserve raw values and do not claim floor-relative pass. Full-cycle world contact remains unreviewed.",
+  "allFrameReview": false,
+  "checks": {
+    "onlyConch": true,
+    "thrust": true,
+    "actualPlayerDamage": true,
+    "counter": false,
+    "guardObserved": true,
+    "actualEnemyDamage": true,
+    "enemyDefeated": true,
+    "noPostDeathStrike": true,
+    "boutLocalReward": true,
+    "retry": true,
+    "playerDefeated": true,
+    "defeatedAttackBlocked": true,
+    "finalRetry": true,
+    "emptyStorage": true,
+    "emptyUnchangedStateStore": true,
+    "reentry": true,
+    "reentryPersistence": true,
+    "errors": true
+  }
+}

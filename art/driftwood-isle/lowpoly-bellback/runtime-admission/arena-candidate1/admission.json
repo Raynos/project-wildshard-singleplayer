@@ -1,0 +1,33 @@
+{
+  "schema": "wildshard.bellback.arena-candidate.v1",
+  "candidate": "V6-frame2-native8-motion1",
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "rootFlinch": "authored-pose",
+  "files": {
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/ADMISSION.md": "3ea9b5337279bb3c7599275f1392a73a8c4942df738d139564dcee3a89776f03",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/checkpoint.py": "7a973e64e65d92a362c02782e5842ad2327b2b6193aa79fa1925d1f9f37d3a70",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/dimension-measurement.json": "0f241d3185f0aad08b2012265ade2d09b257194dc6e2a30641d02e0f3c0ed5f6",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/measure.py": "31549208cf14b9cf2bfc0439765a48c250a34d9d98b341e6f3259479aa69e79c",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/metadata.json": "7102c5ba2084311c55bfeeee832ca7e6868410c6962cd3e443f9e2505aa82475",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/preflight.json": "7a45447fea4e7f7550b81886a33e291854eb6393473b577e40e1e483654a12ba",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/arena-candidate1/weighted-envelope.json": "77c04e70a92fdd7b7fa1a1d36a44a395b54de72089a215f9b0dcd0aab00f1584",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/bellback-study-v6-frame2.glb": "f8b0d37813279d7ee1c079a2a2b498a05a9a6e4ea751846e4fef036a567596f0",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/build_bellback_v6_frame2.py": "68a955915e6836735a0c0df2454c2f168255689f2baf54ef2bea16008a410728",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/bellback-v6-native.json": "32e78a1677765c511645905ca7c48ad3e60d0cf7fac4a8dbd830d39e9f343d44",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/mesh-map.json": "11c1672a5e38c8fd754b0dece7c8ab733d57cb8b1d27d9eb20cb1c42d8e25df6",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/metadata.json": "34ba7aa229056ad3504e6959f4c1779b198d28f9323aea9c5187d4acd3b9cb12",
+    "art/driftwood-isle/lowpoly-bellback/runtime-admission/visual/frame2-native/payload.bin": "b97a9df5437062aa2eb490340663c2b35ecf22ba83c83b834082d8ffe7ae7e9c",
+    "scripts/bellback-native-admission.mjs": "4f905560b7b06de89c6ce5a9a38e50b56c5371d26eeb1402a8475e4e81cc01ae",
+    "scripts/bellback-native-admission.test.mjs": "13b675a6e3220e3e566eeb58821fe4893522239298f0f65f4e5e9fca0a605006",
+    "scripts/build-bellback-native-preview.mjs": "d60da719f62500cd33331b67020f74519fff528052aa33fa1bc630bbca19815c",
+    "src/shards/driftwood-isle/behaviour/bellback.as": "69c546e693e372b29332c0b0b6376ba234d08181eb7596ee3febd9050c680e2a",
+    "src/shards/driftwood-isle/generators/bellbackNativeClips.ts": "66c181119510f10be9e0ff671f156bf4c9a6ff1f111779b34ffb0192dcbd56ff",
+    "src/shards/driftwood-isle/generators/bellbackNativePreview.ts": "0177bb4c986c8cb85eacd1412942697ced7e83531d8a75f21219e1fd35cd5bdc",
+    "src/shards/driftwood-isle/generators/tidalGiantsCombat.ts": "a94b7d52f9df2f43eab6e98dfe645f5093d1db3a6d8398098230549c5585946e",
+    "test/bellback-native-envelope.test.ts": "6d870c0ace4dea4b57c5bba6a64a321093bec6a2fbff3ab1d92194685179fd20",
+    "test/bellback-native-preview.test.ts": "1e30399efffb97d9fddcba46633ed1c8e01900973b746d489ba01eb2c8d7de2d",
+    "vite/bellback-native-preview.config.ts": "7392a2b13528b0e6e2d27c85359ee0cec98b7e8674d24c03b17e26b0644662ef"
+  }
+}

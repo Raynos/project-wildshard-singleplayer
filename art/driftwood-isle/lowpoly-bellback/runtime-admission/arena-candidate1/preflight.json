@@ -1,0 +1,41 @@
+{
+  "schema": "wildshard.bellback.candidate-preflight.v1",
+  "status": "source-prepared-not-runtime-accepted",
+  "focusedVitest": {
+    "files": 2,
+    "tests": 6,
+    "passed": true
+  },
+  "nodeAdmissionTests": {
+    "tests": 2,
+    "passed": true
+  },
+  "oxlint": {
+    "files": 8,
+    "exitCode": 0
+  },
+  "coreContainment": true,
+  "poseSweep": {
+    "samplesPerState": 41,
+    "states": 7,
+    "nativeVertices": 13374,
+    "belowFloor": 0,
+    "minimumY": -3.0531133177191805e-16
+  },
+  "earlierFailures": {
+    "numericDAG": "Rejected 131-node leg support program. Fixed by reusing gait subexpression; no limit changes.",
+    "corpseLocalFloor": "Initial .5 body drop and .25 head pitch penetrated .1926166092. Revised .3 drop and -.2 head pitch; final full weighted sweep zero penetration."
+  },
+  "notRun": [
+    "product compilation",
+    "application build",
+    "actual arena browser",
+    "whole-project typecheck",
+    "full suite",
+    "physical phone"
+  ],
+  "runtimeAcceptance": false,
+  "colliderAcceptance": false,
+  "visualAcceptance": false,
+  "worldCorpseContactAccepted": false
+}

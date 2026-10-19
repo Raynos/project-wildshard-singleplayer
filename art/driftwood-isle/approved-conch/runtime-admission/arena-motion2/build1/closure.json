@@ -1,0 +1,25 @@
+{
+  "schema": "wildshard.conch.build-and-qa-source-closure.v1",
+  "candidateClosureSha256": "0adafe376e45f0b6346c096561b08f5ad30fe41195b7f01f2ffe6b016279d2ad",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/build1/receipt.json": {
+      "sha256": "930432e200e10d5877a837aeac88ef7e86a66ce347537f2da65a23c4f04b37d3",
+      "bytes": 23795
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/build1/launch-failures.json": {
+      "sha256": "ea5931712d1be9a6e40a1376fcbfd7e1e0b4c2ee1f1070d7fd6775c2ff995466",
+      "bytes": 836
+    },
+    "scripts/qa-conch-grounded-preview.mjs": {
+      "sha256": "174e0a65fccb9a136c560f74ca789e11587a638f4c85261686d69767e165fa3d",
+      "bytes": 12407
+    }
+  },
+  "checks": {
+    "productBuild": "passed",
+    "appBuild": "passed",
+    "qaRunnerOxlint": "passed",
+    "browser": "blocked before launch"
+  },
+  "runtimeAcceptance": false
+}

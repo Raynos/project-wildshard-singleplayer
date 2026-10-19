@@ -1,0 +1,178 @@
+{
+  "method": "Independent NumPy quaternion matrix hierarchy, source rigid vertices minus absolute bind translations, captured meshWorld; groundY900",
+  "traceSha256": "7652b8746de57bbf440f022855f344ac9e63ac0d1e5e281b593accbedff7a4c1",
+  "samples": 247,
+  "belowMinus005": 28,
+  "minimum": -0.12394445059942427,
+  "aliveMinimum": -0.07161870040886242,
+  "violations": [
+    {
+      "frame": 158,
+      "alive": true,
+      "minimum": -0.006715413326674025,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 159,
+      "alive": true,
+      "minimum": -0.022073702627267267,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 160,
+      "alive": true,
+      "minimum": -0.00518382496659342,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 167,
+      "alive": true,
+      "minimum": -0.04209726591818708,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 168,
+      "alive": true,
+      "minimum": -0.024787792526126395,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 169,
+      "alive": true,
+      "minimum": -0.010830915914084471,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 178,
+      "alive": true,
+      "minimum": -0.07161870040886242,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 179,
+      "alive": true,
+      "minimum": -0.040368607703953785,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 180,
+      "alive": true,
+      "minimum": -0.02080797052167327,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 181,
+      "alive": true,
+      "minimum": -0.008671487695664837,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 188,
+      "alive": true,
+      "minimum": -0.03932196810126243,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 189,
+      "alive": true,
+      "minimum": -0.01571522371125411,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 198,
+      "alive": false,
+      "minimum": -0.022457105155581303,
+      "lowestPart": "leg-1_1_knee"
+    },
+    {
+      "frame": 199,
+      "alive": false,
+      "minimum": -0.026304949829409452,
+      "lowestPart": "leg1_1_knee"
+    },
+    {
+      "frame": 230,
+      "alive": false,
+      "minimum": -0.07826439752034275,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 231,
+      "alive": false,
+      "minimum": -0.12394445059942427,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 232,
+      "alive": false,
+      "minimum": -0.1234899326325376,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 233,
+      "alive": false,
+      "minimum": -0.12295530272388078,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 234,
+      "alive": false,
+      "minimum": -0.12292322609312123,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 235,
+      "alive": false,
+      "minimum": -0.12292308551866427,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 236,
+      "alive": false,
+      "minimum": -0.12292606377991433,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 237,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 238,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 239,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 240,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 241,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 242,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    },
+    {
+      "frame": 243,
+      "alive": false,
+      "minimum": -0.1229378622999775,
+      "lowestPart": "raptor-1_hook"
+    }
+  ]
+}

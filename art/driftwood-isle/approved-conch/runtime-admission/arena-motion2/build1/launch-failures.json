@@ -1,0 +1,26 @@
+{
+  "schema": "wildshard.conch.browser-launch-failures.v1",
+  "candidate": "character-native15-motion2",
+  "attempts": [
+    {
+      "mode": "ordinary sandbox",
+      "exitCode": 1,
+      "diagnostics": [
+        "browserType.launch: Target page, context or browser has been closed",
+        "chrome_crashpad_handler: --database is required",
+        "Check failed: . socket() failed: Operation not permitted (1)"
+      ],
+      "browserStarted": false
+    },
+    {
+      "mode": "authorized escalation",
+      "exitCode": 1,
+      "diagnostics": [
+        "bwrap launcher could not create its session file because the filesystem is read-only; failure before command execution"
+      ],
+      "browserStarted": false
+    }
+  ],
+  "retry": "No further escalation; parent inspecting supported cloud route",
+  "runtimeAcceptance": false
+}

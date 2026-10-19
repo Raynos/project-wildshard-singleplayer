@@ -1,0 +1,155 @@
+{
+  "schema": "wildshard.colossus.seam-analysis.v1",
+  "sourceSha256": "f10cdec46537f8d579fa7af687890aebe6c2f0e9d82c962e64a478567e3a0218",
+  "glbSha256": "8c94ed4a452f10ca5c9e1e663c7437c2905e42b90bf5abe9faaf970391a8189b",
+  "node": 81,
+  "name": "Shin growth -1 living seam",
+  "frames": [
+    {
+      "ring": 0,
+      "tangent": [
+        -0.2656711277095251,
+        -0.6968599360955978,
+        0.6661869717777349
+      ],
+      "guide": [
+        0,
+        1,
+        0
+      ],
+      "u": [
+        0.9288625822526712,
+        -0.0,
+        0.37042449067374006
+      ],
+      "guideSwitched": false
+    },
+    {
+      "ring": 1,
+      "tangent": [
+        -0.28914957727308216,
+        -0.9554115788238493,
+        0.05984343750251565
+      ],
+      "guide": [
+        1,
+        0,
+        0
+      ],
+      "u": [
+        0.0,
+        -0.06251378055046303,
+        -0.9980441008499016
+      ],
+      "guideSwitched": true
+    },
+    {
+      "ring": 2,
+      "tangent": [
+        -0.2225981051921581,
+        -0.8759021632121345,
+        -0.4280718211295437
+      ],
+      "guide": [
+        0,
+        1,
+        0
+      ],
+      "u": [
+        -0.8872161580098109,
+        0.0,
+        0.4613539736106217
+      ],
+      "guideSwitched": false
+    }
+  ],
+  "adjacentUDot": [
+    -0.36969997772725566,
+    -0.4604516117657422
+  ],
+  "reconstructedVertices": 18,
+  "maxVertexReconstructionError": 1.4542096516494081e-07,
+  "opposedTriangles": [
+    {
+      "primitive": 0,
+      "triangle": 11,
+      "vertexIds": [
+        7,
+        13,
+        12
+      ],
+      "sidePolygon": 6,
+      "ringSpan": [
+        1,
+        2
+      ],
+      "cosine": -0.18608508391712192
+    },
+    {
+      "primitive": 1,
+      "triangle": 7,
+      "vertexIds": [
+        8,
+        14,
+        13
+      ],
+      "sidePolygon": 7,
+      "ringSpan": [
+        1,
+        2
+      ],
+      "cosine": -0.15555090256074855
+    },
+    {
+      "primitive": 1,
+      "triangle": 9,
+      "vertexIds": [
+        9,
+        15,
+        14
+      ],
+      "sidePolygon": 8,
+      "ringSpan": [
+        1,
+        2
+      ],
+      "cosine": -0.06556837936181371
+    }
+  ],
+  "correspondenceCosts": [
+    {
+      "ringSpan": [
+        0,
+        1
+      ],
+      "sumSquaredConnectorLengthsByShift": [
+        0.24875612880003192,
+        0.2002267304032477,
+        0.17821375566521258,
+        0.20451903468195426,
+        0.25283870671030867,
+        0.27497154163312554
+      ],
+      "bestShift": 2
+    },
+    {
+      "ringSpan": [
+        1,
+        2
+      ],
+      "sumSquaredConnectorLengthsByShift": [
+        0.35098603884601387,
+        0.3117180823626923,
+        0.2907942754989977,
+        0.3089665540179207,
+        0.3480616228797036,
+        0.36907741070610406
+      ],
+      "bestShift": 2
+    }
+  ],
+  "interpretation": "Read-only correspondence evidence. Shortest connectors do not prove an acceptable repair; preserve caps, points, material ownership and inspect real-host matched pairs first.",
+  "geometryChanged": false,
+  "repairSelected": false,
+  "runtimeAdmitted": false
+}

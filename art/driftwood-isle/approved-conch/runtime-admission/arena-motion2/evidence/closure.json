@@ -1,0 +1,33 @@
+{
+  "schema": "wildshard.conch.actual-evidence-closure.v1",
+  "files": {
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/combat-observation.json": {
+      "sha256": "66fa2d49e4b90618f5ce652ec95e79699f8793f394d512b7e59e04994152f009",
+      "bytes": 543793
+    },
+    "art/driftwood-isle/approved-conch/runtime-admission/arena-motion2/evidence/capture-receipt.json": {
+      "sha256": "fce94e762e65f461d90f2e991fd47f187168f2dfc6b7f7af343db5c11cd056df",
+      "bytes": 1315
+    },
+    "public/review-evidence/conch-native-motion2/corpse-reward.jpg": {
+      "sha256": "4ee2ff8a3d39187854a99afe7927ca1c0712b25a057fdcaf1a41c660d4a341c1",
+      "bytes": 65796
+    },
+    "public/review-evidence/conch-native-motion2/entry.jpg": {
+      "sha256": "01cd5285d2d4e1674767f1e999ee7938b7ec3638876a3914983ad4e8e8a39a6f",
+      "bytes": 67286
+    },
+    "public/review-evidence/conch-native-motion2/sword-result.jpg": {
+      "sha256": "af95501472620a2185464230fc92bfbee8ad6adc3c52f15b702a15a076b36f9c",
+      "bytes": 69567
+    },
+    "public/review-evidence/conch-native-motion2/player-defeat.jpg": {
+      "sha256": "2a186c9a2677bac3dd69c3f8f2bdba22b99ddc3e490312acc13f7c2f4ef668a9",
+      "bytes": 55637
+    },
+    "public/review-evidence/conch-native-motion2/both-strikes-observation.jpg": {
+      "sha256": "82e5694fb49f546fee5697466fe37073ee997d6776468321a95adad0d3747962",
+      "bytes": 74246
+    }
+  }
+}
